@@ -8,3 +8,4 @@ Architecture Technique
    introduction.rst
    storage.rst
    check-availability.rst
+   seda-extraction.rst

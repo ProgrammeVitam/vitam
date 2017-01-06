@@ -54,7 +54,7 @@ public class ValidationXsdUtils {
     /**
      * Filename of the catalog file ; should be found in the classpath.
      */
-    public static final String CATALOG_FILENAME = "catalog.xml";
+    public static final String CATALOG_FILENAME = "seda-vitam/catalog.xml";
 
     /**
      * @param xmlFile the file to validate

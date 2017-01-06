@@ -1,0 +1,25 @@
+{"$hits":{"total":1,"offset":0,"limit":1,"size":1},"$results":[
+{
+	"#id" : "GUID_ARCHIVE_UNIT_CHILD",
+	"DescriptionLevel" : "Item",
+	"Title" : "Annuaire_projet.pdf",
+	"Description" : "Pseudo Archive Unit du fichier\n                        :C:\\Users\\mehdi.afnai\\Desktop\\content\\Annuaire_projet.pdf",
+	"TransactedDate" : "2016-03-23T14:58:30",
+	"#object" : "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq",
+	"#operations" : [
+		"aedqaaaaacaam7mxaabpuakzn47pvkiaaaaq",
+		"aedqaaaaacaam7mxaabpuakzn58pvkiaaaaq"
+	],
+	"#tenant" : 0,
+	"#max" : 3,
+	"#min" : 1,
+	"#unitups" : [
+		"GUID_ARCHIVE_UNIT_PARENT"
+	],
+	"#nbunits" : 1,
+	"#allunitups" : [
+		"GUID_ARCHIVE_UNIT_ANCESTOR",
+		"GUID_ARCHIVE_UNIT_PARENT"
+	]
+}
+],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}

@@ -224,15 +224,18 @@ public class SedaConstants {
     public static final String TAG_RULE_REASSESSING_DATE = "ClassificationReassessingDate";
     public static final String TAG_RULE_NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
     public static final String TAG_RULE_NEED_AUTHORISATION = "NeedAuthorization";
+
+    public static final String TAG_MANAGEMENT = "Management";
+
+    
     /**
      * Prefix of rules will be applicatedto archive unit
      */
     public static final String TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT = "RulesToApply";
     /**
-     * Preefix of rules end date
+     * Prefix of rules end date
      */
     public static final String TAG_RULE_END_DATE = "EndDate";
-    public static final String TAG_MANAGEMENT = "Management";
     private static List<String> RULES_TYPE;
 
     public static final String TAG_OPERATION = "Operation";

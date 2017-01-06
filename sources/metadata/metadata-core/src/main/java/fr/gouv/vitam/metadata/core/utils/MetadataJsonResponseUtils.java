@@ -74,6 +74,7 @@ public final class MetadataJsonResponseUtils {
         // TODO P1 : review if statement because if result.getFinal().get("Result") == null and selectRequest
         // is instanceof SelectParserMultiple, we have an IllegalArgumentException during call to
         // getMetadataJsonObject(). This should not be the case
+        // the nbResult problem originates from DbRequest.execRequest:Result result = roots;
         if (result != null && result.getNbResult() > 0 && (selectRequest instanceof SelectParserMultiple ||
             result.getFinal().get(Result.RESULT_FIELD) != null)) {
             LOGGER.debug("Result document: " + result.getFinal().toJson());

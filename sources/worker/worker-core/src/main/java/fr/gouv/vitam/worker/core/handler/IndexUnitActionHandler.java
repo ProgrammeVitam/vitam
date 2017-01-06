@@ -30,9 +30,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLEventFactory;
@@ -53,7 +53,12 @@ import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.Update;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -161,6 +166,8 @@ public class IndexUnitActionHandler extends ActionHandler {
     }
 
     /**
+     * Index archive unit
+     * 
      * @param params work parameters
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
@@ -179,26 +186,39 @@ public class IndexUnitActionHandler extends ActionHandler {
 
             if (response != null) {
                 input = (InputStream) response.getEntity();
-                final Insert insertQuery = new Insert();
 
-                final List<Object> archiveDetailsRequiredTForIndex =
+                final Map<String, Object> archiveDetailsRequiredForIndex =
                     convertArchiveUnitToJson(input, containerId, objectName);
-                final JsonNode json = ((JsonNode) archiveDetailsRequiredTForIndex.get(0)).get(ARCHIVE_UNIT);
+                final JsonNode data = ((JsonNode) archiveDetailsRequiredForIndex.get("data")).get(ARCHIVE_UNIT);
+                final Boolean existing = (Boolean) archiveDetailsRequiredForIndex.get("existing");
 
-                // Add _up to archive unit json object
-                if (archiveDetailsRequiredTForIndex.size() == 2) {
-                    final ArrayNode parents = (ArrayNode) archiveDetailsRequiredTForIndex.get(1);
-                    insertQuery.addRoots(parents);
+                RequestMultiple query;
+                if (existing) {
+                    query = new Update();
+                } else {
+                    query = new Insert();
                 }
-
-                metadataClient.insertUnit(insertQuery.addData((ObjectNode) json).getFinalInsert());
+                // Add _up to archive unit json object
+                if (archiveDetailsRequiredForIndex.get("up") != null) {
+                    final ArrayNode parents = (ArrayNode) archiveDetailsRequiredForIndex.get("up");
+                    query.addRoots(parents);
+                }
+                if (Boolean.TRUE.equals(existing)) {
+                    // update case
+                    computeExistingData(data, query);
+                    metadataClient.updateUnitbyId(((Update) query).getFinalUpdate(),
+                        (String) archiveDetailsRequiredForIndex.get("id"));
+                } else {
+                    // insert case
+                    metadataClient.insertUnit(((Insert) query).addData((ObjectNode) data).getFinalInsert());
+                }
                 itemStatus.increment(StatusCode.OK);
             } else {
                 LOGGER.error("Archive unit not found");
                 throw new ProcessingException("Archive unit not found");
             }
 
-        } catch (final MetaDataException | InvalidParseOperationException e) {
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
@@ -209,7 +229,46 @@ public class IndexUnitActionHandler extends ActionHandler {
         }
     }
 
-    private List<Object> convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
+    /**
+     * Import existing data and add them to the data defined in sip in update query
+     * 
+     * @param data sip defined data
+     * @param query update query
+     * @throws InvalidCreateOperationException exception while adding an action to the query
+     */
+    private void computeExistingData(final JsonNode data, RequestMultiple query)
+        throws InvalidCreateOperationException {
+        Iterator<String> fieldNames = data.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            if (data.get(fieldName).isArray()) {
+                // if field is multiple values
+                for (JsonNode fieldNode : (ArrayNode) data.get(fieldName)) {
+                    ((Update) query)
+                        .addActions(UpdateActionHelper.add(fieldName.replace("_", "#"), fieldNode.textValue()));
+                }
+            } else {
+                // if field is single value
+                String fieldValue = data.get(fieldName).textValue();
+                if (!"#id".equals(fieldName) && fieldValue != null && !fieldValue.isEmpty()) {
+                    ((Update) query)
+                        .addActions(UpdateActionHelper.set(fieldName.replace("_", "#"), fieldValue));
+                }
+            }
+        }
+    }
+
+    /**
+     * Convert xml archive unit to json node for insert/update.
+     * 
+     * @param input xml archive unit
+     * @param containerId container id
+     * @param objectName unit file name
+     * @return map of data
+     * @throws InvalidParseOperationException exception while reading temporary json file
+     * @throws ProcessingException exception while reading xml file
+     */
+    private Map<String, Object> convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
         throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
@@ -222,7 +281,11 @@ public class IndexUnitActionHandler extends ActionHandler {
 
         JsonNode data = null;
         String parentsList = null;
-        final List<Object> archiveUnitDetails = new ArrayList<>();
+        final Map<String, Object> archiveUnitDetails = new HashMap<>();
+
+        String unitGuid = null;
+        boolean existingUnit = false;
+
         XMLEventReader reader = null;
 
         try {
@@ -242,8 +305,9 @@ public class IndexUnitActionHandler extends ActionHandler {
                         writer.add(eventFactory.createStartElement("", "", tag));
 
                         if (ARCHIVE_UNIT.equals(tag)) {
+                            unitGuid = ((Attribute) it.next()).getValue();
                             writer.add(eventFactory.createStartElement("", "", "#id"));
-                            writer.add(eventFactory.createCharacters(((Attribute) it.next()).getValue()));
+                            writer.add(eventFactory.createCharacters(unitGuid));
                             writer.add(eventFactory.createEndElement("", "", "#id"));
                         }
                         eventWritable = false;
@@ -272,6 +336,10 @@ public class IndexUnitActionHandler extends ActionHandler {
                         case IngestWorkflowConstants.WORK_TAG:
                             eventWritable = false;
                             break;
+                        case IngestWorkflowConstants.EXISTING_TAG:
+                            eventWritable = false;
+                            existingUnit = Boolean.parseBoolean(reader.getElementText());
+                            break;
                         case IngestWorkflowConstants.RULES:
                             reader.nextEvent();
                             eventWritable = false;
@@ -288,6 +356,7 @@ public class IndexUnitActionHandler extends ActionHandler {
                         case IngestWorkflowConstants.ROOT_TAG:
                         case IngestWorkflowConstants.WORK_TAG:
                         case IngestWorkflowConstants.UP_FIELD:
+                        case IngestWorkflowConstants.EXISTING_TAG:
                         case IngestWorkflowConstants.RULES:
                             eventWritable = false;
                             break;
@@ -315,13 +384,15 @@ public class IndexUnitActionHandler extends ActionHandler {
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
             // Add operation to OPS
-            ((ObjectNode) data.get(ARCHIVE_UNIT)).putArray(SedaConstants.PREFIX_OPS).add(containerId);
+            ((ObjectNode) data.get(ARCHIVE_UNIT)).putArray(VitamFieldsHelper.operations()).add(containerId);
+
+
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
             }
 
             // Prepare archive unit details required for index process
-            archiveUnitDetails.add(data);
+            archiveUnitDetails.put("data", data);
 
             // Add parents GUIDs
             if (parentsList != null) {
@@ -330,8 +401,11 @@ public class IndexUnitActionHandler extends ActionHandler {
                 for (final String parent : parentsGuid) {
                     parentsArray.add(parent);
                 }
-                archiveUnitDetails.add(parentsArray);
+                archiveUnitDetails.put("up", parentsArray);
             }
+
+            archiveUnitDetails.put("existing", existingUnit);
+            archiveUnitDetails.put("id", unitGuid);
 
         } catch (final XMLStreamException e) {
             LOGGER.debug("Can not read input stream");

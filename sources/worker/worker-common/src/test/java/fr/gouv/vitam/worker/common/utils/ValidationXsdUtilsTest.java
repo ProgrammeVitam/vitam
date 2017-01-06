@@ -103,6 +103,14 @@ public class ValidationXsdUtilsTest {
     }
 
     @Test
+    public void givenXmlCorrectWithAddLinkWhenCheckXsdThenReturnTrue()
+        throws XMLStreamException, SAXException, IOException {
+        final ValidationXsdUtils valid = new ValidationXsdUtils();
+        assertTrue(
+            valid.checkWithXSD(PropertiesUtils.getResourceAsStream("SIP_Add_Link.xml"), SEDA_VITAM_VALIDATION_FILE));
+    }
+
+    @Test
     public void givenXmlCorrectWithUpdateWhenCheckXsdThenReturnTrue()
         throws XMLStreamException, SAXException, IOException {
         final ValidationXsdUtils valid = new ValidationXsdUtils();
