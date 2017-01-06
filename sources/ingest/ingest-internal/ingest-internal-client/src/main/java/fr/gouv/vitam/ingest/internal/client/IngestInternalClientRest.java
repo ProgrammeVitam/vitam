@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -55,6 +56,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     private static final String INGEST_URL = "/ingests";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
     private static final String BLANK_TYPE = "Type should be filled";
+    
+    private static final String REPORT = "/report";
 
     IngestInternalClientRest(IngestInternalClientFactory factory) {
         super(factory);
@@ -122,4 +125,25 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             }
         }
     }
+
+    @Override
+    public Response storeATR(GUID guid, InputStream input) throws VitamClientException {
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, INGEST_URL + "/" + guid + REPORT,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return response;
+            
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
+    
+    
 }
