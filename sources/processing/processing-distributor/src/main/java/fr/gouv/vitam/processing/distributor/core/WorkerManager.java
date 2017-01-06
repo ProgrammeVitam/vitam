@@ -296,7 +296,11 @@ public class WorkerManager {
                 actionsResponse =
                     new ItemStatus(workerAsyncRequest.getDescriptionStep().getStep().getStepName());
                 loadWorkerClient(workerThreadManager.getWorkerBean());
-                try (WorkerClient workerClient = WorkerClientFactory.getInstance().getClient()) {
+                WorkerClientConfiguration  configuration = new WorkerClientConfiguration(
+                    workerThreadManager.getWorkerBean().getConfiguration().getServerHost(),
+                    workerThreadManager.getWorkerBean().getConfiguration().getServerPort()
+                );
+                try (WorkerClient workerClient = WorkerClientFactory.getInstance(configuration).getClient()) {
                     actionsResponse =
                         workerClient.submitStep(workerAsyncRequest.getDescriptionStep());
                     // FIXME : à voir comment retraiter

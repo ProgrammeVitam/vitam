@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
@@ -34,35 +35,65 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType;
 
+import java.util.Map;
+
 /**
  *
  */
 public class WorkerClientFactoryTest {
 
+    private  WorkerClientConfiguration workerClientConfiguration;
     @Before
     public void initFileConfiguration() {
-        WorkerClientFactory.changeMode(WorkerClientFactory.changeConfigurationFile("worker-client.conf"));
+        workerClientConfiguration = WorkerClientFactory.changeConfigurationFile("worker-client.conf");
     }
 
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a null file is like no file
         WorkerClientFactory.changeMode(null);
-        final WorkerClient client = WorkerClientFactory.getInstance().getClient();
+        final WorkerClient client = WorkerClientFactory.getInstance(null).getClient();
         assertTrue(client instanceof WorkerClientMock);
-        assertEquals(VitamClientType.MOCK, WorkerClientFactory.getInstance().getVitamClientType());
+        assertEquals(VitamClientType.MOCK, WorkerClientFactory.getInstance(null).getVitamClientType());
     }
 
     @Test
     public void testInitWithConfigurationFile() {
-        final WorkerClient client = WorkerClientFactory.getInstance().getClient();
+
+        final WorkerClient client = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
         assertTrue(client instanceof WorkerClientRest);
-        assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance().getVitamClientType());
+        assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(workerClientConfiguration).getVitamClientType());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testWithWrongInitServerParameters() {
         WorkerClientFactory.changeMode(new WorkerClientConfiguration());
+    }
+
+    @Test
+    public void testMultipleClientInstances(){
+        WorkerClientConfiguration configuration1 = new  WorkerClientConfiguration("localhost",8076);
+        WorkerClientConfiguration configuration2 = new  WorkerClientConfiguration("localhost",8176);
+        WorkerClientConfiguration configuration3 = new  WorkerClientConfiguration("localhost",8176);
+
+
+        assertTrue(configuration3.equals(configuration2));
+        assertNotEquals(configuration3,configuration1);
+
+        WorkerClientFactory.getInstance(configuration2);
+        WorkerClientFactory.getInstance(configuration2);
+
+        final WorkerClient client1 = WorkerClientFactory.getInstance(configuration1).getClient();
+        final WorkerClient client2 = WorkerClientFactory.getInstance(configuration2).getClient();
+        assertTrue(client1 instanceof WorkerClientRest);
+        assertTrue(client2 instanceof WorkerClientRest);
+        assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(configuration1).getVitamClientType());
+        assertEquals(VitamClientType.PRODUCTION, WorkerClientFactory.getInstance(configuration2).getVitamClientType());
+
+        assertNotEquals(WorkerClientFactory.getInstance(configuration2),WorkerClientFactory.getInstance(configuration1));
+        assertEquals(WorkerClientFactory.getInstance(configuration2),WorkerClientFactory.getInstance(configuration3));
+
+
     }
 
 }

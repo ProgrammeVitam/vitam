@@ -68,7 +68,7 @@ public class WorkerClientRestTest extends VitamJerseyTest {
     // Start of VitamJerseyTest configuration //
     // ************************************** //
     public WorkerClientRestTest() {
-        super(WorkerClientFactory.getInstance());
+        super(WorkerClientFactory.getInstance(WorkerClientFactory.changeConfigurationFile("worker-client.conf")));
     }
 
     // Override the beforeTest if necessary

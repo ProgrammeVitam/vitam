@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -45,11 +46,11 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
  * Mock client implementation for worker
  */
 public class WorkerClientMockTest {
-
+    private  WorkerClientConfiguration workerClientConfiguration;
     @Test
     public void statusTest() throws VitamClientException, VitamApplicationServerException {
         WorkerClientFactory.changeMode(null);
-        final WorkerClient client = WorkerClientFactory.getInstance().getClient();
+        final WorkerClient client = WorkerClientFactory.getInstance(null).getClient();
         assertNotNull(client);
         client.checkStatus();
     }
@@ -58,7 +59,7 @@ public class WorkerClientMockTest {
     public void createSteps() throws WorkerNotFoundClientException,
         WorkerServerClientException {
         WorkerClientFactory.changeMode(null);
-        final WorkerClient client = WorkerClientFactory.getInstance()
+        final WorkerClient client = WorkerClientFactory.getInstance(null)
             .getClient();
 
         final Step step = new Step();
