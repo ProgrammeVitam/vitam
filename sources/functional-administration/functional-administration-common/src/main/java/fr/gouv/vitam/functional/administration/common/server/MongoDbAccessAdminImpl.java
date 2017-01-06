@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -147,7 +149,14 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
     private MongoCursor selectExecute(final FunctionalAdminCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        final Bson condition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
+        Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
+        // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
+        // if the collection should not be filtered, then the method should be overridden
+        Bson condition = and(initialCondition, eq(VitamDocument.TENANT_ID, tenantId));        
+        if (FunctionalAdminCollections.FORMATS.equals(collection)) {
+            condition = initialCondition;
+        }
         final Bson projection = selectToMongoDb.getFinalProjection();
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
         final int offset = selectToMongoDb.getFinalOffset();

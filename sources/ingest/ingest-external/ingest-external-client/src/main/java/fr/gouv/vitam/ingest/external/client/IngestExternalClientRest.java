@@ -30,9 +30,11 @@ import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -56,11 +58,13 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public Response upload(InputStream stream) throws IngestExternalException {
+    public Response upload(InputStream stream, Integer tenantId) throws IngestExternalException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.POST, INGEST_URL, null,
+            response = performRequest(HttpMethod.POST, INGEST_URL, headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_XML_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -91,16 +95,18 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
         Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
         try {
-            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(), 
+                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);

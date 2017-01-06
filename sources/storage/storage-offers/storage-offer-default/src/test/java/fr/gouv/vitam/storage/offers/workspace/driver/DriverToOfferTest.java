@@ -151,7 +151,7 @@ public class DriverToOfferTest {
             final MessageDigest messageDigest =
                 MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
-                request = new PutObjectRequest("1", VitamConfiguration.getDefaultDigestType().getName(), guid,
+                request = new PutObjectRequest(1, VitamConfiguration.getDefaultDigestType().getName(), guid,
                     digestInputStream,
                     DataCategory.UNIT.name());
                 final PutObjectResult result = connection.putObject(request);
@@ -181,7 +181,7 @@ public class DriverToOfferTest {
             // Nothing, missing tenant parameter
         }
 
-        final GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.name());
+        final GetObjectRequest getRequest = new GetObjectRequest(1, guid, DataCategory.UNIT.name());
         connection.getObject(getRequest);
     }
 }

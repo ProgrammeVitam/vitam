@@ -37,15 +37,16 @@ import org.junit.Test;
  */
 public class GetObjectRequestTest {
     private static GetObjectRequest getObjectRequest;
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void init() {
-        getObjectRequest = new GetObjectRequest("ti", "oi", "object");
+        getObjectRequest = new GetObjectRequest(TENANT_ID, "oi", "object");
     }
 
     @Test
     public void testGetTenantId() throws Exception {
-        assertEquals("ti", getObjectRequest.getTenantId());
+        assertEquals(TENANT_ID, getObjectRequest.getTenantId());
     }
 
     @Test

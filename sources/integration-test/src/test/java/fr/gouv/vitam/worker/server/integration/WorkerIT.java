@@ -318,7 +318,9 @@ public class WorkerIT {
     @Test
     public void testWorkflow() throws Exception {
         try {
-            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+        	Integer tenantId = 0;
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
             // workspace client dezip SIP in workspace
@@ -370,7 +372,9 @@ public class WorkerIT {
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
         try {
-            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+        	Integer tenantId = 0;
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
             // workspace client dezip SIP in workspace
@@ -425,7 +429,9 @@ public class WorkerIT {
     public void testWorkflowWithSipNoManifest() throws Exception {
 
         try {
-            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+        	Integer tenantId = 0;
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
             // workspace client dezip SIP in workspace
@@ -460,7 +466,9 @@ public class WorkerIT {
     @Test
     public void testWorkflowWithManifestConformityKO() throws Exception {
         try {
-            CONTAINER_NAME = GUIDFactory.newManifestGUID(0).getId();
+        	Integer tenantId = 0;
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
             // workspace client dezip SIP in workspace

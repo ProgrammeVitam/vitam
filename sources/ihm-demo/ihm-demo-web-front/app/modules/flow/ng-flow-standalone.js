@@ -1597,6 +1597,10 @@
       this.xhr.open(method, target, true);
       this.xhr.withCredentials = this.flowObj.opts.withCredentials;
 
+      if (!!this.flowObj.opts.tenantKey && !!this.flowObj.opts.tenantId) {
+        this.xhr.setRequestHeader(this.flowObj.opts.tenantKey, this.flowObj.opts.tenantId);
+      }
+
       // Add data from header options
       each(query, function (v, k) {
         console.log('Add header (k=v)', k, v);

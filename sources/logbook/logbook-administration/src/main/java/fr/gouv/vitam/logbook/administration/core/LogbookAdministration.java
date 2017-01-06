@@ -76,6 +76,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -113,7 +114,6 @@ public class LogbookAdministration {
     private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
 
     private static final String STRATEGY_ID = "default";
-    private static final int TENANT_ID = 0;
 
     private final LogbookOperations logbookOperations;
     private final TimestampGenerator timestampGenerator;
@@ -166,7 +166,8 @@ public class LogbookAdministration {
 
         final LogbookOperation lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
 
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         final List<String> expectedLogbookId = newArrayList(eip.getId());
         LocalDateTime startDate;
@@ -181,7 +182,7 @@ public class LogbookAdministration {
 
         final LocalDateTime currentDate = now();
 
-        final String fileName = String.format("%d_LogbookOperation_%s.zip", TENANT_ID, currentDate.format(formatter));
+        final String fileName = String.format("%d_LogbookOperation_%s.zip", tenantId, currentDate.format(formatter));
         createLogbookOperationStructure(eip);
 
         final File zipFile = new File(tmpFolder, fileName);
@@ -257,7 +258,7 @@ public class LogbookAdministration {
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
-                storageClient.storeFileFromWorkspace(Integer.toString(TENANT_ID),
+                storageClient.storeFileFromWorkspace(
                     STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
                 workspaceClient.deleteObject(fileName, uri);
 
@@ -349,7 +350,7 @@ public class LogbookAdministration {
 
     private void createLogbookOperationEvent(GUID parentEventId, String eventType, StatusCode statusCode,
         TraceabilityEvent traceabilityEvent) throws TraceabilityException {
-        final GUID eventId = GUIDFactory.newEventGUID(TENANT_ID);
+        final GUID eventId = GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId());
         final LogbookOperationParameters logbookOperationParameters =
             newLogbookOperationParameters(eventId, eventType, parentEventId, TRACEABILITY, statusCode, null, null,
                 parentEventId);

@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -71,8 +72,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getStorageInformation(String tenantId, String strategyId)
+    public JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
@@ -92,11 +94,12 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type,
+    public StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type,
         String guid,
         CreateObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
@@ -124,7 +127,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean existsContainer(String tenantId, String strategyId) throws StorageServerClientException {
+    public boolean existsContainer(String strategyId) throws StorageServerClientException {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
@@ -143,8 +147,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean exists(String tenantId, String strategyId, StorageCollectionType type, String guid)
+    public boolean exists(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
@@ -169,7 +174,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
 
     @Override
-    public boolean deleteContainer(String tenantId, String strategyId) throws StorageServerClientException {
+    public boolean deleteContainer(String strategyId) throws StorageServerClientException {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
@@ -188,8 +194,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String tenantId, String strategyId, StorageCollectionType type, String guid)
+    public boolean delete(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
@@ -245,7 +252,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
      * @param strategyId the storage strategy id
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String tenantId, String strategyId) {
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String strategyId) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
@@ -321,8 +328,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
 
     @Override
-    public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
+    public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);

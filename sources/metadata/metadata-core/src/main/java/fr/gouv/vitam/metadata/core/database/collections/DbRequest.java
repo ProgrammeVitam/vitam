@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -343,6 +344,11 @@ public class DbRequest {
         throws MetaDataExecutionException, InstantiationException,
         IllegalAccessException, InvalidParseOperationException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
+        Integer tenantId = null;
+        if (requestToMongodb instanceof SelectToMongodb) { 
+            tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        }
+        
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + realQuery.getCurrentQuery());
         }
@@ -373,21 +379,21 @@ public class DbRequest {
                 if (exactDepth > 0) {
                     // Exact Depth request (descending)
                     LOGGER.debug("Unit Exact Depth request (descending)");
-                    result = exactDepthUnitQuery(realQuery, previous, exactDepth);
+                    result = exactDepthUnitQuery(realQuery, previous, exactDepth, tenantId);
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
-                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth);
+                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
-                    result = sameDepthUnitQuery(realQuery, previous);
+                    result = sameDepthUnitQuery(realQuery, previous, tenantId);
                 }
             } else {
                 // OBJECTGROUPS
                 // No depth at all
                 LOGGER.debug("ObjectGroup No depth at all");
-                result = objectGroupQuery(realQuery, previous);
+                result = objectGroupQuery(realQuery, previous, tenantId);
             }
         } finally {
             previous.clear();
@@ -401,17 +407,23 @@ public class DbRequest {
      * @param realQuery
      * @param previous
      * @param exactDepth
+     * @param tenantId
      * @return the associated Result
      * @throws InvalidParseOperationException
      */
-    protected Result exactDepthUnitQuery(Query realQuery, Result previous, int exactDepth)
+    protected Result exactDepthUnitQuery(Query realQuery, Result previous, int exactDepth, Integer tenantId)
         throws InvalidParseOperationException {
 
         // TODO P1 add unit tests
         final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
-        final Bson finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth));
+        Bson finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth));
+        if (tenantId != null) {
+            finalQuery = and(query, roots, lte(Unit.MINDEPTH, exactDepth), gte(Unit.MAXDEPTH, exactDepth),
+                eq(MetadataDocument.TENANT_ID, tenantId));
+        }
+
         previous.clear();
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
@@ -437,12 +449,12 @@ public class DbRequest {
      * @param realQuery
      * @param previous
      * @param relativeDepth
-     * @param notimeout
+     * @param tenantId
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
-    protected Result relativeDepthUnitQuery(Query realQuery, Result previous, int relativeDepth)
+    protected Result relativeDepthUnitQuery(Query realQuery, Result previous, int relativeDepth, Integer tenantId)
         throws InvalidParseOperationException, MetaDataExecutionException {
 
         if (realQuery.isFullText()) {
@@ -512,6 +524,11 @@ public class DbRequest {
             if (roots != null) {
                 query = QueryToMongodb.getFullCommand(query, roots);
             }
+            if (tenantId != null) {
+                // lets add the query on the tenant
+                query = and(query, eq(MetadataDocument.TENANT_ID, tenantId));
+            }
+
             LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(query, false));
             result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
             if (GlobalDatasDb.PRINT_REQUEST) {
@@ -601,7 +618,7 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
-    protected Result sameDepthUnitQuery(Query realQuery, Result previous)
+    protected Result sameDepthUnitQuery(Query realQuery, Result previous, Integer tenantId)
         throws InvalidParseOperationException, MetaDataExecutionException {
 
         final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
@@ -635,6 +652,10 @@ public class DbRequest {
                 final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, previous.getCurrentIds());
                 finalQuery = and(query, roots);
             }
+            if (tenantId != null) {
+                // lets add tenant query
+                finalQuery = and(finalQuery, eq(MetadataDocument.TENANT_ID, tenantId));
+            }
             previous.clear();
             LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
             @SuppressWarnings("unchecked")
@@ -660,10 +681,12 @@ public class DbRequest {
      *
      * @param realQuery
      * @param previous units, Note: only immediate Unit parents are allowed
+     * @param tenantId
      * @return the associated Result
      * @throws InvalidParseOperationException
      */
-    protected Result objectGroupQuery(Query realQuery, Result previous) throws InvalidParseOperationException {
+    protected Result objectGroupQuery(Query realQuery, Result previous, Integer tenantId)
+        throws InvalidParseOperationException {
         final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         final Bson query = QueryToMongodb.getCommand(realQuery);
         Bson finalQuery;
@@ -673,6 +696,11 @@ public class DbRequest {
             final Bson roots = QueryToMongodb.getRoots(MetadataDocument.UP, previous.getCurrentIds());
             finalQuery = and(query, roots);
         }
+        if (tenantId != null) {
+            // lets add tenant query
+            finalQuery = and(finalQuery, eq(MetadataDocument.TENANT_ID, tenantId));
+        }
+        
         previous.clear();
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
@@ -897,7 +925,7 @@ public class DbRequest {
             throw new MetaDataExecutionException("Insert concern", e);
         }
     }
-    
+
     /**
      * Bulk insert in ES
      * 

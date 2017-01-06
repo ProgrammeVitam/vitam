@@ -73,7 +73,6 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
-    private static final int TENANT_ID = 0;
 
 
     LogbookLifeCyclesClientRest(LogbookLifeCyclesClientFactory factory) {

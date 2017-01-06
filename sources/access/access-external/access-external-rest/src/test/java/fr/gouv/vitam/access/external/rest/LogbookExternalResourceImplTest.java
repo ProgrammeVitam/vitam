@@ -50,6 +50,8 @@ public class LogbookExternalResourceImplTest {
     private static int port = junitHelper.findAvailablePort();
     private static AccessInternalClient accessInternalClient;
 
+    private static final String TENANT_ID = "0";
+
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
 
@@ -137,6 +139,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
@@ -150,6 +153,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(request))
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .pathParam("id_op", 1)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -165,6 +169,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/unitlifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -178,6 +183,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/objectgrouplifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -216,6 +222,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .body(JsonHandler.getFromString(request))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -224,6 +231,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
@@ -235,6 +243,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
@@ -244,6 +253,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .post(OPERATIONS_URI)
@@ -255,6 +265,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -264,6 +275,7 @@ public class LogbookExternalResourceImplTest {
             .accept(ContentType.JSON)
             .body(bad_request)
             .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -274,6 +286,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -281,6 +294,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(bad_request)
             .pathParam("id_op", good_id)
             .when()
@@ -294,6 +308,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .param("id_lc", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/unitlifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
@@ -302,6 +317,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .param("id_lc", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/objectgrouplifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());

@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -73,7 +74,6 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
     private final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters = LogbookParametersFactory
         .newLogbookLifeCycleObjectGroupParameters();
     private final StorageClientFactory storageClientFactory;
-    private static final String DEFAULT_TENANT = "0";
 
     private static final String DEFAULT_STRATEGY = "default";
 
@@ -183,8 +183,7 @@ public class StoreObjectGroupActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(SIP + objectUri);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageClient.storeFileFromWorkspace(DEFAULT_TENANT,
-                    DEFAULT_STRATEGY, StorageCollectionType.OBJECTS, objectGUID, description);
+                storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, StorageCollectionType.OBJECTS, objectGUID, description);
             }
 
             // update lifecycle of objectGroup with detail of object : OK

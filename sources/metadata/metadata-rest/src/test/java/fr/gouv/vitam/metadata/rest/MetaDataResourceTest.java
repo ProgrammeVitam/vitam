@@ -62,6 +62,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -261,7 +262,7 @@ public class MetaDataResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)            
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -276,7 +277,7 @@ public class MetaDataResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)            
             .body(buildDSLWithOptions(QUERY_TEST, DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -295,6 +296,7 @@ public class MetaDataResourceTest {
     public void shouldReturnErrorNotFoundIfParentNotFound() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA)).when()
             .post("/units").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))

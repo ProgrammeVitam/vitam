@@ -27,7 +27,7 @@
 
 // Define resources in order to call WebApp http endpoints for accession-register
 angular.module('core')
-  .factory('MessagesResource', function($q, $http, IHM_URLS, authVitamService) {
+  .factory('MessagesResource', function($q, $http, IHM_URLS, authVitamService, ihmDemoCLient) {
 
     var MESSAGES_ROOT = '/messages/';
     var MESSAGES_LOGBOOK = 'logbook';

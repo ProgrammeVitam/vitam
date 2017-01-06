@@ -27,10 +27,20 @@
 
 angular.module('core')
   .controller('mainViewController', function($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
-                                             $window, Restangular, subject, usernamePasswordToken) {
+                                             $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory) {
     $scope.showMenuBar = true;
     $scope.credentials = usernamePasswordToken;
     $scope.session = {};
+    $scope.tenants = ['0'];
+    ihmDemoFactory.getTenants().then(function(repsonse) {
+      if (repsonse.data.length !== 0) {
+        $scope.tenants = repsonse.data;
+      }
+      $scope.tenantId = $scope.tenants[0];
+    }, function(error) {
+      console.log('Error while get tenant. Set default list : ', error);
+      $scope.tenantId = $scope.tenants[0];
+    });
 
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
@@ -48,12 +58,13 @@ angular.module('core')
       }
     });
 
-    $scope.connectUser = function() {
+    $scope.connectUser = function(tenantId) {
       subject.login($scope.credentials)
         .then(
         function(res) {
           authVitamService.createCookie('role', res.role);
           authVitamService.createCookie('userCredentials', btoa(''+':'+''));
+          authVitamService.createCookie(authVitamService.COOKIE_TENANT_ID, tenantId || 0);
           $scope.session.status = 'logged';
           $scope.logginError = false;
           if (authVitamService.url && authVitamService.url != '') {

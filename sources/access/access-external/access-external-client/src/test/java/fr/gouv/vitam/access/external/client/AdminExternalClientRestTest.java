@@ -37,7 +37,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     private static final String ID = "id";
     protected static final String HOSTNAME = "localhost";
     protected AdminExternalClientRest client;
-
+    final int TENANT_ID = 0;
+    
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";
 
@@ -137,7 +138,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())),
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
             Status.OK);
     }
 
@@ -145,14 +146,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testCheckDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientException.class)
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
 
     @Test
@@ -160,7 +161,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())),
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
             Status.OK);
     }
 
@@ -168,21 +169,21 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testImportDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientException.class)
     public void testImportDocumentAccessExternalClientException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
 
     @Test
     public void testFindDocuments()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
-        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),
+        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
             ClientMockResultHelper.getFormatList().toString());
     }
 
@@ -190,14 +191,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testFindDocumentAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
+        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientException.class)
     public void testFindDocumentAccessExternalClientException()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
+        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
     }
 
     @Test
@@ -205,7 +206,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, ID).toString(),
+            client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).toString(),
             ClientMockResultHelper.getFormat().toString());
     }
 
@@ -213,14 +214,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testFindDocumentByIdAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.findDocumentById(AdminCollections.FORMATS, ID);
+        client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientException.class)
     public void testFindDocumentByIdAccessExternalClientException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.findDocumentById(AdminCollections.FORMATS, ID);
+        client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID);
     }
 
 

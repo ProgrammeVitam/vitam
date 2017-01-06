@@ -92,7 +92,9 @@ abstract class AbstractCommonClient implements BasicClient {
         // TODO: Find a better check (a specific one, instead of inferring the context from another constraint ?);
         if (clientFactory.useAuthorizationFilter()) {
             client.register(RequestIdClientFilter.class);
+            client.register(TenantIdClientFilter.class);
             clientNotChunked.register(RequestIdClientFilter.class);
+            clientNotChunked.register(TenantIdClientFilter.class);
         }
     }
 

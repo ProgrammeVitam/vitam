@@ -297,6 +297,7 @@ public class WorkerManager {
             ItemStatus actionsResponse = null;
             // As this thread is not a son of a request Rest but of the WorkerThread
             VitamThreadUtils.getVitamSession().setRequestId(workerAsyncRequest.getSession().getRequestId());
+            VitamThreadUtils.getVitamSession().setTenantId(workerAsyncRequest.getSession().getTenantId());
             try {
                 actionsResponse =
                     new ItemStatus(workerAsyncRequest.getDescriptionStep().getStep().getStepName());

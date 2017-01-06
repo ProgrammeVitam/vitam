@@ -39,6 +39,7 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,6 +62,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -79,6 +84,11 @@ public class LogbookMongoDbAccessFactoryTest {
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
+    private static final Integer TENANT_ID = 0;
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -131,7 +141,7 @@ public class LogbookMongoDbAccessFactoryTest {
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -172,7 +182,9 @@ public class LogbookMongoDbAccessFactoryTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testCreateFn() throws VitamException, InvalidCreateOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         String status = mongoDbAccess.toString();
@@ -221,7 +233,9 @@ public class LogbookMongoDbAccessFactoryTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFunctionalOperation() throws VitamException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final long nbl = mongoDbAccess.getLogbookLifeCyleUnitSize();
@@ -230,14 +244,14 @@ public class LogbookMongoDbAccessFactoryTest {
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         final LogbookOperationParameters parameters2 = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
@@ -247,7 +261,7 @@ public class LogbookMongoDbAccessFactoryTest {
         final LogbookOperationParameters parametersWrong = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parametersWrong.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -296,11 +310,11 @@ public class LogbookMongoDbAccessFactoryTest {
         } catch (final VitamException e) {}
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         mongoDbAccess.updateBulkLogbookOperation(parameters, parameters2);
@@ -344,13 +358,13 @@ public class LogbookMongoDbAccessFactoryTest {
         } catch (final VitamException e) {}
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
@@ -398,21 +412,23 @@ public class LogbookMongoDbAccessFactoryTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFunctionalLifeCycleUnit() throws VitamException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final long nbl = mongoDbAccess.getLogbookLifeCyleUnitSize();
         final LogbookLifeCycleUnitParameters parameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         final LogbookLifeCycleUnitParameters parameters2 = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
@@ -423,7 +439,7 @@ public class LogbookMongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parametersWrong.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -459,11 +475,11 @@ public class LogbookMongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, oi);
@@ -510,15 +526,15 @@ public class LogbookMongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,
@@ -600,7 +616,9 @@ public class LogbookMongoDbAccessFactoryTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFunctionalLifeCycleObjectGroup() throws VitamException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
         final long nbl = mongoDbAccess.getLogbookLifeCyleObjectGroupSize();
@@ -608,7 +626,7 @@ public class LogbookMongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -616,7 +634,7 @@ public class LogbookMongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
@@ -627,7 +645,7 @@ public class LogbookMongoDbAccessFactoryTest {
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parametersWrong.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+                GUIDFactory.newEventGUID(TENANT_ID).getId());
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
@@ -663,11 +681,11 @@ public class LogbookMongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, oi);
@@ -711,15 +729,15 @@ public class LogbookMongoDbAccessFactoryTest {
 
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.objectIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).getId());
+            GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier,

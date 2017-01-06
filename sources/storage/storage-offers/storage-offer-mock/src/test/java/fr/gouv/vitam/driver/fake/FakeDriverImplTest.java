@@ -70,31 +70,28 @@ public class FakeDriverImplTest {
         final Properties props = new Properties();
         final Connection connect = driver.connect("props", props);
         assertNotNull(connect);
-        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity("0");
+        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
         assertEquals(storageCapacityResult.getUsedSpace(), 99999);
 
         try {
-            storageCapacityResult = connect.getStorageCapacity("daFakeTenant");
+            storageCapacityResult = connect.getStorageCapacity(-1);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
 
         }
 
-        final GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0" + this, "guid", "folder"));
+        final GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest(2, "guid", "folder"));
         assertNotNull(getObjectResult);
         assertNotNull(getObjectResult.getObject());
         final PutObjectRequest putObjectRequest =
-            new PutObjectRequest("tenantId" + this, VitamConfiguration.getDefaultDigestType().getName(), "guid",
-                IOUtils.toInputStream("Vitam" +
-                    " test"),
-                "type");
+            new PutObjectRequest(2, VitamConfiguration.getDefaultDigestType().getName(), "guid",
+                IOUtils.toInputStream("Vitam" + " test"), "type");
         assertNotNull(connect.putObject(putObjectRequest));
 
         try {
             final PutObjectRequest putObjectRequest2 =
-                new PutObjectRequest("tenantId" + this, "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
-                    "type");
+                new PutObjectRequest(2, "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"), "type");
             connect.putObject(putObjectRequest2);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
@@ -102,14 +99,12 @@ public class FakeDriverImplTest {
         }
 
         final PutObjectRequest putObjectRequest3 =
-            new PutObjectRequest("tenantId" + this, VitamConfiguration.getDefaultDigestType().getName(),
-                "digest_bad_test",
-                IOUtils.toInputStream("Vitam test"),
-                "type");
+            new PutObjectRequest(2, VitamConfiguration.getDefaultDigestType().getName(),
+                "digest_bad_test", IOUtils.toInputStream("Vitam test"), "type");
         assertNotNull(connect.putObject(putObjectRequest3));
 
         assertNotNull(connect.removeObject(new RemoveObjectRequest()));
-        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0" + this, "already_in_offer", "folder")));
+        assertTrue(connect.objectExistsInOffer(new GetObjectRequest(1, "already_in_offer", "folder")));
 
         connect.close();
     }

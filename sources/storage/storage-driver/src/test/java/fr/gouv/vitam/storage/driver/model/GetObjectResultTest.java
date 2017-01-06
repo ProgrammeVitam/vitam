@@ -42,15 +42,16 @@ import org.junit.Test;
 public class GetObjectResultTest {
     private static ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static GetObjectResult getObjectResult;
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void init() {
-        getObjectResult = new GetObjectResult("ti", Response.ok(BYTES).build());
+        getObjectResult = new GetObjectResult(TENANT_ID, Response.ok(BYTES).build());
     }
 
     @Test
     public void testGetTenentId() {
-        assertEquals("ti", getObjectResult.getTenantId());
+        assertEquals(TENANT_ID, getObjectResult.getTenantId());
     }
 
     @Test

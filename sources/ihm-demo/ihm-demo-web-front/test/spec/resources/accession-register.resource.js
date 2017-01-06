@@ -30,31 +30,44 @@
 describe('accessionRegisterResource', function() {
   beforeEach(module('ihm.demo'));
 
-  var AccessionRegisterResource;
-  var $http;
-  beforeEach(inject(function (_accessionRegisterResource_, _$http_) {
+  var AccessionRegisterResource, $httpBackend;
+  var identifier = '001';
+  beforeEach(inject(function (_accessionRegisterResource_, _$httpBackend_) {
     AccessionRegisterResource = _accessionRegisterResource_;
-    $http = _$http_;
+    $httpBackend = _$httpBackend_;
   }));
 
   it('should call the good API point for accession register detail', function() {
-    // Init a spy on $http.get
-    spyOn($http, 'post');
+    var criteria = {OriginatingAgency: identifier};
+    $httpBackend
+      .when('POST', '/ihm-demo/v1/api/admin/accession-register/' + identifier + '/accession-register-detail/', criteria)
+      .respond({$hints: [], $results: [{id: identifier}]});
 
-    var criteria = {OriginatingAgency: '001'};
-    AccessionRegisterResource.getDetails('001', criteria);
-    expect($http.post).toHaveBeenCalledWith('/ihm-demo/v1/api/admin/accession-register/001/accession-register-detail/', criteria);
-    expect($http.post).toHaveBeenCalledTimes(1);
+    var promise = AccessionRegisterResource.getDetails(identifier, criteria);
+
+    promise.then(function(response) {
+      console.log('Response: ', response);
+      expect(response.data.$results.length).toEqual(1);
+      expect(response.data.$results[0].id).toEqual(identifier);
+    }, function() {
+      fail('Should not return error');
+    });
   });
 
   it('should call the good API point for accession register summary', function() {
-    // Init a spy on $http.get
-    spyOn($http, 'post');
-
     var criteria = {OriginatingAgency: '002'};
-    AccessionRegisterResource.getSummary(criteria);
-    expect($http.post).toHaveBeenCalledWith('/ihm-demo/v1/api/admin/accession-register/', criteria);
-    expect($http.post).toHaveBeenCalledTimes(1);
+    $httpBackend
+      .when('POST', '/ihm-demo/v1/api/admin/accession-register/' + identifier + '/accession-register-detail/', criteria)
+      .respond({$hints: [], $results: [{id: 'value'}]});
+
+    var promise = AccessionRegisterResource.getSummary(criteria);
+
+    promise.then(function(response) {
+      console.log('Response: ', response);
+      expect(response.data.$results[0].id).toEqual('value');
+    }, function() {
+      fail('Should not return error');
+    });
   });
 
 });

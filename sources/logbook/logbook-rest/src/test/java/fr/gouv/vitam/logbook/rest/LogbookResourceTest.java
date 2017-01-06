@@ -42,6 +42,7 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
@@ -54,6 +55,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -67,6 +69,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -103,7 +107,9 @@ public class LogbookResourceTest {
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
-    private static LogbookConfiguration realLogbook;
+    private static LogbookConfiguration realLogbook;   
+    
+    private static int tenantId = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -367,6 +373,7 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId) 
             .body(logbookParametersSelect.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
@@ -377,6 +384,7 @@ public class LogbookResourceTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(JsonHandler.getFromString(BODY_QUERY))
             .when()
             .get(OPERATIONS_URI)

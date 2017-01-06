@@ -91,9 +91,10 @@ public class FakeDriverImpl implements Driver {
     class ConnectionImpl implements Connection {
 
         @Override
-        public StorageCapacityResult getStorageCapacity(String tenantId)
+        public StorageCapacityResult getStorageCapacity(Integer tenantId)
             throws StorageDriverException {
-            if ("daFakeTenant".equals(tenantId)) {
+        	Integer fakeTenant = -1;
+            if (fakeTenant.equals(tenantId)) {
                 throw new StorageDriverException("driverInfo", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "ExceptionTest");
             }
@@ -106,7 +107,7 @@ public class FakeDriverImpl implements Driver {
         @Override
         public GetObjectResult getObject(GetObjectRequest objectRequest) throws StorageDriverException {
 
-            return new GetObjectResult("0",
+            return new GetObjectResult(0,
                 new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
@@ -114,13 +115,13 @@ public class FakeDriverImpl implements Driver {
         @Override
         public PutObjectResult putObject(PutObjectRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", "0", 0);
+                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", 0, 0);
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
                     return new PutObjectResult(objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
-                        "0", bytes.length);
+                        0, bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         e);

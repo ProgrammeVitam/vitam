@@ -56,7 +56,7 @@ angular.module('archive.unit')
         number = Math.floor(Math.log(bytes) / Math.log(1024));
       return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
     }})
-  .controller('ArchiveUnitController', function($scope, $http, $routeParams, $filter, ihmDemoFactory, $window,
+  .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
                                                 $mdDialog, transferToIhmResult){

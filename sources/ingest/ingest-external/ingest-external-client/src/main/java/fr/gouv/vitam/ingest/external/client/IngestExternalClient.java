@@ -43,21 +43,23 @@ public interface IngestExternalClient extends MockOrRestClient {
      * ingest upload file in local
      *
      * @param stream
+     * @param tenantId
      * @return response
      *
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-    Response upload(InputStream stream) throws IngestExternalException;
+    Response upload(InputStream stream, Integer tenantId) throws IngestExternalException;
     
     /**
      * Download object stored by ingest operation 
      * 
      * @param objectId
      * @param type
+     * @param tenantId 
      * @return object as stream
      * @throws VitamClientException
      */
-    Response downloadObjectAsync(String objectId, IngestCollection type)
+    Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException;
 }

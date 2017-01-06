@@ -182,3 +182,4 @@ vitam_storageofferdefault_host_1=localhost
 # vitam_storageofferdefault_host_2=localhost
 
 vitam_keystone_auth_url=http://143.126.93.21:8080/auth/v1.0
+vitam_tenant_ids=[0,1,2]

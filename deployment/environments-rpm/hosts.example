@@ -237,7 +237,6 @@ http_proxy_environnement=
 vitam_storageofferdefault_host_1=
 # vitam_storageofferdefault_host_2=
 
-
 vitam_tenant_ids=[0,1,2]
 
 # ces paramètres peuvent être soit globaux, ici, soit ajoutés après chaque partition hébergeant une offre de stockage
@@ -250,3 +249,4 @@ vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
 vitam_keystone_login=
 # Nom du tenant associé
 vitam_tenant_name=
+

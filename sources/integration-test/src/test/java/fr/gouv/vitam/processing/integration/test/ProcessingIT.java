@@ -129,6 +129,8 @@ public class ProcessingIT {
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
 
+    private static final Integer tenantId = 0;
+    
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -206,6 +208,7 @@ public class ProcessingIT {
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
+    private static boolean imported = false;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -288,17 +291,7 @@ public class ProcessingIT {
 
         AdminManagementClientFactory
             .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client
-                .importFormat(
-                    PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"));
-
-            // Import Rules
-            client.importRulesFile(
-                PropertiesUtils.getResourceAsStream("integration-processing/MGT_RULES_REF.csv"));
-        } catch (final Exception e) {
-            LOGGER.error(e);
-        }
+  
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
 
@@ -353,6 +346,23 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
+    
+    private void tryImportFile(){
+        if(!imported){
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            client
+                .importFormat(
+                    PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"));
+
+            // Import Rules
+            client.importRulesFile(
+                PropertiesUtils.getResourceAsStream("integration-processing/MGT_RULES_REF.csv"));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+        }
+        imported = true;
+        }
+    }
 
     /**
      * This test needs Siegfried already running and started as:<br/>
@@ -383,9 +393,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflow() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -420,9 +432,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflowWithTarSIP() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
             // workspace client dezip SIP in workspace
@@ -458,9 +472,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -496,9 +512,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflow_with_accession_register() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -533,9 +551,11 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+    	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
@@ -563,9 +583,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflowSipNoFormat() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -599,10 +621,12 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowSipDoubleVersionBM() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+    public void testWorkflowSipDoubleVersionBM() throws Exception {        
+    	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
@@ -629,9 +653,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -666,9 +692,11 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithManifestIncorrectObjectNumber() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+    	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
@@ -696,9 +724,11 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithOrphelins() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+    	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
@@ -727,9 +757,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflowWithoutObjectGroups() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -765,9 +797,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflowWithSipWithoutObject() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -803,9 +837,11 @@ public class ProcessingIT {
     @Test
     public void testWorkflowKOwithATRKOFilled() throws Exception {
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -840,9 +876,11 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test(expected = ProcessingInternalServerException.class)
     public void testWorkflowSipCausesFatalThenProcessingInternalServerException() throws Exception {
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+    	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         createLogbookOperation(operationGuid, objectGuid);
 
@@ -867,12 +905,13 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowAddAndLinkSIP() throws Exception {
-
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
         // 1. First we create an AU by sip
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -919,9 +958,9 @@ public class ProcessingIT {
                     "/" + zipName);
 
 
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -971,7 +1010,8 @@ public class ProcessingIT {
     @Test
     public void testWorkflowAddAndLinkSIPKo() throws Exception {
 
-
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
         // We link to a non existing unit
         try (final MongoClient mongo = new MongoClient("localhost", DATABASE_PORT)) {
 
@@ -985,9 +1025,9 @@ public class ProcessingIT {
                     "/" + zipName);
 
 
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 
@@ -1073,7 +1113,8 @@ public class ProcessingIT {
     @RunWithCustomExecutor
     @Test
     public void testBigWorkflow() throws Exception {
-        
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
         // re-launch worker
         wkrapplication.stop();
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
@@ -1081,9 +1122,9 @@ public class ProcessingIT {
         wkrapplication.start();        
                  
         try {
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
 

@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -151,11 +152,12 @@ public class StorageDistributionImpl implements StorageDistribution {
     // they should not be both resent at the same time. Maybe encapsulate or create 2 methods
     // TODO P1 : refactor me !
     @Override
-    public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
+    public StoredInfoResult storeData(String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageException, StorageObjectAlreadyExistsException {
         // Check input params
-        checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
@@ -252,7 +254,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     // great here) by creating an interface of Retryable actions and different implementations for each retryable action
     // TODO P1 : refactor me (the map return seems bad and the offer list is a quick fix, to review too) !
     private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription,
-        String tenantId, String objectId, DataCategory category, OfferReference offerReference,
+        Integer tenantId, String objectId, DataCategory category, OfferReference offerReference,
         StorageLogbookParameters logbookParameters, String requester)
         throws StorageException, StorageObjectAlreadyExistsException {
         // TODO P1 : optimize workspace InputStream to not request workspace for each offer but only once.
@@ -385,7 +387,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private void checkStoreDataParams(CreateObjectDescription createObjectDescription, String tenantId,
+    private void checkStoreDataParams(CreateObjectDescription createObjectDescription, Integer tenantId,
         String strategyId, String dataId, DataCategory category) {
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
@@ -399,7 +401,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             .getWorkspaceObjectURI());
     }
 
-    private PutObjectRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, String tenantId,
+    private PutObjectRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, Integer tenantId,
         String objectId, DataCategory category, Digest messageDigest, WorkspaceClient workspaceClient)
         throws StorageTechnicalException, StorageNotFoundException {
         final InputStream dataStream = retrieveDataFromWorkspace(createObjectDescription.getWorkspaceContainerGUID(),
@@ -421,9 +423,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerInformation(String tenantId, String strategyId)
+    public JsonNode getContainerInformation(String strategyId)
         throws StorageException {
-        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
@@ -443,7 +446,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private JsonNode getOfferInformation(OfferReference offerReference, String tenantId) throws
+    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws
         StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
@@ -461,7 +464,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public InputStream getStorageContainer(String tenantId, String strategyId)
+    public InputStream getStorageContainer(String strategyId)
         throws StorageNotFoundException, StorageTechnicalException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
@@ -502,25 +505,26 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode createContainer(String tenantId, String strategyId) throws StorageException {
+    public JsonNode createContainer(String strategyId) throws StorageException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteContainer(String tenantId, String strategyId) throws StorageTechnicalException,
+    public void deleteContainer(String strategyId) throws StorageTechnicalException,
         StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjects(String tenantId, String strategyId) throws StorageNotFoundException {
+    public JsonNode getContainerObjects(String strategyId) throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public Response getContainerByCategory(String tenantId, String strategyId, String objectId,
+    public Response getContainerByCategory(String strategyId, String objectId,
         DataCategory category, AsyncResponse asyncResponse) throws StorageException {
         // Check input params
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", objectId);
@@ -540,7 +544,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private GetObjectResult getGetObjectResult(String tenantId, String objectId, DataCategory type,
+    private GetObjectResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
         List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
         GetObjectResult result;
         for (final OfferReference offerReference : offerReferences) {
@@ -566,66 +570,66 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerObjectInformations(String tenantId, String strategyId, String objectId)
+    public JsonNode getContainerObjectInformations(String strategyId, String objectId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteObject(String tenantId, String strategyId, String objectId)
+    public void deleteObject(String strategyId, String objectId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerLogbooks(String tenantId, String strategyId) throws StorageNotFoundException {
+    public JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerLogbook(String tenantId, String strategyId, String logbookId)
+    public JsonNode getContainerLogbook(String strategyId, String logbookId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
 
     @Override
-    public void deleteLogbook(String tenantId, String strategyId, String logbookId)
+    public void deleteLogbook(String strategyId, String logbookId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerUnits(String tenantId, String strategyId) throws StorageNotFoundException {
+    public JsonNode getContainerUnits(String strategyId) throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerUnit(String tenantId, String strategyId, String unitId)
+    public JsonNode getContainerUnit(String strategyId, String unitId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteUnit(String tenantId, String strategyId, String unitId)
+    public void deleteUnit(String strategyId, String unitId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjectGroups(String tenantId, String strategyId)
+    public JsonNode getContainerObjectGroups(String strategyId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjectGroup(String tenantId, String strategyId, String objectGroupId)
+    public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteObjectGroup(String tenantId, String strategyId, String objectGroupId)
+    public void deleteObjectGroup(String strategyId, String objectGroupId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }

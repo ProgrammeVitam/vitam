@@ -30,6 +30,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,6 +61,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -67,6 +73,11 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 public class ReferentialAccessionRegisterImplTest {
     static String FILE_TO_TEST_OK = "accession-register.json";
     File pronomFile = null;
+    private static final Integer TENANT_ID = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -96,9 +107,6 @@ public class ReferentialAccessionRegisterImplTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
-        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
-            AccessionRegisterDetail.class);
-        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
     }
 
     @AfterClass
@@ -116,7 +124,14 @@ public class ReferentialAccessionRegisterImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testcreateAccessionRegister() throws Exception {
+
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
+                AccessionRegisterDetail.class);
+            ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+            
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
@@ -130,8 +145,15 @@ public class ReferentialAccessionRegisterImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFindAccessionRegisterDetail()
-        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException, FileNotFoundException {
+
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
+            AccessionRegisterDetail.class);
+        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+        
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
@@ -145,8 +167,15 @@ public class ReferentialAccessionRegisterImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFindAccessionRegisterSummary()
-        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws ReferentialException, InvalidParseOperationException, InvalidCreateOperationException, FileNotFoundException {
+
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
+            AccessionRegisterDetail.class);
+        ReferentialAccessionRegisterImpl.resetIndexAfterImport();
+        
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());

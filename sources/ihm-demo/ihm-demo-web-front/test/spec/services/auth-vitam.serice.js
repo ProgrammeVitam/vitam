@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,39 +23,39 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.storage.driver.model;
-
-import static org.junit.Assert.assertEquals;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-/**
- *
  */
-public class PutObjectResultTest {
-    private static PutObjectResult putObjectResult;
-    private static final Integer TENANT_ID = 0;
 
-    @BeforeClass
-    public static void init() {
-        putObjectResult = new PutObjectResult("doi", "dhb16", TENANT_ID, 10);
-    }
+'use strict';
 
-    @Test
-    public void testGetSetDistantObjectId() {
-        assertEquals("doi", putObjectResult.getDistantObjectId());
-    }
+describe('authVitamService', function() {
+  beforeEach(module('ihm.demo'));
 
-    @Test
-    public void testGetDigestHashBase16() {
-        assertEquals("dhb16", putObjectResult.getDigestHashBase16());
-    }
+  var AuthVitamService, $cookies;
 
-    @Test
-    public void testGetTenantId() {
-        assertEquals(TENANT_ID, putObjectResult.getTenantId());
-    }
-}
+  beforeEach(inject(function ($injector) {
+    AuthVitamService = $injector.get('authVitamService');
+    $cookies = $injector.get('$cookies');
+  }));
+
+  it('should destroy cookies when disconnected', function() {
+    AuthVitamService.createCookie('userCredentials', 'userTest');
+    AuthVitamService.createCookie('role', 'Role1');
+    AuthVitamService.createCookie(AuthVitamService.COOKIE_TENANT_ID, '5');
+
+    expect($cookies.get('userCredentials')).toEqual('userTest');
+    expect($cookies.get('role')).toEqual('Role1');
+    expect($cookies.get('tenantId')).toEqual('5');
+
+    AuthVitamService.logout();
+
+    expect($cookies.get('userCredentials')).toBeUndefined();
+    expect($cookies.get('role')).toBeUndefined();
+    expect($cookies.get('tenantId')).toBeUndefined();
+  });
+
+  it('should return the cookie value', function() {
+    AuthVitamService.createCookie('test', 'testValue');
+    expect(AuthVitamService.cookieValue('test')).toEqual($cookies.get('test'));
+  })
+
+});

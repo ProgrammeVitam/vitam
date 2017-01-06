@@ -44,6 +44,7 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 public class IngestExternalClientMockTest {
 
     private static final String MOCK_INPUT_STREAM = "VITAM-Ingest External Client Mock InputStream";
+    final int TENANT_ID = 0;
 
     @Test(expected = IngestExternalException.class)
     public void givenNullStreamThenThrowIngestExternalException() throws IngestExternalException, XMLStreamException {
@@ -52,7 +53,7 @@ public class IngestExternalClientMockTest {
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientMock);
-        client.upload(null);
+        client.upload(null, TENANT_ID);
     }
 
 
@@ -65,7 +66,7 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM);
-        final InputStream responseStream = client.upload(firstStream).readEntity(InputStream.class);
+        final InputStream responseStream = client.upload(firstStream, TENANT_ID).readEntity(InputStream.class);
 
         final InputStream inputstreamMockATR =
             IOUtils.toInputStream(IngestExternalClientMock.MOCK_INGEST_EXTERNAL_RESPONSE_STREAM);
@@ -87,7 +88,7 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream("test");
-        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
 
         assertNotNull(responseStream);
         try {

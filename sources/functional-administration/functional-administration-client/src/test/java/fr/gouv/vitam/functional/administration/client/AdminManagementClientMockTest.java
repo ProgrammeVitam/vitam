@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -46,6 +47,10 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
@@ -56,7 +61,12 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 public class AdminManagementClientMockTest {
 
     AdminManagementClientMock client = new AdminManagementClientMock();
+    private static final Integer TENANT_ID = 0;
     InputStream stream;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test
     public void givenClientMockWhenAndInputXMLOKThenReturnOK() throws FileFormatException, FileNotFoundException {
@@ -130,7 +140,9 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenClientMockWhenCreateAccessionRegister() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 

@@ -38,10 +38,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Status checkDocuments(AdminCollections documentType, InputStream stream)
+    public Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
         try {
             response = performRequest(HttpMethod.PUT, documentType.getName(), headers,
@@ -65,10 +66,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream)
+    public Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.POST, documentType.getName(), headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
@@ -89,11 +91,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.POST, documentType.getName(), headers,
                 select, MediaType.APPLICATION_JSON_TYPE,
@@ -114,11 +117,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
                 MediaType.APPLICATION_JSON_TYPE);

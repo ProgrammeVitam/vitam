@@ -30,48 +30,56 @@
 describe('accessionRegisterService', function() {
   beforeEach(module('ihm.demo'));
 
-  var AccessionRegisterService, $httpBackend;
+  var AccessionRegisterService, AccessionRegisterResource, /*$httpBackend, */$cookies, $q;
 
   var identifier = '001';
-  var criteria = {OriginatingAgency: identifier};
   var $scope = {};
-  var callback = function(response) {
-    $scope.response = response;
-  };
+  var headers = {};
 
   beforeEach(inject(function ($injector) {
     AccessionRegisterService = $injector.get('accessionRegisterService');
-    $httpBackend = $injector.get('$httpBackend');
+    AccessionRegisterResource = $injector.get('accessionRegisterResource');
+    $q = $injector.get('$q');
 
-    // FIXME Expect languages because this request is always send
-    $httpBackend.when('GET', 'static/languages_fr.json').respond('test');
+    $cookies = $injector.get('$cookies');
+    $cookies.put('tenantId', 0);
+    headers['X-Tenant-Id'] = $cookies.get('tenantId');
   }));
 
-  afterEach(function() {
-    $httpBackend.verifyNoOutstandingExpectation();
-    $httpBackend.verifyNoOutstandingRequest();
-  });
-
-
   it('should transfer the response from resource to service callback for getDetails', function() {
-    $httpBackend
-      .when('POST', '/ihm-demo/v1/api/admin/accession-register/' + identifier + '/accession-register-detail/', criteria)
-      .respond({$hints: [], $results: [{id: identifier}]});
+    console.log('Start test Details');
 
-    AccessionRegisterService.getDetails(identifier, callback);
-    $httpBackend.flush();
-    expect($scope.response.length).toEqual(1);
-    expect($scope.response[0].id).toEqual(identifier);
+    var detailsCallback = function(response) {
+      $scope.response = response;
+      expect($scope.response.length).toEqual(1);
+      expect($scope.response[0].id).toEqual(identifier);
+      done();
+    };
+
+    spyOn(AccessionRegisterResource, 'getDetails').and.callFake(function (id, criteria) {
+      var deferred = $q.defer();
+      var result = {data: {$hints: [], $results: [{id: id}]}};
+      deferred.resolve(result);
+      return deferred.promise;
+    });
+
+    AccessionRegisterService.getDetails(identifier, detailsCallback);
   });
 
   it('should transfer the response from resource to service callback for getSummary', function() {
-    $httpBackend
-      .when('POST', '/ihm-demo/v1/api/admin/accession-register/', criteria)
-      .respond({$hints: [], $results: [{item: 'value'}]});
+    var summaryCallback = function(response) {
+      $scope.response = response;
+      expect($scope.response.item).toEqual('value');
+    };
 
-    AccessionRegisterService.getSummary(identifier, callback);
-    $httpBackend.flush();
-    expect($scope.response.item).toEqual('value');
+    spyOn(AccessionRegisterResource, 'getSummary').and.callFake(function (criteria) {
+      var deferred = $q.defer();
+      var result = {data: {$hints: [], $results: [{item: 'value'}]}};
+      deferred.resolve(result);
+      return deferred.promise;
+    });
+
+    AccessionRegisterService.getSummary(identifier, summaryCallback);
   });
 
 });

@@ -51,7 +51,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
 
     @Override
-    public Response upload(InputStream stream)
+    public Response upload(InputStream stream, Integer tenantId)
         throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
@@ -60,7 +60,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
 
         return new AbstractMockClient.FakeInboundResponse(Status.OK,
             IOUtils.toInputStream(MOCK_INGEST_EXTERNAL_RESPONSE_STREAM),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, getDefaultHeaders(FAKE_X_REQUEST_ID));
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, getDefaultHeaders(FAKE_X_REQUEST_ID, tenantId));
     }
 
     /**
@@ -69,14 +69,15 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
      * @param requestId fake x-request-id
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId) {
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId, Integer tenantId) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         return headers;
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
         return ClientMockResultHelper.getObjectStream();
     }
 }

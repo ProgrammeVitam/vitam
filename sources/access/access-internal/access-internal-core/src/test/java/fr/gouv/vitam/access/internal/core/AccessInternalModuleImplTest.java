@@ -44,6 +44,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -63,6 +64,10 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -82,6 +87,10 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 @PrepareForTest({MetaDataClientFactory.class, LogbookOperationsClientFactory.class,
     LogbookLifeCyclesClientFactory.class, StorageClientFactory.class})
 public class AccessInternalModuleImplTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static String HOST = "http:\\localhost:";
 
@@ -109,7 +118,7 @@ public class AccessInternalModuleImplTest {
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
     private static final Update updateQuery = new Update();
-
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -315,8 +324,10 @@ public class AccessInternalModuleImplTest {
 
     // update by id - start
     @Test
+    @RunWithCustomExecutor
     public void given_correct_dsl_When_updateUnitById_thenOK()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
@@ -348,8 +359,10 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    @RunWithCustomExecutor
     public void given_test_AccessExecutionException_updateUnitById()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
@@ -358,8 +371,10 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = InvalidParseOperationException.class)
+    @RunWithCustomExecutor
     public void given_empty_DSLWhen_updateUnitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
@@ -368,8 +383,10 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = AccessInternalExecutionException.class)
+    @RunWithCustomExecutor
     public void given_DSLWhen_updateUnitById_ThenThrows_MetaDataDocumentSizeException()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenThrow(new MetaDataDocumentSizeException(""));
@@ -377,8 +394,10 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = AccessInternalExecutionException.class)
+    @RunWithCustomExecutor
     public void given_DSL_When_updateUnitById_ThenThrows_MetaDataExecutionException()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doNothing().when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
@@ -388,8 +407,10 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = AccessInternalExecutionException.class)
+    @RunWithCustomExecutor
     public void given_LogbookProblem_When_updateUnitById_ThenThrows_AccessExecutionException()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doThrow(new LogbookClientNotFoundException("")).when(logbookOperationClient).update(anyObject());
         Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
         when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
@@ -415,18 +436,18 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
-            anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
                 .thenReturn(responseMock);
         final AccessBinaryData abd =
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0,
-                "0");
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
         assertNotNull(abd);
         final Response binaryMasterResponse = abd.getOriginalResponse();
         assertNotNull(binaryMasterResponse);
@@ -436,18 +457,18 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroupRealData_OK() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_PATH)));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
-            anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
                 .thenReturn(responseMock);
         final AccessBinaryData abd =
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0,
-                "0");
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
         assertNotNull(abd);
         final Response binaryMasterResponse = abd.getOriginalResponse();
         assertNotNull(binaryMasterResponse);
@@ -457,18 +478,18 @@ public class AccessInternalModuleImplTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroupRealData_WARN() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_MULTI_PATH)));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
-            anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
                 .thenReturn(responseMock);
         final AccessBinaryData abd =
-            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0,
-                "0");
+            accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
         assertNotNull(abd);
         final Response binaryMasterResponse = abd.getOriginalResponse();
         assertNotNull(binaryMasterResponse);
@@ -477,26 +498,31 @@ public class AccessInternalModuleImplTest {
     }
 
     @Test(expected = AccessInternalExecutionException.class)
+    @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_Multiple_Result() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
-        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
+    @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
+    @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyString(),
-            anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
                 .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0, "0");
+        accessModuleImpl.getOneObjectFromObjectGroup(asynResponse, ID, fromStringToJson(QUERY), "BinaryMaster", 0);
     }
 
 }

@@ -58,6 +58,7 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les vale
    "http_proxy_environnement","Cas particulier de la récupération des jeux de tests ; URL de squid",""
    "mongoclientPort","Port par lequel mongoclient est acessible","27016"
    "mongoclientDbName","Nom de la Base de donnée stockant la configuration mongoclient","mongoclient"
+   "vitam_tenant_ids","Liste des tenants de plateforme","[0,1,2] ; [0] par défaut"
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :

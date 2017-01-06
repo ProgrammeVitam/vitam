@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -114,7 +115,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XSD_VERSION = " seda-2.0-main.xsd";
 
     private HandlerIO handlerIO;
-    private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
@@ -172,7 +172,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
-                    DEFAULT_TENANT,
                     DEFAULT_STRATEGY,
                     StorageCollectionType.REPORTS,
                     params.getContainerName() + XML, description);
@@ -181,7 +180,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     description.setWorkspaceObjectURI(
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
                     storageClient.storeFileFromWorkspace(
-                        DEFAULT_TENANT,
                         DEFAULT_STRATEGY,
                         StorageCollectionType.MANIFESTS,
                         params.getContainerName() + XML, description);

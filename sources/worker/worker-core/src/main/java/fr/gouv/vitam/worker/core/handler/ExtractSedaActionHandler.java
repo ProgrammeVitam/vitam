@@ -85,6 +85,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -865,7 +866,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             break;
                         }
                         case DATA_OBJECT_GROUPID: {
-                            groupGuid = GUIDFactory.newGUID().toString();
+                            groupGuid = GUIDFactory.newObjectGroupGUID(VitamThreadUtils.getVitamSession().getTenantId())
+                                .toString();
                             final String groupId = reader.getElementText();
                             // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
                             // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
@@ -1034,7 +1036,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final JsonNode bdo = jsonBDO.get(BINARY_DATA_OBJECT);
         final ObjectNode bdoObjNode = (ObjectNode) bdo;
 
-        final String technicalGotGuid = GUIDFactory.newObjectGroupGUID(0).toString();
+        final String technicalGotGuid =
+            GUIDFactory.newObjectGroupGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString();
         objectGroupIdToGuid.put(technicalGotGuid, technicalGotGuid); // update object group id guid
         bdoObjNode.put(DATA_OBJECT_GROUPID, technicalGotGuid);
 
@@ -1079,7 +1082,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).toString());
+            GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());
 
@@ -1193,7 +1196,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).toString());
+            GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());
 
@@ -1228,8 +1231,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         final List<String> archiveUnitGuids = new ArrayList<>();
 
-        String elementGuid = GUIDFactory.newGUID().toString();
         String existingElementGuid = null;
+        String elementGuid = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString();
         boolean isReferencedArchive = false;
 
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -1545,7 +1548,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             try {
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
-                objectGroup.put(SedaConstants.PREFIX_TENANT_ID, 0);
+                objectGroup.put(SedaConstants.PREFIX_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
                 final List<String> versionList = new ArrayList<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);

@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Accession Register Detail document
@@ -56,8 +57,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail() {
         // Empty
-        // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
     /**
@@ -67,8 +67,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
-        // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
     /**
@@ -76,8 +75,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(JsonNode content) {
         super(content);
-        // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
     /**
@@ -85,8 +83,15 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(String content) {
         super(content);
-        // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
+    }
+    
+    /**
+     * 
+     * @param tenantId
+     */
+    public AccessionRegisterDetail(Integer tenantId)  {
+    	append(TENANT, tenantId);
     }
 
     /**
@@ -184,7 +189,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @return String
+     * @return RegisterValueDetail
      */
     public RegisterValueDetail getTotalObjectGroups() {
         return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTGROUPS), RegisterValueDetail.class);
@@ -200,7 +205,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @return String
+     * @return RegisterValueDetail
      */
     public RegisterValueDetail getTotalObjects() {
         return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTS), RegisterValueDetail.class);
@@ -216,7 +221,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @return String
+     * @return RegisterValueDetail
      */
     public RegisterValueDetail getTotalObjectSize() {
         return new ObjectMapper().convertValue(this.get(OBJECT_SIZE), RegisterValueDetail.class);
