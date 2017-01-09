@@ -39,47 +39,99 @@ public class RegisterValueDetailModel {
     @JsonProperty("OriginatingAgency")
     private String OriginatingAgency;
 
-    // use for jackson
+    /**
+     * Constructor without fields
+     * 
+     * use for jackson
+     */
     public RegisterValueDetailModel() {
     }
-
+    
+    /**
+     * Constructor using fields
+     * 
+     * @param total
+     * @param deleted
+     * @param remained
+     * @param originatingAgency
+     */
     public RegisterValueDetailModel(long total, long deleted, long remained, String originatingAgency) {
         this.total = total;
         this.deleted = deleted;
         this.remained = remained;
         OriginatingAgency = originatingAgency;
     }
-
+    
+    /**
+     * 
+     * @return long
+     */
     public long getTotal() {
         return total;
     }
-
-    public void setTotal(long total) {
+    
+    /**
+     * 
+     * @param total
+     * @return RegisterValueDetailModel
+     */
+    public RegisterValueDetailModel setTotal(long total) {
         this.total = total;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return long
+     */
     public long getDeleted() {
         return deleted;
     }
-
-    public void setDeleted(long deleted) {
+    
+    /**
+     * 
+     * @param deleted
+     * @return RegisterValueDetailModel
+     */
+    public RegisterValueDetailModel setDeleted(long deleted) {
         this.deleted = deleted;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return long
+     */
     public long getRemained() {
         return remained;
     }
-
-    public void setRemained(long remained) {
+    
+    /**
+     * 
+     * @param remained
+     * @return RegisterValueDetailModel
+     */
+    public RegisterValueDetailModel setRemained(long remained) {
         this.remained = remained;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getOriginatingAgency() {
         return OriginatingAgency;
     }
-
-    public void setOriginatingAgency(String originatingAgency) {
+    
+    /**
+     * 
+     * @param originatingAgency
+     * @return RegisterValueDetailModel
+     */
+    public RegisterValueDetailModel setOriginatingAgency(String originatingAgency) {
         OriginatingAgency = originatingAgency;
+        return this;
     }
 
 }

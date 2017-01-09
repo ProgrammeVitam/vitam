@@ -71,9 +71,29 @@ public class FileFormatModel {
     @JsonProperty("PUID")
     private String puid = "";
 
+    /**
+     * Constructor without fields
+     * 
+     */
     public FileFormatModel() {
     }
 
+    /**
+     * Constructor using fields
+     * 
+     * @param id
+     * @param createdDate
+     * @param versionPronom
+     * @param version
+     * @param hasPriorityOverFileFormatIDs
+     * @param mimeType
+     * @param name
+     * @param group
+     * @param alert
+     * @param comment
+     * @param extensions
+     * @param puid
+     */
     public FileFormatModel(String id, String createdDate, String versionPronom, String version,
         List<String> hasPriorityOverFileFormatIDs, String mimeType, String name, String group, boolean alert,
         String comment, List<String> extensions, String puid) {
@@ -91,100 +111,220 @@ public class FileFormatModel {
         this.puid = puid;
     }
 
+    /**
+     * 
+     * @return String 
+     */
     public String getId() {
         return id;
     }
-
-    public void setId(String id) {
+    
+    /**
+     * 
+     * @param id
+     * @return FileFormatModel
+     */
+    public FileFormatModel setId(String id) {
         this.id = id;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getCreatedDate() {
         return createdDate;
     }
-
-    public void setCreatedDate(String createdDate) {
+    
+    /**
+     * 
+     * @param createdDate
+     * @return FileFormatModel
+     */
+    public FileFormatModel setCreatedDate(String createdDate) {
         this.createdDate = createdDate;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getVersionPronom() {
         return versionPronom;
     }
-
-    public void setVersionPronom(String versionPronom) {
+    
+    /**
+     * 
+     * @param versionPronom
+     * @return FileFormatModel
+     */
+    public FileFormatModel setVersionPronom(String versionPronom) {
         this.versionPronom = versionPronom;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getVersion() {
         return version;
     }
-
-    public void setVersion(String version) {
+    
+    /**
+     * 
+     * @param version
+     * @return FileFormatModel
+     */
+    public FileFormatModel setVersion(String version) {
         this.version = version;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return List of String 
+     */
     public List<String> getHasPriorityOverFileFormatIDs() {
         return hasPriorityOverFileFormatIDs;
     }
-
-    public void setHasPriorityOverFileFormatIDs(List<String> hasPriorityOverFileFormatIDs) {
+    
+    /**
+     * 
+     * @param hasPriorityOverFileFormatIDs
+     * @return FileFormatModel
+     */
+    public FileFormatModel setHasPriorityOverFileFormatIDs(List<String> hasPriorityOverFileFormatIDs) {
         this.hasPriorityOverFileFormatIDs = hasPriorityOverFileFormatIDs;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getMimeType() {
         return mimeType;
     }
-
-    public void setMimeType(String mimeType) {
+    
+    /**
+     * 
+     * @param mimeType
+     * @return FileFormatModel
+     */
+    public FileFormatModel setMimeType(String mimeType) {
         this.mimeType = mimeType;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getName() {
         return name;
     }
-
-    public void setName(String name) {
+    
+    /**
+     * 
+     * @param name
+     * @return FileFormatModel
+     */
+    public FileFormatModel setName(String name) {
         this.name = name;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getGroup() {
         return group;
     }
-
-    public void setGroup(String group) {
+    
+    /**
+     * 
+     * @param group
+     * @return FileFormatModel
+     */
+    public FileFormatModel setGroup(String group) {
         this.group = group;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return boolean
+     */
     public boolean isAlert() {
         return alert;
     }
-
-    public void setAlert(boolean alert) {
+    
+    /**
+     * 
+     * @param alert
+     * @return FileFormatModel
+     */
+    public FileFormatModel setAlert(boolean alert) {
         this.alert = alert;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getComment() {
         return comment;
     }
-
-    public void setComment(String comment) {
+    
+    /**
+     * 
+     * @param comment
+     * @return FileFormatModel
+     */
+    public FileFormatModel setComment(String comment) {
         this.comment = comment;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return List of String
+     */
     public List<String> getExtensions() {
         return extensions;
     }
-
-    public void setExtensions(List<String> extensions) {
+    
+    /**
+     * 
+     * @param extensions
+     * @return FileFormatModel
+     */
+    public FileFormatModel setExtensions(List<String> extensions) {
         this.extensions = extensions;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getPuid() {
         return puid;
     }
-
-    public void setPuid(String puid) {
+    
+    /**
+     * 
+     * @param puid
+     * @return FileFormatModel
+     */
+    public FileFormatModel setPuid(String puid) {
         this.puid = puid;
+        return this;
     }
 
 }

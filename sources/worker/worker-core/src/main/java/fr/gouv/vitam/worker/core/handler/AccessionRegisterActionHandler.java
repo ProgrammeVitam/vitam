@@ -49,7 +49,6 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModelBuilder;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -136,8 +135,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     }
 
     private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params) throws ProcessingException {
-        AccessionRegisterDetailModel register =
-            new AccessionRegisterDetailModelBuilder().createAccessionRegisterDetailModel();
+        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel() ;
         try (final InputStream archiveUnitMapStream =
             new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
@@ -208,7 +206,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip, null);
 
-        return new AccessionRegisterDetailModelBuilder()
+        return new AccessionRegisterDetailModel()
             .setId(params.getContainerName())
             .setOriginatingAgency(originalAgency)
             .setSubmissionAgency(submissionAgency)
@@ -218,8 +216,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalObjectsGroups(totalObjectsGroups)
             .setTotalUnits(totalUnits)
             .setTotalObjects(totalObjects)
-            .setObjectSize(objectSize)
-            .createAccessionRegisterDetailModel();
+            .setObjectSize(objectSize);
     }
 
     @Override

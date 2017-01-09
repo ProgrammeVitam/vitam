@@ -59,10 +59,31 @@ public class AccessionRegisterDetailModel {
     @JsonProperty("ObjectSize")
     private RegisterValueDetailModel ObjectSize;
 
-    // use for jackson
+    
+    /**
+     * Constructor without fields
+     * 
+     * use for jackson
+     */
     public AccessionRegisterDetailModel() {
     }
-
+    
+    /**
+     * Constructor using fields
+     * 
+     * @param id
+     * @param tenant
+     * @param originatingAgency
+     * @param submissionAgency
+     * @param endDate
+     * @param startDate
+     * @param lastUpdate
+     * @param status
+     * @param totalObjectsGroups
+     * @param totalUnits
+     * @param totalObjects
+     * @param objectSize
+     */
     public AccessionRegisterDetailModel(String id, long tenant, String originatingAgency, String submissionAgency,
         String endDate, String startDate, String lastUpdate,
         AccessionRegisterStatus status,
@@ -83,101 +104,220 @@ public class AccessionRegisterDetailModel {
         this.totalObjects = totalObjects;
         ObjectSize = objectSize;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getId() {
         return id;
     }
-
-    public void setId(String id) {
+    
+    /**
+     * 
+     * @param id
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setId(String id) {
         this.id = id;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return long
+     */
     public long getTenant() {
         return tenant;
     }
-
-    public void setTenant(long tenant) {
+    
+    /**
+     * 
+     * @param tenant
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setTenant(long tenant) {
         this.tenant = tenant;
+        return this ;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getOriginatingAgency() {
         return originatingAgency;
     }
-
-    public void setOriginatingAgency(String originatingAgency) {
+    
+    /**
+     * 
+     * @param originatingAgency
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setOriginatingAgency(String originatingAgency) {
         this.originatingAgency = originatingAgency;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getSubmissionAgency() {
         return submissionAgency;
     }
-
-    public void setSubmissionAgency(String submissionAgency) {
+    
+    /**
+     * 
+     * @param submissionAgency
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setSubmissionAgency(String submissionAgency) {
         this.submissionAgency = submissionAgency;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getEndDate() {
         return endDate;
     }
-
-    public void setEndDate(String endDate) {
+    
+    /**
+     * 
+     * @param endDate
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setEndDate(String endDate) {
         this.endDate = endDate;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getStartDate() {
         return startDate;
     }
-
-    public void setStartDate(String startDate) {
+    
+    /**
+     * 
+     * @param startDate
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setStartDate(String startDate) {
         this.startDate = startDate;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getLastUpdate() {
         return lastUpdate;
     }
-
-    public void setLastUpdate(String lastUpdate) {
+    
+    /**
+     * 
+     * @param lastUpdate
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return AccessionRegisterStatus
+     */
     public AccessionRegisterStatus getStatus() {
         return status;
     }
-
-    public void setStatus(AccessionRegisterStatus status) {
+    /**
+     * 
+     * @param status
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setStatus(AccessionRegisterStatus status) {
         this.status = status;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getTotalObjectsGroups() {
         return totalObjectsGroups;
     }
-
-    public void setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
+    
+    /**
+     * 
+     * @param totalObjectsGroups
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
         this.totalObjectsGroups = totalObjectsGroups;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getTotalUnits() {
         return totalUnits;
     }
-
-    public void setTotalUnits(RegisterValueDetailModel totalUnits) {
+    
+    /**
+     * 
+     * @param totalUnits
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setTotalUnits(RegisterValueDetailModel totalUnits) {
         this.totalUnits = totalUnits;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getTotalObjects() {
         return totalObjects;
     }
-
-    public void setTotalObjects(RegisterValueDetailModel totalObjects) {
+    
+    /**
+     * 
+     * @param totalObjects
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setTotalObjects(RegisterValueDetailModel totalObjects) {
         this.totalObjects = totalObjects;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getObjectSize() {
         return ObjectSize;
     }
-
-    public void setObjectSize(RegisterValueDetailModel objectSize) {
+    
+    /**
+     * 
+     * @param objectSize
+     * @return AccessionRegisterDetailModel
+     */
+    public AccessionRegisterDetailModel setObjectSize(RegisterValueDetailModel objectSize) {
         ObjectSize = objectSize;
+        return this;
     }
 
 }

@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModelBuilder;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -149,30 +148,30 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Register Fund request:");
 
-        model.setId("aefaaaaaaaaam7mxaa2gyakygejizayaaaaq");
-        model.setTenant(0);
-        model.setOriginatingAgency("FRAN_NP_005568");
+        model.setId("aefaaaaaaaaam7mxaa2gyakygejizayaaaaq")
+        .setTenant(0)
+        .setOriginatingAgency("FRAN_NP_005568");
 
-        totalObjects.setTotal(12);
-        totalObjects.setDeleted(0);
-        totalObjects.setRemained(12);
+        totalObjects.setTotal(12)
+        .setDeleted(0)
+        .setRemained(12);
         model.setTotalObjects(totalObjects);
 
-        totalObjectsGroups.setTotal(3);
-        totalObjectsGroups.setDeleted(0);
-        totalObjectsGroups.setRemained(3);
+        totalObjectsGroups.setTotal(3)
+        .setDeleted(0)
+        .setRemained(3);
         model.setTotalObjectsGroups(totalObjectsGroups);
 
-        totalUnits.setTotal(3);
-        totalUnits.setDeleted(0);
-        totalUnits.setRemained(3);
+        totalUnits.setTotal(3)
+        .setDeleted(0)
+        .setRemained(3);
         model.setTotalUnits(totalUnits);
 
-        objectSize.setTotal(1035126);
-        objectSize.setDeleted(0);
-        objectSize.setRemained(1035126);
-        model.setObjectSize(objectSize);
-        model.setCreationDate("2016-11-04T20:40:49.030");
+        objectSize.setTotal(1035126)
+        .setDeleted(0)
+        .setRemained(1035126);
+        model.setObjectSize(objectSize)
+        .setCreationDate("2016-11-04T20:40:49.030");
         modelJson = JsonHandler.writeAsString(model);
         return ClientMockResultHelper.createReponse(modelJson);
     }
@@ -187,7 +186,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Accession Register request:");
 
-        AccessionRegisterDetailModelBuilder detailBuider = new AccessionRegisterDetailModelBuilder();
+        AccessionRegisterDetailModel detailBuider = new AccessionRegisterDetailModel();
         detailBuider.setId("aedqaaaaacaam7mxabsakakygeje2uyaaaaq")
             .setTenant(0)
             .setOriginatingAgency("FRAN_NP_005568")
@@ -199,7 +198,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             .setTotalObjectsGroups(totalObjectsGroups)
             .setTotalUnits(totalUnits)
             .setObjectSize(objectSize);
-        return ClientMockResultHelper.createReponse(detailBuider.createAccessionRegisterDetailModel());
+        return ClientMockResultHelper.createReponse(detailBuider);
     }
 
 }

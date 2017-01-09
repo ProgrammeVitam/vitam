@@ -48,68 +48,148 @@ public class AccessionRegisterSummaryModel {
     @JsonProperty("creationDate")
     private String creationDate;
 
+    /**
+     * 
+     * @return String
+     */
     public String getId() {
         return id;
     }
-
-    public void setId(String id) {
+    
+    /**
+     * 
+     * @param id
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setId(String id) {
         this.id = id;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return long
+     */
     public long getTenant() {
         return tenant;
     }
-
-    public void setTenant(long tenant) {
+    
+    /**
+     * 
+     * @param tenant
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setTenant(long tenant) {
         this.tenant = tenant;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String
+     */
     public String getOriginatingAgency() {
         return originatingAgency;
     }
-
-    public void setOriginatingAgency(String originatingAgency) {
+    
+    /**
+     * 
+     * @param originatingAgency
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setOriginatingAgency(String originatingAgency) {
         this.originatingAgency = originatingAgency;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getTotalObjects() {
         return totalObjects;
     }
-
-    public void setTotalObjects(RegisterValueDetailModel totalObjects) {
+    
+    /**
+     * 
+     * @param totalObjects
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setTotalObjects(RegisterValueDetailModel totalObjects) {
         this.totalObjects = totalObjects;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getTotalObjectsGroups() {
         return totalObjectsGroups;
     }
-
-    public void setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
+    
+    /**
+     * 
+     * @param totalObjectsGroups
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
         this.totalObjectsGroups = totalObjectsGroups;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getTotalUnits() {
         return totalUnits;
     }
-
-    public void setTotalUnits(RegisterValueDetailModel totalUnits) {
+    
+    /**
+     * 
+     * @param totalUnits
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setTotalUnits(RegisterValueDetailModel totalUnits) {
         this.totalUnits = totalUnits;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return RegisterValueDetailModel
+     */
     public RegisterValueDetailModel getObjectSize() {
         return ObjectSize;
     }
-
-    public void setObjectSize(RegisterValueDetailModel objectSize) {
+    
+    /**
+     * 
+     * @param objectSize
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setObjectSize(RegisterValueDetailModel objectSize) {
         ObjectSize = objectSize;
+        return this;
     }
-
+    
+    /**
+     * 
+     * @return String 
+     */
     public String getCreationDate() {
         return creationDate;
     }
-
-    public void setCreationDate(String creationDate) {
+    
+    /**
+     * 
+     * @param creationDate
+     * @return AccessionRegisterSummaryModel
+     */
+    public AccessionRegisterSummaryModel setCreationDate(String creationDate) {
         this.creationDate = creationDate;
+        return this;
     }
 
 }
