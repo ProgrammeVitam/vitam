@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -82,6 +83,11 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
 
     @Override
     public Response downloadObjectAsync(String objectId, IngestCollection type) {
+        return ClientMockResultHelper.getObjectStream();
+    }
+
+    @Override
+    public Response storeATR(GUID guid, InputStream input) throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 }

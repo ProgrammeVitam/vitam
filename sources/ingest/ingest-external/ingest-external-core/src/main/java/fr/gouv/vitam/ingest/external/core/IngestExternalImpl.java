@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
@@ -36,9 +37,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -430,27 +433,38 @@ public class IngestExternalImpl implements IngestExternal {
      * @return
      * @throws LogbookClientNotFoundException
      * @throws IngestExternalException
+     * @throws VitamClientException 
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
         boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters)
-        throws LogbookClientNotFoundException, IngestExternalException {
+        throws LogbookClientNotFoundException, IngestExternalException{
         Response responseNoProcess;
         // Add step started in the logbook
         addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
         addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
         // FIXME P1 later on real ATR KO
+        String atrKo = null;
         if (isFileInfected) {
-            responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-                AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
-                    "SANITY_CHECK_SIP", null, StatusCode.KO),
-                MediaType.APPLICATION_XML_TYPE, null);
+            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+                "TransferringAgencyToBeDefined",
+                "SANITY_CHECK_SIP", null, StatusCode.KO);
+            
+            try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
+                client.storeATR(ingestGuid, new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)));
+            } catch (VitamClientException e) {
+                LOGGER.error(e.getMessage());
+                throw new IngestExternalException(e);
+            }
+
         } else {
-            responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-                AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
-                    "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO),
-                MediaType.APPLICATION_XML_TYPE, null);
+            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+                "TransferringAgencyToBeDefined",
+                "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO);
         }
+        
+        responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
+            new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)) ,MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
         addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
         addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);

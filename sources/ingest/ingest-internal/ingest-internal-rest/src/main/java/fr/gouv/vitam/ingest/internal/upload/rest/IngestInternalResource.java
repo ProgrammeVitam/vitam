@@ -45,6 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -81,9 +82,12 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -108,6 +112,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
+    private static final String FOLDERNAME = "ATR/";
 
     private final WorkspaceClient workspaceClientMock;
     private final ProcessingManagementClient processingManagementClientMock;
@@ -233,6 +238,36 @@ public class IngestInternalResource extends ApplicationStatusResource {
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getDefaultExecutor()
         .execute(() -> downloadObjectAsync(asyncResponse, objectId, type));
+    }
+    
+    /**
+     * @param atr
+     * @param asyncResponse
+     */
+    @POST
+    @Path("/ingests/{objectId}/report")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response storeATR(@PathParam("objectId") String guid, InputStream atr){
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+
+            LOGGER.error("storage atr internal");
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(guid);
+            workspaceClient.putObject(guid, FOLDERNAME + guid + XML, atr);
+
+            final CreateObjectDescription description = new CreateObjectDescription();
+            description.setWorkspaceContainerGUID(guid);
+            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
+            
+            storageClient.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY,
+                StorageCollectionType.REPORTS, guid + XML, description);
+            return Response.status(Status.OK).build();
+            
+        } catch (StorageClientException | ContentAddressableStorageServerException |
+            ContentAddressableStorageAlreadyExistException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
     }
 
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String objectId,
