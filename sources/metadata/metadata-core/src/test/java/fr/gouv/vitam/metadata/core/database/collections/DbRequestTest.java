@@ -159,15 +159,11 @@ public class DbRequestTest {
     private static final String REQUEST_SELECT_TEST_ES_1 =
         "{$query: { $match : { 'Description' : 'OK' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_2 =
-        "{$query: { $match : { 'Description' : 'description OK' , '$max_expansions' : 1  } }}";
+        "{$query: { $match : { 'Description' : 'dèscription OK' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_3 =
         "{$query: { $match : { 'Description' : 'est OK description' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_4 =
-        "{$query: { $or : [ { $match : { 'Title' : 'vitam' , '$max_expansions' : 1  } }, " +
-            "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
-            "] } }";
-    private static final String REQUEST_SELECT_TEST_ES_5 =
-        "{$query: { $or : [ { $match : { 'Title' : 'vitam' , '$max_expansions' : 1  } }, " +
+        "{$query: { $or : [ { $match : { 'Title' : 'Vitam' , '$max_expansions' : 1  } }, " +
             "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
             "] } }";
     private static final String REQUEST_INSERT_TEST_ES =
@@ -177,9 +173,7 @@ public class DbRequestTest {
     private static final String REQUEST_INSERT_TEST_ES_3 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title vitam1\", \"Description\": \"description est OK\" }";
-    private static final String REQUEST_UPDATE_INDEX_TEST_ELASTIC =
-        "{$query: { $eq : [ { $term : { 'Title' : 'vitam' , '$max_expansions' : 1  } }] } }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title othervalue france.pdf\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST =
         "{$roots:['aeaqaaaaaet33ntwablhaaku6z67pzqaaaas'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
@@ -1158,7 +1152,7 @@ public class DbRequestTest {
         select.addQueries(match("Description", "description OK").setDepthLimit(0))
             .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
         selectParser1.parse(select.getFinalSelect());
-        LOGGER.debug("SelectParser: {}", selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel0 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel0.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq",
@@ -1168,7 +1162,7 @@ public class DbRequestTest {
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
             .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
         selectParser1.parse(select.getFinalSelect());
-        LOGGER.debug("SelectParser: {}", selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel1.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
@@ -1178,7 +1172,7 @@ public class DbRequestTest {
         select.addQueries(match("Description", "description OK").setDepthLimit(3))
             .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
         selectParser1.parse(select.getFinalSelect());
-        LOGGER.debug("SelectParser: {}", selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel3 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel3.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
@@ -1206,14 +1200,23 @@ public class DbRequestTest {
         esClient.refreshIndex(MetadataCollections.C_UNIT);
 
         select = new Select();
-        select.addQueries(match("Title", "vitam1").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
+        select.addQueries(match("Title", "othervalue").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq");
         selectParser1.parse(select.getFinalSelect());
-        LOGGER.debug("SelectParser: {}", selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelectRel5.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel5.getCurrentIds().iterator().next().toString());
 
+        // Check for "France.pdf"
+        select = new Select();
+        select.addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq").addQueries(match("Title", "Frânce").setDepthLimit(1));
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
+        final Result resultSelectRel6 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel6.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
+            resultSelectRel6.getCurrentIds().iterator().next().toString());
     }
 
     public void shouldUpdateUnitResult() throws Exception {
