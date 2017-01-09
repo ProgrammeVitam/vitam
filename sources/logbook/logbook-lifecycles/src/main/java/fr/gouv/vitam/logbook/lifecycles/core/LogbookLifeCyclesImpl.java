@@ -133,7 +133,13 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public List<LogbookLifeCycleUnit> selectUnit(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        try (final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select)) {
+        return selectUnit(select, true);
+    }
+
+    @Override
+    public List<LogbookLifeCycleUnit> selectUnit(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        try (final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select, sliced)) {
             final List<LogbookLifeCycleUnit> result = new ArrayList<>();
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
@@ -268,8 +274,14 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        return selectObjectGroup(select, true);
+    }
+
+    @Override
+    public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         try (final MongoCursor<LogbookLifeCycleObjectGroup> logbook =
-            mongoDbAccess.getLogbookLifeCycleObjectGroups(select)) {
+            mongoDbAccess.getLogbookLifeCycleObjectGroups(select, sliced)) {
             final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
@@ -296,6 +308,11 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public LogbookLifeCycleUnit getUnitById(String idUnit) throws LogbookDatabaseException, LogbookNotFoundException {
         return mongoDbAccess.getLogbookLifeCycleUnit(idUnit);
+    }
+
+    @Override
+    public LogbookLifeCycleUnit getUnitById(JsonNode queryDsl) throws LogbookDatabaseException, LogbookNotFoundException {
+        return mongoDbAccess.getLogbookLifeCycleUnit(queryDsl);
     }
 
     @Override

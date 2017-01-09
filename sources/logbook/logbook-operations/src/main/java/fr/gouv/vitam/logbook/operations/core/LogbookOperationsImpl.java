@@ -81,7 +81,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public List<LogbookOperation> select(JsonNode select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        try (final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, true)) {
+        return select(select, true);
+    }
+
+    @Override
+    public List<LogbookOperation> select(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        try (final MongoCursor<LogbookOperation> logbook = mongoDbAccess.getLogbookOperations(select, sliced)) {
             final List<LogbookOperation> result = new ArrayList<>();
             if (logbook == null || !logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");

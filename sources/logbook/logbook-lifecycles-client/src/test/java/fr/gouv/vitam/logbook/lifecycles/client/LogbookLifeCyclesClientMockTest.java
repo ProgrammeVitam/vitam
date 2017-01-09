@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -191,8 +192,8 @@ public class LogbookLifeCyclesClientMockTest {
         final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.selectObjectGroupLifeCycleById("id"));
-        assertNotNull(client.selectUnitLifeCycleById("id"));
+        assertNotNull(client.selectObjectGroupLifeCycleById("id", JsonHandler.createObjectNode()));
+        assertNotNull(client.selectUnitLifeCycleById("id", JsonHandler.createObjectNode()));
         assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
         assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
 

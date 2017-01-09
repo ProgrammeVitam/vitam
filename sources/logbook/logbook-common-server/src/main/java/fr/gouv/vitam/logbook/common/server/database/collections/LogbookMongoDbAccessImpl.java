@@ -122,6 +122,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     static final int LAST_EVENT_SLICE = -1;
     static final int TWO_LAST_EVENTS_SLICE = -2;
 
+    private static final String OB_ID = "obId";
+
     static {
         DEFAULT_SLICE.putObject(LogbookDocument.EVENTS).put(SLICE, LAST_EVENT_SLICE);
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
@@ -298,10 +300,16 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select)
+    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_UNIT, select, true);
+        if (sliced) {
+            final ObjectNode operationSlice = JsonHandler.createObjectNode();
+            operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, LAST_EVENT_SLICE);
+            return select(LogbookCollections.LIFECYCLE_UNIT, select, operationSlice);
+        } else {
+            return select(LogbookCollections.LIFECYCLE_UNIT, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -318,10 +326,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
+    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select, true);
+        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select, sliced);
+
     }
 
     @SuppressWarnings("unchecked")
@@ -422,6 +431,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
+    public LogbookLifeCycleUnit getLogbookLifeCycleUnit(JsonNode queryDsl)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return (LogbookLifeCycleUnit) getLogbook(LogbookCollections.LIFECYCLE_UNIT, queryDsl.findValue(
+            LogbookMongoDbName.objectIdentifier.getDbname()).asText());
+    }
+
+    @Override
     public LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(String objectGroupId)
         throws LogbookDatabaseException, LogbookNotFoundException {
         return (LogbookLifeCycleObjectGroup) getLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, objectGroupId);
@@ -483,7 +499,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (sliced) {
             return select(collection, select, DEFAULT_SLICE);
         } else {
-            return select(collection, select, null);
+            return select(collection, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
         }
     }
 
@@ -548,7 +564,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * @param collection
-     * @param parser
      * @return the Closeable MongoCursor on the find request based on the given collection
      * @throws InvalidParseOperationException
      */

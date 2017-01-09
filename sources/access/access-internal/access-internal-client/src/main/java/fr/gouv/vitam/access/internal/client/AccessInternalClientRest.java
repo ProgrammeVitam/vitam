@@ -269,13 +269,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectOperationbyId(String processId)
+    public JsonNode selectOperationById(String processId, JsonNode select)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -295,13 +295,13 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String idUnit)
+    public JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null, emptySelectQuery,
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
@@ -322,7 +322,34 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String idObject)
+    public JsonNode selectUnitLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error("Illegal Entry Parameter");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -330,7 +357,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, null,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());

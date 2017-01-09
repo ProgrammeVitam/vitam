@@ -252,11 +252,11 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE);
+                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -275,12 +275,35 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String id)
+    public JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL, null,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PROCONDITION_FAILED);
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_URL + "/" + id, null,
-                MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_URL + "/" + id,
+                null, queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());

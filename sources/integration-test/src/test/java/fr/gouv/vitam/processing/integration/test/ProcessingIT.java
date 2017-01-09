@@ -1123,9 +1123,11 @@ public class ProcessingIT {
         tryImportFile();
         // re-launch worker
         wkrapplication.stop();
+        // FIXME Sleep to be removed when asynchronous mode is implemented
+        Thread.sleep(8500);
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         wkrapplication = new WorkerApplication(CONFIG_BIG_WORKER_PATH);
-        wkrapplication.start();        
+        wkrapplication.start();
                  
         try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);

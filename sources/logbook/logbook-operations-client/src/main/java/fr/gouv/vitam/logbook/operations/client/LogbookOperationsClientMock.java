@@ -94,7 +94,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     }
 
     @Override
-    public JsonNode selectOperationbyId(String id) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperationById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }

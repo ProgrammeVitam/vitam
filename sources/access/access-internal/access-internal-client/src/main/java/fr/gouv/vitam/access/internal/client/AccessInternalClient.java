@@ -126,31 +126,44 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * selectOperationbyId
      *
-     * @param processId
+     * @param processId ID of the operation
+     * @param queryDsl query to be executed
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectOperationById(String processId, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectUnitLifeCycleById
      *
      * @param idUnit
+     * @param queryDsl query to be executed
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycleById(String idUnit) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * selectUnitLifeCycleById
+     *
+     * @param queryDsl
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectObjectGroupLifeCycleById
      *
      * @param idObject
+     * @param queryDsl query to be executed
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectObjectGroupLifeCycleById(String idObject)
+    JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 }

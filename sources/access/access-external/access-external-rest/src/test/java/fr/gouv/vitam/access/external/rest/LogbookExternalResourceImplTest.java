@@ -76,6 +76,7 @@ public class LogbookExternalResourceImplTest {
         "    \"events\": []}";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST_WITH_ID = "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
     static String request = "{ $query: {} , $projection: {}, $filter: {} }";
     static String bad_request = "{ $query: \"bad_request\" , $projection: {}, $filter: {} }";
     static String good_id = "goodId";
@@ -115,7 +116,7 @@ public class LogbookExternalResourceImplTest {
 
         PowerMockito.when(accessInternalClient.selectOperation(JsonHandler.getFromString(request)))
             .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
-        PowerMockito.when(accessInternalClient.selectOperationbyId(good_id))
+        PowerMockito.when(accessInternalClient.selectOperationById(good_id, JsonHandler.getFromString(request)))
             .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
 
     }
@@ -163,7 +164,9 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectLifecycleUnits_PreconditionFailed() throws Exception {
-        PowerMockito.when(accessInternalClient.selectUnitLifeCycleById(bad_id))
+        PowerMockito.when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST)))
+            .thenThrow(new LogbookClientException(""));
+        PowerMockito.when(accessInternalClient.selectUnitLifeCycle(JsonHandler.getFromString(BODY_TEST)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -177,7 +180,7 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
-        PowerMockito.when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id))
+        PowerMockito.when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -204,7 +207,7 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectOperationById_InternalServerError() throws Exception {
-        PowerMockito.when(accessInternalClient.selectOperationbyId(bad_id))
+        PowerMockito.when(accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
 
         given()
@@ -213,7 +216,7 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -237,7 +240,7 @@ public class LogbookExternalResourceImplTest {
             .get(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void testSelectOperations() throws Exception {
         given()
@@ -264,6 +267,7 @@ public class LogbookExternalResourceImplTest {
     public void testSelectOperationsById() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -273,7 +277,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(bad_request)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -285,6 +289,7 @@ public class LogbookExternalResourceImplTest {
     public void testPostSelectOperationsById() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -295,7 +300,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(bad_request)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -307,6 +312,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -316,6 +322,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()

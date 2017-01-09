@@ -217,7 +217,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
     	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-    	  
+
 
         try {
             response = performRequest(HttpMethod.POST, UNITS + objectId + "/object", headers,
@@ -314,6 +314,33 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
                     emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE, false);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error("Illegal Entry Parameter");
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId)
+        throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
+        SanityChecker.checkJsonAll(queryDsl);
+
+        try {
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());

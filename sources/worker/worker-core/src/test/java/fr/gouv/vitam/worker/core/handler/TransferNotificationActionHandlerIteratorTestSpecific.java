@@ -173,7 +173,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), JsonHandler.createObjectNode());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -201,7 +201,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), JsonHandler.createObjectNode());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),

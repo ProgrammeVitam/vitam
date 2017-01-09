@@ -41,6 +41,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -561,34 +562,52 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
 
     @Test
     public void selectExecution() throws Exception {
+        final String BODY_WITH_ID = "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
+
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
-            client.selectObjectGroupLifeCycleById("id");
-            fail("Should raized an exception");
+            client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            fail("Should raise an exception");
         } catch (final LogbookClientNotFoundException e) {
 
         }
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
-            client.selectUnitLifeCycleById("id");
-            fail("Should raized an exception");
+            client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            fail("Should raise an exception");
+        } catch (final LogbookClientNotFoundException e) {
+
+        }
+        reset(mock);
+        when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        try {
+            client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID));
+            fail("Should raise an exception");
         } catch (final LogbookClientNotFoundException e) {
 
         }
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
-            client.selectObjectGroupLifeCycleById("id");
-            fail("Should raized an exception");
+            client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            fail("Should raise an exception");
         } catch (final LogbookClientException e) {
 
         }
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
-            client.selectUnitLifeCycleById("id");
-            fail("Should raized an exception");
+            client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            fail("Should raise an exception");
+        } catch (final LogbookClientException e) {
+
+        }
+        reset(mock);
+        when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
+        try {
+            client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID));
+            fail("Should raise an exception");
         } catch (final LogbookClientException e) {
 
         }

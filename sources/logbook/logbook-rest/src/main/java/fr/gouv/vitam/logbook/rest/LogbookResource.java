@@ -51,6 +51,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -158,23 +159,27 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * Select an operation
+     * Selects an operation
      *
-     * @param operationId the operation id
+     * @param id operation ID
+     * @param queryDsl the query containing the ID
      * @return the response with a specific HTTP status
      */
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperation(@PathParam("id_op") String operationId) {
+    public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl) {
         Status status;
         try {
-            final LogbookOperation result = logbookOperation.getById(operationId);
+            final List<LogbookOperation> result = logbookOperation.select(queryDsl, false);
+            if (result.size() != 1) {
+                throw new LogbookDatabaseException("Result size different than 1.");
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
@@ -800,14 +805,17 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
+    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
         Status status;
         try {
-            final LogbookLifeCycleUnit result = logbookLifeCycle.getUnitById(unitLifeCycleId);
+            final List<LogbookLifeCycleUnit> result = logbookLifeCycle.selectUnit(queryDsl, false);
+            if (result.size() != 1) {
+                throw new LogbookDatabaseException("Result size different than 1.");
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
@@ -828,6 +836,46 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
         }
     }
+
+    /**
+     * gets the unit life cycle based on its id (using a queryDsl)
+     *
+     * @param queryDsl dsl query containing the life cycle id
+     * @return the unit life cycle
+     */
+    @GET
+    @Path("/unitlifecycles")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCycle(JsonNode queryDsl) {
+        Status status;
+        try {
+            final LogbookLifeCycleUnit result = logbookLifeCycle.getUnitById(queryDsl);
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(1, 0, 1)
+                    .addResult(result))
+                .build();
+        } catch (final LogbookNotFoundException exc) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(new RequestResponseOK()
+                    .setHits(0, 0, 1)
+                    .addResult(JsonHandler.createArrayNode()))
+                .build();
+        } catch (final LogbookException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
+
 
     /***** LIFE CYCLES UNIT - END *****/
 
@@ -1199,14 +1247,17 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
+    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {
         Status status;
         try {
-            final LogbookLifeCycleObjectGroup result = logbookLifeCycle.getObjectGroupById(objectGroupLifeCycleId);
+            final List<LogbookLifeCycleObjectGroup> result = logbookLifeCycle.selectObjectGroup(queryDsl, false);
+            if (result.size() != 1) {
+                throw new LogbookDatabaseException("Result size different than 1.");
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
