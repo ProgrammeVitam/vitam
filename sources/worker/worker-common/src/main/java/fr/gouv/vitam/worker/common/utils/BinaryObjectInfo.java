@@ -105,7 +105,7 @@ public final class BinaryObjectInfo {
      * @return BinaryObjectInfo
      */
     public BinaryObjectInfo setMessageDigest(String messageDigest) {
-        ParametersChecker.checkParameter("messageDigest is a mandatory parameter", messageDigest);
+        //  Digest should not be null, but checkDigest Handler will manage null case  
         this.messageDigest = messageDigest;
         return this;
     }
