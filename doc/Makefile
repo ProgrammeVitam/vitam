@@ -7,11 +7,10 @@ SPHINXBUILD   = sphinx-build
 MAKE	      = make
 PAPER         =
 LANGUAGE      = fr
-DOC           = 
+DOC           =
 SRCDIR        = ./$(LANGUAGE)
 BUILDDIR      = ./target
-RAMLCONTENTVIEUXINTERNE  = $(SRCDIR)/rest/interne
-RAMLCONTENTINTERNE  = $(SRCDIR)/rest/interne-1.0
+RAMLCONTENTINTERNE  = $(SRCDIR)/rest/interne
 RAMLCONTENTEXTERNE  = $(SRCDIR)/rest/externe
 RAMLCONTENTCONSOLE   = $(SRCDIR)/rest/console
 RAMLBUILDDIR  = $(BUILDDIR)/raml
@@ -99,12 +98,11 @@ autres:
 raml:
 	@echo "Création du répertoire de sortie"
 	mkdir -p ${RAMLBUILDDIR}/interne; \
-	echo "Recopie des vieux RAML..."; \
-	cp -r $(RAMLCONTENTVIEUXINTERNE)/*raml ${RAMLBUILDDIR}/interne; \
 	echo "Generation interne"; \
 	cd $(RAMLCONTENTINTERNE); \
 	cp *raml ../../../${RAMLBUILDDIR}/interne/; \
 	for item in $(LIST_RAMLINTERNE); do \
+		echo "Rendering $${item}..."; \
 		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/interne/$${item}.html; \
 	done; \
 	cd ../../..; \
@@ -113,6 +111,7 @@ raml:
 	cd $(RAMLCONTENTEXTERNE); \
 	cp *raml ../../../${RAMLBUILDDIR}/externe/; \
 	for item in $(LIST_RAMLEXTERNE); do \
+		echo "Rendering $${item}..."; \
 		raml2html -i $${item}.raml -t template/template.nunjucks -o ../../../${RAMLBUILDDIR}/externe/$${item}.html; \
 	done; \
 	cd ../../..; \
@@ -139,5 +138,3 @@ latexpdf:
 		mv $(BUILDDIR)/$${item}/latex/*.pdf $(PDFBUILDDIR); \
 		echo "PDF Build finished; the PDF files are in $(PDFBUILDDIR)."; \
 	done;
-
-	

@@ -1,8 +1,0 @@
-{
-  "code": 415,
-  "vitamCode": 123456,
-  "context": "ingest",
-  "state": "UnsupportedMediaType",
-  "message": "Unsupported Media Type",
-  "description": "Operation on item xxx cannot be done since Media Type is not supported on <<resourcePathName>>"
-}

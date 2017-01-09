@@ -1,0 +1,10 @@
+#%RAML 1.0 SecurityScheme
+
+description: Based on Platform Secret
+type: Pass Through
+describedBy:
+  headers:
+    X-Vitam-Key:
+      description: Vitam Platform Key
+      type: string
+      required: true

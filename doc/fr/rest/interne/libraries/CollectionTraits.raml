@@ -1,0 +1,69 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define standard collection traits
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+
+traits:
+
+  collection-get:
+    description: Lecture d'items dans la collection <<resourcePathName>>.
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: object
+        example: !include samples/collectionQuery.sample
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            example: !include samples/collectionList.sample
+  collection-post:
+    description: Création d'un item dans la collection <<resourcePathName>>.
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,  StandardTraits.OverrideGet, StandardTraits.StandardHeader201,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      201:
+  collection-put:
+    description: Mise à jour d'un ensemble d'items dans la collection <<resourcePathName>>.
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: <<createModel>>
+        example: <<exampleModel>>
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            example: !include samples/collectionList.sample
+  collection-delete:
+    description: Effacement d'un ensemble d'items depuis la collection <<resourcePathName>>.
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: object
+        example: !include samples/collectionQuery.sample
+    responses:
+      200:
+        body:
+          application/json?:
+            type: object
+            example: !include samples/collectionList.sample
+  collection-head:
+    description: Test d'existence d'un item depuis la collection <<resourcePathName>>.
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader204,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      204:
