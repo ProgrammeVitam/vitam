@@ -1,232 +1,192 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal</artifactId>
-        <version>0.11.1-RC2-SNAPSHOT</version>
-    </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>fr.gouv.vitam</groupId>
+    <artifactId>ingest-internal</artifactId>
+    <version>0.11.1-RC2-SNAPSHOT</version>
+  </parent>
 
-    <artifactId>ingest-internal-rest</artifactId>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <start-class>fr.gouv.vitam.ingest.internal.upload.rest.UploadServiceImpl</start-class>
-        <unix.name>ingest-internal</unix.name>
-        <unix.user>vitam</unix.user>
-        <unix.group>vitam</unix.group>
-    </properties>
+  <artifactId>ingest-internal-rest</artifactId>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <start-class>fr.gouv.vitam.ingest.internal.upload.rest.UploadServiceImpl</start-class>
+    <unix.name>ingest-internal</unix.name>
+    <unix.user>vitam</unix.user>
+    <unix.group>vitam</unix.group>
+  </properties>
 
-    <build>
-      <pluginManagement>
-         <plugins>
-          
-      </plugins>		
-  </pluginManagement>
-  <plugins>
-    <plugin>
+  <build>
+    <plugins>
+      <plugin>
         <!-- Dependency manipulation (copy, unpack) and analysis. -->
         <artifactId>maven-dependency-plugin</artifactId>
         <executions>
-            <execution>
-                <id>copy-dependencies</id>
-                <phase>package</phase>
-                <goals>
-                    <goal>copy-dependencies</goal>
-                </goals>
-                <configuration>
-                    <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
-                    <overWriteReleases>false</overWriteReleases>
-                    <overWriteSnapshots>false</overWriteSnapshots>
-                    <overWriteIfNewer>true</overWriteIfNewer>
-                </configuration>
-            </execution>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
         </executions>
-    </plugin>
-
-    <plugin>
+      </plugin>
+      <plugin>
         <artifactId>maven-resources-plugin</artifactId>
         <executions>
-            <execution>
-                <id>copy-config-resources</id>
-                <phase>validate</phase>
-                <goals>
-                    <goal>copy-resources</goal>
-                </goals>
-                <configuration>
-                    <outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
-                    <resources>
-                        <resource>
-                            <directory>${basedir}/src/main/conf</directory>
-                            <filtering>true</filtering>
-                        </resource>
-                    </resources>
-                </configuration>
-            </execution>
-            <execution>
-                <id>copy-systemd-resources</id>
-                <phase>validate</phase>
-                <goals>
-                   <goal>copy-resources</goal>
-               </goals>
-               <configuration>
-                   <outputDirectory>${project.build.directory}/systemd</outputDirectory>
-                   <resources>
-                      <resource>
-                         <directory>src/main/systemd</directory>
-                         <filtering>true</filtering>
-                     </resource>
-                 </resources>
-             </configuration>
-         </execution>
-     </executions>
- </plugin>
-
- <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-jar-plugin</artifactId>
-    <configuration>
-        <archive>
-            <manifest>
-                <addClasspath>true</addClasspath>
-                <mainClass>fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication</mainClass>
-            </manifest>
-        </archive>
-    </configuration>
-</plugin>
-
-<plugin>
-    <groupId>com.spotify</groupId>
-    <artifactId>docker-maven-plugin</artifactId>
-    <configuration>
-        <!-- Activate docker build -->
-        <skipDockerBuild>false</skipDockerBuild>
-        <skipDockerTag>false</skipDockerTag>
-        <!-- Images specification -->
-        <baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
-        <imageName>${vitam.docker.registry.push}/vitam/ingest</imageName>
-                    <!-- copy the service's jar file from target into the root directory
-                    of the image -->
-                    <resources>
-                        <resource>
-                            <targetPath>/vitam/lib</targetPath>
-                            <directory>${project.build.directory}</directory>
-                            <include>${project.build.finalName}.jar</include>
-                        </resource>
-                        <resource>
-                            <targetPath>/vitam/conf</targetPath>
-                            <directory>${basedir}/src/main/config</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>/vitam/bin</targetPath>
-                            <directory>${project.build.directory}/bin</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>/vitam/lib</targetPath>
-                            <directory>${project.build.directory}/dependencies</directory>
-                            <!--<include>*</include> -->
-                        </resource>
-                        <!-- KWA : add external dependencies integration heer -->
-                    </resources>
-                </configuration>
-            </plugin>
-            <plugin>
-             <groupId>org.codehaus.mojo</groupId>
-             <artifactId>rpm-maven-plugin</artifactId>
-             <configuration>
-                <disabled>false</disabled>
+          <execution>
+            <id>copy-config-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/conf/sysconfig</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${basedir}/src/main/conf</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
             </configuration>
-        </plugin>
+          </execution>
+          <execution>
+            <id>copy-systemd-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/systemd</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/systemd</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <configuration>
+          <disabled>false</disabled>
+        </configuration>
+      </plugin>
 
     </plugins>
-</build>
-<dependencies>
+  </build>
+  <dependencies>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>common-public</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>common-public</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>logbook-operations-client</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>logbook-operations-client</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>storage-engine-client</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>storage-engine-client</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-common</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>ingest-internal-common</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-model</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>ingest-internal-model</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-api</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>ingest-internal-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>ingest-internal-core</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>ingest-internal-core</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>workspace-api</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>workspace-api</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>workspace-client</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>workspace-client</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-        <groupId>fr.gouv.vitam</groupId>
-        <artifactId>processing-management-client</artifactId>
-        <version>${project.version}</version>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>processing-management-client</artifactId>
+      <version>${project.version}</version>
     </dependency>
 
     <!-- test -->
     <dependency>
-        <groupId>org.assertj</groupId>
-        <artifactId>assertj-core</artifactId>
-        <scope>test</scope>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>com.jayway.restassured</groupId>
-        <artifactId>rest-assured</artifactId>
-        <scope>test</scope>
+      <groupId>com.jayway.restassured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <scope>test</scope>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-core</artifactId>
-        <scope>test</scope>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-     <groupId>fr.gouv.vitam</groupId>
-     <artifactId>common-junit</artifactId>
-     <version>${project.version}</version>
-     <scope>test</scope>
- </dependency>
- <dependency>
-     <groupId>org.powermock</groupId>
-     <artifactId>powermock-module-junit4</artifactId>
-     <scope>test</scope>
- </dependency>
- <dependency>
-     <groupId>org.powermock</groupId>
-     <artifactId>powermock-api-mockito</artifactId>
-     <scope>test</scope>
- </dependency>
-</dependencies>
+      <groupId>fr.gouv.vitam</groupId>
+      <artifactId>common-junit</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

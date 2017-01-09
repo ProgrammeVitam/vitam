@@ -99,10 +99,6 @@
 
 		<!-- Build environment Properties -->
 		<project.scm.id>vitam-gitlab</project.scm.id>
-		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
-		<vitam.docker.registry.push>docker.programmevitam.fr</vitam.docker.registry.push>
-		<vitam.docker.baseimage>vitam/java:0.2.0</vitam.docker.baseimage>
-		<vitam.docker.baseimage.antivirus>vitam/vitam-virus-java</vitam.docker.baseimage.antivirus>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->
@@ -181,16 +177,8 @@
 	</properties>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-	<!-- Définition des profils -->
+	<!-- Définition des plugins -->
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-	<profiles>
-		<profile>
-			<id>pic</id>
-			<properties>
-				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
-			</properties>
-		</profile>
-	</profiles>
 
 	<build>
 		<pluginManagement>
@@ -349,23 +337,6 @@
 					</configuration>
 				</plugin>
 
-				<plugin>
-					<!-- Build Docker Container from Project -->
-					<groupId>com.spotify</groupId>
-					<artifactId>docker-maven-plugin</artifactId>
-					<!-- com.spotify 0.4.10 ? -->
-					<version>0.4.9</version>
-					<configuration>
-						<skipDockerBuild>true</skipDockerBuild> <!-- Skip build by default -->
-						<skipDockerTag>true</skipDockerTag> <!-- Skip tag by default -->
-						<imageTags>
-							<imageTag>${project.version}</imageTag>
-							<imageTag>latest</imageTag>
-						</imageTags>
-						<forceTags>true</forceTags> <!-- Allow to build the same docker name twice on the build machine -->
-						<useConfigFile>true</useConfigFile> <!-- Use credentials of ~/.docker/config.json -->
-					</configuration>
-				</plugin>
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<!-- Reporting plugins : Plugins which generate reports, are configured 
 					as reports in the POM and run under the site generation lifecycle. -->
