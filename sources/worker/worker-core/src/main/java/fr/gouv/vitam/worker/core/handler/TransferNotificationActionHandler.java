@@ -257,7 +257,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
         final JsonNode infoATR =
             sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-        final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+        final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).asText();
 
         // creation of ATR report
         try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile)) {
@@ -388,13 +388,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         JsonNode infoATR = null;
-        String messageIdentifier = null;
+        String messageIdentifier = "";
         if (handlerIO.getInput(SEDA_PARAMETERS_RANK) != null) {
             final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
             infoATR =
-                sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+                sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             if (infoATR != null && infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
-                messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+                messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).asText();
             }
         }
         // creation of ATR report
@@ -448,9 +448,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
-            if (messageIdentifier != null) {
-                writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
-            }
+
+            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
 
