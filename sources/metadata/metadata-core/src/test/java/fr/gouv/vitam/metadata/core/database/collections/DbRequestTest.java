@@ -173,7 +173,7 @@ public class DbRequestTest {
     private static final String REQUEST_INSERT_TEST_ES_3 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaat\", \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_4 =
-        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title othervalue france.pdf\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\", \"Title\": \"title sociales test_underscore othervalue france.pdf\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_UPDATE_INDEX_TEST =
         "{$roots:['aeaqaaaaaet33ntwablhaaku6z67pzqaaaas'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'title':'Archive2'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
@@ -1217,6 +1217,26 @@ public class DbRequestTest {
         assertEquals(1, resultSelectRel6.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel6.getCurrentIds().iterator().next().toString());
+        
+        // Check for "social vs sociales"
+        select = new Select();
+        select.addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq").addQueries(match("Title", "social").setDepthLimit(1));
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
+        final Result resultSelectRel7 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel7.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
+            resultSelectRel7.getCurrentIds().iterator().next().toString());
+        
+        // Check for "name_with_underscore"
+        select = new Select();
+        select.addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq").addQueries(match("Title", "underscore").setDepthLimit(1));
+        selectParser1.parse(select.getFinalSelect());
+        LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
+        final Result resultSelectRel8 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelectRel8.nbResult);
+        assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
+            resultSelectRel8.getCurrentIds().iterator().next().toString());
     }
 
     public void shouldUpdateUnitResult() throws Exception {
@@ -1259,7 +1279,7 @@ public class DbRequestTest {
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser2 = new SelectParserMultiple();
         final Select select1 = new Select();
-        select1.addQueries(match("title", "Archive3").setDepthLimit(1))
+        select1.addQueries(eq("title", "Archive3").setDepthLimit(1))
             .addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         selectParser2.parse(select1.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest2);
@@ -1270,7 +1290,7 @@ public class DbRequestTest {
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple();
         final Select select = new Select();
-        select.addQueries(match("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
+        select.addQueries(eq("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas");
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest1);
         final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
