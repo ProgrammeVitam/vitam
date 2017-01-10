@@ -8,8 +8,10 @@ npm-debug.log
 .class
 .settings
 **/node_modules/
+**/bower_components/
 **/evosuite-tests/
 **/generated-sources/
+**/dist/
 *.retry
 *~*
 repodata

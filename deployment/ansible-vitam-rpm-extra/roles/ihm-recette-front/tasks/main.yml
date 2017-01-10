@@ -1,0 +1,4 @@
+- name: install vitam-soapui
+  yum:
+    name: vitam-ihm-recette-front
+    state: latest

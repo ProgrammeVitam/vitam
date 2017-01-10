@@ -63,6 +63,10 @@ RUN yum install -y sudo ansible which
 
 RUN yum install -y openssl
 
+##################################  install git and vim  #################################
+
+RUN yum install -y git vim && yum clean all
+
 ##################################  Declare local rpm repo  #################################
 
 # Note : declare at the end ; else other yum commandes will fail. Ideally, we would need a "createrepo" here, but it wouldn't work, as the volume /code is normally mounter externally.

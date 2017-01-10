@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en" ng-app="ihm.demo">
+<head>
+    <meta charset="utf-8">
+    <meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+
+    <title>PROGRAMME VITAM</title>
+    <link rel="icon" type="image/png" href="favicon.png"/>
+    <link rel="stylesheet" href="css/app.css"/>
+    <!-- <link rel="stylesheet" href="css/app.animations.css" /> -->
+
+    <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="vendor/bootstrap-material-design-icons/css/material-icons.css">
+    <link rel="stylesheet" href="css/styles.css"/>
+    <link rel="stylesheet" href="vendor/angular-material/angular-material.min.css">
+    <link rel="stylesheet" href="vendor/v-accordion/dist/v-accordion.css"/>
+
+    <link rel="stylesheet" href="css/maven-base.css"/>
+    <link rel="stylesheet" href="css/print.css"/>
+    <link rel="stylesheet" href="css/site.css"/>
+    <link rel="stylesheet" href="css/w3.css"/>
+
+    <!-- Bower components -->
+    <script src="vendor/jquery/dist/jquery.js"></script>
+    <script src="vendor/angular/angular.js"></script>
+    <script src="vendor/angular-cookies/angular-cookies.min.js"></script>
+    <script src="vendor/angular-aria/angular-aria.min.js"></script>
+    <script src="vendor/angular-material/angular-material.min.js"></script>
+    <script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="vendor/angular-file-upload/dist/angular-file-upload.min.js"></script>
+    <script src="vendor/angular-animate/angular-animate.js"></script>
+    <script src="vendor/angular-resource/angular-resource.js"></script>
+    <script src="vendor/angular-route/angular-route.js"></script>
+    <script src="vendor/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js"></script>
+    <script src="vendor/lodash/dist/lodash.min.js"></script>
+    <script src="vendor/restangular/dist/restangular.min.js"></script>
+    <script src="vendor/angular-messages/angular-messages.js"></script>
+    <script src="vendor/v-accordion/dist/v-accordion.js"></script>
+    <script src="vendor/angular-shiro/dist/angular-shiro.js"></script>
+    <script src="vendor/jquery-ui/jquery-ui.js"></script>
+    <script src="vendor/angular-translate/angular-translate.min.js"></script>
+    <script src="vendor/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
+
+    <!-- Modules -->
+    <script src="modules/ihm-demo/app.module.js"></script>
+    <script src="modules/ihm-demo/app.config.js"></script>
+    <script src="modules/core/core.module.js"></script>
+    <script src="modules/core/ihm-demo-factory.js"></script>
+    <script src="modules/core/main.controller.js"></script>
+    <script src="modules/core/ihm-demo-service.js"></script>
+    <script src="modules/core/message.service.js"></script>
+    
+    <!-- Core -->
+    <script src="core/filter/search.filter.js"></script>
+
+    <!-- Pages -->
+    <script src="pages/upload-sip-perf/upload-sip-perf.module.js"></script>
+    <script src="pages/upload-sip-perf/upload-sip-perf.controller.js"></script>
+    <script src="pages/upload-sip-perf/upload-sip-perf.component.js"></script>
+
+    <script src="pages/admin-home/admin-home.module.js"></script>
+    <script src="pages/admin-home/admin-home.controller.js"></script>
+    <script src="pages/admin-home/admin-home.component.js"></script>
+
+    <script src="pages/soap-ui/soap-ui.module.js"></script>
+    <script src="pages/soap-ui/soap-ui.controller.js"></script>
+    <script src="pages/soap-ui/soap-ui.component.js"></script>
+
+    <script src="pages/operation-traceability/operation-traceability.module.js"></script>
+    <script src="pages/operation-traceability/operation-traceability.controller.js"></script>
+    <script src="pages/operation-traceability/operation-traceability.component.js"></script>
+    
+    <script src="pages/search-operation/search-operation.module.js"></script>
+    <script src="pages/search-operation/search-operation.controller.js"></script>
+    <script src="pages/search-operation/search-operation.component.js"></script>
+    <script src="pages/search-operation/detail-operation.controller.js"></script>
+
+    <!-- Services -->
+    <script src="services/admin.service.js"></script>
+    <script src="services/soap-ui.service.js"></script>
+    <script src="services/operation-traceability.service.js"></script>
+    <script src="services/search-operation.service.js"></script>
+    <script src="services/download-operation.service.js"></script>
+    <script src="services/detail-operation.service.js"></script>
+    
+
+    <!-- Resources -->
+    <script src="resources/admin.resource.js"></script>
+    <script src="resources/soap-ui.resource.js"></script>
+    <script src="resources/messages.resource.js"></script>
+    <script src="resources/upload-sip-perf.resource.js"></script>
+    <script src="resources/operation-traceability.resource.js"></script>
+    <script src="resources/search-operation.resource.js"></script>
+     <script src="resources/download-operation.resource.js"></script>
+      <script src="resources/detail-operation.resource.js"></script>
+</head>
+
+<body ng-controller='mainViewController'>
+
+<!--
+*
+*    #GLOBAL
+*
+*    @desc: Main container
+*
+-->
+<div id="global" class="container-fluid">
+
+    <!-- MAIN HEADER -->
+    <header id="mainHeader" class="navbar navbar-default navbar-fixed-top" ng-if="showMenuBar">
+
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a href="#" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logoIHMRougeBeta.png"
+                                                      alt="Vitam Beta" title="Vitam"/>vitam</a>
+            </div>
+
+            <div id="navbar" class="navbar-collapse collapse" ng-if="session.status=='logged'">
+                <ul class="nav navbar-nav">
+                    <li class="@@mainMenu1 dropdown">
+                        <button class="block dropdown-toggle" data-toggle="dropdown">
+                            <i class="material-icons pull-left">cloud_queue</i>
+                            <span class="pull-left m-l-10">Menu</span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="Menu">
+                            <li><a href="#!/adminHome">Administration des collections</a></li>
+                            <li><a href="#!/soapUi">Tests SOAP-UI</a></li>
+                            <li><a href="#!/uploadperf">Transfert (Test de performance)</a></li>
+                            <li><a href="#!/operationTraceability">Sécurisation du journal des opérations </a></li>
+                            <li><a href="#!/searchOperation">Rechercher un journal sécurisé</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <button class="block dropdown-toggle" data-toggle="dropdown">
+                            <i class="material-icons">settings</i>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="" ng-click="logoutUser()">Déconnexion</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </header>
+    <!-- end MAIN HEADER -->
+
+    <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+    <div class="page-container" ng-if="showMenuBar">
+        <div ng-view class="page"></div>
+    </div>
+    <div class="view-container" ng-if="!showMenuBar">
+        <div ng-view class="view-frame"></div>
+    </div>
+
+    <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+    <!-- MAIN FOOTER -->
+    <footer class="mainFooter"></footer>
+    <!-- end MAIN FOOTER -->
+
+</div>
+</body>
+
+</html>

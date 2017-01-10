@@ -68,8 +68,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 /**
  * Server application for ihm-recette
  */
-public class ServerApplication extends
-    AbstractVitamApplication<ServerApplication, WebApplicationConfig> {
+public class ServerApplication extends AbstractVitamApplication<ServerApplication, WebApplicationConfig> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ServerApplication.class);
     private static final String CONF_FILE_NAME = "ihm-recette.conf";
@@ -186,13 +185,7 @@ public class ServerApplication extends
         final ResourceHandler staticContentHandler = new ResourceHandler();
         staticContentHandler.setDirectoriesListed(true);
         staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
-        final URL webAppDir = Thread.currentThread().getContextClassLoader()
-            .getResource(getConfiguration().getStaticContent());
-        try {
-            staticContentHandler.setResourceBase(webAppDir.toURI().toString());
-        } catch (final URISyntaxException e) {
-            throw new VitamApplicationServerException("Web App Dir incorrect", e);
-        }
+        staticContentHandler.setResourceBase(getConfiguration().getStaticContent());
 
         // wrap to context handler
         final ContextHandler staticContext = new ContextHandler("/ihm-recette"); /* the server uri path */
