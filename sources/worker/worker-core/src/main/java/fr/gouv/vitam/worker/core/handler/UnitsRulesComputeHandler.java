@@ -287,6 +287,8 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                             String ruleId = "";
                             String startDate = "";
                             String endDateAsString = "";
+                            String currentRuleType = event.asStartElement().getName().getLocalPart();
+
                             boolean isNotEndRuleTag = true;
                             while (isNotEndRuleTag) {
                                 event = reader.nextEvent();
@@ -312,7 +314,8 @@ public class UnitsRulesComputeHandler extends ActionHandler {
                                             event = (XMLEvent) reader.next();
                                             writer.add(event);
                                             // add End date
-                                            endDateAsString = getEndDate(startDate, ruleId, rulesResults);
+                                            endDateAsString =
+                                                getEndDate(startDate, ruleId, rulesResults, currentRuleType);
 
                                             if (StringUtils.isNotBlank(endDateAsString)) {
                                                 writer.add(eventFactory.createStartElement("", "",
@@ -403,12 +406,14 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         }
     }
 
-    private JsonNode getRuleNodeByID(String ruleId, JsonNode jsonResult) {
+    private JsonNode getRuleNodeByID(String ruleId, String ruleType, JsonNode jsonResult) {
         if (jsonResult != null) {
             final ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
             for (final JsonNode rule : rulesResult) {
                 final String ruleIdFromList = rule.get(FileRules.RULEID).asText();
-                if (!StringUtils.isBlank(ruleId) && ruleId.equals(ruleIdFromList)) {
+                final String ruleTypeFromList = rule.get(FileRules.RULETYPE).asText();
+                if (!StringUtils.isBlank(ruleId) && !StringUtils.isBlank(ruleType) && ruleId.equals(ruleIdFromList) &&
+                    ruleType.equals(ruleTypeFromList)) {
                     return rule;
                 }
             }
@@ -416,12 +421,13 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         return JsonHandler.createObjectNode();
     }
 
-    private String getEndDate(String startDateString, String ruleId, JsonNode rulesResults)
+    private String getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
-        if (!StringUtils.isBlank(startDateString) && !StringUtils.isBlank(ruleId)) {
+        if (!StringUtils.isBlank(startDateString) && !StringUtils.isBlank(ruleId) &&
+            !StringUtils.isBlank(currentRuleType)) {
             final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
             final Date startDate = simpleDateFormat.parse(startDateString);
-            final JsonNode ruleNode = getRuleNodeByID(ruleId, rulesResults);
+            final JsonNode ruleNode = getRuleNodeByID(ruleId, currentRuleType, rulesResults);
             if (checkRulesParameters(ruleNode)) {
                 final String duration = ruleNode.get(FileRules.RULEDURATION).asText();
                 final String measurement = ruleNode.get(FileRules.RULEMEASUREMENT).asText();
@@ -434,7 +440,6 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             } else {
                 throw new ProcessingException(CHECKS_RULES);
             }
-
         }
         return "";
 
