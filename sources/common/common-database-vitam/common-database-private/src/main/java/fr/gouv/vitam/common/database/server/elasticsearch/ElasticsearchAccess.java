@@ -74,15 +74,17 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Default Index Configuration
      */
     public static final String DEFAULT_INDEX_CONFIGURATION = "{\"analysis\":{" +
-        "\"analyzer\":{" +
-        "\"custom_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"nGram\"," +
-        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]}," +
-        "\"custom_search_analyzer\":{\"type\":\"custom\",\"tokenizer\":\"standard\"," +
-        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]}}," +
-        "\"tokenizer\":{\"nGram\":{\"type\":\"nGram\",\"min_gram\":2,\"max_gram\":20}}," +
+        "\"analyzer\": {" +
+        "\"default\": {\"type\":\"custom\",\"tokenizer\":\"letter\"," +
+        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]," +
+        "\"char_filter\": [\"html_strip\"]}," +
+        "\"default_search\":{\"type\":\"custom\",\"tokenizer\":\"letter\"," +
+        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]," +
+        "\"char_filter\": [\"html_strip\"]}}," +
+        "\"tokenizer\":{\"letter\":{\"type\":\"letter\"}}," +
         "\"filter\":{" +
         "\"snowball\":{\"type\":\"snowball\",\"language\":\"French\"}," +
-        "\"elision\":{\"type\":\"elision\",\"articles\":[\"l\",\"m\",\"t\",\"qu\",\"n\",\"s\",\"j\",\"d\"]}," +
+        "\"elision\":{\"type\":\"elision\",\"articles\":[\"l\",\"m\",\"t\",\"qu\",\"n\",\"s\",\"j\",\"d\",\"jusqu\",\"quoiqu\",\"lorsqu\",\"puisqu\"]}," +
         "\"stopwords\":{\"type\":\"stop\",\"stopwords\":" + DEFAULT_FRENCH_STOP_WORDS + ",\"ignore_case\":true}," +
         "\"worddelimiter\":{\"type\":\"word_delimiter\"}}}}";
 
