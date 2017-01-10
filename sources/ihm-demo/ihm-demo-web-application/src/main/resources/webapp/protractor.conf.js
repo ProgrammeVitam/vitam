@@ -1,7 +1,7 @@
 exports.config = {
   framework: 'jasmine2',
-  seleniumAddress: 'http://localhost:4444/wd/hub',
-  baseUrl: 'http://localhost:8082/ihm-demo/#!',
+  seleniumAddress: 'http://127.0.0.1:4444/wd/hub',
+  baseUrl: 'http://127.0.0.1:8082/ihm-demo/#!',
 
   params: {
     userName: 'uuser',
@@ -17,15 +17,15 @@ exports.config = {
     'browserName': 'chrome'
   },
 
-  /*multiCapabilities: [{
+  /* multiCapabilities: [{
     browserName: 'firefox'
   }, {
     browserName: 'chrome'
-  }],*/
+  }], */
 
   suites: {
-    // Test for login/logout
     login: 'test/e2e/login-logout.spec.js',
+    // Test for login/logout
     // FIXME : Put here e2e tests that upload format and rules
     // functionalPreparation: '',
     // FIXME : Put here e2e tests that upload a first shot exemple SIP

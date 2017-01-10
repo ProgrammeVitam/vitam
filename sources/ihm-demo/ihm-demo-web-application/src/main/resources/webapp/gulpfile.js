@@ -17,7 +17,7 @@ var minifyJS = require("gulp-uglify");
 var ngAnnotate = require('gulp-ng-annotate');
 var Server = require('karma').Server;
 var karma = require('karma');
-
+var angularProtractor = require('gulp-angular-protractor');
 
 var production = true;
 
@@ -144,12 +144,30 @@ gulp.task('lint', function () {
         .pipe(jshint.reporter('fail'));
 });
 
-// TODO: add build on next step
-gulp.task('test', function (cb) {
+// TODO: add build on next step. If needed only launch karma for integration
+// TODO: Launch a server for e2e tests via serve task
+gulp.task('tests', gulpsync.sync([/*'serve', */'testKarma', 'testProtractor']));
+
+gulp.task('testKarma', function (cb) {
     new Server.start({
         configFile: __dirname + '/karma.conf.js',
         singleRun: true
     }, function () {
         cb()
+    });
+});
+
+gulp.task('testProtractor', function () {
+  var conf = {
+    'configFile': 'protractor.conf.js',
+    'autoStartStopServer': true,
+    'debug': true
+  };
+
+  gulp.src(['./test/e2e/**/*.js'])
+    .pipe(angularProtractor(conf))
+    .on('error', function(e) {
+        console.log('Erorr: ', e);
+        throw e
     });
 });

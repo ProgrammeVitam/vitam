@@ -34,7 +34,7 @@ describe('ArchiveUnitSearchController', function() {
     // The injector unwraps the underscores (_) from around the parameter names when matching
   }));*/
 
-  it('should sort searchResults by some property, when clicking on the column header', function() {
+  it('[SKIPED] should sort searchResults by some property, when clicking on the column header', function() {
     // FIXME P0 Controller should have all required parametters.
     // FIXME In this case some parameters ($http for exemple) should be provided by a service layer.
     // TODO Fix this before fix test.

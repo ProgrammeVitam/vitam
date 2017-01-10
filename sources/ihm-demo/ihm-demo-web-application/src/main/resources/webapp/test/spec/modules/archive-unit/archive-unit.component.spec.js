@@ -50,7 +50,7 @@ describe('formArchive', function() {
       });*/
     }));
 
-    it('should create ID and description in mainFields with `$http`', function() {
+    it('[SKIPED] should create ID and description in mainFields with `$http`', function() {
       /*jasmine.addCustomEqualityTester(angular.equals);
 
       expect(ctrl.archiveArray).toEqual([]);
@@ -60,7 +60,7 @@ describe('formArchive', function() {
       expect(ctrl.mainFields['description']).toEqual({fieldName: 'description', fieldValue:'Description test', isChild:false, typeF:'S'});*/
     });
 
-    it('should init other feilds as EndDate in mainFields', function() {
+    it('[SKIPED] should init other feilds as EndDate in mainFields', function() {
       /*jasmine.addCustomEqualityTester(angular.equals);
 
       expect(ctrl.archiveArray).toEqual([]);
@@ -70,7 +70,7 @@ describe('formArchive', function() {
     });
 
 
-    it('should create other fields in archiveArray with $http', function() {
+    it('[SKIPED] should create other fields in archiveArray with $http', function() {
       /*jasmine.addCustomEqualityTester(angular.equals);
 
       expect(ctrl.archiveArray).toEqual([]);
