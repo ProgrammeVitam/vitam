@@ -39,7 +39,9 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -213,6 +215,20 @@ public class CheckConformityActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
             INCOME);
         Response response = null;
+        if (Strings.isNullOrEmpty(binaryObject.getMessageDigest())) {
+            nbKO++;
+            itemStatus.increment(StatusCode.KO);
+            statusCode = StatusCode.KO;
+
+            // Set eventDetailData in KO case
+            eventDetailData = "{\"MessageDigest\":\"empty\"} ";
+            logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASKID, null, statusCode,
+                null);
+            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
+                eventDetailData);
+            helper.updateDelegate(logbookLifecycleObjectGroupParameters);
+            return;
+        }
 
         try {
             final DigestType digestTypeInput = DigestType.fromValue((String) handlerIO.getInput(ALGO_RANK));
