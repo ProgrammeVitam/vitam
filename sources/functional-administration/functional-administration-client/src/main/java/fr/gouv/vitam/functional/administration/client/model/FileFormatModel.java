@@ -31,43 +31,78 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.FileFormat}
+ */
 public class FileFormatModel {
 
+    /**
+     * unique id
+     */
     @JsonProperty("_id")
     private String id;
 
     // TODO: P3 use a date object
+    /**
+     * creation date
+     */
     @JsonProperty("CreatedDate")
     private String createdDate = "";
 
-    // integer ?
+    /**
+     * version pronom
+     */
     @JsonProperty("VersionPronom")
     private String versionPronom = "";
 
+    /**
+     * version
+     */
     @JsonProperty("Version")
     private String version = "";
 
+    /**
+     * list of FileFormat with lower priority
+     */
     @JsonProperty("HasPriorityOverFileFormatID")
     private List<String> hasPriorityOverFileFormatIDs = new ArrayList<>();
 
+    /**
+     * mime type
+     */
     @JsonProperty("MIMEType")
     private String mimeType = "";
 
+    /**
+     * name
+     */
     @JsonProperty("Name")
     private String name = "";
 
+    /**
+     * group
+     */
     @JsonProperty("Group")
     private String group = "";
 
     @JsonProperty("Alert")
     private boolean alert;
 
+    /**
+     * comment
+     */
     @JsonProperty("Comment")
     private String comment = "";
 
+    /**
+     * extensions
+     */
     @JsonProperty("Extension")
     private List<String> extensions = new ArrayList<>();
 
+    /**
+     * puid
+     */
     @JsonProperty("PUID")
     private String puid = "";
 
@@ -79,41 +114,8 @@ public class FileFormatModel {
     }
 
     /**
-     * Constructor using fields
      * 
-     * @param id
-     * @param createdDate
-     * @param versionPronom
-     * @param version
-     * @param hasPriorityOverFileFormatIDs
-     * @param mimeType
-     * @param name
-     * @param group
-     * @param alert
-     * @param comment
-     * @param extensions
-     * @param puid
-     */
-    public FileFormatModel(String id, String createdDate, String versionPronom, String version,
-        List<String> hasPriorityOverFileFormatIDs, String mimeType, String name, String group, boolean alert,
-        String comment, List<String> extensions, String puid) {
-        this.id = id;
-        this.createdDate = createdDate;
-        this.versionPronom = versionPronom;
-        this.version = version;
-        this.hasPriorityOverFileFormatIDs = hasPriorityOverFileFormatIDs;
-        this.mimeType = mimeType;
-        this.name = name;
-        this.group = group;
-        this.alert = alert;
-        this.comment = comment;
-        this.extensions = extensions;
-        this.puid = puid;
-    }
-
-    /**
-     * 
-     * @return String 
+     * @return id
      */
     public String getId() {
         return id;
@@ -122,7 +124,7 @@ public class FileFormatModel {
     /**
      * 
      * @param id
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setId(String id) {
         this.id = id;
@@ -131,7 +133,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return createdDate
      */
     public String getCreatedDate() {
         return createdDate;
@@ -140,7 +142,7 @@ public class FileFormatModel {
     /**
      * 
      * @param createdDate
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setCreatedDate(String createdDate) {
         this.createdDate = createdDate;
@@ -149,7 +151,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return versionPronom
      */
     public String getVersionPronom() {
         return versionPronom;
@@ -158,7 +160,7 @@ public class FileFormatModel {
     /**
      * 
      * @param versionPronom
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setVersionPronom(String versionPronom) {
         this.versionPronom = versionPronom;
@@ -167,7 +169,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return version
      */
     public String getVersion() {
         return version;
@@ -176,7 +178,7 @@ public class FileFormatModel {
     /**
      * 
      * @param version
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setVersion(String version) {
         this.version = version;
@@ -185,7 +187,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return List of String 
+     * @return hasPriorityOverFileFormatIDs
      */
     public List<String> getHasPriorityOverFileFormatIDs() {
         return hasPriorityOverFileFormatIDs;
@@ -194,7 +196,7 @@ public class FileFormatModel {
     /**
      * 
      * @param hasPriorityOverFileFormatIDs
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setHasPriorityOverFileFormatIDs(List<String> hasPriorityOverFileFormatIDs) {
         this.hasPriorityOverFileFormatIDs = hasPriorityOverFileFormatIDs;
@@ -203,7 +205,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return mimeType
      */
     public String getMimeType() {
         return mimeType;
@@ -212,7 +214,7 @@ public class FileFormatModel {
     /**
      * 
      * @param mimeType
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setMimeType(String mimeType) {
         this.mimeType = mimeType;
@@ -221,7 +223,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return name
      */
     public String getName() {
         return name;
@@ -230,7 +232,7 @@ public class FileFormatModel {
     /**
      * 
      * @param name
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setName(String name) {
         this.name = name;
@@ -239,7 +241,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return group
      */
     public String getGroup() {
         return group;
@@ -248,7 +250,7 @@ public class FileFormatModel {
     /**
      * 
      * @param group
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setGroup(String group) {
         this.group = group;
@@ -257,7 +259,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return boolean
+     * @return alert
      */
     public boolean isAlert() {
         return alert;
@@ -266,7 +268,7 @@ public class FileFormatModel {
     /**
      * 
      * @param alert
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setAlert(boolean alert) {
         this.alert = alert;
@@ -284,7 +286,7 @@ public class FileFormatModel {
     /**
      * 
      * @param comment
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setComment(String comment) {
         this.comment = comment;
@@ -302,7 +304,7 @@ public class FileFormatModel {
     /**
      * 
      * @param extensions
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setExtensions(List<String> extensions) {
         this.extensions = extensions;
@@ -311,7 +313,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @return String
+     * @return puid
      */
     public String getPuid() {
         return puid;
@@ -320,7 +322,7 @@ public class FileFormatModel {
     /**
      * 
      * @param puid
-     * @return FileFormatModel
+     * @return this
      */
     public FileFormatModel setPuid(String puid) {
         this.puid = puid;

@@ -28,29 +28,63 @@ package fr.gouv.vitam.functional.administration.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary}
+ */
 public class AccessionRegisterSummaryModel {
 
+    /**
+     * unique identifier
+     */
     @JsonProperty("_id")
     private String id;
+
+    /**
+     * tenant id
+     */
     @JsonProperty("_tenant")
     private long tenant;
+
+    /**
+     * originating agency (aggregation key for {@link AccessionRegisterDetailModel})
+     */
     @JsonProperty("OriginatingAgency")
     private String originatingAgency;
+
+    /**
+     * number of objects containing all archives for a specific originating agency
+     */
     @JsonProperty("TotalObjects")
     private RegisterValueDetailModel totalObjects;
+
+    /**
+     * number of objects groups containing all archives for a specific originating agency
+     */
     @JsonProperty("TotalObjectGroups")
     private RegisterValueDetailModel totalObjectsGroups;
+
+    /**
+     * number of archive units containing all archives for a specific originating agency
+     */
+
     @JsonProperty("TotalUnits")
     private RegisterValueDetailModel totalUnits;
+
+    /**
+     * number of objects size
+     */
     @JsonProperty("ObjectSize")
     private RegisterValueDetailModel ObjectSize;
-    // TODO date object
+
+    /**
+     * creation date
+     */
     @JsonProperty("creationDate")
     private String creationDate;
 
     /**
      * 
-     * @return String
+     * @return id
      */
     public String getId() {
         return id;
@@ -59,7 +93,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * 
      * @param id
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setId(String id) {
         this.id = id;
@@ -68,7 +102,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return long
+     * @return tenant
      */
     public long getTenant() {
         return tenant;
@@ -77,7 +111,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * 
      * @param tenant
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setTenant(long tenant) {
         this.tenant = tenant;
@@ -86,7 +120,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return String
+     * @return originatingAgency
      */
     public String getOriginatingAgency() {
         return originatingAgency;
@@ -95,7 +129,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * 
      * @param originatingAgency
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setOriginatingAgency(String originatingAgency) {
         this.originatingAgency = originatingAgency;
@@ -104,7 +138,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return RegisterValueDetailModel
+     * @return totalObjects
      */
     public RegisterValueDetailModel getTotalObjects() {
         return totalObjects;
@@ -113,7 +147,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * 
      * @param totalObjects
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setTotalObjects(RegisterValueDetailModel totalObjects) {
         this.totalObjects = totalObjects;
@@ -122,7 +156,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return RegisterValueDetailModel
+     * @return totalObjectsGroups
      */
     public RegisterValueDetailModel getTotalObjectsGroups() {
         return totalObjectsGroups;
@@ -131,7 +165,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * 
      * @param totalObjectsGroups
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
         this.totalObjectsGroups = totalObjectsGroups;
@@ -140,7 +174,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return RegisterValueDetailModel
+     * @return totalUnits
      */
     public RegisterValueDetailModel getTotalUnits() {
         return totalUnits;
@@ -158,7 +192,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return RegisterValueDetailModel
+     * @return ObjectSize
      */
     public RegisterValueDetailModel getObjectSize() {
         return ObjectSize;
@@ -167,7 +201,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * 
      * @param objectSize
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setObjectSize(RegisterValueDetailModel objectSize) {
         ObjectSize = objectSize;
@@ -176,16 +210,15 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @return String 
+     * @return creationDate
      */
     public String getCreationDate() {
         return creationDate;
     }
     
     /**
-     * 
      * @param creationDate
-     * @return AccessionRegisterSummaryModel
+     * @return this
      */
     public AccessionRegisterSummaryModel setCreationDate(String creationDate) {
         this.creationDate = creationDate;

@@ -43,7 +43,6 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
      * use for jackson serialization
      */
     public LogbookLifeCycleObjectGroup() {
-        super();
     }
 
     /**

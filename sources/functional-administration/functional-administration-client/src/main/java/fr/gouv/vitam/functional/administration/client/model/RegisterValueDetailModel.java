@@ -28,6 +28,9 @@ package fr.gouv.vitam.functional.administration.client.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.RegisterValueDetail}
+ */
 public class RegisterValueDetailModel {
 
     @JsonProperty("total")
@@ -50,10 +53,10 @@ public class RegisterValueDetailModel {
     /**
      * Constructor using fields
      * 
-     * @param total
-     * @param deleted
-     * @param remained
-     * @param originatingAgency
+     * @param total             number of objects
+     * @param deleted           number of deleted object
+     * @param remained          number of remaining object
+     * @param originatingAgency originating agency
      */
     public RegisterValueDetailModel(long total, long deleted, long remained, String originatingAgency) {
         this.total = total;
@@ -64,7 +67,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @return long
+     * @return total
      */
     public long getTotal() {
         return total;
@@ -73,7 +76,7 @@ public class RegisterValueDetailModel {
     /**
      * 
      * @param total
-     * @return RegisterValueDetailModel
+     * @return this
      */
     public RegisterValueDetailModel setTotal(long total) {
         this.total = total;
@@ -82,7 +85,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @return long
+     * @return deleted
      */
     public long getDeleted() {
         return deleted;
@@ -91,7 +94,7 @@ public class RegisterValueDetailModel {
     /**
      * 
      * @param deleted
-     * @return RegisterValueDetailModel
+     * @return this
      */
     public RegisterValueDetailModel setDeleted(long deleted) {
         this.deleted = deleted;
@@ -100,7 +103,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @return long
+     * @return remained
      */
     public long getRemained() {
         return remained;
@@ -109,7 +112,7 @@ public class RegisterValueDetailModel {
     /**
      * 
      * @param remained
-     * @return RegisterValueDetailModel
+     * @return this
      */
     public RegisterValueDetailModel setRemained(long remained) {
         this.remained = remained;
@@ -118,7 +121,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @return String
+     * @return OriginatingAgency
      */
     public String getOriginatingAgency() {
         return OriginatingAgency;
@@ -127,7 +130,7 @@ public class RegisterValueDetailModel {
     /**
      * 
      * @param originatingAgency
-     * @return RegisterValueDetailModel
+     * @return this
      */
     public RegisterValueDetailModel setOriginatingAgency(String originatingAgency) {
         OriginatingAgency = originatingAgency;
