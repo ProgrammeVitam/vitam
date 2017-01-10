@@ -29,7 +29,7 @@
 
 angular.module('ihm.demo')
   .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient,
-																										 ITEM_PER_PAGE, $timeout, loadStaticValues){
+																										 ITEM_PER_PAGE, $timeout, loadStaticValues,$translate){
     var ctrl = this;
     ctrl.client = ihmDemoCLient.getClient('logbook');
     ctrl.itemsPerPage = ITEM_PER_PAGE;
@@ -40,10 +40,13 @@ angular.module('ihm.demo')
 
 		function initFields(fields) {
 			var result = [];
+			var replaceQuoteFn = $filter('replaceDoubleQuote'); 
 			for (var i = 0, len = fields.length; i<len; i++) {
 				var fieldId = fields[i];
-				result.push({id: fieldId, label: $filter('replaceDoubleQuote')($filter('translate')('operation.logbook.displayField.' + fieldId))});
-			}
+				result.push({
+				 id: fieldId, label: replaceQuoteFn($translate.instant('operation.logbook.displayField.' + fieldId))
+				 });
+				}
 			return result;
 		}
 
