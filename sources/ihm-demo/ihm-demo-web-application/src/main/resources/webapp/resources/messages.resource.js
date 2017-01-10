@@ -30,7 +30,7 @@ angular.module('core')
   .factory('MessagesResource', function($q, $http, IHM_URLS, authVitamService) {
 
     var MESSAGES_ROOT = '/messages/';
-    var MESSAGES_LOGBOOK = 'logbook/';
+    var MESSAGES_LOGBOOK = 'logbook';
     /*    var MessagesResource = {};*/
 
     /* MessagesResource.getLogbookMessages = function () {
@@ -51,9 +51,9 @@ angular.module('core')
 
 
       var status = authVitamService.isConnect('userCredentials');
-      if (status === 'logged') {
+
         combinedPromise.push($http.get(IHM_URLS.IHM_BASE_URL + MESSAGES_ROOT + MESSAGES_LOGBOOK));
-      }
+
 
       // Specific to disabled translation and force show keys
       combinedPromise.push($http.get('static/languages_' + options.key + '.json'));
