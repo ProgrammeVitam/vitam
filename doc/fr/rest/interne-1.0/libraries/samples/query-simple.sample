@@ -1,5 +1,0 @@
-{
-  "$query": { "$path": "aaaaa" },
-  "$filter": { },
-  "$projection": {}
-}

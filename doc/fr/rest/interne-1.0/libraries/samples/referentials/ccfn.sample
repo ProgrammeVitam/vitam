@@ -1,8 +1,0 @@
-{
-  "id": "abcd",
-  "audit_frequency": "0|0|1|0|0",
-  "unitary_audit": false,
-  "driver": "fr.gouv.vitam.storage.ImplStore",
-  "latency": 10.3,
-  "bandwidth": 102400,
-}

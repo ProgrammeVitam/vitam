@@ -1,0 +1,106 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global headers for Ingest
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+  DslTypes: DslTypes.raml
+  IngestTypes: IngestTypes.raml
+  LogbookTypes: LogbookTypes.raml
+
+traits:
+
+  IngestListingResponse:
+    description: Request that will return the response model for Ingest listing
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200,
+      StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Body containing a Query in DSL Vitam to filter the Ingest operations
+        type: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description: Returns the list of selected ingest operations
+        body:
+          application/json:
+            description: Selected Ingest operations
+            type: DslTypes.DslResponse
+            example: !include examples/dslResponse.json
+      206:
+        description: Returns the list of selected ingest operations using Cursor
+        body:
+          application/json:
+            description: Selected Ingest operations
+            type: DslTypes.DslResponse
+            example: !include examples/dslResponse.json
+
+  IngestCreationResponse:
+    description: Request for an Ingest creation
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/zip:
+        description: Body containing the SIP in ZIP format
+      application/x-tar:
+        description: Body containing the SIP in TAR format
+    responses:
+      202:
+        description: Returns the status of ingest operation accepted
+        body:
+          application/json:
+            description: Ingest operation accepted
+            type: StandardTypes.AsyncStatus
+            example: !include examples/ingests.json
+
+  IngestLogbookDelegation:
+    description: Request for a Logbook delegation
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader202,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        type: LogbookTypes.LogbookOperation[]
+        example: !include samples/sampleLogbooks.sample
+    responses:
+      200:
+        description: For initial creation or future update
+
+  IngestPoolingResponse:
+    description: Response model for Ingest pooling
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202, StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      202:
+        description: Returns the status of ingest operation accepted
+        body:
+          application/json:
+            description: Ingest operation accepted
+            type: StandardTypes.AsyncStatus
+            example: !include examples/ingests.json
+
+  IngestFinalResponse:
+    description: Request that will return the final response model for Ingest
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Returns the final result of the Ingest operation
+        body:
+          application/xml:
+            description: Final Ingest report
+            type: IngestTypes.ArchiveTransferReply
+            example: !include examples/sedaArchiveTransferReply.xml
+      400:
+        description: Returns the final error status of the Ingest operation
+        body:
+          application/xml:
+            description: Final Error Ingest report
+            type: IngestTypes.ArchiveTransferReply
+            example: !include examples/sedaArchiveTransferReplyKO.xml

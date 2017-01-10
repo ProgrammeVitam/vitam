@@ -1,7 +1,0 @@
-{
-  "X-RequestId": "id",
-  "code": 201,
-  "vitamCode": 123456,
-  "timestamp": "2015-07-14T17:07:14Z",
-  "message": "message informatif retour"
-}
