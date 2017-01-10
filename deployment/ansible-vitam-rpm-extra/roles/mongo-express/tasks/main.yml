@@ -50,6 +50,13 @@
 - name: Ensure systemd docker service drop-in folder is there
   file: name="/etc/systemd/system/docker.service.d" state=directory
 
+- name: Make sure net.ipv4.ip_forward is enabled
+  sysctl:
+    name: net.ipv4.ip_forward
+    sysctl_set: yes
+    value: 1
+  when: (ansible_distribution == "CentOS" )
+
 #- name: configure docker http proxy
 #  template: src=http_proxy.conf.j2 dest=/etc/systemd/system/docker.service.d/http_proxy.conf mode=0400
 #  notify:
@@ -110,8 +117,8 @@
       ME_CONFIG_MONGODB_PORT: "{{ vitam_mongodb_port }}"
       ME_CONFIG_SITE_BASEURL: "/mongo-express/"
       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
-      ME_CONFIG_MONGODB_AUTH_USERNAME: "{{mongoAdminUser}}"
-      ME_CONFIG_MONGODB_AUTH_PASSWORD: "{{mongoAdminPassword}}"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: "{{mongoAdminUser}}"
+      ME_CONFIG_MONGODB_ADMINPASSWORD: "{{mongoAdminPassword}}"
 
 #OMA : commented as useless in this case
 #- name: put cfg file for Nagios
