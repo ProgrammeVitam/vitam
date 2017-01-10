@@ -74,9 +74,11 @@ angular.module('archive.unit')
     'FormatIdentification.FormatId': 'PUID du format',
     'FileInfo.Filename': 'Nom du fichier',
     'FileInfo.CreatingApplicationName': 'Nom de l\'application utilisée pour créer le fichier',
+    'FileInfo.DateCreatedByApplication': 'Date de création par l\'application',
     'FileInfo.CreatingApplicationVersion': 'Version de l\'application utilisée pour créer le fichier',
     'FileInfo.CreatingOs': 'Système d\'exploitation utilisé pour créer le fichier',
     'FileInfo.CreatingOsVersion': 'Version du système d\'exploitation utilisé pour créer le fichier',
     'FileInfo.LastModified': 'Date de dernière modification',
-    'FormatIdentification.Encoding': 'Encodage'
+    'FormatIdentification.Encoding': 'Encodage',
+    'Metadata.Text':'Texte'
   });
