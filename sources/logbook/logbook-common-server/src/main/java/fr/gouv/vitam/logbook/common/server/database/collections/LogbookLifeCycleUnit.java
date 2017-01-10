@@ -40,6 +40,12 @@ public class LogbookLifeCycleUnit extends LogbookLifeCycle<LogbookLifeCycleUnitP
     private static final long serialVersionUID = 5493682980103747369L;
 
     /**
+     * use for jackson serialisation
+     */
+    public LogbookLifeCycleUnit() {
+    }
+
+    /**
      * Constructor from LogbookLifeCycleUnitParameters
      *
      * @param parameters

@@ -51,6 +51,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
 /**
  * LogbookLifeCyclesClient Mock implementation
@@ -137,17 +139,17 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-            "/", null, ClientMockResultHelper.getLogbookOperation());
+            "/", JsonNode.class, null, ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
-    public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
-            "/", null, ClientMockResultHelper.getLogbookOperation());
+            "/", JsonNode.class, null, ClientMockResultHelper.getLogbookOperation());
     }
 
     private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)

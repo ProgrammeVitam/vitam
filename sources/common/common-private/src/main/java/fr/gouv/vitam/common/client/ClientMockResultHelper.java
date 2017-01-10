@@ -205,6 +205,18 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
+    public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
+        return new RequestResponseOK()
+            .setHits(1, 0, 1)
+            .setQuery(null)
+            .addResult(s);
+    }
+
+    /**
+     * @param s the original object to be included in response
+     * @return a default response
+     * @throws InvalidParseOperationException
+     */
     public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
         return new RequestResponseOK()
             .setHits(1, 0, 1)
@@ -213,7 +225,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Access Register Summary
      * @throws InvalidParseOperationException
      */
@@ -222,7 +233,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Access Register Detail
      * @throws InvalidParseOperationException
      */
@@ -231,7 +241,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Format
      * @throws InvalidParseOperationException
      */
@@ -240,7 +249,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default Rule
      * @throws InvalidParseOperationException
      */
@@ -249,7 +257,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
@@ -258,7 +265,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
@@ -267,7 +273,6 @@ public class ClientMockResultHelper {
     }
 
     /**
-     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */

@@ -27,6 +27,11 @@
             <version>${project.version}</version>
         </dependency>
 		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-common-server</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.glassfish.jersey.core</groupId>
 			<artifactId>jersey-client</artifactId>
 		</dependency>

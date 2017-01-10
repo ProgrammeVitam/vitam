@@ -34,7 +34,9 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -47,11 +49,13 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -82,11 +86,18 @@ public class RequestResponseOKTest {
     public final void testSetRequestResponseOKAttributes()
         throws JsonProcessingException, IOException {
         results = JsonHandler.createArrayNode();
+
+        ObjectTest objectTest = new ObjectTest();
+        objectTest.addResult("One");
+        objectTest.addResult("Two");
+        objectTest.addResult("Three");
+
+
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = new ObjectMapper().readTree(json);
         final RequestResponseOK requestResponseOK = new RequestResponseOK();
         requestResponseOK.setQuery(query);
-        requestResponseOK.addAllResults(results);
+        requestResponseOK.addAllResults(new ArrayList());
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
 
@@ -100,8 +111,8 @@ public class RequestResponseOKTest {
         } catch (final InvalidParseOperationException e) {
             fail("should not failed");
         }
-        requestResponseOK.addResult(query);
-        requestResponseOK.addResult(query);
+        requestResponseOK.addResult(objectTest);
+        requestResponseOK.addResult(objectTest);
         requestResponseOK.getHits().setTotal(2).setLimit(2);
         assertEquals(
             "{\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
@@ -146,11 +157,19 @@ public class RequestResponseOKTest {
     @Test
     public void testFromResponse() throws InvalidParseOperationException {
         results = JsonHandler.createArrayNode();
+
+        ObjectTest objectTest = new ObjectTest();
+        objectTest.addResult("One");
+        objectTest.addResult("Two");
+        objectTest.addResult("Three");
+
         final String json = "{\"Objects\" : [\"One\", \"Two\", \"Three\"]}";
         query = JsonHandler.getFromString(json);
-        final RequestResponseOK requestResponseOK = new RequestResponseOK();
+
+        final RequestResponseOK<ObjectTest> requestResponseOK = new RequestResponseOK();
         requestResponseOK.setQuery(query);
-        requestResponseOK.addAllResults(results);
+        requestResponseOK.addAllResults(Lists.newArrayList());
+
         Response response =
             getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
         RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
@@ -220,4 +239,22 @@ public class RequestResponseOKTest {
         }
         return response;
     }
+
+    private static class ObjectTest {
+        @JsonProperty("Objects")
+        private List<String> results = new ArrayList<>();
+
+        public List<String> getResults() {
+            return results;
+        }
+
+        public void setResults(List<String> results) {
+            this.results = results;
+        }
+
+        public void addResult(String s) {
+            results.add(s);
+        }
+    }
+
 }

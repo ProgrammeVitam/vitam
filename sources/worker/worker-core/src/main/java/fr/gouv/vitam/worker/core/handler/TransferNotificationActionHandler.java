@@ -521,7 +521,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
 
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
                 final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
@@ -542,8 +542,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
                 while (iterator.hasNext()) {
+                    JsonNode next = iterator.next();
                     final LogbookLifeCycleUnit logbookLifeCycleUnit =
-                        new LogbookLifeCycleUnit(iterator.next());
+                        new LogbookLifeCycleUnit(next);
                     final List<Document> logbookLifeCycleUnitEvents =
                         (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
                     xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
@@ -569,7 +570,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 LOGGER.error("Error while loading logbook lifecycle units", e);
                 throw new ProcessingException(e);
             }
-            try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();

@@ -48,9 +48,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
-import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -78,7 +78,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private static final int OBJECTGOUP_MAP_RANK = 1;
     private static final int BDO_TO_VERSION_BDO_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
-
 
     /**
      * Empty Constructor AccessionRegisterActionHandler
@@ -109,10 +108,10 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Params: " + params);
             }
-            final AccessionRegisterDetail register = generateAccessionRegister(params);
+            final AccessionRegisterDetailModel register = generateAccessionRegister(params);
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(
-                    "register ID / Originating Agency: " + register.getId() + " / " + register.getOriginatingAgency());
+                LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / "
+                    + register.getOriginatingAgency());
             }
             adminClient.createorUpdateAccessionRegister(register);
             itemStatus.increment(StatusCode.OK);
@@ -128,8 +127,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-
-
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         if (!handler.checkHandlerIO(0, handlerInitialIOList)) {
@@ -137,9 +134,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         }
     }
 
-    private AccessionRegisterDetail generateAccessionRegister(WorkerParameters params) throws ProcessingException {
-        AccessionRegisterDetail register = new AccessionRegisterDetail();
-        final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+    private AccessionRegisterDetailModel generateAccessionRegister(WorkerParameters params) throws ProcessingException {
+        AccessionRegisterDetailModel register = new AccessionRegisterDetailModel() ;
         try (final InputStream archiveUnitMapStream =
             new FileInputStream((File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK));
             final InputStream objectGoupMapStream =
@@ -148,7 +144,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 new FileInputStream((File) handlerIO.getInput(BDO_TO_VERSION_BDO_MAP_RANK))) {
             final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
-            final Map<String, Object> objectGoupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
+            final Map<String, Object> objectGroupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);
             final JsonNode sedaParameters =
                 JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK))
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
@@ -179,32 +175,48 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             // TODO P0 get size manifest.xml in local
             // TODO P0 extract this information from first parsing
             final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
-            final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            register = new AccessionRegisterDetail()
-                .setId(params.getContainerName())
-                .setOriginatingAgency(originalAgency)
-                .setSubmissionAgency(submissionAgency)
-                .setEndDate(sdfDate.format(new Date()))
-                .setStartDate(sdfDate.format(new Date()))
-                .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
-                .setTotalObjectGroups(new RegisterValueDetail()
-                    .setTotal(objectGoupMap.size())
-                    .setRemained(objectGoupMap.size()))
-                .setTotalUnits(new RegisterValueDetail()
-                    .setTotal(archiveUnitMap.size())
-                    .setRemained(archiveUnitMap.size()))
-                .setTotalObjects(new RegisterValueDetail()
-                    .setTotal(bdoVersionMap.size())
-                    .setRemained(bdoVersionMap.size()))
-                .setObjectSize(new RegisterValueDetail()
-                    .setTotal(objectsSizeInSip)
-                    .setRemained(objectsSizeInSip));
+            register =
+                mapParamsToAccessionRegisterDetailModel(params, bdoVersionMap, archiveUnitMap, objectGroupMap,
+                    originalAgency,
+                    submissionAgency, sedaUtils);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
         }
 
         return register;
+    }
+
+    private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
+        Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
+        String originalAgency, String submissionAgency, SedaUtils sedaUtils) throws ProcessingException {
+
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+
+        final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
+
+        RegisterValueDetailModel totalObjectsGroups =
+            new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size(), null);
+
+        RegisterValueDetailModel totalUnits =
+            new RegisterValueDetailModel(archiveUnitMap.size(), 0, archiveUnitMap.size(), null);
+
+        RegisterValueDetailModel totalObjects =
+            new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size(), null);
+
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip, null);
+
+        return new AccessionRegisterDetailModel()
+            .setId(params.getContainerName())
+            .setOriginatingAgency(originalAgency)
+            .setSubmissionAgency(submissionAgency)
+            .setEndDate(sdfDate.format(new Date()))
+            .setStartDate(sdfDate.format(new Date()))
+            .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
+            .setTotalObjectsGroups(totalObjectsGroups)
+            .setTotalUnits(totalUnits)
+            .setTotalObjects(totalObjects)
+            .setObjectSize(objectSize);
     }
 
     @Override

@@ -309,7 +309,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     }
 
     private static JsonNode getLogbookOperation()
-        throws FileNotFoundException, IOException, InvalidParseOperationException {
+        throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(IOUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));

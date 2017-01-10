@@ -33,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +58,6 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -171,14 +171,14 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     @Test
     public void testIterator() {
         startup = true;
-        try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+        try (VitamRequestIterator<ObjectNode> iterator =
+            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            final ArrayNode list = JsonHandler.createArrayNode();
+            final List<ObjectNode> list = new ArrayList<>();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -189,7 +189,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
             for (int i = 0; i < 3; i++) {
                 assertTrue(iterator.hasNext());
-                final JsonNode node = iterator.next();
+                final ObjectNode node = iterator.next();
                 assertNotNull(node);
                 assertEquals(i + 1, node.get("val").asInt());
             }
@@ -212,7 +212,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     public void testIteratorEmpty() {
         startup = true;
         try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.NOT_FOUND);
             when(mock.get())
@@ -225,7 +225,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     public void testIteratorFailed() {
         startup = true;
         try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
             when(mock.get())
@@ -242,14 +242,14 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     @Test
     public void testIteratorShortList() {
         startup = true;
-        try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+        try (VitamRequestIterator<ObjectNode> iterator =
+            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            final ArrayNode list = JsonHandler.createArrayNode();
+            final List<ObjectNode> list = new ArrayList<>();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -260,7 +260,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, null).entity(response).build());
             for (int i = 0; i < 3; i++) {
                 assertTrue(iterator.hasNext());
-                final JsonNode node = iterator.next();
+                final ObjectNode node = iterator.next();
                 assertNotNull(node);
                 assertEquals(i + 1, node.get("val").asInt());
             }
@@ -271,14 +271,14 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     @Test
     public void testIteratorThirdShort() {
         startup = true;
-        try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+        try (VitamRequestIterator<ObjectNode> iterator =
+            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            final ArrayNode list = JsonHandler.createArrayNode();
+            final List<ObjectNode> list = new ArrayList<>();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -289,7 +289,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
             for (int i = 0; i < 3; i++) {
                 assertTrue(iterator.hasNext());
-                final JsonNode node = iterator.next();
+                final ObjectNode node = iterator.next();
                 assertNotNull(node);
                 assertEquals(i + 1, node.get("val").asInt());
             }
@@ -297,7 +297,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
             for (int i = 0; i < 3; i++) {
                 assertTrue(iterator.hasNext());
-                final JsonNode node = iterator.next();
+                final ObjectNode node = iterator.next();
                 assertNotNull(node);
                 assertEquals(i + 1, node.get("val").asInt());
             }
@@ -312,13 +312,13 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
     public void testIteratorStopBefore() {
         startup = true;
         try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            final ArrayNode list = JsonHandler.createArrayNode();
+            final List<ObjectNode> list = new ArrayList<>();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -331,14 +331,14 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             assertFalse(iterator.hasNext());
         }
         startup = true;
-        try (VitamRequestIterator iterator =
-            new VitamRequestIterator(client, HttpMethod.GET, "/iterator", null, null)) {
+        try (VitamRequestIterator<ObjectNode> iterator =
+            new VitamRequestIterator<>(client, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
             final RequestResponseOK response = new RequestResponseOK();
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
             response.addResult(node1);
-            final ArrayNode list = JsonHandler.createArrayNode();
+            final List<ObjectNode> list = new ArrayList<>();
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -349,7 +349,7 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
                 .thenReturn(VitamRequestIterator.setHeaders(builder, true, "newcursor").entity(response).build());
             for (int i = 0; i < 3; i++) {
                 assertTrue(iterator.hasNext());
-                final JsonNode node = iterator.next();
+                final ObjectNode node = iterator.next();
                 assertNotNull(node);
                 assertEquals(i + 1, node.get("val").asInt());
             }

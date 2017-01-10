@@ -55,12 +55,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 
 public class AdminManagementClientRestTest extends VitamJerseyTest {
 
@@ -363,21 +363,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void createAccessionRegister()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     @Test(expected = AccessionRegisterException.class)
     public void createAccessionRegisterError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     @Test(expected = AccessionRegisterException.class)
     public void createAccessionRegisterUnknownError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     /** Accession Register Detail **/

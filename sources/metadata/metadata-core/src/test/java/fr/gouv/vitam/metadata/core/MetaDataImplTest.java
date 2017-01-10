@@ -26,10 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core;
 
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.util.List;
 
 import org.bson.BsonDocument;
 import org.junit.Before;
@@ -45,6 +48,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteError;
@@ -448,14 +453,13 @@ public class MetaDataImplTest {
         when(request.execRequest(Matchers.isA(SelectParserMultiple.class), anyObject())).thenReturn(firstSelectResult,
             secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
-        final ArrayNode ret = metaDataImpl
-            .updateUnitbyId(updateRequest, "unitId");
+        final ArrayNode ret = metaDataImpl.updateUnitbyId(updateRequest, "unitId");
         assertEquals(wanted, ret.toString());
 
         final RequestResponseOK response = new RequestResponseOK()
             .setHits(ret.size(), 0, 1)
             .setQuery(updateRequest)
-            .addAllResults(ret);
+            .addAllResults(toArrayList(ret));
         assertEquals(wantedDiff, getDiffMessageFor(response.toJsonNode(), "unitId"));
     }
 

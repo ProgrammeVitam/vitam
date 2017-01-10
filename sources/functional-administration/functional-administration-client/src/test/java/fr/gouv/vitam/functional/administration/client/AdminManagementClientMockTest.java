@@ -28,24 +28,25 @@ package fr.gouv.vitam.functional.administration.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -112,10 +113,10 @@ public class AdminManagementClientMockTest {
         final ObjectNode objectNode = (ObjectNode) client.getRuleByID("APP-00001");
         assertEquals(1, ((ArrayNode) objectNode.get("$results")).size());
         assertEquals("AppraisalRule",
-            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText().toString());
-        assertEquals("6", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleDuration").asText().toString());
+            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleType").asText());
+        assertEquals("6", ((ArrayNode) objectNode.get("$results")).get(0).get("RuleDuration").asText());
         assertEquals("Année",
-            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText().toString());
+            ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText());
     }
 
     @Test
@@ -130,7 +131,7 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void givenClientMockWhenCreateAccessionRegister() throws Exception {
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetail());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     @Test
@@ -150,14 +151,22 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        final JsonNode detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
-        final JsonNode detail = detailResponse.get("$results");
-        assertNotNull(detail);
-        assertTrue(detail.isArray());
-        final ArrayNode detailAsArray = (ArrayNode) detail;
-        assertEquals(1, detailAsArray.size());
-        final JsonNode item = detailAsArray.get(0);
-        assertEquals("FRAN_NP_005061", item.get("SubmissionAgency").asText());
+        final RequestResponse detailResponse = client.getAccessionRegisterDetail(select.getFinalSelect());
+
+        if (detailResponse.isOk()) {
+            RequestResponseOK<AccessionRegisterDetailModel> responseOK =
+                (RequestResponseOK<AccessionRegisterDetailModel>) detailResponse;
+
+            assertNotNull(responseOK);
+
+            List<AccessionRegisterDetailModel> results = responseOK.getResults();
+
+            assertNotNull(results);
+            assertEquals(1, results.size());
+            final AccessionRegisterDetailModel item = results.get(0);
+            assertEquals("FRAN_NP_005061", item.getSubmissionAgency());
+
+        }
     }
 
 }

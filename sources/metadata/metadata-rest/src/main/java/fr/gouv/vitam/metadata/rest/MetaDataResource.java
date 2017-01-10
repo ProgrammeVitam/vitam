@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -39,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Lists;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
@@ -215,7 +218,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
             .setHits(arrayNodeResults.size(), 0, 1)
             .setQuery(selectRequest)
-            .addAllResults(arrayNodeResults)).build();
+            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
     }
 
     /**
@@ -278,7 +281,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
             .setHits(arrayNodeResults.size(), 0, 1)
             .setQuery(updateRequest)
-            .addAllResults(arrayNodeResults)).build();
+            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
     }
 
     /**
@@ -316,7 +319,7 @@ public class MetaDataResource extends ApplicationStatusResource {
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
             .setHits(arrayNodeResults.size(), 0, 1)
             .setQuery(selectRequest)
-            .addAllResults(arrayNodeResults)).build();
+            .addAllResults(Lists.newArrayList(arrayNodeResults.iterator()))).build();
     }
 
     private Response metadataExecutionExceptionTrace(final MetaDataExecutionException e) {
@@ -470,10 +473,11 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
         }
+
         return Response.status(Status.OK).entity(new RequestResponseOK()
             .setHits(arrayNodeResults.size(), 0, 1)
             .setQuery(selectRequest)
-            .addAllResults(arrayNodeResults)).build();
+            .addAllResults(toArrayList(arrayNodeResults))).build();
     }
 
 }
