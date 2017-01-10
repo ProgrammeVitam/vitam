@@ -186,30 +186,33 @@ public class UnitsRulesComputeHandlerTest {
 
 
     private JsonNode getRulesInReferential() {
-        final ObjectNode reuseRule = JsonHandler.createObjectNode();
+        final ObjectNode storageRule = JsonHandler.createObjectNode();
 
-        reuseRule.put(FileRules.RULEID, "ID420");
-        reuseRule.put(FileRules.RULEDESCRIPTION, "rule description");
-        reuseRule.put(FileRules.RULEDURATION, "3");
-        reuseRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+        storageRule.put(FileRules.RULEID, "ID420");
+        storageRule.put(FileRules.RULEDESCRIPTION, "rule description");
+        storageRule.put(FileRules.RULEDURATION, "3");
+        storageRule.put(FileRules.RULETYPE, "StorageRule");
+        storageRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+
+        final ObjectNode classificationRule = JsonHandler.createObjectNode();
+        classificationRule.put(FileRules.RULEID, "ID470");
+        classificationRule.put(FileRules.RULEDESCRIPTION, "rule content");
+        classificationRule.put(FileRules.RULETYPE, "ClassificationRule");
+        classificationRule.put(FileRules.RULEDURATION, "2");
+        classificationRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.JOURS.getType());
+
 
         final ObjectNode accessRule = JsonHandler.createObjectNode();
-        accessRule.put(FileRules.RULEID, "ID470");
-        accessRule.put(FileRules.RULEDESCRIPTION, "rule content");
-        accessRule.put(FileRules.RULEDURATION, "2");
-        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.JOURS.getType());
-
-
-        final ObjectNode reuseRule2 = JsonHandler.createObjectNode();
-        reuseRule2.put(FileRules.RULEID, "ID019");
-        reuseRule2.put(FileRules.RULEDESCRIPTION, "rule description");
-        reuseRule2.put(FileRules.RULEDURATION, "3");
-        reuseRule2.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+        accessRule.put(FileRules.RULEID, "ID019");
+        accessRule.put(FileRules.RULEDESCRIPTION, "rule description");
+        accessRule.put(FileRules.RULEDURATION, "3");
+        accessRule.put(FileRules.RULETYPE, "AccessRule");
+        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
 
         final ArrayNode root1 = JsonHandler.createArrayNode();
+        root1.add(classificationRule);
+        root1.add(storageRule);
         root1.add(accessRule);
-        root1.add(reuseRule);
-        root1.add(reuseRule2);
 
         final ObjectNode rule = JsonHandler.createObjectNode();
         rule.set("$results", root1);
