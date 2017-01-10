@@ -466,10 +466,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), objectIdentifier);
             logbookOperationClient.update(logbookOpParamEnd);
+
+            // TODO Add LifeCycle RollBack process
             final LogbookLifeCycleUnitParameters logbookParametersEnd =
                 getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.KO,
                     objectIdentifier);
-            logbookLifeCycleClient.rollback(logbookParametersEnd);
+            logbookLifeCycleClient.update(logbookParametersEnd);
         } catch (final LogbookClientBadRequestException lcbre) {
             LOGGER.error(BAD_REQUEST, lcbre);
         } catch (final LogbookClientNotFoundException lcbre) {
