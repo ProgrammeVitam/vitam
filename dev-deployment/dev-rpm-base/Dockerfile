@@ -7,11 +7,11 @@
 #########################################################################################
 
 # Set the base image to Centos 7
-FROM docker.programmevitam.fr/centos:7.2.1511
+FROM centos:7.3.1611
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Make sure the package repository and packages are up to date.
-RUN yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
+RUN yum erase -y yum-plugin-ovl && yum install -y epel-release && yum -y update && yum -y upgrade && yum clean all
 
 ################################  Configure systemd  ###############################
 
@@ -37,6 +37,7 @@ RUN yum install -y \
         initscripts.x86_64 \
         golang \
         npm \
+        cronie \
     && yum clean all
 
 # Add Java to path
@@ -79,9 +80,10 @@ RUN chmod a+x /usr/bin/vitam-*
 
 COPY install-meteor.sh /usr/bin
 RUN chmod a+x /usr/bin/install-meteor.sh && \
-   /usr/bin/install-meteor.sh && \
-   mv /root/.meteor /devhome && \
-   chmod -R o+wX /devhome/.meteor
+    sleep 1 && \
+    /usr/bin/install-meteor.sh && \
+    mv /root/.meteor /devhome && \
+    chmod -R o+wX /devhome/.meteor
 
 COPY profile-build-repo.sh /etc/profile.d
 COPY profile-prompt-usage.sh /etc/profile.d
