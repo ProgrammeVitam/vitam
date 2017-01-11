@@ -157,6 +157,10 @@ angular.module('archive.unit')
 
         var keyArrayIndex = 1;
         angular.forEach(contentField, function(value, key) {
+          if (angular.isArray(contentField)) {
+            key = fieldSet.fieldId;
+          }
+
           if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
             key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
             var fieldSetSecond = buildSingleField(value, key, fieldSet.fieldId, fieldSet.parents, constants);
