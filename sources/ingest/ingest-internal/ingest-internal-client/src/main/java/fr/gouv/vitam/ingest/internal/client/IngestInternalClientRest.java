@@ -34,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -132,7 +133,8 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
 
         try {
             response = performRequest(HttpMethod.POST, INGEST_URL + "/" + guid + REPORT,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                null, input, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
             return response;
             
         } catch (VitamClientInternalException e) {
