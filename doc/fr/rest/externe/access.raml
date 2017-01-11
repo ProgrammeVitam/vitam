@@ -125,7 +125,8 @@ documentation:
    API qui définit les requêtes pour accéder aux Objets d'archives.
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
   get:
-    description: **UNSUPPORTED** Request that will return results composed of Objects
+    description: |
+     **UNSUPPORTED** Request that will return results composed of Objects
     is: [AccessTraits.AccessObjectResponse]
   post:
     description: |
@@ -140,7 +141,7 @@ documentation:
     description: |
      API qui définit les requêtes pour accéder aux Objets d'archives à partir d'un Objet d'archives donné (racine).
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
-     
+
     get:
       description: Request that will return results composed of Objects (generally 1)
       is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse]
