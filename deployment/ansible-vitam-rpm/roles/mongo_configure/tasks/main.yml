@@ -45,7 +45,6 @@
     group: "{{vitam_group}}"
     mode: "{{vitam_conf_permission}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
-  run_once: true
 
 # Enable sharding for specific databases and collections
 
@@ -150,10 +149,10 @@
   wait_for: port={{mongos_port}} timeout="{{service_restart_timeout}}"
   run_once: true
 
-# Initiate the databases
+# Initiate the databases (now we know that authentication is enabled)
 
-- name: Initiate the admin database
-  command: "mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/init-{{item}}-database.js"
+- name: Initiate the databases
+  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet {{vitam_folder_root}}/app/mongos/init-{{item}}-database.js"
   become_user: "{{ vitamdb_user}}"
   run_once: true
   with_items:
