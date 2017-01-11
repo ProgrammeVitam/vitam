@@ -12,7 +12,7 @@ La recherche d'une unité archivistique s'effectue depuis l'écran "Recherche d'
 
 .. image:: images/menu_recherche.jpg
 
-Deux modes de recherche sont proposés sur la page "Recherche d'archives", l'un simple de type recherche libre (partie haute de la page), l'autre complexe ciblant certains types de métadonnées.
+Deux modes de recherche sont proposés sur la page "Recherche d'archives", un simple de type recherche libre (partie haute de la page), et un autre complexe ciblant certains types de métadonnées.
 
 Par défaut, les deux modes de recherche sont affichés, il est possible de masquer la partie recherche complexe en cliquant sur la ligne "Avancée"
 
@@ -58,7 +58,7 @@ NB 1 : Lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, u
 
 .. image:: images/date_KO.jpg
 
-NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ.
+NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ. L'ID est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification (ATR).
 
 .. image:: images/search_v2.jpg
 
@@ -101,6 +101,7 @@ Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et
 
 Les métadonnées (excepté l'ID) peuvent être modifiées en cliquant sur le bouton "Modifier", chaque ligne pouvant ainsi être éditée.
 Une fois les modifications saisies, un clic sur le bouton "Enregistrer" sauvegarde celles-ci et met à jour les métadonnées.
+Une fois les modification des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal de Cycle de Vie correspondant.
 
 .. image:: images/detail_modification.jpg
 
@@ -155,7 +156,7 @@ Une liste déroulante ("Informations supplémentaires") est proposée afin de s�
 - Identifiant interne de l'unité archivistique
 - Identifiant du tenant (technique)
 
-NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponible du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner".
+NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponibles du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner". Voir le document "Modèle de Donnés" pour la définition des champs proposés.
 
 .. image:: images/JCV_AU_supp.jpg
 
@@ -272,7 +273,7 @@ Cette vue affiche sous forme de tableau, les entrées effectuées pour ce servic
 
 Pour chaque entrée, les informations suivantes sont affichées :
 
-- Identifiant de l'opération
+- Identifiant de l'opération attribué par la solution logicielle VITAM (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Date d'entrée
 - nombre d'unités archivistiques
