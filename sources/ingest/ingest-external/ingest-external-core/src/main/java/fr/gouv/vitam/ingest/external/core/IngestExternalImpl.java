@@ -449,18 +449,17 @@ public class IngestExternalImpl implements IngestExternal {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",
                 "SANITY_CHECK_SIP", null, StatusCode.KO);
-            
-            try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
-                client.storeATR(ingestGuid, new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)));
-            } catch (VitamClientException e) {
-                LOGGER.error(e.getMessage());
-                throw new IngestExternalException(e);
-            }
-
         } else {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",
                 "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO);
+        }
+        
+        try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
+            client.storeATR(ingestGuid, new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)));
+        } catch (VitamClientException e) {
+            LOGGER.error(e.getMessage());
+            throw new IngestExternalException(e);
         }
         
         responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
