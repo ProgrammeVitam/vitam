@@ -83,8 +83,7 @@ angular.module('ihm.demo')
     		});
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
     		var confirm = $mdDialog.confirm()
-    		            	.title('Format est déjà chargé dans la base.' +  
-    		        				' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
+    		            	.title('Référentiel des formats déjà existant')
     		            	.ok("Fermer");
     		    		$mdDialog.show(confirm)
     	}
