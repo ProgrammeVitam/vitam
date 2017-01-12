@@ -680,31 +680,31 @@ JSON correspondant à une opération d'entrée terminée avec succès.
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-Chaque entrée de cette collection est composée d'une structure auto-imbriquée : la structure possède une première instanciation "incluante", et contient un tableau de N structures identiques, dont seules les valeurs contenues dans les champs changent.
+Chaque entrée de cette collection est composée d'une structure auto-imbriquée : la structure possède une première instanciation "incluante", et contient un tableau de N structures identiques, dont seules les valeurs contenues dans les champs changent.
 
 La structure est décrite ci-dessous.
 Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'une structure incluse dans celle-ci.
 
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation de l'opération
+"_id" : Identifiant unique donné par le système lors de l'initialisation de l'opération
     Il est constitué d'une chaîne de 36 caractères.
     Cet identifiant constitue la clé primaire de l'opération dans la collection.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
+"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
      Il identifie l'entrée / le versement de manière unique dans la base.
      Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par pair (début/fin).
 
      *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de la tâche,
+"evType" (event Type) : nom de la tâche,
     Issu de la définition du workflow en json (fichier default-workflow.json).
     La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
+"evDateTime" (event DateTime) : date de l'événement
     Positionné par le client LogBook.
     Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``
@@ -713,10 +713,17 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "evDetData" (event Detail Data) : détails des données de l'évènement.
     Donne plus de détail sur l'évènement.
+    Dans le cas d'un évènement final d'une opération de type traceability, ce champ contient un objet composé des champs suivants :
+      - startDate
+      - endDate
+      - hash
+      - timestampToken
+      - nbOfElement
+      - fileName
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
+"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
@@ -726,7 +733,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'évènement.
+"outcome" : Statut de l'évènement.
     Parmi une liste de valeurs fixée :
 
     - STARTED (début de l'évènement)
@@ -737,47 +744,47 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
+"outDetail" (outcome Detail) : code correspondant à l'erreur
     *Ce champ existe pour les structures incluantes et incluses*
-    *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
+    *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
     Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage) : détail de l'événement.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
     La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
+"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agIdApp" (agent Identifier Application) : identifiant de l’application externe qui appelle Vitam pour effectuer l'opération
+"agIdApp" (agent Identifier Application) : identifiant de l’application externe qui appelle Vitam pour effectuer l'opération
 
-    *Utilisation à IT10 : la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
+    *Utilisation à IT10 : la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
-"agIdAppSession" (agent Identifier Application Session) : identifiant donnée par l’application utilisatrice externe
+"agIdAppSession" (agent Identifier Application Session) : identifiant donnée par l’application utilisatrice externe
     qui appelle Vitam à la session utilisée pour lancer l’opération
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
 
-    *Utilisation à IT10 : la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
+    *Utilisation à IT10 : la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
 
-"evIdReq" (event Identifier Request) : identifiant de la requête déclenchant l’opération
+"evIdReq" (event Identifier Request) : identifiant de la requête déclenchant l’opération
     Une requestId est créée pour chaque nouvelle requête http venant de l’extérieur.
     Dans le cas du processus d'entrée, il devrait s'agir du numéro de l'opération (EvIdProc).
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agIdSubm" (agent Identifier Submission) : identifiant du service versant.
+"agIdSubm" (agent Identifier Submission) : identifiant du service versant.
     Il s'agit du <SubmissionAgencyIdentifier> dans le SEDA. Mis en place avant le développement du registre des fonds.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"agIdOrig" (agent Identifier Originating) : identifiant du service producteur.
+"agIdOrig" (agent Identifier Originating) : identifiant du service producteur.
     Il s'agit du <OriginatingAgencyIdentifier> dans le SEDA. Mis en place avant le développement du registre des fonds.
 
     *Ce champ existe uniquement pour la structure incluante.*
@@ -787,12 +794,12 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
      *Ce champ existe pour les structures incluantes et incluses*
 
-"obIdReq" (object Identifier Request) : Identifiant de la requête caractérisant un lot d’objets auquel s’applique l’opération.
+"obIdReq" (object Identifier Request) : Identifiant de la requête caractérisant un lot d’objets auquel s’applique l’opération.
       Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
 
-      *Utilisation à IT10 : la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
+      *Utilisation à IT10 : la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
 
-"obIdIn" (ObjectIdentifierIncome) : Identifiant externe du lot d’objets auquel s’applique l’opération.
+"obIdIn" (ObjectIdentifierIncome) : Identifiant externe du lot d’objets auquel s’applique l’opération.
       Chaîne de caractère intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se reporte l'événement.
       Il s'agit le plus souvent soit du nom du SIP lui-même, soit du <MessageIdentifier> présent dans le manifeste.
 
@@ -887,30 +894,30 @@ Exemple de JSON stocké en base
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
+"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
     Il est constitué d'une chaîne de 36 caractères.
     Cet identifiant constitue la clé primaire du journal du cycle de vie de l'unité archivistique.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
+"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
     Il s'agit du GUID de l'évènement. Il identifie l'évènement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de la tâche,
+"evType" (event Type) : nom de la tâche,
     La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
+"evDateTime" (event DateTime) : date de l'événement
     Positionné par le client LogBook.
     Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
+"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
@@ -920,7 +927,7 @@ Détail des champ du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'évènement.
+"outcome" : Statut de l'évènement.
     Parmi une liste de valeurs fixée :
 
     - STARTED (début de l'évènement)
@@ -931,20 +938,20 @@ Détail des champ du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
+"outDetail" (outcome Detail) : code correspondant à l'erreur
     *Ce champ existe pour les structures incluantes et incluses*
-    *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
+    *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
     Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage) : détail de l'événement.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
     La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
+"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
@@ -1196,30 +1203,30 @@ Exemple de JSON stocké en base
 Détail des champ du JSON stocké en base
 ---------------------------------------
 
-"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
+"_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
     Il est constitué d'une chaîne de 36 caractères.
     Cet identifiant constitue la clé primaire du journal du cycle de vie du groupe d'objet.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
+"evId" (event Identifier) : identifiant de l'événement constitué d'une chaîne de 36 caractères.
     Il s'agit du GUID de l'évènement. Il identifie l'évènement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evType" (event Type) : nom de la tâche,
+"evType" (event Type) : nom de la tâche,
     La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evDateTime" (event DateTime) : date de l'événement
+"evDateTime" (event DateTime) : date de l'événement
     Positionné par le client LogBook.
     Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
+"evIdProc" (event Identifier Process) : identifiant du processus. Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
     *Ce champ existe pour les structures incluantes et incluses*
@@ -1229,7 +1236,7 @@ Détail des champ du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outcome" : Statut de l'évènement.
+"outcome" : Statut de l'évènement.
     Parmi une liste de valeurs fixée :
 
     - STARTED (début de l'évènement)
@@ -1240,20 +1247,20 @@ Détail des champ du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outDetail" (outcome Detail) : code correspondant à l'erreur
+"outDetail" (outcome Detail) : code correspondant à l'erreur
     *Ce champ existe pour les structures incluantes et incluses*
-    *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
+    *Utilisation à IT10 : la valeur est toujours à 'null'. Il est censé être renseigné en IT11.*
     Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"outMessg" (outcomeDetailMessage) : détail de l'événement.
+"outMessg" (outcomeDetailMessage) : détail de l'événement.
     C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
     La liste des valeurs possibles pour ce champ se trouve en annexe. Il est directement lié au code présent dans outDetail.
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
+"agId" (agent Identifier) : identifiant de l'agent réalisant l'action.
     Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
 
@@ -1380,7 +1387,7 @@ La structure de la collection Unit est composée de la transposition JSON de tou
     Calculé, cette profondeur est le maximum des profondeurs, quelles que soient les racines concernées et les chemins possibles
 
 "_min" (ne devrait pas être visible): profondeur minimum de l'unité archivistique par rapport à une racine
-    Calculé, symétriquement le minimum des profondeurs, quelles que soient les racines concernées et les chemins possibles ;
+    Calculé, symétriquement le minimum des profondeurs, quelles que soient les racines concernées et les chemins possibles ;
 
 "_up" (#unitups): est un tableau qui recense les _id des unités archivistiques parentes (parents immédiats)
 
@@ -1583,16 +1590,16 @@ Détail des champ du JSON
 
 *A noter: les champs préfixés par un '_' devraient être visibles via les API avec un code utilisant '#' en prefix. Mais il est possible que pour la Beta, le '_' reste visible.*
 
-"_id" (#id): identifiant du groupe d'objet. Il s'agit d'une chaîne de 36 caractères.
+"_id" (#id): identifiant du groupe d'objet. Il s'agit d'une chaîne de 36 caractères.
 Cet id est ensuite reporté dans chaque structure inculse
 
-"_tenant" (#tenant): identifiant du tenant
+"_tenant" (#tenant): identifiant du tenant
 
-"_profil" (#type): repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du manifeste qui concerne le BinaryMaster.
+"_profil" (#type): repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du manifeste qui concerne le BinaryMaster.
 Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
 Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...)
 
-"FileInfo" : reprend le bloc FileInfo du BinaryMaster ; l'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
+"FileInfo" : reprend le bloc FileInfo du BinaryMaster ; l'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
 
 "_qualifiers" (#qualifiers): est une structure qui va décrire les objets inclus dans ce groupe d'objet. Il est composé comme suit :
 
@@ -1600,22 +1607,22 @@ Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video
     - "nb": nombre d'objets de cet usage
     - "versions" : tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau
         - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères.
-        - "DataObjectGroupId" : Référence à l'identifiant objectGroup. Chaine de 36 caractères.
-        - "DataObjectVersion" : version de l'objet par rapport à son usage.
+        - "DataObjectGroupId" : Référence à l'identifiant objectGroup. Chaine de 36 caractères.
+        - "DataObjectVersion" : version de l'objet par rapport à son usage.
 
     Par exemple, si on a *binaryMaster* sur l'usage, on aura au moins un objet *binarymaster_1*, *binaryMaster_2*. Ces champs sont renseignés avec les valeurs situées entre les balises <DataObjectVersion>.
 
     - "FormatIdentification": Contient trois champs qui permettent d'identifier le format du fichier. Une vérification de la cohérence entre ce qui est déclaré dans le XML, ce qui existe dans le référentiel pronom et les valeurs que porte le document est faite.
-      - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
-      - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
-      - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
+      - "FormatLitteral" : nom du format. C'est une reprise de la valeur située entre les balises <FormatLitteral> du XML
+      - "MimeType" : type Mime. C'est une reprise de la valeur située entre les balises <MimeType> du XML.
+      - "FormatId" : PUID du format de l'objet. Il est défini par Vitam à l'aide du référentiel PRONOM maintenu par The National Archives (UK).
     - "FileInfo"
-      - "Filename" : nom de l'objet
+      - "Filename" : nom de l'objet
       - "CreatingApplicationName": Chaîne de caractères. Contient le nom de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
       - "CreatingApplicationVersion": Chaîne de caractères. Contient le numéro de version de l'application avec laquelle le document a été créé. Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
       - "CreatingOs": Chaîne de caractères. Contient le nom du système d'exploitation avec lequel le document a été créé.  Ce champ est renseigné avec la métadonnée correspondante portée par le fichier. *Ce champ est facultatif et n'est pas présent systématiquement*
       - "CreatingOsVersion": Chaîne de caractères. Contient le numéro de version du système d'exploitation avec lequel le document a été créé.  Ce champ est renseigné avec la métadonnées correspondante portée par le fichier. *Ce champ et facultatif est n'est pas présent systématiquement*
-      - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
+      - "LastModified" : date de dernière modification de l'objet au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"Ce champ est optionnel, et est renseigné avec la métadonnée correspondante portée par le fichier.
 
       - "Size": Ce champ contient un nombre entier. taille de l'objet (en octets).
     - "OtherMetadata": Contient une chaîne de caractères. Champ disponible pour ajouter d'autres métadonnées metier (Dublin Core, IPTC...). Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>. Ceci correspond à une extension du SEDA.
@@ -1623,7 +1630,7 @@ Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video
     - "MessageDigest": empreinte du fichier. La valeur est calculé par Vitam.
     - "Algorithm": ce champ contient le nom de l'algorithme utilisé pour réaliser l'empreinte du document.
 
-- "_up" (#unitup): [] : tableau d'identifiant des unités archivistiques parentes
+- "_up" (#unitup): [] : tableau d'identifiant des unités archivistiques parentes
 - "_tenant" (#tenant): identifiant du tenant
 - "_nbc" (#nbobjects): nombre d'objets dans ce groupe d'objet
 - "_ops" (#operations): [] tableau des identifiants d'opérations pour lesquelles ce GOT a participé
@@ -1832,8 +1839,8 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
 "RuleDescription": Chaîne de caractère permettant de décrire la règle.
     Elle correspond à la valeur située dans la colonne RuleDescriptionRule du fichier csv référentiel.
 
-"RuleDuration": Chiffre entier compris entre 0 et 9999.
-    Associé à la valeur "RuleMeasurement", il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur située dans la colonne RuleDuration du fichier csv référentiel.
+"RuleDuration": Chiffre entier compris entre 0 et 999.
+    Associé à la valeur "RuleMeasurement", il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur située dans la colonne RuleDuration du fichier csv référentiel. Pour des raisons techniques, la valeur ne peut dépasser 999.
 
 "RuleMeasurement": Correspond à l'unité de mesure de la durée décrite dans le champ "RuleDuration".
 
