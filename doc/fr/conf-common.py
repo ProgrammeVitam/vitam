@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
+import datetime
+
 copyright = u'%s, French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>' % datetime.datetime.now().year
 author = u'VITAM'
 
