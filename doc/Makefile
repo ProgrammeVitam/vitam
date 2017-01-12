@@ -83,7 +83,7 @@ symlinks:
 html:
 	for item in $(LIST_ITEMS); do \
 		echo "Building \"$${item}\""; \
-		$(SPHINXBUILD) -q -b html -d $(BUILDDIR)/$${item}/doctrees $(ALLSPHINXOPTS) $(SRCDIR)/$${item} $(HTMLBUILDDIR)/$${item}; \
+		$(SPHINXBUILD) -q -b html -d $(BUILDDIR)/$${item}/doctrees $(ALLSPHINXOPTS) $(SRCDIR)/$${item} $(HTMLBUILDDIR)/$${item} || exit 1; \
 		echo "HTML Build finished. The HTML pages are in \"$${item}/html\"."; \
 	done;
 
@@ -127,7 +127,7 @@ latexpdf:
 	#FIXME sed correspond à un contournement pour Centos 7
 	for item in $(LIST_ITEMS); do \
 		echo "Building \"$${item}\""; \
-		$(SPHINXBUILD) -q -b latex -d $(BUILDDIR)/$${item}/doctrees $(ALLSPHINXOPTS) $(SRCDIR)/$${item} $(BUILDDIR)/$${item}/latex; \
+		$(SPHINXBUILD) -q -b latex -d $(BUILDDIR)/$${item}/doctrees $(ALLSPHINXOPTS) $(SRCDIR)/$${item} $(BUILDDIR)/$${item}/latex || exit 1; \
 		echo "Running post-treatment on LaTeX files..."; \
 		sed -i 's/\\usepackage{eqparbox}/%\\usepackage{eqparbox}/g' $(BUILDDIR)/$${item}/latex/*.tex; \
 		sed -i 's/\\RequirePackage{upquote}/%\\RequirePackage{upquote}/g' $(BUILDDIR)/$${item}/latex/sphinx.sty; \
