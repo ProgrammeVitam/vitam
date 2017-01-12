@@ -96,6 +96,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
+            setWorkflow("BigIngestWorkflow");
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }

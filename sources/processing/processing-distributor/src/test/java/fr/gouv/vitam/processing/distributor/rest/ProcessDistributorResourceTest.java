@@ -90,7 +90,7 @@ public class ProcessDistributorResourceTest {
     private final String FAMILY_ID_E = "/error";
     private final String WORKER_ID_E = "/error";
 
-    private static final String JSON_REGISTER = "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
+    private static final String JSON_REGISTER = "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
         "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     private static JunitHelper junitHelper;

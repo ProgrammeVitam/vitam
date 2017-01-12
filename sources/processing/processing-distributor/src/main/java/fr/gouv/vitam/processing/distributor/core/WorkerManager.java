@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Semaphore;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -39,7 +40,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -62,29 +62,17 @@ public class WorkerManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);
     // No need to hava a concurrent map while there is no dymanic add/remove of queues
-    private static final Map<String, BlockingQueue<WorkerAsyncRequest>> STEP_BLOCKINGQUEUE_MAP =
+    private static final ConcurrentMap<String, BlockingQueue<WorkerAsyncRequest>> STEP_BLOCKINGQUEUE_MAP =
         new ConcurrentHashMap<>();
+
     // The risk of collision between a register/unregister worker is not null
     private static final Map<String, Map<String, WorkerThreadManager>> WORKERS_LIST = new ConcurrentHashMap<>();
     private static final int DEFAULT_QUEUE_BACKLOG_SIZE = 20;
-    /**
-     * Default queue
-     */
-    public static final String DEFAULT_QUEUE = "Default";
-    /**
-     * Initialize the BlockingQueue structure
-     */
-    static {
-        STEP_BLOCKINGQUEUE_MAP.put(DEFAULT_QUEUE,
-            new ArrayBlockingQueue<WorkerAsyncRequest>(DEFAULT_QUEUE_BACKLOG_SIZE));
-    }
 
     /**
      * Empty constructor
      */
-    private WorkerManager() {
-
-    }
+    private WorkerManager() {}
 
     /**
      * To register a worker in the processing
@@ -103,13 +91,25 @@ public class WorkerManager {
         WorkerBean worker = null;
         try {
             worker = JsonHandler.getFromString(workerInformation, WorkerBean.class);
-            worker.setWorkerId(workerId);
+            if (!worker.getFamily().equals(familyId)) {
+                throw new ProcessingBadRequestException("Cannot register a worker of another family!");
+            } else {
+                worker.setWorkerId(workerId);
+            }
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Worker Information incorrect", e);
             throw new ProcessingBadRequestException("Worker description is incorrect");
         }
+
+        // Create the blocking queue for familyId worker
+        if (STEP_BLOCKINGQUEUE_MAP.get(familyId) == null) {
+            STEP_BLOCKINGQUEUE_MAP.put(familyId,
+                new ArrayBlockingQueue<WorkerAsyncRequest>(DEFAULT_QUEUE_BACKLOG_SIZE));
+        }
+
         // Create the WorkerThreadManager for this new Worker
-        final WorkerThreadManager workerThreadManager = new WorkerThreadManager(worker, DEFAULT_QUEUE);
+        final WorkerThreadManager workerThreadManager = new WorkerThreadManager(worker, familyId);
         if (WORKERS_LIST.get(familyId) != null) {
             final Map<String, WorkerThreadManager> familyWorkers = WORKERS_LIST.get(familyId);
             if (familyWorkers.get(workerId) != null) {
@@ -239,8 +239,13 @@ public class WorkerManager {
                 // So in this way, we don't take a task if can not treat it right now
                 while (toBeRunnable) {
                     semaphore.acquire();
-                    WorkerAsyncRequest workerAsyncRequest = STEP_BLOCKINGQUEUE_MAP.get(queue).take();
-                    VitamThreadPoolExecutor.getDefaultExecutor().execute(new WorkerThread(this, workerAsyncRequest));
+                    if (STEP_BLOCKINGQUEUE_MAP.get(queue) != null) {
+                        WorkerAsyncRequest workerAsyncRequest = STEP_BLOCKINGQUEUE_MAP.get(queue).take();
+                        VitamThreadPoolExecutor.getDefaultExecutor()
+                            .execute(new WorkerThread(this, workerAsyncRequest));
+                    } else {
+
+                    }
                 }
             } catch (InterruptedException e) { // NOSONAR already taken into account
                 LOGGER.warn("Probably unregistring this Worker", e);
