@@ -103,11 +103,15 @@ documentation:
        API qui définit les requêtes pour accéder à l'Objet d'archives associé à l'Unité  d'archives s'il existe.
        La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne l'objet d'archives selon le DSL Vitam en cas de succès.
       get:
-        description: Request that will return results composed of Objects (generally 1)
+        description: |
+          Request that will return results composed of Objects (generally 1).
+          **SUPPORTED** 'Accept' header is 'application/octet-stream', other values are **UNSUPPORTED**.
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
       post:
         description: |
-          Request that will return results composed of Objects (generally 1). The request is using POST with X-Http-Method-Override: GET
+          Request that will return results composed of Objects (generally 1).
+          **SUPPORTED** 'Accept' header is 'application/octet-stream', other values are **UNSUPPORTED**.
+          The request is using POST with X-Http-Method-Override: GET.
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse, StandardTraits.OverrideGet]
         headers:
           X-Http-Method-Override:
@@ -143,11 +147,15 @@ documentation:
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
 
     get:
-      description: Request that will return results composed of Objects (generally 1)
+      description: |
+        Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
+        **SUPPORTED** 'Accept' header is 'application/json', other values are **UNSUPPORTED**.
       is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse]
     post:
       description: |
-        Request that will return results composed of Objects (generally 1). The request is using POST with X-Http-Method-Override: GET
+        Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
+        **SUPPORTED** 'Accept' header is 'application/json', other values are **UNSUPPORTED**.
+        The request is using POST with X-Http-Method-Override: GET.
       is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
       headers:
         X-Http-Method-Override:
