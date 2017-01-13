@@ -16,7 +16,7 @@
             style="width: 40%; margin-left: 0px">
             <label for="entryName">Nom de format</label>
             <div class="input-group">
-              <input ng-model="fileCtrl.searchOptions.Name"
+              <input ng-model="fileCtrl.searchOptions.Name" id="entryName"
                 name="entryName" type="text"
                 class="form-control input-lg" />
               <div class="input-group-addon">
@@ -33,7 +33,7 @@
             style="width: 20%; margin-left: 0px">
             <label for="entrypuid">PUID</label>
             <div class="input-group">
-              <input ng-model="fileCtrl.searchOptions.PUID"
+              <input ng-model="fileCtrl.searchOptions.PUID" id="entrypuid"
                 name="entrypuid" type="text"
                 class="form-control input-lg" />
               <div class="input-group-addon">
@@ -46,12 +46,13 @@
 
           </div>
         </div>
-        <button type="button submit" class="btn btn-primary center-block">
+        <button type="submit" class="btn btn-primary center-block">
           <i class="material-icons pull-left">search</i> <span>Rechercher</span>
         </button>
         <button ng-if="fileCtrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
                 {{fileCtrl.errorMessage}}
             </button>
+            </div>
     </form>
     
   </div>
