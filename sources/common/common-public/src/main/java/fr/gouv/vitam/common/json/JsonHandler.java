@@ -658,6 +658,11 @@ public final class JsonHandler {
         return subResult;
     }
 
+    /**
+     * transform an {@link ArrayNode} (JSON Array) to an {@link java.util.ArrayList}
+     * @param arrayNode {@link ArrayNode} to transform
+     * @return list corresponding to the arrayNode in parameter
+     */
     public static List toArrayList(ArrayNode arrayNode) {
         return Lists.newArrayList(arrayNode.iterator());
     }

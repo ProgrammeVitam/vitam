@@ -440,6 +440,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return findLogbookBy(headers, sessionId, options);
     }
 
+    /**
+     * this method is used to request logbook with the Vitam DSL
+     *
+     * @param headers header containing the pagination for logbook
+     * @param sessionId using for pagination
+     * @param options JSON object representing the Vitam DSL query
+     * @return Response
+     */
     @GET
     @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
