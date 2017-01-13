@@ -33,6 +33,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public final class StorageInformation {
 
+    @JsonProperty("offerId")
+    private String offerId;
+
     @JsonProperty("usableSpace")
     private long usableSpace;
 
@@ -49,6 +52,22 @@ public final class StorageInformation {
      */
     public StorageInformation setUsableSpace(long usableSpace) {
         this.usableSpace = usableSpace;
+        return this;
+    }
+
+    /**
+     * @return the offer ID
+     */
+    public String getOfferId() {
+        return offerId;
+    }
+
+    /**
+     * @param offerId the offer ID
+     * @return StorageInformation
+     */
+    public StorageInformation setOfferId(String offerId) {
+        this.offerId = offerId;
         return this;
     }
 

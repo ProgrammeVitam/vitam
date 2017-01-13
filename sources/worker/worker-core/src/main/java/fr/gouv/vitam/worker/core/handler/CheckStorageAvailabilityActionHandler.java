@@ -93,23 +93,26 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 storageCapacityNode = storageClient.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
             }
 
-            final StorageInformation information =
-                JsonHandler.getFromJsonNode(storageCapacityNode, StorageInformation.class);
-            final long storageCapacity = information.getUsableSpace();
-            if (storageCapacity >= totalSizeToBeStored) {
-                itemStatus.increment(StatusCode.OK);
-                itemStatus.setData("requiredSize", storageCapacity);
-            } else {
-                // error - KO
-                itemStatus.increment(StatusCode.KO);
-                itemStatus.setData("remainingSize", totalSizeToBeStored - storageCapacity);
+            final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
+                StorageInformation[].class);
+            for (StorageInformation information : informations) {
+                ItemStatus is = new ItemStatus(information.getOfferId());
+                // Useful information ?
+                is.setData("offerId", information.getOfferId());
+                if (information.getUsableSpace() >= totalSizeToBeStored) {
+                    is.increment(StatusCode.OK);
+                } else {
+                    is.increment(StatusCode.KO);
+                }
+                itemStatus.setItemsStatus(information.getOfferId(), is);
             }
+
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
             InvalidParseOperationException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return itemStatus;
     }
 
     @Override

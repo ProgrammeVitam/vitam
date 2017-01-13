@@ -58,7 +58,7 @@ public class FSProviderTest {
         assertEquals((Integer) 1, hot.getCopy());
         final List<OfferReference> offerReferences = hot.getOffers();
         assertNotNull(offerReferences);
-        assertEquals(1, offerReferences.size());
+        assertEquals(2, offerReferences.size());
         final OfferReference offerReference = offerReferences.get(0);
         assertEquals("default", offerReference.getId());
     }
@@ -75,7 +75,7 @@ public class FSProviderTest {
         assertEquals((Integer) 1, hot.getCopy());
         final List<OfferReference> offerReferences = hot.getOffers();
         assertNotNull(offerReferences);
-        assertEquals(1, offerReferences.size());
+        assertEquals(2, offerReferences.size());
         final OfferReference offerReference = offerReferences.get(0);
         assertEquals("default", offerReference.getId());
     }
@@ -110,7 +110,7 @@ public class FSProviderTest {
     public void testGetStorageOffer_ForceReload() throws Exception {
         final FSProvider fsProvider = new FSProvider();
         fsProvider.setStorageOffer(null);
-        final StorageOffer offer = fsProvider.getStorageOffer("offerId");
+        final StorageOffer offer = fsProvider.getStorageOffer("default");
         assertNotNull(offer);
         assertEquals("http://workspaceOfferService", offer.getBaseUrl());
         assertNotNull(offer.getParameters());

@@ -27,26 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -95,6 +78,21 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
 
 /**
  * StorageDistribution service Implementation process continue if needed)
@@ -155,7 +153,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category, String requester)
-        throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageObjectAlreadyExistsException {
         // Check input params
         checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
         // Retrieve strategy data
@@ -182,6 +180,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                         offerReference, parameters, requester);
                 parameters = (StorageLogbookParameters) result.get("Parameters");
                 offerResults.put(offerReference.getId(), (Status) result.get("Status"));
+                // TODO IT_13 (celeg): think rollback !
             }
 
             try {
@@ -255,7 +254,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription,
         String tenantId, String objectId, DataCategory category, OfferReference offerReference,
         StorageLogbookParameters logbookParameters, String requester)
-        throws StorageTechnicalException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageObjectAlreadyExistsException {
         // TODO P1 : optimize workspace InputStream to not request workspace for each offer but only once.
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         // Retrieve storage offer description and parameters
@@ -423,7 +422,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public JsonNode getContainerInformation(String tenantId, String strategyId)
-        throws StorageNotFoundException, StorageTechnicalException {
+        throws StorageException {
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
@@ -434,26 +433,32 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-
-            // HACK: HARDCODE ! actually we only have one offer
-            // TODO P1 : review algo
-            final OfferReference offerReference = offerReferences.get(0);
-            final Driver driver = retrieveDriverInternal(offerReference.getId());
-            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-            final Properties parameters = new Properties();
-            parameters.putAll(offer.getParameters());
-            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-                final ObjectNode ret = JsonHandler.createObjectNode();
-                ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
-                return ret;
-            } catch (StorageDriverException | RuntimeException exc) {
-                throw new StorageTechnicalException(exc);
+            ArrayNode resultArray = JsonHandler.createArrayNode();
+            for (OfferReference offerReference : offerReferences) {
+                resultArray.add(getOfferInformation(offerReference, tenantId));
             }
+            JsonNode result = JsonHandler.createObjectNode().set("capacities", resultArray);
+            return result;
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-
+    private JsonNode getOfferInformation(OfferReference offerReference, String tenantId) throws
+        StorageException {
+        final Driver driver = retrieveDriverInternal(offerReference.getId());
+        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+        final Properties parameters = new Properties();
+        parameters.putAll(offer.getParameters());
+        try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+            final ObjectNode ret = JsonHandler.createObjectNode();
+            ret.put("offerId", offer.getId());
+            ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
+            return ret;
+        } catch (StorageDriverException | RuntimeException exc) {
+            // TODO IT_13 (celeg): response error ? (like offerId + usableSpace to 0 ?)
+            throw new StorageTechnicalException(exc);
+        }
+    }
 
     @Override
     public InputStream getStorageContainer(String tenantId, String strategyId)
@@ -465,7 +470,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         final List<OfferReference> offerReferences = new ArrayList<>();
         if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
             // TODO P1 : this code will be changed in the future to handle priority (not in current US scope) and copy
-            offerReferences.add(hotStrategy.getOffers().get(0));
+            offerReferences.addAll(hotStrategy.getOffers());
         }
         return offerReferences;
     }
@@ -514,8 +519,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public Response getContainerByCategory(String tenantId, String strategyId, String objectId,
-        DataCategory category, AsyncResponse asyncResponse)
-        throws StorageNotFoundException, StorageTechnicalException {
+        DataCategory category, AsyncResponse asyncResponse) throws StorageException {
         // Check input params
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
@@ -537,8 +541,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private GetObjectResult getGetObjectResult(String tenantId, String objectId, DataCategory type,
-        List<OfferReference> offerReferences, AsyncResponse asyncResponse)
-        throws StorageTechnicalException, StorageNotFoundException {
+        List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
         GetObjectResult result;
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());

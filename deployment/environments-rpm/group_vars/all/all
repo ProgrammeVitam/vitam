@@ -61,9 +61,18 @@ vitam_storageengine_host: "storage.service.{{consul_domain}}"
 vitam_storageengine_port: 9102
 vitam_storageengine_baseurl: "http://{{vitam_storageengine_host}}:{{vitam_storageengine_port}}"
 
-vitam_storageofferdefault_host: "storage-offer-default.service.{{consul_domain}}"
 vitam_storageofferdefault_port: 9900
-vitam_storageofferdefault_baseurl: "http://{{vitam_storageofferdefault_host}}:{{vitam_storageofferdefault_port}}"
+# vitam_storageofferdefault2_port: "{{vitam_storageofferdefault_port + 1}}"
+
+vitam_storageofferdefault_list:
+ - name: default
+   host: "{{vitam_storageofferdefault_host_1}}"
+   port: "{{vitam_storageofferdefault_port}}"
+   protocol: http
+ # - name: default2
+ #   host: "{{vitam_storageofferdefault_host_2}}"
+ #   port: "{{vitam_storageofferdefault2_port}}"
+ #   protocol: http
 
 vitam_functional_administration_host: "functional-administration.service.{{consul_domain}}"
 vitam_functional_administration_port: 8004
@@ -123,4 +132,3 @@ mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
 
 service_restart_timeout: 30
 clamav_port: 3310
-
