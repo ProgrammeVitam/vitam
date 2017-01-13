@@ -2,83 +2,153 @@
 VITAM
 #####
 
-Build du logiciel VITAM
-=======================
+Le programme interministériel Vitam
+===================================
 
-Pré-requis
-----------
+Il a pour objectif :
 
-Pour construire la documentation, il est nécessaire d'avoir les pré-requis suivants installés :
+* la conception, la réalisation et la maintenance mutualisées d’une solution logicielle générique d’archivage électronique. Cette solution logicielle est appelée Vitam. Elle est l'objet du document ;
+* la mise en place ou la mise à jour, dans chacun des trois ministères porteurs, de plates-formes d’archivage utilisant la solution logicielle Vitam ;
+* la réutilisation de la solution logicielle Vitam par le plus grand nombre d’acteurs publics possible, en veillant à sa capacité d'usage dans des contextes divers.
 
-* jdk
-* maven
+Pour plus d’information sur le programme, voir [www.programmevitam.fr](http://www.programmevitam.fr/pages/1-presentation/)
+
+
+La solution logicielle Vitam
+============================
+
+La solution logicielle développée dans le programme Vitam permettra la prise en charge, la conservation, la pérennisation et la consultation sécurisée de très gros volumes d’archives numériques. Elle assurera la gestion complète du cycle de vie des archives et donc la garantie de leur valeur probante. Elle pourra être utilisée pour tout type d'archive, y compris pour des documents classifiés de défense.
+
+Cette solution est développée en logiciel libre pour faciliter sa réutilisation, son évolution, son adaptation à des contextes particuliers si nécessaire, sa maintenance et donc globalement sa pérennité.
+
+L’obligation de mettre en œuvre une solution d’archivage numérique dans les contextes très différents des trois ministères porteurs, tant en termes de pratiques archivistiques qu’en termes de production informatique, a orienté notre choix vers la réalisation d’un back-office. L’objectif est de prendre en compte dans la solution logicielle Vitam, le maximum de fonctions mutualisables et technologiquement complexes, d’autant plus quand elles s’appliquent à des très grands nombres d’objets, et de laisser chaque entité porter ses propres spécificités de processus. Cette vision permet ainsi la réutilisation plus large, tout en assurant la réalisation d’un outil générique intégrable selon les besoins d’acteurs variés dans leur système d’information.
+
+Positionnée comme une brique d’infrastructure, elle prendra en charge toutes les opérations nécessaires pour assurer la pérennisation des documents numériques versés et pour garantir le maintien de leur valeur probante.
+
+C’est le code de ce back-office central qui est ici publié. Des outils annexes sont aussi publiés selon les besoins dans d’autres dépôts (Cf. organisation GitHub [ProgrammeVitam](https://github.com/ProgrammeVitam)).
+
+
+Sructure du projet
+==================
+
+Le projet se compose des sous-dossiers suivants :
+
+* ``sources`` : code source des composants développés dans le cadre du programme Vitam ;
+* ``rpm/vitam-product`` : packages rpm de composants externes ;
+* ``rpm/vitam-external`` : constitution du cache de dépendances vers des packages rpm éditeur ;
+* ``deployment`` : scripts de déploiement ansible pour la solution Vitam ;
+* ``doc`` : documentation technique du projet ;
+* ``dev-deployment`` : environnement Docker de développement.
+
 
 Build
------
+=====
 
-``mvn install``
+.. tip:: Le conteneur docker présent dans le dossier ``dev-deployment`` contient les dépendances permettant de construire une version du logiciel (à l'exception de la documentation) ; son usage est abordé dans le paragraphe dédié du déploiement sur un poste de développement.
+
+.. caution:: Pour construire VITAM au sein d'un environnement public, il est nécessaire de désactiver le profile maven ``vitam`` (activé par défaut) (Cf. `la documentation maven <https://maven.apache.org/guides/introduction/introduction-to-profiles.html#Deactivating_a_profile>`_).
+
+Toutes les instructions suivantes s'exécutent dans le répertoire racine de ce dépôt.
+
+
+Composants Java
+---------------
+
+Les composants Java sont présents dans le répertoire ``sources``.
+
+Pré-requis
+**********
+
+* jdk 8
+* maven (version 3.3.9 minimale)
+* rpm-build
+
+Instructions
+************
+
+Pour construire globalement les packages VITAM :
+
+``mvn package rpm:attached-rpm install -f sources/pom.xml -P-vitam``
+
+Autres commandes utiles
+***********************
 
 Pour ignorer tous les tests:
 
-``mvn clean install -DskipTests``
+``mvn clean install -DskipTests -f sources/pom.xml -P-vitam``
 
 Pour ignorer les tests d'intégration:
 
-``mvn clean test`` ou ``mvn clean install -DskipITs``
+``mvn clean test`` ou ``mvn clean install -DskipITs -f sources/pom.xml -P-vitam``
 
 Pour exécuter uniquement les tests d'intégration:
 
-``mvn clean test-compile failsafe:integration-test``
+``mvn clean test-compile failsafe:integration-test -f sources/pom.xml -P-vitam``
 
-Build de la documentation
-=========================
+
+Packages externes
+-----------------
+
+Les packages issus de composants externes sont présents dans le répertoire ``rpm``.
 
 Pré-requis
-----------
+**********
 
-Pour construire la documentation, il est nécessaire d'avoir les pré-requis suivants installés :
+* rpm-build et rpmdevtools
+* golang (>= 1.6)
+* npm
+* meteor.js
 
-* sphinx-build (et le thème rtd)
-* Pour construire le pdf : latex
+.. note:: Pour ces packages, la seule plate-forme de compilation possible est CentOS 7 (en raison de la dépendance vers les rpmdevtools).
+
+Instructions
+************
+
+Pour construire les packages rpm dédiés :
+
+``./rpm/vitam-product/build-all.sh``
+
+Pour construire le cache des packages externes :
+
+``./rpm/vitam-external/build_repo.sh``
+
+
+Documentation
+-------------
+
+La documentation est présente dans le répertoire ``doc``.
+
+Pré-requis
+**********
+
+* jdk 8
+* maven (version 3.3.9 minimale)
+* rpm-build
+* sphinx-build (ainsi que le thème rtd)
+* Pour construire le pdf : une distribution latex (Miktex, texlive, mactex, ...)
 * make
-* raml2html (version minimale : ``raml2html@4.0.0-beta2``)
+* raml2html (version minimale : ``raml2html@4.0.0``)
 
-Remarque : Sur Centos 7, pour l'installation de sphinx, il faut installer les 2 packages  python-sphinx python-sphinx_rtd_theme puis il faut créer un lien symbolique (ln -s /usr/lib/python2.7/site-packages/sphinx_rtd_theme /usr/lib/python2.7/site-packages/sphinx/themes/)
+.. tip:: Sur Centos 7, pour l'installation de sphinx, il faut installer les 2 packages ``python-sphinx`` et ``python-sphinx_rtd_theme`` puis créer le lien symbolique : ``ln -s /usr/lib/python2.7/site-packages/sphinx_rtd_theme /usr/lib/python2.7/site-packages/sphinx/themes/``.
 
-Build de la documentation
--------------------------
+Instructions
+++++++++++++
 
-Dans le répertoire ``/doc``, lancer la commande ``make clean symlinks html latexpdf raml autres``. Le résultat est disponible dans ``/doc/target``.
+Pour construire la documentation ainsi que le package du serveur de documentation :
 
-De manière alternative, il est possible d'exécuter un simple ``mvn clean install`` dans le répertoire ``doc``pour obtenir un site web prêt à être déployé. 
+``mvn package rpm:attached-rpm install -f doc/pom.xml -P-vitam``
+
+Autres commandes
+++++++++++++++++
+
+Il est possibles de construire uniquement le site statique de documentation ; pour cela, il est nécessaire de se placer dans le répertoire ``doc`` et d'exécuter la commande ``make clean symlinks html latexpdf raml autres``. Le résultat est disponible dans ``/doc/target``.
 
 
-Build des documentations des modules (séparées)
------------------------------------------------
-
-.. caution:: Cette procédure est dépréciée, et sera supprimée dans une version ultérieure.
-
-Ensuite, la commande à lancer est ``make <format de sortie> MODULE=<nom de la documentation>``, avec ``format de sortie`` :
-
-* html
-* latexpdf
-
-Le module par défaut est la documentation globale ``MODULE=.``
-Le résultat est disponible dans le dossier ``MODULE/doc/fr/target/<format de sortie>``
-
-Par exemple : 
-
-        make html MODULE=workspace
-
-Nettoyage
----------
-
-Pour supprimer les documents cibles, la commande est la suivante : ``make clean MODULE=<nom de la documentation>``
-
-Deploiement vitam sur poste de dev
-==================================
+Deploiement sur poste de développement
+======================================
 
 2 méthodes existent pour déployer vitam sur un poste de développement.
+
 
 Alternative 1 : docker
 ----------------------
@@ -112,8 +182,9 @@ Pré-requis
 **********
 
 * Virtualbox ou équivalent, avec une machine virtuelle Centos 7 installée et configurée (SELinux en mode 'disabled')
-* Pouvoir builder VITAM sur le poste local (notamment avec ``rpm-build``)
 * Répertoire contenant un clone du dépôt git ``vitam/vitam``
+* Pouvoir builder VITAM sur le poste local (Cf. paragraphe "Build")
+
 
 Configuration initiale de la VM
 *******************************
@@ -126,8 +197,7 @@ Configuration initiale de la VM
 
     - Installer les dépôts epel : ``yum install -y epel-release``
     - Installer ansible : ``yum install -y ansible`` ; valider que la version installée est bien au moins la version 2.1 (``ansible --version``)
-    - Installer les dépendances requises pour la construction des paquets VITAM 'natifs' : ``yum install -y rpmdevtools golang``
-    - Installer les dépendances requises pour la construction d'un dépôt : ``yum install -y createrepo initscripts.x86_64``
+     - Installer les dépendances requises pour la construction d'un dépôt : ``yum install -y createrepo initscripts.x86_64``
     - Déclarer un dépôt yum local pointant vers ``/code/target`` ; pour cela, insérer le contenu suivant dans un fichier ``devlocal.repo`` dans le répertoire ``/etc/yum.repos.d`` :
     
     [local]
@@ -137,29 +207,19 @@ Configuration initiale de la VM
     gpgcheck=0
     protect=1
 
-    - Ajouter ``nameserver 127.0.0.1`` au début du fichier resolv.conf
+    - Ajouter ``nameserver 127.0.0.1`` au début du fichier resolv.conf (pour permettre la bonne résolution des noms de service Consul)
 
 Procédure
 *********
 
 * Sur le poste de développement :
 
-    - Exécuter la compilation des sources et la construction de tous les paquets RPM : dans le répertoire racine
-      
-    pushd sources ; mvn clean package rpm:rpm -DskipTests ; popd    # pour contstruire les paquets RPM VITAM
-    pushd rpm/vitam-external ; ./build_repo.sh ; popd               # pour récupérer les paquets externes
+    - Exécuter la compilation des sources et la construction de tous les paquets RPM, tel que défini dans les instructions de build présentes plus haut dans cette page.
 
 
 * Dans la VM :
 
 	- Se connecter en root dans /code
-	- Builder les composants restant :
-	
-	pushd rpm/vitam-product ; ./build.sh vitam-user-vitam ; popd    # pour construire le paquet vitam-user-vitam
-    pushd rpm/vitam-product ; ./build.sh vitam-user-vitamdb ; popd  # pour construire le paquet vitam-user-vitamdb
-    pushd rpm/vitam-product ; ./build.sh vitam-consul ; popd        # pour construire le paquet vitam-consul
-    pushd rpm/vitam-product ; ./build.sh vitam-siegfried ; popd        # pour construire le paquet vitam-consul
-
     - Puis rassembler les fichiers rpm produits dans le répertoire ``target/packages``:
     
     rm -rf target/packages
