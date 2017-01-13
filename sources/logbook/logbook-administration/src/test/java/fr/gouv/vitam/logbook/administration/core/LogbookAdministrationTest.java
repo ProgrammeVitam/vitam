@@ -40,6 +40,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -177,7 +178,7 @@ public class LogbookAdministrationTest {
 
         // Then
         assertThat(archive).exists();
-        validateFile(archive, 2, lastTimestampToken);
+        validateFile(archive, 2, BaseXx.getBase64Padding(lastTimestampToken.getBytes()));
     }
 
     private String extractLastTimestampToken(LogbookOperationsImpl logbookOperations, Select select)
