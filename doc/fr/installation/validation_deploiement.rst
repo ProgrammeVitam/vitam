@@ -24,14 +24,16 @@ Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |rep
 Validation manuelle
 ===================
 
-Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web https ou https>://<host>:<port>/<composant>/v1/status``
-Cette URL doit retourner une réponse HTTP 200 (sans body) sur une requête HTTP GET.
-
-``<protocole web https ou https>://<host>:<port>/admin/v1/status`` => renvoie un statut HTTP 204 si OK
+Chaque service VITAM (en dehors de bases de données) expose des URL de statut présente à l'adresse suivante : ``<protocole web https ou https>://<host>:<port>/admin/v1/status``
+Cette URL doit retourner une réponse HTTP 204 sur une requête HTTP GET, si OK.
 
 Un playbook d'appel de l'intégralité des autotests est également inclus (``deployment/ansible-vitam-exploitation/status_vitam.yml``). Il est à lancer de la même manière que pour l'installation de vitam (en changeant juste le nom du playbook à exécuter).
 
 .. warning:: les composants VITAM "ihm" n'intègrent pas /admin/v1/status".
+
+Il est également possible de vérifier la version installée de chaque composant par l'URL :
+
+``<protocole web https ou https>://<host>:<port>/admin/v1/version``
 
 Validation via Consul
 ======================
