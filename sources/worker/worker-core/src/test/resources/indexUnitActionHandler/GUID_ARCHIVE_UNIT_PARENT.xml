@@ -1,0 +1,12 @@
+<?xml version="1.0" ?><ROOT><WORK><_up></_up><_existing>true</_existing></WORK><ArchiveUnit id="GUID_ARCHIVE_UNIT_PARENT">
+				<Management>
+					<UpdateOperation>
+						<SystemId>GUID_ARCHIVE_UNIT_PARENT</SystemId>
+					</UpdateOperation>
+				</Management>
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>XML_ID_PARENT_TO_BE_LINKED</Title>
+				</Content>
+				 
+            <_og></_og></ArchiveUnit></ROOT>

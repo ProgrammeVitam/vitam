@@ -165,6 +165,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
 			<!-- <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded"> 
 				<xsd:annotation> <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation> 
 				</xsd:annotation> </xsd:element> -->
@@ -707,17 +708,21 @@
 				nillable="false" minOccurs="0" maxOccurs="1" default="false">
 				<xsd:annotation>
 					<xsd:documentation>Permet de distinguer une mise à jour complète
-						d'une mise à jour partielle</xsd:documentation>
+						d'une mise à jour partielle
+					</xsd:documentation>
 					<xsd:documentation>Pour une mise à jour partielle (FullUpdate =
 						false) seules les balises indiquées dans la partie Content +
-						Management seront mises à jour.</xsd:documentation>
+						Management seront mises à jour.
+					</xsd:documentation>
 					<xsd:documentation>Pour une mise à jour complète (FullUpdate =
 						true) la mise à jour appliquée est la suivante : annule et
-						remplace.</xsd:documentation>
+						remplace.
+					</xsd:documentation>
 					<xsd:documentation>Point d'attention : dans le cas d'une Règle de
 						gestion dans Management, le retrait d'une date de début (et donc
 						de la date de fin) se fait en positionnant une valeur vide à
-						StartDate.</xsd:documentation>
+						StartDate.
+					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -732,7 +737,8 @@
 			<xsd:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
 				<xsd:annotation>
 					<xsd:documentation>Permet de faire une référence à d'autres
-						ArchiveUnit dans la même transaction.</xsd:documentation>
+						ArchiveUnit dans la même transaction.
+					</xsd:documentation>
 					<xsd:documentation>La balise permet de supprimer le lien entre
 						l'ArchiveUnit fils référencé et l'ArchiveUnit courant (père).
 					</xsd:documentation>

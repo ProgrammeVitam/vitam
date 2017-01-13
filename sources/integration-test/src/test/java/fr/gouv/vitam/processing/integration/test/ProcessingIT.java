@@ -29,13 +29,30 @@ package fr.gouv.vitam.processing.integration.test;
 import static com.jayway.restassured.RestAssured.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -45,6 +62,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.Filters;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -159,6 +180,12 @@ public class ProcessingIT {
 
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
+    // TODO : use for IT test to add a link between two AUs (US 1686)
+    private static String SIP_FILE_AU_LINK_OK_NAME_TARGET = "integration-processing";
+    // TODO : use for IT test to add a link between two AUs (US 1686)
+    private static String SIP_FILE_AU_LINK_OK_NAME = "integration-processing/OK_SIP_AU_LINK";
+    private static String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
+    private static String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
     private static String SIP_FILE_TAR_OK_NAME = "integration-processing/SIP.tar";
 
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration-processing/SIP_arbor_OK.zip";
@@ -832,6 +859,197 @@ public class ProcessingIT {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
 
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowAddAndLinkSIP() throws Exception {
+
+        // 1. First we create an AU by sip
+        try {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // check conformity in warning state
+            assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+
+        // 2. then we link another SIP to it
+        try (final MongoClient mongo = new MongoClient("localhost", DATABASE_PORT)) {
+
+            String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+            // prepare zip
+            final MongoDatabase db = mongo.getDatabase("Vitam");
+            MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
+            Document unit = resultUnits.first();
+            String idUnit = (String) unit.get("_id");
+            replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+                idUnit);
+            zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME),
+                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                    "/" + zipName);
+
+
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            // use link sip
+            final InputStream zipStream = new FileInputStream(new File(
+                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                    "/" + zipName));
+
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipStream);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // check conformity in warning state
+            assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+
+            // check results
+            MongoIterable<Document> modifiedParentUnit = db.getCollection("Unit").find(Filters.eq("_id", idUnit));
+            assertNotNull(modifiedParentUnit);
+            assertNotNull(modifiedParentUnit.first());
+            Document parentUnit = modifiedParentUnit.first();
+            ArrayList<String> parentOperations = (ArrayList) parentUnit.get("_ops");
+            assertTrue(parentOperations.contains(containerName.toString()));
+            MongoIterable<Document> newChildUnit = db.getCollection("Unit").find(Filters.eq("_up", idUnit));
+            assertNotNull(newChildUnit);
+            assertNotNull(newChildUnit.first());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowAddAndLinkSIPKo() throws Exception {
+
+
+        // We link to a non existing unit
+        try (final MongoClient mongo = new MongoClient("localhost", DATABASE_PORT)) {
+
+            String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+            // prepare zip
+            replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+                "aeaaaaaaaaaam7mxabxccakzrw47heqaaaaq");
+            zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME),
+                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                    "/" + zipName);
+
+
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(0);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            // use link sip
+            final InputStream zipStream = new FileInputStream(new File(
+                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                    "/" + zipName));
+
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipStream);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // extract seda in KO state
+            assertEquals(StatusCode.KO, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    private void replaceStringInFile(String targetFilename, String textToReplace, String replacementText)
+        throws IOException {
+        Path path = PropertiesUtils.getResourcePath(targetFilename);
+        Charset charset = StandardCharsets.UTF_8;
+
+        String content = new String(Files.readAllBytes(path), charset);
+        content = content.replaceAll(textToReplace, replacementText);
+        Files.write(path, content.getBytes(charset));
+    }
+
+
+    private void zipFolder(final Path path, final String zipFilePath) throws IOException {
+        try (
+            FileOutputStream fos = new FileOutputStream(zipFilePath);
+            ZipOutputStream zos = new ZipOutputStream(fos)) {
+            Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
+                    Files.copy(file, zos);
+                    zos.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                    zos.putNextEntry(new ZipEntry(path.relativize(dir).toString() + "/"));
+                    zos.closeEntry();
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
     }
 
     public void createLogbookOperation(GUID operationId, GUID objectId)

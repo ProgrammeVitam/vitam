@@ -104,6 +104,11 @@ public class IngestWorkflowConstants {
     public static final String RULES = "RulesToApply";
 
     public static final String RULES_TAG = "Rules";
+    
+    /**
+     * In work tag : If data (unit or og) already exists, set to true, else false 
+     */
+    public static final String EXISTING_TAG = "_existing";
 
     /**
      * Sub folder for work file in Worskpace folder of container : containerId/ATR

@@ -1,0 +1,24 @@
+{
+	"#id" : "GUID_ARCHIVE_UNIT_CHILD",
+	"DescriptionLevel" : "Item",
+	"Title" : "manuel utilisateur",
+	"Description" : "Il existe une version papier et une version électronique du manuel utilisateur pour l'IHM minimale de la solution logicielle Vitam",
+	"TransactedDate" : "2016-06-23T14:58:30",
+	"#object" : "aeaaaaaaaaaam7mxabw5iakzn47qjaiaaaaq",
+	"#operations" : [
+		"aedqaaaaacaam7mxaabpuakzn47pvkiaaaaq",
+		"aedqaaaaacaam7mxaabpuakzn58pvkiaaaaq"
+	],
+	"#tenant" : 0,
+	"#max" : 3,
+	"#min" : 1,
+	"#unitups" : [
+		"GUID_ARCHIVE_UNIT_PARENT"
+	],
+	"#nbunits" : 0,
+	"#allunitups" : [
+		"GUID_ARCHIVE_UNIT_ANCESTOR",
+		"GUID_ARCHIVE_UNIT_PARENT"
+	]
+}
+],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}
