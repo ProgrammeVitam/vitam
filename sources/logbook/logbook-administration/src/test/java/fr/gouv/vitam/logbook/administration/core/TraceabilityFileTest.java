@@ -48,7 +48,7 @@ import static org.mockito.Mockito.mock;
  */
 public class TraceabilityFileTest {
 
-    private static final String LOGBOOK_OPERATION = "resources/logbookOperationKO.json";
+    private static final String LOGBOOK_OPERATION = "logbookOperationKO.json";
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
