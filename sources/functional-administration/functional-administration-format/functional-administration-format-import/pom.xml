@@ -5,7 +5,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>functional-administration-format</artifactId>
-    <version>0.11.1</version>
+    <version>0.11.2-SNAPSHOT</version>
   </parent>
   <artifactId>functional-administration-format-import</artifactId>
   <name>functional-administration-format-import</name>
