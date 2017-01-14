@@ -1,5 +1,23 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+import datetime
+
+copyright = u'Ce document est distribué sous les termes de la licence Creative Commons Attribution - Partage dans les Mêmes Conditions 3.0 France (CC BY-SA 3.0 FR)'
+author = u'VITAM'
+
+# The version info for the project you're documenting, acts as replacement for
+# |version| and |release|, also used in various other places throughout the
+# built documents.
+#
+# Get version from main pom.xml
+import xml.etree.ElementTree as ET
+version = ET.parse("../../../pom.xml").getroot().find("{http://maven.apache.org/POM/4.0.0}parent").find('{http://maven.apache.org/POM/4.0.0}version').text
+
+# The full version, including alpha/beta/rc tags.
+release = version
+
 # Configure epilog to allow the inclusion of configuration variables into the sphinx document
-rst_epilog = '.. |doc_title| replace:: %s' % project
+rst_epilog = '\n.. |doc_title| replace:: %s' % project
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -83,7 +101,7 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#html_theme = 'sphinx_rtd_theme'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -103,7 +121,7 @@ html_theme_path = ["_themes"]
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = '../LogoVitamGrand2.png'
 
 # The name of an image file (relative to this directory) to use as a favicon of
 # the docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -180,41 +198,49 @@ htmlhelp_basename = doc_id + '_doc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
+# Load latex preamble from external file
+fh = open('../latex_preamble.tex', 'r+')
+PREAMBLE = fh.read()
+fh.close()
+
 latex_elements = {
-# The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+	# The paper size ('letterpaper' or 'a4paper').
+	#'papersize': 'letterpaper',
 
-# The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+	# The font size ('10pt', '11pt' or '12pt').
+	#'pointsize': '10pt',
 
-# Additional stuff for the LaTeX preamble.
-#'preamble': '',
+	# Additional stuff for the LaTeX preamble.
+	'preamble': PREAMBLE,
+	#'preamble': '',
 
-# Latex figure (float) alignment
-#'figure_align': 'htbp',
+	# Latex figure (float) alignment
+	#'figure_align': 'htbp',
+	# KWA : Cf. https://stackoverflow.com/questions/24285445/sphinx-to-latex-figure-placement
+	'figure_align': 'H',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, doc_id + '.tex', project,
+    (master_doc, doc_id+ '.' + release + '.tex', project,
      author, 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = '../LogoVitamGrand2.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
 #latex_use_parts = False
 
 # If true, show page references after internal links.
-#latex_show_pagerefs = False
+latex_show_pagerefs = True
 
 # If true, show URL addresses after external links.
-#latex_show_urls = False
+latex_show_urls = 'footnote'
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
