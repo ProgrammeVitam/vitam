@@ -153,3 +153,4 @@
 - hosts: hosts-ihm-demo
   roles:
     - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/conf/ihm-demo/ihm-demo.conf, port_http: "{{vitam_ihm_demo_port}}", secret_platform: "false" }
+    - ihm-demo-front
