@@ -70,7 +70,7 @@ public class ProcessDistributorImplTest {
     private static int port;
 
     private static final String WORKER_DESCRIPTION =
-        "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
+        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorkflow\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     @Before
@@ -125,8 +125,8 @@ public class ProcessDistributorImplTest {
         actions.add(action);
         step.setActions(actions);
         final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId";
+        final String familyId = "DefaultWorkflow" ;
+        final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         try {
             WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         } catch (WorkerAlreadyExistsException e) {

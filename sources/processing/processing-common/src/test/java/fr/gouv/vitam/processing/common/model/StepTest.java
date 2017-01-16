@@ -41,8 +41,7 @@ public class StepTest {
     public void testConstructor() {
         assertEquals("", new Step().getStepName());
         assertEquals(null, new Step().getBehavior());
-        assertEquals("", new Step().getWorkerGroupId());
-        assertEquals("", new Step().getWorkerGroupId());
+        assertEquals("DefaultWorker", new Step().getWorkerGroupId());
         assertEquals(true, new Step().getActions().isEmpty());
         assertEquals(DistributionKind.REF, new Step().getDistribution().getKind());
         assertEquals(DistributionKind.LIST,

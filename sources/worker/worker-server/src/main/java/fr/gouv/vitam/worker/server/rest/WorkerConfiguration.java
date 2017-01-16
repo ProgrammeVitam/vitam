@@ -42,7 +42,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private long registerDelay = 60;
     private int registerRetry = 5;
     private int capacity = 1;
-
+    private String workerFamily = "DefaultWorker";
 
     /**
      * WorkerConfiguration empty constructor for YAMLFactory
@@ -209,4 +209,23 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         this.capacity = capacity;
         return this;
     }
+    
+    /**
+     * Return the workerFamily name
+     * @return workerFamily
+     */
+    public String getWorkerFamily() {
+        return workerFamily;
+    }
+
+    /**
+     * Set the workerFamily name of this worker (Default Value : DefaultWorker)
+     * @param workerFamily
+     * @return this
+     */
+    public WorkerConfiguration setWorkerFamily(String workerFamily) {
+        this.workerFamily = workerFamily;
+        return this;
+    }
+
 }

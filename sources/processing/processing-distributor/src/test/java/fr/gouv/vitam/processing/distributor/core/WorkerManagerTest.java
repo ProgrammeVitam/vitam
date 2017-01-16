@@ -61,9 +61,42 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 public class WorkerManagerTest {
 
     private static final String WORKER_DESCRIPTION =
-        "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10, \"storage\" : 100," +
+        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
 
+
+    private static final String BIG_WORKER_DESCRIPTION =
+        "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 10, \"storage\" : 100," +
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
+    
+    @Test
+    public void givenBigWorkerFamilyAndStepOfBigWorkflowRunningOn() throws Exception {
+        final String familyId = "BigWorker";
+        final String workerId = "NewWorkerId2";
+        RunnableMock rm = new RunnableMock();
+        VitamThread vt = new VitamThread(rm, ThreadLocalRandom.current().nextLong(1000));
+        VitamSessionMock vsm = new VitamSessionMock(vt);
+        DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
+        params.setWorkerGUID(GUIDFactory.newGUID());
+        final List<Step> steps = new ArrayList<>();
+        final Step step = new Step().setStepName("TEST").setWorkerGroupId(familyId);
+        final List<Action> actions = new ArrayList<>();
+        final Action action = new Action();
+
+        
+        action.setActionDefinition(
+            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
+        actions.add(action);
+        step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
+        ProcessDistributorImpl processDistributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        DescriptionStep descriptionStep =
+            new DescriptionStep(step, params);
+        Semaphore waitingStepAllAsyncRequest = new Semaphore(1);
+        WorkerAsyncRequest workerAsyncRequest =
+            new WorkerAsyncRequest(descriptionStep, processDistributor, new HashSet<>(), step.getWorkerGroupId(),waitingStepAllAsyncRequest,vsm);
+        WorkerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);        
+        WorkerManager.submitJob(workerAsyncRequest);
+    }
 
     @Test
     public void givenCorrectQueueAndCorrectAsyncWhenSubmitJobThenOK() throws Exception {
@@ -76,6 +109,9 @@ public class WorkerManagerTest {
         final Step step = new Step().setStepName("TEST");
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
+        final String familyId = "DefaultWorker";
+        final String workerId = "NewWorkerId";
+        
         action.setActionDefinition(
             new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
         actions.add(action);
@@ -85,7 +121,9 @@ public class WorkerManagerTest {
             new DescriptionStep(step, params);
         Semaphore waitingStepAllAsyncRequest = new Semaphore(1);
         WorkerAsyncRequest workerAsyncRequest =
-            new WorkerAsyncRequest(descriptionStep, processDistributor, new HashSet<>(), WorkerManager.DEFAULT_QUEUE,waitingStepAllAsyncRequest,vsm);
+            new WorkerAsyncRequest(descriptionStep, processDistributor, new HashSet<>(), step.getWorkerGroupId(),waitingStepAllAsyncRequest,vsm);
+        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        
         WorkerManager.submitJob(workerAsyncRequest);
     }
 
@@ -105,16 +143,16 @@ public class WorkerManagerTest {
 
     @Test
     public void givenProcessDistributorWhenRegisterWorkerThenOK() throws Exception {
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId";
+        final String familyId = "DefaultWorker";
+        final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         assertTrue(WorkerManager.getWorkersList().size() > 0);
     }
 
     @Test(expected = WorkerAlreadyExistsException.class)
     public void givenProcessDistributorWhenRegisterExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId1";
+        final String familyId = "DefaultWorker";
+        final String workerId = "NewWorkerId1"+ GUIDFactory.newGUID().getId();;
         WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
     }
@@ -122,8 +160,8 @@ public class WorkerManagerTest {
 
     @Test
     public void givenProcessDistributorWhenUnRegisterExistingWorkerThenOK() throws Exception {
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId2";
+        final String familyId = "DefaultWorker";
+        final String workerId = "NewWorkerId2"+ GUIDFactory.newGUID().getId();
         WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         final int sizeBefore = WorkerManager.getWorkersList().get(familyId).size();
         WorkerManager.unregisterWorker(familyId, workerId);
@@ -140,8 +178,8 @@ public class WorkerManagerTest {
 
     @Test(expected = WorkerNotFoundException.class)
     public void givenProcessDistributorWhenUnRegisterNonExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId3";
+        final String familyId = "DefaultWorker" ;
+        final String workerId = "NewWorkerId3" + GUIDFactory.newGUID().getId();
         final String workerUnknownId = "UnknownWorkerId";
         WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         WorkerManager.unregisterWorker(familyId, workerUnknownId);
@@ -149,15 +187,15 @@ public class WorkerManagerTest {
 
     @Test(expected = ProcessingBadRequestException.class)
     public void givenProcessDistributorWhenRegisterIncorrectJsonNodeThenProcessingException() throws Exception {
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId4";
+        final String familyId = "NewFamilyId";
+        final String workerId = "NewWorkerId4" + GUIDFactory.newGUID().getId();
         WorkerManager.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
     }
 
     @Test
     public void givenProcessDistributorWhenRegisterWorkerExistingFamilyThenOK() throws Exception {
-        final String familyId = "NewFamilyId" + GUIDFactory.newGUID().getId();
-        final String workerId = "NewWorkerId5";
+        final String familyId = "DefaultWorker" ;
+        final String workerId = "NewWorkerId5"+ GUIDFactory.newGUID().getId();
         WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         assertTrue(WorkerManager.getWorkersList().size() > 0);
     }

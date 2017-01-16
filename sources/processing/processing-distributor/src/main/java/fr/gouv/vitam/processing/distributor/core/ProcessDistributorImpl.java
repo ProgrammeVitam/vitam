@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
@@ -313,8 +312,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         // State (ex: aggregate compositeStatus)
         WorkerAsyncRequest workerAsyncRequest = new WorkerAsyncRequest(
             new DescriptionStep(step, ((DefaultWorkerParameters) workParams).newInstance()),
-            this, currentRunningObjectsInStep, WorkerManager.DEFAULT_QUEUE,waitingStepAllAsyncRequest,VitamThreadUtils.getVitamSession());
+            this, currentRunningObjectsInStep, step.getWorkerGroupId(), waitingStepAllAsyncRequest,VitamThreadUtils.getVitamSession());
         currentRunningObjectsInStep.add(workerAsyncRequest);
+        
         try {
             // This call is blocking on queue if full
             WorkerManager.submitJob(workerAsyncRequest);
