@@ -54,7 +54,7 @@ public class ApplicationStatusResource implements VitamResource {
     public static final String TENANTS_URL = VitamConfiguration.TENANTS_URL;
 
     private final VitamStatusService statusService;
-    private List<String> tenants;
+    private List<Integer> tenants;
 
     /**
      *
@@ -71,9 +71,9 @@ public class ApplicationStatusResource implements VitamResource {
      *
      * @param statusService
      */
-    public ApplicationStatusResource(VitamStatusService statusService, List<String> tenants) {
+    public ApplicationStatusResource(VitamStatusService statusService, List<Integer> list) {
         this.statusService = statusService;
-        this.tenants = tenants;
+        this.tenants = list;
     }
 
     /**

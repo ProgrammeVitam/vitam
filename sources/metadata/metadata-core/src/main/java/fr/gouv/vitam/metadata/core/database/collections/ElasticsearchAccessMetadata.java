@@ -70,7 +70,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 
-
 /**
  * ElasticSearch model with MongoDB as main database
  *
@@ -94,10 +93,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @return True if ok
      */
-    public final boolean deleteIndex(final MetadataCollections collection) {
+    public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
         try {
-            if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(collection.getName().toLowerCase()).get()
+            if (client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
+                if (!client.admin().indices().prepareDelete(getIndexName(collection, tenantId)).get()
                     .isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
@@ -115,20 +114,18 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param collection
      * @return True if ok
      */
-    public final boolean addIndex(final MetadataCollections collection) {
-        LOGGER.debug("addIndex: " + collection.getName().toLowerCase());
-        if (!client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
+    public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
+        LOGGER.debug("addIndex: " + getIndexName(collection, tenantId));
+        if (!client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
-                final String mapping =
-                    collection == MetadataCollections.C_UNIT ? Unit.MAPPING : ObjectGroup.MAPPING;
+                final String mapping = collection == MetadataCollections.C_UNIT ? Unit.MAPPING : ObjectGroup.MAPPING;
                 final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-                LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
-                final CreateIndexResponse response =
-                    client.admin().indices().prepareCreate(collection.getName().toLowerCase())
-                        .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
-                        .addMapping(type, mapping)
-                        .get();
+                LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
+                final CreateIndexResponse response = client.admin().indices()
+                    .prepareCreate(getIndexName(collection, tenantId))
+                    .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                    .addMapping(type, mapping).get();
                 if (!response.isAcknowledged()) {
                     LOGGER.error(type + ":" + response.isAcknowledged());
                     return false;
@@ -146,13 +143,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      *
      * @param collection
      */
-    public final void refreshIndex(final MetadataCollections collection) {
-        LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase());
-        client.admin().indices().prepareRefresh(collection.getName().toLowerCase())
-            .execute().actionGet();
+    public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
+        LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase() + "_" + tenantId);
+        client.admin().indices().prepareRefresh(getIndexName(collection, tenantId)).execute().actionGet();
 
     }
-
 
     /**
      * Add an entry in the ElasticSearch index
@@ -162,12 +157,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param json
      * @return True if ok
      */
-    final boolean addEntryIndex(final MetadataCollections collection,
-        final String id, final String json) {
+    final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
+        final String json) {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return client.prepareIndex(collection.getName().toLowerCase(), type, id)
-            .setSource(json).setOpType(OpType.INDEX).get()
-            .getVersion() > 0;
+        return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json).setOpType(OpType.INDEX)
+            .get().getVersion() > 0;
     }
 
     /**
@@ -178,14 +172,16 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param mapIdJson
      * @return the listener on bulk insert
      */
-    final ListenableActionFuture<BulkResponse> addEntryIndexesByBulk(final MetadataCollections collection,
-        final Map<String, String> mapIdJson) {
+
+    final ListenableActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
+        final Integer tenantId, final Map<String, String> mapIdJson) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
-        // either use client#prepare, or use Requests# to directly build index/delete requests
+        // either use client#prepare, or use Requests# to directly build
+        // index/delete requests
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.add(client.prepareIndex(collection.getName().toLowerCase(), type,
-                val.getKey()).setSource(val.getValue()));
+            bulkRequest.add(client.prepareIndex(getIndexName(collection, tenantId), type, val.getKey())
+                .setSource(val.getValue()));
         }
         return bulkRequest.execute(); // new thread
     }
@@ -198,9 +194,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param mapIdJson
      * @return True if ok
      */
-    final boolean addEntryIndexesBlocking(final MetadataCollections collection,
+    final boolean addEntryIndexesBlocking(final MetadataCollections collection, final Integer tenantId,
         final Map<String, String> mapIdJson) {
-        final BulkResponse bulkResponse = addEntryIndexesByBulk(collection, mapIdJson).actionGet();
+        final BulkResponse bulkResponse = addEntryIndexes(collection, tenantId, mapIdJson).actionGet();
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES previous insert in error: " + bulkResponse.buildFailureMessage());
         }
@@ -220,14 +216,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         return eunit;
     }
 
-
     /**
      * Add one VitamDocument to indexation immediately
      *
      * @param document
      * @return True if inserted in ES
      */
-    public final boolean addEntryIndex(final MetadataDocument<?> document) {
+    public final boolean addEntryIndex(final MetadataDocument<?> document, Integer tenantId) {
         MetadataDocument<?> newdoc = document;
         MetadataCollections collection = MetadataCollections.C_OBJECTGROUP;
         if (newdoc instanceof Unit) {
@@ -242,9 +237,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         // ( https://github.com/michel-kraemer/bson4jackson)
         final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
         final String esJson = dbObject.toString();
-        return addEntryIndex(collection, id, esJson);
+        return addEntryIndex(collection, tenantId, id, esJson);
     }
-
 
     /**
      * Used for iterative reload in restore operation (using bulk).
@@ -253,7 +247,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param document
      * @return the number of Unit incorporated (0 if none)
      */
-    public final int addBulkEntryIndex(final Map<String, String> indexes,
+    public final int addBulkEntryIndex(final Map<String, String> indexes, final Integer tenantId,
         final MetadataDocument<?> document) {
         MetadataDocument<?> newdoc = document;
         MetadataCollections collection = MetadataCollections.C_OBJECTGROUP;
@@ -270,13 +264,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         int nb = 0;
         if (indexes.size() > GlobalDatasDb.LIMIT_ES_NEW_INDEX) {
             nb = indexes.size();
-            addEntryIndexesByBulk(collection, indexes);
+            addEntryIndexes(collection, tenantId, indexes);
             indexes.clear();
         }
         newdoc.clear();
         return nb;
     }
-
 
     /**
      * Update an entry in the ElasticSearch index
@@ -287,12 +280,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return True if ok
      * @throws Exception
      */
-    final boolean updateEntryIndex(final MetadataCollections collection,
-        final String id, final String json) throws Exception {
+    final boolean updateEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
+        final String json) throws Exception {
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return client.prepareUpdate(collection.getName().toLowerCase(), type, id)
-            .setDoc(json).setRefresh(true).execute()
-            .actionGet().getVersion() > 1;
+        return client.prepareUpdate(getIndexName(collection, tenantId), type, id).setDoc(json).setRefresh(true)
+            .execute().actionGet().getVersion() > 1;
     }
 
     /**
@@ -303,7 +295,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param cursor :containing all Units to be indexed
      * @throws MetaDataExecutionException if the bulk insert failed
      */
-    final void insertBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) throws MetaDataExecutionException {
+    final void insertBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor, final Integer tenantId)
+        throws MetaDataExecutionException {
         if (!cursor.hasNext()) {
             LOGGER.error("ES insert in error since no results to insert");
             throw new MetaDataExecutionException("No result to insert");
@@ -322,10 +315,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 LOGGER.error("ES insert in error since result to insert is empty");
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
-            bulkRequest.add(client.prepareIndex(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
-                id).setSource(toInsert));
+            bulkRequest.add(client.prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+                .setSource(toInsert));
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                                                                                              // thread
         if (bulkResponse.hasFailures()) {
             int duplicates = 0;
             for (BulkItemResponse bulkItemResponse : bulkResponse) {
@@ -347,7 +341,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param cursor :containing all Units to be indexed
      * @throws MetaDataExecutionException if the bulk update failed
      */
-    final void updateBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) throws MetaDataExecutionException {
+    final void updateBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor, Integer tenantId)
+        throws MetaDataExecutionException {
         if (!cursor.hasNext()) {
             LOGGER.error("ES update in error since no results to update");
             throw new MetaDataExecutionException("No result to update");
@@ -367,10 +362,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to update is empty");
             }
 
-            bulkRequest.add(client.prepareUpdate(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
-                id).setDoc(toUpdate));
+            bulkRequest
+                .add(client.prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id)
+                    .setDoc(toUpdate));
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                                                                                              // thread
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
             throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
@@ -388,9 +385,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      *         after (using MongoDB)
      * @throws MetaDataExecutionException
      */
-    public final Result getSubDepth(final MetadataCollections collection,
-        final Set<String> currentNodes, final int subdepth, final QueryBuilder condition, final QueryBuilder filterCond)
-        throws MetaDataExecutionException {
+    public final Result getSubDepth(final MetadataCollections collection, Integer tenantId,
+        final Set<String> currentNodes, final int subdepth, final QueryBuilder condition,
+        final QueryBuilder filterCond) throws MetaDataExecutionException {
         QueryBuilder query = null;
         QueryBuilder filter = null;
         if (GlobalDatasDb.USE_FILTER) {
@@ -415,7 +412,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
 
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, type, query, filter);
+        return search(collection, tenantId, type, query, filter);
     }
 
     /**
@@ -438,8 +435,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             filter = QueryBuilders.boolQuery()
                 .should(QueryBuilders.termsQuery(VitamLinks.UNIT_TO_UNIT.field2to1, currentNodes));
             if (GlobalDatasDb.PRINT_REQUEST) {
-                LOGGER.debug("Filter: terms {} = {}", VitamLinks.UNIT_TO_OBJECTGROUP.field2to1,
-                    currentNodes);
+                LOGGER.debug("Filter: terms {} = {}", VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, currentNodes);
             }
         } else {
             filter = QueryBuilders.termsQuery(Unit.UNITUPS, currentNodes);
@@ -466,9 +462,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      *         after (using MongoDb)
      * @throws MetaDataExecutionException
      */
-    public final Result getStart(final MetadataCollections collection,
-        final Set<String> currentNodes,
-        final QueryBuilder condition, final QueryBuilder filterCond) throws MetaDataExecutionException {
+    public final Result getStart(final MetadataCollections collection, final Integer tenantId,
+        final Set<String> currentNodes, final QueryBuilder condition, final QueryBuilder filterCond)
+        throws MetaDataExecutionException {
         QueryBuilder query = null;
         QueryBuilder filter = null;
         if (GlobalDatasDb.USE_FILTER) {
@@ -486,7 +482,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             filter = filterCond;
         }
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, type, query, filter);
+        return search(collection, tenantId, type, query, filter);
     }
 
     /**
@@ -521,8 +517,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return the Result associated with this request. The final result should be checked using MongoDb.
      * @throws MetaDataExecutionException
      */
-    public final Result getNegativeSubDepth(final MetadataCollections collection, final Set<String> subset,
-        final QueryBuilder condition, final QueryBuilder filterCond) throws MetaDataExecutionException {
+    public final Result getNegativeSubDepth(final MetadataCollections collection, final Integer tenantId,
+        final Set<String> subset, final QueryBuilder condition, final QueryBuilder filterCond)
+        throws MetaDataExecutionException {
         QueryBuilder query = null;
         QueryBuilder filter = null;
 
@@ -551,7 +548,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             filter = filterCond;
         }
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, type, query, filter);
+        return search(collection, tenantId, type, query, filter);
     }
 
     /**
@@ -564,12 +561,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      */
-    protected final Result search(final MetadataCollections collection, final String type, final QueryBuilder query,
-        final QueryBuilder filter) throws MetaDataExecutionException {
-        // Note: Could change the code to allow multiple indexes and multiple types
-        final SearchRequestBuilder request =
-            client.prepareSearch(collection.getName().toLowerCase()).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .setTypes(type).setExplain(false).setSize(GlobalDatas.LIMIT_LOAD);
+    protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
+        final QueryBuilder query, final QueryBuilder filter) throws MetaDataExecutionException {
+        // Note: Could change the code to allow multiple indexes and multiple
+        // types
+        final SearchRequestBuilder request = client.prepareSearch(getIndexName(collection, tenantId))
+            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
+            .setSize(GlobalDatas.LIMIT_LOAD);
         if (filter != null) {
             if (GlobalDatasDb.USE_FILTERED_REQUEST) {
                 final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).filter(filter);
@@ -643,9 +641,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @throws MetaDataExecutionException
      * @throws MetaDataNotFoundException
      */
-    public final void deleteEntryIndex(final MetadataCollections collections, final String type,
+    public final void deleteEntryIndex(final MetadataCollections collections, Integer tenantId, final String type,
         final String id) throws MetaDataExecutionException, MetaDataNotFoundException {
-        final DeleteRequestBuilder builder = client.prepareDelete(collections.getName().toLowerCase(), type, id);
+        final DeleteRequestBuilder builder = client.prepareDelete(getIndexName(collections, tenantId), type, id);
         final DeleteResponse response;
         try {
             response = builder.setRefresh(true).get();
@@ -665,7 +663,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param cursor
      * @throws MetaDataExecutionException
      */
-    public void insertBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) throws MetaDataExecutionException {
+    public void insertBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId) throws MetaDataExecutionException {
         if (!cursor.hasNext()) {
             LOGGER.error("ES insert in error since no results to insert");
             throw new MetaDataExecutionException("No result to insert");
@@ -684,11 +682,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 LOGGER.error("ES insert in error since result to insert is empty");
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
-            bulkRequest.add(
-                client.prepareIndex(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
-                    id).setSource(toInsert));
+            bulkRequest.add(client
+                .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId), ObjectGroup.TYPEUNIQUE, id)
+                .setSource(toInsert));
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                                                                                              // thread
         if (bulkResponse.hasFailures()) {
             int duplicates = 0;
             for (BulkItemResponse bulkItemResponse : bulkResponse) {
@@ -710,7 +709,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param cursor :containing all OG to be indexed
      * @throws MetaDataExecutionException if the bulk update failed
      */
-    final boolean updateBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) throws MetaDataExecutionException {
+    final boolean updateBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId) throws MetaDataExecutionException {
         if (!cursor.hasNext()) {
             LOGGER.error("ES update in error since no results to update");
             throw new MetaDataExecutionException("No result to update");
@@ -730,11 +729,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to update is empty");
             }
 
-            bulkRequest.add(
-                client.prepareUpdate(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
-                    id).setDoc(toUpdate));
+            bulkRequest.add(client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+                ObjectGroup.TYPEUNIQUE, id).setDoc(toUpdate));
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                                                                                              // thread
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
             throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
@@ -750,7 +749,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param cursor
      * @throws MetaDataExecutionException
      */
-    public boolean deleteBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) throws MetaDataExecutionException {
+    public boolean deleteBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId) throws MetaDataExecutionException {
         if (!cursor.hasNext()) {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
@@ -760,11 +759,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             final ObjectGroup og = cursor.next();
             final String id = og.getId();
             og.remove(VitamDocument.ID);
-            bulkRequest.add(
-                client.prepareDelete(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
-                    id));
+            bulkRequest.add(client.prepareDelete(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+                ObjectGroup.TYPEUNIQUE, id));
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                                                                                              // thread
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
             throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
@@ -781,7 +780,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param cursor
      * @throws MetaDataExecutionException
      */
-    public void deleteBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) throws MetaDataExecutionException {
+    public void deleteBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor, final Integer tenantId) throws MetaDataExecutionException {
         if (!cursor.hasNext()) {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
@@ -791,15 +790,18 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             final Unit unit = cursor.next();
             final String id = unit.getId();
             unit.remove(VitamDocument.ID);
-            bulkRequest.add(
-                client.prepareDelete(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
-                    id));
+            bulkRequest
+                .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId), Unit.TYPEUNIQUE, id));
         }
-        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                                                                                              // thread
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
             throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
         }
+    }
 
+    private String getIndexName(final MetadataCollections collection, Integer tenantId) {
+        return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
 }

@@ -81,12 +81,12 @@ public class VitamServerTest {
         }
 
         @Override
-        public List<String> getTenants() {
-            return new ArrayList<String>();
+        public List<Integer> getTenants() {
+            return new ArrayList<Integer>();
         }
 
         @Override
-        public VitamApplicationConfigurationInterface setTenants(List<String> tenants) {
+        public VitamApplicationConfigurationInterface setTenants(List<Integer> tenants) {
             return this;
         }
 

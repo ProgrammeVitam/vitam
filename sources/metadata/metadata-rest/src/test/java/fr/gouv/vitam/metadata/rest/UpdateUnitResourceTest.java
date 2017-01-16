@@ -79,6 +79,8 @@ public class UpdateUnitResourceTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     
+    private static final Integer TENANT_ID_0 = new Integer(0);
+    static final List tenantList =  new ArrayList(){{add(TENANT_ID_0);}};
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": \"0\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
@@ -148,6 +150,7 @@ public class UpdateUnitResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
+        configuration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
         application = new MetaDataApplication(configuration);
@@ -207,19 +210,21 @@ public class UpdateUnitResourceTest {
     @Test
     @RunWithCustomExecutor
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
-        with()
+        with()            
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
             .body(buildDSLWithOptions("", DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
             .body(buildDSLWithOptionsRoot("", DATA, ID_UNIT)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -227,7 +232,7 @@ public class UpdateUnitResourceTest {
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

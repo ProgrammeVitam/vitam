@@ -84,6 +84,9 @@ public class MongoDbAccessMetadataFactoryTest {
     private static final String pwd = "user-metadata";
     private static ElasticsearchTestConfiguration config = null;
 
+    static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+    
     @BeforeClass
     public static void setup() throws IOException {
         // ES
@@ -135,6 +138,7 @@ public class MongoDbAccessMetadataFactoryTest {
     public void testCreateMetadataMongoAccessWithAuthentication() {
         final MetaDataConfiguration config =
             new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes, true, user, pwd);
+        config.setTenants(tenantList);
         new MongoDbAccessMetadataFactory();
         mongoDbAccess = MongoDbAccessMetadataFactory
             .create(config);

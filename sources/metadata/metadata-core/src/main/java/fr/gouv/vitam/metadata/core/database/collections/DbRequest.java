@@ -109,12 +109,11 @@ public class DbRequest {
     private static final String NO_RESULT_AT_RANK = "No result at rank: ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-
+    
     /**
      * Constructor
      */
     public DbRequest() {
-        // Empty constructor
     }
 
     /**
@@ -344,7 +343,7 @@ public class DbRequest {
         throws MetaDataExecutionException, InstantiationException,
         IllegalAccessException, InvalidParseOperationException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
-        Integer tenantId = null;
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         if (requestToMongodb instanceof SelectToMongodb) {
             tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         }
@@ -487,7 +486,7 @@ public class DbRequest {
             }
             previous.clear();
 
-            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, Unit.TYPEUNIQUE, query,
+            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId, Unit.TYPEUNIQUE, query,
                 null);
 
         } else {
@@ -637,7 +636,7 @@ public class DbRequest {
 
             previous.clear();
             LOGGER.debug(QUERY2 + finalQuery.toString());
-            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, Unit.TYPEUNIQUE,
+            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId, Unit.TYPEUNIQUE,
                 finalQuery, null);
 
         } else {
@@ -779,6 +778,7 @@ public class DbRequest {
      */
     protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last)
         throws InvalidParseOperationException, MetaDataExecutionException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson update = requestToMongodb.getFinalUpdate();
         final FILTERARGS model = requestToMongodb.model();
@@ -789,7 +789,7 @@ public class DbRequest {
                 final UpdateResult result = MongoDbMetadataHelper.update(MetadataCollections.C_UNIT,
                     roots, update, last.getCurrentIds().size());
                 last.setNbResult(result.getModifiedCount());
-                indexFieldsUpdated(last);
+                indexFieldsUpdated(last, tenantId);
                 return last;
             }
             // OBJECTGROUPS:
@@ -814,7 +814,7 @@ public class DbRequest {
      *
      * @throws Exception
      */
-    private void indexFieldsUpdated(Result last) throws Exception {
+    private void indexFieldsUpdated(Result last, Integer tenantId) throws Exception {
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             return;
@@ -829,7 +829,7 @@ public class DbRequest {
             .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-            MetadataCollections.C_UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor);
+            MetadataCollections.C_UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor, tenantId);;
         }
 
     }
@@ -844,6 +844,7 @@ public class DbRequest {
      * @return void
      */
     private void indexFieldsOGUpdated(Result last) throws Exception {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();                
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES update in error since no results to update");
@@ -860,7 +861,7 @@ public class DbRequest {
             .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            MetadataCollections.C_OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor);;
+            MetadataCollections.C_OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);;
         }
 
     }
@@ -876,8 +877,8 @@ public class DbRequest {
      * @return void
      */
     private void removeOGIndexFields(Result last) throws Exception {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final Bson finalQuery;
-
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
             // no result to delete
@@ -893,7 +894,7 @@ public class DbRequest {
             .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            MetadataCollections.C_OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(cursor);
+            MetadataCollections.C_OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(cursor, tenantId);
         }
 
     }
@@ -908,6 +909,7 @@ public class DbRequest {
      * @return boolean
      */
     private void removeUnitIndexFields(Result last) throws Exception {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
@@ -924,7 +926,7 @@ public class DbRequest {
             .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-            MetadataCollections.C_UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(cursor);;
+            MetadataCollections.C_UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(cursor, tenantId);
         }
     }
 
@@ -1030,8 +1032,8 @@ public class DbRequest {
      */
     private void insertBulk(InsertToMongodb requestToMongodb, Result result) throws MetaDataExecutionException {
         // index Metadata
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
         final Set<String> ids = result.getCurrentIds();
-
         final FILTERARGS model = requestToMongodb.model();
         // index Unit
         if (model == FILTERARGS.UNITS) {
@@ -1041,7 +1043,7 @@ public class DbRequest {
                 .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
             // TODO maybe retry once if in error ?
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                MetadataCollections.C_UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor);
+                MetadataCollections.C_UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor, tenantId);
             }
         } else if (model == FILTERARGS.OBJECTGROUPS) {
             // index OG
@@ -1051,7 +1053,7 @@ public class DbRequest {
                 .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
             // TODO maybe retry once if in error ?
             try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-                MetadataCollections.C_OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor);
+                MetadataCollections.C_OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor, tenantId);
             }
         }
     }

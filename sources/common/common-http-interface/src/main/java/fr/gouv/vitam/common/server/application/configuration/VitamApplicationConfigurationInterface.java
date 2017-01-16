@@ -54,7 +54,7 @@ public interface VitamApplicationConfigurationInterface {
      *
      * @return the Jetty config filename
      */
-    List<String> getTenants();
+    List<Integer> getTenants();
 
     /**
      * setter jettyConfig
@@ -62,5 +62,5 @@ public interface VitamApplicationConfigurationInterface {
      * @param jettyConfig the jetty config to set
      * @return this
      */
-    VitamApplicationConfigurationInterface setTenants(List<String> tenants);
+    VitamApplicationConfigurationInterface setTenants(List<Integer> tenants);	
 }

@@ -36,6 +36,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
@@ -123,7 +124,9 @@ public class WebApplicationResourceDeleteTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
-    
+    static final int tenantId = 0;   
+    static final List<Integer> tenantList = Arrays.asList(0);
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -156,6 +159,7 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setSecure(false);
         realAdminConfig.setClusterName(CLUSTER_NAME);
         realAdminConfig.setElasticsearchNodes(nodes);
+        realAdminConfig.setTenants(tenantList);
         adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -187,12 +191,13 @@ public class WebApplicationResourceDeleteTest {
             new MetaDataConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getMetadataDbName(),
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
+        metaDataConfiguration.setTenants(tenantList);
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, nodes));
 
         try {
-            application = new ServerApplication(adminConfigFile.getAbsolutePath());
+            application = new ServerApplication(realAdminConfig);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
@@ -206,7 +211,6 @@ public class WebApplicationResourceDeleteTest {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         try {
-
             application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -253,7 +257,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/rules");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/rules");
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
         } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
@@ -268,7 +273,8 @@ public class WebApplicationResourceDeleteTest {
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/accessionregisters");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/accessionregisters");
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
         } catch (final Exception e) {
@@ -281,7 +287,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOperation = addData(LogbookCollections.OPERATION);
             assertTrue(existsData(LogbookCollections.OPERATION, idOperation.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/logbook/operation");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/logbook/operation");
             assertFalse(existsData(LogbookCollections.OPERATION, idOperation.getId()));
         } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
@@ -306,7 +313,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idLfcUnit = addData(LogbookCollections.LIFECYCLE_UNIT);
             assertTrue(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/logbook/lifecycle/unit");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/logbook/lifecycle/unit");
             assertFalse(existsData(LogbookCollections.LIFECYCLE_UNIT, idLfcUnit.getId()));
         } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
@@ -318,7 +326,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idOg = addData(MetadataCollections.C_OBJECTGROUP);
             assertTrue(existsData(MetadataCollections.C_OBJECTGROUP, idOg.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/metadata/objectgroup");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/metadata/objectgroup");
             assertFalse(existsData(MetadataCollections.C_OBJECTGROUP, idOg.getId()));
         } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
@@ -330,7 +339,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idUnit = addData(MetadataCollections.C_UNIT);
             assertTrue(existsData(MetadataCollections.C_UNIT, idUnit.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/metadata/unit");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/metadata/unit");
             assertFalse(existsData(MetadataCollections.C_UNIT, idUnit.getId()));
         } catch (final Exception e) {
             fail("Exception using mongoDbAccess");
@@ -351,7 +361,8 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             // delete all
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete");
             // check no data
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
