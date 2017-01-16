@@ -107,9 +107,9 @@ public class WorkerImplTest {
             new Step());
     }
 
-    @Test(expected = HandlerNotFoundException.class)
+    @Test(expected = ProcessingException.class)
     public void givenWorkerImplementWhenActionIsNullThenThrowsHandlerNotFoundException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
+        throws IllegalArgumentException, ProcessingException,
         ContentAddressableStorageServerException {
         final LogbookDbAccess mongoDbAccess = mock(LogbookDbAccess.class);
         workerImpl = WorkerImplFactory.create();

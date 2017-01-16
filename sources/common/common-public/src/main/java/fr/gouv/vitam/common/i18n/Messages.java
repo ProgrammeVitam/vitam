@@ -50,6 +50,8 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  * Internationalization Messages support
  */
 public class Messages {
+    private static final String LFC_PREFIX = "LFC.";
+
     private final String bundleName;
 
     /**
@@ -222,13 +224,22 @@ public class Messages {
         try {
             final String source = resourceBundle.getString(key);
             if (source == null || source.isEmpty()) {
-                // Cannot find any resource or value for this key
+                // find in plugin message properties 
                 return getFakeMessage(key, args);
             }
             return MessageFormat.format(source, args);
         } catch (final MissingResourceException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return getFakeMessage(key, args);
+            // Remove the LFC prefix to get message value in plugin properties
+            if (key.contains(LFC_PREFIX)) {
+                key.replace(LFC_PREFIX, "");
+            }
+            final String source = PluginPropertiesLoader.getString(key);
+            if (source == null || source.isEmpty()) {
+                // Cannot find any resource or value for this key
+                return getFakeMessage(key, args);
+            }
+            return MessageFormat.format(source, args);
         }
     }
 

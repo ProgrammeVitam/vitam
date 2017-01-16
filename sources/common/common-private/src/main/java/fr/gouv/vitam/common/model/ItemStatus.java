@@ -62,7 +62,15 @@ public class ItemStatus {
     protected Map<String, Object> data;
 
 
-    protected ItemStatus() {}
+    public ItemStatus() {
+        statusMeter = new ArrayList<>();
+        for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
+            statusMeter.add(0);
+        }
+
+        globalStatus = StatusCode.UNKNOWN;
+        data = new HashMap<>();
+    }
 
     /**
      * @param message
@@ -90,13 +98,7 @@ public class ItemStatus {
      * @param itemId
      */
     public ItemStatus(String itemId) {
-        statusMeter = new ArrayList<>();
-        for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
-            statusMeter.add(0);
-        }
-
-        globalStatus = StatusCode.UNKNOWN;
-        data = new HashMap<>();
+        this();
         this.itemId = itemId;
     }
 
