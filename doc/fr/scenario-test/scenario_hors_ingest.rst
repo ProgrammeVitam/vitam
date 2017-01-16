@@ -1,9 +1,9 @@
-Scenarii hors ingest
+Scenario hors ingest
 ####################
 
-Cette partie décrit les scenarii de test correspondant aux processus autres que le processus d'ingest.
+Cette partie décrit les scenario de test correspondant aux processus autres que le processus d'ingest.
 
-Liste des scenarii
+Liste des scenario
 ==================
 
 Règles de gestion
@@ -117,7 +117,7 @@ Purge des collections
 ---------------------
 Plusieurs boutons sont disponibles dans l'ihm de recette, permettant de vider les collections MongoDB (attention, ceci n'est à effectuer que dans le cadre de la recette).
 
-Les scenarii de tests pour cette partie se divisent en 4 parties : 
+Les scenario de tests pour cette partie se divisent en 4 parties : 
  - référentiels
  - journaux
  - objets
