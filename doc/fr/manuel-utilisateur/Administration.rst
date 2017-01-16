@@ -125,13 +125,17 @@ Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-m
 
 Par défaut, les formats sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique.
 
-Pour effectuer une recherche précise, on utilise le champ "Nom de format" ou le champ "PUID" (Le PUID étant l'ID unique du format dans PRONOM).
+Pour effectuer une recherche précise, on utilise le champ "Nom de format" ou le champ "PUID" (Le PUID étant l'ID unique du format dans PRONOM). L'utilisation des deux champs de façon simultanée fait un ET entre les 2 critères. La recherche alliera donc le nom du format avec le PUID et donnera ainsi un résultat plus précis.
 
-NB : La recherche est de type exacte.
+NB : la recherche est de type exacte.
 
-Pour initier la recherche, l'utilisateur saisi ses critères de recherche et clique sur le bouton "Rechercher".
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher" ou appuie sur la touche "Entrée" si son curseur est encore positionné dans le champs de recherche.
 
-.. image:: images/rf_format.jpg
+.. image:: images/rf_format.png
+
+Il est possible de vider le contenu des champs "Nom du format" et "PUID" en cliquant sur la croix située à droite. 
+
+.. image:: images/FORMATS_champs_recherche.png
 
 Affichage du résultat
 ---------------------
@@ -144,7 +148,11 @@ Suite à la recherche, les résultats sont affichés dans un tableau comportant 
 - MIME : Identifiant de format de données (Type MIME)
 - Extensions
 
-.. image:: images/rf_format_resultat.jpg
+.. image:: images/rf_format_resultat.png
+
+Le nombre indiqué entre parenthèses à droite de la mention "RESULTATS" indique le nombre d'occurences du résultat de la recherche effectuée.
+
+A l'ouverture de la page, tous les formats disponibles étant affichés, le nombre indique l'ensemble des formats présents dans le référentiel.
 
 Affichage d'un détail du format
 -------------------------------
