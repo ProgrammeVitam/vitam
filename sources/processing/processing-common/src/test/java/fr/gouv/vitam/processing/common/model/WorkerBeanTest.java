@@ -47,7 +47,7 @@ public class WorkerBeanTest {
         final WorkerBean wb = new WorkerBean();
         assertEquals(null, wb.getFamily());
         assertEquals(null, wb.getName());
-        assertEquals(0, wb.getCapacity());
+        assertEquals(1, wb.getCapacity());
         assertEquals(0, wb.getStorage());
         assertEquals(null, wb.getStatus());
         assertEquals(null, wb.getWorkerId());

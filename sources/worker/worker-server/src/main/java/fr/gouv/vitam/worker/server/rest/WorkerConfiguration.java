@@ -41,6 +41,8 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int registerServerPort;
     private long registerDelay = 60;
     private int registerRetry = 5;
+    private int capacity = 1;
+
 
     /**
      * WorkerConfiguration empty constructor for YAMLFactory
@@ -189,4 +191,22 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         return this;
     }
 
+    /**
+     * Return the capacity (number of parallel steps that can handle the worker)
+     * @return the capacity
+     */
+    public int getCapacity() {
+        return capacity;
+    }
+
+    /**
+     * Set the capacity (number of parallel steps that can handle the worker)
+     * @param capacity the capacity to set
+     *
+     * @return this
+     */
+    public WorkerConfiguration setCapacity(int capacity) {
+        this.capacity = capacity;
+        return this;
+    }
 }

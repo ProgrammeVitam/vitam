@@ -27,7 +27,8 @@
 package fr.gouv.vitam.worker.client;
 
 import java.io.IOException;
-
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -46,8 +47,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * <pre>
  * {
  *     &#064;code
- *     // Retrieves default worker client
- *     WorkerClient client = WorkerClientFactory.getInstance().getWorkerClient();
+ *     // Retrieves a  worker client given a configuration
+ *       WorkerClientConfiguration configuration1 = new  WorkerClientConfiguration("localhost",8076);
+ *     WorkerClient client = WorkerClientFactory.getInstance(configuration1).getWorkerClient();
  *
  *     // Exists
  *     client.exists(asyncId);
@@ -62,25 +64,37 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "worker-client.conf";
-    private static final WorkerClientFactory WORKER_CLIENT_FACTORY = new WorkerClientFactory();
+
+    // TODO  : Is the ConcurrentHashMap is mandatory or is a HashMap is sufficient ?
+
+
+    private static final Map <WorkerClientConfiguration, WorkerClientFactory> workersSetFactory = new ConcurrentHashMap<WorkerClientConfiguration,WorkerClientFactory>();
+    private static final WorkerClientFactory defaultWorkerClientFactory =  new WorkerClientFactory (null );
     /**
      * RESOURCE PATH
      */
     public static final String RESOURCE_PATH = "/worker/v1";
-
-    private WorkerClientFactory() {
-        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, true, false, false);
-    }
-
     /**
-     * Get the WorkerClientFactory instance
+     * @param  configuration
+     * Get the WorkerClientFactory instance given a configuration
      *
      * @return the instance
      */
-    public static final WorkerClientFactory getInstance() {
-        return WORKER_CLIENT_FACTORY;
+    private WorkerClientFactory(WorkerClientConfiguration configuration) {
+        super(configuration, RESOURCE_PATH,true,false,false);
     }
-
+    /**
+     * get Specifique workerfactory instance
+     * @param configuration
+     * @return
+     */
+    public static final WorkerClientFactory getInstance(WorkerClientConfiguration configuration) {
+        if( configuration == null ) {
+            return  defaultWorkerClientFactory ;
+        }
+        workersSetFactory.computeIfAbsent(configuration, k -> new WorkerClientFactory(configuration));
+        return workersSetFactory.get(configuration);
+    }
     /**
      * Get the default worker client
      *
@@ -107,7 +121,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      *
      * @param configurationPath the path to the configuration file
      */
-    static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
+    public  static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
         WorkerClientConfiguration configuration = null;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
@@ -131,6 +145,6 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      */
     // TODO P2 should not be public (but IT test)
     public static final void changeMode(WorkerClientConfiguration configuration) {
-        getInstance().initialisation(configuration, getInstance().getResourcePath());
+        getInstance(configuration).initialisation(configuration, getInstance(configuration).getResourcePath());
     }
 }

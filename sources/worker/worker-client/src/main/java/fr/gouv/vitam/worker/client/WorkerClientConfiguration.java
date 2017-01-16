@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.client;
 
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import jersey.repackaged.com.google.common.base.Objects;
 
 /**
  * worker client configuration
@@ -50,4 +51,23 @@ public class WorkerClientConfiguration extends ClientConfigurationImpl {
         super(serverHost, serverPort);
     }
 
+    @Override
+    public int hashCode(){
+        return  Objects.hashCode(this.getServerHost(),this.getServerPort());
+    }
+    @Override
+    public boolean equals (Object other) {
+        if (other == null) {
+            return false;
+        }
+        if (other == this) {
+            return true;
+        }
+        if (other.getClass() != getClass()) {
+            return false;
+        }
+        WorkerClientConfiguration conf =  (WorkerClientConfiguration) other;
+        return  Objects.equal(this.getServerHost(),conf.getServerHost()) &&  Objects.equal(this.getServerPort(),conf.getServerPort())  ;
+
+    }
 }

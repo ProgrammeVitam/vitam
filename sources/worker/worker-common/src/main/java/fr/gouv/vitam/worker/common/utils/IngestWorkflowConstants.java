@@ -91,10 +91,6 @@ public class IngestWorkflowConstants {
      * Sub folder for archive units tree in Worskpace folder of container : containerId/Exec
      */
     public static final String EXEC_FOLDER = "Exec";
-    /**
-     * Sub folder for work file in Worskpace folder of container : containerId/tmp
-     */
-    public static final String TMP_FOLDER = "tmp";
 
     // TODO P1 : add doc
     public static final String ROOT_TAG = "ROOT";

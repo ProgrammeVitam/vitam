@@ -168,7 +168,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         tenantId, finished);
                     // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                     // then break the process
-                    if (stepResponse.shallStop(step.getBehavior().equals(ProcessBehavior.BLOCKING))) {
+                    if (stepResponse.shallStop(step.isBlocking())) {
                         finished = false;
                         break;
                     }

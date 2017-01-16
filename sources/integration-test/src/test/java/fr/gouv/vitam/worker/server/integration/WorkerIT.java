@@ -134,11 +134,12 @@ public class WorkerIT {
     private static final String LOGBOOK_PATH = "/logbook/v1";
 
     private static String CONFIG_WORKER_PATH = "";
+    private static String CONFIG_WORKER_CLIENT_PATH = "";
+
     private static String CONFIG_WORKSPACE_PATH = "";
     private static String CONFIG_METADATA_PATH = "";
     private static String CONFIG_PROCESSING_PATH = "";
     private static String CONFIG_LOGBOOK_PATH = "";
-
     private static MetaDataApplication metadataApplication;
     private static WorkerApplication wkrapplication;
     private static WorkspaceApplication workspaceApplication;
@@ -147,6 +148,8 @@ public class WorkerIT {
     private WorkspaceClient workspaceClient;
     private static LogbookApplication lgbapplication;
     private WorkerClient workerClient;
+    private  WorkerClientConfiguration workerClientConfiguration;
+
     private ProcessingManagementClient processingClient;
     private static ElasticsearchTestConfiguration config = null;
 
@@ -167,6 +170,7 @@ public class WorkerIT {
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-worker/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-worker/processing.conf").toString();
         CONFIG_LOGBOOK_PATH = PropertiesUtils.getResourcePath("integration-worker/logbook.conf").toString();
+        CONFIG_WORKER_CLIENT_PATH = PropertiesUtils.getResourcePath("integration-worker/worker-client.conf").toString();
 
         // ES
         config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
@@ -330,8 +334,9 @@ public class WorkerIT {
             // call processing
             RestAssured.port = PORT_SERVICE_WORKER;
             RestAssured.basePath = WORKER_PATH;
+            workerClientConfiguration = WorkerClientFactory.changeConfigurationFile("worker-client.conf");
 
-            workerClient = WorkerClientFactory.getInstance().getClient();
+            workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
             final ItemStatus retStepControl =
                 workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
@@ -382,8 +387,9 @@ public class WorkerIT {
             // call processing
             RestAssured.port = PORT_SERVICE_WORKER;
             RestAssured.basePath = WORKER_PATH;
+            workerClientConfiguration = WorkerClientFactory.changeConfigurationFile(CONFIG_WORKER_CLIENT_PATH);
 
-            workerClient = WorkerClientFactory.getInstance().getClient();
+            workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
             final ItemStatus retStepControl =
                 workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
@@ -435,8 +441,9 @@ public class WorkerIT {
             // call processing
             RestAssured.port = PORT_SERVICE_WORKER;
             RestAssured.basePath = WORKER_PATH;
+            workerClientConfiguration = WorkerClientFactory.changeConfigurationFile( CONFIG_WORKER_CLIENT_PATH);
 
-            workerClient = WorkerClientFactory.getInstance().getClient();
+            workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
             final ItemStatus retStepControl =
                 workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
@@ -469,8 +476,9 @@ public class WorkerIT {
             // call processing
             RestAssured.port = PORT_SERVICE_WORKER;
             RestAssured.basePath = WORKER_PATH;
+            workerClientConfiguration = WorkerClientFactory.changeConfigurationFile(CONFIG_WORKER_CLIENT_PATH);
 
-            workerClient = WorkerClientFactory.getInstance().getClient();
+            workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
             final ItemStatus retStepControl =
                 workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
@@ -490,7 +498,7 @@ public class WorkerIT {
             final WorkerRemoteConfiguration remoteConfiguration =
                 new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
             final WorkerBean workerBean =
-                new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1L, 1L, "active", remoteConfiguration);
+                new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             try {
                 processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);

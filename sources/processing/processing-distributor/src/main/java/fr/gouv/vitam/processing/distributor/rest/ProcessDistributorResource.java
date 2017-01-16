@@ -59,6 +59,7 @@ import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 
 /**
  * Process Distributor Resource implementation
@@ -267,7 +268,7 @@ public class ProcessDistributorResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(workerInformation));
             GlobalDatasParser.sanityRequestCheck(workerInformation);
-            distributor.registerWorker(idFamily, idWorker, workerInformation);
+            WorkerManager.registerWorker(idFamily, idWorker, workerInformation);
 
         } catch (ProcessingBadRequestException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
@@ -315,7 +316,7 @@ public class ProcessDistributorResource {
     public Response unregisterWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
         @PathParam("id_worker") String idWorker) {
         try {
-            distributor.unregisterWorker(idFamily, idWorker);
+            WorkerManager.unregisterWorker(idFamily, idWorker);
         } catch (WorkerFamilyNotFoundException | WorkerNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")

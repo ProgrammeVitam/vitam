@@ -23,28 +23,36 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ ******************************************************************************/
 package fr.gouv.vitam.processing.common.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 
 /**
  * Step Object in process workflow
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Step {
-
+    @JsonIgnore
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Step.class);
     private String workerGroupId;
     private String stepName;
     private ProcessBehavior behavior;
     private Distribution distribution;
     @JsonProperty("actions")
     private List<Action> actions;
+    @JsonIgnore
+    private ItemStatus stepResponses;
+
 
     /**
      * getActions
@@ -147,4 +155,40 @@ public class Step {
         return this;
     }
 
+    /**
+     * @return the stepResponses
+     */
+    public ItemStatus getStepResponses() {
+        return stepResponses;
+    }
+
+    /**
+     * @param stepResponses the stepResponses to set
+     *
+     * @return this
+     */
+    public Step setStepResponses(ItemStatus stepResponses) {
+        this.stepResponses = stepResponses;
+        return this;
+    }
+
+    /**
+     * @return True if the step Must be Stopped
+     */
+    @JsonIgnore
+    public boolean shallStop() {
+        if (getStepResponses() != null) {
+            return getStepResponses().shallStop(isBlocking());
+        }
+        return false;
+    }
+    
+    /**
+     * 
+     * @return True if this step is blocking
+     */
+    @JsonIgnore
+    public boolean isBlocking() {
+        return getBehavior().equals(ProcessBehavior.BLOCKING);
+    }
 }

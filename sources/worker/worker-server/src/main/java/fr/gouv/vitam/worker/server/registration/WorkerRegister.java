@@ -94,7 +94,7 @@ public class WorkerRegister implements Runnable {
             configuration.getRegisterServerHost(), configuration.getRegisterServerPort());
 
         final WorkerBean workerBean =
-            new WorkerBean(ServerIdentity.getInstance().getName(), DEFAULT_FAMILY, 1L, 1L, "active",
+            new WorkerBean(ServerIdentity.getInstance().getName(), DEFAULT_FAMILY, configuration.getCapacity(), 1, "active",
                 remoteConfiguration);
         try {
             processingClient.registerWorker(DEFAULT_FAMILY,

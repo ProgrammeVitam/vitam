@@ -50,7 +50,6 @@ public class IngestWorkflowConstantsTest {
         assertEquals(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, "ObjectGroup");
         assertEquals(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, "Units");
         assertEquals(IngestWorkflowConstants.EXEC_FOLDER, "Exec");
-        assertEquals(IngestWorkflowConstants.TMP_FOLDER, "tmp");
     }
 
 }
