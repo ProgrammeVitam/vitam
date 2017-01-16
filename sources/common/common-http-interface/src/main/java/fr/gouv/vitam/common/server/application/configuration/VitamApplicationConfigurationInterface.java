@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.common.server.application.configuration;
 
+import java.util.List;
+
 /**
  * Common interface for all application configuration.
  */
@@ -46,4 +48,19 @@ public interface VitamApplicationConfigurationInterface {
      * @return this
      */
     VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig);
+    
+    /**
+     * getter jettyConfig
+     *
+     * @return the Jetty config filename
+     */
+    List<String> getTenants();
+
+    /**
+     * setter jettyConfig
+     *
+     * @param jettyConfig the jetty config to set
+     * @return this
+     */
+    VitamApplicationConfigurationInterface setTenants(List<String> tenants);
 }
