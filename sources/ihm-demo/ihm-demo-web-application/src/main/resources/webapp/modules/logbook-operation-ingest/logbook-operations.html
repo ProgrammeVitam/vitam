@@ -90,7 +90,7 @@
             <td ng-click="logctrl.openDialog($event, log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
                         && log.events[1].outcome.toUpperCase() != 'STARTED'">Avertissement</td>
               <td>
-                  <a ng-if="log.events[0].obIdIn" href="" ng-click="logctrl.downloadObject(log.evIdProc, 'reports')">
+                  <a href="" ng-click="logctrl.downloadObject(log.evIdProc, 'reports')">
                       <i class="material-icons">file_download</i>
                   </a>
               </td>

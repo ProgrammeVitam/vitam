@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
@@ -74,10 +75,10 @@ public interface IngestInternalClient extends MockOrRestClient {
      */
     void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException;
-    
+
 
     /**
-     * Download object stored by ingest operation 
+     * Download object stored by ingest operation
      * 
      * @param objectId
      * @param type
@@ -85,5 +86,16 @@ public interface IngestInternalClient extends MockOrRestClient {
      * @throws VitamClientException
      */
     Response downloadObjectAsync(String objectId, IngestCollection type)
+        throws VitamClientException;
+
+    /**
+     * Store ATR in storage
+     * 
+     * @param guid
+     * @param input
+     * @return Response OK
+     * @throws VitamClientException
+     */
+    Response storeATR(GUID guid, InputStream input)
         throws VitamClientException;
 }

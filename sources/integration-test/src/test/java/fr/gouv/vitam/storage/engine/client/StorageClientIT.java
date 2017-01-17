@@ -230,6 +230,8 @@ public class StorageClientIT {
             try {
                 storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "objectId",
                     description);
+                storageClient.storeFileFromWorkspace("0", "default2", StorageCollectionType.OBJECTS, "objectId",
+                    description);
             } catch (final StorageServerClientException svce) {
                 LOGGER.error(svce);
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
@@ -257,6 +259,10 @@ public class StorageClientIT {
                     storageClient.getContainerAsync("0", "default", OBJECT_ID, StorageCollectionType.OBJECTS)
                         .readEntity(InputStream.class);
                 assertNotNull(stream);
+                final InputStream stream2 =
+                    storageClient.getContainerAsync("0", "default2", OBJECT_ID, StorageCollectionType.OBJECTS)
+                        .readEntity(InputStream.class);
+                assertNotNull(stream2);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }

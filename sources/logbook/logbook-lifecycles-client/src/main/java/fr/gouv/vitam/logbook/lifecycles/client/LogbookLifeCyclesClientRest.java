@@ -54,6 +54,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -294,12 +296,12 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId)
         throws LogbookClientException, InvalidParseOperationException {
         try {
-            return new VitamRequestIterator(this, HttpMethod.GET,
+            return new VitamRequestIterator<>(this, HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL,
-                null, new Select().getFinalSelect());
+                JsonNode.class, null, new Select().getFinalSelect());
         } catch (final IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
@@ -307,12 +309,12 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId)
         throws LogbookClientException, InvalidParseOperationException {
         try {
-            return new VitamRequestIterator(this, HttpMethod.GET,
+            return new VitamRequestIterator<>(this, HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
-                null, new Select().getFinalSelect());
+                JsonNode.class, null, new Select().getFinalSelect());
         } catch (final IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);

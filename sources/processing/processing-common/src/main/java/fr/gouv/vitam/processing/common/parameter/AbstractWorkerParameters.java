@@ -36,6 +36,8 @@ import java.util.TreeMap;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -48,15 +50,17 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 /**
  * Abstract implementation for all worker parameters
  */
+@JsonSerialize(using = WorkerParametersSerializer.class)
+@JsonDeserialize(using = WorkerParametersDeserializer.class)
 abstract class AbstractWorkerParameters implements WorkerParameters {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractWorkerParameters.class);
     private static final String ERROR_MESSAGE = "%s cannot be null";
 
     @JsonIgnore
-    private final Map<WorkerParameterName, String> mapParameters = new TreeMap<>();
+    protected final Map<WorkerParameterName, String> mapParameters = new TreeMap<>();
 
     @JsonIgnore
-    private final Set<WorkerParameterName> mandatoryParameters;
+    protected final Set<WorkerParameterName> mandatoryParameters;
 
     AbstractWorkerParameters(final Set<WorkerParameterName> mandatory) {
         mandatoryParameters = mandatory;
@@ -265,4 +269,6 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
             return mapParameters.toString();
         }
     }
+
+
 }

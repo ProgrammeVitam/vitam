@@ -27,16 +27,20 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import java.io.IOException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * File system implementation of the storage strategy and storage offer provider
@@ -46,7 +50,8 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     private static final String STRATEGY_FILENAME = "static-strategy.json";
     private static final String OFFER_FILENAME = "static-offer.json";
     private StorageStrategy storageStrategy;
-    private StorageOffer storageOffer;
+
+    private Map<String, StorageOffer> storageOffers;
 
     /**
      * Package protected to avoid out of scope instance creation
@@ -79,17 +84,19 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     }
 
     @Override
-    public StorageOffer getStorageOffer(String idOffer) throws StorageTechnicalException {
-        // TODO P1 : only 1 offer for now, need to use this id in later implementation
-        if (storageOffer != null) {
-            return storageOffer;
+    public StorageOffer getStorageOffer(String idOffer) throws StorageException {
+        if (storageOffers == null) {
+            try {
+                loadReferential(ReferentialType.OFFER);
+            } catch (IOException | InvalidParseOperationException exc) {
+                throw new StorageTechnicalException(exc);
+            }
         }
-        try {
-            loadReferential(ReferentialType.OFFER);
-        } catch (IOException | InvalidParseOperationException exc) {
-            throw new StorageTechnicalException(exc);
+        StorageOffer offer = storageOffers.get(idOffer);
+        if (offer == null) {
+            throw new StorageNotFoundException(String.format("Storage with id %s not found", idOffer));
         }
-        return storageOffer;
+        return offer;
     }
 
 
@@ -117,8 +124,12 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
                     StorageStrategy.class);
                 break;
             case OFFER:
-                storageOffer = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME),
-                    StorageOffer.class);
+                StorageOffer[] storageOffersArray = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile
+                        (OFFER_FILENAME), StorageOffer[].class);
+                storageOffers = new HashMap();
+                for (StorageOffer offer : storageOffersArray) {
+                    storageOffers.put(offer.getId(), offer);
+                }
                 break;
             default:
                 LOGGER.error("Referential loading not implemented for type: " + type);
@@ -140,6 +151,10 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
      * @param offer the new offer
      */
     void setStorageOffer(StorageOffer offer) {
-        storageOffer = offer;
+        if (offer == null) {
+            storageOffers = null;
+        } else {
+            storageOffers.put(offer.getId(), offer);
+        }
     }
 }

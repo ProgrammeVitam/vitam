@@ -257,7 +257,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
         final JsonNode infoATR =
             sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
-        final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+        final String messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).asText();
 
         // creation of ATR report
         try (FileWriter artTmpFileWriter = new FileWriter(atrTmpFile)) {
@@ -277,19 +277,34 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_DATE, sdfDate.format(new Date()));
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_IDENTIFIER, params.getContainerName());
+
             writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
-                infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue());
+                (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
+                    ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
 
             xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
-                    .textValue());
-            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                    .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue());
-            writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
-                    .textValue());
+            if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
+                    (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                        .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null)
+                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
+                                .textValue()
+                            : "");
+                writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
+                    (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                        .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null)
+                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
+                            : "");
+                writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
+                    (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                        .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null)
+                            ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
+                                .textValue()
+                            : "");
+            }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_CODE_LIST_VERSIONS
 
             xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
@@ -344,14 +359,23 @@ public class TransferNotificationActionHandler extends ActionHandler {
             writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVAL_AGENCY);
-            writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
-                infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY).get(SedaConstants.TAG_IDENTIFIER).textValue());
+            if (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY) != null) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
+                    (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY).get(SedaConstants.TAG_IDENTIFIER) != null)
+                        ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY).get(SedaConstants.TAG_IDENTIFIER).textValue()
+                        : "");
+            }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVAL_AGENCY
 
 
             xmlsw.writeStartElement(SedaConstants.TAG_TRANSFERRING_AGENCY);
-            writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
-                infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER).textValue());
+            if (infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY) != null) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
+                    (infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER) != null)
+                        ? infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER)
+                            .textValue()
+                        : "");
+            }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_TRANSFERRING_AGENCY
             xmlsw.writeEndElement();
 
@@ -388,13 +412,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         JsonNode infoATR = null;
-        String messageIdentifier = null;
+        String messageIdentifier = "";
         if (handlerIO.getInput(SEDA_PARAMETERS_RANK) != null) {
             final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
             infoATR =
-                sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+                sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             if (infoATR != null && infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
-                messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).textValue();
+                messageIdentifier = infoATR.get(SedaConstants.TAG_MESSAGE_IDENTIFIER).asText();
             }
         }
         // creation of ATR report
@@ -418,19 +442,32 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
             if (infoATR != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
-                    infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue());
+                    (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
+                        ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
 
                 xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
-                writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
-                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
-                        .textValue());
-                writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
-                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                        .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue());
-                writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
-                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
-                        .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
-                        .textValue());
+                if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
+                        (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                            .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null)
+                                ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                    .get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
+                                    .textValue()
+                                : "");
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION,
+                        (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                            .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null)
+                                ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                    .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()
+                                : "");
+                    writeAttributeValue(xmlsw, SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION,
+                        (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                            .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null)
+                                ? infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                                    .get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
+                                    .textValue()
+                                : "");
+                }
                 xmlsw.writeEndElement(); // END SedaConstants.TAG_CODE_LIST_VERSIONS
             }
 
@@ -448,25 +485,29 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
-            if (messageIdentifier != null) {
-                writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
-            }
+
+            writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
 
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVAL_AGENCY);
-            if (infoATR != null) {
+            if (infoATR != null && infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
-                    infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY).get(SedaConstants.TAG_IDENTIFIER).textValue());
+                    (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY).get(SedaConstants.TAG_IDENTIFIER) != null)
+                        ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY).get(SedaConstants.TAG_IDENTIFIER).textValue()
+                        : "");
             }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVAL_AGENCY
 
 
             xmlsw.writeStartElement(SedaConstants.TAG_TRANSFERRING_AGENCY);
-            if (infoATR != null) {
+            if (infoATR != null && infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_IDENTIFIER,
-                    infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER).textValue());
+                    (infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER) != null)
+                        ? infoATR.get(SedaConstants.TAG_TRANSFERRING_AGENCY).get(SedaConstants.TAG_IDENTIFIER)
+                            .textValue()
+                        : "");
             }
             xmlsw.writeEndElement(); // END SedaConstants.TAG_TRANSFERRING_AGENCY
             xmlsw.writeEndElement();
@@ -522,7 +563,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
 
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (VitamRequestIterator iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
                 final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
@@ -543,8 +584,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
                 while (iterator.hasNext()) {
+                    JsonNode next = iterator.next();
                     final LogbookLifeCycleUnit logbookLifeCycleUnit =
-                        new LogbookLifeCycleUnit(iterator.next());
+                        new LogbookLifeCycleUnit(next);
                     final List<Document> logbookLifeCycleUnitEvents =
                         (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
                     xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
@@ -570,7 +612,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 LOGGER.error("Error while loading logbook lifecycle units", e);
                 throw new ProcessingException(e);
             }
-            try (VitamRequestIterator iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();

@@ -74,7 +74,7 @@ public class AtrKoBuilder {
      * @return the corresponding InputStream with the ATR KO in XML format
      * @throws IngestExternalException
      */
-    public static InputStream buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
+    public static String buildAtrKo(String messageIdentifier, String archivalAgency, String transferringAgency,
         String eventType, String addedMessage, StatusCode code) throws IngestExternalException {
         String xmlDefault;
         try {
@@ -87,13 +87,12 @@ public class AtrKoBuilder {
             detail += addedMessage;
         }
         String event = VitamLogbookMessages.getLabelOp(eventType);
-        final String finalXml =
+        return
             xmlDefault.replace(DATE, LocalDateUtil.now().toString()).replace(MESSAGE_IDENTIFIER, messageIdentifier)
                 .replace(ARCHIVAL_AGENCY, archivalAgency).replace(TRANSFERRING_AGENCY, transferringAgency)
                 .replace(COMMENT, detail)
                 .replace(EVENT_TYPE_CODE, eventType).replace(EVENT_TYPE, event)
                 .replaceAll(OUTCOME, code.name())
                 .replace(OUTCOME_DETAIL, eventType + code.name()).replace(OUTCOME_DETAIL_MESSAGE, detail);
-        return new ByteArrayInputStream(finalXml.getBytes(CharsetUtils.UTF8));
     }
 }

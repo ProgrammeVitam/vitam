@@ -261,7 +261,6 @@ public class StorageResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .accept(ContentType.BINARY)
             .when()
             .post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());

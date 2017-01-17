@@ -165,20 +165,29 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
 			<!-- <xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded"> 
 				<xsd:annotation> <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation> 
 				</xsd:annotation> </xsd:element> -->
+			<xsd:element name="UpdateOperation" type="UpdateOperationType"
+				minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Gestion des opérations sur un ArchiveUnit.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:group>
 	<xsd:group name="ArchiveTransferReplyManagementGroup">
 		<xsd:annotation>
-			<xsd:documentation>Contient les métadonnées de gestion pour ArchiveTransferReply.
+			<xsd:documentation>Contient les métadonnées de gestion pour
+				ArchiveTransferReply.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:group ref="ManagementGroup"/>
-			<xsd:element name="ReplyOutcome" type="ReplyOutcomeType" minOccurs="1" maxOccurs="1">
+			<xsd:group ref="ManagementGroup" />
+			<xsd:element name="ReplyOutcome" type="ReplyOutcomeType"
+				minOccurs="1" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>Contenu de la réponse de notification d'entrée
 					</xsd:documentation>
@@ -200,21 +209,26 @@
 				<xsd:element type="xsd:string" name="DataObjectGroupId" />
 				<xsd:element type="xsd:string" name="DataObjectGroupRefId" />
 			</xsd:choice>
-			<xsd:element type="xsd:string" name="DataObjectVersion" maxOccurs="1" minOccurs="1" />
-			<xsd:element name="DataObjectGroupSystemId" type="simpleTypeId" maxOccurs="1" minOccurs="1" />
+			<xsd:element type="xsd:string" name="DataObjectVersion"
+				maxOccurs="1" minOccurs="1" />
+			<xsd:element name="DataObjectGroupSystemId" type="simpleTypeId"
+				maxOccurs="1" minOccurs="1" />
 		</xsd:sequence>
 		<xsd:attribute type="xsd:string" name="id" use="required" />
 	</xsd:complexType>
 
 	<xsd:complexType name="ReplyOutcomeType">
 		<xsd:sequence>
-			<xsd:element name="ArchiveUnitList" minOccurs="1" maxOccurs="1">
+			<xsd:element name="ArchiveUnitList" minOccurs="1"
+				maxOccurs="1">
 				<xsd:complexType>
 					<xsd:sequence>
-						<xsd:element name="ArchiveUnit" maxOccurs="unbounded" minOccurs="1">
+						<xsd:element name="ArchiveUnit" maxOccurs="unbounded"
+							minOccurs="1">
 							<xsd:complexType>
 								<xsd:sequence>
-									<xsd:element name="SystemId" maxOccurs="1" minOccurs="1" type="simpleTypeId" />
+									<xsd:element name="SystemId" maxOccurs="1"
+										minOccurs="1" type="simpleTypeId" />
 								</xsd:sequence>
 								<xsd:attribute type="xsd:string" name="id" use="required" />
 							</xsd:complexType>
@@ -223,7 +237,8 @@
 				</xsd:complexType>
 			</xsd:element>
 
-			<xsd:element name="DataObjectList" minOccurs="0" maxOccurs="1">
+			<xsd:element name="DataObjectList" minOccurs="0"
+				maxOccurs="1">
 				<xsd:complexType>
 					<xsd:choice minOccurs="1" maxOccurs="unbounded">
 						<xsd:element name="BinaryDataObject" type="DataObjectType" />
@@ -666,6 +681,69 @@
 				<xsd:annotation>
 					<xsd:documentation>Action à mettre en œuvre au terme de la durée de
 						gestion.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="UpdateOperationType">
+		<xsd:sequence>
+			<xsd:annotation>
+				<xsd:documentation>Exemple d'extension de OtherManagementAbstract
+					pour la gestion des opérations sur un ArchiveUnit.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name="SystemId" type="NonEmptyTokenType"
+				minOccurs="1" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>Identifiant attribué à l'ArchiveUnit. Il est
+						attribué par le SAE et correspond à un identifiant interne.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="ToDelete" type="ToDeleteType"
+				minOccurs="0" maxOccurs="1" />
+			<xsd:element name="FullUpdate" type="xsd:boolean"
+				nillable="false" minOccurs="0" maxOccurs="1" default="false">
+				<xsd:annotation>
+					<xsd:documentation>Permet de distinguer une mise à jour complète
+						d'une mise à jour partielle
+					</xsd:documentation>
+					<xsd:documentation>Pour une mise à jour partielle (FullUpdate =
+						false) seules les balises indiquées dans la partie Content +
+						Management seront mises à jour.
+					</xsd:documentation>
+					<xsd:documentation>Pour une mise à jour complète (FullUpdate =
+						true) la mise à jour appliquée est la suivante : annule et
+						remplace.
+					</xsd:documentation>
+					<xsd:documentation>Point d'attention : dans le cas d'une Règle de
+						gestion dans Management, le retrait d'une date de début (et donc
+						de la date de fin) se fait en positionnant une valeur vide à
+						StartDate.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="ToDeleteType">
+		<xsd:sequence minOccurs="1" maxOccurs="unbounded">
+			<xsd:annotation>
+				<xsd:documentation>Permet la suppression de liens entre un
+					ArchiveUnit père et une liste définie de ses fils.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:element name="ArchiveUnitRefId" type="ArchiveUnitRefIdType">
+				<xsd:annotation>
+					<xsd:documentation>Permet de faire une référence à d'autres
+						ArchiveUnit dans la même transaction.
+					</xsd:documentation>
+					<xsd:documentation>La balise permet de supprimer le lien entre
+						l'ArchiveUnit fils référencé et l'ArchiveUnit courant (père).
+					</xsd:documentation>
+					<xsd:documentation>Le type de cette balise est le même que celui
+						utilisé pour référencer un fils dans ArchiveUnit/ArchiveUnitRefId.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>

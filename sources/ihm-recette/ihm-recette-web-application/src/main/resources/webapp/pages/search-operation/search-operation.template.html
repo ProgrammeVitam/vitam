@@ -70,6 +70,7 @@
 					<th>Date</th>
 					<th>Statut</th>
 					<th>Message</th>
+					<th>Télecharger</th>
 
 					<!-- Dynamic columns -->
 					<th ng-repeat="column in ctrl.selectedObjects">{{column.label}}</th>
@@ -77,26 +78,31 @@
 
 				<tbody
 					ng-repeat='log in ctrl.operationList | startFrom:(ctrl.currentPage-1)*ctrl.itemsPerPage | limitTo:ctrl.itemsPerPage'>
-					<tr ng-click="ctrl.goToDetails(log.evIdProc)">
+					<tr>
 						<td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>
 						<td>{{log.evDateTime}}</td>
 
-						<td
+						<td ng-click="ctrl.goToDetails(log.evIdProc)"
 							ng-if="log.events[log.events.length-1].outcome.toUpperCase() === 'OK'">Succès</td>
-						<td
+						<td ng-click="ctrl.goToDetails(log.evIdProc)"
 							ng-if="log.events[log.events.length-1].outcome.toUpperCase() === 'STARTED'">En
 							cours</td>
-						<td
+						<td ng-click="ctrl.goToDetails(log.evIdProc)"
 							ng-if="log.events[log.events.length-1].outcome.toUpperCase() === 'KO' || log.events[log.events.length-1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
-						<td
+						<td ng-click="ctrl.goToDetails(log.evIdProc)"
 							ng-if="log.events[log.events.length-1].outcome.toUpperCase() !== 'KO' && log.events[log.events.length-1].outcome.toUpperCase() !== 'FATAL' && log.events[log.events.length-1].outcome.toUpperCase() !== 'OK'
                         && log.events[log.events.length-1].outcome.toUpperCase() !== 'STARTED'">Avertissement</td>
-						<td>{{log.outMessg}}</td>
+						<td ng-click="ctrl.goToDetails(log.evIdProc)" >{{log.outMessg}}</td>
 
 						<!-- Dynamic columns values -->
 						<td ng-repeat="column in ctrl.selectedObjects"><span>{{log[column.id]}}</span>
 						</td>
+						    <td>
+                  <a href="" ng-click="ctrl.downloadOperation(log.evIdProc)">
+                      <i class="material-icons">file_download</i>
+                  </a>
+              </td>
 					</tr>
 				</tbody>
 			</table>

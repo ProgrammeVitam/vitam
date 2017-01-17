@@ -34,9 +34,9 @@
 
 angular
  .module('archiveSearch')
+  .constant('ITEM_PER_PAGE', 25)
  .constant(
   'ARCHIVE_SEARCH_MODULE_CONST', {
-   'ARCHIVE_FORM_ALREADY_OPENED': 'Le formulaire de l\'Archive Unit sélectionnée est déjà ouvert.',
    'ARCHIVE_DETAILS_PATH': '#!/archiveunit/',
    'SEARCH_ERROR_MSG': 'Une erreur est survenue lors de la recherche. Veuillez contacter votre administrateur!',
    'ARCHIVE_SEARCH_ERROR_MSG': 'Une erreur est survenue lors de la recherche de l\'unit. Veuillez contacter votre administrateur!',
@@ -50,7 +50,7 @@ angular
   })
  .controller(
   'ArchiveUnitSearchController',
-   function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog,
+   function($scope, ihmDemoFactory, $window, $mdToast, $mdDialog, ITEM_PER_PAGE,
     ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult) {
 
     // ******************************* Alert diplayed
@@ -125,85 +125,7 @@ angular
     $scope.archiveDetailsConfig = null;
     $scope.displayArchiveUnitForm = function displayArchiveUnitForm($event,
      archiveId) {
-
-     var openArchiveDetailsWindow = function(data) {
-      // Start form diplaying
-      var archiveUnitwindow;
-      var archiveUnitwindowIndex = $scope.openedArchiveId.indexOf(archiveId);
-      if (archiveUnitwindowIndex !== -1) {
-       archiveUnitwindow = $scope.openedArchiveWindowRef[archiveUnitwindowIndex];
-
-       // Show Toast to indicate that the
-       // archive unit form is
-       // already opened
-       $scope.infoMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_FORM_ALREADY_OPENED;
-       $scope.showAlert($event, "Info", $scope.infoMessage);
-      } else {
-
-       archiveUnitwindow = $window
-        .open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH + archiveId);
-       archiveUnitwindow.data = data[0];
-       archiveUnitwindow.dataConfig = $scope.archiveDetailsConfig;
-
-       // add a close listener to the window to
-       // update
-       // $scope.openedArchiveId content
-       archiveUnitwindow.onbeforeunload = function() {
-        $scope.openedArchiveId.splice(archiveUnitwindowIndex, 1);
-       }
-       $scope.openedArchiveId.push(archiveId);
-       $scope.openedArchiveWindowRef.push(archiveUnitwindow);
-      }
-     };
-
-     var displayFormCallBack = function(data) {
-      if (data.$results == null || data.$results == undefined || data.$hits == null || data.$hits == undefined) {
-       $scope.error = true;
-       $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
-       $scope.showAlert($event, "Erreur", $scope.errorMessage);
-      } else {
-       $scope.totalFoundArchive = data.$hits.total;
-       if ($scope.totalFoundArchive != 1) {
-        console.log('Archive unit not found');
-        $scope.error = true;
-        $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_NOT_FOUND_MSG;
-        $scope.showAlert($event, "Erreur", $scope.errorMessage);
-       } else {
-        // Archive unit found
-        // Get Archive Details configuration
-        // only once
-        if ($scope.archiveDetailsConfig == null || $scope.archiveDetailsConfig == undefined) {
-         // $scope.archiveDetailsConfig =
-         // archiveDetailsService.getArchiveUnitDetailsConfig();
-         ihmDemoFactory.getArchiveUnitDetailsConfig()
-          .then(
-           function(response) {
-            $scope.archiveDetailsConfig = response.data;
-            openArchiveDetailsWindow(data.$results);
-           },
-           function(error) {
-            console
-             .log(ARCHIVE_UNIT_MODULE_CONST.CONFIG_FILE_NOT_FOUND_MSG);
-            $scope.archiveDetailsConfig = {};
-            openArchiveDetailsWindow(data.$results);
-           });
-        } else {
-         openArchiveDetailsWindow(data.$results);
-        }
-       }
-      }
-     };
-
-     var failureCallback = function(errorMsg) {
-      // Display error message
-      console.log(errorMsg);
-      $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_SEARCH_ERROR_MSG;
-      $scope.showAlert($event, "Erreur", $scope.errorMessage);
-     }
-
-     // Find archive unit details
-     archiveDetailsService.findArchiveUnitDetails(archiveId,
-      displayFormCallBack, failureCallback);
+      $window.open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH +archiveId) ;
     }
 
     $scope.isObjectExist = function isObjectExist(object) {
@@ -216,7 +138,7 @@ angular
 
     // ************************************Pagination
     // **************************** //
-    $scope.viewby = 10;
+    $scope.viewby = ITEM_PER_PAGE;
     $scope.currentPage = 1;
     $scope.itemsPerPage = $scope.viewby;
     $scope.maxSize = 5;

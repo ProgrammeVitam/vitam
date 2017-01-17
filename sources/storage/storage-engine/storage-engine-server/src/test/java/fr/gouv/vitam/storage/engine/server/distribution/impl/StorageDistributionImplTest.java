@@ -40,6 +40,7 @@ import java.io.FileInputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -87,7 +88,7 @@ public class StorageDistributionImplTest {
 
     @Test
     public void testStoreData_IllegalArguments()
-        throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageObjectAlreadyExistsException {
         // storeData(String tenantId, String strategyId, String objectId,
         // CreateObjectDescription createObjectDescription, DataCategory category,
         // JsonNode jsonData)
@@ -117,10 +118,12 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        FileInputStream stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .entity(stream2).build());
         try {
             // Store object
             storedInfoResult = customDistribution
@@ -128,6 +131,7 @@ public class StorageDistributionImplTest {
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
+            IOUtils.closeQuietly(stream2);
         }
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
@@ -145,9 +149,11 @@ public class StorageDistributionImplTest {
 
         // Store Unit
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .entity(stream2).build());
         try {
             storedInfoResult =
                 customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
@@ -163,9 +169,11 @@ public class StorageDistributionImplTest {
 
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .entity(stream2).build());
         try {
             storedInfoResult =
                 customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
@@ -181,9 +189,11 @@ public class StorageDistributionImplTest {
 
         // Store object group
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
+        stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .entity(stream2).build());
         try {
             storedInfoResult =
                 customDistribution.storeData(TENANT_ID + this, STRATEGY_ID, objectId, createObjectDescription,
@@ -290,7 +300,7 @@ public class StorageDistributionImplTest {
 
     private void checkInvalidArgumentException(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category)
-        throws StorageNotFoundException, StorageTechnicalException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageObjectAlreadyExistsException {
         try {
             simpleDistribution.storeData(tenantId, strategyId, objectId, createObjectDescription, category,
                 "testRequester");

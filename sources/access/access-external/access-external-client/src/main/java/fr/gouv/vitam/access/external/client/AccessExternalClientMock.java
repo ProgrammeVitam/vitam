@@ -25,20 +25,23 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse selectUnits(JsonNode selectQuery) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}",
+            RequestResponseOK.class, JsonNode.class);
     }
 
     @Override
     public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}",
+            RequestResponseOK.class, JsonNode.class);
     }
 
     @Override
     public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId) throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        return JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}",
+            RequestResponseOK.class, JsonNode.class);
     }
 
     @Override

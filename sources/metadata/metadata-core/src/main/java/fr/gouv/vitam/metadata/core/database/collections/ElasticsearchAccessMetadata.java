@@ -314,7 +314,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             unit.remove(VitamDocument.ID);
 
             final String mongoJson = unit.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            // TODO Empty variable (null) might be ignore here 
+            // TODO Empty variable (null) might be ignore here
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             final String toInsert = dbObject.toString().trim();
             if (toInsert.isEmpty()) {
@@ -328,8 +328,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (bulkResponse.hasFailures()) {
             int duplicates = 0;
             for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                if (bulkItemResponse.getVersion() > 1)
+                if (bulkItemResponse.getVersion() > 1) {
                     duplicates++;
+                }
             }
             LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
                 bulkResponse.buildFailureMessage());
@@ -357,7 +358,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             unit.remove(VitamDocument.ID);
 
             final String mongoJson = unit.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            // TODO Empty variable (null) might be ignore here 
+            // TODO Empty variable (null) might be ignore here
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             final String toUpdate = dbObject.toString().trim();
             if (toUpdate.isEmpty()) {

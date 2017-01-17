@@ -62,7 +62,7 @@ public class StorageClientMockTest {
 
     @Test
     public void storageInfos() throws Exception {
-        final JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT);
+        final JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT_ARRAY);
         final StorageClient client =
             StorageClientFactory.getInstance().getClient();
         assertNotNull(client);

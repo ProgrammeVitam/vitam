@@ -1,0 +1,58 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
+    xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-18T11:20:26</Date>
+    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <DescriptiveMetadata>
+			<!-- MODIFICATION DES INFORMATIONS DE L'AU ROOT -->
+            <ArchiveUnit id="XML_ID1">
+				<Management>
+		            <UpdateOperation>
+		            	<SystemId>aeaaaaaaaaaam7mxab2kkakzn5mib7aaaaaq</SystemId>
+		            	<FullUpdate>false</FullUpdate>
+		            </UpdateOperation>		            
+	            </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>NOUVEAU_TitreID1</Title>
+                    <Description>NOUVELLE_DescriptionID1</Description>
+                    <StartDate>2016-03-23T14:58:30</StartDate>
+                    <EndDate>2016-03-23T14:58:30</EndDate>
+                </Content>                
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+        	<ArchivalProfile>ArchivalProfile0</ArchivalProfile>
+            <ServiceLevel>ServiceLevel0</ServiceLevel>
+			<OriginatingAgencyIdentifier>FRAN_NP_050313</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

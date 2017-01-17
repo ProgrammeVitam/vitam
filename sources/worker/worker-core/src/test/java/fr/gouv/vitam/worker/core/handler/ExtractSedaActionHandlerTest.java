@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -47,16 +48,24 @@ import javax.xml.stream.XMLStreamException;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
@@ -71,13 +80,17 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class})
+@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class})
 public class ExtractSedaActionHandlerTest {
     ExtractSedaActionHandler handler = new ExtractSedaActionHandler();
     private static final String HANDLER_ID = "CHECK_MANIFEST";
+    private static final String SIP_ADD_LINK = "extractSedaActionHandler/addLink/SIP_Add_Link.xml";
+    private static final String SIP_ADD_UNIT = "extractSedaActionHandler/addUnit/SIP_Add_Unit.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
+    private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
+    private MetaDataClientFactory metadataClientFactory;
     private HandlerIOImpl action;
     private List<IOParameter> out;
 
@@ -90,6 +103,14 @@ public class ExtractSedaActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        metadataClient = mock(MetaDataClient.class);
+        metadataClientFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
+        PowerMockito.when(MetaDataClientFactory.getInstance().getClient()).thenReturn(metadataClient);
+
+
         action = new HandlerIOImpl("ExtractSedaActionHandlerTest", "workerId");
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
@@ -313,4 +334,71 @@ public class ExtractSedaActionHandlerTest {
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    // TODO : US 1686 test for add link between 2 existing units
+    @Test
+    public void givenManifestWithUpdateLinkExtractSedaThenReadSuccess()
+        throws VitamException, IOException {
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_LINK));
+        JsonNode child = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_CHILD.json"));
+        JsonNode parent = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
+
+        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_CHILD"))).thenReturn(child);
+        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadSuccess()
+        throws VitamException, IOException {
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        JsonNode parent = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
+
+        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadKO()
+        throws VitamException, IOException {
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
 }

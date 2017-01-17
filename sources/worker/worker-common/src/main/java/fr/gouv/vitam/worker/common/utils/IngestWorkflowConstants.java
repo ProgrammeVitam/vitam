@@ -91,10 +91,6 @@ public class IngestWorkflowConstants {
      * Sub folder for archive units tree in Worskpace folder of container : containerId/Exec
      */
     public static final String EXEC_FOLDER = "Exec";
-    /**
-     * Sub folder for work file in Worskpace folder of container : containerId/tmp
-     */
-    public static final String TMP_FOLDER = "tmp";
 
     // TODO P1 : add doc
     public static final String ROOT_TAG = "ROOT";
@@ -104,6 +100,11 @@ public class IngestWorkflowConstants {
     public static final String RULES = "RulesToApply";
 
     public static final String RULES_TAG = "Rules";
+    
+    /**
+     * In work tag : If data (unit or og) already exists, set to true, else false 
+     */
+    public static final String EXISTING_TAG = "_existing";
 
     /**
      * Sub folder for work file in Worskpace folder of container : containerId/ATR

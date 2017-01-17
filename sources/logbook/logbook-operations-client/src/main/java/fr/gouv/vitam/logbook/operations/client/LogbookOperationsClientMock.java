@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Queue;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -100,7 +102,7 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     @Override
     public RequestResponseOK traceability() throws InvalidParseOperationException {
         LOGGER.debug("calling traceability ");
-        final ArrayNode resultAsJson = JsonHandler.createArrayNode();
+        final List<String> resultAsJson = new ArrayList<>();
 
         resultAsJson.add(GUID_EXAMPLE);
 

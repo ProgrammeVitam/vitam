@@ -166,9 +166,9 @@ public class AccessInternalResourceImplTest {
     @Test
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when().get(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
@@ -179,27 +179,19 @@ public class AccessInternalResourceImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON)
             .body(buildDSLWithOptions(QUERY_TEST, "test")).when()
-            .post(ACCESS_UNITS_URI).then()
+            .get(ACCESS_UNITS_URI).then()
             .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_BadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML)).when()
-            .post(ACCESS_UNITS_URI).then()
+            .get(ACCESS_UNITS_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
-    public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_METHOD_NOT_ALLOWED() throws Exception {
-        given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(buildDSLWithOptions(QUERY_TEST, DATA2))
-            .when().post(ACCESS_UNITS_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     /**
@@ -233,9 +225,9 @@ public class AccessInternalResourceImplTest {
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_SelectById_UnsupportedMediaType()
         throws Exception {
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
-            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
@@ -246,20 +238,11 @@ public class AccessInternalResourceImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void givenStartedServer_WhenBadRequest_ThenReturnError_SelectById_BadRequest() throws Exception {
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(ID))
-            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
-
-    @Test
-    public void givenStartedServer_When_Empty_Http_Get_ThenReturnError_SelectById_METHOD_NOT_ALLOWED()
-        throws Exception {
-        given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(buildDSLWithRoots(null))
-            .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
-    }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_SelectUnitById_WhenStringTooLong_Then_RaiseException() throws Exception {
@@ -267,9 +250,9 @@ public class AccessInternalResourceImplTest {
         try {
             GlobalDatasParser.limitRequest = 1000;
             given()
-                .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+                .contentType(ContentType.JSON)
                 .body(buildDSLWithOptions(createLongString(1001), DATA2))
-                .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+                .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
@@ -303,16 +286,14 @@ public class AccessInternalResourceImplTest {
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
         with()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions("", DATA2)).when()
-            .post("/units").then()
+            .get("/units").then()
             .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(BODY_TEST).when()
-            .post("/units/" + ID_UNIT).then()
+            .get("/units/" + ID_UNIT).then()
             .statusCode(Status.OK.getStatusCode());
 
     }
@@ -322,10 +303,9 @@ public class AccessInternalResourceImplTest {
     public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() {
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body("")
             .when()
-            .post("/units/" + ID_UNIT)
+            .get("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -353,41 +333,14 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() {
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
-            .body(BODY_TEST)
-            .when()
-            .post("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
-    }
-
-    @Test
     public void given_pathWithId_when_get_SelectByID() {
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(BODY_TEST)
             .when()
-            .post("/units/" + ID_UNIT)
+            .get("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public void given_bad_header_when_getUnitByID_in_post_thenReturn_Not_allowed()
-        throws InvalidParseOperationException {
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST))
-            .when()
-            .post("/units/" + ID_UNIT)
-            .then()
-            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -396,9 +349,8 @@ public class AccessInternalResourceImplTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .post("/units/" + ID_UNIT).then()
+            .get("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }

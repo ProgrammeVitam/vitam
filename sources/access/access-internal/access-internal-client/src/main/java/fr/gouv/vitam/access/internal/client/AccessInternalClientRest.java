@@ -84,19 +84,15 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnits(JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+    public JsonNode selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
+        AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "units", headers,
-                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
+            response = performRequest(HttpMethod.GET, "units", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -114,20 +110,16 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnitbyId(JsonNode selectQuery, String idUnit)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+    public JsonNode selectUnitbyId(JsonNode selectQuery, String idUnit) throws InvalidParseOperationException,
+        AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, "units/" + idUnit, headers,
-                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
+            response = performRequest(HttpMethod.GET, "units/" + idUnit, null, selectQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -145,9 +137,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws InvalidParseOperationException,
+        AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
@@ -155,9 +146,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, "units/" + unitId, null,
-                updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
+            response = performRequest(HttpMethod.PUT, "units/" + unitId, null, updateQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) { // access-common
@@ -165,7 +155,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             }
-
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
@@ -175,9 +164,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
-        throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId) throws InvalidParseOperationException,
+        AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
@@ -187,9 +175,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
-            response =
-                performRequest(HttpMethod.GET, "objects/" + objectId, headers,
-                    selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.GET, "objects/" + objectId, headers, selectObjectQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
@@ -229,9 +216,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
-            response =
-                performRequest(HttpMethod.GET, "objects/" + objectGroupId, headers,
-                    selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = performRequest(HttpMethod.GET, "objects/" + objectGroupId, headers, selectObjectQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case INTERNAL_SERVER_ERROR:
@@ -260,15 +246,14 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
-
     /* Logbook internal */
 
     @Override
     public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null,
-                select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null, select,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -294,8 +279,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -321,9 +305,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, null, emptySelectQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -351,8 +334,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
 
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject, null,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE, false);
+                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());

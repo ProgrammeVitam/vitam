@@ -37,6 +37,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
 /**
  * Logbook client interface
@@ -145,7 +147,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    VitamRequestIterator objectGroupLifeCyclesByOperationIterator(String operationId)
+    VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
@@ -172,7 +174,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    VitamRequestIterator unitLifeCyclesByOperationIterator(String operationId)
+    VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**

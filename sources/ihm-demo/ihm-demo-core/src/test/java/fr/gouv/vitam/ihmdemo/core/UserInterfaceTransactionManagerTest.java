@@ -62,7 +62,6 @@ import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 
 /**
  * Tests UserInterfaceTransactionManager class
- *
  */
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -105,9 +104,9 @@ public class UserInterfaceTransactionManagerTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        unitDetails = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(UNIT_DETAILS));
-        searchResult = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(SEARCH_RESULT));
-        updateResult = RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT));
+        unitDetails = JsonHandler.getFromString(UNIT_DETAILS, RequestResponseOK.class, JsonNode.class);
+        searchResult = JsonHandler.getFromString(SEARCH_RESULT, RequestResponseOK.class, JsonNode.class);
+        updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT, RequestResponseOK.class, JsonNode.class);
         allParents = JsonHandler.getFromString(ALL_PARENTS);
     }
 
@@ -138,9 +137,10 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT))
             .thenReturn(unitDetails);
         // Test method
-        final RequestResponseOK archiveDetails =
+        final RequestResponseOK<JsonNode> archiveDetails =
             (RequestResponseOK) UserInterfaceTransactionManager
                 .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT);
+
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
@@ -160,13 +160,13 @@ public class UserInterfaceTransactionManagerTest {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException {
         final RequestResponse result =
-            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
+            JsonHandler.getFromString(
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
-                    SEARCH_UNIT_DSL_QUERY + "}"));
+                    SEARCH_UNIT_DSL_QUERY + "}", RequestResponseOK.class, JsonNode.class);
         when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP))
             .thenReturn(result);
         // Test method
-        final RequestResponseOK objectGroup =
+        final RequestResponseOK<JsonNode> objectGroup =
             (RequestResponseOK) UserInterfaceTransactionManager
                 .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP);
         assertTrue(

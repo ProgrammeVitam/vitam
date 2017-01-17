@@ -4,24 +4,17 @@ IHM Front - Tests
 Cette documentation décrit la partie tests (unitaires et end to end) du front/Angular de l'ihm.
 -----------------------------------------------------------------------------------------------
 
+Il est possible de lancer tout les tests via la commande `gulp tests` (Protractor nécessite Chrome).
+Un `npm install` est nécessaire.
+
 Tests unitaires
 ***************
 
 Installation / Lancement des tests unitaires
 ============================================
 
-Karma doit avoir été installé au préalable (Deviendra obselette lorsque la config Gulp sera présente)
-
-.. code-block:: bash
-
-   cd ihm-demo-web-application/src/main/resources/webapp
-   npm install --save-dev karma karma-mocha karma-chai karma-phantomjs-launcher
-
-Le lancement des tests unitaires se fait dans le dossier webapp via la ligne de commande suivante
-
-.. code-block:: bash
-
-   karma start
+Karma est installé automatiquement avec les autres dépendances via la commande `npm install`.
+Le lancement des tests s'effectue vià la commande `gulp testKarma`
 
 Informations sur la configuration des tests unitaires
 =====================================================
@@ -51,33 +44,46 @@ Tests end to end
 Initialisation / Lancement des tests e2e
 ========================================
 
-Installation de protractor (Install aussi un selenium pour les tests e2e)
+Pour le moment, il est nécessaire d'avoir un environement lancé dans le serveur d'App pour servir les resources. Un gulp serve devrait régler le problème.
+
+[Inutile si lancé via gulp]Installation de protractor
 
 .. code-block:: bash
 
    npm install -g protractor@2
    protractor --version
 
-Cette commande devrait avoir installer un 'webdriver-manager' (Sélénium). Il est nécessaire de le mettre à jour et de le lancer pour lancer les tests e2e.
+Cette commande devrait avoir installer un 'webdriver-manager' (Sélénium).
+
+[Inutile si lancé via gulp]Il est nécessaire de le mettre à jour et de le lancer pour lancer les tests e2e.
 
 .. code-block:: bash
 
    node_modules/protractor/bin/webdriver-manager update
    node_modules/protractor/bin/webdriver-manager start
 
-Pour le moment, il est nécessaire d'avoir un environement lancé dans le serveur d'App pour servir les resources.
-Cette étape devrais disparaitre avec l'arrivée de gulp.
+Si une erreur 'info: driver.version: unknown' est remontée, vérifier la compatibilité entre votre navigateur Chrome et son plugin ChromeDriver.
+Si besoin, modifiez le fichier webapp/node_modules/protractor/config.json, et mettez à jour la propriété "chromedriver" avec une valeur compatible (2.27 pour les plus récent).
+Cette modification 'hardcodded' doit être faite après chaque mise à jour de npm (npm install).
 
-Le lancement des tests end to end se font grâce à la commande suivante:
+[Inutile si lancé via gulp]Le lancement des tests end to end se font grâce à la commande suivante:
 
 .. code-block:: bash
 
    protractor protractor.conf.js
 
+Il est également possible de le lancer via gulp via la commande:
+
+.. code-block:: bash
+
+   gulp testProtractor
+
 Il est possible de surcharger divers arguments grâce aux arguments suivants (donnés à titre d'exemple:
 * --baseUrl='http://localhost:8082/ihm-demo/#!' (Permet de modifier l'URL de base utilisée. Peut par exemple servir a lancer les tests e2e sur le serveur de recette.
 * --params.<paramName>='<paramValue>' (Permet de modifier un paramètre de la configuration protractor (params)
 * --suite=<maSuite>  (Permet d'utiliser seulement une ou plusieurs suites de tests plutôt que de lancer toute la baterie.
+
+Ces paramètres sont aussi settables dans le json de configuration gulp de la tache testProtractor.
 
 Informations sur la configuration des tests e2e
 ===============================================
@@ -134,3 +140,4 @@ Actions / promise et Expects:
 Mock HTTP:
  - Exemple simple dans login ou on configure le httpMocker dans beforeEach si le mode mock est activé.
  - Exemple plus complexe dans accession-register où on renvoie une réponse en fonction des paramètres.
+ 

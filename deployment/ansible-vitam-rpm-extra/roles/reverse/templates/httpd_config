@@ -1,7 +1,18 @@
 <VirtualHost *:{{ reverse_proxy_port }}>
   DocumentRoot "/var/www/html-{{environnement}}"
-  ProxyPreserveHost Off
+  ProxyPreserveHost off
   ServerName {{vitam_reverse_external_dns}}
+
+  # Enable SSL for the Reverse proxy
+  SSLProxyEngine on
+  # Client certificate path
+  SSLProxyMachineCertificateFile /etc/httpd/certs/keystore_client_{{environnement}}.pem
+  # Client CA path
+  SSLProxyCACertificateFile /etc/httpd/certs/ca_client_{{environnement}}.crt
+  # Don't check the CN of the server's certificate
+  SSLProxyCheckPeerCN off
+  # Don't check the hostname of the server
+  SSLProxyCheckPeerName off
 
 <Directory "/var/www/html-{{environnement}}">
     #
@@ -37,6 +48,15 @@
 
   ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
   ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }}
+
+# External API for ingest-external
+  ProxyPass /ingest-external https://{{groups['hosts-ingest-external'][0]}}:{{vitam_ingestexternal_port_https}}/ingest-external acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+  ProxyPassReverse  /ingest-external https://{{groups['hosts-ingest-external'][0]}}:{{vitam_ingestexternal_port_https}}/ingest-external
+
+# External API for access-external
+  ProxyPass /access-external https://{{groups['hosts-access-external'][0]}}:{{vitam_accessexternal_port_https}}/access-external acquire=5000 connectiontimeout=3500 timeout=600 retry=5
+  ProxyPassReverse  /access-external https://{{groups['hosts-access-external'][0]}}:{{vitam_accessexternal_port_https}}/access-external
+
 
   ProxyPass /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook acquire=5000 connectiontimeout=3500 timeout=50 retry=5
   ProxyPassReverse  /logbook http://{{groups['hosts-logbook'][0]}}:{{vitam_logbook_port}}/logbook

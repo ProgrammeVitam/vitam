@@ -696,8 +696,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadRefFormat(InputStream input) {
         try (final AdminExternalClient adminClient =
             AdminExternalClientFactory.getInstance().getClient()) {
-            adminClient.createDocuments(AdminCollections.FORMATS, input);
-            return Response.status(Status.OK).build();
+            Status status = adminClient.createDocuments(AdminCollections.FORMATS, input);
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();

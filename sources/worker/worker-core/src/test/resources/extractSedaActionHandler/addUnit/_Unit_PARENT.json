@@ -1,0 +1,23 @@
+{
+	"#id" : "GUID_ARCHIVE_UNIT_PARENT",
+	"DescriptionLevel" : "RecordGrp",
+	"Title" : "content",
+	"Description" : "C:\\Users\\mehdi.afnai\\Desktop\\content",
+	"StartDate" : "2016-03-23T14:58:30",
+	"EndDate" : "2016-03-23T14:58:30",
+	"#object" : "",
+	"#operations" : [
+		"aedqaaaaacaam7mxaabpuakzn47pvkiaaaaq"
+	],
+	"#tenant" : 0,
+	"#max" : 2,
+	"#min" : 1,
+	"#unitups" : [
+		"GUID_ARCHIVE_UNIT_ANCESTOR"
+	],
+	"#nbunits" : 0,
+	"#allunitups" : [
+		"GUID_ARCHIVE_UNIT_ANCESTOR"
+	]
+}
+],"$context":{"$roots":[],"$query":[],"$filter":{},"$projection":{}}}

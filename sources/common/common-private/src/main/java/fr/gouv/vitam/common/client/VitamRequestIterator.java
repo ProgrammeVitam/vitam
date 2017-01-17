@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -52,7 +53,7 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 /**
  * Utility to help with Http based Cursor that implements real Database Cursor on server side
  */
-public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNode> {
+public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIterator.class);
 
     private final MockOrRestClient client;
@@ -60,11 +61,12 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
     private final String method;
     private final String path;
     private final MultivaluedHashMap<String, Object> headers;
+    private final Class<T> responseType;
     private String xCursorId = null;
     private boolean first = true;
     private boolean closed = false;
-    private RequestResponseOK objectResponse = null;
-    private Iterator<JsonNode> iterator = null;
+    private RequestResponseOK<T> objectResponse = null;
+    private Iterator<T> iterator = null;
 
     /**
      * Constructor</br>
@@ -80,7 +82,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
      */
     // TODO P1 Add later on capability to handle maxNbPart in order to control the rate
     public VitamRequestIterator(MockOrRestClient client, String method, String path,
-        MultivaluedHashMap<String, Object> headers,
+        Class<T> responseType, MultivaluedHashMap<String, Object> headers,
         JsonNode request) {
         ParametersChecker.checkParameter("Arguments method and path could not be null", method, path);
         ParametersChecker.checkParameter("Argument client could not be null", client);
@@ -93,6 +95,7 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
             this.headers = new MultivaluedHashMap<>();
         }
         this.request = request;
+        this.responseType = responseType;
     }
 
     @Override
@@ -129,7 +132,14 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
         } else {
             headers.add(GlobalDataRest.X_CURSOR_ID, xCursorId);
         }
-        objectResponse = response.readEntity(RequestResponseOK.class);
+
+        try {
+            objectResponse = JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, responseType);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Invalid response, json parsing fail", e);
+            return false;
+        }
+
         iterator = objectResponse.getResults().iterator();
         if (!iterator.hasNext()) {
             objectResponse = null;
@@ -141,7 +151,12 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
 
     private boolean handleNext(Response response) {
         // TODO P1 Ignore for the moment X-Cursor-Timeout
-        objectResponse = response.readEntity(RequestResponseOK.class);
+        try {
+            objectResponse = JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, responseType);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Invalid response, json parsing fail", e);
+            return false;
+        }
         iterator = objectResponse.getResults().iterator();
         if (!iterator.hasNext()) {
             objectResponse = null;
@@ -226,16 +241,17 @@ public class VitamRequestIterator implements VitamAutoCloseable, Iterator<JsonNo
     }
 
     @Override
-    public JsonNode next() {
+    public T next() {
         if (client instanceof AbstractMockClient) {
             closed = true;
+
             if (request == null) {
-                return JsonHandler.createObjectNode();
+                getClass().getTypeParameters().getClass();
+                return (T) new Object();
             }
-            return request;
         }
 
-        JsonNode result = null;
+        T result = null;
         if (objectResponse != null) {
             result = iterator.next();
             if (!iterator.hasNext()) {

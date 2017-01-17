@@ -85,14 +85,20 @@ public class IndexUnitActionHandlerTest {
     private WorkspaceClientFactory workspaceClientFactory;
     private static final String ARCHIVE_UNIT = "archiveUnit.xml";
     private static final String ARCHIVE_UNIT_WITH_RULES = "ARCHIVE_UNIT_TO_INDEX_WITH_RULES.xml";
+    private static final String ARCHIVE_UNIT_UPDATE_GUID_CHILD = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_CHILD.xml";
+    private static final String ARCHIVE_UNIT_UPDATE_GUID_PARENT = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_PARENT.xml";
     private final InputStream archiveUnit;
     private final InputStream archiveUnitWithRules;
+    private final InputStream archiveUnitChild;
+    private final InputStream archiveUnitParent;
     private HandlerIOImpl action;
     private GUID guid;
 
     public IndexUnitActionHandlerTest() throws FileNotFoundException {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
         archiveUnitWithRules = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_WITH_RULES);
+        archiveUnitChild = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_UPDATE_GUID_CHILD);
+        archiveUnitParent = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_UPDATE_GUID_PARENT);
     }
 
     @Before
@@ -202,5 +208,44 @@ public class IndexUnitActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
+    @Test
+    public void testIndexUnitUpdateChildOk()
+        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
+        MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+
+        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnitChild).build());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+    }
+
+    @Test
+    public void testIndexUnitUpdateParentOk()
+        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
+        MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException,
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+
+        when(metadataClient.insertUnit(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnitParent).build());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+    }
 
 }

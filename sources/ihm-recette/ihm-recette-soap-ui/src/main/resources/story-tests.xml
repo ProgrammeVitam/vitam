@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<con:soapui-project id="c8480034-0dce-4dac-a1f2-c088e879b614" activeEnvironment="Default" name="TestSIP" resourceRoot="" soapui-version="5.2.1" abortOnError="false" runType="SEQUENTIAL" defaultScriptLanguage="Groovy" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+<con:soapui-project id="c8480034-0dce-4dac-a1f2-c088e879b614" activeEnvironment="Default" name="TestSIP" resourceRoot="" soapui-version="5.3.0" abortOnError="false" runType="SEQUENTIAL" defaultScriptLanguage="Groovy" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
   <con:entry key="Environment" value="Default"/>
   <con:entry key="Global Properties" value=""/>
   <con:entry key="TestSuite" value="TestSuite ingest US 655/946"/>
@@ -104,15 +104,18 @@ if ( context.inputJSON!= null &amp;&amp;   context.inputJSON.params.size  > 0 ){
  * Upload File 
  **/
 import java.security.KeyStore
-import groovyx.net.http.HTTPBuilder
-import groovy.json.JsonSlurper 
 import org.apache.http.conn.scheme.Scheme
 import org.apache.http.conn.ssl.SSLSocketFactory
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier
-
-import static groovyx.net.http.Method.POST
-import static groovyx.net.http.ContentType.BINARY
-
+import java.io.File;
+import java.io.FileInputStream;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 
 def url  = context.ingest+"ingest-external/v1/ingests/"
 log.info 'Url for ingest' + url
@@ -127,10 +130,10 @@ def file = context.dataDir+context.sipName
 
 log.info 'Cert: ' + cert
 log.info 'File uploaded: ' + context.dataDir+context.sipName
-
 def ope_id = null
-def http = new HTTPBuilder( url )
 
+
+def http = new DefaultHttpClient();
 if (url.startsWith('https')) {
 	def keyStore = KeyStore.getInstance( "PKCS12" )
 	def trustStore = KeyStore.getInstance("JKS")
@@ -142,62 +145,60 @@ if (url.startsWith('https')) {
 	new File(trust).withInputStream {
 		trustStore.load(it, trustPass.toCharArray())
 	}
-	
-	//getClass().getResource( cert ).withInputStream  {
-    		// keyStore.load( it, "password".toCharArray() )
-	//}
- 
 	SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
 	//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
 	socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
- 
-	http.client.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
+	http.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
 }
+HttpPost httppost = new HttpPost(url);
+            def reqEntity = new InputStreamEntity(
+                    new FileInputStream(file), -1);
+            reqEntity.setContentType("application/octet-stream");
+            reqEntity.setChunked(true);
+httppost.setEntity(reqEntity);
+log.info "executing request " + httppost.getRequestLine();
+ def response = http.execute(httppost);
 
-
-http.request(POST){ request ->
-	requestContentType = BINARY
-	body = new File(file).bytes
-
-	response.success = { resp, reader ->;
-		ope_id = resp.getHeaders().getAt('X-REQUEST-ID').getValue()
-     }
- 
-     response.failure = { resp, reader ->;
-     	log.error "Request failed :  Status: ${resp.status}]"
-     	ope_id = resp.getHeaders().getAt('X-REQUEST-ID').getValue()
-     }
-
-     // TODO : Early ATR : Add X-Requst-Id (to validate)
-}
-
-context.ope_id = ope_id
-
-</script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script>import com.eviware.soapui.support.XmlHolder
-import groovy.json.JsonSlurper
+context.ope_id =response.getFirstHeader('X-REQUEST-ID').getValue()
+ </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script><![CDATA[import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import java.security.KeyStore
-import groovyx.net.http.HTTPBuilder
+
 import groovy.json.JsonSlurper
 import org.apache.http.conn.scheme.Scheme
 import org.apache.http.conn.ssl.SSLSocketFactory
 import org.apache.http.conn.ssl.AllowAllHostnameVerifier
-import static groovyx.net.http.Method.GET
+import org.apache.http.client.methods.HttpGet;
+import java.io.File;
+import java.io.FileInputStream;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.apache.http.entity.StringEntity;
 
 def i = context.iteration
-def url  = context.logbook+"access-external/v1/operations/"+context.ope_id
+def url  = context.logbook+"access-external/v1/operations/" + context.ope_id
+if (context.inputJSON.params[i].category != "EVT_UPLOAD_SIP")
+{
+	url  = context.access + context.inputJSON.params[i].operations.endpoint;	
+}
 def options = "" 
 def cert = context.certfile
 def certPass = context.certPass
 def trust = context.truststore
 def trustPass = context.trustPass
-
-def http = new HTTPBuilder( url )
 def reponse =  null
+
+def http = new DefaultHttpClient();
 if (url.startsWith('https')) {
 	def keyStore = KeyStore.getInstance( "PKCS12" )
 	def trustStore = KeyStore.getInstance("JKS")
 	//def keyStore = KeyStore.getInstance( "TLS" )
+	
 	new File(cert).withInputStream  {
     		keyStore.load(it, certPass.toCharArray() )
 	}
@@ -207,38 +208,86 @@ if (url.startsWith('https')) {
 	SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
 	//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
 	socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-	http.client.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
+	http.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
 }
-http.request(GET){ request ->
-	response.success = { resp, reader ->;
-	reponse=  reader
-     }
-     response.failure = { resp, reader ->;
-     log.err resp.getStatus()
-     }
-}
-if (reponse !=null )
+
+def response = null;
+
+if ((context.inputJSON.params[i].category != "EVT_UPLOAD_SIP") && (context.inputJSON.params[i].category != "EVT_IMPORT_RULES")){
+
+	context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
+	context.outputJson.params[context.outIteration].testName = context.testName;
+ 	if (resultStatusControl(context.response, context.inputJSON.params[i].testsExpected.httpStatusCode) &&
+ 		resultEntityControl(context.response, context.testName, context.outIteration)){
+ 		context.outputJson.params[context.outIteration].result = true;		
+	} else {
+		context.outputJson.params[context.outIteration].result = false;
+	}
+	context.outIteration = context.outIteration + 1
+
+}else {
+
+	/********************************************************************/
+	if (context.inputJSON.params[i].category == "EVT_UPLOAD_SIP")
 {
-	def slup = new JsonSlurper() // $.result[*]
-	result= reponse
-	def size = result.$results[0].events.size
+	HttpGet httpGet = new HttpGet(url);
+	response = http.execute(httpGet);
 
-	log.info 'Size / Last elem: ' + size + ' / ' + size-1
-	log.info 'Item -1: ' + result.$results[0].events[size-1].evType
-	log.info 'Outcome: ' + result.$results[0].events[size-1].outcome
+} else {	
+	HttpPost httpPost = new HttpPost(url);		
+	StringEntity reqEntity = new StringEntity('{\"$roots\":[],\"$query\":[],\"$filter\":{},\"$projection\":{}}');
+	reqEntity.setContentType("application/json");
+	httpPost.setEntity(reqEntity);		
+	response = http.execute(httpPost);		
+}
 
-	// Operation result
-	resultat =  result.$results[0].events[size-1].outcome == context.expected
-
-	if (context.inputJSON.params[i].actions != null) {
-
-		// boucler sur les actions
-		def actionsSize = context.inputJSON.params[i].actions.size
-		for (a = 0; a &lt; actionsSize; a++) {
-			currentAction = context.inputJSON.params[i].actions[a].name
+	if ((response !=null )  && (context.inputJSON.params[i].category == "EVT_UPLOAD_SIP")){
+		def result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity))  // $.result[*]
+		log.error result 
+		//result = reponse
+		def size = result.$results[0].events.size
+	
+		log.info 'Size / Last elem: ' + size + ' / ' + size-1
+		log.info 'Item -1: ' + result.$results[0].events[size-1].evType
+		log.info 'Outcome: ' + result.$results[0].events[size-1].outcome
+	
+		// Operation result
+		resultat =  result.$results[0].events[size-1].outcome == context.expected
+	
+		if (context.inputJSON.params[i].actions != null) {
+	
+			// boucler sur les actions
+			def actionsSize = context.inputJSON.params[i].actions.size
+			for (a = 0; a < actionsSize; a++) {
+				currentAction = context.inputJSON.params[i].actions[a].name
+				context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
+				context.outputJson.params[context.outIteration].ope_id = context.ope_id
+				context.outputJson.params[context.outIteration].currentAction = currentAction
+	
+				// Copy parameters
+				context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
+				context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
+				context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
+				context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
+				context.outputJson.params[context.outIteration].category = context.inputJSON.params[i].category
+				for (j = 0; j < size; j++) {
+					currentEventType = result.$results[0].events[j].evType
+					currentEventOutCome = result.$results[0].events[j].outcome
+					if (currentAction == currentEventType && currentEventOutCome != 'STARTED') {
+						log.info 'outIteration : ' + context.outIteration
+						context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].actions[a].expected
+						context.outputJson.params[context.outIteration].observed = result.$results[0].events[j].outcome
+						context.outputJson.params[context.outIteration].result = context.outputJson.params[context.outIteration].expected == context.outputJson.params[context.outIteration].observed
+						break;
+					}
+				}
+				log.info 'outputJson : ' + context.outputJson
+				context.outIteration = context.outIteration + 1
+			}
+		}
+		else {
+			//maintain compatibility
 			context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
-			context.outputJson.params[context.outIteration].ope_id = context.ope_id
-			context.outputJson.params[context.outIteration].currentAction = currentAction
 
 			// Copy parameters
 			context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
@@ -246,42 +295,103 @@ if (reponse !=null )
 			context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
 			context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
 			context.outputJson.params[context.outIteration].category = context.inputJSON.params[i].category
-			for (j = 0; j &lt; size; j++) {
-				currentEventType = result.$results[0].events[j].evType
-				currentEventOutCome = result.$results[0].events[j].outcome
-				if (currentAction == currentEventType &amp;&amp; currentEventOutCome != 'STARTED') {
-					log.info 'outIteration : ' + context.outIteration
-					context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].actions[a].expected
-					context.outputJson.params[context.outIteration].observed = result.$results[0].events[j].outcome
-					context.outputJson.params[context.outIteration].result = context.outputJson.params[context.outIteration].expected == context.outputJson.params[context.outIteration].observed
-					break;
-				}
-			}
-			log.info 'outputJson : ' + context.outputJson
+			context.outputJson.params[context.outIteration].ope_id = context.ope_id
+			context.outputJson.params[context.outIteration].expected = context.expected
+			context.outputJson.params[context.outIteration].observed = result.$results[0].events[size-1].outcome
+			context.outputJson.params[context.outIteration].result = resultat
 			context.outIteration = context.outIteration + 1
 		}
-	}
-	else {
-		//maintain compatibility
-		context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
-
-		// Copy parameters
-		context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
-		context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
-		context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
-		context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
-		context.outputJson.params[context.outIteration].category = context.inputJSON.params[i].category
-		context.outputJson.params[context.outIteration].ope_id = context.ope_id
-		context.outputJson.params[context.outIteration].expected = context.expected
-		context.outputJson.params[context.outIteration].observed = result.$results[0].events[size-1].outcome
-		context.outputJson.params[context.outIteration].result = resultat
-		context.outIteration = context.outIteration + 1
-	}
+	
 	log.info 'OUTPUT JSON : '+context.outputJson.params.text
 	log.info "------------------------------------->resultat observé : "+ result.$results[0].events[size-1].outcome
+	
+} else if ((response !=null )  && (context.inputJSON.params[i].category != "EVT_UPLOAD_SIP")){
+		context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')			
+
+		def result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity))  // $.result[*]
+		log.info result 
+		
+		if (result.$hits.total == context.inputJSON.params[i].testsExpected.ruleNumber) {
+			context.outputJson.params[context.outIteration].result = true;		
+		}
+		else context.outputJson.params[context.outIteration].result = false;		
+			
+		context.outputJson.params[context.outIteration].ruleFileName = "testRule"		
+		context.outputJson.params[context.outIteration]._tenant = 0
+		context.outputJson.params[context.outIteration].expected = "impoted"
+		context.outputJson.params[context.outIteration].httpStatusCode = 201
+		context.outputJson.params[context.outIteration].testName = "import regle avectenant 0"
+		
+		context.outIteration = context.outIteration + 1
 }
 
-</script></con:config></con:testStep><con:testStep type="groovy" name="while" id="80a3a8e4-bc73-41e7-a411-48982e666a01"><con:settings/><con:config><script>
+ 	/********************************************************************/
+}
+
+
+boolean resultStatusControl(HttpResponse response, int code){
+	if (response.getStatusLine().getStatusCode() == code){
+		return true;
+	} else {
+		return false;
+	}	
+}
+
+boolean resultEntityControl(HttpResponse response, String testName, int outIteration){
+	def result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity))		
+	if (testName == "REFRG1"){
+		//log.info "*************************************" + result.$hits.total;
+		//log.info "*************************************" + context.inputJSON.params[context.iteration].testsExpected.ruleNumber;
+		if (result.$hits.total != context.inputJSON.params[context.iteration].testsExpected.ruleNumber){
+			context.outputJson.params[outIteration].error = "total";
+			return false;
+		} else {
+			
+			context.outputJson.params[outIteration].hits_total = result.$hits.total;
+
+			for (int i=0; i<result.$hits.total; i++){
+				log.info "*************************************" + result.$results[i].RuleId;
+				log.info "*************************************" + context.inputJSON.params[context.iteration].testsExpected.content[i];
+				
+				if (result.$results[i].RuleId != context.inputJSON.params[context.iteration].testsExpected.content[i]){
+					context.outputJson.params[outIteration].error = "results[" + i + "]";
+					return false;
+				} else {
+					context.outputJson.params[outIteration].content = result.$results[i].RuleId;
+				}
+			}
+
+			return true;
+		}
+	} else if (testName == "REFRMT1"){
+		log.info "*************************************" + result.$hits.total;
+		if (result.$hits.total != context.inputJSON.params[context.iteration].testsExpected.formatNumber){
+			context.outputJson.params[outIteration].error = "total";
+			return false;
+		} else {
+			context.outputJson.params[outIteration].formatNumber = result.$hits.total;
+			context.outputJson.params[outIteration].content = [];
+			for (int i=0; i<result.$hits.total; i++){
+				log.info "*************************************" + result.$results[i].PUID;
+				log.info "*************************************" + context.inputJSON.params[context.iteration].testsExpected.content[i];
+				
+				if (result.$results[i].PUID != context.inputJSON.params[context.iteration].testsExpected.content[i]){
+					context.outputJson.params[outIteration].error = "results[" + i + "]";
+					return false;
+				} else {
+					context.outputJson.params[outIteration].content.add(result.$results[i].PUID);
+				}
+			}
+			
+			return true;
+		}
+		 
+	} else {
+		return true;
+	}
+}
+
+]]></script></con:config></con:testStep><con:testStep type="groovy" name="while" id="80a3a8e4-bc73-41e7-a411-48982e666a01"><con:settings/><con:config><script>
 
 def inputJSON = context.inputJSON 
 def i = context.iteration 
@@ -363,7 +473,7 @@ context.items = items</con:setupScript>
 </con:outgoing>
 </con:wssContainer>
 <con:oAuth2ProfileContainer/>
-<con:sensitiveInformation>
+<con:oAuth1ProfileContainer/><con:sensitiveInformation>
 <ProjectSpecificExposureList>null###null</ProjectSpecificExposureList>
 </con:sensitiveInformation>
 </con:soapui-project>

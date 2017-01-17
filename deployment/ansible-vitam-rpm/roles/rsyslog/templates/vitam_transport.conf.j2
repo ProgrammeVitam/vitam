@@ -64,3 +64,12 @@ $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
 :programname, startswith, "consul" @@{{vitam_logstash_host}}:{{vitam_logstash_port}}
+
+$ActionQueueType LinkedList
+$ActionQueueFileName logstash-clamav-queue
+$ActionQueueMaxDiskSpace 1g
+$ActionQueueSaveOnShutdown on
+$ActionResumeRetryCount -1
+$ActionQueueHighWatermark 100000
+$ActionQueueLowWatermark 10000
+:programname, startswith, "clam"  @@{{vitam_logstash_host}}:{{vitam_logstash_port}}

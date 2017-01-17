@@ -42,13 +42,18 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * AdminManagement client
@@ -161,7 +166,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public JsonNode getFormats(JsonNode query) throws ReferentialException, InvalidParseOperationException {
+    public RequestResponse<FileFormatModel> getFormats(JsonNode query)
+        throws ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
@@ -178,7 +184,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     throw new ReferentialException("Unknown error");
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return JsonHandler
+                .getFromString(response.readEntity(String.class), RequestResponseOK.class, FileFormatModel.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -313,13 +320,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public void createorUpdateAccessionRegister(AccessionRegisterDetail register)
+    public void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws DatabaseConflictException, AccessionRegisterException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("Accession register is a mandatory parameter", register);
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_CREATE_URI, null,
-                register, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+                mappingDetailModelToDetail(register), MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case CREATED:
@@ -340,13 +348,13 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public JsonNode getAccessionRegister(JsonNode query)
+    public RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DOCUMENT_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DOCUMENT_URL, null, query,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -354,11 +362,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("AccessionRegister Not found ");
+                    throw new ReferentialException("AccessionRegister Not found ");
                 default:
                     break;
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                AccessionRegisterSummaryModel.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -368,14 +377,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public JsonNode getAccessionRegisterDetail(JsonNode query)
+    public RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
 
         ParametersChecker.checkParameter("query is a mandatory parameter", query);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL, null,
-                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.POST, ACCESSION_REGISTER_GET_DETAIL_URL, null, query,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -383,11 +392,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("AccessionRegister Detail Not found ");
+                    throw new ReferentialException("AccessionRegister Detail Not found ");
                 default:
                     throw new AccessionRegisterException("Unknown error: " + status.getStatusCode());
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                AccessionRegisterDetailModel.class);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -395,4 +405,56 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
+
+    private AccessionRegisterDetail mappingDetailModelToDetail(AccessionRegisterDetailModel model) {
+        AccessionRegisterDetail accessionRegisterDetail = new AccessionRegisterDetail();
+        RegisterValueDetail totalObjectsGroups = new RegisterValueDetail();
+        RegisterValueDetail totalUnits = new RegisterValueDetail();
+        RegisterValueDetail totalObjects = new RegisterValueDetail();
+        RegisterValueDetail objectSize = new RegisterValueDetail();
+        accessionRegisterDetail.setId(model.getId()).
+            setOriginatingAgency(model.getOriginatingAgency()).
+            setSubmissionAgency(model.getSubmissionAgency()).
+            setEndDate(model.getEndDate()).
+            setStartDate(model.getStartDate());
+        if (model.getStatus() != null) {
+            accessionRegisterDetail.setStatus(model.getStatus());
+
+        }
+        accessionRegisterDetail.setLastUpdate(model.getLastUpdate());
+
+        if (model.getTotalObjectsGroups() != null) {
+            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal()).
+                setRemained(model.getTotalObjectsGroups().getRemained()).
+                setDeleted(model.getTotalObjectsGroups().getDeleted()).
+                setOriginatingAgency(model.getTotalObjectsGroups().getOriginatingAgency());
+
+            accessionRegisterDetail.setTotalObjectGroups(totalObjectsGroups);
+        }
+        if (model.getTotalUnits() != null) {
+            totalUnits.setTotal(model.getTotalUnits().getTotal()).
+                setRemained(model.getTotalUnits().getRemained()).
+                setDeleted(model.getTotalUnits().getDeleted()).
+                setOriginatingAgency(model.getTotalUnits().getOriginatingAgency());
+
+            accessionRegisterDetail.setTotalUnits(totalUnits);
+        }
+        if (model.getTotalObjects() != null) {
+            totalObjects.setTotal(model.getTotalObjects().getTotal()).
+                setRemained(model.getTotalObjects().getRemained()).
+                setDeleted(model.getTotalObjects().getDeleted()).
+                setOriginatingAgency(model.getTotalObjects().getOriginatingAgency());
+
+            accessionRegisterDetail.setTotalObjects(totalObjects);
+        }
+        if (model.getObjectSize() != null) {
+            objectSize.setTotal(model.getObjectSize().getTotal()).
+                setRemained(model.getObjectSize().getRemained()).
+                setDeleted(model.getObjectSize().getDeleted()).
+                setOriginatingAgency(model.getObjectSize().getOriginatingAgency());
+            accessionRegisterDetail.setObjectSize(objectSize);
+        }
+        return accessionRegisterDetail;
+    }
+
 }

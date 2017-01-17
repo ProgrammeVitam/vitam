@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.12.0-SNAPSHOT</version>
+	<version>0.13.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -336,10 +336,20 @@
 					<configuration>
 						<archive>
 							<manifestEntries>
+                                <Vitam-component>true</Vitam-component>
 								<Maven-groupId>${project.groupId}</Maven-groupId>
 								<Maven-artefactId>${project.artifactId}</Maven-artefactId>
 								<Maven-version>${project.version}</Maven-version>
 								<Maven-build-timestamp>${maven.build.timestamp}</Maven-build-timestamp>
+                                <Scm-tags>${git.tags}</Scm-tags>
+                                <Scm-branch>${git.branch}</Scm-branch>
+                                <Scm-dirty>${git.dirty}</Scm-dirty>
+                                <Scm-commit-id>${git.commit.id}</Scm-commit-id>
+                                <Scm-commit-id-abbrev>${git.commit.id.abbrev}</Scm-commit-id-abbrev>
+                                <Scm-commit-time>${git.commit.time}</Scm-commit-time>
+                                <!--<Scm-commit-id-describe>${git.commit.id.describe}</Scm-commit-id-describe>
+                                <Scm-closest-tag-name>${git.closest.tag.name}</Scm-closest-tag-name>
+                                <Scm-closest-tag-commit-count>${git.closest.tag.commit.count}</Scm-closest-tag-commit-count>-->
 								<!-- <Sealed>true</Sealed> -->
 							</manifestEntries>
 							<manifest>
@@ -629,6 +639,31 @@
 					<artifactId>versions-maven-plugin</artifactId>
 					<version>2.3</version>
 				</plugin>
+                <!-- Get git versions information -->
+                <plugin>
+                    <groupId>pl.project13.maven</groupId>
+                    <artifactId>git-commit-id-plugin</artifactId>
+                    <version>2.2.1</version>
+                    <executions>
+                        <execution>
+                            <id>get-the-git-infos</id>
+                            <goals>
+                                <goal>revision</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+
+                    <configuration>
+                        <!--<dotGitDirectory>${project.basedir}/.git</dotGitDirectory>-->
+                        <dateFormat>yyyy-MM-dd'T'HH:mm:ssX</dateFormat>
+                        <!--<injectAllReactorProjects>true</injectAllReactorProjects>
+                        <runOnlyOnce>true</runOnlyOnce>-->
+                        <!--<failOnNoGitDirectory>false</failOnNoGitDirectory>-->
+                        <!-- <failOnUnableToExtractRepoInfo>true</failOnUnableToExtractRepoInfo> -->
+                        <!--<useNativeGit>false</useNativeGit>-->
+                    </configuration>
+                </plugin>
+                <!-- END OF GIT COMMIT ID PLUGIN CONFIGURATION -->
 			</plugins>
 		</pluginManagement>
 
@@ -637,6 +672,10 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 			</plugin>
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+            </plugin>
 		</plugins>
 	</build>
 

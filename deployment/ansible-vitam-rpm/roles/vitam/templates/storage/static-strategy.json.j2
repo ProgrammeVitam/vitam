@@ -1,9 +1,13 @@
 {
- "id" : "default",
- "hot" : {
-   "copy" : 1,
-   "offers" : [
-     {"id" : "default"}
-   ]
- }
+    "id" : "default",
+    "hot" : {
+        "copy" : 1,
+        "offers" : [
+            {% for i in vitam_storageofferdefault_list %}
+            {% if i.name is defined %}
+            {"id" : "{{i.name}}"}{% if not loop.last %},{% endif %}
+            {% endif %}
+            {% endfor %}
+        ]
+    }
 }

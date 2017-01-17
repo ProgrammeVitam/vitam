@@ -232,3 +232,6 @@ installation_clamav=true
 
 # cas de l'appel au webDAV pour récupérer les jeux de tests
 http_proxy_environnement=
+
+vitam_storageofferdefault_host_1=
+# vitam_storageofferdefault_host_2=

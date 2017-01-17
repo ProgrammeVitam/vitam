@@ -37,7 +37,7 @@ angular.module('core').factory(
 		'searchOperationResource',
 		function($http, IHM_URLS) {
 
-			var Search_operation_ROOT = '/logbook/operations';
+			var Search_operation_ROOT = '/logbooks';
 			var searchOperationResource = {};
 
 			/**
@@ -47,7 +47,7 @@ angular.module('core').factory(
 			 */
 			searchOperationResource.result = function(options) {
 				return $http.post(IHM_URLS.IHM_BASE_URL
-						+Search_operation_ROOT,options);
+					+ Search_operation_ROOT, options, {'headers' : {'X-HTTP-Method-Override' : 'GET'}});
 			};
 			return searchOperationResource;
 

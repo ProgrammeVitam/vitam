@@ -96,6 +96,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         poolWorkflows = new HashMap<>();
         try {
             setWorkflow("DefaultIngestWorkflow");
+            setWorkflow("BigIngestWorkflow");
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }
@@ -168,7 +169,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                         tenantId, finished);
                     // if the step has been defined as Blocking and then stepStatus is KO or FATAL
                     // then break the process
-                    if (stepResponse.shallStop(step.getBehavior().equals(ProcessBehavior.BLOCKING))) {
+                    if (stepResponse.shallStop(step.isBlocking())) {
                         finished = false;
                         break;
                     }

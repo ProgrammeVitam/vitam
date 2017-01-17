@@ -59,4 +59,14 @@ public class DefaultWorkerParameters extends AbstractWorkerParameters {
         super(WorkerParametersFactory.getDefaultMandatory());
         setMap(map);
     }
+    
+    /**
+     * Shallow copy of DefaultWorkerParameter
+     * @return the shallow copy
+     */
+    public DefaultWorkerParameters newInstance(){
+        DefaultWorkerParameters awp = new DefaultWorkerParameters(getMandatoriesParameters());
+        awp.mapParameters.putAll(mapParameters);
+        return awp;
+    }
 }

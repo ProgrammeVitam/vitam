@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID001">
+    <Comment>SIP ADD link AU : AU PARENT (EXISTING) - AU CHILD (NEW)</Comment>
+    <Date>2016-06-23T09:45:51.0</Date>
+    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <!-- SIP test OK pour nouvel AU lié à un existant -->
+    <CodeListVersions xml:id="ID005">
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    
+    <DataObjectPackage xml:id="ID007">
+        <PhysicalDataObject id="ID009">
+            <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+            <PhysicalId>1500W03</PhysicalId>
+            <PhysicalDimensions>
+            </PhysicalDimensions>
+        </PhysicalDataObject>
+        
+        <BinaryDataObject id="ID011">
+            <DataObjectGroupId>ID006</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>content/BAD0431E2C5E80E5BD42D547A3ED5966.odt</Uri>
+            <MessageDigest algorithm="MD5">bad0431e2c5e80e5bd42d547a3ed5966</MessageDigest>
+            <Size>251686</Size>
+            <FormatIdentification>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>manuel_utilisateur_IHM.odt</Filename>
+            </FileInfo>
+ <Metadata>
+                <Document><!--  --></Document>
+            </Metadata>
+            <OtherMetadata><!--  --></OtherMetadata>
+        </BinaryDataObject>
+        
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID015">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>CHILD_TO_BE_CREATED</Title>
+                    <Description>Il existe une version papier et une version électronique du manuel utilisateur pour l'IHM minimale de la solution logicielle Vitam</Description>
+                    <TransactedDate>2016-06-23</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID24">
+				<Management>
+					<UpdateOperation>
+						<SystemId>GUID_ARCHIVE_UNIT_PARENT</SystemId>
+					</UpdateOperation>
+				</Management>
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>PARENT_TO_BE_LINKED</Title>
+				</Content>
+				<ArchiveUnit id="ID4">
+					<ArchiveUnitRefId>ID015</ArchiveUnitRefId>
+				</ArchiveUnit> 
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata xml:id="ID019">
+            <OriginatingAgencyIdentifier>FRAN_NP_050313</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+
+    <ArchivalAgency xml:id="ID061">
+        <Identifier>Identifier0</Identifier>
+        <OrganizationDescriptiveMetadata xml:id="ID063" xlink:href="http://www.oxygenxml.com/">
+        </OrganizationDescriptiveMetadata>
+    </ArchivalAgency>
+    <TransferringAgency xml:id="ID065">
+        <Identifier>Identifier1</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

@@ -37,7 +37,9 @@ angular
 		.module('search.operation')
 		.controller(
 				'searchOperationController',
-				function($scope, $http, $timeout,$window, searchOperationService ) {
+				function($scope, $http, $timeout, $window, lodash,
+						searchOperationService, ihmDemoCLient,
+						downloadOperationService) {
 
 					var ctrl = this;
 					ctrl.itemsPerPage = 50;
@@ -45,16 +47,19 @@ angular
 					ctrl.searchOptions = {};
 					ctrl.operationList = [];
 					ctrl.resultPages = 0;
+					ctrl.downloadOptions = {};
 
 					function displayError(message) {
 						ctrl.fileNotFoundError = true;
 						ctrl.errorMessage = message;
-			//			ctrl.timer = $timeout(function() {
-				//			ctrl.fileNotFoundError = false;
-					//	}, 5000);
+						// ctrl.timer = $timeout(function() {
+						// ctrl.fileNotFoundError = false;
+						// }, 5000);
 					}
 					ctrl.goToDetails = function(id) {
-						$window.open('#!/searchOperation/detailOperation/' + id)
+						$window
+								.open('#!/searchOperation/detailOperation/'
+										+ id)
 					};
 
 					ctrl.getList = function() {
@@ -76,9 +81,9 @@ angular
 										ctrl.searchOptions,
 										function(response) {
 											ctrl.operationList = response.data.$results;
-											if(ctrl.operationList.length===0){
+											if (ctrl.operationList.length === 0) {
 												displayError("Il n'y a aucun résultat pour votre recherche");
-												return ;
+												return;
 											}
 											ctrl.resultPages = Math
 													.ceil(ctrl.operationList.length
@@ -97,5 +102,9 @@ angular
 
 										});
 					};
+					ctrl.downloadOperation = function(objectId) {
+						$window.open(downloadOperationService.getLogbook(objectId));
+					};
 
-				});
+
+				}).constant('lodash', window._);

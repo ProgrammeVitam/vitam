@@ -59,7 +59,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -67,6 +66,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -139,7 +139,7 @@ public class StorageResource extends ApplicationStatusResource {
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageTechnicalException exc) {
+            } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -317,7 +317,7 @@ public class StorageResource extends ApplicationStatusResource {
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageTechnicalException exc) {
+            } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
@@ -328,7 +328,6 @@ public class StorageResource extends ApplicationStatusResource {
         }
 
     }
-
 
 
     /**
@@ -369,36 +368,7 @@ public class StorageResource extends ApplicationStatusResource {
             return responsePost;
         }
     }
-
-    /**
-     * Retrieve an object data (equivalent to GET with body)
-     *
-     * @param headers http headers
-     * @param objectId the object identifier to retrieve
-     * @param asyncResponse
-     * @throws IOException in case of any i/o exception
-     */
-    @Path("/objects/{id_object}")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_OCTET_STREAM + "; qs=0.3", CommonMediaType.ZIP + "; qs=0.3"})
-    public void getObjectWithPost(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        @Suspended final AsyncResponse asyncResponse)
-        throws IOException {
-        final Response responsePost = checkPostHeader(headers);
-        if (responsePost == null) {
-            getObject(headers, objectId, asyncResponse);
-        } else if (responsePost.getStatus() == Status.OK.getStatusCode()) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED).build());
-        } else {
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, responsePost);
-            final ResponseBuilder responseBuilder = Response.status(responsePost.getStatus());
-            helper.writeResponse(responseBuilder);
-
-        }
-    }
-
+    
     /**
      * Delete an object
      *
@@ -495,6 +465,21 @@ public class StorageResource extends ApplicationStatusResource {
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
+    @Path("/logbooks/{id_logbook}")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getLogBook(@Context HttpHeaders headers, @PathParam("id_logbook") String objectId,
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
+
+            @Override
+            public void run() {
+                getByCategoryAsync(objectId, headers, DataCategory.LOGBOOK, asyncResponse);
+            }
+        });
+
+    }
+    
     /**
      * Post a new object
      *
@@ -895,12 +880,12 @@ public class StorageResource extends ApplicationStatusResource {
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageTechnicalException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-            } catch (final StorageObjectAlreadyExistsException exc) {
+            }  catch (final StorageObjectAlreadyExistsException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
+            } catch (final StorageException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
             }
             // If here, an error occurred
             return buildErrorResponse(vitamCode);

@@ -42,9 +42,12 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -341,21 +344,20 @@ public class FormatIdentificationActionHandlerTest {
         return list;
     }
 
-    private JsonNode getAdminManagementJson() {
-        final ObjectNode node = JsonHandler.createObjectNode();
-        node.put("PUID", "fmt/293");
-        node.put("Name", "OpenDocument Presentation");
-        node.put("MIMEType", "application/vnd.oasis.opendocument");
-        final ArrayNode ret = JsonHandler.createArrayNode();
-        ret.add(node);
-        final ObjectNode result = JsonHandler.createObjectNode();
-        result.set("$results", ret);
-        return result;
+    private RequestResponse<FileFormatModel> getAdminManagementJson() {
+
+        RequestResponseOK<FileFormatModel> responseOK = new RequestResponseOK<>();
+        FileFormatModel fileFormatModel = new FileFormatModel();
+        fileFormatModel.setPuid("fmt/293");
+        fileFormatModel.setName("OpenDocument Presentation");
+        fileFormatModel.setMimeType("application/vnd.oasis.opendocument");
+        responseOK.getResults().add(fileFormatModel);
+
+        return responseOK;
     }
 
-    private JsonNode getAdminManagementJson2Result() {
-        final ObjectNode node2 = JsonHandler.createObjectNode();
-        return node2;
+    private RequestResponse<FileFormatModel> getAdminManagementJson2Result() {
+        return new RequestResponseOK<>();
     }
 
     private void deleteFiles() {

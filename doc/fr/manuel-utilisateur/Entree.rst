@@ -41,7 +41,29 @@ Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 
 .. image:: images/upload_sip_KO.jpg
 
-Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére un accusé de réception qui est proposé en téléchargement à l'utilisateur.
+Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére une notification qui est proposée en téléchargement à l'utilisateur.
+
+Cette notification ou ArchiveTrasnferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
+Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivantes :
+
+- Date : date d'émission de l'ATR
+- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribué à la demande de transfert par la solution logicielle Vitam
+- ArchivalAgreement : contrat d'entrée
+- CodeListVesion : la liste des référentiels utilisés
+- La liste des Unités Archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle VITAM (SystemId) et la liste des Groupes d'Objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle VITAM (SystemId)
+- ReplyCode : statut final de l'entrée
+- GrantDate : date de prise en charge du SIP
+- MessageIdentifierRequest : identifiant de la demande de transfert
+
+Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING". Actuellement, il n'est pas posssible de connaître la cause de l'avertissement.
+
+En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
+
+- Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
+- OutcomeDetail : code interne à VITAM correspondant à l'erreur rencontrée
+- OutcomeDetailMessage : message d'erreur
+
+La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques comme au niveau des groupes d'objets, sous la forme de blocs <event>.
 
 Journal des opérations d'entrée
 ===============================

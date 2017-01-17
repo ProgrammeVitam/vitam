@@ -8,15 +8,19 @@ NB : Cette partie est disponible via l'IHM de démonstration.
 Recherche d'une unité archivistique
 ===================================
 
-La recherche d'une unité archivistique s'effectue depuis l'écran "Recherche d'archives". L'utilisateur clique sur "Recherche d'archives" dans le barre de menu.
+La recherche d'une unité archivistique s'effectue depuis l'écran "Recherche d'archives". L'utilisateur clique sur "Recherche d'archives" dans la barre de menu.
 
 .. image:: images/menu_recherche.jpg
 
-Deux modes de recherche sont proposés sur la page "Recherche d'archives", l'un simple de type recherche libre (partie haute de la page), l'autre complexe ciblant certains types de métadonnées.
+L'accès à deux modes de recherche est proposé sur la page "Recherche d'archives" : l'un simple, de type recherche libre, l'autre, complexe ciblant certains types de métadonnées. Chacun de ces modes est accessible par un onglet spécifique.
 
-Par défaut, les deux modes de recherche sont affichés, il est possible de masquer la partie recherche complexe en cliquant sur la ligne "Avancée"
+Par défaut, le mode recherche simple est affiché.
 
-.. image:: images/recherche_mode.jpg
+.. image:: images/recherche_simple.png
+
+Au clic sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche complexe.
+
+.. image:: images/recherche_avancee.png
 
 Recherche simple
 ----------------
@@ -27,9 +31,9 @@ La recherche permet de trouver les mots clés cherchés appartenant aux deux ens
 
 Pour initier la recherche simple, l'utilisateur presse la touche "Entrée" de son clavier ou clique sur le pictogramme de loupe. Un pictogramme en forme de croix permet de supprimer le texte saisi dans le champ de recherche.
 
-.. image:: images/search_v1.jpg
+.. image:: images/search_v1.png
 
-Lorsqu'une recherche libre est effectuée, tous les résultats comprenant la chaîne de caractère demandée sont remontés. Exemple : pour une recheche du mot "acte" sera remonté "acte de naissance" ou "Divers actes de mariage".
+Lorsqu'une recherche libre est effectuée, tous les résultats comprenant la chaîne de caractères demandée sont remontés. Exemple : pour une recheche du mot "acte" sera remonté "acte de naissance" ou "Divers actes de mariage".
 
 Les caractéristiques du mode de recherche sont les suivantes :
 
@@ -51,16 +55,18 @@ Le ou les mots saisis vont être recherchés dans les métadonnées suivantes :
 
 Pour initier la recherche avancée, l'utilisateur saisit ses éléments de recherche, puis clique sur le bouton "Rechercher".
 
-NB 1 : Lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
+Au clic sur le champ "Effacer", tous les champs dans lesquels des informations ont été saisies sont vidés de leurs contenus.
 
-- La date de début doit être antérieur à la date de fin
-- Les deux champs dates doivent être renseignés
+NB 1 : lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
 
-.. image:: images/date_KO.jpg
+- la date de début doit être antérieure à la date de fin
+- les deux champs dates doivent être renseignés
 
-NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ.
+.. image:: images/date_KO.png
 
-.. image:: images/search_v2.jpg
+NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ. L'ID est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification (ATR).
+
+.. image:: images/search_v2.png
 
 Résultats de recherche
 ----------------------
@@ -101,6 +107,7 @@ Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et
 
 Les métadonnées (excepté l'ID) peuvent être modifiées en cliquant sur le bouton "Modifier", chaque ligne pouvant ainsi être éditée.
 Une fois les modifications saisies, un clic sur le bouton "Enregistrer" sauvegarde celles-ci et met à jour les métadonnées.
+Une fois les modification des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal de Cycle de Vie correspondant.
 
 .. image:: images/detail_modification.jpg
 
@@ -155,7 +162,7 @@ Une liste déroulante ("Informations supplémentaires") est proposée afin de s�
 - Identifiant interne de l'unité archivistique
 - Identifiant du tenant (technique)
 
-NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponible du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner".
+NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponibles du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner". Voir le document "Modèle de Donnés" pour la définition des champs proposés.
 
 .. image:: images/JCV_AU_supp.jpg
 
@@ -272,7 +279,7 @@ Cette vue affiche sous forme de tableau, les entrées effectuées pour ce servic
 
 Pour chaque entrée, les informations suivantes sont affichées :
 
-- Identifiant de l'opération
+- Identifiant de l'opération attribué par la solution logicielle VITAM (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Date d'entrée
 - nombre d'unités archivistiques

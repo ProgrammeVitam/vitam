@@ -148,22 +148,20 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
 
         @Override
-        @POST
+        @GET
         @Path("/units")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getUnits(JsonNode queryDsl,
-            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+        public Response getUnits(JsonNode queryDsl) {
             return expectedResponse.post();
         }
 
         @Override
-        @POST
+        @GET
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitById(JsonNode queryDsl,
-            @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
             @PathParam("id_unit") String id_unit) {
             return expectedResponse.post();
         }

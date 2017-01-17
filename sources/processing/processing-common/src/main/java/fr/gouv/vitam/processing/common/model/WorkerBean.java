@@ -46,7 +46,7 @@ public class WorkerBean {
     @JsonProperty("family")
     private String family;
     @JsonProperty("capacity")
-    private long capacity;
+    private int capacity = 1;
     @JsonProperty("storage")
     private long storage;
     @JsonProperty("status")
@@ -76,7 +76,7 @@ public class WorkerBean {
      */
     @JsonCreator
     public WorkerBean(@JsonProperty("name") String name, @JsonProperty("family") String family,
-        @JsonProperty("capacity") long capacity, @JsonProperty("storage") long storage,
+        @JsonProperty("capacity") int capacity, @JsonProperty("storage") long storage,
         @JsonProperty("status") String status,
         @JsonProperty("configuration") WorkerRemoteConfiguration configuration) {
         ParametersChecker.checkParameter("name is a mandatory parameter", name);
@@ -85,12 +85,13 @@ public class WorkerBean {
         ParametersChecker.checkParameter("storage is a mandatory parameter", storage);
         ParametersChecker.checkParameter("status is a mandatory parameter", status);
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
+        
         this.name = name;
         this.family = family;
         this.capacity = capacity;
         this.storage = storage;
         this.status = status;
-        this.configuration = configuration;
+        this.configuration = configuration;  
     }
 
 
@@ -161,7 +162,7 @@ public class WorkerBean {
     /**
      * @return the capacity
      */
-    public long getCapacity() {
+    public int getCapacity() {
         return capacity;
     }
 
@@ -172,7 +173,7 @@ public class WorkerBean {
      *
      * @return the updated WorkerBean object
      */
-    public WorkerBean setCapacity(long capacity) {
+    public WorkerBean setCapacity(int capacity) {
         this.capacity = capacity;
         return this;
     }
@@ -219,7 +220,7 @@ public class WorkerBean {
         return this;
     }
 
-
+    
     /**
      * @return the WorkerRemoteConfiguration including properties to connect to the Worker
      */
@@ -248,7 +249,7 @@ public class WorkerBean {
         sb.append("workerId=" + getWorkerId() + "\n");
         sb.append("workerName=" + getName() + "\n");
         sb.append("workerFamily=" + getFamily() + "\n");
-        sb.append("workerStatus=" + getStatus() + "\n");
+        sb.append("workerStatus=" + getStatus() + "\n");       
         if (getConfiguration() != null) {
             sb.append("configuration = " + getConfiguration().toString() + "\n");
         }

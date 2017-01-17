@@ -45,7 +45,7 @@ public class WorkerRegister implements Runnable {
     /**
      * Default Family name
      */
-    public static final String DEFAULT_FAMILY = "defaultFamily";
+    public static final String DEFAULT_FAMILY = "DefaultWorker";
 
     /**
      * Worker configuration used to retrieve the register configuration
@@ -94,10 +94,10 @@ public class WorkerRegister implements Runnable {
             configuration.getRegisterServerHost(), configuration.getRegisterServerPort());
 
         final WorkerBean workerBean =
-            new WorkerBean(ServerIdentity.getInstance().getName(), DEFAULT_FAMILY, 1L, 1L, "active",
-                remoteConfiguration);
+            new WorkerBean(ServerIdentity.getInstance().getName(), configuration.getWorkerFamily(),
+                configuration.getCapacity(), 1, "active", remoteConfiguration);
         try {
-            processingClient.registerWorker(DEFAULT_FAMILY,
+            processingClient.registerWorker(configuration.getWorkerFamily(),
                 String.valueOf(ServerIdentity.getInstance().getPlatformId()), workerBean);
             return true;
         } catch (final Exception e) {

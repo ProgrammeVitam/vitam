@@ -64,7 +64,7 @@ public interface StorageDistribution {
     // This would be an other US responsibility (not #72)
     StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category, String requester)
-        throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException;
+        throws StorageObjectAlreadyExistsException, StorageException;
 
     /**
      * Get Storage Information (availability and capacity) for the requested tenant + strategy
@@ -75,8 +75,7 @@ public interface StorageDistribution {
      * @throws StorageNotFoundException Thrown if the Container does not exist
      * @throws StorageTechnicalException Thrown in case of any technical problem
      */
-    JsonNode getContainerInformation(String tenantId, String strategyId) throws StorageNotFoundException,
-        StorageTechnicalException;
+    JsonNode getContainerInformation(String tenantId, String strategyId) throws StorageException;
 
     /**
      * Get Storage Container full content as an InputStream
@@ -146,8 +145,7 @@ public interface StorageDistribution {
      */
     // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
     Response getContainerByCategory(String tenantId, String strategyId, String objectId, DataCategory category,
-        AsyncResponse asyncResponse)
-        throws StorageNotFoundException, StorageTechnicalException;
+        AsyncResponse asyncResponse) throws StorageException;
 
     /**
      * Get a specific Object informations

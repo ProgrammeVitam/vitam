@@ -38,6 +38,7 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.gc.iotools.stream.is.InputStreamFromOutputStream;
+import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -58,10 +59,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -323,13 +327,13 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
             final Select select = new Select();
             select.setQuery(eq(FileFormat.PUID, formatId));
-            final JsonNode result;
+            final RequestResponse<FileFormatModel> result;
             try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
                 result = adminClient.getFormats(select.getFinalSelect());
             }
 
             // TODO P1 : what should we do if more than 1 result (for the moment, we take into account the first one)
-            if (result.size() == 0) {
+            if (!result.isOk() ||  ((RequestResponseOK<FileFormatModel>) result).getResults().size() == 0 ) {
                 // format not found in vitam referential
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
@@ -339,9 +343,13 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                     StatusCode.KO, null);
             } else {
                 // check formatIdentification
+
+                RequestResponseOK<FileFormatModel> requestResponseOK = (RequestResponseOK<FileFormatModel>)result;
+                List<FileFormatModel> results = requestResponseOK.getResults();
+                FileFormatModel refFormat = results.get(0);
                 final JsonNode newFormatIdentification =
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
-                        objectCheckFormatResult, result,
+                        objectCheckFormatResult, refFormat,
                         version);
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
@@ -389,9 +397,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
     private JsonNode checkAndUpdateFormatIdentification(String objectId,
         JsonNode formatIdentification,
-        ObjectCheckFormatResult objectCheckFormatResult, JsonNode result, JsonNode version) {
-        final JsonNode refFormat = result.get(RESULTS).get(0);
-        final JsonNode puid = refFormat.get(FileFormat.PUID);
+        ObjectCheckFormatResult objectCheckFormatResult, FileFormatModel refFormat, JsonNode version) {
+
+        final String puid = refFormat.getPuid();
         final StringBuilder diff = new StringBuilder();
         JsonNode newFormatIdentification = formatIdentification;
         if ((newFormatIdentification == null || !newFormatIdentification.isObject()) && puid != null) {
@@ -399,49 +407,49 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
             ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
         }
         if (newFormatIdentification != null) {
-            final JsonNode fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID);
+            final String fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID) != null ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID).asText() : null;
             if (!puid.equals(fiPuid)) {
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
-                if (fiPuid != null && fiPuid.size() != 0) {
+                if (fiPuid != null) {
                     diff.append("- PUID : ");
                     diff.append(fiPuid);
                     diff.append('\n');
                 }
-                ((ObjectNode) newFormatIdentification).set(SedaConstants.TAG_FORMAT_ID, puid);
+                ((ObjectNode) newFormatIdentification).put(SedaConstants.TAG_FORMAT_ID, puid);
                 diff.append("+ PUID : ");
                 diff.append(puid);
                 metadatasUpdated = true;
             }
-            final JsonNode name = refFormat.get(FileFormat.NAME);
-            final JsonNode fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL);
+            final String name = refFormat.getName();
+            final String fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL)!= null ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText() : null;
             if (!name.equals(fiFormatLitteral)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
                 }
-                if (fiFormatLitteral != null && fiFormatLitteral.size() != 0) {
+                if (fiFormatLitteral != null) {
                     diff.append("- " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
                     diff.append(fiFormatLitteral);
                     diff.append('\n');
                 }
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
-                ((ObjectNode) newFormatIdentification).set(SedaConstants.TAG_FORMAT_LITTERAL, name);
+                ((ObjectNode) newFormatIdentification).put(SedaConstants.TAG_FORMAT_LITTERAL, name);
                 diff.append("+ " + SedaConstants.TAG_FORMAT_LITTERAL + " : ");
                 diff.append(name);
                 metadatasUpdated = true;
             }
-            final JsonNode mimeType = refFormat.get(FileFormat.MIME_TYPE);
-            final JsonNode fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE);
+            final String mimeType = refFormat.getMimeType();
+            final String fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE)!= null ? newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText() : null;
             if (!mimeType.equals(fiMimeType)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
                 }
-                if (fiMimeType != null && fiMimeType.size() != 0) {
+                if (fiMimeType != null ) {
                     diff.append("- " + SedaConstants.TAG_MIME_TYPE + " : ");
                     diff.append(fiMimeType);
                     diff.append('\n');
                 }
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
-                ((ObjectNode) newFormatIdentification).set(SedaConstants.TAG_MIME_TYPE, mimeType);
+                ((ObjectNode) newFormatIdentification).put(SedaConstants.TAG_MIME_TYPE, mimeType);
                 diff.append("+ " + SedaConstants.TAG_MIME_TYPE + " : ");
                 diff.append(mimeType);
                 metadatasUpdated = true;

@@ -62,7 +62,6 @@ import fr.gouv.vitam.worker.core.handler.UnitsRulesComputeHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 
-
 /**
  * WorkerImpl class implements Worker interface
  *
