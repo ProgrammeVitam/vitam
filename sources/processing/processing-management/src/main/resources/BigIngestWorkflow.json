@@ -1,6 +1,6 @@
 {
-  "id": "DefaultIngestWorkflow",
-  "comment": "Default Ingest Workflow V6",
+  "id": "BigIngestWorkflow",
+  "comment": "Big Ingest Workflow V6",
   "steps": [
     {
       "workerGroupId": "BigWorker",

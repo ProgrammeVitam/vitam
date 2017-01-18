@@ -11,3 +11,5 @@ port_http: 8082
 tls_active: false
 days_to_delete_local: 30
 days_to_delete_access_local: 7
+vitam_worker_capacity: 1
+
