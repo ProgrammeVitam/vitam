@@ -35,7 +35,7 @@ vitam_ihm_demo_static_content: webapp
 vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
 vitam_ihm_recette_port: 8204
 vitam_ihm_recette_baseurl: /ihm-recette
-vitam_ihm_recette_static_content: webapp
+vitam_ihm_recette_static_content: "{{vitam_folder_root}}/app/ihm-recette"
 
 vitam_ingestexternal_host: "ingest-external.service.{{consul_domain}}"
 vitam_ingestexternal_port: 8001
