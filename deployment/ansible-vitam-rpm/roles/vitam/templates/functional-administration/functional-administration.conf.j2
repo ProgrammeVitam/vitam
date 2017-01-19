@@ -11,3 +11,4 @@ dbUserName: {{mongoFunctionalAdminUser}}
 dbPassword: {{mongoFunctionalAdminPassword}}
 
 jettyConfig: jetty-config.xml
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

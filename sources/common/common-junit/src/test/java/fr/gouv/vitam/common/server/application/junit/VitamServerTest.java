@@ -33,7 +33,9 @@ import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.client.Client;
@@ -75,6 +77,16 @@ public class VitamServerTest {
 
         @Override
         public VitamApplicationConfigurationInterface setJettyConfig(String jettyConfig) {
+            return this;
+        }
+
+        @Override
+        public List<String> getTenants() {
+            return new ArrayList<String>();
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setTenants(List<String> tenants) {
             return this;
         }
 

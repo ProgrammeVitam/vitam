@@ -11,6 +11,7 @@ dbUserName: {{mongoMetadataUser}}
 dbPassword: {{mongoMetadataPassword}}
 
 jettyConfig: jetty-config.xml
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 
 # ElasticSearch
 clusterName: {{cluster_name}}

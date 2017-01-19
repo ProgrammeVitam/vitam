@@ -5,5 +5,6 @@ baseUrl: "/ihm-demo"
 staticContent: {{vitam_ihm_demo_static_content}}
 
 jettyConfig: jetty-config.xml
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 secure: true
 sipDirectory: {{vitam_folder_data}}
