@@ -69,6 +69,7 @@ angular.module('ihm.demo')
     }
       ctrl.client.all('rules').post(ctrl.searchOptions).then(function(response) {
         if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          ctrl.results = 0;
           displayError("Il n'y a aucun résultat pour votre recherche");
           return;
         }
@@ -77,6 +78,7 @@ angular.module('ihm.demo')
         });
         ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
         ctrl.currentPage = 1;
+        ctrl.results = response.data.$hits.total;
       }, function(response) {
         displayError("Il n'y a aucun résultat pour votre recherche");
       });
@@ -91,6 +93,7 @@ angular.module('ihm.demo')
         });
         ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
         ctrl.currentPage = 1;
+        ctrl.results = response.data.$hits.total;
       }, function(response) {
         displayError("Il n'y a aucun résultat pour votre recherche");
       });

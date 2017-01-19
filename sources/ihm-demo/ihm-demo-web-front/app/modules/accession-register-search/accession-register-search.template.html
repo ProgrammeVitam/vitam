@@ -25,7 +25,6 @@
 
     <!--  Nbre de registres trouvés -->
     <div class="text-center" style="padding-bottom: 20px">
-        <label ng-if = "$ctrl.showResult && $ctrl.totalResult > 0">Nombre de résultats : <span class="badge">{{$ctrl.totalResult}}</span> </label>
         <label ng-if = "$ctrl.showResult && $ctrl.totalResult == 0">Il n'y a aucun résultat pour votre recherche</label>
     </div>
   </div>
@@ -39,7 +38,9 @@
 
   <div class="panel panel-default col-md-12">
     <a class="panel-header"  data-target="#boxSearchResults" data-toggle="collapse">
-      <h2>Résultats</h2>
+        <h2> Résultats <span ng-if="$ctrl.totalResult == 0 || $ctrl.totalResult > 0">({{$ctrl.totalResult}})</span>
+            <!-- TODO Replace '$ctrl.totalResult == 0' by '$ctrl.showResult &&' in ng-if condition in order to not display 0 when no search / no results asked ? -->
+        </h2>
     </a>
     <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
 

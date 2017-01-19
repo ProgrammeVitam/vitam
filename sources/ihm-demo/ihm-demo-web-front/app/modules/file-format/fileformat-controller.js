@@ -44,6 +44,9 @@ angular.module('ihm.demo')
     ctrl.client = ihmDemoCLient.getClient('admin');
     ctrl.fileNotFoundError = false;
 
+    /**
+     * FIXME : Remove me ? Useless Function ?
+     */
     function clearResults() {
       ctrl.fileFormatList = [];
       ctrl.currentPage = "";
