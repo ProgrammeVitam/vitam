@@ -1,0 +1,4 @@
+- name: install vitam-ihm-demo-front
+  yum:
+    name: vitam-ihm-demo-front
+    state: latest

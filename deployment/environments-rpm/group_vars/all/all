@@ -29,8 +29,7 @@ vitam_metadata_baseurl: "http://{{vitam_metadata_host}}:{{vitam_metadata_port}}"
 vitam_ihm_demo_host: "{{groups['hosts-ihm-demo'][0]}}"
 vitam_ihm_demo_port: 8002
 vitam_ihm_demo_baseurl: /ihm-demo
-vitam_ihm_demo_static_content: webapp
-
+vitam_ihm_demo_static_content: "{{vitam_folder_root}}/app/ihm-demo"
 
 vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
 vitam_ihm_recette_port: 8204

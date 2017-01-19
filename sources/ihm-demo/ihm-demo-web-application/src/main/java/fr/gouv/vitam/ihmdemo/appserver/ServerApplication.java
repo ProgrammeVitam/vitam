@@ -173,13 +173,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         final ResourceHandler staticContentHandler = new ResourceHandler();
         staticContentHandler.setDirectoriesListed(true);
         staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
-        final URL webAppDir = Thread.currentThread().getContextClassLoader()
-            .getResource(getConfiguration().getStaticContent());
-        try {
-            staticContentHandler.setResourceBase(webAppDir.toURI().toString());
-        } catch (final URISyntaxException e) {
-            throw new VitamApplicationServerException("Web App Dir incorrect", e);
-        }
+        staticContentHandler.setResourceBase(getConfiguration().getStaticContent());
 
         // wrap to context handler
         final ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
