@@ -38,6 +38,28 @@ L'execution du *WorkerRegister* essaie d'enregistrer le *worker* suivant un retr
 
 Le lancement du serveur est indépendant de l'enregistrement du *worker* auprès du *processing* : le serveur *worker* ne s'arrêtera pas si l'enregistrement n'a pas réussi.
 
+2.3. Configuration de worker
+
+Cela présente la configuration pour un worker quand il est déployé. Deux paramètres importants quand le worker fonctionne en mode parallèle.   
+
+ * WorkerCapacity :
+	Cela présente la capacité d'un worker qui réponds au demande de parallélisation de la distribution de tâches du workflow.  
+	Il est précisé par le paramètre capacity dans le WorkerConfiguration.    
+ 
+ * WorkerFamily :
+ Chaque worker est configuré pour traiter groupe de tâches corresponsant à ses fonctions et on cela permetre de définir les familles de worker. 
+ Il est précisé par workerFamily dans le WorkerConfigration.  
+
+2.4. WorkerBean
+présente l'information complète sur un worker pour la procédure d'enregistrement d'un worker. Il contient les information sur le nom, 
+la famille et la capacité ... d'un worker et présente en mode json. Voici un example :  
+
+.. code-block:: json
+    
+{ "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+ "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
+ 
+            
 3. Worker-core
 **************
 Dans la partie Core, sont présents les différents Handlers nécessaires pour exécuter les différentes actions.

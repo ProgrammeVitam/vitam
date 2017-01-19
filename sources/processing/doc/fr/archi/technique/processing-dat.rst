@@ -72,13 +72,24 @@ Dans les itérations suivantes les autres méthodes suivantes seront implément�
 
 4. Parallélisme dans le distributeur
 ------------------------------------
-
 Les parallélismes suivants sont mis en oeuvre dans le distributeur
+
  * Parallélisme dans l'exécution des steps entre plusieurs workflows : celui-ci est géré de manière naturelle sous la forme de plusieurs requêtes (actuellement Java, demain en HTTP) entre le moteur du processing (process-engine) et le distributeur. 
- * Parallélisme dans l'exécution d'un step pour une distribution de type list vers un même worker : Les principes sont les suivants 
-   - Le principe est un découplage asynchrone basé sur 1 (ou plusieurs) queues de messages bloquantes (BlockingQueue en java)
-   - Lors de l'enregistrement d'un worker (voir section ci-dessus), un thread (cf WorkerManager) est crée et se met en écoute sur la blocking queue (Consommateur). Une fois une tâche consommée, s'il a une capacité suffisante (fournie par le worker lors de l'enregistrement), ce thread (WorkerThreadManager) va créer un thread (WorkerThread) pour gérer l'envoi de la demande au Worker ainsi que la gestion de la callback vers le producteur
-   - Lors de distribution d'un step d'un workflow, 
+ * Parallélisme dans l'exécution d'un step pour une distribution de type list vers un même worker. Les principes sont les suivants
+ 
+   -> Worker : chaque worker associé à un WorkerConfiguration pré-défini. Chaque worker appartient à une famille correspondant à ses fonctions. 
+   et il possède aussi une capacité pour gérer plusieurs threads en parallèle, précisé par le paramètre capacity de WorkerCongiguration, et ces paramètres seront initialisés lors du lancement du Worker.  
+
+   -> Enregistrement/déenregistrement d'un worker : Le principe est un découplage asynchrone basé sur plusieurs queues de messages bloquantes (BlockingQueue en java)   
+    Il y a plusieurs famille de worker et chaque famille lié à une queue de messages bloquantes. Pour l'enregistrement du worker, nous faisons aussi un contrôle pour s'assurer que le worker 
+   ne peut s'enregistrer qu'à une famille lui appartenant. Au moment de l'enregistrement, si la queue de la famille n'existe pas encore, elle sera créée. 
+   
+   -> Opérarations: 
+   	- Lors de l'enregistrement d'un worker (voir section ci-dessus), un thread (cf WorkerManager) est crée et se met en écoute sur la blocking queue (Consommateur) correspondante de la famille.                 
+   	  Une fois une tâche consommée, s'il a une capacité suffisante (fournie par le worker lors de l'enregistrement), ce thread (WorkerThreadManager) va créer un thread (WorkerThread) pour gérer 
+   	 l'envoi de la demande au Worker ainsi que la gestion de la callback vers le producteur.
+   	 
+   	- Lors de distribution d'un step d'un workflow, 
      + le distributeur pousse les tâches dans la blockingQueue (Producteur) et garde en mémoire les tâches qui sont en cours
      + La queue n'est qu'un élement de découplage et a donc une taile réduite : le thread de distribution est donc bloqué soit lors de son insertion dans la queue soit en attente que toutes les tâches soient terminées 
      + Une callback est exécutée par le consommateur en fin de traitement pour supprimer la tâche terminée des tâches en cours

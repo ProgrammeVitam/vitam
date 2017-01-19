@@ -28,7 +28,7 @@ Pour configurer le déploiement, il est nécessaire de créer dans le répertoir
 
 Pour chaque type de "host" (lignes 2 à 176), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
 
-.. warning:: indiquer les contre-indications !
+.. note:: pour les "hosts-worker", il est possible d'ajouter, à la suite de chaque "host", 2 paramètres optionnels : capacity et workerFamily. Se référer au :term:`DEX` pour plus de précisions.
 
 Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les valeurs comme décrit :
 
