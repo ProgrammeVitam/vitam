@@ -26,22 +26,48 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookType;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
+import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.ActionDefinition;
+import fr.gouv.vitam.processing.common.model.DistributionKind;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.PluginProperties;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -59,6 +85,7 @@ import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.handler.UnitsRulesComputeHandler;
+import fr.gouv.vitam.worker.core.plugin.PluginHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 
@@ -73,13 +100,16 @@ public class WorkerImpl implements Worker {
     private static final String EMPTY_LIST = "null or Empty Action list";
     private static final String STEP_NULL = "step paramaters is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
+    private static final String PLUGIN_NOT_FOUND = "Plugin not found exception: ";
     private final Map<String, ActionHandler> actions = new HashMap<>();
+    private final Map<String, Object> plugins;
     private final String workerId;
 
     /**
      * Constructor
      **/
     public WorkerImpl() {
+        plugins = PluginHelper.getPluginList();
         workerId = GUIDFactory.newGUID().toString();
         /**
          * temporary init: will be managed by spring annotation
@@ -144,40 +174,141 @@ public class WorkerImpl implements Worker {
 
         final ItemStatus responses = new ItemStatus(step.getStepName());
 
-        try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId)) {
+        try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId);
+            LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             for (final Action action : step.getActions()) {
                 // Reset handlerIO for next execution
                 handlerIO.reset();
-                final ActionHandler actionHandler = getActionHandler(action.getActionDefinition().getActionKey());
-                LOGGER.debug("START handler {} in step {}", action.getActionDefinition().getActionKey(),
-                    step.getStepName());
-                if (actionHandler == null) {
-                    throw new HandlerNotFoundException(action.getActionDefinition().getActionKey() + HANDLER_NOT_FOUND);
+                ActionDefinition actionDefinition = action.getActionDefinition();
+                if (actionDefinition.getIn() != null) {
+                    handlerIO.addInIOParameters(actionDefinition.getIn());
                 }
-                if (action.getActionDefinition().getIn() != null) {
-                    handlerIO.addInIOParameters(action.getActionDefinition().getIn());
+                if (actionDefinition.getOut() != null) {
+                    handlerIO.addOutIOParameters(actionDefinition.getOut());
                 }
-                if (action.getActionDefinition().getOut() != null) {
-                    handlerIO.addOutIOParameters(action.getActionDefinition().getOut());
+                String handlerName = actionDefinition.getActionKey();
+                ItemStatus actionResponse = null;
+                //TODO Généralisation tous les workers
+                ActionHandler actionPlugin = getPlugin(handlerName); 
+                // If this is a plugin  
+                if (actionPlugin != null) {
+                    ItemStatus pluginResponse = null;
+                    LOGGER.debug("START plugin ", actionDefinition.getActionKey(),
+                        step.getStepName());
+                    boolean shouldWriteLFC = step.getDistribution().getKind().equals(DistributionKind.LIST) 
+                        ? true : false;
+                    if (shouldWriteLFC) {
+                        LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
+                        logbookLfcClient.update(lfcParam);
+                        pluginResponse = actionPlugin.execute(workParams, handlerIO);
+                        writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse, lfcParam);  
+                    } else {
+                        pluginResponse = actionPlugin.execute(workParams, handlerIO);
+                    }
+                    pluginResponse.setItemId(handlerName);
+                    actionResponse = getActionResponse(handlerName, pluginResponse);
+                 // If not, this is an handler of Vitam    
+                } else {
+                    final ActionHandler actionHandler = getActionHandler(handlerName);
+                    LOGGER.debug("START handler {} in step {}", actionDefinition.getActionKey(),
+                        step.getStepName());
+                    if (actionHandler == null) {
+                        throw new HandlerNotFoundException(actionDefinition.getActionKey() + HANDLER_NOT_FOUND);
+                    }
+                    actionResponse = actionHandler.execute(workParams, handlerIO);
                 }
-                final ItemStatus actionResponse = actionHandler.execute(workParams, handlerIO);
                 responses.setItemsStatus(actionResponse);
-                LOGGER.debug("STOP handler {} in step {}", action.getActionDefinition().getActionKey(),
+                LOGGER.debug("STOP handler {} in step {}", actionDefinition.getActionKey(),
                     step.getStepName());
                 // if the action has been defined as Blocking and the action status is KO or FATAL
                 // then break the process
-                if (actionResponse
-                    .shallStop(ProcessBehavior.BLOCKING.equals(action.getActionDefinition().getBehavior()))) {
+                if (actionResponse.shallStop(ProcessBehavior.BLOCKING.equals(actionDefinition.getBehavior()))) {
                     break;
                 }
             }
+
+
+        } catch (Exception e) {
+            throw new ProcessingException(e);
         }
         LOGGER.debug("step name :" + step.getStepName());
         return responses;
     }
 
-    private ActionHandler getActionHandler(String actionId) {
+    private ItemStatus getActionResponse(String handlerName, ItemStatus pluginResponse) {
+        ItemStatus status = new ItemStatus(handlerName);
+        for (final Entry<String, ItemStatus> entry : pluginResponse.getItemsStatus().entrySet()) {
+            ItemStatus subItemStatus = entry.getValue();
+            subItemStatus.setItemId(handlerName);
+            status.setItemsStatus(handlerName, subItemStatus);
+        }
+        return status;
+    }
+    
+    private LogbookLifeCycleParameters createStartLogbookLfc(Step step, String handlerName,
+        WorkerParameters workParams) throws InvalidGuidOperationException {
+        LogbookLifeCycleParameters lfcParam = null;
+        if (step.getDistribution().getElement()
+            .equals(LogbookType.UNITS.getType())) {
+                lfcParam = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
+                    GUIDFactory.newEventGUID(0), 
+                    handlerName, 
+                    GUIDReader.getGUID(workParams.getContainerName()), 
+                    LogbookTypeProcess.INGEST, 
+                    StatusCode.STARTED, 
+                    VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED), 
+                    VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED), 
+                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+        } else if (step.getDistribution().getElement()
+            .equals(LogbookType.OBJECTGROUP.getType())) {
+            lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                GUIDFactory.newEventGUID(0), 
+                handlerName, 
+                GUIDReader.getGUID(workParams.getContainerName()), 
+                LogbookTypeProcess.INGEST, 
+                StatusCode.STARTED, 
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED), 
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED), 
+                GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+        }
+        return lfcParam;
+    }
+
+    private void writeLogBookLfcFromResponse(String handlerName, LogbookLifeCyclesClient logbookLfcClient, ItemStatus actionResponse,
+        LogbookLifeCycleParameters logbookParam) throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        
+        List<LogbookLifeCycleParameters> logbookParamList = new ArrayList<>();
+        LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
+        finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(), 
+            actionResponse.getMessage());
+        logbookParamList.add(finalLogbookLfcParam);
+        for (final Entry<String, ItemStatus> entry : actionResponse.getItemsStatus().entrySet()) {
+            LogbookLifeCycleParameters subLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
+            ItemStatus subItemStatus = entry.getValue();
+            subLogbookLfcParam.setFinalStatus(handlerName, 
+                entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
+            logbookParamList.add(subLogbookLfcParam);
+        }
+        for (int i = logbookParamList.size()-1 ; i >= 0; i--) {
+            logbookLfcClient.update(logbookParamList.get(i));
+        }
+    }
+
+    private ActionHandler getActionHandler(String actionId) throws PluginNotFoundException {
         return actions.get(actionId);
+    }
+
+    private ActionHandler getPlugin(String actionId) throws PluginNotFoundException {
+        if (plugins.get(actionId) != null) {
+            try {
+                JsonNode node = JsonHandler.toJsonNode(plugins.get(actionId));
+                PluginProperties plugin = JsonHandler.getFromJsonNode(node, PluginProperties.class);
+                return PluginHelper.loadActionHandler(actionId, plugin);
+            } catch (InvalidParseOperationException e) {
+                throw new PluginNotFoundException(PLUGIN_NOT_FOUND + actionId);
+            }
+        }
+        return null;
     }
 
     @Override

@@ -40,6 +40,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -118,12 +120,13 @@ public class WorkerResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response submitStep(@Context HttpHeaders headers, DescriptionStep descriptionStep) {
+    public Response submitStep(@Context HttpHeaders headers, JsonNode descriptionStepJson) {
         HttpHeaderHelper.checkVitamHeaders(headers);
         try {
-            ParametersChecker.checkParameter("Must have a step description", descriptionStep);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
+            ParametersChecker.checkParameter("Must have a step description", descriptionStepJson);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStepJson));
             final ItemStatus responses;
+            DescriptionStep descriptionStep = JsonHandler.getFromJsonNode(descriptionStepJson, DescriptionStep.class);
             if (workerMocked == null) {
                 try (Worker worker = WorkerImplFactory.create()) {
                     responses =

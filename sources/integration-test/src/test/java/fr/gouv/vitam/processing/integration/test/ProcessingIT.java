@@ -405,7 +405,7 @@ public class ProcessingIT {
             final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
             assertNotNull(ret);
             // check conformity in warning state
-            assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+           assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
 
             // checkMonitoring - meaning something has been added in the monitoring tool
             final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
