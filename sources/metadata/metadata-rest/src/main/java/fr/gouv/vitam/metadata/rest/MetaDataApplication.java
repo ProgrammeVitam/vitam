@@ -44,7 +44,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 
 /**
- * Metadata aplpication
+ * Metadata application
  */
 public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplication, MetaDataConfiguration> {
 
@@ -109,8 +109,8 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
         final MetaDataResource resource = new MetaDataResource(getConfiguration());
         serviceRegistry.register(resource.getMongoDbAccess()).register(resource.getMongoDbAccess().getEsClient());
         resourceConfig.register(resource).register(new AdminStatusResource(serviceRegistry))
-        .register(SanityCheckerCommonFilter.class)
-        .register(SanityDynamicFeature.class);
+            .register(SanityCheckerCommonFilter.class)
+            .register(SanityDynamicFeature.class);
     }
 
 }

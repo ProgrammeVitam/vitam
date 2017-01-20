@@ -119,6 +119,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     public static final String IHM_RECETTE = "IHM_RECETTE";
+    private static final String DEFAULT_TENANT = "0";
     private final WebApplicationConfig webApplicationConfig;
     // FIXME : replace the boolean by a static timestamp updated by the soap ui
     // thread
@@ -558,6 +559,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * This method exist only to download a file with a browser
+     * 
      * @param operationId
      * @param asyncResponse
      */
@@ -591,7 +593,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             String fileName = traceabilityEvent.get("FileName").textValue();
             StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
 
-            final Response response = storageClient.getContainerAsync("0", "default", fileName, documentType);
+            final Response response =
+                storageClient.getContainerAsync(DEFAULT_TENANT, "default", fileName, documentType);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response

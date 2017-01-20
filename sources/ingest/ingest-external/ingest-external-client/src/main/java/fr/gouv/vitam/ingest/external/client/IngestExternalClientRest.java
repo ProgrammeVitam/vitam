@@ -99,7 +99,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(), 
+            response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);

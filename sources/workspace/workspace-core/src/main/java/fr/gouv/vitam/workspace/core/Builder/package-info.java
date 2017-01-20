@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,25 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.offers.workspace.rest;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-
-public class DefaultOfferConfigurationTest {
-    @Test
-    public void constructorTest() {
-        final DefaultOfferConfiguration conf = new DefaultOfferConfiguration("storage", "context");
-        assertNotNull(conf);
-        assertEquals("storage", conf.getStoragePath());
-        assertEquals("context", conf.getContextPath());
-        conf.setStoragePath("storage2");
-        conf.setContextPath("context2");
-        assertEquals("storage2", conf.getStoragePath());
-        assertEquals("context2", conf.getContextPath());
-
-    }
-}
+ */
+/**
+ * Provides the Blob store contexts builder
+ */
+package fr.gouv.vitam.workspace.core.Builder;

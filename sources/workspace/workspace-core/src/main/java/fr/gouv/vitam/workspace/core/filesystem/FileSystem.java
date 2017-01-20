@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
 import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 
@@ -56,10 +57,19 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         super(configuration);
     }
 
+    /**
+     * @param configuration to associate with the FileSystem
+     */
+    public FileSystem(StorageConfiguration configuration) {
+        super(configuration);
+    }
+
+    // TODO will be deleted in #US1757
     @Override
     public BlobStoreContext getContext(WorkspaceConfiguration configuration) {
         final Properties props = new Properties();
-        props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
+        WorkspaceConfiguration fileSyestemConfiguration = configuration;
+        props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, fileSyestemConfiguration.getStoragePath());
         LOGGER.debug("Get File System Context");
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
     }
@@ -102,5 +112,13 @@ public class FileSystem extends ContentAddressableStorageAbstract {
             throw new ContentAddressableStorageNotFoundException("Storage not found");
         }
         return baseDirFile;
+    }
+
+    @Override
+    public BlobStoreContext getContext(StorageConfiguration configuration) {
+        final Properties props = new Properties();
+        props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
+        LOGGER.debug("Get File System Context");
+        return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
     }
 }

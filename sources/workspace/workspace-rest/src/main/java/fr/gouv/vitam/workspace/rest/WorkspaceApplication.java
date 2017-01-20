@@ -38,12 +38,12 @@ import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
 
 /**
  * The Workspace APPLICATION.
  */
-public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceApplication, WorkspaceConfiguration> {
+public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceApplication, StorageConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceApplication.class);
     private static String MODULE_NAME = ServerIdentity.getInstance().getRole();
@@ -59,7 +59,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
      * @throws IllegalStateException
      */
     public WorkspaceApplication(String configurationFile) {
-        super(WorkspaceConfiguration.class, configurationFile);
+        super(StorageConfiguration.class, configurationFile);
     }
 
     /**
@@ -68,8 +68,8 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
      * @param configuration
      * @throws IllegalStateException
      */
-    protected WorkspaceApplication(WorkspaceConfiguration configuration) {
-        super(WorkspaceConfiguration.class, configuration);
+    protected WorkspaceApplication(StorageConfiguration configuration) {
+        super(StorageConfiguration.class, configuration);
     }
 
     /**

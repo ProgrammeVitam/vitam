@@ -45,7 +45,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
 
-    private static final int TENANT_ID = 0;
+    private static final int DEFAULT_TENANT = 0;
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
@@ -209,7 +209,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
+        headers.add(GlobalDataRest.X_TENANT_ID, DEFAULT_TENANT);
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
 
@@ -247,7 +247,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-  
+
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -273,7 +273,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-         
+
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, null,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);

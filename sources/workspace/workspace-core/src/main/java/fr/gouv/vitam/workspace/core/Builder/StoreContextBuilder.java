@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,41 +23,59 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.offers.workspace.rest;
+ */
+package fr.gouv.vitam.workspace.core.Builder;
 
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
+import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
+import fr.gouv.vitam.workspace.common.StorageProvider;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
+import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
+import fr.gouv.vitam.workspace.core.swift.OpenstackSwift;
 
 /**
- * DefaultOfferApplication Test
+ * Creates {@link ContentAddressableStorage} configured to a configuration file
+ * 
+ * <br/>
+ * ex. to build a {@link ContentAddressableStorage} of a particular store context,
+ * 
+ * <pre>
+ *  storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())
+ *     .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)
+ *     .setTenantName(swift)
+ *     .setUserName(user)
+ *     .setCredential(passwd)
+ *     .setCephMode(true);
+ *     
+ * contentAddressableStorage=StoreContextBuilder.newStoreContext(storeConfiguration);
+ * </pre>
+ * 
+ * 
+ * @see ContentAddressableStorage
+ * @see StorageConfiguration
+ * @see OpenstackSwift
+ * @see FileSystem
  */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+public class StoreContextBuilder {
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
 
-    @Test
-    public final void testFictiveLaunch() {
-        try {
-            new DefaultOfferApplication(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+    /**
+     * 
+     * Builds {@link ContentAddressableStorage}
+     * 
+     * @param configuration {@link StorageConfiguration}
+     * @return ContentAddressableStorage : by default fileSystem or openstack-swift if it is configured
+     */
+    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration) {
+
+        if (StorageProvider.SWIFT.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            return new OpenstackSwift(configuration);
+        }
+        // by default file system
+        else {
+            return new FileSystem(configuration);
         }
 
-        try {
-            new DefaultOfferApplication(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
 
-        try {
-            new DefaultOfferApplication(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final IllegalStateException exc) {
-            // Result Expected
-        }
     }
+
 }

@@ -58,7 +58,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -113,7 +112,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
         try {
             final JsonNode result = DefaultOfferServiceImpl.getInstance().getCapacity(xTenantId);
-               return Response.status(Response.Status.OK).entity(result).build();
+            return Response.status(Response.Status.OK).entity(result).build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();

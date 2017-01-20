@@ -104,7 +104,6 @@ public class FileSystemTest {
     public void givenContainerAlreadyExistsWhenCreateContainerThenRaiseAnException()
         throws ContentAddressableStorageAlreadyExistException {
         workspace.createContainer(CONTAINER_NAME);
-
         workspace.createContainer(CONTAINER_NAME);
         assertFalse(workspace.isExistingContainer(CONTAINER_NAME));
     }

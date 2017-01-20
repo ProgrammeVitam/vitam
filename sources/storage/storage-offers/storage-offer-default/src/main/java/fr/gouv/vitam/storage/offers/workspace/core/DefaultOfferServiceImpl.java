@@ -54,8 +54,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
-import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
+import fr.gouv.vitam.workspace.core.Builder.StoreContextBuilder;
 
 /**
  * Default offer service implementation
@@ -72,14 +72,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, String> objectTypeFor;
 
     private DefaultOfferServiceImpl() {
-        WorkspaceConfiguration configuration;
+        StorageConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
-                WorkspaceConfiguration.class);
+                StorageConfiguration.class);
         } catch (final IOException exc) {
+            LOGGER.error(exc);
             throw new ExceptionInInitializerError(exc);
         }
-        defaultStorage = new FileSystem(configuration);
+        defaultStorage = StoreContextBuilder.newStoreContext(configuration);
         digestTypeFor = new HashMap<>();
         objectTypeFor = new HashMap<>();
     }
@@ -117,9 +118,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (!defaultStorage.isExistingContainer(containerName)) {
             defaultStorage.createContainer(containerName);
         }
-        if (!defaultStorage.isExistingFolder(containerName, objectInit.getType().getFolder())) {
-            createFolder(containerName, objectInit.getType().getFolder());
-        }
         objectInit.setId(objectGUID);
         objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
         if (objectInit.getDigestAlgorithm() != null) {
@@ -146,18 +144,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (!defaultStorage.isExistingContainer(containerName)) {
             throw new ContentAddressableStorageException("Container does not exist");
         }
-        // check the folder
-        if (!defaultStorage.isExistingFolder(containerName, objectTypeFor.get(objectId))) {
-            throw new ContentAddressableStorageException("Container's folder does not exist");
-        }
-
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
-            defaultStorage.putObject(containerName, objectTypeFor.get(objectId) + "/" + objectId, objectPart);
+            defaultStorage.putObject(containerName, objectId, objectPart);
             // Check digest AFTER writing in order to ensure correctness
             final String digest = defaultStorage.computeObjectDigest(containerName,
-                objectTypeFor.get(objectId) + "/" + objectId, getDigestAlgoFor(objectId));
+                objectId, getDigestAlgoFor(objectId));
             // remove digest algo
             digestTypeFor.remove(objectId);
             return digest;
@@ -176,16 +169,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        if (!defaultStorage.isExistingContainer(containerName)) {
-            // FIXME P1 logique incorrecte: ne devrait pas être créé dynamiquement mais uniquement si demandé
-            // Devrait donc retourner une valeur du type NOT_EXIST
-            try {
-                defaultStorage.createContainer(containerName);
-            } catch (final ContentAddressableStorageAlreadyExistException e) {
-                // Log it but it's not a problem
-                LOGGER.debug(e);
-            }
-        }
         final ObjectNode result = JsonHandler.createObjectNode();
         final ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
         result.put("usableSpace", containerInformation.getUsableSpace());

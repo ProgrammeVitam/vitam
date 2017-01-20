@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
 import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
@@ -73,9 +74,8 @@ import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
  */
 public class DefaultOfferResourceTest {
 
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
 
-    private static final String WORKSPACE_OFFER_CONF = "default-offer.conf";
+    private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
     private static File newWorkspaceOfferConf;
 
     private static final String REST_URI = "/offer/v1";
@@ -111,8 +111,8 @@ public class DefaultOfferResourceTest {
         RestAssured.basePath = REST_URI;
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
-        final DefaultOfferConfiguration realWorkspaceOffer =
-            PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
+        final StorageConfiguration realWorkspaceOffer =
+            PropertiesUtils.readYaml(workspaceOffer, StorageConfiguration.class);
         newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
@@ -142,16 +142,14 @@ public class DefaultOfferResourceTest {
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
         File container = new File(conf.getStoragePath() + "/1" + this);
-        File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
-        final File object = new File(folder.getAbsolutePath(), "id1");
+        File container1 = new File(conf.getStoragePath() + "/1");
         final File object2 = new File(container.getAbsolutePath(), "id1");
-        Files.deleteIfExists(object.toPath());
+        final File object1 = new File(container1.getAbsolutePath(), "id1");
+        Files.deleteIfExists(object1.toPath());
         Files.deleteIfExists(object2.toPath());
-        Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
+        Files.deleteIfExists(container1.toPath());
         container = new File(conf.getStoragePath() + "/0" + this);
-        folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
-        Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
     }
 
@@ -183,7 +181,7 @@ public class DefaultOfferResourceTest {
     @Test
     public void getObjectTestNotFound() {
         // not found
-        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
+        given().header(GlobalDataRest.X_TENANT_ID, "notExist").contentType(MediaType.APPLICATION_JSON).then()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, "id1");
     }
@@ -194,23 +192,23 @@ public class DefaultOfferResourceTest {
 
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
-        with().header(GlobalDataRest.X_TENANT_ID, "1" + this)
+        with().header(GlobalDataRest.X_TENANT_ID, "1")
             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1");
 
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
-            with().header(GlobalDataRest.X_TENANT_ID, "1" + this)
+            with().header(GlobalDataRest.X_TENANT_ID, "1")
                 .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
                 .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_ID_URI, "id1");
         }
 
         // found
-        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).contentType(MediaType.APPLICATION_JSON).then()
+        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
             .statusCode(Status.OK.getStatusCode()).when()
-            .get(OBJECTS_URI + OBJECT_ID_URI, DataCategory.OBJECT.getFolder() + "/id1");
+            .get(OBJECTS_URI + OBJECT_ID_URI, "id1");
     }
 
     @Test
@@ -218,7 +216,7 @@ public class DefaultOfferResourceTest {
 
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.OBJECT);
-        with().header(GlobalDataRest.X_TENANT_ID, "1" + this)
+        with().header(GlobalDataRest.X_TENANT_ID, "1")
             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + "id1");
@@ -237,7 +235,7 @@ public class DefaultOfferResourceTest {
                     bb.get(bytes, 0, read);
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         assertNotNull(inChunk);
-                        with().header(GlobalDataRest.X_TENANT_ID, "1" + this).header(GlobalDataRest.X_COMMAND,
+                        with().header(GlobalDataRest.X_TENANT_ID, "1").header(GlobalDataRest.X_COMMAND,
                             StorageConstants.COMMAND_END)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1");
@@ -246,7 +244,7 @@ public class DefaultOfferResourceTest {
                     bytes = bb.array();
                     try (InputStream inChunk = new ByteArrayInputStream(bytes)) {
                         // assertNotNull(inChunk);
-                        with().header(GlobalDataRest.X_TENANT_ID, "1" + this)
+                        with().header(GlobalDataRest.X_TENANT_ID, "1")
                             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_WRITE)
                             .contentType(MediaType.APPLICATION_OCTET_STREAM).content(inChunk).when()
                             .put(OBJECTS_URI + OBJECT_ID_URI, "id1");
@@ -258,9 +256,9 @@ public class DefaultOfferResourceTest {
         }
 
         // found
-        given().header(GlobalDataRest.X_TENANT_ID, "1" + this).contentType(MediaType.APPLICATION_JSON).then()
+        given().header(GlobalDataRest.X_TENANT_ID, "1").contentType(MediaType.APPLICATION_JSON).then()
             .statusCode(Status.OK.getStatusCode()).when()
-            .get(OBJECTS_URI + OBJECT_ID_URI, DataCategory.OBJECT.getFolder() + "/id1");
+            .get(OBJECTS_URI + OBJECT_ID_URI, "id1");
     }
 
     @Test
@@ -300,9 +298,6 @@ public class DefaultOfferResourceTest {
         final File container = new File(conf.getStoragePath() + "/1" + this);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
-        final File folder = new File(container.getAbsolutePath() + "/" + DataCategory.OBJECT.getFolder());
-        assertTrue(folder.exists());
-        assertTrue(folder.isDirectory());
     }
 
 
@@ -361,11 +356,7 @@ public class DefaultOfferResourceTest {
         assertNotNull(container);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
-        final File folder = new File(container.getAbsolutePath(), "/" + DataCategory.OBJECT.getFolder());
-        assertNotNull(folder);
-        assertTrue(folder.exists());
-        assertTrue(folder.isDirectory());
-        final File object = new File(folder.getAbsolutePath(), "id1");
+        final File object = new File(container.getAbsolutePath(), "id1");
         assertNotNull(object);
         assertTrue(object.exists());
         assertFalse(object.isDirectory());

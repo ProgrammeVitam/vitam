@@ -26,7 +26,7 @@
  *******************************************************************************/
 
 /**
- * Provides a FileSystem implementation for the Workspace module. 
+ * Provides a FileSystem implementation for storage modules.
  *
  */
 package fr.gouv.vitam.workspace.core.filesystem;

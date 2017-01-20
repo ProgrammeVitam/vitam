@@ -37,12 +37,13 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
 
 /**
  * Workspace offer web application
  */
 public final class DefaultOfferApplication
-    extends AbstractVitamApplication<DefaultOfferApplication, DefaultOfferConfiguration> {
+    extends AbstractVitamApplication<DefaultOfferApplication, StorageConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferApplication.class);
     private static final String WORKSPACE_CONF_FILE_NAME = "default-offer.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
@@ -53,7 +54,7 @@ public final class DefaultOfferApplication
      * @param configuration
      */
     protected DefaultOfferApplication(String configuration) {
-        super(DefaultOfferConfiguration.class, configuration);
+        super(StorageConfiguration.class, configuration);
     }
 
     /**
@@ -61,8 +62,8 @@ public final class DefaultOfferApplication
      *
      * @param configuration
      */
-    public DefaultOfferApplication(DefaultOfferConfiguration configuration) {
-        super(DefaultOfferConfiguration.class, configuration);
+    public DefaultOfferApplication(StorageConfiguration configuration) {
+        super(StorageConfiguration.class, configuration);
     }
 
     /**
