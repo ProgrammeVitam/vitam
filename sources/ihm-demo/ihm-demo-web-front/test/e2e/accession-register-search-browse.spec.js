@@ -31,6 +31,12 @@ describe('AccessionRegister search and browse', function() {
   var logInlogOutUtilsService = require('./utils/login-logout.functions.js');
   var genericUtilsService = require('./utils/generic-utils.function');
   var accessionRegisterId = null;
+  var accessionRegisterId = 'ACCESSIONREGISTER';
+  var fullBreadcrumb = [
+    'Recherche',
+    'Recherche Registre des Fonds',
+    'Détail du Fonds'
+  ];
 
   beforeAll(function() {
     if(browser.params.mock === true) {
@@ -198,14 +204,12 @@ describe('AccessionRegister search and browse', function() {
     li.element(by.css('[class="block dropdown-toggle"]')).click();
     li.element(by.css('[href="#!/accessionRegister/search"]')).click();
     expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
-    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, 'Recherche Registre des Fonds');
   });
 
   it('should search automatically and return all result', function() {
     // FIXME Be sure that at least one result is present when tests are launched (for non-mocking mode)
     browser.get(browser.baseUrl + '/accessionRegister/search');
     expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
-    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, 'Recherche Registre des Fonds');
 
     // Check automatic search is launched
     var table = element(by.css('[class="table"]'));
@@ -225,7 +229,6 @@ describe('AccessionRegister search and browse', function() {
           browser.switchTo().window(newWindowHandle).then(function () {
             var regex = new RegExp(".*\/accessionRegister\/detail\/" + accessionRegisterId, "");
             expect(browser.getCurrentUrl()).toMatch(regex);
-            genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, 'Détail du Registre de Fonds');
             browser.close();
             browser.switchTo().window(handles[0]);
           });
@@ -277,7 +280,6 @@ describe('AccessionRegister search and browse', function() {
           browser.switchTo().window(newWindowHandle).then(function () {
             var regex = new RegExp(".*\/accessionRegister\/detail\/" + accessionRegisterId, "");
             expect(browser.getCurrentUrl()).toMatch(regex);
-            genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, 'Détail du Registre de Fonds');
             browser.close();
             browser.switchTo().window(handles[0]);
           });
@@ -305,14 +307,27 @@ describe('AccessionRegister search and browse', function() {
 
   it('should display the good information about result', function() {
     browser.get(browser.baseUrl + '/accessionRegister/detail/' + accessionRegisterId);
-    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, 'Détail du Registre de Fonds');
-
     var regex = new RegExp(".*\/accessionRegister\/detail\/" + accessionRegisterId, "");
     expect(browser.getCurrentUrl()).toMatch(regex);
 
     var titleSpans = element.all(by.css('[class="panel-header no-toggle"]'));
     var h2Title = titleSpans.get(0).element(by.css('h2'));
-    expect(h2Title.getText()).toBe('SERVICE PRODUCTEUR ' + ('' + accessionRegisterId).toUpperCase());
+    expect(h2Title.getText()).toBe('SERVICE PRODUCTEUR - ' + ('' + accessionRegisterId).toUpperCase());
+  });
+
+  it('should browse to good pages with accession-registry breadcrumb', function() {
+    browser.get(browser.baseUrl + '/accessionRegister/detail/' + accessionRegisterId);
+    var regex = new RegExp(".*\/accessionRegister\/detail\/" + accessionRegisterId, "");
+    expect(browser.getCurrentUrl()).toMatch(regex);
+    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 0, fullBreadcrumb[0]);
+    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, fullBreadcrumb[1]);
+    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 2, fullBreadcrumb[2]);
+
+    var breadcrumb = element(by.css('[class="breadcrumb"]'));
+    var checkingPart = breadcrumb.all(by.css('li')).get(1);
+    checkingPart.click();
+    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 0, fullBreadcrumb[0]);
+    genericUtilsService.checkBreadcrumbFinalPart(element, by, expect, 1, fullBreadcrumb[1]);
   });
 
 });

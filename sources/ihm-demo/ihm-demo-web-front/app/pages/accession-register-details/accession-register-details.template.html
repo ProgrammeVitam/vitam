@@ -1,12 +1,13 @@
 <div id="global" class="container-fluid" >
   <ol class="breadcrumb">
-    <li>Page d'accueil</li>
-    <li>Détail du Registre de Fonds</li>
+    <li>Recherche</li>
+    <li><a href="#!/accessionRegister/search">Recherche Registre des Fonds</a></li>
+    <li><a ng-href="#!/accessionRegister/detail/{{accessionRegisterId}}">Détail du Fonds</a></li>
   </ol>
 
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
-        <h2>Service producteur {{accessionRegisterId}}</h2>
+        <h2>Service producteur - {{accessionRegisterId}}</h2>
     </span>
 
     <!-- Get description metadata -->
@@ -22,22 +23,22 @@
                 <th>Volumétrie des objets</th>
               </tr>
               <tr>
-                <td>Total: {{summaryData.TotalUnits.Total}}</td>
-                <td>Total: {{summaryData.TotalObjectGroups.Total}}</td>
-                <td>Total: {{summaryData.TotalObjects.Total}}</td>
-                <td>Total: {{summaryData.ObjectSize.Total}}</td>
+                <td>Total: {{summaryData.TotalUnits.total}}</td>
+                <td>Total: {{summaryData.TotalObjectGroups.total}}</td>
+                <td>Total: {{summaryData.TotalObjects.total}}</td>
+                <td>Total: {{summaryData.ObjectSize.total}}</td>
               </tr>
               <tr>
-                <td>Supprimé: {{summaryData.TotalUnits.Deleted}}</td>
-                <td>Supprimé: {{summaryData.TotalObjectGroups.Deleted}}</td>
-                <td>Supprimé: {{summaryData.TotalObjects.Deleted}}</td>
-                <td>Supprimé: {{summaryData.ObjectSize.Deleted}}</td>
+                <td>Supprimé: {{summaryData.TotalUnits.deleted}}</td>
+                <td>Supprimé: {{summaryData.TotalObjectGroups.deleted}}</td>
+                <td>Supprimé: {{summaryData.TotalObjects.deleted}}</td>
+                <td>Supprimé: {{summaryData.ObjectSize.deleted}}</td>
               </tr>
               <tr>
-                <td>Restant: {{summaryData.TotalUnits.Remained}}</td>
-                <td>Restant: {{summaryData.TotalObjectGroups.Remained}}</td>
-                <td>Restant: {{summaryData.TotalObjects.Remained}}</td>
-                <td>Restant: {{summaryData.ObjectSize.Remained}}</td>
+                <td>Restant: {{summaryData.TotalUnits.remained}}</td>
+                <td>Restant: {{summaryData.TotalObjectGroups.remained}}</td>
+                <td>Restant: {{summaryData.TotalObjects.remained}}</td>
+                <td>Restant: {{summaryData.ObjectSize.remained}}</td>
               </tr>
             </table>
           </div>

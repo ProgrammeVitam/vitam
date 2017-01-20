@@ -1,13 +1,14 @@
 <div id="global" class="container-fluid">
   <ol class="breadcrumb">
-    <li>Page d'accueil</li>
-    <li>Détail de l'unité archivistique : {{$ctrl.archiveId}} / {{$ctrl.archiveTitle}}</li>
+    <li>Recherche</li>
+    <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+    <li><a ng-href="#!/archiveunit/{{$ctrl.archiveId}}">Détail de l'unité archivistique</a></li>
   </ol>
 
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
-        <h2>Détail d'une archive</h2>
-        <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}/{{$ctrl.archiveId}}" target="_blank" class="btn btn-primary" style="float:right">
+        <h2>Détail de l'unité archivistique</h2>
+        <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}/{{$ctrl.archiveTitle}}" target="_blank" class="btn btn-primary" style="float:right">
           <i class="material-icons pull-left">camera</i>
           <span class="pull-left m-l-10">Journal de Cycle de Vie</span>
         </a>
@@ -157,7 +158,7 @@
       <span class="panel-header no-toggle">
   			<h2>Groupe d'Objets</h2>
   			<a ng-if = "$ctrl.archiveFields._og != null && $ctrl.archiveFields._og != undefined && $ctrl.archiveFields._og != ''"
-  			ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-primary" role="button" style="float:right;margin:0px">
+  			ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveTitle}}" target="_blank" class="btn btn-primary" role="button" style="float:right;margin:0px">
   				<i class="material-icons pull-left">camera</i>
   				<span class="pull-left m-l-10">Journal de Cycle de vie du groupe d'objets</span>
   			</a>

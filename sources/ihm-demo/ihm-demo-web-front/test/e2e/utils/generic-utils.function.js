@@ -55,26 +55,6 @@ var genericUtils = function(){
     expect(checkingPart.getText()).toBe(value);
   };
 
-  /**
-   * Check multiple parts of the breadcrumb component of the page and his size.
-   * Exemple: checkAllBreadcrumb(element, by, expect, 2, {0: 'Page d\'accueil', 1: 'Recherche Registre des Fonds'})
-   *
-   * @param element the given function that select an html element, from protractor test
-   * @param by the given function that specify the kind of selector, from protractor test
-   * @param expect the given function that test an expected value, from ptotractor test
-   * @param lenght the expected length of the breadcrumb
-   * @param mapIndexesValues the expected values of the breadcrumb as a map (Index: Value)
-   */
-  genericUtilsService.checkAllBreadcrumb = function(element, by, expect, lenght, mapIndexesValues) {
-    var breadcrumb = element(by.css('[class="breadcrumb"]'));
-    var allParts = breadcrumb.all(by.css('li'));
-    expect(allParts.count()).toBe(lenght);
-
-    for(var index in mapIndexesValues) {
-      expect(allParts.get(index).getText()).toBe(mapIndexesValues[index]);
-    }
-  };
-
   return genericUtilsService;
 };
 module.exports = new genericUtils();

@@ -39,10 +39,12 @@ angular.module('accession.register.search')
     self.itemsPerPage = self.viewby;
     self.maxSize = 5;
 
+    // FIXME Useless function ?
     self.setPage = function(pageNo) {
      selfcurrentPage = pageNo;
     };
 
+    // FIXME Useless function ?
     self.setItemsPerPage = function(num) {
       self.itemsPerPage = num;
       self.currentPage = 1; // reset to first page
