@@ -55,6 +55,10 @@ public class PluginHelper {
     private static final String PLUGIN_NOT_FOUND = "Plugin not found exception: ";
     private PluginHelper() {}
     
+    /**
+     * Get list of plugin
+     * @return PluginList
+     */
     public static Map<String, Object> getPluginList() {
         try {
             return JsonHandler.getMapFromInputStream(PropertiesUtils.getConfigAsStream(PLUGIN_CONFIG_FILE));
@@ -63,6 +67,13 @@ public class PluginHelper {
         }
     }
     
+    /**
+     * Load action Handler
+     * @param actionId
+     * @param plugin
+     * @return action Handler
+     * @throws PluginNotFoundException
+     */
     public static ActionHandler loadActionHandler(String actionId, PluginProperties plugin) throws PluginNotFoundException {
         try {
             PluginPropertiesLoader.loadProperties(actionId, plugin.getPropertiesFile());

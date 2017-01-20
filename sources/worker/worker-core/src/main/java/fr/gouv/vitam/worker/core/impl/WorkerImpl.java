@@ -116,6 +116,10 @@ public class WorkerImpl implements Worker {
          */
         init();
     }
+    
+    protected Map<String, Object> getPlugins() {
+        return plugins;
+    }
 
     /**
      * Add an actionhandler in the pool of action
@@ -267,8 +271,8 @@ public class WorkerImpl implements Worker {
                 GUIDReader.getGUID(workParams.getContainerName()), 
                 LogbookTypeProcess.INGEST, 
                 StatusCode.STARTED, 
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED), 
                 VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED), 
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED), 
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         }
         return lfcParam;
