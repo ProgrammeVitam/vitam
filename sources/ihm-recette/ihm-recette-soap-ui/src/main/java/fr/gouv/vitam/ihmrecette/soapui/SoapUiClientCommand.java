@@ -61,10 +61,10 @@ public class SoapUiClientCommand implements SoapUiClient {
     public void launchTests() throws IOException, InterruptedException {
         final String executablePath = clientConfiguration.getSoapUiExecutable();
 
-        final String logbookProtocol = clientConfiguration.getAccessExternalProtocol();
-        final String logbookHostName = clientConfiguration.getAccessExternalHost();
-        final int logbookPort = clientConfiguration.getAccessExternalPort();
-        final String logbookHost = logbookProtocol + "://" + logbookHostName + ":" + logbookPort + "/";
+        final String accessProtocol = clientConfiguration.getAccessExternalProtocol();
+        final String accessHostName = clientConfiguration.getAccessExternalHost();
+        final int accessPort = clientConfiguration.getAccessExternalPort();
+        final String accessHost = accessProtocol + "://" + accessHostName + ":" + accessPort + "/";
 
         final String ingestProtocol = clientConfiguration.getIngestProtocol();
         final String ingestHostName = clientConfiguration.getIngestHost();
@@ -85,7 +85,7 @@ public class SoapUiClientCommand implements SoapUiClient {
 
         final StringBuilder cmdBuilder = new StringBuilder().append(executablePath);
         cmdBuilder.append(" -P ingestHost=").append(ingestHost);
-        cmdBuilder.append(" -P logbookHost=").append(logbookHost);
+        cmdBuilder.append(" -P accessHost=").append(accessHost);
         cmdBuilder.append(" -P certfile=").append(certfile);
         cmdBuilder.append(" -P certPass=").append(certpass);
         cmdBuilder.append(" -P truststore=").append(truststore);
