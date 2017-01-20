@@ -39,10 +39,6 @@ documentation:
       - Métadonnées dans un format SEDA XML ou Json de nom manifest.xml ou manifest.json
       - Tous les binaires dans le répertoire "/content"
     - d'autres formes suivront (multipart/form-data) avec de multiples requêtes utilisant les sous-collections futures *Units* et *Objects*
-  get:
-    description: |
-      Request that will return a listing of ingests operations
-    is: [IngestTraits.IngestListingResponse ]
   post:
     description: |
       Only valid when there is a X-Http-Method-Override: GET header, the behavior is the same as GET /ingests with a body
@@ -50,25 +46,94 @@ documentation:
       - response : JSON of selected Ingest operations / HTTP CODE 200 or 206
     is: [IngestTraits.IngestListingResponse, StandardTraits.OverrideGet]
     headers:
-      X-Http-Method-Override:
+     X-Action:
+        required: true
+     X-Context-Id:
         required: false
-
-  /{id_async}:
-    displayName: Ingest
-    description: Accès à une transaction d'entrée ou à son résultat.
+/operations:
+  # root endpoint request
+  displayName: Operations
+  description: Administration des Workflows Asynchrones (opérations).
+  is: [ StandardTraits.StandardOptionalHeader,
+  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+  /{id}:
+    displayName: Operation
+    is: [ StandardTraits.StandardOptionalHeader,
+    StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+    StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     get:
-      is: [IngestTraits.IngestFinalResponse,IngestTraits.IngestPoolingResponse]
+      description:  |
+        Permet de récupérer le statut du workflow en cours
+      responses:
+        202:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/async_status.sample
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/workflow.sample
     post:
-      is: [IngestTraits.IngestCreationResponse, IngestTraits.IngestLogbookDelegation]
-      description: |
-        2 options are possible :
-        - Using JSON for Operation Logbook delegation creation
-        - Using application/zip or application/tar.gz... for real ingest part
+     description: |
+       Permet de soumettre un workflow à l'exécution
+     body:
+      application/json:
+        type: object
+        example: !include libraries/samples/genericSample.sample
+     headers:
+      X-Action:
+       required: true
+      X-Context-Id:
+       required: false
+     responses:
+        202:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/async_status.sample
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/workflow.sample
     put:
-      is: [IngestTraits.IngestLogbookDelegation]
       description: |
-        Using JSON for Operation Logbook delegation update
-
+       Permet d'interagir avec une opération (pause, reprise, repriorisation par exemple)
+      headers:
+       X-Action:
+        required: true
+       X-Context-Id:
+        required: false
+      body:
+        application/json:
+          type: object
+          example: !include libraries/samples/genericSample.sample
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/async_status.sample
+    delete:
+     description: |
+       pour annuler le workflow.
+     responses:
+       204:
+         description: |
+           Succesfully deleted resource
+    head:
+      description: |
+        Obtenir le statut d'un workflow
+      responses:
+       200:
+         description: |
+           operation trouve et status retourne avec succes 
+       204:
+         description: |
+          operation non trouve 
 /status:
   get:
     is: [ StandardTraits.Status, StandardTraits.StandardHeader200,

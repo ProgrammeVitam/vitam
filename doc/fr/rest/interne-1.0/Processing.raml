@@ -28,13 +28,24 @@ documentation:
 
   - title: Workflows
     content: |
+
       Le principe proposé serait le suivant:
         - Permet de soumettre un workflow à l'exécution:
-          - POST /operations
-        - Permet d'intervenir sur le comportement de l'exécution et de la distribution (pause, cancel, restart, priorité)
-          - PUT /operations/id_async
+          - POST /operations/id
+        - Obtenir le statut détaillé d'un workflow:
+          - GET /operations/id
+        - Obtenir le statut d'un workflow:
+          - HEAD /operations/id
+        - Permet d'intervenir sur le comportement de l'exécution et de la distribution (next,resume,pause)
+          - PUT /operations/id
         - Permet à un worker d'informer de la fin d'exécution d'une étape
-          - PUT /operations/id_async
+          - DELETE /operations/id
+
+
+        - Permet de soumettre des operations à l'exécution:
+          - POST /operations
+        - Mettre à jour le statut des operations en cours d'un workflow:
+          - PUT /operations
 
   - title: Worker_family
     content: |
@@ -54,30 +65,24 @@ documentation:
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-  get:
-    description: Permet de lister les opérations en cours
-    body:
-      application/json:
-        type: object
-        example: !include libraries/samples/collectionQuery.sample
-    responses:
-      200:
-        body:
-          application/json:
-            type: object
-            example: !include libraries/samples/operationsList.sample
   post:
     description: Permet de soumettre une opération (workflow + contexte + lot)
     body:
       application/json:
         type: object
         example: !include libraries/samples/workflow.sample
+    headers:
+       X-Action:
+        required: true
+       X-Context-Id:
+        required: false
     responses:
       201:
         body:
           application/json:
             type: object
             example: !include libraries/samples/async_status.sample
+    
   put:
     description: Permet d'interagir avec la liste des opérations (pause, reprise, repriorisation par exemple)
     body:
@@ -90,8 +95,13 @@ documentation:
           application/json:
             type: object
             example: !include libraries/samples/async_status.sample
+    headers:
+       X-Action:
+        required: true
+       X-Context-Id:
+        required: false
 
-  /{id_async}:
+  /{id}:
     displayName: Operation
     is: [ StandardTraits.StandardOptionalHeader,
     StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -109,8 +119,36 @@ documentation:
             application/json:
               type: object
               example: !include libraries/samples/workflow.sample
+    post:
+     description: |
+       Permet de soumettre un workflow à l'exécution
+     body:
+      application/json:
+        type: object
+        example: !include libraries/samples/genericSample.sample
+     headers:
+      X-Action:
+       required: true
+      X-Context-Id:
+       required: false
+     responses:
+        202:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/async_status.sample
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/samples/workflow.sample
     put:
       description: Permet d'interagir avec une opération (pause, reprise, repriorisation par exemple)
+      headers:
+       X-Action:
+        required: true
+       X-Context-Id:
+        required: false
       body:
         application/json:
           type: object
@@ -121,6 +159,23 @@ documentation:
             application/json:
               type: object
               example: !include libraries/samples/async_status.sample
+    delete:
+     description: |
+       pour annuler le workflow.
+     responses:
+       204:
+         description: |
+           Succesfully deleted resource
+    head:
+      description: |
+        Obtenir le statut d'un workflow
+      responses:
+       200:
+         description: |
+           operation trouve et status retourne avec succes 
+       204:
+         description: |
+          operation non trouve 
 
 /worker_family:
   # root endpoint request
