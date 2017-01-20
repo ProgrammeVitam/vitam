@@ -62,6 +62,9 @@ public class ItemStatus {
     protected Map<String, Object> data;
 
 
+    /**
+     * Empty Constructor 
+     */
     public ItemStatus() {
         statusMeter = new ArrayList<>();
         for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {

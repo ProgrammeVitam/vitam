@@ -231,10 +231,13 @@ public class Messages {
         } catch (final MissingResourceException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             // Remove the LFC prefix to get message value in plugin properties
+            String pluginKey = "";
             if (key.contains(LFC_PREFIX)) {
-                key.replace(LFC_PREFIX, "");
+                pluginKey = key.replace(LFC_PREFIX, "");
+            } else {
+                pluginKey = key;
             }
-            final String source = PluginPropertiesLoader.getString(key);
+            final String source = PluginPropertiesLoader.getString(pluginKey);
             if (source == null || source.isEmpty()) {
                 // Cannot find any resource or value for this key
                 return getFakeMessage(key, args);

@@ -52,7 +52,7 @@ public class PluginPropertiesLoader {
     private PluginPropertiesLoader() {}
     
     /**
-     *
+     * loadProperties from handler Id and properties file
      * @param propertyFilename
      */
     public static void loadProperties(String handlerID, String propertyFilename) {
@@ -67,6 +67,10 @@ public class PluginPropertiesLoader {
         }
     }
     
+    /**
+     * @param message
+     * @return message detail
+     */
     public static final String getString(String message) {
         return resourceMap.get(message);
     }
