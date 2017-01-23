@@ -81,11 +81,13 @@ angular.module('accession.register.search')
           } else {
             // Invalid response
             self.showResult = false;
+            self.totalResult = 0;
           }
         },
         // Failed search request
         function(error) {
           self.showResult = false;
+          self.totalResult = 0;
         }
       );
     }

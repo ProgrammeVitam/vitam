@@ -89,6 +89,7 @@ angular
           $scope.error = true;
           $scope.showResult = false;
           $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
+          $scope.totalResult = 0;
          } else {
           $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
           $scope.showResult = true;
@@ -112,9 +113,11 @@ angular
          $scope.showResult = false;
          $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_ERROR_MSG;
          $scope.showAlert($event, "Erreur", $scope.errorMessage);
+         $scope.totalResult = 0;
         });
      } else {
        $scope.showResult = false;
+       $scope.totalResult = 0;
        $scope.showAlert($event, "Info", ARCHIVE_SEARCH_MODULE_CONST.NO_CRITERIA_SET);
      }
     };
@@ -247,6 +250,7 @@ angular
            $scope.showResult = false;
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
            $scope.showAlert($event, "Erreur", $scope.errorMessage);
+            $scope.totalResult = 0;
           } else {
            $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
            $scope.showResult = true;

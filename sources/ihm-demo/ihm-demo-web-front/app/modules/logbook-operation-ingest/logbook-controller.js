@@ -52,7 +52,7 @@ angular.module('ihm.demo')
     ctrl.endDate = new Date();
     ctrl.searchOptions = {};
     ctrl.resultPages = '';
-    ctrl.fileFormatList = [];
+    ctrl.logbookEntryList = [];
     ctrl.pageActive = [true, false, false, false, false];
     ctrl.client = ihmDemoCLient.getClient('logbook');
     var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
@@ -74,19 +74,22 @@ angular.module('ihm.demo')
       }
       ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
         if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+          ctrl.results = 0;
           displayError("Il n'y a aucun résultat pour votre recherche");
           return;
         }
-        ctrl.fileFormatList = response.data.$results;
-        ctrl.fileFormatList.map(function(item) {
+        ctrl.logbookEntryList = response.data.$results;
+        ctrl.logbookEntryList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
         ctrl.resultPages = Math.ceil(response.data.$hits.total/ITEM_PER_PAGE);
         ctrl.currentPage = ctrl.currentPage || 1;
+        ctrl.results = response.data.$hits.total;
         ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
         header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
       }, function(response) {
         ctrl.searchOptions = {};
+        ctrl.results = 0;
       });
     };
 
@@ -123,7 +126,7 @@ angular.module('ihm.demo')
       if (ctrl.currentPage > 1 ) {
         ctrl.diplayPage -= 1;
         if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
-          ctrl.fileFormatList = [];
+          ctrl.logbookEntryList = [];
           ctrl.currentPage -=5;
           ctrl.diplayPage = 5;
           header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
@@ -145,7 +148,7 @@ angular.module('ihm.demo')
       if (ctrl.currentPage+4 < ctrl.resultPages) {
         ctrl.diplayPage +=1;
         if (ctrl.diplayPage > 5) {
-          ctrl.fileFormatList = [];
+          ctrl.logbookEntryList = [];
           ctrl.currentPage += 5;
           ctrl.diplayPage = 1;
           header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;

@@ -97,15 +97,18 @@ angular.module('ihm.demo')
           } else {
             displayError("Il n'y a aucun résultat pour votre recherche");
           }
+          ctrl.results = 0;
           return;
         }
         ctrl.operationList = response.data.$results;
         ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
+        ctrl.results = response.data.$hits.total;
         ctrl.currentPage = 1;
       }, function(response) {
         ctrl.searchOptions = {};
         ctrl.resultPages = 0;
         ctrl.currentPage = 0;
+        ctrl.results = 0;
         if (ctrl.searchType && ctrl.searchID) {
           displayError("Veuillez ne remplir qu'un seul champ");
         } else {

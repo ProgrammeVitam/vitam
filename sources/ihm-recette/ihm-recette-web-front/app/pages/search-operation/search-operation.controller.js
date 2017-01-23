@@ -82,6 +82,7 @@ angular
 										function(response) {
 											ctrl.operationList = response.data.$results;
 											if (ctrl.operationList.length === 0) {
+												ctrl.results = 0;
 												displayError("Il n'y a aucun résultat pour votre recherche");
 												return;
 											}
@@ -89,11 +90,13 @@ angular
 													.ceil(ctrl.operationList.length
 															/ ctrl.itemsPerPage);
 											ctrl.currentPage = 1;
+											ctrl.results = response.data.$hits.total;
 										},
 										function() {
 											ctrl.searchOptions = {};
 											ctrl.resultPages = 0;
 											ctrl.currentPage = 0;
+											ctrl.results = 0;
 											if (ctrl.searchDate) {
 												displayError("Veuillez choisir une date");
 											} else {

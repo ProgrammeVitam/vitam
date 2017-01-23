@@ -63,7 +63,7 @@
 
 <div class="panel panel-default col-md-12">
   <a class="panel-header">
-    <h2>Journal des opérations</h2>
+      <h2> Résultats <span ng-if="logctrl.results == 0 || logctrl.results > 0">({{logctrl.results}})</span></h2>
   </a>
   <div id="boxEntriesList" class="panel-body panel-collapse collapse in">
     <div class="table-responsive">
@@ -78,7 +78,7 @@
             <th>Bordereau</th>
         </tr>
 
-        <tbody ng-repeat="log in logctrl.fileFormatList | startFrom:(logctrl.diplayPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
+        <tbody ng-repeat="log in logctrl.logbookEntryList | startFrom:(logctrl.diplayPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
           <tr>
             <td ng-click="logctrl.openDialog($event, log.evIdProc)" >{{log.events[0].obIdIn}}</td>
             <td ng-click="logctrl.openDialog($event, log.evIdProc)" >{{log.evIdProc}}</td>

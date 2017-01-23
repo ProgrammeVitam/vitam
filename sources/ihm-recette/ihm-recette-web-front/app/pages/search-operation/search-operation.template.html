@@ -54,7 +54,10 @@
 
 <div class="panel panel-default col-md-12">
 	<a class="panel-header">
-		<h2>Journal des opérations</h2>
+		<h2>
+			Résultats
+			<span ng-if="ctrl.results == 0 || ctrl.results > 0">({{ctrl.results}})</span>
+		</h2>
 	</a>
 
 	<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
