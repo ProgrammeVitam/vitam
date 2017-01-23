@@ -71,7 +71,7 @@ Algorithme d'update
 ===================
 
 Après la création de l'Archives Unit temporaire extraite du manifest.xml si une balise *<SystemId>EXISTING_GUID</SystemId>* a été rencontrée les traitement suivant sont fait :
-* l'Archive Unit existant est récupéré en base à partir du EXISTING_GUID fourni dans le fichier, si il n'est pas trouvé l'extraction est arrếtée
+* l'Archive Unit existant est récupéré en base à partir du EXISTING_GUID fourni dans le fichier, si il n'est pas trouvé l'extraction est arrêtée
 * un nouveau fichier d'archive temporaire *EXISTING_GUID.xml* est créé à partir du fichier extrait (*GUID.xml*) en changeant l'attribut d'id de la balise *<ArchiveUnit id="GUID">...</ArchiveUnit>*
 * l'ancien fichier *GUID.xml* est supprimé
 * le nouveau guid *EXISTING_GUID* remplace l'ancien *GUID* dans la données temporaires d'extraction (correspondance des Id VITAM/SEDA, liste des GUID de unit extrait) et ajouté dans la liste des GUID existants
