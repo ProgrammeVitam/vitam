@@ -1,0 +1,7 @@
+{
+	"CHECK_DIGEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin",
+		"propertiesFile": "check_conformity_plugin.properties"
+	}
+}
+
