@@ -97,6 +97,10 @@ config(['$locationProvider' ,'$routeProvider',
     when('/accessionRegister/detail/:accessionRegisterId', {
       template: '<accession-register-details></accession-register-details>'
     }).
+        when('/admin/logbookOperations/:entryId', {
+          templateUrl: 'views/logbookEntry.html',
+          controller: 'logbookEntryController as entryCtrl'
+        }).
     otherwise('/uploadSIP');
   }
 ])
