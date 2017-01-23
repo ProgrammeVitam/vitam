@@ -31,11 +31,6 @@ angular.module('core')
 
     var MESSAGES_ROOT = '/messages/';
     var MESSAGES_LOGBOOK = 'logbook';
-    /*    var MessagesResource = {};*/
-
-    /* MessagesResource.getLogbookMessages = function () {
-     return $http.get(IHM_URLS.IHM_BASE_URL + MESSAGES_ROOT + MESSAGES_LOGBOOK);
-     };*/
 
     return function(options) {
       var deferred = $q.defer();
@@ -52,8 +47,9 @@ angular.module('core')
 
       var status = authVitamService.isConnect('userCredentials');
 
+      if(status === 'logged') {
         combinedPromise.push($http.get(IHM_URLS.IHM_BASE_URL + MESSAGES_ROOT + MESSAGES_LOGBOOK));
-
+      }
 
       // Specific to disabled translation and force show keys
       combinedPromise.push($http.get('static/languages_' + options.key + '.json'));

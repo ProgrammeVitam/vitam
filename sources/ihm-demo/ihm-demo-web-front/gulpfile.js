@@ -96,19 +96,30 @@ gulp.task('build', gulpsync.sync(['build:css', 'build:assets', 'build:vendor-ass
 gulp.task('default', ['serve']);
 
 function serve() {
-    connect.server({
-        root: ['dist/'],
-        port: 9000,
-        livereload: true,
-        middleware: function (connect, opt) {
-            return [
-                proxy('/ihm-demo', {
-                    target: 'http://localhost:8082',
-                    changeOrigin: true
-                })
-            ]
-        }
-    });
+  var target = 'http://localhost:8082';
+
+  try {
+    var customConf = require('./local.json');
+    if(!!customConf && !!customConf.target) {
+      target = customConf.target;
+    }
+  } catch (e) {
+    // File not present / Just dont override conf
+  }
+
+  connect.server({
+    root: ['dist/'],
+    port: 9000,
+    livereload: true,
+    middleware: function (connect, opt) {
+      return [
+        proxy('/ihm-demo', {
+          target: target,
+          changeOrigin: true
+        })
+      ]
+    }
+  });
 }
 
 gulp.task('serve', ['watch'], function () {

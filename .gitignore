@@ -15,3 +15,4 @@ npm-debug.log
 *.retry
 *~*
 repodata
+local.conf
