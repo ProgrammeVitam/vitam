@@ -42,13 +42,13 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 
 /**
  * Driver implementation for test only
@@ -98,30 +98,31 @@ public class FakeDriverImpl implements Driver {
                 throw new StorageDriverException("driverInfo", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "ExceptionTest");
             }
-            final StorageCapacityResult result = new StorageCapacityResult();
-            result.setUsableSpace(1000000);
-            result.setUsedSpace(99999);
+
+            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
             return result;
         }
 
         @Override
-        public GetObjectResult getObject(GetObjectRequest objectRequest) throws StorageDriverException {
+        public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
 
-            return new GetObjectResult(0,
+            return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
                 new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
 
         @Override
-        public PutObjectResult putObject(PutObjectRequest objectRequest) throws StorageDriverException {
+        public StoragePutResult putObject(StoragePutRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", 0, 0);
+                return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
+                    objectRequest.getGuid(), objectRequest.getGuid(), "different_digest_hash", 0);
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
-                    return new PutObjectResult(objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
-                        0, bytes.length);
+                    return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
+                        objectRequest.getGuid(), objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
+                        bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         e);
@@ -129,14 +130,14 @@ public class FakeDriverImpl implements Driver {
             }
         }
 
-
         @Override
-        public RemoveObjectResult removeObject(RemoveObjectRequest objectRequest) throws StorageDriverException {
-            return new RemoveObjectResult();
+        public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
+            return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
+                objectRequest.getGuid());
         }
 
         @Override
-        public Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException {
+        public Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
             return "already_in_offer".equals(request.getGuid());
         }
 

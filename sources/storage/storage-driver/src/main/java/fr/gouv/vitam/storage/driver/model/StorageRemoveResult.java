@@ -28,8 +28,21 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Holds every needed parameters that may be needed to remove an object on the distant storage offer
+ * Holds result data that come as a result of a request to remove an object on the distant storage offer
  */
-public class RemoveObjectRequest {
+public class StorageRemoveResult extends StorageObjectResult {
+
     // TODO P1 : implements me
+    
+    /**
+     * Initialize the needed parameters for remove results
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
+     */
+    public StorageRemoveResult(Integer tenantId, String type, String guid) {
+        super(tenantId, type, guid);
+    }
+
 }

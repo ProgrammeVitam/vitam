@@ -27,36 +27,49 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
+import java.io.InputStream;
 
 /**
- * TEst for GetObjectRequest
+ * Holds every needed parameters that may be needed to put an object on the distant storage offer.
  */
-public class GetObjectRequestTest {
-    private static GetObjectRequest getObjectRequest;
-    private static final Integer TENANT_ID = 0;
+public class StoragePutRequest extends StorageObjectRequest {
 
-    @BeforeClass
-    public static void init() {
-        getObjectRequest = new GetObjectRequest(TENANT_ID, "oi", "object");
+    private final String digestAlgorithm;
+    private final InputStream dataStream;
+
+    /**
+     * Initialize the needed parameters for put requests of an object.
+     *
+     * @param tenantId request tenantId
+     * @param type the type
+     * @param guid the object guid
+     * @param digestAlgorithm the object digestAlgorithm
+     * @param dataStream data stream of the object to put in offer
+     */
+    public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm, InputStream dataStream) {
+        super(tenantId, type, guid);
+        this.digestAlgorithm = digestAlgorithm;
+        this.dataStream = dataStream;
     }
 
-    @Test
-    public void testGetTenantId() throws Exception {
-        assertEquals(TENANT_ID, getObjectRequest.getTenantId());
+    /**
+     * Gets the digestAlgorithm
+     * 
+     * @return the digestAlgorithm
+     */
+    public String getDigestAlgorithm() {
+        return digestAlgorithm;
     }
 
-    @Test
-    public void testGetObjectId() throws Exception {
-        assertEquals("oi", getObjectRequest.getGuid());
+    /**
+     * Gets the dataStream
+     * 
+     * @return the dataStream
+     */
+    public InputStream getDataStream() {
+        return dataStream;
     }
 
-    @Test
-    public void testGetFolder() throws Exception {
-        assertEquals("object", getObjectRequest.getFolder());
-    }
+
 
 }

@@ -27,48 +27,37 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 /**
- * Data structure representing global result from a 'get storage container information / capacity' request
+ * Test for StorageRemoveResultTest
  */
-public class StorageCapacityResult extends StorageResult {
+public class StorageRemoveResultTest {
+    private static StorageRemoveResult storageRemoveResult;
+    private static final Integer TENANT_ID = 0;
 
-    private long usableSpace;
+    @BeforeClass
+    public static void init() {
+        storageRemoveResult = new StorageRemoveResult(TENANT_ID, "object", "guid");
+    }
 
-    private long usedSpace;
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageRemoveResult.getTenantId());
+    }
 
-    /**
-     * Empty constructor, needed for response parsing
-     */
-    public StorageCapacityResult() {
-        super(null, null);
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals("object", storageRemoveResult.getType());
+    }
+
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storageRemoveResult.getGuid());
     }
 
 
-    /**
-     * Initialize the needed parameters for get capacity results
-     *
-     * @param tenantId The request tenantId
-     * @param usableSpace The usable space in offer
-     * @param usedSpace The used space in offer
-     */
-    public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
-        // TODO : replace null with type (since a container is type_tenant)
-        super(tenantId, null);
-        this.usableSpace = usableSpace;
-        this.usedSpace = usedSpace;
-    }
-
-    /**
-     * @return The offer usable space
-     */
-    public long getUsableSpace() {
-        return usableSpace;
-    }
-
-    /**
-     * @return The offer used space
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
 }

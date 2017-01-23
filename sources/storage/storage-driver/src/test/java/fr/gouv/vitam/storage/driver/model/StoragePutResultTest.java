@@ -27,70 +27,51 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import java.io.InputStream;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
- * Holds every needed parameters that may be needed to put an object on the distant storage offer
+ *
  */
-public class PutObjectRequest {
-    private final Integer tenantId;
-    private final String digestAlgorithm;
-    private final String guid;
-    private final String type;
-    private final InputStream dataStream;
+public class StoragePutResultTest {
+    private static StoragePutResult storagePutResult;
+    private static final Integer TENANT_ID = 0;
 
-    /**
-     * Initialize the needed parameters for put requests
-     *
-     * @param tenantId request tenantId
-     * @param digestAlgorithm the object digestAlgorithm
-     * @param guid the object guid
-     * @param dataStream data stream of the object to put in offer
-     * @param type the type
-     */
-    public PutObjectRequest(Integer tenantId, String digestAlgorithm, String guid, InputStream dataStream, String type) {
-        this.tenantId = tenantId;
-        this.digestAlgorithm = digestAlgorithm;
-        this.guid = guid;
-        this.dataStream = dataStream;
-        this.type = type;
+    @BeforeClass
+    public static void init() {
+        storagePutResult = new StoragePutResult(TENANT_ID, "object", "guid", "doi", "dhb16", 10);
     }
 
-    /**
-     * @return the request tenantId
-     */
-    public Integer getTenantId() {
-        return tenantId;
+
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storagePutResult.getTenantId());
     }
 
-    /**
-     * @return the object data stream
-     */
-    public InputStream getDataStream() {
-        return dataStream;
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals("object", storagePutResult.getType());
     }
 
-    /**
-     * @return the object guid
-     */
-    public String getGuid() {
-        return guid;
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storagePutResult.getGuid());
     }
 
-    /**
-     *
-     * @return the type
-     */
-    public String getType() {
-        return type;
+    @Test
+    public void testGetSetDistantObjectId() {
+        assertEquals("doi", storagePutResult.getDistantObjectId());
     }
 
-    /**
-     *
-     * @return the digestAlgorithm
-     */
-    public String getDigestAlgorithm() {
-        return digestAlgorithm;
+    @Test
+    public void testGetDigestHashBase16() {
+        assertEquals("dhb16", storagePutResult.getDigestHashBase16());
     }
 
+    @Test
+    public void testGetSize() {
+        assertEquals(10, storagePutResult.getObjectSize());
+    }
 }

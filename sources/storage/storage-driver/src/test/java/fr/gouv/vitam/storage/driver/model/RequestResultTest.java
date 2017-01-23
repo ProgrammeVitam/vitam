@@ -42,21 +42,21 @@ import org.junit.Test;
  */
 public class RequestResultTest {
     private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
-    private static GetObjectRequest getObjectRequest;
-    private static GetObjectResult getObjectResult;
-    private static RemoveObjectRequest removeObjectRequest;
-    private static RemoveObjectResult removeObjectResult;
+    private static StorageObjectRequest getObjectRequest;
+    private static StorageGetResult getObjectResult;
+    private static StorageRemoveRequest removeObjectRequest;
+    private static StorageRemoveResult removeObjectResult;
     private static StorageCapacityResult storageCapacityResult;
     private static final Integer TENANT_ID = 0;
 
 
     @BeforeClass
     public static void init() {
-        getObjectRequest = new GetObjectRequest(TENANT_ID, "oi", "object");
-        getObjectResult = new GetObjectResult(TENANT_ID, Response.ok(BYTES).build());
-        removeObjectRequest = new RemoveObjectRequest();
-        removeObjectResult = new RemoveObjectResult();
-        storageCapacityResult = new StorageCapacityResult("ti", 1000, 100);
+        getObjectRequest = new StorageObjectRequest(TENANT_ID, "object", "oi");
+        getObjectResult = new StorageGetResult(TENANT_ID, "object", "oi", Response.ok(BYTES).build());
+        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi");
+        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi");
+        storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
     }
 
     @Test
@@ -73,9 +73,9 @@ public class RequestResultTest {
 
     @Test
     public void testStorageCapacity() throws Exception {
+        assertNotNull(storageCapacityResult);
         assertEquals(1000, storageCapacityResult.getUsableSpace());
         assertEquals(100, storageCapacityResult.getUsedSpace());
-        assertNotNull(storageCapacityResult);
     }
 
 }

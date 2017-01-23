@@ -27,50 +27,37 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 /**
- * Holds every needed parameters that may be needed to retrieve an object on the distant storage offer
+ * Test for StorageObjectRequest
  */
-public class GetObjectRequest {
+public class StorageObjectRequestTest {
+    private static StorageObjectRequest storageObjectRequest;
+    private static final Integer TENANT_ID = 0;
 
-    private final Integer tenantId;
-
-    private final String guid;
-
-    private final String folder;
-
-    /**
-     * Initialize the needed parameters for get/head requests
-     *
-     * @param tenantId the request tenantId
-     * @param guid the object guid
-     * @param folder the folder
-     */
-    public GetObjectRequest(Integer tenantId, String guid, String folder) {
-        this.tenantId = tenantId;
-        this.folder = folder;
-        this.guid = guid;
+    @BeforeClass
+    public static void init() {
+        storageObjectRequest = new StorageObjectRequest(TENANT_ID, "object", "guid");
     }
 
-    /**
-     * @return the request tenantId
-     */
-    public Integer getTenantId() {
-        return tenantId;
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageObjectRequest.getTenantId());
     }
 
-    /**
-     * @return the object guid
-     */
-    public String getGuid() {
-        return guid;
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals("object", storageObjectRequest.getType());
     }
 
-    /**
-     *
-     * @return the folder
-     */
-    public String getFolder() {
-        return folder;
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storageObjectRequest.getGuid());
     }
+
 
 }

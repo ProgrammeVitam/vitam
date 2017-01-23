@@ -28,13 +28,13 @@
 package fr.gouv.vitam.storage.driver;
 
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
@@ -68,7 +68,7 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException;
+    StorageGetResult getObject(StorageObjectRequest request) throws StorageDriverException;
 
     /**
      * Put the object file into the storage offer based on criterias defined in request argument and underlaying
@@ -78,7 +78,7 @@ public interface Connection extends AutoCloseable {
      * @return a result that may contains metadatas or statistics about the object put operation.
      * @throws StorageDriverException if any problem occurs during request
      */
-    PutObjectResult putObject(PutObjectRequest request) throws StorageDriverException;
+    StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException;
 
     /**
      * Delete an object on the distant storage offer.
@@ -87,16 +87,16 @@ public interface Connection extends AutoCloseable {
      * @return a result that may contains metadatas or statistics about the object removal operation.
      * @throws StorageDriverException if any problem occurs during request
      */
-    RemoveObjectResult removeObject(RemoveObjectRequest request) throws StorageDriverException;
+    StorageRemoveResult removeObject(StorageRemoveRequest request) throws StorageDriverException;
 
     /**
      * Check if an object is present in the offer
      *
      * @param request the request to send. It contains informations needed to retrieve a given object.
-     * @return a result that may contains metadatas as well as the binary file
+     * @return true if exists, else false
      * @throws StorageDriverException if any problem occurs during request
      */
-    Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException;
+    Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException;
 
     /**
      * Override AutoCloseable implementation to specify the exception

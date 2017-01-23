@@ -27,55 +27,42 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 /**
- * Holds result data that come as a result of a request to put an object on the distant storage offer
+ * Test for StorageCapacityObjectResult
  */
-public class PutObjectResult {
-    private final String distantObjectId;
-    private final String digestHashBase16;
-    private final long objectSize;
-    private final Integer tenantId;
+public class StorageCapacityResultTest {
+    private static StorageCapacityResult storageCapacityResult;
+    private static final Integer TENANT_ID = 0;
 
-    /**
-     * Initialize the needed parameters for put result
-     *
-     * @param distantObjectId The distant object id
-     * @param digestHashBase16 the object digest hash
-     * @param tenantId the request tenantId
-     * @param objectSize
-     */
-    public PutObjectResult(String distantObjectId, String digestHashBase16, Integer tenantId, long objectSize) {
-        this.distantObjectId = distantObjectId;
-        this.digestHashBase16 = digestHashBase16;
-        this.tenantId = tenantId;
-        this.objectSize = objectSize;
+    @BeforeClass
+    public static void init() {
+        storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
     }
 
-    /**
-     * @return the object Id
-     */
-    public String getDistantObjectId() {
-        return distantObjectId;
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageCapacityResult.getTenantId());
     }
 
-    /**
-     * @return the digest
-     */
-    public String getDigestHashBase16() {
-        return digestHashBase16;
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals(null, storageCapacityResult.getType());
     }
 
-    /**
-     * @return the tenant Id
-     */
-    public Integer getTenantId() {
-        return tenantId;
+    @Test
+    public void testGetUsableSpace() {
+        assertEquals(1000, storageCapacityResult.getUsableSpace());
     }
 
-    /**
-     * @return the object Size
-     */
-    public long getObjectSize() {
-        return objectSize;
+    @Test
+    public void testGetUsedSpace() {
+        assertEquals(100, storageCapacityResult.getUsedSpace());
     }
+
+
 }
