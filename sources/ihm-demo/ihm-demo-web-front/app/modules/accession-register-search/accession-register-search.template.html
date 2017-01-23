@@ -66,7 +66,7 @@
             <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="$ctrl.goToDetails(result.OriginatingAgency)"
                 ng-repeat="result in $ctrl.registers | startFormat : $ctrl.startFormat() |limitTo : $ctrl.itemsPerPage">
               <td>{{ result.OriginatingAgency }}</td>
-              <td>{{ result.creationDate }}</td>
+              <td>{{ result.creationDate | vitamFormatDate }}</td>
             </tr>
           </tbody>
         </table>

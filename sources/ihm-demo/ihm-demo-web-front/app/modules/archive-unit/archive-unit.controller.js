@@ -122,7 +122,13 @@ angular.module('archive.unit')
       var isMgtChild = false;
 
       fieldSet.fieldId = key;
-      fieldSet.fieldValue= value;
+      //Turns date into correct format for display
+      if (key.includes('Date') || key.includes('LastModified')){
+        var myFilteredDate = $filter('vitamFormatDate')(value);
+        fieldSet.fieldValue = myFilteredDate;
+      } else {
+        fieldSet.fieldValue = value;
+      }
       fieldSet.currentFieldValue = value;
       fieldSet.isChild = false;
 

@@ -23,7 +23,7 @@
                 <tbody>
                 <tr class="logbookProcess">
                     <td>{{entryCtrl.detail.evType | translate| replaceDoubleQuote}}</td>
-                    <td>{{entryCtrl.detail.evDateTime}}</td>
+                    <td>{{entryCtrl.detail.evDateTime | vitamFormatDate}}</td>
                     <td>{{entryCtrl.detail.outcome}}</td>
                     <td>{{entryCtrl.detail.outMessg}}</td>
                 </tr>
@@ -31,7 +31,7 @@
                 <tbody ng-repeat="event in entryCtrl.detail.events">
                 <tr ng-class="$last ? 'logbookProcess': ''">
                     <td ng-class="($last ? '' : ( event.evType.startsWith('STP') ? 'logbookStep': 'logbookTask' ))">{{event.evType | translate}}</td>
-                    <td>{{event.evDateTime}}</td>
+                    <td>{{event.evDateTime | vitamFormatDate}}</td>
                     <td>{{event.outcome}}</td>
                     <td>{{event.outMessg}}</td>
                 </tr>

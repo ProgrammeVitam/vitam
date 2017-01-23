@@ -121,6 +121,8 @@ angular.module('lifecycle')
               var uppercaseKey = key.toUpperCase();
               if (uppercaseKey === 'EVTYPE') {
                 newEvent[uppercaseKey] = $filter('replaceDoubleQuote')($filter('translate')(value));
+              } else if (uppercaseKey === 'EVDATETIME') {
+                newEvent[uppercaseKey] = $filter('vitamFormatDate')(value);
               } else {
                 newEvent[uppercaseKey] = value;
               }

@@ -84,7 +84,7 @@
 					<tr>
 						<td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>
-						<td>{{log.evDateTime}}</td>
+						<td>{{log.evDateTime | vitamFormatDate}}</td>
 
 						<td ng-click="ctrl.goToDetails(log.evIdProc)"
 							ng-if="log.events[log.events.length-1].outcome.toUpperCase() === 'OK'">Succès</td>

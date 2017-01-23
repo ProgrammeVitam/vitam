@@ -129,7 +129,7 @@ angular.module('ihm.demo')
     ctrl.clearSearchOptions();
 
   })
-  .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService) {
+  .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService, $filter) {
     var self = this;
 
     self.getRulesEntry = function(id) {
@@ -152,8 +152,8 @@ angular.module('ihm.demo')
         "Durée":       reponse.RuleDuration    ? reponse.RuleDuration.toString() : "",
         "Type":        reponse.RuleType        ? reponse.RuleType.toString() : "",
         "Mesure":      reponse.RuleMeasurement ? reponse.RuleMeasurement.toString() : "",
-        "Date de creation":      reponse.CreationDate ? reponse.CreationDate.toString() : "",
-        "Date de Modification":      reponse.UpdateDate ? reponse.UpdateDate.toString() : ""
+        "Date de creation":      reponse.CreationDate ? $filter('vitamFormatDate')(reponse.CreationDate.toString()) : "",
+        "Date de Modification":      reponse.UpdateDate ? $filter('vitamFormatDate')(reponse.UpdateDate.toString()) : ""
       };
     }
 

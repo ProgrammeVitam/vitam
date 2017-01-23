@@ -136,7 +136,7 @@
               ng-repeat="result in archiveUnitsSearchResult | startFormat: startFormat()| limitTo: itemsPerPage | orderBy:orderByField:reverseSort">
             <td>{{result.Title}}</td>
             <td>{{result._id}}</td>
-            <td>{{result.TransactedDate}}</td>
+            <td>{{result.TransactedDate | vitamFormatDate}}</td>
             <td>
               <i ng-if = "!isObjectExist(result._og)" class="material-icons" style="color:#ccc">close</i>
               <i ng-if = "isObjectExist(result._og)" class="material-icons">check</i>
