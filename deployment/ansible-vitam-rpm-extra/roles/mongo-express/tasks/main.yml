@@ -107,7 +107,7 @@
 - name: deploy docker container
   docker:
     name: "mongo-express"
-    image: "{{ docker_registry_hostname }}/mongo-express"
+    image: "{{ docker_registry_hostname }}/mongo-express:0.34.0"
     state: started
     restart_policy: always
     ports:
