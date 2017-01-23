@@ -92,6 +92,7 @@ angular.module('ihm.demo')
          });
          ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
          ctrl.results = ctrl.fileFormatList.length;
+         ctrl.currentPage = 1 ;
         }, function(response) {
          displayError("Il n'y a aucun résultat pour votre recherche");
         });
@@ -110,6 +111,16 @@ angular.module('ihm.demo')
 
       })
     };
+
+      ctrl.clearInput = function (object){
+        if(object == 'Name'){
+          ctrl.searchOptions.Name='';
+        } ;
+        if(object == 'PUID'){
+          ctrl.searchOptions.PUID ='';
+        } ;
+        ctrl.getFileFormats();
+      };
 
     ctrl.clearSearchOptions();
 
