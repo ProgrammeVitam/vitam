@@ -1,7 +1,7 @@
 {
     "id" : "default",
     "hot" : {
-        "copy" : 1,
+        "copy" : {{ vitam_storageofferdefault_list|length }},
         "offers" : [
             {% for i in vitam_storageofferdefault_list %}
             {% if i.name is defined %}

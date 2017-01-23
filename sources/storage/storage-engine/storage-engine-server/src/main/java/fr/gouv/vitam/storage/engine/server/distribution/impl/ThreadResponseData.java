@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,50 +23,54 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 
-package fr.gouv.vitam.storage.driver.model;
+package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import java.io.InputStream;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+
+import javax.ws.rs.core.Response;
 
 /**
- * Holds every needed parameters that may be needed to put an object on the distant storage offer.
+ * Response of thread storage
  */
-public class StoragePutRequest extends StorageObjectRequest {
+public class ThreadResponseData {
 
-    private final String digestAlgorithm;
-    private final InputStream dataStream;
+    private final StoragePutResult response;
+    private final Response.Status status;
+    private final String objectGuid;
 
     /**
-     * Initialize the needed parameters for put requests of an object.
+     * Default constructor
      *
-     * @param tenantId request tenantId
-     * @param type the type
-     * @param guid the object guid
-     * @param digestAlgorithm the object digestAlgorithm
-     * @param dataStream data stream of the object to put in offer
+     * @param putObjectResult the result
+     * @param status the status
+     * @param objectGuid the object guid
      */
-    public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm, InputStream dataStream) {
-        super(tenantId, type, guid);
-        this.digestAlgorithm = digestAlgorithm;
-        this.dataStream = dataStream;
+    public ThreadResponseData(StoragePutResult putObjectResult, Response.Status status, String objectGuid) {
+        this.response = putObjectResult;
+        this.status = status;
+        this.objectGuid = objectGuid;
     }
 
     /**
-     * Gets the digestAlgorithm
-     * 
-     * @return the digestAlgorithm
+     * @return the transfer response
      */
-    public String getDigestAlgorithm() {
-        return digestAlgorithm;
+    public StoragePutResult getResponse() {
+        return response;
     }
 
     /**
-     * Gets the dataStream
-     * 
-     * @return the dataStream
+     * @return the transfer status
      */
-    public InputStream getDataStream() {
-        return dataStream;
+    public Response.Status getStatus() {
+        return status;
+    }
+
+    /**
+     * @return the object GUID
+     */
+    public String getObjectGuid() {
+        return objectGuid;
     }
 }

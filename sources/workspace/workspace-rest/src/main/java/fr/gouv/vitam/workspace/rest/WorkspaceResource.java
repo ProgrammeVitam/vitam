@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
@@ -404,7 +405,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * puts an object into a container
      *
      * @param stream data input stream
-     * @param header method for entry data
      * @param objectName name of data object
      * @param containerName name of container
      * @return Response
@@ -413,9 +413,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(InputStream stream,
-        @PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName) {
+    public Response putObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName, @PathParam
+        (OBJECT_NAME) String objectName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
@@ -582,16 +581,18 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
     private void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse) {
 
-        InputStream stream = null;
         AsyncInputStreamHelper helper = null;
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            stream = (InputStream) workspace.getObject(containerName, objectName).getEntity();
 
-            helper = new AsyncInputStreamHelper(asyncResponse, stream);
-            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+            Response response = workspace.getObject(containerName, objectName);
+            helper = new AsyncInputStreamHelper(asyncResponse, (InputStream) response.getEntity());
+            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType
+                .APPLICATION_OCTET_STREAM).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
             helper.writeResponse(responseBuilder);
+
 
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);

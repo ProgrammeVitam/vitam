@@ -26,17 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import java.io.InputStream;
-import java.util.Properties;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -57,6 +47,14 @@ import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl.InternalDriverFactory;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Workspace Connection Implementation
@@ -132,7 +130,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {            
             response =
                 performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeadersWithContainerName(request.getTenantId(), DataCategory.getByFolder(request.getType()) + "_" + request.getTenantId(), null),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getType() + "_" + request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -172,17 +170,17 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
             ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
             ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
-            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, request.getType());
+            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
             ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
 
             final InputStream stream = request.getDataStream();
             // init
             final ObjectInit objectInit = new ObjectInit();
-            objectInit.setDigestAlgorithm(DigestType.fromValue(request.getDigestAlgorithm()));
-            objectInit.setType(DataCategory.valueOf(request.getType()));
+            objectInit.setDigestAlgorithm(DigestType.valueOf(request.getDigestAlgorithm()));
+            objectInit.setType(DataCategory.getByFolder(request.getType()));
             response =
                 performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeadersWithContainerName(request.getTenantId(), DataCategory.getByFolder(request.getType()) + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getType() + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return performPutRequests(request.getType() + "_" + request.getTenantId(), stream,
@@ -214,7 +212,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeadersWithContainerName(request.getTenantId(), DataCategory.getByFolder(request.getType()) + "_" + request.getTenantId(), null),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getType() + "_" + request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

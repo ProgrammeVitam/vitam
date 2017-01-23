@@ -68,4 +68,14 @@ public class HotStrategy {
     public void setOffers(List<OfferReference> offers) {
         this.offers = offers;
     }
+
+    /**
+     * Check if the number of copy is coherent with the number of offers
+     *
+     * @return true if copy equals offers list size false otherwise (to review)
+     */
+    public boolean isCopyValid() {
+        // TODO: Review this check when offers implement priority
+        return offers.size() == copy;
+    }
 }

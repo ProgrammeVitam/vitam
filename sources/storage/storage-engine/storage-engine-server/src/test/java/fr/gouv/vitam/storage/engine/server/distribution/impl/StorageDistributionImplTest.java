@@ -27,29 +27,10 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.FileInputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -67,6 +48,24 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.apache.commons.io.IOUtils;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileInputStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -75,7 +74,6 @@ public class StorageDistributionImplTest {
     // FIXME P1 Fix Fake Driver
 
     private static final String STRATEGY_ID = "strategyId";
-    private static final String TENANT_ID = "tenantId";
     private static StorageDistribution simpleDistribution;
     private static StorageDistribution customDistribution;
     private static WorkspaceClient client;
@@ -102,19 +100,19 @@ public class StorageDistributionImplTest {
         // JsonNode jsonData)
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final CreateObjectDescription emptyDescription = new CreateObjectDescription();
-        checkInvalidArgumentException(null, null, null, null, null);
-        checkInvalidArgumentException("tenant_id", null, null, null, null);
-        checkInvalidArgumentException("tenant_id", "strategy_id", null, null, null);
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", null, null);
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, null);
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT);
+        checkInvalidArgumentException(null, null, null, null);
+        checkInvalidArgumentException(null, null, null, null);
+        checkInvalidArgumentException("strategy_id", null, null, null);
+        checkInvalidArgumentException("strategy_id", "object_id", null, null);
+        checkInvalidArgumentException("strategy_id", "object_id", emptyDescription, null);
+        checkInvalidArgumentException("strategy_id", "object_id", emptyDescription, DataCategory.OBJECT);
 
         emptyDescription.setWorkspaceContainerGUID("ddd");
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT);
+        checkInvalidArgumentException("strategy_id", "object_id", emptyDescription, DataCategory.OBJECT);
 
         emptyDescription.setWorkspaceContainerGUID(null);
         emptyDescription.setWorkspaceObjectURI("ddd");
-        checkInvalidArgumentException("tenant_id", "strategy_id", "object_id", emptyDescription, DataCategory.OBJECT);
+        checkInvalidArgumentException("strategy_id", "object_id", emptyDescription, DataCategory.OBJECT);
     }
 
     @Test
@@ -133,7 +131,9 @@ public class StorageDistributionImplTest {
         reset(client);
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 6349).build())
+            .thenReturn(Response.status(Status.OK)
                 .entity(stream2).build());
         try {
             // Store object
@@ -163,7 +163,9 @@ public class StorageDistributionImplTest {
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 6349).build()).thenReturn
+            (Response.status(Status.OK)
                 .entity(stream2).build());
         try {
             storedInfoResult =
@@ -183,7 +185,8 @@ public class StorageDistributionImplTest {
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 6349).build()).thenReturn(Response.status(Status.OK)
                 .entity(stream2).build());
         try {
             storedInfoResult =
@@ -203,7 +206,8 @@ public class StorageDistributionImplTest {
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build()).thenReturn(Response.status(Status.OK)
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 6349).build()).thenReturn(Response.status(Status.OK)
                 .entity(stream2).build());
         try {
             storedInfoResult =
@@ -231,7 +235,7 @@ public class StorageDistributionImplTest {
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).entity(stream).build());
         try {
             customDistribution
                 .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
@@ -246,7 +250,6 @@ public class StorageDistributionImplTest {
     public void testObjectAlreadyInOffer() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "already_in_offer";
-        StoredInfoResult storedInfoResult = null;
         final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
@@ -254,11 +257,10 @@ public class StorageDistributionImplTest {
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
             // Store object
-            storedInfoResult = customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -284,7 +286,7 @@ public class StorageDistributionImplTest {
                 .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
             fail("Should produce exception");
-        } catch (final StorageTechnicalException exc) {
+        } catch (final StorageException exc) {
             // Expection
         }
 
@@ -304,7 +306,7 @@ public class StorageDistributionImplTest {
         IOUtils.closeQuietly(stream);
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).build());
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
             customDistribution
                 .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
@@ -315,7 +317,7 @@ public class StorageDistributionImplTest {
         }
     }
 
-    private void checkInvalidArgumentException(String tenantId, String strategyId, String objectId,
+    private void checkInvalidArgumentException(String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category)
         throws StorageException, StorageObjectAlreadyExistsException {
         try {

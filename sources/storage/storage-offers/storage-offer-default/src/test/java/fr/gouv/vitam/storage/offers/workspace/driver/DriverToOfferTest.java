@@ -27,25 +27,7 @@
 
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.jayway.restassured.RestAssured;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -65,6 +47,22 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Integration driver offer tests
@@ -125,7 +123,7 @@ public class DriverToOfferTest {
         driver = new DriverImpl();
         // for parallel test
         TENANT_ID = serverPort;
-        CONTAINER = DataCategory.UNIT.name() + "_" + TENANT_ID;
+        CONTAINER = DataCategory.UNIT.getFolder() + "_" + TENANT_ID;
     }
 
     @AfterClass
@@ -153,13 +151,13 @@ public class DriverToOfferTest {
         assertNotNull(connection);
 
         StoragePutRequest request = null;
-        guid = GUIDFactory.newObjectGUID(1).toString();
+        guid = GUIDFactory.newObjectGUID(TENANT_ID).toString();
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             final MessageDigest messageDigest =
                 MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
-                request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), guid,
-                    VitamConfiguration.getDefaultDigestType().getName(), digestInputStream);
+                request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid,
+                    VitamConfiguration.getDefaultDigestType().name(), digestInputStream);
                 final StoragePutResult result = connection.putObject(request);
                 assertNotNull(result);
 
