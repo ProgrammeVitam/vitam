@@ -148,7 +148,7 @@ gulp.task('lint', function () {
 
 // TODO: add build on next step. If needed only launch karma for integration
 // TODO: Launch a server for e2e tests via serve task
-gulp.task('tests', gulpsync.sync([/*'serve', */'testKarma', 'testProtractor']));
+gulp.task('tests', gulpsync.sync(['serve', 'testKarma', 'testProtractor']));
 
 gulp.task('testKarma', function (cb) {
     new Server.start({

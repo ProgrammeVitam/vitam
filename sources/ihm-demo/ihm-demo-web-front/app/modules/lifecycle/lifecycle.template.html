@@ -1,13 +1,23 @@
 <div id="global" class="container-fluid" >
   <ol class="breadcrumb">
-    <li>Page d'accueil</li>
-    <li ng-if="$ctrl.lifeCycleType === 'unit'">Journal du cycle de vie de l'unité archivistique {{$ctrl.lifeCycleId}}</li>
-    <li ng-if="$ctrl.lifeCycleType === 'objectgroup'">Journal du cycle de vie du groupe d'objet {{$ctrl.lifeCycleId}}</li>
+    <li>Recherche</li>
+    <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+    <li><a ng-href="#!/archiveunit/{{$ctrl.lifeCycleId}}">Détail de l'unité archivistique</a></li>
+    <li ng-if="$ctrl.lifeCycleType === 'unit'">
+      <a ng-href="#!/lifecycle/unit/{{$ctrl.lifeCycleId}}/{{$ctrl.lifeCycleId}}">
+        Journal du cycle de vie de l'unité archivistique
+      </a>
+    </li>
+    <li ng-if="$ctrl.lifeCycleType === 'objectgroup'">
+      <a ng-href="#!/lifecycle/objectgroup/{{$ctrl.lifeCycleId}}/{{$ctrl.lifeCycleId}}">
+        Journal du cycle de vie du groupe d'objet
+      </a>
+    </li>
   </ol>
 
   <div class="panel panel-default col-md-12  dynamic-table-box">
     <a class="panel-header"  data-target="#boxLifeCycle" data-toggle="collapse">
-      <h2>JOURNAL DE CYCLE DE VIE - {{$ctrl.title}}</h2>
+      <h2>JOURNAL DE CYCLE DE VIE - {{$ctrl.title}} - {{$ctrl.lifeCycleId}}</h2>
     </a>
     <div id="boxLifeCycle" class="panel-body panel-collapse collapse in">
 
