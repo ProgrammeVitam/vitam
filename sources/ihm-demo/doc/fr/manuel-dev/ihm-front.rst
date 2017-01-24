@@ -13,22 +13,24 @@ Composition du projet
 =====================
 
 NPM + Bower
-Grunt + Archi projet (modules, css, ...) => AngularJS
-Tests unitaires (Voir partie Karma)
-TODO: Comment le front est buildé / integré dans la webapp ?
+Gulp + Archi projet (modules, css, ...) => AngularJS
+Tests unitaires: Voir ihm-tests.rst
+
 
 Grunt et déployement à chaud
 ============================
 
-A priori les configurations actuelles ne sont pas suffisantes pour lancer un serveur grunt et faire des déployement à chaud sur les postes de dev.
-De plus certaines dépendances npm/bower sont manquantes.
-TODO A voir par la suite si cela deviens une priorité.
+Le déploiement à chaud est possible via la commande 'gulp serve'.
+Si un fichier est modifié pendant que le serve est lancé, les modifications seront automatiquement mises à jour.
+Le backend ciblé peut être spécifié en ajoutant un fichier local.conf (Voir local.conf.sample) et en modifiant la propriété target.
 
 Karma et Tests unitaires
 ========================
 
-A priori les configurations actuelles ne sont pas suffisantes pour lancer les TU du front.
-TODO A voir par la suite si cela deviens une priorité.
+Les tests unitaires se lances vià les commandes:
+ - 'gulp test' : Lance un serveur gulp + les tests karma (Unitaires) et Protractor (e2e)
+ - 'gulp testKarma' : Lance les tests unitaires seules (Nécéssite un serveur lancé)
+ - 'gulp testProtractor' : Lance les tests end to end seuls (Nécéssite un serveur lancé)
 
 Modèle MVC
 ==========

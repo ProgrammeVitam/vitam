@@ -40,11 +40,10 @@ angular.module('ihm.demo')
 
 		function initFields(fields) {
 			var result = [];
-			var replaceQuoteFn = $filter('replaceDoubleQuote'); 
 			for (var i = 0, len = fields.length; i<len; i++) {
 				var fieldId = fields[i];
 				result.push({
-				 id: fieldId, label: replaceQuoteFn($translate.instant('operation.logbook.displayField.' + fieldId))
+				 id: fieldId, label: 'operation.logbook.displayField.' + fieldId
 				 });
 				}
 			return result;
