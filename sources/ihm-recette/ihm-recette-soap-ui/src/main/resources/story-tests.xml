@@ -286,11 +286,11 @@ if (context.category == "Test API external"){
  		
  		context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
 		if (context.inputJSON.params[i].sipName != null) {
-			context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].sipName
 		} else if (context.inputJSON.params[i].ruleName != null) {
-			context.outputJson.params[context.outIteration].ruleName = context.inputJSON.params[i].ruleName;
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].ruleName;
 		} else if (context.inputJSON.params[i].formatName != null) {
-			context.outputJson.params[context.outIteration].formatName = context.inputJSON.params[i].formatName;
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].formatName;
 		}
 		context.outputJson.params[context.outIteration].currentAction = context.inputJSON.params[i].actions[n].name
 		
@@ -347,7 +347,7 @@ if (context.category == "Test API external"){
 				context.outputJson.params[context.outIteration].currentAction = currentAction
 
 				// Copy parameters
-				context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
+				context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].sipName
 				context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
 				context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
 				context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
@@ -372,7 +372,7 @@ if (context.category == "Test API external"){
 			context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
 
 			// Copy parameters
-			context.outputJson.params[context.outIteration].sipName = context.inputJSON.params[i].sipName
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].sipName
 			context.outputJson.params[context.outIteration].expected = context.inputJSON.params[i].expected
 			context.outputJson.params[context.outIteration].httpStatusCode = context.inputJSON.params[i].httpStatusCode
 			context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
