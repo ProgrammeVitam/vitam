@@ -150,4 +150,28 @@ public class CheckSedaActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
+    @Test
+    public void givenWorkspaceWhenThereAreManyManifestThenReturnResponseKO()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST).when(sedaUtils).checkSedaValidation(anyObject());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @Test
+    public void givenWorkspaceWhenThereAreManyFolderThenReturnResponseKO()
+        throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT).when(sedaUtils).checkSedaValidation(anyObject());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
 }

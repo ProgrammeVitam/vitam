@@ -45,7 +45,9 @@ public class CheckSedaActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_SEDA";
     private static final String CONTAINER_FORMAT = "CONTAINER_FORMAT";
     private static final String FILE = "FILE";
+    private static final String DIRECTORY = "DIRECTORY";
     private static final String SUBTASK_CHECK_MULTI_MANIFEST = HANDLER_ID + "." + CONTAINER_FORMAT + "." + FILE;    
+    private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = HANDLER_ID + "." + CONTAINER_FORMAT + "." + DIRECTORY;
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -105,6 +107,10 @@ public class CheckSedaActionHandler extends ActionHandler {
                 itemStatus.setItemId(SUBTASK_CHECK_MULTI_MANIFEST);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);                
+            case MORE_THAN_ONE_FOLDER_CONTENT:
+                itemStatus.setItemId(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
+                itemStatus.increment(StatusCode.KO);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             default:
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);

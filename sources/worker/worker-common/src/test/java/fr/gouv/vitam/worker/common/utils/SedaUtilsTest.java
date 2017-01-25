@@ -37,6 +37,9 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -96,12 +99,13 @@ public class SedaUtilsTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp(){
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        
     }
 
     // TODO P1 : WARN sometimes bug on jenkins
@@ -225,6 +229,29 @@ public class SedaUtilsTest {
 
     private JsonNode getSedaTestError() {
         return JsonHandler.createObjectNode();
+    }
+    
+    @Test
+    public void givenSIPWithTwoManifestThenReturnKOMultiManifest() throws Exception {
+        List<URI> listUri = new ArrayList<URI>();
+        listUri.add(new URI("content/file.pdf"));
+        listUri.add(new URI("content/file2.pdf"));
+        listUri.add(new URI("manifest.xml"));
+        listUri.add(new URI("manifest2.xml"));
+        when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
+    }
+    
+    @Test
+    public void givenSIPWithTwoFolderThenReturnKOMultiFolderContent() throws Exception {
+        List<URI> listUri = new ArrayList<URI>();
+        listUri.add(new URI("content/file.pdf"));
+        listUri.add(new URI("content2/file2.pdf"));
+        listUri.add(new URI("manifest.xml"));
+        when(handlerIO.getUriList(anyObject(), anyObject())).thenReturn(listUri);
+        final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
+        assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT.equals(status));
     }
 
 }

@@ -424,7 +424,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         }
         return true;
     }
-    
+
     @Override
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try {
@@ -433,5 +433,5 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         }
-    }    
+    }
 }
