@@ -63,11 +63,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.core.StorageConfiguration;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * DefaultOfferResource Test
@@ -139,8 +138,8 @@ public class DefaultOfferResourceTest {
 
     @After
     public void deleteExistingFiles() throws Exception {
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         File container = new File(conf.getStoragePath() + "/1" + this);
         File container1 = new File(conf.getStoragePath() + "/1");
         final File object2 = new File(container.getAbsolutePath(), "id1");
@@ -293,8 +292,8 @@ public class DefaultOfferResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectInit).when().post(OBJECTS_URI + "/" + guid).then().statusCode(201);
 
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1" + this);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -350,8 +349,8 @@ public class DefaultOfferResourceTest {
                 .statusCode(201);
         }
         // check
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1" + this);
         assertNotNull(container);
         assertTrue(container.exists());
@@ -442,8 +441,8 @@ public class DefaultOfferResourceTest {
             }
         }
         // check
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1" + this);
         assertNotNull(container);
         assertTrue(container.exists());
@@ -470,8 +469,8 @@ public class DefaultOfferResourceTest {
             .statusCode(404);
 
         // object
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/1" + this);
         container.mkdir();
         final File object = new File(container.getAbsolutePath(), "id1");

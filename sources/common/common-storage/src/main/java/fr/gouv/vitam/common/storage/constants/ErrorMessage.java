@@ -24,60 +24,86 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.workspace.api.model;
+package fr.gouv.vitam.common.storage.constants;
 
 /**
- * Container basic information for capacity feature
+ * Enum that describes error messages due the workspace
  */
-public class ContainerInformation {
+public enum ErrorMessage {
 
     /**
-     * Usable space if usable space information not found, usableSpace will be -1
+     * Container already exist
      */
-    private long usableSpace;
+    CONTAINER_ALREADY_EXIST("Container already exist "),
+    /**
+     * CONTAINER Container not found FOUND
+     */
+    CONTAINER_NOT_FOUND("Container not found "),
 
     /**
-     * Used space
+     * Folder already exist
      */
-    private long usedSpace;
+    FOLDER_ALREADY_EXIST("Folder already exist "),
+    /**
+     * Folder not found
+     */
+    FOLDER_NOT_FOUND("Folder not found "),
 
     /**
-     * 
-     * Get usable space
-     *
-     * @return usable space in byte, <br>
-     *         return -1 if usable space not specified
+     * Object already exist
      */
-    public long getUsableSpace() {
-        return usableSpace;
+    OBJECT_ALREADY_EXIST("Object already exist "),
+
+    /**
+     * Object not found
+     */
+    OBJECT_NOT_FOUND("Object not found "),
+
+    /**
+     * Input stream is null
+     */
+    STREAM_IS_NULL("Input stream is null"),
+
+    /**
+     * Container name is a mandatory parameter
+     */
+    CONTAINER_NAME_IS_A_MANDATORY_PARAMETER(
+        "Container name is a mandatory parameter"),
+
+    /**
+     * Container name and Folder name are a mandatory parameter
+     */
+    CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER(
+        "Container name and Folder name are a mandatory parameter"),
+    /**
+     * Container name and Object name are a mandatory parameter
+     */
+    CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER(
+        "Container name and Object name are a mandatory parameter"),
+
+    /**
+     * Internal Server Error
+     */
+    INTERNAL_SERVER_ERROR("Internal Server Error"),
+
+    /**
+     * Algo name is a mandatory parameter
+     */
+    ALGO_IS_A_MANDATORY_PARAMETER(
+        "Digest Algo name is a mandatory parameter");
+
+    private final String message;
+
+    private ErrorMessage(String message) {
+        this.message = message;
     }
 
     /**
-     * Set usable space
+     * getter for attribute message
      *
-     * @param usableSpace usable space in byte
+     * @return message
      */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
-    /**
-     * Get used space
-     * 
-     * 
-     * @return used space in byte
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
-
-    /**
-     * Set used space
-     *
-     * @param usedSpace used space in byte
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
+    public String getMessage() {
+        return message;
     }
 }

@@ -60,6 +60,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
@@ -69,12 +72,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
-import fr.gouv.vitam.workspace.core.StorageConfiguration;
-import fr.gouv.vitam.workspace.core.Builder.StoreContextBuilder;
-
 
 /**
  * The Workspace Resource.

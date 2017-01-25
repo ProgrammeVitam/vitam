@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -64,8 +65,6 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
-import fr.gouv.vitam.workspace.core.StorageConfiguration;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * Integration driver offer tests
@@ -132,13 +131,11 @@ public class DriverToOfferTest {
         application.stop();
 
         // delete files
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + "/UNIT_1");
-        // final File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
         final File object = new File(container.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
-        // Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
     }
 

@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -60,7 +61,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.common.ErrorMessage;
 
 
 /**
@@ -118,15 +118,15 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         // FIXME P1
     }
 
-    
+
     @Override
     public void deleteContainer(String containerName, boolean recursive)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {        
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         Response response = null;
         try {
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();                
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_RECURSIVE, recursive);
             response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName, headers,
                 MediaType.APPLICATION_JSON_TYPE, false);

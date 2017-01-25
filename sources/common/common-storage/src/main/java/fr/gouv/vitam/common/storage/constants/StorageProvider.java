@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,61 +23,35 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.workspace.api.model;
+ */
+package fr.gouv.vitam.common.storage.constants;
 
 /**
- * Container basic information for capacity feature
+ * Storage offers provider
  */
-public class ContainerInformation {
-
+public enum StorageProvider {
     /**
-     * Usable space if usable space information not found, usableSpace will be -1
+     * File system storage offer
      */
-    private long usableSpace;
-
+    FILESYSTEM("filesystem"),
     /**
-     * Used space
+     * Swift storage offer (ceph or openStack)
      */
-    private long usedSpace;
+    SWIFT("openstack-swift");
 
-    /**
-     * 
-     * Get usable space
-     *
-     * @return usable space in byte, <br>
-     *         return -1 if usable space not specified
-     */
-    public long getUsableSpace() {
-        return usableSpace;
+    private String value;
+
+    private StorageProvider(String value) {
+        this.value = value;
     }
 
     /**
-     * Set usable space
-     *
-     * @param usableSpace usable space in byte
+     * @return the value
      */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
+    public String getValue() {
+        return value;
     }
 
-    /**
-     * Get used space
-     * 
-     * 
-     * @return used space in byte
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
 
-    /**
-     * Set used space
-     *
-     * @param usedSpace used space in byte
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
-    }
+
 }

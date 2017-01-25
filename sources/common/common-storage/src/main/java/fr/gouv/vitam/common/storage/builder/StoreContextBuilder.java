@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,61 +23,56 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
+package fr.gouv.vitam.common.storage.builder;
 
-package fr.gouv.vitam.workspace.api.model;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.constants.StorageProvider;
+import fr.gouv.vitam.common.storage.filesystem.FileSystem;
+import fr.gouv.vitam.common.storage.swift.OpenstackSwift;
+import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 
 /**
- * Container basic information for capacity feature
+ * Creates {@link ContentAddressableStorage} configured in a configuration file <br/>
+ * Ex. to build a {@link ContentAddressableStorage} of a particular store context,
+ * 
+ * <pre>
+ *    storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())       
+ *      .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)      
+ *      .setTenantName(swift) 
+ *      .setUserName(user)  
+ *      .setCredential(passwd) 
+ *      .setCephMode(true);  
+ *  
+ * contentAddressableStorage=StoreContextBuilder.newStoreContext(storeConfiguration);
+ * </pre>
+ * 
+ *
+ * @see ContentAddressableStorage
+ * @see StorageConfiguration
+ * @see OpenstackSwift
+ * @see FileSystem
  */
-public class ContainerInformation {
+public class StoreContextBuilder {
 
-    /**
-     * Usable space if usable space information not found, usableSpace will be -1
-     */
-    private long usableSpace;
-
-    /**
-     * Used space
-     */
-    private long usedSpace;
 
     /**
      * 
-     * Get usable space
-     *
-     * @return usable space in byte, <br>
-     *         return -1 if usable space not specified
-     */
-    public long getUsableSpace() {
-        return usableSpace;
-    }
-
-    /**
-     * Set usable space
-     *
-     * @param usableSpace usable space in byte
-     */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
-    /**
-     * Get used space
+     * Builds {@link ContentAddressableStorage}
      * 
-     * 
-     * @return used space in byte
+     * @param configuration {@link StorageConfiguration}
+     * @return ContentAddressableStorage : by default fileSystem or openstack-swift if it is configured
      */
-    public long getUsedSpace() {
-        return usedSpace;
+    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration) {
+
+        if (StorageProvider.SWIFT.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            return new OpenstackSwift(configuration);
+        } else {
+            // by default file system
+            return new FileSystem(configuration);
+        }
+
+
     }
 
-    /**
-     * Set used space
-     *
-     * @param usedSpace used space in byte
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
-    }
 }

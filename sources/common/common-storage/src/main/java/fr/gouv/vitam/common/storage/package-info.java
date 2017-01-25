@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,61 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.workspace.api.model;
-
-/**
- * Container basic information for capacity feature
  */
-public class ContainerInformation {
-
-    /**
-     * Usable space if usable space information not found, usableSpace will be -1
-     */
-    private long usableSpace;
-
-    /**
-     * Used space
-     */
-    private long usedSpace;
-
-    /**
-     * 
-     * Get usable space
-     *
-     * @return usable space in byte, <br>
-     *         return -1 if usable space not specified
-     */
-    public long getUsableSpace() {
-        return usableSpace;
-    }
-
-    /**
-     * Set usable space
-     *
-     * @param usableSpace usable space in byte
-     */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
-    /**
-     * Get used space
-     * 
-     * 
-     * @return used space in byte
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
-
-    /**
-     * Set used space
-     *
-     * @param usedSpace used space in byte
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
-    }
-}
+/**
+ * Provides an abstract core, implementation and configuration for the common Storage module.
+ */
+package fr.gouv.vitam.common.storage;
