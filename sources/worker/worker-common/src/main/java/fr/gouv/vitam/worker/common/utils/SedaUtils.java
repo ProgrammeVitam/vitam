@@ -217,6 +217,9 @@ public class SedaUtils {
         final InputStream input;
         try {
             input = checkExistenceManifest();
+            if (checkMultiManifest())
+                return CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST;
+            
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
@@ -255,7 +258,12 @@ public class SedaUtils {
         /**
          * File not found
          */
-        NO_FILE;
+        NO_FILE, 
+        /**
+         * more than one manifest in SIP
+         */
+        MORE_THAN_ONE_MANIFEST;
+        
     }
 
     private InputStream checkExistenceManifest()
@@ -269,6 +277,21 @@ public class SedaUtils {
             throw new ProcessingException("Manifest not found", e);
         }
         return manifest;
+    }
+
+    
+    private boolean checkMultiManifest() throws ProcessingException {
+        List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
+        int countManifest = 0;
+        for (int i=0; i<listURI.size(); i++){
+            if (!listURI.get(i).toString().contains("/")) {
+                countManifest ++;
+                if (countManifest>1) {
+                        return true;
+                    }
+            }
+        }
+        return false;
     }
 
     /**

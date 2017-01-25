@@ -3,6 +3,7 @@ package fr.gouv.vitam.worker.common;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -236,5 +237,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @return the helper for bulk lifecycle for LifecyclesClient
      */
     LogbookLifeCyclesClientHelper getHelper();
+
+    List<URI> getUriList(String containerName, String folderName) throws ProcessingException;
 
 }

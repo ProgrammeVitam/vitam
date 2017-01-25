@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -423,4 +424,14 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         }
         return true;
     }
+    
+    @Override
+    public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
+        try {
+            return client.getListUriDigitalObjectFromFolder(containerName, folderName);
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
+    }    
 }
