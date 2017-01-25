@@ -319,6 +319,106 @@ Ci-après une configuration exemple contenant 4 jeux de tests
         ]
     }
 
+Configuration de test pour api external avec multi-tenant
+----------------------------------------------------------
+
+Chaque jeux de test est composé des huits élements suivants :
+  * sipName / ruleName / formatName
+  * testName
+  * category
+  * tenant
+  * action [
+
+    * name
+    * endpoint
+    * request
+    * method
+    * tenant
+    * expected [
+
+**"sipName / ruleName / formatName"**
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le nom du fichier à utiliser en entrée
+ainsi que sa localisation dans le système de fichier
+
+La localisation du fichier est une URI relative par rapport à la racine des tests SOAPUI déterminée par votre exploitant.
+
+On a donc par défaut l'arborescence suivante: (le schéma suivant ne tient pas compte des autres dossiers et fichiers du repertoire SOAPUI)
+
+::
+
+  RACINE
+    |------- data.json
+    \------- SIP_KO
+    \------- SIP_OK
+              \------- ZIP
+                       \------- OK_SIP.ZIP
+              \------- TAR
+    \------- SIP_WARNING
+    \------- formats
+    \------- rules
+              \------- regles_CSV.csv
+
+Pour un fichier SIP *OK_SIP.zip* et un fichier de règle de gestion *regles_CSV.csv* placé dans le dossier racine, on entrera alors :
+
+::
+
+ "sipName": "SIP_OK\/ZIP\/OK_SIP.ZIP"
+
+::
+
+ "ruleName": "rules\/regles_CSV.csv"
+
+**"testName"**
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’agit du nom du test tel qu’il sera reporté dans le rapport final. Par exemple:
+
+::
+
+ "testName": "SRC1 : chercher des unités d’archives contenant des objets dans un intervalle de dates extrêmes",
+
+**"category"**
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external” 
+
+**"tenant"**
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’agit de tenant qui a téléchargé le fichier SIP/règle/format. Par exemple:
+
+::
+
+ "tenant" : "0"
+
+**action**
+ce champs contient un tableau de n objets ayant pour but de contrôler les réponses de l'api external. Cet objet
+est structuré de la façon suivantes :
+
+    **name** : contient le nom de l'action à tester
+
+    **endpoint** : contient l'endpoint de l'api external
+
+    **request** : contient la requête
+
+    **method** : contient la méthode
+
+    **tenant** : contient le tenant
+
+    **expected** : est un tableau qui contient le code retour HTTP attendu (httpStatusCode) est les champs attendu dans la réponse
+
+Par example:
+
+::
+
+"actions": [{
+"name": "SEARCH_RULES_TENANT_0",
+"endpoint" : "admin-external/v1/rules",
+"request" : "{\"$query\":{\"$and\":[{\"$eq\":{\"RuleValue\":\"Dossier individuel d’agent civil\"}},{\"$eq\":{\"RuleType\":\"AppraisalRule\"}}]},\"$filter\":{},\"$projection\":{}}",
+"method" : "POST",
+"tenant" : "0",
+"expected" : [{"httpStatusCode":200},{"RuleId": ["APP-00001"]}]},{
+"name": "SEARCH_RULES_TENANT_1",
+"endpoint" : "admin-external/v1/rules",
+"request" : "{\"$query\":{\"$and\":[{\"$eq\":{\"RuleValue\":\"Dossier individuel d’agent civil\"}},{\"$eq\":{\"RuleType\":\"AppraisalRule\"}}]},\"$filter\":{},\"$projection\":{}}",
+"method" : "POST",
+"tenant" : "1",
+"expected" : [{"httpStatusCode":404}]}]
+
 Lancement des tests
 -------------------
 
