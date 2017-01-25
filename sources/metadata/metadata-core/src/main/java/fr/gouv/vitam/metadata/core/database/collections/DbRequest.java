@@ -345,10 +345,10 @@ public class DbRequest {
         IllegalAccessException, InvalidParseOperationException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         Integer tenantId = null;
-        if (requestToMongodb instanceof SelectToMongodb) { 
+        if (requestToMongodb instanceof SelectToMongodb) {
             tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         }
-        
+
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Rank: " + rank + "\n\tPrevious: " + previous + "\n\tRequest: " + realQuery.getCurrentQuery());
         }
@@ -700,7 +700,7 @@ public class DbRequest {
             // lets add tenant query
             finalQuery = and(finalQuery, eq(MetadataDocument.TENANT_ID, tenantId));
         }
-        
+
         previous.clear();
         LOGGER.debug(QUERY2 + MongoDbHelper.bsonToString(finalQuery, false));
         @SuppressWarnings("unchecked")
@@ -798,6 +798,7 @@ public class DbRequest {
                 MongoDbMetadataHelper.update(MetadataCollections.C_OBJECTGROUP,
                     roots, update, last.getCurrentIds().size());
             last.setNbResult(result.getModifiedCount());
+            indexFieldsOGUpdated(last);
             return last;
         } catch (final MetaDataExecutionException e) {
             throw e;
@@ -831,6 +832,100 @@ public class DbRequest {
             MetadataCollections.C_UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor);
         }
 
+    }
+
+    /**
+     * indexFieldsOGUpdated : Update index OG related to Fields updated
+     *
+     * @param last : contains the Result to be indexed
+     *
+     * @throws Exception
+     * 
+     * @return void
+     */
+    private void indexFieldsOGUpdated(Result last) throws Exception {
+        final Bson finalQuery;
+        if (last.getCurrentIds().isEmpty()) {
+            LOGGER.error("ES update in error since no results to update");
+            // no result to update
+            return;
+        }
+        if (last.getCurrentIds().size() == 1) {
+            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
+        } else {
+            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
+        }
+        @SuppressWarnings("unchecked")
+        final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
+            .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+        // TODO maybe retry once if in error ?
+        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
+            MetadataCollections.C_OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor);;
+        }
+
+    }
+
+
+    /**
+     * removeOGIndexFields : remove index related to Fields deleted
+     *
+     * @param last : contains the Result to be removed
+     *
+     * @throws Exception
+     * 
+     * @return void
+     */
+    private void removeOGIndexFields(Result last) throws Exception {
+        final Bson finalQuery;
+
+        if (last.getCurrentIds().isEmpty()) {
+            LOGGER.error("ES delete in error since no results to delete");
+            // no result to delete
+            return;
+        }
+        if (last.getCurrentIds().size() == 1) {
+            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
+        } else {
+            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
+        }
+        @SuppressWarnings("unchecked")
+        final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
+            .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+        // TODO maybe retry once if in error ?
+        try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
+            MetadataCollections.C_OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(cursor);
+        }
+
+    }
+
+    /**
+     * removeUnitIndexFields : remove index related to Fields deleted
+     *
+     * @param last : contains the Result to be removed
+     *
+     * @throws Exception
+     * 
+     * @return boolean
+     */
+    private void removeUnitIndexFields(Result last) throws Exception {
+        final Bson finalQuery;
+        if (last.getCurrentIds().isEmpty()) {
+            LOGGER.error("ES delete in error since no results to delete");
+            // no result to delete
+            return;
+        }
+        if (last.getCurrentIds().size() == 1) {
+            finalQuery = eq(MetadataDocument.ID, last.getCurrentIds().iterator().next());
+        } else {
+            finalQuery = in(MetadataDocument.ID, last.getCurrentIds());
+        }
+        @SuppressWarnings("unchecked")
+        final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
+            .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+        // TODO maybe retry once if in error ?
+        try (final MongoCursor<Unit> cursor = iterable.iterator()) {
+            MetadataCollections.C_UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(cursor);;
+        }
     }
 
     /**
@@ -899,7 +994,7 @@ public class DbRequest {
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
                 (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
-                    in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
+                    in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_OBJECTGROUP_PROJECTION);
             final Set<String> notFound = new HashSet<>(last.getCurrentIds());
             // TODO P2 optimize by trying to update only once the og
             try (MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -917,7 +1012,7 @@ public class DbRequest {
             last.clear();
             last.addId(og.getId());
             last.setNbResult(1);
-            // TODO P1 index ObjectGroup
+            insertBulk(requestToMongodb, last);
             return last;
         } catch (final MongoWriteException e) {
             throw e;
@@ -948,6 +1043,16 @@ public class DbRequest {
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 MetadataCollections.C_UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor);
             }
+        } else if (model == FILTERARGS.OBJECTGROUPS) {
+            // index OG
+            final Bson finalQuery = in(MetadataDocument.ID, ids);
+            @SuppressWarnings("unchecked")
+            final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
+                .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+            // TODO maybe retry once if in error ?
+            try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
+                MetadataCollections.C_OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor);
+            }
         }
     }
 
@@ -970,7 +1075,7 @@ public class DbRequest {
                 final DeleteResult result = MongoDbMetadataHelper.delete(MetadataCollections.C_UNIT,
                     roots, last.getCurrentIds().size());
                 last.setNbResult(result.getDeletedCount());
-                // TODO add ES delete
+                removeUnitIndexFields(last);
                 return last;
             }
             // TODO P1 add unit tests
@@ -979,6 +1084,7 @@ public class DbRequest {
                 MongoDbMetadataHelper.delete(MetadataCollections.C_OBJECTGROUP,
                     roots, last.getCurrentIds().size());
             last.setNbResult(result.getDeletedCount());
+            removeOGIndexFields(last);
             return last;
         } catch (final MetaDataExecutionException e) {
             throw e;

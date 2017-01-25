@@ -151,7 +151,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, null, null);
 
@@ -160,26 +160,26 @@ public class MetaDataImpl implements MetaData {
     @Override
     public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, unitId, null);
     }
 
     @Override
     public ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
-        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        MetaDataNotFoundException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
         return selectMetadataObject(selectQuery, objectGroupId,
             Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
-    // FIXME P1 : maybe do not encapsulate all exception in a MetaDataExecutionException. We may need to know if it is
-    // NOT_FOUND for example
+
     private ArrayNode selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException {
         Result result = null;
         ArrayNode arrayNodeResponse;
         if (selectQuery.isNull()) {
@@ -264,7 +264,8 @@ public class MetaDataImpl implements MetaData {
     }
 
     private JsonNode getUnitById(String id)
-        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException {
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
+        MetaDataNotFoundException {
         final Select select = new Select();
         return selectUnitsById(select.getFinalSelect(), id);
     }
