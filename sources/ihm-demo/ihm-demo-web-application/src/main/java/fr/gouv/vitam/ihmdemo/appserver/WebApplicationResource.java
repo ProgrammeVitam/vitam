@@ -137,6 +137,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
 
     private final WebApplicationConfig webApplicationConfig;
+
     /**
      * Constructor
      *
@@ -767,7 +768,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId,
             usage, version, filename));
     }
-    
+
     /**
      * Retrieve an Object data stored by ingest operation as an input stream
      * 
@@ -778,10 +779,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{idObject}/{type}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObjectFromStorageAsInputStreamAsync(@PathParam("idObject") String objectId, @PathParam("type") String type,
+    public void getObjectFromStorageAsInputStreamAsync(@PathParam("idObject") String objectId,
+        @PathParam("type") String type,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type));
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type));
     }
 
     private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type) {
@@ -792,7 +795,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response
                     .ok()
-                    .header("Content-Disposition", "filename=" + objectId +  ".xml"));
+                    .header("Content-Disposition", "filename=" + objectId + ".xml"));
             } else {
                 helper.writeResponse(Response.status(response.getStatus()));
             }
@@ -805,7 +808,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
-    
+
     private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String version,
         String filename) {
         try {

@@ -66,6 +66,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
+    private static final String OBJECT = "object_";
+
     private static final String OBJECTS_PATH = "/objects";
 
     private static final String NOT_YET_IMPLEMENTED = "Not yet implemented";
@@ -95,6 +97,9 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         this.parameters = parameters;
     }
 
+    /**
+     * return account capacity for swift offer
+     */
     @Override
     public StorageCapacityResult getStorageCapacity(String tenantId) throws StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
@@ -122,12 +127,13 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getFolder());
-        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getFolder()));
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, request.getFolder());
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getFolder().toUpperCase() + "_" + request.getTenantId(), null),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -166,7 +172,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
             ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
             ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
-            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.valueOf(request.getType()));
+            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, request.getType());
             ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
 
             final InputStream stream = request.getDataStream();
@@ -176,10 +182,11 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             objectInit.setType(DataCategory.valueOf(request.getType()));
             response =
                 performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT),
+                    getDefaultHeaders(request.getType() + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            return performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
+            return performPutRequests(request.getType() + "_" + request.getTenantId(), stream,
+                handleResponseStatus(response, ObjectInit.class));
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
@@ -207,7 +214,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                    getDefaultHeaders(OBJECT + request.getTenantId(), null),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {

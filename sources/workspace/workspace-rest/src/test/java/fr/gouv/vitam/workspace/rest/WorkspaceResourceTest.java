@@ -63,7 +63,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
 
 /**
  */
@@ -107,7 +107,7 @@ public class WorkspaceResourceTest {
 
     @Before
     public void setup() throws Exception {
-        final WorkspaceConfiguration configuration = new WorkspaceConfiguration();
+        final StorageConfiguration configuration = new StorageConfiguration();
         final File tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         configuration.setJettyConfig("jetty-config-test.xml");

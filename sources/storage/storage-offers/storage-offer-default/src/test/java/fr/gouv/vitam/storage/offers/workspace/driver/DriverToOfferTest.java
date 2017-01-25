@@ -41,6 +41,7 @@ import java.security.MessageDigest;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
@@ -53,6 +54,9 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
@@ -60,7 +64,7 @@ import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
 import fr.gouv.vitam.storage.driver.model.PutObjectResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
-import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferConfiguration;
+import fr.gouv.vitam.workspace.core.StorageConfiguration;
 import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
@@ -70,7 +74,7 @@ public class DriverToOfferTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverToOfferTest.class);
 
-    private static final String WORKSPACE_OFFER_CONF = "default-offer.conf";
+    private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
 
@@ -85,6 +89,10 @@ public class DriverToOfferTest {
     private static String guid;
     private static DefaultOfferApplication application;
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -97,8 +105,8 @@ public class DriverToOfferTest {
         RestAssured.basePath = REST_URI;
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
-        final DefaultOfferConfiguration realWorkspaceOffer =
-            PropertiesUtils.readYaml(workspaceOffer, DefaultOfferConfiguration.class);
+        final StorageConfiguration realWorkspaceOffer =
+            PropertiesUtils.readYaml(workspaceOffer, StorageConfiguration.class);
         // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
@@ -126,14 +134,15 @@ public class DriverToOfferTest {
         // delete files
         final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             WorkspaceConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/1");
-        final File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
-        final File object = new File(folder.getAbsolutePath(), guid);
+        final File container = new File(conf.getStoragePath() + "/UNIT_1");
+        // final File folder = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder());
+        final File object = new File(container.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
-        Files.deleteIfExists(folder.toPath());
+        // Files.deleteIfExists(folder.toPath());
         Files.deleteIfExists(container.toPath());
     }
 
+    @RunWithCustomExecutor
     @Test
     public void integrationTest() throws Exception {
         connection = driver.connect("http://localhost:" + serverPort, null);
@@ -151,12 +160,12 @@ public class DriverToOfferTest {
                 final PutObjectResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                final WorkspaceConfiguration conf =
+                final StorageConfiguration conf =
                     PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                        WorkspaceConfiguration.class);
-                final File container = new File(conf.getStoragePath() + "/1");
+                        StorageConfiguration.class);
+                final File container = new File(conf.getStoragePath() + "/UNIT_1");
                 assertNotNull(container);
-                final File object = new File(container.getAbsolutePath(), DataCategory.UNIT.getFolder() + "/" + guid);
+                final File object = new File(container.getAbsolutePath(), "/" + guid);
                 assertNotNull(object);
                 assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
 
@@ -175,7 +184,7 @@ public class DriverToOfferTest {
             // Nothing, missing tenant parameter
         }
 
-        final GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.getFolder());
+        final GetObjectRequest getRequest = new GetObjectRequest("1", guid, DataCategory.UNIT.name());
         connection.getObject(getRequest);
     }
 }

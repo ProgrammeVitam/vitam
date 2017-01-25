@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
@@ -18,20 +19,17 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.jclouds</groupId>
-			<artifactId>jclouds-core</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>jsr311-api</artifactId>
-					<groupId>javax.ws.rs</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.jclouds.api</groupId>
 			<artifactId>filesystem</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.jclouds.api</groupId>
+			<artifactId>openstack-swift</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.jclouds.driver</groupId>
+			<artifactId>jclouds-slf4j</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,41 +23,35 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.offers.workspace.rest;
-
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
+ */
+package fr.gouv.vitam.workspace.common;
 
 /**
- * DefaultOfferApplication Test
+ * Storage offers provider
  */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+public enum StorageProvider {
+    /**
+     * File system storage offer
+     */
+    FILESYSTEM("filesystem"),
+    /**
+     * Swift storage offer (ceph or openStack)
+     */
+    SWIFT("openstack-swift");
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+    private String value;
 
-    @Test
-    public final void testFictiveLaunch() {
-        try {
-            new DefaultOfferApplication(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-        try {
-            new DefaultOfferApplication(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-        try {
-            new DefaultOfferApplication(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final IllegalStateException exc) {
-            // Result Expected
-        }
+    private StorageProvider(String value) {
+        this.value = value;
     }
+
+    /**
+     * @return the value
+     */
+    public String getValue() {
+        return value;
+    }
+
+
+
 }

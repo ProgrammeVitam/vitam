@@ -612,7 +612,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 LOGGER.error("Error while loading logbook lifecycle units", e);
                 throw new ProcessingException(e);
             }
-            try (VitamRequestIterator<JsonNode> iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator =
+                client.objectGroupLifeCyclesByOperationIterator(containerName)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();

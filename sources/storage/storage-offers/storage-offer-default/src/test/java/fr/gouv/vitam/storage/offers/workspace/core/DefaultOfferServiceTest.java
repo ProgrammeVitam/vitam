@@ -165,17 +165,17 @@ public class DefaultOfferServiceTest {
         }
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        final File offerFile = new File(CONTAINER_PATH + "/" + objectInit.getType().getFolder() + "/" + OBJECT_ID);
+        final File offerFile = new File(CONTAINER_PATH + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
         assertEquals(
-            offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
+            offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID,
                 VitamConfiguration.getDefaultDigestType()),
             digest.toString());
 
-        assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
     }
 
     // TODO activate when chunk mode is done in {@see DefaultOfferService} method createObject
@@ -255,7 +255,7 @@ public class DefaultOfferServiceTest {
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
 
         final Response response = offerService.getObject(CONTAINER_PATH,
-            objectInit.getType().getFolder() + "/" + OBJECT_ID_2, new AsyncResponseJunitTest());
+            OBJECT_ID_2, new AsyncResponseJunitTest());
         assertNotNull(response);
     }
 

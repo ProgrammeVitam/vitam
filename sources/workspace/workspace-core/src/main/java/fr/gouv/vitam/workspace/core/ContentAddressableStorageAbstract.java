@@ -84,16 +84,33 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     // FIXME P1: the BlobStoreContext should be build for each call, since it is as a HttpClient. For now (Filesystem),
     // that's fine.
     protected final BlobStoreContext context;
+    /**
+     * maximum list size of the blob store. In S3, Azure, and Swift, this is 1000, 5000, and 10000 respectively
+     * 
+     * @see <a href="https://jclouds.apache.org/start/blobstore/">Large lists</a>
+     */
 
-    private static final int MAX_RESULTS = 51000;
+    private int maxResults = 51000;
 
+    private StorageConfiguration configuration;
 
     /**
      * creates a new ContentAddressableStorageImpl with a storage configuration param
      *
      * @param configuration
      */
+    // TODO will be deleted in #US1757 (used by ingest-external)
     public ContentAddressableStorageAbstract(WorkspaceConfiguration configuration) {
+        context = getContext(configuration);
+    }
+
+    /**
+     * creates a new ContentAddressableStorageImpl with a storage configuration param
+     *
+     * @param configuration {@link StorageConfiguration}
+     */
+    public ContentAddressableStorageAbstract(StorageConfiguration configuration) {
+        this.setConfiguration(configuration);
         context = getContext(configuration);
     }
 
@@ -103,11 +120,24 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
      * @param configuration
      * @return BlobStoreContext
      */
+    // TODO will be deleted in #US1757
     public abstract BlobStoreContext getContext(WorkspaceConfiguration configuration);
+
+
+
+    /**
+     * enables the connection to a storage service with the param provided
+     *
+     * @param configuration
+     * @return BlobStoreContext
+     */
+    public abstract BlobStoreContext getContext(StorageConfiguration configuration);
+
 
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {
-
+        LOGGER.info(
+            " create container : " + containerName);
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         try {
@@ -344,7 +374,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         try {
             final BlobStore blobStore = context.getBlobStore();
 
-            if (!isExistingObject(containerName, objectName)) {
+            if (!isExistingContainer(containerName) || !isExistingObject(containerName, objectName)) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
                 throw new ContentAddressableStorageNotFoundException(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
@@ -379,8 +409,14 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     @Override
     public boolean isExistingObject(String containerName, String objectName) {
         try {
+            boolean isExists = false;
             final BlobStore blobStore = context.getBlobStore();
-            return blobStore.containerExists(containerName) && blobStore.blobExists(containerName, objectName);
+            try {
+                isExists = blobStore.blobExists(containerName, objectName);
+            } catch (Exception e) {
+                LOGGER.error(e);
+            }
+            return isExists;
         } finally {
             context.close();
         }
@@ -395,12 +431,12 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         List<URI> uriFolderListFromContainer;
         try {
             final BlobStore blobStore = context.getBlobStore();
-
             // It's like a filter
             final ListContainerOptions listContainerOptions = new ListContainerOptions();
+            StorageConfiguration storeConfig = getConfiguration();
             // List of all resources in a container recursively
             final PageSet<? extends StorageMetadata> blobStoreList = blobStore.list(containerName,
-                listContainerOptions.inDirectory(folderName).recursive().maxResults(MAX_RESULTS));
+                listContainerOptions.inDirectory(folderName).recursive().maxResults(getMaxResults()));
 
             uriFolderListFromContainer = new ArrayList<>();
             LOGGER.debug(WorkspaceMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
@@ -560,6 +596,31 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             context.close();
         }
         return jsonNodeObjectInformation;
+    }
+
+    /**
+     * @return the configuration
+     */
+    public StorageConfiguration getConfiguration() {
+        return configuration;
+    }
+
+
+    /**
+     * @param configuration the configuration to set
+     *
+     * @return this
+     */
+    public ContentAddressableStorageAbstract setConfiguration(StorageConfiguration configuration) {
+        this.configuration = configuration;
+        return this;
+    }
+
+    /**
+     * @return the maxResults
+     */
+    public int getMaxResults() {
+        return maxResults;
     }
 
     /**

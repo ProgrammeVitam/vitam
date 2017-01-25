@@ -26,7 +26,7 @@
  *******************************************************************************/
 
 /**
- * Provides a Swift implementation for the Workspace module. 
+ * Provides a Swift implementation for the storage modules.
  *
  */
 package fr.gouv.vitam.workspace.core.swift;

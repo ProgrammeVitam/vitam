@@ -99,12 +99,14 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 ItemStatus is = new ItemStatus(information.getOfferId());
                 // Useful information ?
                 is.setData("offerId", information.getOfferId());
-                if (information.getUsableSpace() >= totalSizeToBeStored) {
+                // if usable space not specified getUsableSpace() return -1
+                if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
                     is.increment(StatusCode.OK);
                 } else {
                     is.increment(StatusCode.KO);
                 }
                 itemStatus.setItemsStatus(information.getOfferId(), is);
+
             }
 
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |

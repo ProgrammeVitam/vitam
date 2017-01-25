@@ -24,3 +24,4 @@ p12_ihm_recette_password: grokbizftej
 TrustStore_ihm_recette_password: AzErTy
 p12_logbook_password: p12logbook1234
 p12_reverse_password: p12reverse1234
+vitam_keystone_passwd: tototutu
