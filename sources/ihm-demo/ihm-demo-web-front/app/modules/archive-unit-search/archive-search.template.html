@@ -85,6 +85,17 @@
 
 <div class="clearfix"></div>
 
+  <!--Pagination -->
+  <div style="text-align: center">
+    <button class="btn btn-default btn-s" ng-disabled="currentPage <= 1" ng-click="currentPage=+currentPage-1">
+      Précédent
+    </button>
+    <input ng-model="currentPage" style="max-width: 40px">/{{resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="currentPage >= resultPages" ng-click="currentPage=+currentPage+1">
+      Suivant
+    </button>
+  </div>
+
 <!--
 *
 *    RESULTATS
@@ -98,19 +109,6 @@
       </h2>
   </a>
   <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
-    <nav class="text-center">
-      <pagination total-items="totalItems" ng-model="currentPage" ng-change="pageChanged()"
-        class="pagination-sm"
-        items-per-page="itemsPerPage"
-        max-size="maxSize"
-        boundary-links="true"
-        previous-text="&lsaquo;"
-        next-text="&rsaquo;"
-        first-text="&laquo;"
-        last-text="&raquo;">
-      </pagination>
-    </nav>
-
     <div class="table-responsive ">
       <table class="table">
         <tr>
@@ -134,7 +132,8 @@
         </tr>
 
         <tbody ng-if="showResult && totalResult>0">
-          <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)" ng-repeat="result in archiveUnitsSearchResult.slice(((currentPage-1)*itemsPerPage), ((currentPage)*itemsPerPage)) | orderBy:orderByField:reverseSort">
+          <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)"
+              ng-repeat="result in archiveUnitsSearchResult | startFormat: startFormat()| limitTo: itemsPerPage | orderBy:orderByField:reverseSort">
             <td>{{result.Title}}</td>
             <td>{{result._id}}</td>
             <td>{{result.TransactedDate}}</td>

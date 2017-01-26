@@ -29,6 +29,18 @@
     </div>
   </div>
 
+
+  <!--Pagination -->
+  <div style="text-align: center">
+    <button class="btn btn-default btn-s" ng-disabled="$ctrl.currentPage <= 1" ng-click="$ctrl.currentPage=+$ctrl.currentPage-1">
+      Précédent
+    </button>
+    <input ng-model="$ctrl.currentPage" style="max-width: 40px">/{{$ctrl.resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="$ctrl.currentPage >= $ctrl.resultPages" ng-click="$ctrl.currentPage=+$ctrl.currentPage+1">
+      Suivant
+    </button>
+  </div>
+
   <!--
   *
   *    RESULTATS
@@ -43,21 +55,6 @@
         </h2>
     </a>
     <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
-
-      <!--Pagination -->
-      <nav class="text-center">
-        <pagination total-items="$ctrl.totalResult" ng-model="$ctrl.currentPage"
-          class="pagination-sm"
-          items-per-page="$ctrl.itemsPerPage"
-          max-size="maxSize"
-          boundary-links="true"
-          previous-text="&lsaquo;"
-          next-text="&rsaquo;"
-          first-text="&laquo;"
-          last-text="&raquo;">
-        </pagination>
-      </nav>
-
       <div class="table-responsive ">
         <table class="table">
           <tr>
@@ -67,7 +64,7 @@
 
           <tbody ng-if="$ctrl.showResult && $ctrl.totalResult > 0">
             <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="$ctrl.goToDetails(result.OriginatingAgency)"
-                ng-repeat="result in $ctrl.registers.slice((($ctrl.currentPage-1)*$ctrl.itemsPerPage), (($ctrl.currentPage)*$ctrl.itemsPerPage))">
+                ng-repeat="result in $ctrl.registers | startFormat : $ctrl.startFormat() |limitTo : $ctrl.itemsPerPage">
               <td>{{ result.OriginatingAgency }}</td>
               <td>{{ result.creationDate }}</td>
             </tr>

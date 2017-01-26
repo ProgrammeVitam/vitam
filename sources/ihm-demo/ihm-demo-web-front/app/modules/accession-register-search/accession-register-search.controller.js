@@ -30,14 +30,14 @@ angular.module('accession.register.search')
     'GET_ALL_REGISTERS': 'ACCESSIONREGISTER',
     'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
   })
-  .controller('accessionRegisterSearchController', function($window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator) {
+  .controller('accessionRegisterSearchController', function($window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE) {
     var self = this;
 
     // ************************************Pagination  **************************** //
-    self.viewby = 10;
     self.currentPage = 1;
-    self.itemsPerPage = self.viewby;
+    self.itemsPerPage = ITEM_PER_PAGE;
     self.maxSize = 5;
+    self.resultPages ="";
 
     // FIXME Useless function ?
     self.setPage = function(pageNo) {
@@ -75,6 +75,7 @@ angular.module('accession.register.search')
             // Get total results
             self.totalResult = response.data.$hits.total;
             self.showResult = true;
+            self.resultPages = Math.ceil(self.totalResult/self.itemsPerPage);
 
             if (self.totalResult > 0) {
               // Display found registers
@@ -92,7 +93,20 @@ angular.module('accession.register.search')
           self.totalResult = 0;
         }
       );
-    }
+    };
+
+      self.startFormat = function(){
+        var start="";
+
+        if(self.currentPage > 0 && self.currentPage <= self.resultPages){
+          start= (self.currentPage-1)*self.itemsPerPage;
+        }
+
+        if(self.currentPage>self.resultPages){
+          start= (self.resultPages-1)*self.itemsPerPage;
+        }
+        return start;
+      };
 
     self.goToDetails = function(id) {
       $window.open('#!/accessionRegister/detail/' + id)

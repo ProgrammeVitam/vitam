@@ -44,6 +44,7 @@ angular.module('ihm.demo')
     ctrl.client = ihmDemoCLient.getClient('admin');
     ctrl.fileNotFoundError = false;
 
+
     /**
      * FIXME : Remove me ? Useless Function ?
      */
@@ -82,6 +83,20 @@ angular.module('ihm.demo')
          displayError("Il n'y a aucun résultat pour votre recherche");
         });
     };
+
+      ctrl.startFormat = function(){
+        var start="";
+
+        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
+         start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+        }
+
+        if(ctrl.currentPage>ctrl.resultPages){
+          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+        }
+        return start;
+      };
+
 
     ctrl.clearSearchOptions = function() {
       ctrl.searchOptions = {};

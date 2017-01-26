@@ -30,36 +30,16 @@
       </div>
   </form>
 
-  <!--  Pagination -->
-    <!-- <div style="text-align: center">
-       <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=logctrl.currentPage-1">
-         Previous
-       </button>
-       {{logctrl.currentPage}}/{{logctrl.resultPages}}
-       <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.getNextResults()">
-         Next
-       </button>
-     </div> -->
-
-    <nav class="text-center" ng-if="logctrl.resultPages > 0" >
-        <ul class="pagination">
-            <li ng-if="logctrl.currentPage > 1">
-                <a href='' aria-label="Previous" ng-click="logctrl.getPreviousResults()" >
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <li ng-class="logctrl.pageActive[0] ? 'active' : ''" ng-click="logctrl.diplayFromCurrentPage(0)"><a href=''>{{logctrl.currentPage}}</a></li>
-            <li ng-class="logctrl.pageActive[1] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 1" ng-click="logctrl.diplayFromCurrentPage(1)"><a href=''>{{logctrl.currentPage+1}}</a></li>
-            <li ng-class="logctrl.pageActive[2] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 2" ng-click="logctrl.diplayFromCurrentPage(2)"><a href=''>{{logctrl.currentPage+2}}</a></li>
-            <li ng-class="logctrl.pageActive[3] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 3" ng-click="logctrl.diplayFromCurrentPage(3)"><a href=''>{{logctrl.currentPage+3}}</a></li>
-            <li ng-class="logctrl.pageActive[4] ? 'active' : ''" ng-if="logctrl.resultPages >= logctrl.currentPage + 4" ng-click="logctrl.diplayFromCurrentPage(4)"><a href=''>{{logctrl.currentPage+4}}</a></li>
-            <li ng-if="logctrl.resultPages >= logctrl.currentPage + 4">
-                <a href='' aria-label="Next" ng-click="logctrl.getNextResults()">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+  <!--Pagination -->
+    <div style="text-align: center">
+        <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=+logctrl.currentPage-1">
+            Précédent
+        </button>
+        <input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
+        <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=+logctrl.currentPage+1">
+            Suivant
+        </button>
+    </div>
 
 <div class="panel panel-default col-md-12">
   <a class="panel-header">
@@ -78,7 +58,7 @@
             <th>Bordereau</th>
         </tr>
 
-        <tbody ng-repeat="log in logctrl.logbookEntryList | startFrom:(logctrl.diplayPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage">
+        <tbody ng-repeat="log in logctrl.logbookEntryList | startFormat:logctrl.startFormat() | limitTo:logctrl.itemsPerPage">
           <tr>
             <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.events[0].obIdIn}}</td>
             <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.evIdProc}}</td>
