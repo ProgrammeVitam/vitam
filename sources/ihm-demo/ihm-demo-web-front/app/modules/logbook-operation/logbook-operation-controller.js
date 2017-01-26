@@ -37,6 +37,7 @@ angular.module('ihm.demo')
     ctrl.searchOptions = {};
     ctrl.operationList = [];
     ctrl.resultPages = 0;
+    ctrl.searchType = "--";
 
 		function initFields(fields) {
 			var result = [];
@@ -77,7 +78,7 @@ angular.module('ihm.demo')
 
       ctrl.searchOptions.EventType = ctrl.searchType;
 
-      if(ctrl.searchOptions.EventType == "" || ctrl.searchOptions.EventType == undefined) {
+      if(ctrl.searchOptions.EventType == "--" || ctrl.searchOptions.EventType == undefined) {
         ctrl.searchOptions.EventType = "all";
       }
 
