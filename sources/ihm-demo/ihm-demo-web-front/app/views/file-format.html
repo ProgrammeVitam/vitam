@@ -58,6 +58,17 @@
   </div>
     <div class="clearfix"></div>
 
+  <!--Pagination -->
+  <div style="text-align: center">
+    <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage-1">
+      Précédent
+    </button>
+    <input ng-model="fileCtrl.currentPage" style="max-width: 40px" >/{{fileCtrl.resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage+1">
+      Suivant
+    </button>
+  </div>
+
     <div class="panel panel-default col-md-12">
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
       <h2>
@@ -68,15 +79,6 @@
 
     <div id="boxSearchResults"
       class="panel-body panel-collapse collapse in">
-      <nav class="text-center">
-        <pagination total-items="fileCtrl.results"
-          ng-model="fileCtrl.currentPage" class="pagination-sm"
-          items-per-page="fileCtrl.itemsPerPage"
-          max-size="fileCtrl.maxSize" boundary-links="true"
-          previous-text="&lsaquo;" next-text="&rsaquo;"
-          first-text="&laquo;" last-text="&raquo;"> </pagination>
-      </nav>
-
       <div class="table-responsive">
         		<div class="col-md-9" style="padding-top: 40px">
             		<table class="table table-bordered">
@@ -89,7 +91,7 @@
                    			<th>Extensions</th>
                 		</tr>
                 		</thead>
-                		<tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:(fileCtrl.currentPage-1)*fileCtrl.itemsPerPage | limitTo:fileCtrl.itemsPerPage">
+                		<tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:fileCtrl.startFormat() | limitTo:fileCtrl.itemsPerPage">
                 		<tr ng-click="fileCtrl.openDialog($event, file._id)">
                     		<th nowrap scope="row" >{{file.PUID}}</th>
                     		<td nowrap>{{file.Name}}</td>

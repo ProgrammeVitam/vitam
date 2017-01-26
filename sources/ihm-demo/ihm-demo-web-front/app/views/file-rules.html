@@ -35,6 +35,19 @@
         </form>
 
     </div>
+
+
+    <!--Pagination -->
+    <div style="text-align: center">
+        <button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage <= 1" ng-click="filerulesCtrl.currentPage=+filerulesCtrl.currentPage-1">
+            Précédent
+        </button>
+        <input ng-model="filerulesCtrl.currentPage" style="max-width: 40px">/{{filerulesCtrl.resultPages}}
+        <button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage >= filerulesCtrl.resultPages" ng-click="filerulesCtrl.currentPage=+filerulesCtrl.currentPage+1">
+            Suivant
+        </button>
+    </div>
+
     <div class="panel panel-default col-md-12">
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
             <h2>
@@ -44,15 +57,6 @@
         </a>
         <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
         	<div class="table-responsive">
-        		<div class="col-md-9" style="float: right">
-            		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage <= 1" ng-click="filerulesCtrl.currentPage=+filerulesCtrl.currentPage-1">
-                		Précédent
-            		</button>
-            		<input ng-model="filerulesCtrl.currentPage" style="max-width: 40px">/{{filerulesCtrl.resultPages}}
-            		<button class="btn btn-default btn-s" ng-disabled="filerulesCtrl.currentPage >= filerulesCtrl.resultPages" ng-click="filerulesCtrl.currentPage=+filerulesCtrl.currentPage+1">
-                		Suivant
-            		</button>
-        		</div>
         		<div style="padding-top: 40px">
             		<table class="table ">
 									<tr data-original-title="" title="">
@@ -62,7 +66,7 @@
                 <th>Description</th>
 								<th>Identifiant</th>
                             </tr>
-                		<tbody ng-repeat="file in filerulesCtrl.fileRulesList | startFileRules:(filerulesCtrl.currentPage-1)*filerulesCtrl.itemsPerPage | limitTo:filerulesCtrl.itemsPerPage">
+                		<tbody ng-repeat="file in filerulesCtrl.fileRulesList | startFormat:filerulesCtrl.startFormat()| limitTo:filerulesCtrl.itemsPerPage">
                 		<tr ng-click="filerulesCtrl.openDialog($event, file.RuleId)">
               <td  style="text-overflow: ellipsis;max-width:20%" >{{file.RuleValue}}</td>
 							<td style="text-overflow: ellipsis;max-width:20%">{{file.RuleType}}</td>

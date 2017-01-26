@@ -142,9 +142,10 @@ angular
     // ************************************Pagination
     // **************************** //
     $scope.viewby = ITEM_PER_PAGE;
-    $scope.currentPage = 1;
+    $scope.currentPage = "";
     $scope.itemsPerPage = $scope.viewby;
     $scope.maxSize = 5;
+    $scope.resultPages="";
 
     $scope.setPage = function(pageNo) {
      $scope.currentPage = pageNo;
@@ -258,9 +259,11 @@ angular
 
            // Set Total result
            $scope.totalResult = response.data.$hits.total;
+           $scope.currentPage =1;
 
            // ******************************** Pagination ****************************** //
            $scope.totalItems = $scope.archiveUnitsSearchResult.length;
+           $scope.resultPages = Math.ceil($scope.totalResult /$scope.itemsPerPage);
            // ************************************************************************** //
 
           }
@@ -280,5 +283,17 @@ angular
      }
      // ***************************************************************************
      // //
+
+       $scope.startFormat = function(){
+           var start="";
+           if($scope.currentPage > 0 && $scope.currentPage <= $scope.resultPages){
+               start= ($scope.currentPage-1)*$scope.itemsPerPage;
+           }
+           if($scope.currentPage>$scope.resultPages){
+               start= ($scope.resultPages-1)*$scope.itemsPerPage;
+           }
+           return start;
+       };
+
 
    });

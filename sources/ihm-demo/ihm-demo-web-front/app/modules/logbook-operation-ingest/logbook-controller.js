@@ -47,7 +47,7 @@ angular.module('ihm.demo')
   .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 0;
+    ctrl.currentPage = 1;
     ctrl.startDate = new Date();
     ctrl.endDate = new Date();
     ctrl.searchOptions = {};
@@ -82,16 +82,29 @@ angular.module('ihm.demo')
         ctrl.logbookEntryList.map(function(item) {
           item.obIdIn = ctrl.searchOptions.obIdIn;
         });
-        ctrl.resultPages = Math.ceil(response.data.$hits.total/ITEM_PER_PAGE);
-        ctrl.currentPage = ctrl.currentPage || 1;
+        ctrl.currentPage = 1;
         ctrl.results = response.data.$hits.total;
-        ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
+     //   ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
         header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
+        ctrl.resultPages = Math.ceil(ctrl.results/ctrl.itemsPerPage);
       }, function(response) {
         ctrl.searchOptions = {};
         ctrl.results = 0;
       });
     };
+
+      ctrl.startFormat = function(){
+        var start="";
+
+        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
+          start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+        }
+
+        if(ctrl.currentPage>ctrl.resultPages){
+          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+        }
+        return start;
+      };
 
       ctrl.downloadObject = function(objectId, type) {
           ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
