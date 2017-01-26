@@ -233,5 +233,20 @@ installation_clamav=true
 # cas de l'appel au webDAV pour récupérer les jeux de tests
 http_proxy_environnement=
 
+# Adresse des offres de stockage (sans le port)
 vitam_storageofferdefault_host_1=
 # vitam_storageofferdefault_host_2=
+
+
+vitam_tenant_ids=[0,1,2]
+
+# ces paramètres peuvent être soit globaux, ici, soit ajoutés après chaque partition hébergeant une offre de stockage
+
+#Valeur possibles : openstack-swift ou chaîne vide
+vitam_provider_offer=openstack-swift
+# URL d'authentification si openstack-swift
+vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
+# Identifiant de compte (le mot de passe est renseigné dans vault.yml)
+vitam_keystone_login=
+# Nom du tenant associé
+vitam_tenant_name=
