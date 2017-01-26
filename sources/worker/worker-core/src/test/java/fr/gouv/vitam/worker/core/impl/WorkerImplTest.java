@@ -37,8 +37,12 @@ import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -48,7 +52,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.Action;
@@ -64,11 +67,9 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginHelper;
+import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({PluginHelper.class})
 public class WorkerImplTest {
 
     private Worker workerImpl;
@@ -76,19 +77,17 @@ public class WorkerImplTest {
     private static JunitHelper junitHelper;
     private static int port;
 
+    @Mock
+    private PluginLoader pluginLoader;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         workspaceURL = "http://localhost:" + port;
-        PowerMockito.mockStatic(PluginHelper.class);
-        Map<String, Object> mockedMap = new HashMap<String, Object>();
-        mockedMap.put(ExtractSedaActionHandler.getId(), new PluginProperties(
-            "DummyHandler",
-            "check_manifest_plugin.properties"));
-        PowerMockito.when(PluginHelper.getPluginList()).thenReturn(mockedMap);
-        PowerMockito.when(PluginHelper.loadActionHandler(anyObject(), anyObject())).thenReturn(new DummyHandler());
-        
     }
 
     @AfterClass
@@ -98,9 +97,9 @@ public class WorkerImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenWorkParamsIsNullThenThrowsIllegalArgumentException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
+        throws IllegalArgumentException, ProcessingException,
         ContentAddressableStorageServerException {
-        workerImpl = WorkerImplFactory.create();
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(null, new Step());
     }
 
@@ -108,7 +107,7 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        workerImpl = WorkerImplFactory.create();
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -120,7 +119,7 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
         ContentAddressableStorageServerException {
-        workerImpl = WorkerImplFactory.create();
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create();;
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -132,7 +131,7 @@ public class WorkerImplTest {
     public void givenWorkerImplementWhenActionIsNullThenThrowsHandlerNotFoundException()
         throws IllegalArgumentException, ProcessingException,
         ContentAddressableStorageServerException {
-        workerImpl = WorkerImplFactory.create();
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create();;
         final Step step = new Step();
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
@@ -169,7 +168,7 @@ public class WorkerImplTest {
 
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
-        workerImpl = WorkerImplFactory.create()
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
@@ -200,7 +199,7 @@ public class WorkerImplTest {
 
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
-        workerImpl = WorkerImplFactory.create()
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8011/")
@@ -232,7 +231,7 @@ public class WorkerImplTest {
 
         when(actionHandler.execute(anyObject(), anyObject()))
             .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
-        workerImpl = WorkerImplFactory.create()
+        workerImpl = WorkerFactory.getInstance(pluginLoader).create()
             .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)

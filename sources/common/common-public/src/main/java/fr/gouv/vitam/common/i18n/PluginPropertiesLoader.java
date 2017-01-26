@@ -42,7 +42,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  * Plugin Messages Helper for Logbooks
  */
 public class PluginPropertiesLoader {
-    PluginPropertiesLoader PLUGIN_MESSAGES = new PluginPropertiesLoader();
+
     static Map<String, String> resourceMap = new HashMap<>();
     private static final String PLUGIN = "PLUGIN";
     

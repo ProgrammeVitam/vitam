@@ -612,6 +612,37 @@ public final class JsonHandler {
     }
 
     /**
+     * transform an inputStream into a {@link Map<String, T>}
+     * @param inputStream
+     * @param parameterClazz type of the value on the Map
+     * @param <T>
+     * @return the corresponding HashMap
+     * @throws InvalidParseOperationException
+     */
+    public static final <T> Map<String, T> getMapFromInputStream(final InputStream inputStream, Class<T> parameterClazz)
+        throws InvalidParseOperationException {
+        ParametersChecker.checkParameter("InputStream", inputStream);
+        Map<String, T> info ;
+        try {
+            JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(Map.class, String.class, parameterClazz);
+            info = OBJECT_MAPPER.readValue(inputStream, type);
+        } catch (final IOException e) {
+            throw new InvalidParseOperationException(e);
+        } finally {
+            try {
+                inputStream.close();
+            } catch (final IOException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+        }
+        if (info == null) {
+            info = new HashMap<>();
+        }
+        return info;
+    }
+
+
+    /**
      *
      * @param inputStream
      * @param clasz

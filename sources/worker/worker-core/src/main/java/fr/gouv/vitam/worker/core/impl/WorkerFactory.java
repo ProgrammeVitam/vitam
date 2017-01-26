@@ -24,29 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.exception;
+package fr.gouv.vitam.worker.core.impl;
+
+import fr.gouv.vitam.worker.core.api.Worker;
+import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 
 /**
- * PluginNotFoundException thrown by worker when plugin is not installed
- *
+ * WorkerImpl Factory to create workerImpl
  */
-public class PluginNotFoundException extends PluginException {
-
-    private static final long serialVersionUID = -2509124610929085300L;
+public final class WorkerFactory {
 
     /**
-     * @param message to be set
-     * @param cause to be set
+     * INSTANCE
      */
-    public PluginNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    private static WorkerFactory WORKER_FACTORY;
+
+    /**
+     * plugin loader
+     */
+    private final PluginLoader pluginLoader;
+
+    /**
+     * create a new worker factory.
+     * @param pluginLoader
+     */
+    private WorkerFactory(PluginLoader pluginLoader) {
+        this.pluginLoader = pluginLoader;
     }
 
     /**
-     * @param message to be set
+     * return the only instance of {@link WorkerFactory}. Build the instance at the first call.
+     * This method is synchronised, for performance issue, please call only one time.
+     *
+     * @param pluginLoader
+     * @return
      */
-    public PluginNotFoundException(String message) {
-        super(message);
+    public static synchronized WorkerFactory getInstance(PluginLoader pluginLoader) {
+        if (WORKER_FACTORY == null ) {
+            WORKER_FACTORY = new WorkerFactory(pluginLoader);
+        }
+        return WORKER_FACTORY;
+    }
+
+    /**
+     * @return WorkerImpl
+     */
+    public Worker create() {
+        return new WorkerImpl(pluginLoader);
     }
 
 }
