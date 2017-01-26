@@ -90,7 +90,7 @@ abstract class GUIDAbstract implements GUID {
     @Override
     @JsonIgnore
     public String toBase64() {
-        return BaseXx.getBase64(guid);
+        return BaseXx.getBase64UrlWithoutPadding(guid);
     }
 
     @Override

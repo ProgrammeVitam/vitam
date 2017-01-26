@@ -178,7 +178,7 @@ public class LogbookAdministrationTest {
 
         // Then
         assertThat(archive).exists();
-        validateFile(archive, 2, BaseXx.getBase64Padding(lastTimestampToken.getBytes()));
+        validateFile(archive, 2, BaseXx.getBase64(lastTimestampToken.getBytes()));
     }
 
     private String extractLastTimestampToken(LogbookOperationsImpl logbookOperations, Select select)
