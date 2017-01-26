@@ -77,7 +77,7 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
 
     private Response callSiegfried(Path filePath) throws FormatIdentifierTechnicalException {
         LOGGER.debug("Call siegfried server");
-        final String encodedFilePath = BaseXx.getBase64Padding(filePath.toString().getBytes());
+        final String encodedFilePath = BaseXx.getBase64UrlWithPadding(filePath.toString().getBytes());
         Response response = null;
         try {
             response =

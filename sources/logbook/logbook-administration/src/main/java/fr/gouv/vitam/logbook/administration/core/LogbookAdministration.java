@@ -210,15 +210,15 @@ public class LogbookAdministration {
             final MerkleTree merkleTree = merkleTreeAlgo.generateMerkle();
             traceabilityFile.storeMerkleTree(merkleTree);
 
-            final String rootHash = BaseXx.getBase64Padding(merkleTree.getRoot());
+            final String rootHash = BaseXx.getBase64(merkleTree.getRoot());
 
             final String timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
             final String timestampToken2 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
             final String timestampToken3 = findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
 
-            final String timestampToken1Base64 = (timestampToken1 == null) ? null : BaseXx.getBase64Padding(timestampToken1.getBytes());
-            final String timestampToken2Base64 = (timestampToken2 == null) ? null : BaseXx.getBase64Padding(timestampToken2.getBytes());
-            final String timestampToken3Base64 = (timestampToken3 == null) ? null : BaseXx.getBase64Padding(timestampToken3.getBytes());
+            final String timestampToken1Base64 = (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
+            final String timestampToken2Base64 = (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
+            final String timestampToken3Base64 = (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
 
             final byte[] timeStampToken = generateTimeStampToken(eip, rootHash, timestampToken1, timestampToken2, timestampToken3);
             traceabilityFile.storeTimeStampToken(timeStampToken);

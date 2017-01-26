@@ -169,7 +169,7 @@ class GUIDImpl extends GUIDAbstract {
                 System.arraycopy(BaseXx.getFromBase32(idsource), 0, guid, 0, KEYSIZE);
             } else if (len == KEYB64SIZE) {
                 // BASE64
-                System.arraycopy(BaseXx.getFromBase64(idsource), 0, guid, 0, KEYSIZE);
+                System.arraycopy(BaseXx.getFromBase64UrlWithoutPadding(idsource), 0, guid, 0, KEYSIZE);
             } else {
                 throw new InvalidGuidOperationException(
                     "Attempted to parse malformed GUID: (" + len + ") " + id);
