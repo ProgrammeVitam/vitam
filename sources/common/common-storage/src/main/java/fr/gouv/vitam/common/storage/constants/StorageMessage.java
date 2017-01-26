@@ -24,60 +24,56 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.workspace.api.model;
+package fr.gouv.vitam.common.storage.constants;
 
 /**
- * Container basic information for capacity feature
+ * Display logged messages from workspace
  */
-public class ContainerInformation {
-
+public enum StorageMessage {
     /**
-     * Usable space if usable space information not found, usableSpace will be -1
+     * Beginning of getting List of Digital Object
      */
-    private long usableSpace;
-
+    BEGINNING_GET_LIST_OF_DIGITAL_OBJECT("Beginning of getting List of Digital Object"),
     /**
-     * Used space
+     * Beginning of getting Uri List of Digital Object
      */
-    private long usedSpace;
+    BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT("Beginning of getting Uri List of Digital Object"),
+    /**
+     * Beginning of getting Uri List of folders
+     */
+    BEGINNING_GET_URI_LIST_OF_FOLDER("Beginning of getting Uri List of folders"),
+    /**
+     * Ending of getting List of Digital Object
+     */
+    ENDING_GET_LIST_OF_DIGITAL_OBJECT("Ending of getting List of Digital Object"),
+    /**
+     * Ending of getting Uri List of Digital Object
+     */
+    ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT("Ending of getting Uri List of Digital Object"),
+    /**
+     * Ending of getting Uri List of folders
+     */
+    ENDING_GET_URI_LIST_OF_FOLDER("Ending of getting Uri List of folders"),
+    /**
+     * Uri list of digital objects empty
+     */
+    URI_LIST_OF_DIGITAL_OBJECT_EMPTY("Uri list of digital objects empty");
+
+
+
+    private final String message;
+
+    private StorageMessage(String message) {
+        this.message = message;
+    }
 
     /**
-     * 
-     * Get usable space
+     * getter for attribute message
      *
-     * @return usable space in byte, <br>
-     *         return -1 if usable space not specified
+     * @return message
      */
-    public long getUsableSpace() {
-        return usableSpace;
+    public String getMessage() {
+        return message;
     }
 
-    /**
-     * Set usable space
-     *
-     * @param usableSpace usable space in byte
-     */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
-    /**
-     * Get used space
-     * 
-     * 
-     * @return used space in byte
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
-
-    /**
-     * Set used space
-     *
-     * @param usedSpace used space in byte
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
-    }
 }

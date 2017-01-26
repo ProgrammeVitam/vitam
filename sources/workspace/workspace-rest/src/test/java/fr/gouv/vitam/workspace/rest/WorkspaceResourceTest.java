@@ -60,10 +60,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.Entry;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
-import fr.gouv.vitam.workspace.core.StorageConfiguration;
 
 /**
  */

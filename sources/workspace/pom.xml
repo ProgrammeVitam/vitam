@@ -13,7 +13,6 @@
 
 	<modules>
 		<module>workspace-api</module>
-		<module>workspace-core</module>
 		<module>workspace-rest</module>
 		<module>workspace-client</module>
 		<module>workspace-common</module>

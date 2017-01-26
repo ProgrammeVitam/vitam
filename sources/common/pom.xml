@@ -19,5 +19,6 @@
 		<module>common-database-vitam</module>
 		<module>common-format-identification</module>
 		<module>common-http-interface</module>
+		<module>common-storage</module>
 	</modules>
 </project>

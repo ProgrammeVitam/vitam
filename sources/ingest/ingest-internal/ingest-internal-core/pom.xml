@@ -43,7 +43,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>workspace-core</artifactId>
+			<artifactId>common-storage</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>

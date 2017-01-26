@@ -24,60 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.storage.utils;
 
-package fr.gouv.vitam.workspace.api.model;
+import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Container basic information for capacity feature
+ * Class Utils that extracts a uri from a path
+ *
  */
-public class ContainerInformation {
+public final class UriUtils {
 
-    /**
-     * Usable space if usable space information not found, usableSpace will be -1
-     */
-    private long usableSpace;
+    private static final String SLASH = "/";
 
-    /**
-     * Used space
-     */
-    private long usedSpace;
-
-    /**
-     * 
-     * Get usable space
-     *
-     * @return usable space in byte, <br>
-     *         return -1 if usable space not specified
-     */
-    public long getUsableSpace() {
-        return usableSpace;
+    private UriUtils() {
+        // Empty constructor
     }
 
     /**
-     * Set usable space
+     * Removes the extension file and the root folder
      *
-     * @param usableSpace usable space in byte
-     */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
-    /**
-     * Get used space
-     * 
-     * 
-     * @return used space in byte
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
-
-    /**
-     * Set used space
      *
-     * @param usedSpace used space in byte
+     * @param uriString path file uri
+     * @return a URI path
      */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
+    // TODO P1 REVIEW does not what it says
+    public static String splitUri(String uriString) {
+        String splitedString;
+        ParametersChecker.checkParameter("Uri string is a mandatory parameter", uriString);
+        if (uriString.contains(SLASH)) {
+            final String[] uriWithoutRootFolderTable = uriString.split(SLASH, 2);
+            splitedString = uriWithoutRootFolderTable[1];
+        } else {
+            splitedString = "";
+        }
+        return splitedString;
     }
 }

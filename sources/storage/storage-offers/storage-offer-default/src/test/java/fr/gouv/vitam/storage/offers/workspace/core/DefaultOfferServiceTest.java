@@ -55,10 +55,10 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
 
 /**
  * Default offer service test implementation
@@ -77,8 +77,8 @@ public class DefaultOfferServiceTest {
 
     @After
     public void deleteFiles() throws Exception {
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
@@ -108,8 +108,8 @@ public class DefaultOfferServiceTest {
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
 
         // check
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -125,8 +125,8 @@ public class DefaultOfferServiceTest {
         // container (init)
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(true), GUIDFactory.newObjectGUID(0).getId());
         // check
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -149,8 +149,8 @@ public class DefaultOfferServiceTest {
         objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -190,8 +190,8 @@ public class DefaultOfferServiceTest {
         objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -280,8 +280,8 @@ public class DefaultOfferServiceTest {
         objectInit = offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID);
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
-        final WorkspaceConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            WorkspaceConfiguration.class);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());

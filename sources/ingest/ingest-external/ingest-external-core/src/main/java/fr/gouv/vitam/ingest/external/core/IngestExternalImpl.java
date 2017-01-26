@@ -58,6 +58,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
@@ -77,8 +79,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
-import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
 
 /**
  * Implementation of IngestExtern
@@ -172,7 +172,7 @@ public class IngestExternalImpl implements IngestExternal {
             helper.updateDelegate(sipSanityParameters);
 
             workspaceFileSystem =
-                new FileSystem(new WorkspaceConfiguration().setStoragePath(config.getPath()));
+                new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
 
@@ -433,12 +433,12 @@ public class IngestExternalImpl implements IngestExternal {
      * @return
      * @throws LogbookClientNotFoundException
      * @throws IngestExternalException
-     * @throws VitamClientException 
+     * @throws VitamClientException
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
         boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters)
-        throws LogbookClientNotFoundException, IngestExternalException{
+        throws LogbookClientNotFoundException, IngestExternalException {
         Response responseNoProcess;
         // Add step started in the logbook
         addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
@@ -454,16 +454,16 @@ public class IngestExternalImpl implements IngestExternal {
                 "TransferringAgencyToBeDefined",
                 "CHECK_CONTAINER", ". Format non supporté : " + mimeType, StatusCode.KO);
         }
-        
+
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             client.storeATR(ingestGuid, new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)));
         } catch (VitamClientException e) {
             LOGGER.error(e.getMessage());
             throw new IngestExternalException(e);
         }
-        
+
         responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-            new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)) ,MediaType.APPLICATION_XML_TYPE, null);
+            new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
         addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
         addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);

@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
-import fr.gouv.vitam.workspace.core.StorageConfiguration;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 
 /**
  * The Workspace APPLICATION.
