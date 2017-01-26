@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,8 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.worker.core.handler;
+ *******************************************************************************/
+package fr.gouv.vitam.worker.core.plugin;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
@@ -72,49 +72,40 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * Computes archive unit 's Management date
+ * UnitsRulesCompute Plugin.<br>
+ *
  */
-public class UnitsRulesComputeHandler extends ActionHandler {
 
-
+public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String WORKSPACE_SERVER_ERROR = "Workspace Server Error";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitsRulesComputeHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitsRulesComputePlugin.class);
 
-    private static final String HANDLER_ID = "UNITS_RULES_COMPUTE";
+    private static final String CHECK_RULES_TASK_ID = "UNITS_RULES_COMPUTE";
     private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
     private static final String AU_PREFIX_WITH_END_DATE = "WithEndDte_";
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     private static final String AU_NOT_HAVE_RULES = "Archive unit does not have rules";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
 
-
     private HandlerIO handlerIO;
 
-    private final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters = LogbookParametersFactory
-        .newLogbookLifeCycleUnitParameters();
-
     /**
-     * Empty constructor UnitsRulesComputeHandler
+     * Empty constructor UnitsRulesComputePlugin
      *
      */
-    public UnitsRulesComputeHandler() {
+    public UnitsRulesComputePlugin() {
         // Empty
     }
 
@@ -123,47 +114,20 @@ public class UnitsRulesComputeHandler extends ActionHandler {
         LOGGER.debug("UNITS_RULES_COMPUTE in execute");
         final long time = System.currentTimeMillis();
         handlerIO = handler;
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
+        final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
         final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
 
         try {
-            try {
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                    logbookLifecycleUnitParameters,
-                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
-
-
-                calculateMaturityDate(params, itemStatus);
-                itemStatus.increment(StatusCode.OK);
-            } catch (final ProcessingException e) {
-                LOGGER.debug(e);
-                itemStatus.increment(StatusCode.KO);
-            }
-
-            // Update lifeCycle
-            try {
-                logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
-                    logbookLifecycleUnitParameters,
-                    itemStatus);
-
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
-        } finally {
-            try {
-                handlerIO.getLifecyclesClient().bulkUpdateUnit(params.getContainerName(),
-                    handlerIO.getHelper().removeUpdateDelegate(objectID));
-            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
+            calculateMaturityDate(params, itemStatus);
+            itemStatus.increment(StatusCode.OK);
+        } catch (final ProcessingException e) {
+            LOGGER.debug(e);
+            itemStatus.increment(StatusCode.KO);
         }
+
+
         LOGGER.debug("[exit] execute... /Elapsed Time:" + (System.currentTimeMillis() - time) / 1000 + "s");
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(CHECK_RULES_TASK_ID).setItemsStatus(CHECK_RULES_TASK_ID, itemStatus);
     }
 
     @Override
@@ -453,10 +417,4 @@ public class UnitsRulesComputeHandler extends ActionHandler {
             ruleNode.get(FileRules.RULEMEASUREMENT) != null;
     }
 
-    /**
-     * @return HANDLER_ID
-     */
-    public static final String getId() {
-        return HANDLER_ID;
-    }
 }

@@ -24,9 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.handler;
+package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -66,15 +66,16 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, StorageClientFactory.class})
-public class StoreObjectGroupActionHandlerTest {
+public class StoreObjectGroupActionPluginTest {
 
     private static final String CONTAINER_NAME = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
     private static final String OBJECT_GROUP_GUID = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
-    StoreObjectGroupActionHandler handler;
-    private static final String HANDLER_ID = "OG_STORAGE";
+    StoreObjectGroupActionPlugin plugin;
+    private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private MetaDataClient metadataClient;
@@ -84,7 +85,7 @@ public class StoreObjectGroupActionHandlerTest {
     private final InputStream objectGroup;
     private static final String OBJ = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
 
-    public StoreObjectGroupActionHandlerTest() throws FileNotFoundException {
+    public StoreObjectGroupActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
     }
 
@@ -128,10 +129,9 @@ public class StoreObjectGroupActionHandlerTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
-        handler = new StoreObjectGroupActionHandler(storageClientFactory);
-        assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
+        plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
 
-        final ItemStatus response = handler.execute(paramsObjectGroups, action);
+        final ItemStatus response = plugin.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -159,10 +159,9 @@ public class StoreObjectGroupActionHandlerTest {
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
 
-        handler = new StoreObjectGroupActionHandler(storageClientFactory);
-        assertEquals(StoreObjectGroupActionHandler.getId(), HANDLER_ID);
+        plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
 
-        final ItemStatus response = handler.execute(paramsObjectGroups, action);
+        final ItemStatus response = plugin.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 

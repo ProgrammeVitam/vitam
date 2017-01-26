@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.handler;
+package fr.gouv.vitam.worker.core.plugin;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
@@ -38,7 +38,6 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.gc.iotools.stream.is.InputStreamFromOutputStream;
-import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -54,7 +53,6 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -68,25 +66,17 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * FormatIdentification Handler.<br>
+ * FormatIdentificationAction Plugin.<br>
  *
  */
 
@@ -94,20 +84,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 // TODO P0: review Logbook messages (operation / lifecycle)
 // TODO P0: fully use VitamCode
 
-public class FormatIdentificationActionHandler extends ActionHandler implements VitamAutoCloseable {
+public class FormatIdentificationActionPlugin extends ActionHandler implements VitamAutoCloseable {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionHandler.class);
-
-    /**
-     * Handler name
-     */
-    private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionPlugin.class);
 
     /**
      * File format treatment
      */
     private static final String FILE_FORMAT = "FILE_FORMAT";
-    private static final String EVT_TYPE_FILE_FORMAT = HANDLER_ID + "." + FILE_FORMAT;
 
     /**
      * Error list for file format treatment
@@ -118,14 +102,9 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
     private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
-    private static final String LOGBOOK_COMMIT_KO = "LOGBOOK_COMMIT_KO";
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
 
-    private static final String RESULTS = "$results";
-
-
-    private LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters;
     private HandlerIO handlerIO;
     private FormatIdentifier formatIdentifier;
 
@@ -134,38 +113,19 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
     /**
      * Empty constructor
      */
-    public FormatIdentificationActionHandler() {
+    public FormatIdentificationActionPlugin() {
 
-    }
-
-    /**
-     * @return HANDLER_ID
-     */
-    public static final String getId() {
-        return HANDLER_ID;
     }
 
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
-        logbookLifecycleObjectGroupParameters = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         handlerIO = handler;
         LOGGER.debug("FormatIdentificationActionHandler running ...");
 
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
+        final ItemStatus itemStatus = new ItemStatus(FILE_FORMAT);
         try {
-            try {
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                    logbookLifecycleObjectGroupParameters,
-                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
-
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            }
 
             try {
                 formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
@@ -173,17 +133,17 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
                     FORMAT_IDENTIFIER_ID), e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
             } catch (final FormatIdentifierFactoryException e) {
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_IMPLEMENTATION_NOT_FOUND,
                     FORMAT_IDENTIFIER_ID), e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
             } catch (final FormatIdentifierTechnicalException e) {
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR),
                     e);
                 itemStatus.increment(StatusCode.FATAL);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
             }
             File file = null;
             try {
@@ -211,15 +171,15 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                                             version);
 
                                     itemStatus.increment(result.getStatus());
+                                    itemStatus.setSubTaskStatus(objectId, itemStatus);
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
-                                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                                        return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
                                     }
                                 } finally {
                                     if (file != null) {
                                         file.delete();
                                     }
-                                    file = null;
                                 }
                             }
                         }
@@ -253,55 +213,17 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 }
             }
 
-            try {
-                commitLifecycleLogbook(itemStatus);
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                // FIXME P0 WORKFLOW is it warning of something else ? is it really KO logbook message ?
-                if (!StatusCode.FATAL.equals(itemStatus.getGlobalStatus()) &&
-                    !StatusCode.KO.equals(itemStatus.getGlobalStatus())) {
-                    itemStatus.setItemId(LOGBOOK_COMMIT_KO);
-                    itemStatus.increment(StatusCode.WARNING);
-                } else {
-                    itemStatus.setItemId(LOGBOOK_COMMIT_KO);
-                    itemStatus.increment(StatusCode.KO);
-                }
-            }
 
             if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
                 itemStatus.increment(StatusCode.OK);
             }
 
             LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
         } finally {
-            try {
-                handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
-                    handlerIO.getHelper().removeUpdateDelegate(objectID));
-            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
-                LogbookClientServerException e) {
-                // Logbook error
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
         }
     }
 
-    /**
-     * Update lifecycle logbook at the end of process
-     *
-     * @param itemStatus
-     * @throws ProcessingException thrown if one error occurred
-     */
-    private void commitLifecycleLogbook(ItemStatus itemStatus)
-        throws ProcessingException {
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(0).toString());
-        // Reset the eventDetailData
-        logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData, "");
-        LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
-            logbookLifecycleObjectGroupParameters, itemStatus);
-    }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
@@ -337,10 +259,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
                 // format not found in vitam referential
                 objectCheckFormatResult.setStatus(StatusCode.KO);
                 objectCheckFormatResult.setSubStatus(FILE_FORMAT_PUID_NOT_FOUND);
-                logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                    "{\"ObjectId\": \"" + objectId + "\"}");
-                logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT, FILE_FORMAT_PUID_NOT_FOUND,
-                    StatusCode.KO, null);
             } else {
                 // check formatIdentification
 
@@ -382,16 +300,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
         }
 
-        logbookLifecycleObjectGroupParameters.setFinalStatus(EVT_TYPE_FILE_FORMAT,
-            objectCheckFormatResult.getSubStatus(),
-            objectCheckFormatResult.getStatus(), null);
-
-        try {
-            handlerIO.getHelper().updateDelegate(logbookLifecycleObjectGroupParameters);
-        } catch (final LogbookClientException exc) {
-            LOGGER.error(exc);
-            objectCheckFormatResult.setStatus(StatusCode.FATAL);
-        }
         return objectCheckFormatResult;
     }
 
@@ -458,11 +366,6 @@ public class FormatIdentificationActionHandler extends ActionHandler implements 
 
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_UPDATED_FORMAT);
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-                GUIDFactory.newEventGUID(0).getId());
-            // TODO P1 : create a real json object
-            logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                "{\"diff\": \"" + diff.toString().replaceAll("\"", "'") + "\", \"ObjectId\": \"" + objectId + "\"}");
         }
         return newFormatIdentification;
     }

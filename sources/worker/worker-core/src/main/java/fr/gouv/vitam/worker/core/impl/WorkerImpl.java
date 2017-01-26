@@ -71,7 +71,6 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckConformityActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
@@ -79,12 +78,7 @@ import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
-import fr.gouv.vitam.worker.core.handler.FormatIdentificationActionHandler;
-import fr.gouv.vitam.worker.core.handler.IndexObjectGroupActionHandler;
-import fr.gouv.vitam.worker.core.handler.IndexUnitActionHandler;
-import fr.gouv.vitam.worker.core.handler.StoreObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
-import fr.gouv.vitam.worker.core.handler.UnitsRulesComputeHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -141,25 +135,18 @@ public class WorkerImpl implements Worker {
          * Pool of action 's object
          */
         actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler());
-        actions.put(IndexUnitActionHandler.getId(), new IndexUnitActionHandler());
-        actions.put(IndexObjectGroupActionHandler.getId(), new IndexObjectGroupActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
         actions.put(CheckObjectsNumberActionHandler.getId(), new CheckObjectsNumberActionHandler());
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
-        actions.put(CheckConformityActionHandler.getId(), new CheckConformityActionHandler());
-        actions.put(StoreObjectGroupActionHandler.getId(), new StoreObjectGroupActionHandler());
         actions.put(CheckStorageAvailabilityActionHandler.getId(),
             new CheckStorageAvailabilityActionHandler());
         actions.put(CheckObjectUnitConsistencyActionHandler.getId(),
             new CheckObjectUnitConsistencyActionHandler());
-        actions.put(FormatIdentificationActionHandler.getId(),
-            new FormatIdentificationActionHandler());
         actions.put(AccessionRegisterActionHandler.getId(),
             new AccessionRegisterActionHandler());
         actions.put(TransferNotificationActionHandler.getId(),
             new TransferNotificationActionHandler());
         actions.put(DummyHandler.getId(), new DummyHandler());
-        actions.put(UnitsRulesComputeHandler.getId(), new UnitsRulesComputeHandler());
     }
 
     @Override
@@ -256,7 +243,7 @@ public class WorkerImpl implements Worker {
             .equals(LogbookType.UNITS.getType())) {
                 lfcParam = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
                     GUIDFactory.newEventGUID(0), 
-                    handlerName, 
+                    VitamLogbookMessages.getEventTypeLfc(handlerName), 
                     GUIDReader.getGUID(workParams.getContainerName()), 
                     LogbookTypeProcess.INGEST, 
                     StatusCode.STARTED, 
@@ -267,7 +254,7 @@ public class WorkerImpl implements Worker {
             .equals(LogbookType.OBJECTGROUP.getType())) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
                 GUIDFactory.newEventGUID(0), 
-                handlerName, 
+                VitamLogbookMessages.getEventTypeLfc(handlerName), 
                 GUIDReader.getGUID(workParams.getContainerName()), 
                 LogbookTypeProcess.INGEST, 
                 StatusCode.STARTED, 
@@ -287,11 +274,14 @@ public class WorkerImpl implements Worker {
             actionResponse.getMessage());
         logbookParamList.add(finalLogbookLfcParam);
         for (final Entry<String, ItemStatus> entry : actionResponse.getItemsStatus().entrySet()) {
-            LogbookLifeCycleParameters subLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
-            ItemStatus subItemStatus = entry.getValue();
-            subLogbookLfcParam.setFinalStatus(handlerName, 
-                entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
-            logbookParamList.add(subLogbookLfcParam);
+            for (final Entry<String, ItemStatus> subTaskEntry : entry.getValue().getSubTaskStatus().entrySet()) {
+                LogbookLifeCycleParameters subLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
+                ItemStatus subItemStatus = subTaskEntry.getValue();
+                subLogbookLfcParam.setFinalStatus(handlerName, 
+                    entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
+                logbookParamList.add(subLogbookLfcParam);
+            }
+            entry.getValue().getSubTaskStatus().clear();
         }
         for (int i = logbookParamList.size()-1 ; i >= 0; i--) {
             logbookLfcClient.update(logbookParamList.get(i));

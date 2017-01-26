@@ -180,6 +180,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     "\", \"ComputedMessageDigest\": \"" + manifestDigestString + "\"} ";
             }
             itemStatus.setMessage(eventDetailData);
+            itemStatus.setSubTaskStatus(binaryObject.getId(), itemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {
             LOGGER.error(e);
