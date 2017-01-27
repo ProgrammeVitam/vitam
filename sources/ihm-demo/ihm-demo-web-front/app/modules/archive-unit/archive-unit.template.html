@@ -64,11 +64,11 @@
             <div class="form-group col-md-6">
               <div class="row simple-field">
                 <display-field intercept-user-change="$ctrl.interceptUserChanges(fieldSet)" field-size="'5'"
-                               display-value="$ctrl.mainFields['StartDate'].fieldValue | date:'dd/MM/yyyy'"
+                               display-value="$ctrl.mainFields['StartDate'].fieldValue | vitamFormatDate"
                                field-object="$ctrl.mainFields['StartDate']" edit-mode="$ctrl.isEditMode">
                 </display-field>
                 <display-field field-size="'5'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                               display-value="$ctrl.mainFields['EndDate'].fieldValue | date:'dd/MM/yyyy'"
+                               display-value="$ctrl.mainFields['EndDate'].fieldValue | vitamFormatDate"
                                field-object="$ctrl.mainFields['EndDate']" edit-mode="$ctrl.isEditMode">
                 </display-field>
               </div>
@@ -197,7 +197,7 @@
               <td>{{version.DataObjectVersion}}</td>
               <td>{{version.Size | filterSize}}</td>
               <td>{{version.FormatLitteral}}</td>
-              <td>{{version.LastModified | date:"dd/MM/yyyy"}}</td>
+              <td>{{version.LastModified | vitamFormatDate}}</td>
               <td>
                 <a href=""
                    ng-click="download($event, archiveObjectGroupsOgId , version.DataObjectVersion, version.Rank, version.FileName)"

@@ -24,7 +24,7 @@
                 <tbody>
                 <tr>
                     <td>{{detail.evType | translate | replaceDoubleQuote}}</td>
-                    <td>{{detail.evDateTime}}</td>
+                    <td>{{detail.evDateTime | vitamFormatDate}}</td>
                     <td>{{detail.outcome}}</td>
                     <td>{{detail.outMessg | replaceDoubleQuote}}</td>
                 </tr>
@@ -32,7 +32,7 @@
                 <tbody ng-repeat="event in detail.events">
                 <tr>
                     <td>{{event.evType | translate | replaceDoubleQuote}}</td>
-                    <td>{{event.evDateTime}}</td>
+                    <td>{{event.evDateTime | vitamFormatDate}}</td>
                     <td>{{event.outcome}}</td>
                     <td>{{event.outMessg | replaceDoubleQuote}}</td>
                 </tr>

@@ -77,7 +77,7 @@
 					<tr ng-click="logctrl.goToDetails(log.evIdProc)">
                         <td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>
-						<td>{{log.evDateTime}}</td>
+						<td>{{log.evDateTime | vitamFormatDate}}</td>
 
 						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'OK'">Succès</td>
 						<td ng-if = "log.events[log.events.length-1].outcome.toUpperCase() === 'STARTED'">En cours</td>

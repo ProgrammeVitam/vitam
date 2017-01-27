@@ -62,8 +62,8 @@
           <tr>
             <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.events[0].obIdIn}}</td>
             <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.evIdProc}}</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.evDateTime}}</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.events[1].evDateTime}}</td>
+            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.evDateTime | vitamFormatDate}}</td>
+            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.events[1].evDateTime | vitamFormatDate}}</td>
             <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'OK'">Succès</td>
             <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
             <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
