@@ -297,13 +297,19 @@ public class SedaUtils {
         for (int i=0; i<list.size(); i++){
             String s = list.get(i).toString();
             if (s.contains("/")) {
-                if (contentName == null) {
-                    contentName = s.split("/")[0];
-                } else {
-                    if (!contentName.equals(s.split("/")[0])) {
-                        return false;
+                String directory = s.split("/")[0];
+                if (directory.equalsIgnoreCase("content")){
+                    if (contentName == null){
+                        contentName = directory;
+                    } else {
+                        if (!contentName.equals(directory)) {
+                            return false;
+                        }
                     }
+                } else {
+                    return false;
                 }
+                
             }
         }
         
