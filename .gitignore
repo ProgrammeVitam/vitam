@@ -15,5 +15,5 @@ npm-debug.log
 *.retry
 *~*
 repodata
-local.conf
+local.json
 *.orig

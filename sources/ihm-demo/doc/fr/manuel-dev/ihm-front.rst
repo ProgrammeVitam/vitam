@@ -22,7 +22,7 @@ Grunt et déployement à chaud
 
 Le déploiement à chaud est possible via la commande 'gulp serve'.
 Si un fichier est modifié pendant que le serve est lancé, les modifications seront automatiquement mises à jour.
-Le backend ciblé peut être spécifié en ajoutant un fichier local.conf (Voir local.conf.sample) et en modifiant la propriété target.
+Le backend ciblé peut être spécifié en ajoutant un fichier local.json (Voir local.json.sample) et en modifiant la propriété target.
 
 Karma et Tests unitaires
 ========================
