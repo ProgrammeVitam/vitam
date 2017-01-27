@@ -49,6 +49,7 @@ public class ItemStatus {
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
+    private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
     @JsonProperty("itemId")
     protected String itemId;
@@ -331,6 +332,24 @@ public class ItemStatus {
     public boolean shallStop(boolean blocking) {
         return getGlobalStatus().isGreaterOrEqualToFatal() ||
             blocking && getGlobalStatus().isGreaterOrEqualToKo();
+    }
+
+    /**
+     * @return the subTaskStatus
+     */
+    public LinkedHashMap<String, ItemStatus> getSubTaskStatus() {
+        return subTaskStatus;
+    }
+
+    /**
+     * @param subTaskStatus the subTaskStatus to set
+     *
+     * @return this
+     */
+    public ItemStatus setSubTaskStatus(String taskId, ItemStatus taskStatus) {
+        ParametersChecker.checkParameterDefault("taskId", taskId);
+        this.subTaskStatus.put(taskId, taskStatus);
+        return this;
     }
 
 }

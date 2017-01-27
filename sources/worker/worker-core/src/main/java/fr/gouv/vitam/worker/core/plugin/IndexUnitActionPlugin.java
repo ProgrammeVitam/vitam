@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.handler;
+package fr.gouv.vitam.worker.core.plugin;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -69,12 +69,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -82,17 +76,17 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
- * IndexUnit Handler
+ * IndexUnitAction Plugin
  */
-public class IndexUnitActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionHandler.class);
-    private static final String HANDLER_ID = "UNIT_METADATA_INDEXATION";
+public class IndexUnitActionPlugin extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexUnitActionPlugin.class);
+    private static final String HANDLER_PROCESS = "INDEXATION";
 
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String TAG_CONTENT = "Content";
@@ -105,7 +99,7 @@ public class IndexUnitActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      *
      */
-    public IndexUnitActionHandler() {
+    public IndexUnitActionPlugin() {
         // Empty
     }
 
@@ -113,55 +107,23 @@ public class IndexUnitActionHandler extends ActionHandler {
      * @return HANDLER_ID
      */
     public static final String getId() {
-        return HANDLER_ID;
+        return HANDLER_PROCESS;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO param) {
         checkMandatoryParameters(params);
         handlerIO = param;
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
-            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
-
-        try {
-            try {
-                checkMandatoryIOParameter(handlerIO);
-
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                    logbookLifecycleUnitParameters,
-                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
+        final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
+        
+            try {        
                 indexArchiveUnit(params, itemStatus);
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
             }
 
-            // Update lifeCycle
-            try {
-                logbookLifecycleUnitParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
-                    logbookLifecycleUnitParameters,
-                    itemStatus);
-
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
-        } finally {
-            try {
-                handlerIO.getLifecyclesClient().bulkUpdateUnit(params.getContainerName(),
-                    handlerIO.getHelper().removeUpdateDelegate(objectID));
-            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
-        }
-
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
 
     }
 

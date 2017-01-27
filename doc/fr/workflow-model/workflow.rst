@@ -624,6 +624,10 @@ D'une façon synthétique, le workflow est décrit de cette façon :
   * CHECK_SEDA (CheckSedaActionHandler.java) :
 
     + Test de l'existence du manifest.xml,
+    
+    + Test s'il existe plusieurs fichiers de manifest.xml dans le SIP
+    
+    + Test s'il existe plusieurs répertoires de content dans le SIP 
 
     + Validation XSD du manifeste,
 
@@ -671,14 +675,14 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 2** - STP_OG_CHECK_AND_TRANSFORME : Contrôle et traitements des objets / distribution sur LIST GUID/BinaryDataObject
 
-  * CHECK_DIGEST (CheckConformityActionHandler.java) :
+  * CHECK_DIGEST (CheckConformityActionPlugin.java) :
 
     + Contrôle de l'objet binaire correspondant : la taille et l'empreinte du BinaryDataObject.
 
   * Calcul d'une empreinte avec l'algorithme SHA-512 si l'empreinte du manifeste n'a pas été calculée avec cet algorithme
 
 
-  * OG_OBJECTS_FORMAT_CHECK (FormatIdentificationActionHandler.java):
+  * OG_OBJECTS_FORMAT_CHECK (FormatIdentificationActionPlugin.java):
 
     + Identification du format des BinaryDataObject,
 
@@ -688,7 +692,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
 
-  * UNITS_RULES_COMPUTE (UnitsRulesComputeHandler.java) :
+  * UNITS_RULES_COMPUTE (UnitsRulesComputePlugin.java) :
 
     + vérification de l'existence de la règle dans le référentiel des règles de gestion
 
@@ -704,17 +708,17 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 5** - STP_OG_STORING : Rangement des objets
 
-  * OG_STORAGE (StoreObjectGroupActionHandler.java) :
+  * OG_STORAGE (StoreObjectGroupActionPlugin.java) :
 
     + Écriture des objets sur l’offre de stockage des BinaryDataObject des ObjectGroup.
 
-  * OG_METADATA_INDEXATION (IndexObjectGroupActionHandler.java) :
+  * OG_METADATA_INDEXATION (IndexObjectGroupActionPlugin.java) :
 
     + Enregistrement en base des métadonnées des ObjectGroup.
 
 - **Step 6** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
 
-  * UNIT_METADATA_INDEXATION (IndexUnitActionHandler.java) :
+  * UNIT_METADATA_INDEXATION (IndexUnitActionPlugin.java) :
 
     + Transformation sous la forme Json des ArchiveUnits et intégration du GUID Unit et du GUID ObjectGroup,
 

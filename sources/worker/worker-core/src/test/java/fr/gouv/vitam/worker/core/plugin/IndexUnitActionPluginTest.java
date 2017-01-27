@@ -24,10 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.handler;
+
+package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -77,9 +77,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class})
-public class IndexUnitActionHandlerTest {
-    IndexUnitActionHandler handler = new IndexUnitActionHandler();
-    private static final String HANDLER_ID = "UNIT_METADATA_INDEXATION";
+public class IndexUnitActionPluginTest {
+
+    IndexUnitActionPlugin plugin = new IndexUnitActionPlugin();
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -87,6 +87,7 @@ public class IndexUnitActionHandlerTest {
     private static final String ARCHIVE_UNIT_WITH_RULES = "ARCHIVE_UNIT_TO_INDEX_WITH_RULES.xml";
     private static final String ARCHIVE_UNIT_UPDATE_GUID_CHILD = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_CHILD.xml";
     private static final String ARCHIVE_UNIT_UPDATE_GUID_PARENT = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_PARENT.xml";
+    
     private final InputStream archiveUnit;
     private final InputStream archiveUnitWithRules;
     private final InputStream archiveUnitChild;
@@ -94,7 +95,7 @@ public class IndexUnitActionHandlerTest {
     private HandlerIOImpl action;
     private GUID guid;
 
-    public IndexUnitActionHandlerTest() throws FileNotFoundException {
+    public IndexUnitActionPluginTest() throws FileNotFoundException {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
         archiveUnitWithRules = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_WITH_RULES);
         archiveUnitChild = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_UPDATE_GUID_CHILD);
@@ -122,8 +123,7 @@ public class IndexUnitActionHandlerTest {
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
-        assertNotNull(IndexUnitActionHandler.getId());
-        assertEquals(IndexUnitActionHandler.getId(), HANDLER_ID);
+
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
@@ -135,7 +135,7 @@ public class IndexUnitActionHandlerTest {
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
 
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
@@ -151,7 +151,7 @@ public class IndexUnitActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
@@ -167,7 +167,7 @@ public class IndexUnitActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
@@ -183,7 +183,7 @@ public class IndexUnitActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
 
@@ -204,7 +204,7 @@ public class IndexUnitActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
@@ -224,7 +224,7 @@ public class IndexUnitActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
@@ -244,8 +244,8 @@ public class IndexUnitActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        final ItemStatus response = handler.execute(params, action);
+        final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
-
+    
 }

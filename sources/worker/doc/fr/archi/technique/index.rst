@@ -9,3 +9,4 @@ Architecture Technique
    server.rst
    notification-atr-ok.rst
    notification-atr-ko.rst
+   worker-plugin.rst

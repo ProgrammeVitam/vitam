@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.handler;
+package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -35,12 +35,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -48,92 +42,51 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 /**
- * IndexObjectGroup Handler
+ * IndexObjectGroupAction Plugin
  */
-public class IndexObjectGroupActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionHandler.class);
-    private static final String HANDLER_ID = "OG_METADATA_INDEXATION";
+public class IndexObjectGroupActionPlugin extends ActionHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionPlugin.class);
+    private static final String OG_INDEXATION = "OG_INDEXATION";
 
     private static final String OBJECT_GROUP = "ObjectGroup";
-    public static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
-        "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
-
     private HandlerIO handlerIO;
 
     /**
      * Constructor with parameter SedaUtilsFactory
      *
      */
-    public IndexObjectGroupActionHandler() {
+    public IndexObjectGroupActionPlugin() {
         // empty constructor
     }
-
-    /**
-     * @return HANDLER_ID
-     */
-    public static final String getId() {
-        return HANDLER_ID;
-    }
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
-        final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
+        final ItemStatus itemStatus = new ItemStatus(OG_INDEXATION);
 
         try {
-            try {
-                checkMandatoryIOParameter(actionDefinition);
+            checkMandatoryIOParameter(actionDefinition);
+            indexObjectGroup(params, itemStatus);
 
-                LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
-                    logbookLifecycleObjectGroupParameters,
-                    params, HANDLER_ID, LogbookTypeProcess.INGEST);
-
-                indexObjectGroup(params, itemStatus);
-
-            } catch (final ProcessingInternalServerException exc) {
-                LOGGER.error(exc);
-                itemStatus.increment(StatusCode.FATAL);
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.WARNING);
-            }
-
-            // Update lifeCycle
-            try {
-                logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, itemStatus.getGlobalStatus(),
-                    null);
-                LogbookLifecycleWorkerHelper.setLifeCycleFinalEventStatusByStep(handlerIO.getHelper(),
-                    logbookLifecycleObjectGroupParameters,
-                    itemStatus);
-
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
-        } finally {
-            try {
-                handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
-                    handlerIO.getHelper().removeUpdateDelegate(objectID));
-            } catch (LogbookClientNotFoundException | LogbookClientBadRequestException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
+        } catch (final ProcessingInternalServerException exc) {
+            LOGGER.error(exc);
+            itemStatus.increment(StatusCode.FATAL);
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.WARNING);
         }
+
+
         if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
             itemStatus.increment(StatusCode.WARNING);
         }
 
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        return new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION, itemStatus);
     }
 
 

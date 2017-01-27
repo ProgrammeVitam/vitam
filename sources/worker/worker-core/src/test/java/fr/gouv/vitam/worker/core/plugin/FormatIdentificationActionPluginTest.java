@@ -1,4 +1,31 @@
-package fr.gouv.vitam.worker.core.handler;
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+
+package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
@@ -24,10 +51,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
@@ -40,7 +63,6 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -60,9 +82,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({FormatIdentifierFactory.class, WorkspaceClientFactory.class, AdminManagementClientFactory.class})
-public class FormatIdentificationActionHandlerTest {
-
-    FormatIdentificationActionHandler handler;
+public class FormatIdentificationActionPluginTest {
+    FormatIdentificationActionPlugin plugin;
     private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
@@ -74,7 +95,7 @@ public class FormatIdentificationActionHandlerTest {
     private HandlerIOImpl handlerIO;
     private GUID guid;
 
-    public FormatIdentificationActionHandlerTest() throws FileNotFoundException {
+    public FormatIdentificationActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
         objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
     }
@@ -104,10 +125,11 @@ public class FormatIdentificationActionHandlerTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierNotFoundException(""));
-        handler = new FormatIdentificationActionHandler();
+        
+        plugin = new FormatIdentificationActionPlugin();        
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -115,11 +137,11 @@ public class FormatIdentificationActionHandlerTest {
     public void getFormatIdentifierFactoryError() throws Exception {
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -127,12 +149,12 @@ public class FormatIdentificationActionHandlerTest {
     public void getFormatIdentifierTechnicalError() throws Exception {
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -142,10 +164,10 @@ public class FormatIdentificationActionHandlerTest {
 
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
         deleteFiles();
     }
@@ -166,10 +188,10 @@ public class FormatIdentificationActionHandlerTest {
         final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
 
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -188,7 +210,6 @@ public class FormatIdentificationActionHandlerTest {
 
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
 
-        assertEquals(FormatIdentificationActionHandler.getId(), HANDLER_ID);
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(new FakeInboundResponse(Status.OK, objectGroup, null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
@@ -202,10 +223,10 @@ public class FormatIdentificationActionHandlerTest {
 
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
 
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
@@ -228,10 +249,10 @@ public class FormatIdentificationActionHandlerTest {
 
         when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
 
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
@@ -249,10 +270,10 @@ public class FormatIdentificationActionHandlerTest {
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
 
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -276,10 +297,10 @@ public class FormatIdentificationActionHandlerTest {
         when(adminManagementClient.getFormats(anyObject()))
             .thenThrow(new ReferentialException("Test Referential Exception"));
 
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -295,10 +316,10 @@ public class FormatIdentificationActionHandlerTest {
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -315,10 +336,10 @@ public class FormatIdentificationActionHandlerTest {
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
 
-        handler = new FormatIdentificationActionHandler();
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        final ItemStatus response = handler.execute(params, handlerIO);
+        final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
@@ -359,6 +380,7 @@ public class FormatIdentificationActionHandlerTest {
     private RequestResponse<FileFormatModel> getAdminManagementJson2Result() {
         return new RequestResponseOK<>();
     }
+    
 
     private void deleteFiles() {
         final String fileName1 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivurqaaaaq";
@@ -383,5 +405,5 @@ public class FormatIdentificationActionHandlerTest {
         }
         handlerIO.partialClose();
     }
-
+    
 }

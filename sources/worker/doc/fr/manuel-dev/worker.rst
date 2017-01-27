@@ -79,6 +79,19 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - UnitsRulesCompteHandler
 - DummyHandler
 
+Plugins Worker : les plugins proposent des actions comme les Handler. Quand le service worker démarré, les plugins et leur fichier properties 
+sont chargés. Les actions sont cherché d'abord dans le plugin pour le traitement, si l'action ne trouve pas dans plugin, il sera appelé dans 
+le Handler correspondant.
+ 
+- CheckConfirmityActionPlugin : pour la vérification de la conformité de document
+- FormatIdentificationActionPlugin : pour le vérification de formats de fichiers
+- StoreObjectGroupActionPlugin : pour le storage des groupes d'objets
+- UnitsRulesComputeActionPlugin :  pour la gestion de règles de gestion
+- IndexUnitActionPlugin : pour indexer des unités archivistes
+- IndexObjectGroupActionPlugin : pour indexer des groupes d'objets
+
+
+
 La classe WorkerImpl permet de lancer ces différents handlers.
 
 3.1 Focus sur la gestion des entrées / sorties  des Handlers
