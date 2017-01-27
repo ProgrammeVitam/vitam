@@ -2,3 +2,5 @@
   yum:
     name: vitam-ihm-demo-front
     state: latest
+  tags:
+    - update_package_vitam
