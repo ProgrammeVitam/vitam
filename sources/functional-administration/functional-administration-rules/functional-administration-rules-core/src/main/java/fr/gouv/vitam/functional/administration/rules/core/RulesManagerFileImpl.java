@@ -387,7 +387,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<FileRules> rules =
-            (MongoCursor<FileRules>) mongoAccess.select(select,
+            (MongoCursor<FileRules>) mongoAccess.findDocuments(select,
                 FunctionalAdminCollections.RULES)) {
             final List<FileRules> result = new ArrayList<>();
             if (rules == null || !rules.hasNext()) {

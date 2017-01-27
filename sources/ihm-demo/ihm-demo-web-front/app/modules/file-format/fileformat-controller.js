@@ -128,8 +128,8 @@ angular.module('ihm.demo')
     };
 
       ctrl.clearInput = function (object){
-        if(object == 'Name'){
-          ctrl.searchOptions.Name='';
+        if(object == 'FormatName'){
+          ctrl.searchOptions.FormatName='';
         } ;
         if(object == 'PUID'){
           ctrl.searchOptions.PUID ='';

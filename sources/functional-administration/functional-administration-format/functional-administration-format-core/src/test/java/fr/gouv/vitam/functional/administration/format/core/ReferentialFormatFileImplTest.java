@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.format.core;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,7 +41,9 @@ import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -55,7 +58,10 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -64,6 +70,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 
 public class ReferentialFormatFileImplTest {
@@ -75,6 +83,13 @@ public class ReferentialFormatFileImplTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    private final static String CLUSTER_NAME = "vitam-cluster";    
+    private final static String HOST_NAME = "127.0.0.1";
+    private static ElasticsearchTestConfiguration esConfig = null;
     
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -90,6 +105,15 @@ public class ReferentialFormatFileImplTest {
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
+        try {
+            esConfig = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
+        
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -101,11 +125,16 @@ public class ReferentialFormatFileImplTest {
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
                 new DbConfigurationImpl(nodes, DATABASE_NAME)));
+        ElasticsearchAccessAdminFactory.create(
+            new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        if (esConfig != null) {
+            JunitHelper.stopElasticsearchForTest(esConfig);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);

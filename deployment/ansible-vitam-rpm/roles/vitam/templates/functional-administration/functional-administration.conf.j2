@@ -12,3 +12,12 @@ dbPassword: {{mongoFunctionalAdminPassword}}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
+
+# ElasticSearch
+clusterName: {{cluster_name}}
+elasticsearchNodes:
+{% for server in groups['hosts-elasticsearch-data'] %}
+- hostName: {{server}}
+  tcpPort: {{elasticsearch_data_tcp_port}}
+{% endfor %}
+

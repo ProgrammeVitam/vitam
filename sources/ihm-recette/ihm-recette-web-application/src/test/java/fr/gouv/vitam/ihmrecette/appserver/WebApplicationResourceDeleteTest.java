@@ -77,6 +77,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -186,6 +188,8 @@ public class WebApplicationResourceDeleteTest {
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+        ElasticsearchAccessAdminFactory.create(
+            new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, nodes));
 
         try {
             application = new ServerApplication(adminConfigFile.getAbsolutePath());

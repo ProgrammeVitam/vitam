@@ -51,7 +51,23 @@ public class FileRules extends VitamDocument<FileRules> {
     private static final String CREATIONDATE = "CreationDate";
     private static final String UPDATEDATE = "UpdateDate";
     private static final String TENANT = "_tenant";
-
+    
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
+    
+    /**
+     * Mapping of this Collection
+     */
+    public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
+        "properties : { "  +
+        RULETYPE + ": { type : \"string\", index : \"analyzed\" }, " +
+        RULEVALUE + ": { type : \"string\", index : \"analyzed\" }, " +
+        RULEDESCRIPTION + ": { type : \"string\", index : \"analyzed\" }, " +
+        RULEDURATION + ": { type : \"string\", index : \"analyzed\" } " +
+        " } } }";
+    
     /**
      * Constructor
      */

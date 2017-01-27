@@ -84,6 +84,10 @@ angular.module('ihm.demo')
       });
     };
 
+    ctrl.deleteRuleValue = function () {
+      delete ctrl.searchOptions.RuleValue;
+    };
+
       ctrl.startFormat = function(){
         var start="";
 

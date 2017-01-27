@@ -175,7 +175,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<AccessionRegisterSummary> registers =
-            (MongoCursor<AccessionRegisterSummary>) mongoAccess.select(select,
+            (MongoCursor<AccessionRegisterSummary>) mongoAccess.findDocuments(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             final List<AccessionRegisterSummary> result = new ArrayList<>();
             if (registers == null || !registers.hasNext()) {
@@ -201,7 +201,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public List<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<AccessionRegisterDetail> registers =
-            (MongoCursor<AccessionRegisterDetail>) mongoAccess.select(select,
+            (MongoCursor<AccessionRegisterDetail>) mongoAccess.findDocuments(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
 
             final List<AccessionRegisterDetail> result = new ArrayList<>();

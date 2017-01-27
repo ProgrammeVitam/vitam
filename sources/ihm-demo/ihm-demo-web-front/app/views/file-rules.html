@@ -10,14 +10,24 @@
         </a>
         <form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="filerulesCtrl.getFileRules()">
             <div class="col-md-12">
-                <div class="form-group col-md-12">
+                <div class=" boxSimpleSearchInput form-group col-md-12"  style="margin-left: 0; width: 100%">
                     <label for="entryName">Intitulé</label>
-                    <input type="text" name="entryName" class="form-control" ng-model="filerulesCtrl.searchOptions.RuleValue">
+                    <div class="input-group">
+                        <input ng-model="filerulesCtrl.searchOptions.RuleValue" id="entryName"
+                               name="entryName" type="text"
+                               class="form-control input-lg" />
+                        <div class="input-group-addon">
+                            <button class="btn btn-primary center-block"
+                                    ng-click="filerulesCtrl.deleteRuleValue()" type="button">
+                                <i class="material-icons pull-left">clear</i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group col-md-4">
                     <label for="entryType">Type</label>
                     <select multiple="" class="form-control" name="entryType" ng-model="filerulesCtrl.RuleType" >
-                        <option value="" selected="">Tous</option>
+                        <option value="All">Tous</option>
                         <option value="AppraisalRule">Durée d'utilité Administrative</option>
                         <option value="AccessRule">Délai de communicabilité</option>
                         <option value="StorageRule">Durée d'utilité courante</option>

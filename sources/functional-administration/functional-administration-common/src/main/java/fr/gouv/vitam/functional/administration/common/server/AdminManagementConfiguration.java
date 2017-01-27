@@ -24,18 +24,70 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.rest;
 
-import static org.junit.Assert.assertEquals;
+package fr.gouv.vitam.functional.administration.common.server;
 
-import org.junit.Test;
+import java.util.List;
 
-public class AdminManagementConfigurationTest {
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
-    @Test
-    public void givenAdminManagementConfiguration() {
-        final AdminManagementConfiguration config = new AdminManagementConfiguration();
+/**
+ * AdminManagementConfiguration inherated from DbConfigurationImpl
+ */
+public class AdminManagementConfiguration extends DbConfigurationImpl {
+    
+    private String clusterName;
+    private List<ElasticsearchNode> elasticsearchNodes;
+    // constructor
+    AdminManagementConfiguration() {
+        super();
+    }
 
-        assertEquals("jettyFakeConfig", config.setJettyConfig("jettyFakeConfig").getJettyConfig());
+    /**
+     * Constructor
+     *
+     * @param mongoDbNodes the database hosts and ports
+     * @param dbName the database name
+     */
+    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes) {
+        super(mongoDbNodes, dbName);
+        this.clusterName = clusterName;
+        this.elasticsearchNodes = elasticsearchNodes;
+    }
+    
+
+    /**
+     * @return the clusterName
+     */
+    public String getClusterName() {
+        return clusterName;
+    }
+
+    /**
+     * @param clusterName the clusterName to set
+     * @return this
+     */
+    public AdminManagementConfiguration setClusterName(String clusterName) {
+        this.clusterName = clusterName;
+        return this;
+    }
+
+    /**
+     * @return the elasticsearchNodes
+     */
+    public List<ElasticsearchNode> getElasticsearchNodes() {
+        return elasticsearchNodes;
+    }
+
+    /**
+     * @param elasticsearchNodes the elasticsearchNodes to set
+     * @return MetaDataConfiguration
+     */
+    public AdminManagementConfiguration setElasticsearchNodes(List<ElasticsearchNode> elasticsearchNodes) {
+        this.elasticsearchNodes = elasticsearchNodes;
+        return this;
     }
 }

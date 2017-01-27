@@ -69,6 +69,9 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
@@ -85,6 +88,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
 
     private final MongoDbAccessAdminImpl mongoAccess;
+    private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
 
     /**
      * Constructor
@@ -103,12 +107,20 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
+        elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         LOGGER.debug("init Admin Management Resource server");
     }
 
     MongoDbAccess getLogbookDbAccess() {
         return mongoAccess;
+    }
+    
+    /**
+     * @return the elasticsearchAccess
+     */
+    ElasticsearchAccessFunctionalAdmin getElasticsearchAccess() {
+        return elasticsearchAccess;
     }
 
     /**

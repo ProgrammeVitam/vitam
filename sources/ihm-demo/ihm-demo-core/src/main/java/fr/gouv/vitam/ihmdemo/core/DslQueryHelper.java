@@ -61,6 +61,7 @@ public final class DslQueryHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
+    private static final String ALL = "All";
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
@@ -70,6 +71,8 @@ public final class DslQueryHelper {
     private static final String RULEVALUE = "RuleValue";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
     private static final String FORMAT = "FORMAT";
+    private static final String FORMAT_NAME = "FormatName";
+    private static final String RULE_VALUE = "RuleValue";
     private static final String EVENTID = "EventID";
     private static final String EVENTTYPE = "EventType";
     private static final String RULES = "RULES";
@@ -135,6 +138,23 @@ public final class DslQueryHelper {
                 case FORMAT:
                     query.add(exists(PUID));
                     break;
+                    
+                case FORMAT_NAME:
+                    if (!searchValue.trim().isEmpty()) {
+                        query.add(match("Name", searchValue));
+                    }
+                    break;
+                case PUID:
+                    if (!searchValue.trim().isEmpty()) {
+                        query.add(match(PUID, searchValue));
+                    }
+                    break;
+                    
+                case RULE_VALUE:
+                    if (!searchValue.trim().isEmpty()) {
+                        query.add(match(RULE_VALUE, searchValue));
+                    }
+                    break;    
 
                 case ACCESSION_REGISTER:
                     query.add(exists(ORIGINATING_AGENCY));
@@ -149,19 +169,20 @@ public final class DslQueryHelper {
                     break;
 
                 case RULETYPE:
+                    if (searchValue.contains(ALL)) {
+                        break;
+                    }
                     if (searchValue.contains(",")) {
                         queryOr = or();
                         final String[] ruleTypeArray = searchValue.split(",");
                         for (final String s : ruleTypeArray) {
                             queryOr.add(eq("RuleType", s));
-
                         }
                         break;
                     }
                     if (!searchValue.isEmpty()) {
                         query.add(eq("RuleType", searchValue));
                     }
-
                     break;
 
                 case EVENTID:
