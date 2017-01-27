@@ -2,3 +2,5 @@
   yum:
     name: vitam-ihm-recette-front
     state: latest
+  tags:
+    - update_package_vitam
