@@ -3,6 +3,7 @@ package fr.gouv.vitam.worker.common;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
@@ -116,6 +117,14 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @return a File pointing to a local path in Tmp directory under protected Worker instance space
      */
     File getNewLocalFile(String name);
+    
+    /**
+     * @param containerName
+     * @param folderName
+     * @return List<URI> a list of uri of object in SIP folder 
+     * @throws ProcessingException
+     */
+    List<URI> getUriList(String containerName, String folderName)  throws ProcessingException ;
 
     /**
      * Check if input and output have the very same number of elements and for Input the associated types

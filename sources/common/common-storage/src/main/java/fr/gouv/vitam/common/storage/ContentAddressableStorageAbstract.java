@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.httpclient.util.URIUtil;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.ContainerNotFoundException;
@@ -53,6 +54,7 @@ import org.jclouds.blobstore.options.ListContainerOptions;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -435,7 +437,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
                 // select BLOB only, not folder nor relative path
                 if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
                     !storageMetada.getName().isEmpty()) {
-                    uriFolderListFromContainer.add(new URI(UriUtils.splitUri(storageMetada.getName())));
+                    String uri = URIUtil.encodeQuery(UriUtils.splitUri(storageMetada.getName()), CharsetUtils.UTF_8);
+                    uriFolderListFromContainer.add(new URI(uri));
                 }
             }
             LOGGER.debug(StorageMessage.ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
