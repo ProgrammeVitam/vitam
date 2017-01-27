@@ -76,7 +76,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
@@ -86,13 +85,14 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
+
+    // FIXME P0 : Add a filter to protect the tenantId (check if it exists + return Unauthorized response or so). @see :
+    // AuthorizationFilter
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceImpl.class);
-
-    private final int tenantId = 0;
 
     /**
      * Constructor
@@ -112,6 +112,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnits(JsonNode queryJson) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         JsonNode result = null;
@@ -146,6 +147,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOrSelectUnits(JsonNode queryJson,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
         Status status;
@@ -168,6 +170,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnits(JsonNode queryDsl) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
@@ -185,6 +188,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitById(JsonNode queryJson, @PathParam("idu") String idUnit) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         JsonNode result = null;
@@ -223,6 +227,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     public Response createOrSelectUnitById(JsonNode queryJson,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @PathParam("idu") String idUnit) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         ParametersChecker.checkParameter("unit id is required", idUnit);
         Status status;
@@ -238,7 +243,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson null not allowed
-     * @param idUnit    units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -246,6 +251,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateUnitById(JsonNode queryJson, @PathParam("idu") String idUnit) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         JsonNode result = null;
@@ -278,6 +284,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkExitsUnitById(@PathParam("idu") String idUnit) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
@@ -295,6 +302,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroup(@PathParam("ido") String idObjectGroup, JsonNode queryJson) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         JsonNode result;
         Status status;
@@ -330,6 +338,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupPost(@Context HttpHeaders headers,
         @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
@@ -353,6 +362,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, false));
@@ -371,6 +381,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, true));
@@ -388,6 +399,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectsList(JsonNode queryDsl) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
@@ -404,6 +416,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         JsonNode query) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
@@ -495,6 +508,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegister(JsonNode select,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
@@ -531,6 +545,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/accession-register/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
@@ -551,6 +566,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {

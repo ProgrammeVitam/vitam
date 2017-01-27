@@ -34,6 +34,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.IndexOptions;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 
 /**
@@ -64,7 +65,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     public AccessionRegisterSummary() {
         // Empty
         // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
 
@@ -76,7 +77,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     public AccessionRegisterSummary(Document document) {
         super(document);
         // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
     /**
@@ -85,7 +86,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     public AccessionRegisterSummary(JsonNode content) {
         super(content);
         // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
 
@@ -95,7 +96,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     public AccessionRegisterSummary(String content) {
         super(content);
         // FIXME P1
-        append(TENANT, 0);
+        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
     }
 
 

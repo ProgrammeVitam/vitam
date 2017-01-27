@@ -42,6 +42,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -56,6 +57,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,17 +66,23 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class UpdateUnitResourceTest {
 
-
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": \"0\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\", \"#tenant\": \"0\", " + "\"data\": \"data2\" }";
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
@@ -90,9 +98,14 @@ public class UpdateUnitResourceTest {
     private final static String HOST_NAME = "127.0.0.1";
 
     private static final String SERVER_HOST = "localhost";
+    private static final Integer TENANT_ID = 0;
 
     private static final String BODY_TEST =
         "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+    
+    private static final String BODY_TEST_BAD_REQUEST =
+        "{\"$query\": [{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaa22\"}], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
+    
     private static final String REAL_UPDATE_BODY_TEST =
         "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
@@ -192,6 +205,7 @@ public class UpdateUnitResourceTest {
     // TODO : in order to deal with selection in the query, the code should be modified in MetaDataImpl /
     // MetadataJsonResponseUtils
     @Test
+    @RunWithCustomExecutor
     public void given_2units_insert_when_UpdateUnitsByID_thenReturn_Found() throws Exception {
         with()
             .contentType(ContentType.JSON)
@@ -208,6 +222,7 @@ public class UpdateUnitResourceTest {
         esClient.refreshIndex(MetadataCollections.C_UNIT);
 
         given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
@@ -215,6 +230,7 @@ public class UpdateUnitResourceTest {
         esClient.refreshIndex(MetadataCollections.C_UNIT);
 
         given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
@@ -234,11 +250,13 @@ public class UpdateUnitResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void given_bad_header_when_UpdateByID_thenReturn_Bad_Request() throws InvalidParseOperationException {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST_BAD_REQUEST))
             .when()
             .put("/units/" + ID_UNIT)
             .then()

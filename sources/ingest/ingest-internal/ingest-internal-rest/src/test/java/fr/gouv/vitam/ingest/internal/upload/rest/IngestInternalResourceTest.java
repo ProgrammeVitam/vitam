@@ -30,7 +30,6 @@ import static com.jayway.restassured.RestAssured.get;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -68,6 +67,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.RequestIdContainerFilter;
+import fr.gouv.vitam.common.server.TenantIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -207,7 +207,7 @@ public class IngestInternalResourceTest {
         operationList2.add(externalOperationParameters5);
         operationList2.add(externalOperationParameters6);
     }
-    
+
     @After
     public void afterTest() throws Exception {
         inputStream.close();
@@ -229,6 +229,7 @@ public class IngestInternalResourceTest {
 
         resourceConfig.register(new IngestInternalResource(workspaceClient, processingClient));
         resourceConfig.register(RequestIdContainerFilter.class);
+        resourceConfig.register(TenantIdContainerFilter.class);
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -394,20 +395,22 @@ public class IngestInternalResourceTest {
     public void downloadObjects()
         throws Exception {
         RestAssured.given()
-        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.REPORTS.getCollectionName())
-        .then().statusCode(Status.OK.getStatusCode());
+            .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.REPORTS.getCollectionName())
+            .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
-        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.MANIFESTS.getCollectionName())
-        .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.MANIFESTS.getCollectionName())
+            .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
-        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.LOGBOOKS.getCollectionName())
-        .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .when()
+            .get(INGEST_URL + "/" + ingestGuid.getId() + "/" + StorageCollectionType.LOGBOOKS.getCollectionName())
+            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         RestAssured.given()
-        .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/unknown")
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/unknown")
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

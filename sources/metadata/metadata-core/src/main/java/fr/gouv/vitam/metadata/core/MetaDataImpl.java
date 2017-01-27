@@ -207,7 +207,6 @@ public class MetaDataImpl implements MetaData {
                     request.addHintFilter(hints);
                 }
             }
-            // Execute DSL request
             result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 

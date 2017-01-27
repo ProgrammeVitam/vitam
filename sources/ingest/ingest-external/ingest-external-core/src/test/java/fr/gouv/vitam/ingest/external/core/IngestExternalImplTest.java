@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 
 
@@ -73,6 +74,7 @@ public class IngestExternalImplTest {
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     IngestExternalImpl ingestExternalImpl;
     private InputStream stream;
+    private static final Integer TENANT_ID = 0;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -94,6 +96,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierNotFoundException() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
@@ -106,6 +109,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryError() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
@@ -117,6 +121,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierTechnicalException() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
@@ -129,6 +134,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFileFormatNotFoundException() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
 
@@ -144,6 +150,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierBadRequestException() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
 
@@ -160,6 +167,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void formatNotSupportedInInternalReferential() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getNotSupprtedFormatIdentifierResponseList());
@@ -172,6 +180,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void formatSupportedInInternalReferential() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
@@ -183,6 +192,7 @@ public class IngestExternalImplTest {
     @Test
     public void givenFixedVirusFile()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
@@ -195,6 +205,7 @@ public class IngestExternalImplTest {
     @Test
     public void givenUnFixedVirusFileAndSupportedMediaType()
         throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
@@ -213,6 +224,7 @@ public class IngestExternalImplTest {
     @RunWithCustomExecutor
     @Test
     public void givenNoVirusFile() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());

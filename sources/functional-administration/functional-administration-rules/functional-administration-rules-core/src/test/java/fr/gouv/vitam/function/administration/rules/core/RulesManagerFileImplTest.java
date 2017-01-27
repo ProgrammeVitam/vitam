@@ -38,6 +38,7 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.mongodb.MongoClient;
@@ -56,6 +57,10 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -64,8 +69,13 @@ import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 public class RulesManagerFileImplTest {
     String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
     String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_Parameters.csv";
+    private static final Integer TENANT_ID = 0;
 
     File rulesFile = null;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -103,7 +113,9 @@ public class RulesManagerFileImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testimportRulesFile() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
             // Nothing there

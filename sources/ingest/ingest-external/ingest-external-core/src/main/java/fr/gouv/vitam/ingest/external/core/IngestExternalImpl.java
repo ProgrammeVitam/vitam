@@ -116,9 +116,6 @@ public class IngestExternalImpl implements IngestExternal {
 
     private static final String PRONOM_NAMESPACE = "pronom";
 
-    private static final int DEFAULT_TENANT = 0;
-
-
     private final IngestExternalConfiguration config;
 
 
@@ -135,7 +132,7 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
-        final GUID guid = GUIDFactory.newEventGUID(DEFAULT_TENANT);
+        final GUID guid = GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId());
         VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
         final GUID containerName = guid;
@@ -144,7 +141,7 @@ public class IngestExternalImpl implements IngestExternal {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
         Response responseNoProcess = null;
-
+        
         try {
 
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(

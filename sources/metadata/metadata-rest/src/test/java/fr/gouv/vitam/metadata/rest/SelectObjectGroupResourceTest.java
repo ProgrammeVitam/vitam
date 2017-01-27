@@ -33,7 +33,6 @@ import static org.junit.Assume.assumeTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
 
 import org.jhades.JHades;
@@ -43,6 +42,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -66,6 +66,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
@@ -74,6 +77,9 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
  */
 public class SelectObjectGroupResourceTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
@@ -95,6 +101,7 @@ public class SelectObjectGroupResourceTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
+    private static final Integer TENANT_ID = 0;
 
     private static MetaDataApplication application;
 
@@ -192,6 +199,7 @@ public class SelectObjectGroupResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void getObjectGroupPostOK() throws Exception {
         with()
             .contentType(ContentType.JSON)
@@ -205,6 +213,7 @@ public class SelectObjectGroupResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST)).when().get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
             .statusCode(Status.OK.getStatusCode());
     }

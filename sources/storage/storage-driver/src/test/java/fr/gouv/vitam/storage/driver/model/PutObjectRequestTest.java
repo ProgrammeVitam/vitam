@@ -40,15 +40,16 @@ import org.junit.Test;
 public class PutObjectRequestTest {
     private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static PutObjectRequest putObjectRequest;
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void init() {
-        putObjectRequest = new PutObjectRequest("ti", "da", "guid", BYTES, "type");
+        putObjectRequest = new PutObjectRequest(TENANT_ID, "da", "guid", BYTES, "type");
     }
 
     @Test
     public void testGetTenantId() throws Exception {
-        assertEquals("ti", putObjectRequest.getTenantId());
+        assertEquals(TENANT_ID, putObjectRequest.getTenantId());
     }
 
     @Test

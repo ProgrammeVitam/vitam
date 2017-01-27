@@ -29,102 +29,124 @@ angular.module('core')
 .constant('IHM_URLS', {
   'IHM_DEFAULT_URL':'/uploadSIP',
   'IHM_BASE_URL':'/ihm-demo/v1/api',
-  'ARCHIVE_SEARCH_URL': '/archivesearch/units',
-  'ARCHIVE_DETAILS_URL': '/archivesearch/unit/',
-  'SAVE_ARCHIVE_DETAILS_URL': '/archiveupdate/units/',
-  'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json',
-  'ARCHIVE_DETAILS_PATH': '/archiveunit/',
-  'ARCHIVE_OBJECT_GROUP_URL': '/archiveunit/objects/',
+  'ADMIN_ROOT': 'admin',
+  'TENANTS': 'tenants',
+  'ACCESSION_REGISTER_SEARCH': 'accession-register',
+  'ARCHIVE_ROOT': 'archiveunit',
+  'ARCHIVE_TREE': 'tree/',
+  'ARCHIVE_OBJECT': 'objects',
   'ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL': '/archiveunit/objects/download/',
-  'ARCHIVE_TREE_URL': '/archiveunit/tree/',
-  'ARCHIVE_LIFECYCLE_URL': '/unitlifecycles/',
-  'OBJECT_GROUP_LIFECYCLE_URL': '/objectgrouplifecycles/',
+  'ARCHIVE_UPDATE_ROOT': 'archiveupdate',
+  'ARCHIVE_UPDATE_UNITS': 'units/',
+  'ARCHIVE_SEARCH_ROOT': 'archivesearch',
+  'ARCHIVE_SEARCH_UNITS': 'units',
+  'ARCHIVE_SEARCH_UNIT': 'unit',
+  'ARCHIVE_DETAILS_CONFIG_FILE': 'modules/config/archive-details.json',
+  "ARCHIVE_LIFECYCLE": 'unitlifecycles',
+  "OBJECT_GROUP_LIFECYCLE": 'objectgrouplifecycles',
   'UNIT_LIFECYCLE_TYPE': 'unit',
   'OG_LIFECYCLE_TYPE': 'objectgroup',
-  'DEFAULT_ACCESSION_REGISTER_SEARCH_URL': '/admin/accession-register',
-  'CHECK_OPERATION_STATUS': '/check/',
-  'CLEAR_OPERATION_STATUS_HISTORY': '/clear/'
+  'CHECK_OPERATION_STATUS': 'check',
+  'CLEAR_OPERATION_STATUS_HISTORY': 'clear'
 })
 
 /*ihmDemoCLient create a configured http client*/
-.factory('ihmDemoFactory', ['$http','IHM_URLS',
-  function($http, IHM_URLS) {
+.factory('ihmDemoFactory', ['$http','IHM_URLS', 'ihmDemoCLient', 'authVitamService',
+  function($http, IHM_URLS, ihmDemoCLient, authVitamService) {
 
   var dataFactory = {};
 
+  // Get the tenant lists Http Request (GET Method)
+  dataFactory.getTenants = function (){
+    return ihmDemoCLient.getClient(IHM_URLS.TENANTS).one('').get();
+  };
+
   // Search Archive Units Http Request (POST method)
   dataFactory.searchArchiveUnits = function (criteria) {
-    return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_SEARCH_URL, criteria);
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_SEARCH_ROOT).all(IHM_URLS.ARCHIVE_SEARCH_UNITS).post(criteria);
   };
 
   // Search Selected Archive Unit Details Http Request (GET Method)
   dataFactory.getArchiveUnitDetails = function (unitId){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_DETAILS_URL + unitId);
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_SEARCH_ROOT).all(IHM_URLS.ARCHIVE_SEARCH_UNIT).get(unitId);
   };
 
   // Retrieve Archive unit details configuration (JSON file that contains fields to display and the labels used in interface)
   dataFactory.getArchiveUnitDetailsConfig = function(){
+	// TODO Move ARCHIVE_DETAILS_CONFIG_FILE into static folder or his content into values.json or laguages_<lang>.json
     return $http.get(IHM_URLS.ARCHIVE_DETAILS_CONFIG_FILE);
   };
 
   // Save archive unit modifications
   dataFactory.saveArchiveUnit = function(unitId, modifiedFields){
-    return $http.put(IHM_URLS.IHM_BASE_URL + IHM_URLS.SAVE_ARCHIVE_DETAILS_URL + unitId, modifiedFields);
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_UPDATE_ROOT).all(IHM_URLS.ARCHIVE_UPDATE_UNITS + unitId).put(modifiedFields);
   };
 
   //Get Object Group
   dataFactory.getArchiveObjectGroup = function(ogId){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_URL + ogId);
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_ROOT).all(IHM_URLS.ARCHIVE_OBJECT).get(ogId);
   };
 
   //Get Object List
-  dataFactory.getObjectAsInputStream = function(ogId, options){
-    return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId, options , {
-        headers: {'X-Http-Method-Override': 'GET', 'Accept': 'application/octet-stream'}, responseType: 'arraybuffer'  });
-  };
-
   dataFactory.getObjectAsInputStreamUrl = function(ogId, options){
-    return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId + '?usage=' + encodeURIComponent(options.usage) + '&version=' + encodeURIComponent(options.version) + '&filename=' + encodeURIComponent(options.filename);
+	  return IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL + ogId +
+      '?usage=' + encodeURIComponent(options.usage) +
+      '&version=' + encodeURIComponent(options.version) +
+      '&filename=' + encodeURIComponent(options.filename) +
+      '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0);
   };
 
   // LifeCycle details
   dataFactory.getLifeCycleDetails = function(lifeCycleType, lifeCycleId) {
     if (IHM_URLS.UNIT_LIFECYCLE_TYPE == lifeCycleType) {
-      return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_LIFECYCLE_URL + lifeCycleId);
+      return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_LIFECYCLE).all('').get(lifeCycleId);
     } else if (IHM_URLS.OG_LIFECYCLE_TYPE == lifeCycleType) {
-      return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.OBJECT_GROUP_LIFECYCLE_URL + lifeCycleId);
+      return ihmDemoCLient.getClient(IHM_URLS.OBJECT_GROUP_LIFECYCLE).all('').get(lifeCycleId);
     }
   };
 
   // Archive Tree
   dataFactory.getArchiveTree = function(unitId, allParents){
-    return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.ARCHIVE_TREE_URL + unitId, allParents);
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_ROOT).all(IHM_URLS.ARCHIVE_TREE + unitId).post(allParents);
   };
 
   // Default Accession Register Search
   dataFactory.getAccessionRegisters = function(defaultCriteria){
-    return $http.post(IHM_URLS.IHM_BASE_URL + IHM_URLS.DEFAULT_ACCESSION_REGISTER_SEARCH_URL, defaultCriteria);
+    return ihmDemoCLient.getClient(IHM_URLS.ADMIN_ROOT).all(IHM_URLS.ACCESSION_REGISTER_SEARCH).post(defaultCriteria);
   };
 
   // Check operation status
   dataFactory.checkOperationStatus = function(operationId){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.CHECK_OPERATION_STATUS + operationId, {timeout: 2000});
+	// TODO How to set Timeout ?
+    return ihmDemoCLient.getClient(IHM_URLS.CHECK_OPERATION_STATUS).all('').get(operationId);
   };
 
   // Check operation status
   dataFactory.cleanOperationStatus = function(operationId){
-    return $http.get(IHM_URLS.IHM_BASE_URL + IHM_URLS.CLEAR_OPERATION_STATUS_HISTORY + operationId);
+    return ihmDemoCLient.getClient(IHM_URLS.CLEAR_OPERATION_STATUS_HISTORY).all('').get(operationId);
   };
 
   return dataFactory;
 }])
 
 /*ihmDemoCLient create a configured restangular client*/
-.factory('ihmDemoCLient', function(Restangular, IHM_URLS) {
+.factory('ihmDemoCLient', function(Restangular, IHM_URLS, $cookies) {
   var getClient = function(uri) {
     return Restangular.withConfig(function(RestangularConfigurer) {
       RestangularConfigurer.setBaseUrl(IHM_URLS.IHM_BASE_URL + '/' + uri);
       RestangularConfigurer.setFullResponse(true);
+      function addMandatoryHeader(element, operation, route, url, headers, params, httpConfig) {
+          headers['X-Tenant-Id'] = $cookies.get('tenantId');
+
+          return {
+            element: element,
+            headers: headers,
+            params: params,
+            httpConfig: httpConfig
+          };
+        }
+
+      RestangularConfigurer.addFullRequestInterceptor(addMandatoryHeader);
     });
   };
 
@@ -155,6 +177,7 @@ angular.module('core')
 
   .factory('authVitamService', function($cookies, ihmDemoCLient) {
 
+	var COOKIE_TENANT_ID = 'tenantId';
     var lastUrl = '';
 
     function createCookie(key, value) {
@@ -176,13 +199,10 @@ angular.module('core')
       return $cookies.get(key);
     }
 
-    function login() {
-      return ihmDemoCLient.getClient('').all('login').post();
-    }
-
     function logout() {
       deleteCookie('userCredentials');
       deleteCookie('role');
+      deleteCookie(COOKIE_TENANT_ID);
       return ihmDemoCLient.getClient('').one('logout').post();
     }
 
@@ -192,8 +212,8 @@ angular.module('core')
       deleteCookie: deleteCookie,
       createCookie: createCookie,
       isConnect: isConnect,
-      login: login,
-      logout: logout
+      logout: logout,
+      COOKIE_TENANT_ID: COOKIE_TENANT_ID
     };
   })
   .factory('redirectInterceptor', function($q, $location, $cookies) {
@@ -203,6 +223,7 @@ angular.module('core')
           $location.path('/login');
           $cookies.remove('userCredentials');
           $cookies.remove('role');
+          $cookies.remove('tenantId');
           return $q.reject(response);
         }else{
           return response;

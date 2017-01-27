@@ -70,7 +70,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     private static final String MOCK_INPUTSTREAM_CONTENT = "VITAM-Ingest External Client Rest Mock InputStream";
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     private static final String MOCK_RESPONSE_STREAM = "VITAM-Ingest External Client Rest Mock Response";
-
+    final int TENANT_ID = 0;
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -134,7 +134,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         public Response upload(InputStream stream) {
             return expectedResponse.post();
         }
-        
+
         @GET
         @Path("/ingests/{objectId}/{type}")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -158,7 +158,8 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        final InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
+        final InputStream fakeUploadResponseInputStream =
+            client.upload(streamToUpload, TENANT_ID).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -183,7 +184,8 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        final InputStream fakeUploadResponseInputStream = client.upload(streamToUpload).readEntity(InputStream.class);
+        final InputStream fakeUploadResponseInputStream =
+            client.upload(streamToUpload, TENANT_ID).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -194,14 +196,15 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             fail();
         }
     }
-    
+
     @Test
     public void givenInputstreamWhenDownloadObjectThenReturnOK()
         throws IngestExternalException, XMLStreamException, IOException {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        final InputStream fakeUploadResponseInputStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {

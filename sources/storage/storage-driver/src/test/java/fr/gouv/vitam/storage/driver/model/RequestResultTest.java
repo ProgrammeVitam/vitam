@@ -47,12 +47,13 @@ public class RequestResultTest {
     private static RemoveObjectRequest removeObjectRequest;
     private static RemoveObjectResult removeObjectResult;
     private static StorageCapacityResult storageCapacityResult;
+    private static final Integer TENANT_ID = 0;
 
 
     @BeforeClass
     public static void init() {
-        getObjectRequest = new GetObjectRequest("ti", "oi", "object");
-        getObjectResult = new GetObjectResult("ti", Response.ok(BYTES).build());
+        getObjectRequest = new GetObjectRequest(TENANT_ID, "oi", "object");
+        getObjectResult = new GetObjectResult(TENANT_ID, Response.ok(BYTES).build());
         removeObjectRequest = new RemoveObjectRequest();
         removeObjectResult = new RemoveObjectResult();
         storageCapacityResult = new StorageCapacityResult("ti", 1000, 100);

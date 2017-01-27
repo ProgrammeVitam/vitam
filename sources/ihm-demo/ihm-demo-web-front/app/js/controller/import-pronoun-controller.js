@@ -28,22 +28,22 @@
 'use strict';
 
 angular.module('ihm.demo')
-.controller('MyController', function($scope, $http, FileUploader, $mdDialog, $route){
+.controller('MyController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
 	$scope.mustShow = false;
 
 	var serviceURI = "/ihm-demo/v1/api/format";
 	var checkFormat = "/check";
 	var uploadFormat = "/upload";
-	var deleteFormat = "/delete";
 
 	var uploader = $scope.uploader = new FileUploader({
-        url : serviceURI + checkFormat,
-        headers: {
-        	'content-type': 'application/octet-stream',
-        	'accept' : 'application/json'
-        },
-        disableMultipart: true
-    });
+    url : serviceURI + checkFormat,
+    headers: {
+      'content-type': 'application/octet-stream',
+      'accept' : 'application/json',
+      'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)
+    },
+    disableMultipart: true
+  });
 
     // FILTERS
     uploader.filters.push({
@@ -52,16 +52,16 @@ angular.module('ihm.demo')
             return this.queue.length < 10;
         }
     });
-    
+
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
     	console.info('onSuccessItem', fileItem, response, status, headers);
-    	
+
     	if (uploader.queue[0].url == serviceURI + checkFormat){
     		var confirm = $mdDialog.confirm()
     			.title('Fichier valide')
     			.ok('Lancer l\'import')
     			.cancel('Annuler l\'import');
-    	
+
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
     		var confirm = $mdDialog.confirm()
@@ -69,9 +69,9 @@ angular.module('ihm.demo')
     			.ok("Fermer");
     		$mdDialog.show(confirm);
     	}
-    	
+
     };
-    
+
     uploader.onErrorItem = function(fileItem, response, status, headers) {
     	console.info('onErrorItem', fileItem, response, status, headers);
     	if (uploader.queue[0].url == serviceURI + checkFormat){
@@ -83,55 +83,33 @@ angular.module('ihm.demo')
     		});
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
     		var confirm = $mdDialog.confirm()
-    		            	.title('Référentiel des formats déjà existant')
+    		            	.title('Référentiel des formats déjà existant' +
+    		        				' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
     		            	.ok("Fermer");
     		    		$mdDialog.show(confirm)
     	}
-    	
+
     };
 
-    
+
 	$scope.validAction = function(){
 		uploader = $scope.uploader;
 		uploader.queue[0].url = serviceURI + checkFormat;
 		uploader.queue[0].upload();
 	};
-	
+
 	function uploadAction() {
 		uploader = $scope.uploader;
-		uploader.queue[0].url = serviceURI + uploadFormat;		
+		uploader.queue[0].url = serviceURI + uploadFormat;
 		uploader.queue[0].upload();
-		
+
 		$scope.checked = true;
 	}
 
-    function cancelAction() {
-    	console.log('Canceled');
-    	$route.reload();
-    }
-    
-    $scope.deleteAction = function(){ 
-    	$http({
-    		url: serviceURI + deleteFormat,
-    		method: "DELETE",
-    		async: false,
-    		headers: {
-    			'accept' : 'application/json'
-    		}
-    	}).success(function (data, status, headers, config) {
-        var confirm = $mdDialog.confirm()
-          .title('Referentiel de formats vide')
-          .ok("Fermer");
-        $mdDialog.show(confirm).then(function(){
-          $route.reload();
-        });
-    	}).error(function (data, status, headers, config) {
-    		
-    	});
-    	
-    	$route.reload();
-    	$scope.checked = false;
-	}
+  function cancelAction() {
+   	console.log('Canceled');
+   	$route.reload();
+  }
 });
 
 

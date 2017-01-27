@@ -34,7 +34,7 @@ import javax.ws.rs.core.Response;
  */
 public class GetObjectResult {
 
-    private final String tenantId;
+    private final Integer tenantId;
 
     private final Response object;
 
@@ -44,7 +44,7 @@ public class GetObjectResult {
      * @param tenantId The request tenantId
      * @param object Response of the object in the offer
      */
-    public GetObjectResult(String tenantId, Response object) {
+    public GetObjectResult(Integer tenantId, Response object) {
         this.tenantId = tenantId;
         this.object = object;
     }
@@ -59,7 +59,7 @@ public class GetObjectResult {
     /**
      * @return the request tenantId
      */
-    public String getTenantId() {
+    public Integer getTenantId() {
         return tenantId;
     }
 }

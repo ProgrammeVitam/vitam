@@ -62,7 +62,6 @@ public class LogbookExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "LOGBOOK_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private final int tenantId = 0;
 
     /**
      * Constructor
@@ -84,6 +83,7 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationById(@PathParam("id_op") String operationId) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -115,6 +115,7 @@ public class LogbookExternalResourceImpl {
    @Produces(MediaType.APPLICATION_JSON)
    public Response selectOperationByPost(@PathParam("id_op") String operationId,
        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+   	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
        Status status;
@@ -138,6 +139,7 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperation(JsonNode query) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -166,6 +168,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationWithPostOverride(JsonNode query,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -189,6 +192,7 @@ public class LogbookExternalResourceImpl {
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -217,6 +221,7 @@ public class LogbookExternalResourceImpl {
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;

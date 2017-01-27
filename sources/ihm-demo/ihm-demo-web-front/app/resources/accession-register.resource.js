@@ -27,20 +27,22 @@
 
 // Define resources in order to call WebApp http endpoints for accession-register
 angular.module('core')
-  .factory('accessionRegisterResource', function($http, IHM_URLS) {
+  .factory('accessionRegisterResource', function(ihmDemoCLient) {
 
     var ACCESSION_REGISTER_ROOT = '/admin/accession-register/';
-    var ACCESSION_REGISTER_DETAIL = '/accession-register-detail/';
+    var ACCESSION_REGISTER_DETAIL = '/accession-register-detail';
     var accessionRegisterResource = {};
 
     /** Get details of an accession register (POST method)
      *
+     * @param {String} id - The requested originating agency id
      * @param {Object} criteria - The requested criteria for search
      * @param {String} criteria.OriginatingAgency - The requested originating agency id
      * @returns {HttpPromise} The promise returned by the http call containing accession register details
      */
     accessionRegisterResource.getDetails = function (id, criteria) {
-      return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + id + ACCESSION_REGISTER_DETAIL, criteria);
+      return ihmDemoCLient.getClient(ACCESSION_REGISTER_ROOT).all(id + ACCESSION_REGISTER_DETAIL).post(criteria);
+      // return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT + id + ACCESSION_REGISTER_DETAIL, criteria);
     };
 
     /** Get summary of an accession register (POST method)
@@ -50,7 +52,8 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call containing accession register summary
      */
     accessionRegisterResource.getSummary = function (criteria) {
-      return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT, criteria);
+      return ihmDemoCLient.getClient('').all(ACCESSION_REGISTER_ROOT).post(criteria);
+      // return $http.post(IHM_URLS.IHM_BASE_URL + ACCESSION_REGISTER_ROOT, criteria);
     };
 
     return accessionRegisterResource;

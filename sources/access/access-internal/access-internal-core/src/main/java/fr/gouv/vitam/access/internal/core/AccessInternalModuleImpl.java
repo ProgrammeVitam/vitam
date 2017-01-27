@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -128,9 +129,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String BAD_REQUEST = "bad request";
     private static final String DIFF = "#diff";
     private static final String ID = "#id";
-
-    // TODO P1 setting in other place
-    private final Integer tenantId = 0;
 
     /**
      * AccessModuleImpl constructor
@@ -258,11 +256,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     @Override
     public AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
-        JsonNode queryJson, String qualifier, int version, String tenantId)
+        JsonNode queryJson, String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
         ParametersChecker.checkValue("version", version, 0);
 
@@ -317,7 +316,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         final StorageClient storageClient =
             storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
-            final Response response = storageClient.getContainerAsync(tenantId, DEFAULT_STORAGE_STRATEGY, objectId,
+            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final ResponseBuilder responseBuilder =
@@ -351,7 +350,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
-        int tenant = tenantId;
+        int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         final GUID idGUID;
         try {
             idGUID = GUIDReader.getGUID(idUnit);
@@ -484,7 +483,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess,
         StatusCode logbookOutcome, GUID objectIdentifier) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
-        final GUID updateGuid = GUIDFactory.newUnitGUID(tenantId); // eventidentifier
+        final GUID updateGuid = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()); // eventidentifier
         return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
             eventIdentifierProcess,
             eventTypeProcess, logbookOutcome, VitamLogbookMessages.getOutcomeDetail(STP_UPDATE_UNIT, logbookOutcome),

@@ -106,7 +106,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String FOLDER_SIP = "SIP";
     private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
     private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
-    private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
     private static final String FOLDERNAME = "ATR/";
@@ -255,9 +254,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(guid);
-            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
-
-            storageClient.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY,
+            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);   
+            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
                 StorageCollectionType.REPORTS, guid + XML, description);
             return Response.status(Status.OK).build();
 
@@ -279,7 +277,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     Response.status(Status.METHOD_NOT_ALLOWED).build());
                 return;
             }
-            final Response response = storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
+            final Response response = storageClient.getContainerAsync(DEFAULT_STRATEGY,
                 objectId, documentType);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeResponse(Response.status(Status.OK));
@@ -340,8 +338,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
                     try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                         final Response response =
-                            storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
-                                containerGUID.getId() + XML,
+                            storageClient.getContainerAsync(DEFAULT_STRATEGY, containerGUID.getId() + XML,
                                 StorageCollectionType.REPORTS);
                         final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
                         Status finalStatus = Status.OK;

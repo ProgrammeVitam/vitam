@@ -72,8 +72,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
 
-    private static final int TENANT_ID = 0;
-
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
@@ -174,7 +172,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
             response = performRequest(HttpMethod.GET, "objects/" + objectId, headers, selectObjectQuery,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Status.fromStatusCode(response.getStatus());
@@ -213,7 +210,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         Status status = Status.BAD_REQUEST;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, TENANT_ID);
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
             response = performRequest(HttpMethod.GET, "objects/" + objectGroupId, headers, selectObjectQuery,

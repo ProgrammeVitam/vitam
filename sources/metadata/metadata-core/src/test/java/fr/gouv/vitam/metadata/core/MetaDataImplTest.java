@@ -37,6 +37,7 @@ import java.util.List;
 import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
@@ -62,6 +63,10 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -77,6 +82,10 @@ import fr.gouv.vitam.metadata.core.database.collections.Unit;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({DbRequestFactoryImpl.class, MongoDbAccessMetadataFactory.class})
 public class MetaDataImplTest {
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private MetaData metaDataImpl;
     private DbRequest request;
@@ -84,6 +93,7 @@ public class MetaDataImplTest {
     private MongoDbAccessMetadataFactory mongoDbAccessFactory;
 
     private static final String DATA_INSERT = "{ \"data\": \"test\" }";
+    private static final Integer TENANT_ID = 0;
 
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
     private static final String SAMPLE_OBJECTGROUP_FILTERED_FILENAME = "sample_objectGroup_document_filtered.json";
@@ -250,8 +260,10 @@ public class MetaDataImplTest {
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_Select_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
@@ -269,9 +281,11 @@ public class MetaDataImplTest {
             GlobalDatasParser.limitRequest = oldValue;
         }
     }
-
+    
+    @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
@@ -279,28 +293,36 @@ public class MetaDataImplTest {
     }
 
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
     }
 
+    @RunWithCustomExecutor
     @Test
     public void given_filled_query_When_SelectUnitById_() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test
     public void given_filled_query_When_UpdateUnitById_() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnits_ThenThrow_MetaDataExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
@@ -335,34 +357,42 @@ public class MetaDataImplTest {
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_ThenThrow_MetaDataExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataExecutionException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnit_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.selectUnitsById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_When_IllegalAccessException_ThenThrow_MetaDataExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new IllegalAccessException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
@@ -387,24 +417,30 @@ public class MetaDataImplTest {
         }
     }
 
+    @RunWithCustomExecutor
     @Test(expected = MetaDataExecutionException.class)
     public void given_Update_Unit_When_InstantiationException_ThenThrown_MetaDataExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InstantiationException());
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(REQUEST_TEST), "");
     }
 
+    @RunWithCustomExecutor
     @Test(expected = InvalidParseOperationException.class)
     public void given_updateUnitbyId_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(anyObject(), anyObject())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testSelectObjectGroupById() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         final Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
         result.addId("ogId");
         result.setNbResult(1);
@@ -416,8 +452,10 @@ public class MetaDataImplTest {
         assertEquals(sampleObjectGroupFiltered, objectGroupDocument);
     }
 
+    @RunWithCustomExecutor
     @Test
     public void testDiffResultOnUpdate() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         final String wanted = "[{\"#id\":\"unitId\",\"#diff\":\"-  title : title" +
             "\\n-  description : description\\n+  title : MODIFIED title" +
             "\\n+  description : MODIFIED description\"}]";

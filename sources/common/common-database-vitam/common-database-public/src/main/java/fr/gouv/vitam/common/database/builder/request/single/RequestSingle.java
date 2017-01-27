@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public abstract class RequestSingle extends AbstractRequest {
     protected Query query;
 
-
     /**
      *
      * @return this Request

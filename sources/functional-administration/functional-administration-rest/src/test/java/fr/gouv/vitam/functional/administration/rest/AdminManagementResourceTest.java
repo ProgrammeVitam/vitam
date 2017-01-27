@@ -44,6 +44,7 @@ import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -57,6 +58,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -69,6 +71,10 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -113,6 +119,10 @@ public class AdminManagementResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementApplication application;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -202,26 +212,31 @@ public class AdminManagementResourceTest {
     @Test
     public void insertAPronomFile() throws FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        given().contentType(ContentType.BINARY).body(stream)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
-        given().contentType(ContentType.BINARY).body(stream)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
+    @RunWithCustomExecutor
     public void createAccessionRegister() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
+        Integer tenantId = 0;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
         given().contentType(ContentType.JSON).body(register)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
         register.setTotalObjects(null);
 
         given().contentType(ContentType.JSON).body(register)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -233,12 +248,14 @@ public class AdminManagementResourceTest {
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         final String document =
             given()
                 .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
@@ -246,6 +263,7 @@ public class AdminManagementResourceTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(jsonDocument)
             .pathParam("id_format", jsonDocument.get(0).get("_id").asText())
             .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
@@ -259,12 +277,14 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         final String document =
             given()
+                .header(GlobalDataRest.X_TENANT_ID, 0)
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
@@ -272,6 +292,7 @@ public class AdminManagementResourceTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(jsonDocument)
             .pathParam("id_format", "fake_identifier")
             .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
@@ -285,12 +306,13 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -307,11 +329,13 @@ public class AdminManagementResourceTest {
 
         with()
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_FORMAT_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
@@ -336,12 +360,12 @@ public class AdminManagementResourceTest {
     @Test
     public void insertRulesFile() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
@@ -353,18 +377,21 @@ public class AdminManagementResourceTest {
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         final String document =
             given()
                 .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
             .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
@@ -379,18 +406,21 @@ public class AdminManagementResourceTest {
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         final String document =
             given()
                 .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, 0)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(jsonDocument)
             .pathParam("id_rule", "fake_identifier")
             .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
@@ -405,11 +435,13 @@ public class AdminManagementResourceTest {
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -425,11 +457,13 @@ public class AdminManagementResourceTest {
 
         with()
             .contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());

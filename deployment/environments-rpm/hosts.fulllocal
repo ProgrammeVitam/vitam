@@ -186,3 +186,5 @@ http_proxy_environnement=
 
 vitam_storageofferdefault_host_1=localhost
 # vitam_storageofferdefault_host_2=localhost
+
+vitam_tenant_ids=[0,1,2]

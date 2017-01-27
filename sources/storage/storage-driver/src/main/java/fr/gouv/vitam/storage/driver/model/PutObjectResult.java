@@ -34,7 +34,7 @@ public class PutObjectResult {
     private final String distantObjectId;
     private final String digestHashBase16;
     private final long objectSize;
-    private final String tenantId;
+    private final Integer tenantId;
 
     /**
      * Initialize the needed parameters for put result
@@ -44,7 +44,7 @@ public class PutObjectResult {
      * @param tenantId the request tenantId
      * @param objectSize
      */
-    public PutObjectResult(String distantObjectId, String digestHashBase16, String tenantId, long objectSize) {
+    public PutObjectResult(String distantObjectId, String digestHashBase16, Integer tenantId, long objectSize) {
         this.distantObjectId = distantObjectId;
         this.digestHashBase16 = digestHashBase16;
         this.tenantId = tenantId;
@@ -68,7 +68,7 @@ public class PutObjectResult {
     /**
      * @return the tenant Id
      */
-    public String getTenantId() {
+    public Integer getTenantId() {
         return tenantId;
     }
 

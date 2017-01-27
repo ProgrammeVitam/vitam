@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
@@ -58,6 +59,7 @@ public class ProcessManagementResourceTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static ProcessManagementApplication application = null;
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -96,6 +98,7 @@ public class ProcessManagementResourceTest {
     public void shouldReturnErrorNotFoundWhenNotExistWorkFlow() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
             .post("/operations").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))
@@ -106,6 +109,7 @@ public class ProcessManagementResourceTest {
     public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry(CONTAINER_NAME, EXITS_WORKFLOW_ID)).when()
             .post("/operations").then()
             .statusCode(Status.OK.getStatusCode());

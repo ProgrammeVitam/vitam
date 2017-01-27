@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
@@ -63,6 +64,9 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 @Path("/ingest-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class IngestExternalResource extends ApplicationStatusResource {
+    
+    // FIXME P0 : Add a filter to protect the tenantId (check if it exists + return Unauthorized response or so). @see :
+    // AuthorizationFilter    
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private final IngestExternalConfiguration ingestExternalConfiguration;
 
@@ -89,12 +93,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     // TODO P2 : add file name
     public void upload(InputStream uploadedInputStream, @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, uploadedInputStream));
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, uploadedInputStream, tenantId));
     }
 
-    private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream) {
+    private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream, Integer tenantId) {
         try {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
+        	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
             ingestExtern.upload(uploadedInputStream, asyncResponse);
         } catch (final IngestExternalException exc) {

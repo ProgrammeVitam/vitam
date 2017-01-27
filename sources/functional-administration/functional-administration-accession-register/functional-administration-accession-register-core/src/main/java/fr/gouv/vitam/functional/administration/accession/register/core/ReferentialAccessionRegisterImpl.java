@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
@@ -75,9 +76,6 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public void createOrUpdateAccessionRegister(AccessionRegisterDetail registerDetail)
         throws ReferentialException {
 
-
-        // TODO P1 replace with real tenant
-        final int tenantId = 0;
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
         // store accession register detail
@@ -94,7 +92,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try {
             final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
-                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(tenantId).getId())
+                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId())
                 .setOriginatingAgency(registerDetail.getOriginatingAgency())
                 .setTotalObjects(initialValue)
                 .setTotalObjectGroups(initialValue)

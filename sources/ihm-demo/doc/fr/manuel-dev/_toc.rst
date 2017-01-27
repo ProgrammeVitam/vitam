@@ -9,3 +9,4 @@ IHM demo
    ihm-tests.rst
    ihm-logbook-dat.rst
    ihm-logbook-rest-raml.rst
+   ihm-tenant-id.rst

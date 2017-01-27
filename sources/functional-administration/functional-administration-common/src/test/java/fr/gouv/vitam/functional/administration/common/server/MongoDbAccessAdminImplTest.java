@@ -37,6 +37,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,6 +60,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
@@ -66,6 +71,10 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 
 public class MongoDbAccessAdminImplTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -77,6 +86,7 @@ public class MongoDbAccessAdminImplTest {
     static final String COLLECTION_RULES = "FileRules";
     private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
     private static final String AGENCY = "Agency";
+    private static final Integer TENANT_ID = 0;
 
     static int port;
     static MongoDbAccessAdminImpl mongoAccess;
@@ -112,7 +122,7 @@ public class MongoDbAccessAdminImplTest {
             .setPUID("puid")
             .setVersion("version");
 
-        fileRules = new FileRules()
+        fileRules = new FileRules(TENANT_ID)
             .setRuleId("APK-485")
             .setRuleType("testList")
             .setRuleDescription("testList")
@@ -120,7 +130,7 @@ public class MongoDbAccessAdminImplTest {
             .setRuleMeasurement("Annee");
 
         final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(1).setDeleted(0).setRemained(1);
-        register = new AccessionRegisterDetail()
+        register = new AccessionRegisterDetail(TENANT_ID)
             .setObjectSize(initialValue)
             .setOriginatingAgency(AGENCY)
             .setId(AGENCY)
@@ -141,7 +151,9 @@ public class MongoDbAccessAdminImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testImplementFunction() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final JsonNode jsonNode = JsonHandler.getFromString(file.toJson());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonNode);
@@ -165,7 +177,9 @@ public class MongoDbAccessAdminImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testRulesFunction() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final JsonNode jsonNode = JsonHandler.getFromString(fileRules.toJson());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonNode);
@@ -189,7 +203,9 @@ public class MongoDbAccessAdminImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testAccessionRegister() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final JsonNode jsonNode = JsonHandler.toJsonNode(register);
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
         assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION,

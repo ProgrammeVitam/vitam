@@ -23,7 +23,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
 
     @Override
-    public Status checkDocuments(AdminCollections documentType, InputStream stream)
+    public Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
@@ -33,14 +33,14 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream)
+    public Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         return Status.OK;
     }
 
     @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
         if (AdminCollections.RULES.equals(documentType)) {
             return ClientMockResultHelper.getRuleList();
@@ -52,7 +52,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         if (AdminCollections.RULES.equals(documentType)) {
             return ClientMockResultHelper.getRule();

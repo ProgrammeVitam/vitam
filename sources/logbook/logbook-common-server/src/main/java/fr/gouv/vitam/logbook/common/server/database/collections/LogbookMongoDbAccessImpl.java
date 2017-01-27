@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -495,7 +496,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private MongoCursor selectExecute(final LogbookCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        final Bson condition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
+        // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
+        // if the collection should not be filtered, then the method should be overridden        
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final Bson condition = and(QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery()),
+            eq(VitamDocument.TENANT_ID, tenantId));
         final Bson projection = selectToMongoDb.getFinalProjection();
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
         final int offset = selectToMongoDb.getFinalOffset();

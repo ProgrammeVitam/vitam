@@ -36,7 +36,10 @@ angular.module('ihm.demo')
     "FATAL_STATUS": 500
   })
   .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS,
-    $interval, ihmDemoFactory, $http, $timeout) {
+    $interval, ihmDemoFactory, authVitamService) {
+
+    $scope.tenantId = authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID);
+    $scope.tenantKey = 'X-Tenant-Id';
 
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {

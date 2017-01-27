@@ -71,7 +71,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
             "long long long long long long long long long long long long long long long long long long long long file";
 
     @Override
-    public JsonNode getStorageInformation(String tenantId, String strategyId)
+    public JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
         try {
             return JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY);
@@ -81,7 +81,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type,
+    public StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type,
         String guid,
         CreateObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
@@ -89,23 +89,23 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean deleteContainer(String tenantId, String strategyId) throws StorageServerClientException {
+    public boolean deleteContainer(String strategyId) throws StorageServerClientException {
         return true;
     }
 
     @Override
-    public boolean delete(String tenantId, String strategyId, StorageCollectionType type, String guid)
+    public boolean delete(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
         return true;
     }
 
     @Override
-    public boolean existsContainer(String tenantId, String strategyId) throws StorageServerClientException {
+    public boolean existsContainer(String strategyId) throws StorageServerClientException {
         return true;
     }
 
     @Override
-    public boolean exists(String tenantId, String strategyId, StorageCollectionType type, String guid)
+    public boolean exists(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
         return true;
     }
@@ -121,7 +121,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
+    public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
         return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);

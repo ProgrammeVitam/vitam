@@ -58,7 +58,7 @@ public interface Connection extends AutoCloseable {
      * @return the usable and used space in bytes and a remind of the given tenantId
      * @throws StorageDriverException if any problem occurs during request
      */
-    StorageCapacityResult getStorageCapacity(String tenantId) throws StorageDriverException;
+    StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException;
 
     /**
      * Retrieve an object from the storage offer based on criterias defined in request argument.

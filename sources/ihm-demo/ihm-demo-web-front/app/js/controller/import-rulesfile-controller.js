@@ -28,22 +28,22 @@
 'use strict';
 
 angular.module('ihm.demo')
-.controller('rulesController', function($scope, $http, FileUploader, $mdDialog, $route){
+.controller('rulesController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
 	$scope.mustShow = false;
 
 	var serviceURI = "/ihm-demo/v1/api/rules";
 	var checkRules = "/check";
 	var uploadRules = "/upload";
-	var deleteRules = "/delete";
 
 	var uploader = $scope.uploader = new FileUploader({
-        url : serviceURI + checkRules,
-        headers: {
-        	'content-type': 'application/octet-stream',
-        	'accept' : 'application/json'
-        },
-        disableMultipart: true
-    });
+    url : serviceURI + checkRules,
+    headers: {
+      'content-type': 'application/octet-stream',
+      'accept' : 'application/json',
+      'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)
+    },
+    disableMultipart: true
+  });
 
     // FILTERS
     uploader.filters.push({
@@ -110,27 +110,4 @@ angular.module('ihm.demo')
     	console.log('Canceled');
     	$route.reload();
     }
-
-    $scope.deleteAction = function(){
-    	$http({
-    		url: serviceURI + deleteRules,
-    		method: "DELETE",
-    		async: false,
-    		headers: {
-    			'accept' : 'application/json'
-    		}
-    	}).success(function (data, status, headers, config) {
-        var confirm = $mdDialog.confirm()
-          .title('Le Référentiel des Règles de gestion est vide')
-          .ok("Fermer");
-        $mdDialog.show(confirm).then(function(){
-          $route.reload();
-        });
-    	}).error(function (data, status, headers, config) {
-
-    	});
-
-    	$route.reload();
-    	$scope.checked = false;
-	}
 });

@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -130,8 +131,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
         final long time = System.currentTimeMillis();
         LOGGER.info(START_MESSAGE);
-        // TODO P1 replace with real tenant
-        final int tenantId = 0;
+        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         /**
          * Check if workflow exist in the pool of workflows
          */

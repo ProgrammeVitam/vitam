@@ -101,7 +101,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
      * return account capacity for swift offer
      */
     @Override
-    public StorageCapacityResult getStorageCapacity(String tenantId) throws StorageDriverException {
+    public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
@@ -132,7 +132,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getFolder().toUpperCase() + "_" + request.getTenantId(), null),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getFolder() + "_" + request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -182,11 +182,11 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             objectInit.setType(DataCategory.valueOf(request.getType()));
             response =
                 performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getType() + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getType() + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return performPutRequests(request.getType() + "_" + request.getTenantId(), stream,
-                handleResponseStatus(response, ObjectInit.class));
+                handleResponseStatus(response, ObjectInit.class), request.getTenantId());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
@@ -214,7 +214,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(OBJECT + request.getTenantId(), null),
+                    getDefaultHeaders(request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -283,7 +283,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
      * @param command the command to be added
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String tenantId, String command) {
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (tenantId != null) {
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -296,21 +296,47 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
 
     /**
+     * Generate the default header map
+     *
+     * @param tenantId the tenantId
+     * @param containerName the containerName
+     * @param command the command to be added
+     * @return header map
+     */
+    // TODO - us#1982 - to be changed with this story - tenantId to stay in the header but path (type unit or object) in the uri
+    private MultivaluedHashMap<String, Object> getDefaultHeadersWithContainerName(Integer tenantId,
+        String containerName, String command) {
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        if (tenantId != null) {
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        }
+        if (containerName != null) {
+            headers.add("X_CONTAINER_NAME", containerName);
+        }
+        if (command != null) {
+            headers.add(GlobalDataRest.X_COMMAND, command);
+        }
+        return headers;
+    }
+
+    /**
      * Method performing a PutRequests
      *
-     * @param tenantId the tenant Id
+     * @param containerName the container Name
      * @param stream the stream to be chunked if necessary
      * @param result the result received from the server after the init
+     * @param tenantId the tenant id
      * @return a PutObjectResult the final result received from the server
      * @throws StorageDriverException in case the server encounters an exception
      */
-    private PutObjectResult performPutRequests(String tenantId, InputStream stream, ObjectInit result)
+    private PutObjectResult performPutRequests(String containerName, InputStream stream, ObjectInit result,
+        Integer tenantId)
         throws StorageDriverException {
         PutObjectResult finalResult = null;
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getId(),
-                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END),
+                getDefaultHeadersWithContainerName(tenantId, containerName, StorageConstants.COMMAND_END),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId,

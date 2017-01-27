@@ -51,6 +51,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -119,9 +122,9 @@ public class StoreObjectGroupActionHandlerTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());;
-
+            
         Mockito.doThrow(new StorageServerClientException("Error storage")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
@@ -150,9 +153,8 @@ public class StoreObjectGroupActionHandlerTest {
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
-        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(), anyObject(),
-            anyObject(),
-            anyObject(), anyObject());
+        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(),
+            anyObject(), anyObject(), anyObject());
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 

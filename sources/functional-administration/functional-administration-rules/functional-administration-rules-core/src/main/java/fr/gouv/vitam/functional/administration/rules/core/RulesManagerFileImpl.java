@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
@@ -139,14 +140,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
             client = client2;
             csvFile = convertInputStreamToFile(rulesFileStream);
-            final GUID eip = GUIDFactory.newGUID();
+            final GUID eip = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
             final LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
             createLogBookEntry(logbookParametersStart);
 
-            final GUID eip1 = GUIDFactory.newGUID();
+            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
             try {
                 final ArrayNode rulesManagerList = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFile);
 
