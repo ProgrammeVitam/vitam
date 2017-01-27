@@ -105,7 +105,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OBJECTS_PATH, getDefaultHeaders(tenantId, null),
+            response = performRequest(HttpMethod.GET, OBJECTS_PATH, getDefaultHeadersWithContainerName(tenantId, DataCategory.OBJECT + "_" + tenantId, null),
                 MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return handleResponseStatus(response, StorageCapacityResult.class);
@@ -129,10 +129,10 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getFolder());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, request.getFolder());
         Response response = null;
-        try {
+        try {            
             response =
                 performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getFolder() + "_" + request.getTenantId(), null),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), DataCategory.getByFolder(request.getFolder()) + "_" + request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -214,7 +214,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getFolder() + "_" + request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

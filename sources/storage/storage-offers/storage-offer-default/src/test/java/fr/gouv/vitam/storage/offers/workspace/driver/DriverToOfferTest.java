@@ -181,7 +181,7 @@ public class DriverToOfferTest {
             // Nothing, missing tenant parameter
         }
 
-        final GetObjectRequest getRequest = new GetObjectRequest(1, guid, DataCategory.UNIT.name());
+        final GetObjectRequest getRequest = new GetObjectRequest(1, guid, DataCategory.UNIT.getFolder());
         connection.getObject(getRequest);
     }
 }
