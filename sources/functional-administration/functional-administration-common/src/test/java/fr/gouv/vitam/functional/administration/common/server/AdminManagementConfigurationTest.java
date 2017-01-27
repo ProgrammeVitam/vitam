@@ -24,31 +24,20 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common.server;
 
-package fr.gouv.vitam.functional.administration.rest;
+import static org.junit.Assert.assertEquals;
 
-import java.util.List;
+import org.junit.Test;
 
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 
-/**
- * AdminManagementConfiguration inherated from DbConfigurationImpl
- */
-public class AdminManagementConfiguration extends DbConfigurationImpl {
-    // constructor
+public class AdminManagementConfigurationTest {
 
-    AdminManagementConfiguration() {
-        super();
-    }
+    @Test
+    public void givenAdminManagementConfiguration() {
+        final AdminManagementConfiguration config = new AdminManagementConfiguration();
 
-    /**
-     * Constructor
-     *
-     * @param mongoDbNodes the database hosts and ports
-     * @param dbName the database name
-     */
-    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName) {
-        super(mongoDbNodes, dbName);
+        assertEquals("jettyFakeConfig", config.setJettyConfig("jettyFakeConfig").getJettyConfig());
     }
 }

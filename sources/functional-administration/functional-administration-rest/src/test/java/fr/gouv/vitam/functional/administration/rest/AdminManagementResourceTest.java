@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -45,7 +46,9 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -62,11 +65,13 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -76,6 +81,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
@@ -123,6 +130,13 @@ public class AdminManagementResourceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    private static ElasticsearchTestConfiguration configEs = null;
+
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private static ElasticsearchAccessFunctionalAdmin esClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -132,10 +146,23 @@ public class AdminManagementResourceTest {
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
 
+        // ES
+        try {
+            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+
+        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
+        nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
+        esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
+
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
+        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setClusterName(CLUSTER_NAME);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -183,7 +210,7 @@ public class AdminManagementResourceTest {
     }
 
     @After
-    public void tearDown() throws DatabaseException {
+    public void tearDown() throws Exception {
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS);
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
     }

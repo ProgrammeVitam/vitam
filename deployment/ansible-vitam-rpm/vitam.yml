@@ -117,7 +117,7 @@
 
 - hosts: hosts-functional-administration
   roles:
-    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf, port_http: "{{vitam_functional_administration_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf, port_http: "{{vitam_functional_administration_port}}", secret_platform: "true", cluster_name: elasticsearch-data }
 
 - hosts: hosts-workspace
   roles:

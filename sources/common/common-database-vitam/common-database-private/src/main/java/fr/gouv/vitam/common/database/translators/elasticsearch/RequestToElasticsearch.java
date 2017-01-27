@@ -34,6 +34,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -59,7 +60,7 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
      */
     public static RequestToElasticsearch getRequestToElasticsearch(AbstractParser<?> requestParser)
         throws VitamException {
-        if (requestParser instanceof SelectParserMultiple) {
+        if (requestParser instanceof SelectParserMultiple || requestParser instanceof SelectParserSingle) {
             return new SelectToElasticsearch(requestParser);
         } else {
             throw new VitamException("Only Select Request is allowed on Indexation");

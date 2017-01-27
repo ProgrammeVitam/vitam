@@ -26,22 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.mongodb.MongoClient;
-
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Factory to get MongoDbAccess for Admin
+ * Factory to get ElasticsearchAccess for Admin
  */
-public final class MongoDbAccessAdminFactory {
+public final class ElasticsearchAccessAdminFactory {
 
-    private MongoDbAccessAdminFactory() {
+    private ElasticsearchAccessAdminFactory() {
         // Empty
     }
 
@@ -50,20 +43,19 @@ public final class MongoDbAccessAdminFactory {
      *
      * @param configuration config of MongoDbAcess
      * @return the MongoDbAccess
+     * @throws VitamException if elasticsearch list nodes is empty 
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration) {
+    public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
-        final List<Class<?>> classList = new ArrayList<>();
-        for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
-            classList.add(e.getClasz());
+        try {
+            ElasticsearchAccessFunctionalAdmin elasticsearchAccess = new ElasticsearchAccessFunctionalAdmin(configuration.getClusterName(), configuration.getElasticsearchNodes());
+            FunctionalAdminCollections.FORMATS.initialize(elasticsearchAccess);
+            FunctionalAdminCollections.RULES.initialize(elasticsearchAccess);
+            return elasticsearchAccess;
+        } catch (VitamException e) {
+            throw new IllegalArgumentException(e);
         }
-        FunctionalAdminCollections.class.getEnumConstants();
-
-        final MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
-
-        return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
     }
 
 }

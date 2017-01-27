@@ -102,7 +102,21 @@ public class FileFormat extends VitamDocument<FileFormat> {
      */
     private static final String EMPTY_STRING = "";
 
-
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
+    
+    /**
+     * Mapping of this Collection
+     */
+    public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
+        "properties : { "  +
+        NAME + ": { type : \"string\", index : \"analyzed\" }, " +
+        PUID + ": { type : \"string\", index : \"analyzed\" }, " +
+        MIME_TYPE + ": { type : \"string\", index : \"analyzed\" }, " +
+        EXTENSION + ": { type : \"string\", index : \"analyzed\" } " +
+        " } } }";
 
     /**
      * empty constructor
@@ -302,4 +316,5 @@ public class FileFormat extends VitamDocument<FileFormat> {
         }
         return this;
     }
+
 }
