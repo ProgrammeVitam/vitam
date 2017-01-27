@@ -182,7 +182,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             objectInit.setType(DataCategory.valueOf(request.getType()));
             response =
                 performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getType() + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), DataCategory.getByFolder(request.getType()) + "_" + request.getTenantId(), StorageConstants.COMMAND_INIT),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return performPutRequests(request.getType() + "_" + request.getTenantId(), stream,
@@ -214,7 +214,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         try {
             response =
                 performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeadersWithContainerName(request.getTenantId(), request.getFolder() + "_" + request.getTenantId(), null),
+                    getDefaultHeadersWithContainerName(request.getTenantId(), DataCategory.getByFolder(request.getFolder()) + "_" + request.getTenantId(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

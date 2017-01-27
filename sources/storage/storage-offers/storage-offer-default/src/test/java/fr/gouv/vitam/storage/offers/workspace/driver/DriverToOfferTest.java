@@ -37,6 +37,7 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.Random;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -88,6 +89,10 @@ public class DriverToOfferTest {
     private static String guid;
     private static DefaultOfferApplication application;
 
+    private static int TENANT_ID;
+
+    private static String CONTAINER;
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -119,6 +124,9 @@ public class DriverToOfferTest {
         }
 
         driver = new DriverImpl();
+        // for parallel test
+        TENANT_ID = serverPort;
+        CONTAINER = DataCategory.UNIT.name() + "_" + TENANT_ID;
     }
 
     @AfterClass
@@ -133,7 +141,7 @@ public class DriverToOfferTest {
         // delete files
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/UNIT_1");
+        final File container = new File(conf.getStoragePath() + CONTAINER);
         final File object = new File(container.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
         Files.deleteIfExists(container.toPath());
@@ -151,7 +159,7 @@ public class DriverToOfferTest {
             final MessageDigest messageDigest =
                 MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
-                request = new PutObjectRequest(1, VitamConfiguration.getDefaultDigestType().getName(), guid,
+                request = new PutObjectRequest(TENANT_ID, VitamConfiguration.getDefaultDigestType().getName(), guid,
                     digestInputStream,
                     DataCategory.UNIT.name());
                 final PutObjectResult result = connection.putObject(request);
@@ -160,9 +168,9 @@ public class DriverToOfferTest {
                 final StorageConfiguration conf =
                     PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
                         StorageConfiguration.class);
-                final File container = new File(conf.getStoragePath() + "/UNIT_1");
+                final File container = new File(conf.getStoragePath() + CONTAINER);
                 assertNotNull(container);
-                final File object = new File(container.getAbsolutePath(), "/" + guid);
+                final File object = new File(container.getAbsolutePath(), guid);
                 assertNotNull(object);
                 assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
 
@@ -181,7 +189,8 @@ public class DriverToOfferTest {
             // Nothing, missing tenant parameter
         }
 
-        final GetObjectRequest getRequest = new GetObjectRequest(1, guid, DataCategory.UNIT.getFolder());
+        final GetObjectRequest getRequest = new GetObjectRequest(TENANT_ID, guid, DataCategory.UNIT.getFolder());
         connection.getObject(getRequest);
+
     }
 }
