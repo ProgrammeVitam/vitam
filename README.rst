@@ -18,7 +18,7 @@ Il a pour objectif :
 * la mise en place ou la mise à jour, dans chacun des trois ministères porteurs, de plates-formes d’archivage utilisant la solution logicielle Vitam ;
 * la réutilisation de la solution logicielle Vitam par le plus grand nombre d’acteurs publics possible, en veillant à sa capacité d'usage dans des contextes divers.
 
-Pour plus d’information sur le programme, voir `www.programmevitam.fr <http://www.programmevitam.fr/pages/1-presentation/>`_.
+Pour plus d’information sur le programme, voir `www.programmevitam.fr <http://www.programmevitam.fr/pages/presentation/>`_.
 
 
 La solution logicielle Vitam
