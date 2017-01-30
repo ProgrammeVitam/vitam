@@ -294,6 +294,8 @@ angular
            }
            return start;
        };
-
+       $scope.reinitTab= function( ){
+               $scope.idCriteria2='';
+       };
 
    });
