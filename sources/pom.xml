@@ -38,6 +38,7 @@
 		<module>integration-test</module>
 		<module>ihm-recette</module>
 		<module>storage-integration-test</module>
+		<module>functional-test</module>
 	</modules>
 
 

@@ -25,22 +25,26 @@
  * accept its terms.
  */
 
-'use strict';
+// Define service in order to process the resource promise for soap-ui operation
+angular.module('core')
+  .service('functionalTestService', function(functionalTestResource) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation',
-  'functional.test'
-]);
+    var FunctionalTestService = this;
+
+    FunctionalTestService.launch = function(successCallback, errorCallback) {
+      functionalTestResource.launch().then(successCallback, errorCallback);
+    };
+
+    FunctionalTestService.listReports = function(successCallback, errorCallback) {
+      functionalTestResource.listReports().then(successCallback, errorCallback);
+    };
+
+    FunctionalTestService.getReportDetails = function(reportName, successCallback, errorCallback) {
+      functionalTestResource.getReportDetails(reportName).then(successCallback, errorCallback);
+    };
+
+    FunctionalTestService.sync = function(successCallback, errorCallback) {
+      functionalTestResource.sync().then(successCallback, errorCallback);
+    };
+
+  });

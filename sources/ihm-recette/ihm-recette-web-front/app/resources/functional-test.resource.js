@@ -25,22 +25,42 @@
  * accept its terms.
  */
 
-'use strict';
+// Define resources in order to call WebApp http endpoints for soap-ui
+angular.module('core')
+  .factory('functionalTestResource', function($http, IHM_URLS) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation',
-  'functional.test'
-]);
+    var FUNCTIONAL_TEST_ROOT = '/applicative-test/';
+
+    var FunctionalTestResource = {};
+
+    /** launch Functional Tests (POST method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    FunctionalTestResource.launch = function () {
+      return $http.post(IHM_URLS.IHM_BASE_URL + FUNCTIONAL_TEST_ROOT);
+    };
+
+    /** Get Functional Tests report list (GET method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    FunctionalTestResource.listReports = function() {
+      return $http.get(IHM_URLS.IHM_BASE_URL + FUNCTIONAL_TEST_ROOT);
+    };
+
+    /** Get Functional Tests report list (GET method)
+     *
+     * @returns {HttpPromise} The promise returned by the http call
+     */
+    FunctionalTestResource.getReportDetails = function(reportName) {
+      return $http.get(IHM_URLS.IHM_BASE_URL + FUNCTIONAL_TEST_ROOT + reportName);
+    };
+
+    FunctionalTestResource.sync = function () {
+      return $http(IHM_URLS.IHM_BASE_URL + FUNCTIONAL_TEST_ROOT + "sync");
+    };
+
+    return FunctionalTestResource;
+
+  });

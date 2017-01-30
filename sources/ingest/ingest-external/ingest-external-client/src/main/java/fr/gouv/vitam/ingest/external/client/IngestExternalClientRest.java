@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_ACTION;
+import static fr.gouv.vitam.common.GlobalDataRest.X_CONTEXT_ID;
+import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
@@ -54,6 +57,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
@@ -84,9 +88,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", tenantId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACTION, action);
+        headers.add(X_CONTEXT_ID, contextId);
+        headers.add(X_TENANT_ID, tenantId);
+        headers.add(X_ACTION, action);
+
         headers.add(EXPECT, EXPECT_CONTINUE);
 
         try {
@@ -132,7 +137,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(X_TENANT_ID, tenantId);
 
         try {
             response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
@@ -152,8 +157,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public Response initWorkFlow(String contextId) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", contextId);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
+        headers.add(X_CONTEXT_ID, contextId);
+        headers.add(X_ACTION, ProcessAction.INIT);
 
         // add header action id default init
         final Response response =
@@ -173,7 +178,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+        headers.add(X_CONTEXT_ID, contextId);
 
         try {
             response =
@@ -207,8 +212,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_ACTION, actionId);
-        headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+        headers.add(X_ACTION, actionId);
+        headers.add(X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
 
         Response response = null;
         try {
@@ -303,7 +308,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+            headers.add(X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
             response =
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
         } catch (VitamClientInternalException e) {
@@ -334,7 +339,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (actionId.equals(ProcessAction.START)) {
             ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-            headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+            headers.add(X_CONTEXT_ID, contextId);
         }
         Response response = null;
         try {
@@ -368,7 +373,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public Response initVitamProcess(String contextId, String container, String workFlow)
         throws InternalServerException, VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, ProcessAction.INIT);
+        headers.add(X_CONTEXT_ID, ProcessAction.INIT);
 
         Response response = null;
         try {
@@ -403,7 +408,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+            headers.add(X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
 
             response = performRequest(HttpMethod.GET, OPERATION_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);
