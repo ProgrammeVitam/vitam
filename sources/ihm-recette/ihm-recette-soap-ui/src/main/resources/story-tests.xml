@@ -180,6 +180,8 @@ reqEntity.setChunked(true);
 
 if (context.inputJSON.params[i].tenant != null){
 	httppost.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
+} else {
+	httppost.addHeader("X-Tenant-Id", "0");
 }
 	
 httppost.setEntity(reqEntity);
@@ -252,6 +254,10 @@ if (context.category == "Test API external"){
  			reqEntity.setContentType("application/json");
 
 			httpput.setHeader("Accept-Encoding", "UTF-8");
+
+			if (context.inputJSON.params[i].actions[n].tenant != null){
+ 				httpput.addHeader("X-Tenant-Id", context.inputJSON.params[i].actions[n].tenant);
+ 			}
  		
  			httpput.setEntity(reqEntity);
  			response = http.execute(httpput);
@@ -319,6 +325,13 @@ if (context.category == "Test API external"){
 	}	
 } else {
 	HttpGet httpGet = new HttpGet(url);
+	
+	if (context.inputJSON.params[i].tenant != null){
+		httpGet.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
+	} else {
+		httpGet.addHeader("X-Tenant-Id", "0");
+	}
+	
 	response = http.execute(httpGet);
 
 	if (response !=null )
@@ -392,7 +405,12 @@ if (context.category == "Test API external"){
 boolean resultControl(def response, def expected){
 	def result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity, "UTF-8"))
 	boolean res = false;
-	context.unitId = result.$results[0]["#id"];
+	
+	if (response.getStatusLine().getStatusCode() == 200 ){
+		if (result.$results[0] != null){
+			context.unitId = result.$results[0]["#id"];	
+		}	 
+	}
 
 	for (a = 0; a < expected.size; a++){
 		if (expected[a].keySet()[0] == "httpStatusCode") {
