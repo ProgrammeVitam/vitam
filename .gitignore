@@ -4,7 +4,7 @@ build
 target
 .classpath
 .project
-npm-debug.log
+npm-debug.log*
 .class
 .settings
 **/node_modules/
