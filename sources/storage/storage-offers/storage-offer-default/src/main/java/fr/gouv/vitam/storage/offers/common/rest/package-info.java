@@ -27,4 +27,4 @@
 /**
  * Provides the web server application and configuration for the for the Storage Offer Default module and the rest resources it uses.
  */
-package fr.gouv.vitam.storage.offers.workspace.rest;
+package fr.gouv.vitam.storage.offers.common.rest;

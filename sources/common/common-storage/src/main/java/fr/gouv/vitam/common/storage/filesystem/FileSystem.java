@@ -92,6 +92,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
             baseDirFile = new File(baseDir);
         }
         if (!baseDirFile.exists()) {
+        	LOGGER.error("container not found: " + containerName + "(BaseDir File: " + baseDirFile + ")");
             throw new ContentAddressableStorageNotFoundException("Storage not found");
         }
         return baseDirFile;

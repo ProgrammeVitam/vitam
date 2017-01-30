@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.offers.workspace.rest;
+package fr.gouv.vitam.storage.offers.common.rest;
 
 import static java.lang.String.format;
 

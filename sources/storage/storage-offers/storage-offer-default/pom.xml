@@ -127,7 +127,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication</mainClass>
+							<mainClass>fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
