@@ -88,7 +88,7 @@ public enum DataCategory {
      */
     public static DataCategory getByFolder(String folder) {
         for (final DataCategory v : values()) {
-            if (v.getFolder().equals(folder)) {
+            if (v.getFolder().equalsIgnoreCase(folder)) {
                 return v;
             }
         }

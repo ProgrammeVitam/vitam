@@ -39,11 +39,11 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -142,16 +142,11 @@ public class DefaultOfferResourceTest {
     public void deleteExistingFiles() throws Exception {
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        File container = new File(conf.getStoragePath() + "/UNIT_1");
-        File container1 = new File(conf.getStoragePath() + "/1");
-        final File object2 = new File(container.getAbsolutePath(), "/id1");
-        final File object1 = new File(container1.getAbsolutePath(), "/id1");
-        Files.deleteIfExists(object1.toPath());
-        Files.deleteIfExists(object2.toPath());
-        Files.deleteIfExists(container.toPath());
-        Files.deleteIfExists(container1.toPath());
-        container = new File(conf.getStoragePath() + "/0" + this);
-        Files.deleteIfExists(container.toPath());
+        // delete directories recursively
+        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/UNIT_1")));
+        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/UNIT_2")));
+        // for skipped test (putObjectChunkTest)
+        // FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/1")));
     }
 
     @Test

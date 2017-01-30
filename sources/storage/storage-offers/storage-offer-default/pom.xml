@@ -181,7 +181,7 @@
 					<disabled>false</disabled>
 				</configuration>
 			</plugin>
-
+			
 		</plugins>
 
 	</build>
