@@ -44,7 +44,7 @@ angular.module('ihm.demo')
         return input;
       }
     })
-  .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
+  .controller('logbookController', function($scope, $window, $timeout, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 1;
@@ -67,6 +67,9 @@ angular.module('ihm.demo')
     }
 
     ctrl.getLogbooks = function() {
+      ctrl.logbookEntryList = [];
+      ctrl.results = 0;
+      ctrl.noResult = false;
       ctrl.searchOptions.INGEST = "all";
       ctrl.searchOptions.orderby = "evDateTime";
       if(ctrl.searchOptions.obIdIn === ""){
@@ -127,6 +130,7 @@ angular.module('ihm.demo')
         };
 
     ctrl.clearSearchOptions = function() {
+      ctrl.noResult = false;
       ctrl.searchOptions = {};
     };
 
