@@ -202,8 +202,9 @@ public class ProcessingIT {
     private static String SIP_ORPHELINS = "integration-processing/SIP-orphelins.zip";
     private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
     private static String SIP_WITHOUT_OBJ = "integration-processing/OK_SIP_sans_objet.zip";
-    private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";
+    private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";       
     private static String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
+    private static String SIP_MANIFEST_INCORRECT_REFERENCE = "integration-processing/KO_Reference_Unexisting.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -874,8 +875,10 @@ public class ProcessingIT {
     }
 
     @RunWithCustomExecutor
-    @Test(expected = ProcessingInternalServerException.class)
-    public void testWorkflowSipCausesFatalThenProcessingInternalServerException() throws Exception {
+    @Test
+    // as now errors with xml are handled in ExtractSeda (not a FATAL but a KO
+    // it s no longer an exception that is obtained
+    public void testWorkflowSipCausesKO() throws Exception {
     	VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         tryImportFile();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
@@ -898,7 +901,10 @@ public class ProcessingIT {
         RestAssured.port = PORT_SERVICE_PROCESSING;
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+        assertNotNull(ret);
+        // check conformity in warning state
+        assertEquals(StatusCode.KO, ret.getGlobalStatus());
 
     }
 
@@ -1154,5 +1160,46 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowIncorrectManifestReference() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_MANIFEST_INCORRECT_REFERENCE);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // File formar warning state
+            assertEquals(StatusCode.KO, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+    
 
 }
