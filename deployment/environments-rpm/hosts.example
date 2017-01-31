@@ -245,8 +245,8 @@ vitam_tenant_ids=[0,1,2]
 vitam_provider_offer=openstack-swift
 # URL d'authentification si openstack-swift
 vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
-# Identifiant de compte (le mot de passe est renseigné dans vault.yml)
-vitam_keystone_login=
-# Nom du tenant associé
-vitam_tenant_name=
+# subUser pour swift
+vitam_swift_subuser=
+# Nom du tenant associé (concaténation tenant$user ; le mot de passe est renseigné dans vault.yml sous la directive vitam_keystone_passwd )
+vitam_swift_uid=
 

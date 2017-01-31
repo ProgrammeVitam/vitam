@@ -102,7 +102,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
     private ContextBuilder getContextBuilder(StorageConfiguration configuration) {
         ContextBuilder contextBuilder = ContextBuilder.newBuilder(configuration.getProvider())
             .endpoint(configuration.getKeystoneEndPoint())
-            .credentials(configuration.getTenantName() + ":" + configuration.getUserName(),
+            .credentials(configuration.getSwiftUid() + ":" + configuration.getSwiftSubUser(),
                 configuration.getCredential());
         // ceph swift
         if (configuration.isCephMode()) {

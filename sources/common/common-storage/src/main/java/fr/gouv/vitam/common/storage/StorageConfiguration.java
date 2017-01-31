@@ -35,8 +35,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String provider;
     private String keystoneEndPoint;
-    private String tenantName;
-    private String userName;
+    private String swiftUid;
+    private String swiftSubUser;
     private String credential;
     private String storagePath;
     private Boolean cephMode;
@@ -79,34 +79,34 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     /**
      * @return the tenantName
      */
-    public String getTenantName() {
-        return tenantName;
+    public String getSwiftUid() {
+        return swiftUid;
     }
 
     /**
-     * @param tenantName the tenantName to set
+     * @param swiftUid the tenantName to set
      *
      * @return this
      */
-    public StorageConfiguration setTenantName(String tenantName) {
-        this.tenantName = tenantName;
+    public StorageConfiguration setSwiftUid(String swiftUid) {
+        this.swiftUid = swiftUid;
         return this;
     }
 
     /**
-     * @return the userName
+     * @return the swiftSubUser
      */
-    public String getUserName() {
-        return userName;
+    public String getSwiftSubUser() {
+        return swiftSubUser;
     }
 
     /**
-     * @param userName the userName to set
+     * @param swiftSubUser the userName to set
      *
      * @return this
      */
-    public StorageConfiguration setUserName(String userName) {
-        this.userName = userName;
+    public StorageConfiguration setSwiftSubUser(String swiftSubUser) {
+        this.swiftSubUser = swiftSubUser;
         return this;
     }
 
