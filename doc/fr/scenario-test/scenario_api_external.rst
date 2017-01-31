@@ -210,7 +210,7 @@ Opérateur : $exists, $missing, $isNull
 
 Opérateur : $in, $nin
 
-*Cas de test :* 
+*Cas de test :*
 
 - *#TAB1* : chercher les producteur qui a versé plus de 5 et moins de 10 objets ($in)
 - *#TAB2* : chercher les producteur qui a versé moins de 5 ou plus de 10 objets ($nin)
@@ -377,15 +377,10 @@ Opérateur : $set, unset
 - Chercher les archive units dont la description est “privé” et ne vouloir en résultat uniquement les valeurs des titres et des dates de transaction
 
 
-
-3. Scénarios de tests par modules
+3. Scénarios de tests non implémentés, par modules
 ##########################################################
 
-**3.1 Logbook module (LGM)**
-
-**3.1.1 Logbook opération (LGMO)**
-
-Afficher les opérations en warning des SIP versés dans les 10 dernières minutes
+**1. Logbook module opération (LGMO) : Afficher les opérations en warning des SIP versés dans les 10 dernières minutes**
 
 Code : LGMO1
 
@@ -438,12 +433,62 @@ Critères d'acceptance:
 La requête doit retourner l’ID de l’opération du versement
 $result.#id = id du SIP WARNING_SIP_sans_objet.zip
 
+**2. Registre des fonds : lister tous les producteurs qui ont versé plus de 5 objets**
+
+Code : RGSTR1
+
+``API:  {{accessServiceUrl}}/access-external/v1/accession-register``
 
 
+*Pré-requis : *
 
-**3.2. Search (SRC)**
+Note : SIP avec producteurs ayant versé plus de 5 et moins de 5 objets
 
-**3.2.1 Chercher les unités d’archives dont les dates extrêmes sont contenues entre 1914-1918 (inclus) et qui contiennent des objets**
+- Verser OK_SIP_RGSTR1_PRODUCTEUR_6OBJ.zip contenant le producteur FRAN_NP_001 versant 6 objets
+
+- Verser OK_SIP_RGSTR1_PRODUCTEUR_1OBJ contenant le producteur FRAN_NP_002 versant 1 objet.zip
+
+*Requête :*
+
+ {
+   "$query": {
+     "$and": [
+       {
+         "$exists": "OriginatingAgency"
+       },
+       {
+         "$gt": {
+           "TotalObjectGroups.Total": 5
+         }
+       }
+     ]
+   },
+   "$filter": {
+     "$orderby": {
+       "OriginatingAgency": 1
+     }
+   },
+   "$projection": {}
+ }
+
+*Critères d’acceptance :*
+
+La réponse doit renvoyer uniquement le bon producteur :
+“OriginatingAgencyIdentifier” : “FRAN_NP_001”
+
+Pour pouvoir exécuter plusieurs fois ce même cas de test sans devoir purger le registre des fonds (ce qui nuirait à l’utilisation normale de la plateforme), il sera intéressant de diversifier automatiquement le nom des producteurs de ces deux SIP afin de les rendre unique à chaque fois que le test est lancé.
+
+Dans le cas contraire FRAN_NP_002 aura versé un objet la première que les tests sont lancés,
+2 objets la 2eme fois que le test est lancé sans purge de la base,
+6 objets la 6ème fois, ce qui aura pour conséquence que FRAN_NP_002 aura lui aussi versé plus de 6 objets au total et se retrouvera dans les résultats, ce qui n’est pas le comportement désiré pour garantir une bonne qualité du jeu de test.
+
+
+4. Scénarios de tests implémentés, par modules
+##########################################################
+
+**1. Search (SRC)**
+
+**1.1. Chercher les unités d’archives dont les dates extrêmes sont contenues entre 1914-1918 (inclus) et qui contiennent des objets**
 
 Code : SRC1
 
@@ -516,7 +561,7 @@ $result.StartDate = ‘1917-01-01’
 $result.EndDate = ‘1918-01-01’
 
 
-**3.2.2 Chercher les unités dont le titre contient “Rectorat” et dont la description contient “public” ou “privé”**
+**1.2. Chercher les unités dont le titre contient “Rectorat” et dont la description contient “public” ou “privé”**
 
 Code : SRC2
 
@@ -602,7 +647,7 @@ Ainsi que:
 _Id = identifiant de l’opération ayant versée le SIP
 
 
-**4. Référentiel des règles de gestion (REFRG) : afficher les règles de type AppraisalRule ET dont l'intitulé est "Dossier individuel d’agent civil"**
+**2. Référentiel des règles de gestion (REFRG) : afficher les règles de type AppraisalRule ET dont l'intitulé est "Dossier individuel d’agent civil"**
 
 Code : REFRG2
 
@@ -651,12 +696,7 @@ La requête doit retourner le résultat qui contient  :
 Si la règle n’existe pas, il va retourner la réponse avec statut 500 (Il doit être 404. Le code est à corriger)
 
 
-
-
-
-
-
-**5. Référentiel des formats (REFRMT) : afficher tous les formats relatifs aux PNG**
+**3. Référentiel des formats (REFRMT) : afficher tous les formats relatifs aux PNG**
 
 Code : REFRMT1
 
@@ -696,7 +736,7 @@ Content = [...]
 
 Capture d’écran du résultat sur le site des archives nationales anglaises pour la recherche PNG
 
-**6. Mise à jour : modifier le titre et la description d’une unité d'archive**
+**4. Mise à jour : modifier le titre et la description d’une unité d'archive**
 
 Code : UPDATE1
 
@@ -732,54 +772,6 @@ En recherchant cette unité d’archive par son identifiant, on doit retrouver c
 
 - “Description” :  "Dossier relatifs aux secteurs publics et privés"
 
-**7. Registre des fonds : lister tous les producteurs qui ont versé plus de 5 objets**
-
-Code : RGSTR1
-
-``API:  {{accessServiceUrl}}/access-external/v1/accession-register``
-
-
-*Pré-requis : *
-
-Note : SIP avec producteurs ayant versé plus de 5 et moins de 5 objets
-
-- Verser OK_SIP_RGSTR1_PRODUCTEUR_6OBJ.zip contenant le producteur FRAN_NP_001 versant 6 objets
-
-- Verser OK_SIP_RGSTR1_PRODUCTEUR_1OBJ contenant le producteur FRAN_NP_002 versant 1 objet.zip
-
-*Requête :*
-
- {
-   "$query": {
-     "$and": [
-       {
-         "$exists": "OriginatingAgency"
-       },
-       {
-         "$gt": {
-           "TotalObjectGroups.Total": 5
-         }
-       }
-     ]
-   },
-   "$filter": {
-     "$orderby": {
-       "OriginatingAgency": 1
-     }
-   },
-   "$projection": {}
- }
-
-*Critères d’acceptance :*
-
-La réponse doit renvoyer uniquement le bon producteur :
-“OriginatingAgencyIdentifier” : “FRAN_NP_001”
-
-Pour pouvoir exécuter plusieurs fois ce même cas de test sans devoir purger le registre des fonds (ce qui nuirait à l’utilisation normale de la plateforme), il sera intéressant de diversifier automatiquement le nom des producteurs de ces deux SIP afin de les rendre unique à chaque fois que le test est lancé.
-
-Dans le cas contraire FRAN_NP_002 aura versé un objet la première que les tests sont lancés,
-2 objets la 2eme fois que le test est lancé sans purge de la base,
-6 objets la 6ème fois, ce qui aura pour conséquence que FRAN_NP_002 aura lui aussi versé plus de 6 objets au total et se retrouvera dans les résultats, ce qui n’est pas le comportement désiré pour garantir une bonne qualité du jeu de test.
 
 
 
@@ -1211,7 +1203,7 @@ Accept : application/json ; Content-Type : application/json ; X-Tenant-Id : 0 ; 
 
 La réponse doit être 200 OK et le résultat doit renvoyer le journal du cycle de vie de l’unité d’archive.
 
-7. Accès au journal du cycle de vie d'une unité d’archive versée par sip1 sur le tenant 0 (journal de l’unité introuvable)
+8. Accès au journal du cycle de vie d'une unité d’archive versée par sip1 sur le tenant 0 (journal de l’unité introuvable)
 -----------------------------------------------------------------------------------------------------------------------------
 
 Code : #AUOG8
