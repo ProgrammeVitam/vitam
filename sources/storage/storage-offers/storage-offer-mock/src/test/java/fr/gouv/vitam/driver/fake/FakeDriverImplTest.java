@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
@@ -113,6 +114,19 @@ public class FakeDriverImplTest {
 
         assertNotNull(connect.removeObject(new StorageRemoveRequest(tenant, "type", "digest_bad_test")));
         assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
+
+        final StorageCheckRequest storageCheckRequest = new StorageCheckRequest(2, "type", "digest_test",
+            VitamConfiguration.getDefaultDigestType(), null);
+        assertNotNull(connect.checkObject(storageCheckRequest));
+
+        try {
+            final StorageCheckRequest storageCheckRequest2 = new StorageCheckRequest(-1, "type", "digest_bad_test",
+                VitamConfiguration.getDefaultDigestType(), null);
+            connect.checkObject(storageCheckRequest2);
+            fail("Should raized an exception");
+        } catch (final StorageDriverException e) {
+
+        }
 
         connect.close();
     }

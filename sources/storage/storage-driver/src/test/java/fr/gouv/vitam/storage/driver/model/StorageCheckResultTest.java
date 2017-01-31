@@ -25,34 +25,56 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.engine.common;
+package fr.gouv.vitam.storage.driver.model;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 
 /**
- * Common storage values
+ *
  */
-public final class StorageConstants {
-    /**
-     * X-Command header INIT value
-     */
-    public static final String COMMAND_INIT = "INIT";
+public class StorageCheckResultTest {
+    private static StorageCheckResult storageCheckResult;
+    private static final Integer TENANT_ID = 0;
 
-    /**
-     * X-Command header WRITE value
-     */
-    public static final String COMMAND_WRITE = "WRITE";
-
-    /**
-     * X-Command header END value
-     */
-    public static final String COMMAND_END = "END";
-
-    /**
-     * Storage object verification
-     */
-    public static final String OBJECT_VERIFICATION = "objectVerification";
-
-    private StorageConstants() {
-        // Just hiding empty constructor
+    @BeforeClass
+    public static void init() {
+        storageCheckResult = new StorageCheckResult(TENANT_ID, "object", "guid",
+            VitamConfiguration.getDefaultDigestType(), "digest", true);
     }
 
+
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageCheckResult.getTenantId());
+    }
+
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals("object", storageCheckResult.getType());
+    }
+
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storageCheckResult.getGuid());
+    }
+
+    @Test
+    public void testGetSetDistantObjectId() {
+        assertEquals(VitamConfiguration.getDefaultDigestType(), storageCheckResult.getDigestAlgorithm());
+    }
+
+    @Test
+    public void testGetDigestHashBase16() {
+        assertEquals("digest", storageCheckResult.getDigestHashBase16());
+    }
+
+    @Test
+    public void testIsDigestMatch() {
+        assertEquals(true, storageCheckResult.isDigestMatch());
+    }    
 }

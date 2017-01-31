@@ -24,35 +24,54 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.driver.model;
 
-package fr.gouv.vitam.storage.engine.common;
+import fr.gouv.vitam.common.digest.DigestType;
 
 /**
- * Common storage values
+ * Holds minimal needed parameters that may be needed to send a request on an object on the distant storage offer :
+ * check object.
  */
-public final class StorageConstants {
-    /**
-     * X-Command header INIT value
-     */
-    public static final String COMMAND_INIT = "INIT";
+public class StorageCheckRequest extends StorageObjectRequest {
+
+
+    private final DigestType digestAlgorithm;
+    private final String digestHashBase16;
 
     /**
-     * X-Command header WRITE value
+     * Initialize the needed parameters for request.
+     * 
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
+     * @param digestAlgorithm the digest Algorithm
+     * @param digestHashBase16 the digest HashBase 16
      */
-    public static final String COMMAND_WRITE = "WRITE";
-
-    /**
-     * X-Command header END value
-     */
-    public static final String COMMAND_END = "END";
-
-    /**
-     * Storage object verification
-     */
-    public static final String OBJECT_VERIFICATION = "objectVerification";
-
-    private StorageConstants() {
-        // Just hiding empty constructor
+    public StorageCheckRequest(Integer tenantId, String type, String guid, DigestType digestAlgorithm,
+        String digestHashBase16) {
+        super(tenantId, type, guid);
+        this.digestAlgorithm = digestAlgorithm;
+        this.digestHashBase16 = digestHashBase16;
     }
+
+    /**
+     * Gets the digestAlgorithm
+     * 
+     * @return the digestAlgorithm
+     */
+    public DigestType getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+    /**
+     * Gets the digestHashBase16
+     * 
+     * @return the digestHashBase16
+     */
+    public String getDigestHashBase16() {
+        return digestHashBase16;
+    }
+
+
 
 }

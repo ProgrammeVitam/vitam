@@ -44,6 +44,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
+import org.hamcrest.Matchers;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,6 +59,9 @@ import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -67,7 +71,6 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 
 /**
  * DefaultOfferResource Test
@@ -83,6 +86,7 @@ public class DefaultOfferResourceTest {
     private static JunitHelper junitHelper;
     private static final String OBJECTS_URI = "/objects";
     private static final String OBJECT_TYPE_URI = "/{type}";
+    private static final String CHECK_URI = "/check";
     private static final String OBJECT_ID_URI = "/{id}";
     private static final String STATUS_URI = "/status";
     private static final String UNIT_CODE = "UNIT";
@@ -94,7 +98,6 @@ public class DefaultOfferResourceTest {
     private static final ObjectMapper OBJECT_MAPPER;
     private static DefaultOfferApplication application;
 
-    private static final String X_CONTAINER_NAME = "X_CONTAINER_NAME";
 
     static {
 
@@ -171,7 +174,7 @@ public class DefaultOfferResourceTest {
             .content(objectInit).when().post(OBJECTS_URI + "/" + UNIT_CODE + "/" + "id1").then().statusCode(201);
         // test
         given().header(GlobalDataRest.X_TENANT_ID, 1)
-        	.when().get(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(200);
+            .when().get(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(200);
     }
 
     @Test
@@ -271,7 +274,8 @@ public class DefaultOfferResourceTest {
     public void postObjectsTest() throws Exception {
         final String guid = GUIDFactory.newGUID().toString();
         // no tenant id
-        given().contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + UNIT_CODE + "/" + guid).then().statusCode(400);
+        given().contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + UNIT_CODE + "/" + guid).then()
+            .statusCode(400);
 
         // no command
         given().header(GlobalDataRest.X_TENANT_ID, "2").contentType(MediaType.APPLICATION_JSON).when()
@@ -288,7 +292,8 @@ public class DefaultOfferResourceTest {
         // no ObjectInit
         given().header(GlobalDataRest.X_TENANT_ID, "2")
             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
-            .contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + UNIT_CODE + "/" + guid).then().statusCode(400);
+            .contentType(MediaType.APPLICATION_JSON).when().post(OBJECTS_URI + "/" + UNIT_CODE + "/" + guid).then()
+            .statusCode(400);
 
         final ObjectInit objectInit = new ObjectInit();
         objectInit.setType(DataCategory.UNIT);
@@ -310,7 +315,8 @@ public class DefaultOfferResourceTest {
     @Test
     public void putObjectTest() throws Exception {
         // no tenant id
-        given().contentType(MediaType.APPLICATION_OCTET_STREAM).when().put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then()
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM).when()
+            .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then()
             .statusCode(400);
 
         // No command
@@ -321,7 +327,8 @@ public class DefaultOfferResourceTest {
         // Bad command
         given().header(GlobalDataRest.X_TENANT_ID, "2")
             .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
-            .contentType(MediaType.APPLICATION_OCTET_STREAM).when().put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then()
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).when()
+            .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then()
             .statusCode(400);
 
         // No INIT
@@ -490,12 +497,76 @@ public class DefaultOfferResourceTest {
 
     @Test
     public void deleteObjectTest() {
-        given().header(GlobalDataRest.X_TENANT_ID, 0).delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(501);
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(501);
     }
 
     @Test
     public void statusTest() {
         given().get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
+    }
+
+    @Test
+    public void checkObjectTestNotExisting() {
+        // no object -> 500
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_DIGEST, "digest").header(GlobalDataRest.X_DIGEST_ALGORITHM, "digestType")
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(500);
+    }
+
+    @Test
+    public void checkObjectTestBadRequests() {
+        given().header(GlobalDataRest.X_DIGEST, "digest").header(GlobalDataRest.X_DIGEST_ALGORITHM, "digestType")
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(400);
+
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_DIGEST, "digest")
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(400);
+
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, "digestType")
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(400);
+    }
+
+    @Test
+    public void checkObjectTest() throws Exception {
+
+        // init object
+        final ObjectInit objectInit = new ObjectInit();
+        Digest digest = null;
+        objectInit.setType(DataCategory.OBJECT);
+        with().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectInit).when().post(OBJECTS_URI + "/" + OBJECT_CODE + "/" + "id1");
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertNotNull(in);
+            with().header(GlobalDataRest.X_TENANT_ID, "1")
+                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
+        }
+
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+
+        String responseFalseAsString = "{\"objectVerification\":false}";
+
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST, "fakeDigest")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(200)
+            .body(Matchers.equalTo(responseFalseAsString));
+
+        String responsetrueAsString = "{\"objectVerification\":true}";
+
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST, digest.toString())
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(200)
+            .body(Matchers.equalTo(responsetrueAsString));
+
     }
 
 }

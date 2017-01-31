@@ -500,4 +500,25 @@ public class FileSystemTest {
 
 
 
+    @Test
+    public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
+        throws ContentAddressableStorageException, IOException {
+        storage.createContainer(CONTAINER_NAME);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+        final Digest digest = new Digest(ALGO);
+        digest.update(getInputStream("file1.pdf"));
+        assertTrue(storage.checkObject(CONTAINER_NAME, OBJECT_NAME, digest.toString(), DigestType.MD5));
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenObjectNotExistingWhenCheckObjectThenOK()
+        throws ContentAddressableStorageException, IOException {        
+        storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", DigestType.MD5);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullParamWhenCheckObjectThenRaiseAnException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
+    }
 }

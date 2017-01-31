@@ -26,32 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageGetResult;
-import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
-import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
-import fr.gouv.vitam.storage.driver.model.StoragePutResult;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -64,17 +49,41 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 
 public class ConnectionImplTest extends VitamJerseyTest {
 
@@ -157,14 +166,21 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/objects")
+        @Path("/objects/{type}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getContainerInformation() {
             return expectedResponse.get();
         }
 
+        @GET
+        @Path("/objects/{type}/{id:.+}/check")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkObject(@PathParam("id") String objectId) {
+            return expectedResponse.get();
+        }
+
         @POST
-        @Path("/objects/{guid:.+}")
+        @Path("/objects/{type}/{guid:.+}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response postObject(@PathParam("guid") String objectGUID, ObjectInit objectInit) {
@@ -172,7 +188,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
 
         @PUT
-        @Path("/objects/{guid:.+}")
+        @Path("/objects/{type}/{guid:.+}")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
         public Response putObject(@PathParam("id") String objectId, InputStream input) {
@@ -180,7 +196,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/objects/{id:.+}")
+        @Path("/objects/{type}/{id:.+}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
         public Response getObject(@PathParam("id") String objectId) {
@@ -523,6 +539,79 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
     }
 
+    @Test
+    public void checkObjectTestOK() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(getCheckObjectResult()).build());
+        StorageCheckResult storageCheckResult =
+            connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
+        assertNotNull(storageCheckResult);
+        assertEquals(true, storageCheckResult.isDigestMatch());
+    }
+
+    @Test
+    public void checkObjectTestIllegalArgument() throws Exception {
+        try {
+            connection.checkObject(null);
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.checkObject(getStorageCheckRequest(false, true, true, true, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.checkObject(getStorageCheckRequest(true, false, true, true, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.checkObject(getStorageCheckRequest(true, true, false, true, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.checkObject(getStorageCheckRequest(true, true, true, false, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.checkObject(getStorageCheckRequest(true, true, true, true, false));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void checkObjectTestNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void checkObjectTestPreconditionFailed() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void checkObjectTestInternalServerError() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(expected = StorageDriverException.class)
+    public void checkObjectTestVitamClientException() throws Exception {
+        when(mock.get()).thenThrow(VitamClientInternalException.class);
+        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
+    }
 
     private StoragePutRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,
         boolean putTenantId, boolean putType)
@@ -551,6 +640,33 @@ public class ConnectionImplTest extends VitamJerseyTest {
         return new StoragePutRequest(tenantId, type, guid, digest, stream);
     }
 
+    private StorageCheckRequest getStorageCheckRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
+        boolean putTenantId, boolean putType)
+        throws Exception {
+        DigestType digestType = null;
+        String digest = null;
+        String guid = null;
+        Integer tenantId = null;
+        String type = null;
+
+        if (putDigestType) {
+            digestType = VitamConfiguration.getDefaultDigestType();
+        }
+        if (putDigestA) {
+            digest = "digest";
+        }
+        if (putGuid) {
+            guid = "GUID";
+        }
+        if (putTenantId) {
+            tenantId = tenant;
+        }
+        if (putType) {
+            type = DataCategory.OBJECT.getFolder();
+        }
+        return new StorageCheckRequest(tenantId, type, guid, digestType, digest);
+    }
+
     private ObjectInit getPostObjectResult(int uniqueId) {
         final ObjectInit object = new ObjectInit();
         object.setId("" + uniqueId);
@@ -570,6 +686,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
         final ObjectMapper mapper = new ObjectMapper();
         final JsonNode result = mapper.readTree("{\"tenantId\":\"1" + "\",\"usableSpace\":\"100000\"," +
             "\"usedSpace\":\"100000\"}");
+        return result;
+    }
+
+    private JsonNode getCheckObjectResult() throws IOException {
+        final ObjectNode result = JsonHandler.createObjectNode();
+        result.put(StorageConstants.OBJECT_VERIFICATION, true);
         return result;
     }
 
