@@ -79,7 +79,7 @@ angular.module('core')
 
   // Save archive unit modifications
   dataFactory.saveArchiveUnit = function(unitId, modifiedFields){
-    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_UPDATE_ROOT).all(IHM_URLS.ARCHIVE_UPDATE_UNITS + unitId).put(modifiedFields);
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_UPDATE_ROOT+'/'+IHM_URLS.ARCHIVE_UPDATE_UNITS).one(unitId).put(modifiedFields);
   };
 
   //Get Object Group
