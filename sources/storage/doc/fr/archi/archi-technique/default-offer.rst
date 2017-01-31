@@ -15,6 +15,7 @@ L'offre de stockage workspace est séparé en deux parties :
 - le serveur de l'offre de stockage par défaut
 - l'implémentation du driver associé à l'offre de stockage par défaut
 
+Dans l'offre, tout les objets binaires sont stockés dans des conteneur définis par : {type}_{tenant}. Un objet binaire est lui définit par son identifiant ET son conteneur. 
 
 Driver
 ******
@@ -36,6 +37,7 @@ Les fonctionnalités sont :
 - récupérer un objet
 - tester l'existence d'un objet
 - récupérer l'empreinte d'un objet
+- compter le nombre d'objets d'un conteneur
 
 REST
 ====
@@ -71,6 +73,24 @@ REST API
 
   - code : 200
   - contenu : information sur l'offre (capacité, disponibilité, ...)
+
+
+**GET /{type}/count**
+
+- description : compter le nombre d'objet d'un conteneur de l'offre
+
+- headers :
+
+  - X-Tenant-Id: id du tenant
+
+- path :
+
+  - {type} : le type permettant d'identifier un conteneur (unit/report/logbook/etc, se basant sur une enum)
+
+- response :
+
+  - code : 200
+  - contenu : le nombre d'objets binaires (hors répertoires)
 
 
 **GET /objects/{id}**

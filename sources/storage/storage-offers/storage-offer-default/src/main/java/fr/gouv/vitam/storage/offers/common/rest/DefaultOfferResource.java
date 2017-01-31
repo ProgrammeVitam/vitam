@@ -132,6 +132,38 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
 
     /**
+     * Count the number of objects on the offer objects defined container (exlude directories)
+     *
+     * @param xTenantId
+     * @param xContainerName
+     * @return number of binary objects in the container
+     *
+     */
+    @GET
+    @Path("/objects/{type}/count")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("type") DataCategory type) {
+        final String containerName = buildContainerName(type, xTenantId);
+        if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            final JsonNode result = DefaultOfferServiceImpl.getInstance().countObjects(containerName);
+            return Response.status(Response.Status.OK).entity(result).build();
+        } catch (final ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (final ContentAddressableStorageServerException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
+    /**
      * Get the object data or digest from its id.
      * <p>
      * HEADER X-Tenant-Id (mandatory) : tenant's identifier HEADER "X-type" (optional) : data (dfault) or digest

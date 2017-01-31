@@ -28,62 +28,36 @@
 package fr.gouv.vitam.storage.driver.model;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.ByteArrayInputStream;
-
-import javax.ws.rs.core.Response;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * TEst for PutObjectRequestTest
+ * Test for StorageCountResultTest
  */
-public class RequestResultTest {
-    private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
-    private static StorageObjectRequest getObjectRequest;
-    private static StorageGetResult getObjectResult;
-    private static StorageRemoveRequest removeObjectRequest;
-    private static StorageRemoveResult removeObjectResult;
-    private static StorageCapacityResult storageCapacityResult;
+public class StorageCountResultTest {
     private static StorageCountResult storageCountResult;
     private static final Integer TENANT_ID = 0;
 
-
     @BeforeClass
     public static void init() {
-        getObjectRequest = new StorageObjectRequest(TENANT_ID, "object", "oi");
-        getObjectResult = new StorageGetResult(TENANT_ID, "object", "oi", Response.ok(BYTES).build());
-        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi");
-        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi");
-        storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
         storageCountResult = new StorageCountResult(TENANT_ID, "object", 2L);
     }
 
     @Test
-    public void testGetObject() throws Exception {
-        assertNotNull(getObjectRequest);
-        assertNotNull(getObjectResult);
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageCountResult.getTenantId());
     }
 
     @Test
-    public void testRemoveObject() throws Exception {
-        assertNotNull(removeObjectRequest);
-        assertNotNull(removeObjectResult);
+    public void testGetType() throws Exception {
+        assertEquals("object", storageCountResult.getType());
     }
 
     @Test
-    public void testStorageCapacity() throws Exception {
-        assertNotNull(storageCapacityResult);
-        assertEquals(1000, storageCapacityResult.getUsableSpace());
-        assertEquals(100, storageCapacityResult.getUsedSpace());
-    }
-
-    @Test
-    public void testStorageCount() throws Exception {
-        assertNotNull(storageCountResult);
+    public void testGetNumberObjects() throws Exception {
         assertEquals(2L, storageCountResult.getNumberObjects());
     }
+
 
 }

@@ -65,6 +65,8 @@ import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
 /**
  * Workspace client which calls rest services
+ * <p>
+ * FIXME design : is it normal that the workspaceClient extends ContentAddressableStorage ?
  */
 public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage {
 
@@ -157,6 +159,34 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName, null,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return Response.Status.OK.getStatusCode() == response.getStatus();
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public long countObjects(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + "/count", null,
+                MediaType.APPLICATION_JSON_TYPE, false);
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                JsonNode node = response.readEntity(JsonNode.class);
+                return node.get("objectNumber").asLong();
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);

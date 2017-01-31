@@ -47,6 +47,7 @@ import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 
 public class FakeDriverImplTest {
 
@@ -111,6 +112,8 @@ public class FakeDriverImplTest {
             new StoragePutRequest(tenant, "type", "digest_bad_test",
                 VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
+
+        assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
         assertNotNull(connect.removeObject(new StorageRemoveRequest(tenant, "type", "digest_bad_test")));
         assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));

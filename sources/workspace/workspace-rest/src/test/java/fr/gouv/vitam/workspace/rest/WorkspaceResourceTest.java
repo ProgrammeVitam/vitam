@@ -528,7 +528,20 @@ public class WorkspaceResourceTest {
         given().contentType(ContentType.JSON).body(new Entry(FOLDER_NAME)).then()
             .statusCode(Status.NO_CONTENT.getStatusCode()).when()
             .get("/containers/" + CONTAINER_NAME + "/folders/" + FAKE_FOLDER_NAME);
-
     }
+
+    @Test
+    public void givenContainerNotFoundWhenCountThenReturnNotFound() {
+        given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/count");
+    }
+
+    @Test
+    public void givenContainerExistsWhenCountThenReturnOk() {
+        with().contentType(ContentType.JSON).then().statusCode(Status.CREATED.getStatusCode()).when()
+            .post("/containers/" + CONTAINER_NAME);
+        given().then().statusCode(Status.OK.getStatusCode()).when().get("/containers/" + CONTAINER_NAME + "/count");
+    }
+
 
 }

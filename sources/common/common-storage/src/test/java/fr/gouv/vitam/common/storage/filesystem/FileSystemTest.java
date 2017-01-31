@@ -40,6 +40,7 @@ public class FileSystemTest {
     private ContentAddressableStorageAbstract storage;
     private File tempDir;
     private static final String CONTAINER_NAME = "myContainer";
+    private static final String WRONG_CONTAINER_NAME = "myWrongContainer";
     private static final String FOLDER_NAME = "myFolder";
     private static final String OBJECT_NAME = "myObject";
     private static final String SLASH = "/";
@@ -498,7 +499,26 @@ public class FileSystemTest {
         assertTrue(storage.isExistingFolder(CONTAINER_NAME, SIP_FOLDER));
     }
 
+    @Test
+    public void countObjectsOK() throws Exception {
+        storage.createContainer(CONTAINER_NAME);
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.TAR, getInputStream(SIP_TAR));
+        long number = storage.countObjects(CONTAINER_NAME);
+        assertNotNull(number);
+        assertEquals(7, number);
+    }
 
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenContainerNotFoundWhenCountObjectsThenRaiseAnException()
+        throws ContentAddressableStorageNotFoundException {
+        storage.countObjects(WRONG_CONTAINER_NAME);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullContainerNameWhenCountObjectsThenRaiseAnException()
+        throws ContentAddressableStorageNotFoundException {
+        storage.countObjects(null);
+    }
 
     @Test
     public void givenObjectAlreadyExistsWhenCheckObjectThenOK()

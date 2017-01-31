@@ -176,6 +176,15 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return result;
     }
 
+    @Override
+    public JsonNode countObjects(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        final ObjectNode result = JsonHandler.createObjectNode();
+        final long objectNumber = defaultStorage.countObjects(containerName);
+        result.put("objectNumber", objectNumber);
+        return result;
+    }
+
     private DigestType getDigestAlgoFor(String id) {
         return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : VitamConfiguration.getDefaultDigestType();
     }

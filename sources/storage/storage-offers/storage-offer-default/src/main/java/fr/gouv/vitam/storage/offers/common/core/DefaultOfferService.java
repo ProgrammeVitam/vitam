@@ -154,4 +154,17 @@ public interface DefaultOfferService {
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
+
+    /**
+     * Count the number of objects in a container defined by the tenant and the type
+     *
+     * @param tenant the tenant id
+     * @param type the type name
+     * @return Json with number of objects (objectNumber)
+     * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
+     * @throws ContentAddressableStorageServerException
+     */
+    JsonNode countObjects(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+
 }
