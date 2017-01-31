@@ -104,7 +104,7 @@ Le résultat de la recherche est affiché sous forme de tableau, comprenant les 
 
 Par défaut, les colonnes sont triées par dates de versement, du plus récent au plus ancien.
 
-.. image:: images/op_entree_liste.jpg
+.. image:: images/op_entree_liste.png
 
 Depuis cette liste de résultats, l'utilisateur peut consulter le détail d'une opération d'entrée en cliquant sur la ligne de cette opération.
 

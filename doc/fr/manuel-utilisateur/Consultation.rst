@@ -18,7 +18,7 @@ Par défaut, le mode recherche simple est affiché.
 
 .. image:: images/recherche_simple.png
 
-Au clic sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche complexe.
+Au clic sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche avancé.
 
 .. image:: images/recherche_avancee.png
 
@@ -57,6 +57,8 @@ Pour initier la recherche avancée, l'utilisateur saisit ses éléments de reche
 
 Au clic sur le champ "Effacer", tous les champs dans lesquels des informations ont été saisies sont vidés de leurs contenus.
 
+.. image:: images/search_v2.png
+
 NB 1 : lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
 
 - la date de début doit être antérieure à la date de fin
@@ -65,8 +67,6 @@ NB 1 : lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, u
 .. image:: images/date_KO.png
 
 NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ. L'ID est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification (ATR).
-
-.. image:: images/search_v2.png
 
 Résultats de recherche
 ----------------------
@@ -80,11 +80,11 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 
 L'îcone "Résultat (X)" indique le nombre de résultats trouvé lorsque l'utilisateur effectue une recherche.
 
-.. image:: images/liste_resultats.jpg
+.. image:: images/liste_resultats.png
 
 Dans le cas où la recherche ne donne pas de résultats, un message informatif est remonté à l'utilisateur.
 
-.. image:: images/liste_resultats_KO.jpg
+.. image:: images/liste_resultats_KO.png
 
 Consultation du détail d'une unité archivistique
 ================================================
@@ -217,7 +217,7 @@ La recherche dans le registre des fonds s'effectue en utilisant le champ princip
 
 Pour initier la recherche, l'utilisateur presse la touche "Entrée" de son clavier ou clique sur le pictogramme de loupe. Un pictogramme en forme de croix permet de supprimer le texte saisi dans le champ de recherche.
 
-.. image:: images/registre_recherche.jpg
+.. image:: images/registre_recherche.png
 
 Affichage de la liste des résultats
 -----------------------------------
@@ -229,7 +229,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 
 L'îcone "Nombre de résultats : (X)" indique le nombre de résultats trouvé lorsque l'utilisateur effectue une recherche.
 
-.. image:: images/registre_resultats.jpg
+.. image:: images/registre_resultats.png
 
 Consultation du détail
 ----------------------
