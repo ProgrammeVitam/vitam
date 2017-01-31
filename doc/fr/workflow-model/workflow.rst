@@ -625,9 +625,9 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Test de l'existence du manifest.xml,
     
-    + Test s'il existe plusieurs fichiers de manifest.xml dans le SIP
+    + Test de l'existence d'un fichier unique à la racine du SIP
     
-    + Test s'il existe plusieurs répertoires de content dans le SIP 
+    + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
 
     + Validation XSD du manifeste,
 
