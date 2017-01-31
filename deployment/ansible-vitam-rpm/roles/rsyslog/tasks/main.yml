@@ -2,7 +2,7 @@
 # tasks file for rsyslog
 
 - name: ensure rsyslog package is installed
-  yum:
+  package:
     name: rsyslog
     state: latest
   notify:

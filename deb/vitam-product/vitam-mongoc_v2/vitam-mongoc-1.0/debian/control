@@ -1,0 +1,29 @@
+Source: vitam-mongoc
+Section: database
+Priority: optional
+Maintainer: Nico <nicolas.menetrier.ext@culture.gouv.fr>
+Build-Depends: debhelper (>=9), dh-systemd (>= 1.5)
+Standards-Version: 3.9.7
+Homepage: https://github.com/vitam
+#Vcs-Git: git://anonscm.debian.org/collab-maint/vitam-mongoc.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/vitam-mongoc.git
+
+Package: vitam-mongoc
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Service files for Vitam mongoc cluster configuration nodes
+ MongoDB is built for scalability, performance and high availability,
+   scaling from single server deployments to large,
+   complex multi-site architectures. By leveraging in-memory computing,
+   MongoDB provides high performance for both reads and writes.
+   MongoDB’s native replication and automated failover enable enterprise-grade
+   reliability and operational flexibility.
+ MongoDB is an open-source database used by companies of all sizes,
+   across all industries and for a wide variety of applications.
+   It is an agile database that allows schemas to change quickly as
+   applications evolve, while still providing the functionality
+   developers expect from traditional databases, such as secondary indexes,
+   a full query language and strict consistency.
+ MongoDB has a rich client ecosystem including hadoop integration,
+   officially supported drivers for 10 programming languages and environments,
+   as well as 40 drivers supported by the user community.

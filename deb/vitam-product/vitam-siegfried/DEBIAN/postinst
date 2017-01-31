@@ -1,0 +1,14 @@
+#!/bin/bash
+
+chown -R vitam:vitam /vitam/conf/siegfried
+chmod 750 /vitam/bin/siegfried
+chown -R vitam:vitam /vitam/bin/siegfried
+chmod 750 /vitam/conf/siegfried
+chown -R vitam:vitam /vitam/app/siegfried
+chmod 750 /vitam/data/siegfried
+
+chmod 640 /vitam/conf/siegfried/sysconfig/siegfried
+chmod 755 /vitam/bin/siegfried/sf
+chmod 755 /vitam/bin/siegfried/roy
+
+systemctl daemon-reload

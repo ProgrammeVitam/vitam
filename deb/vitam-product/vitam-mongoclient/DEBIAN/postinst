@@ -1,0 +1,23 @@
+#!/bin/bash
+
+echo "Post-installation..."
+case "$1" in
+    configure)
+		echo "   Configuration..."
+		systemctl daemon-reload
+        chown -R vitam:vitam /vitam/bin/mongoclient
+		chmod 750 /vitam/bin/mongoclient/node
+		chown -R vitam:vitam /vitam/conf/mongoclient
+		chmod 750 /vitam/conf/mongoclient/vitam-mongoclient.conf
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

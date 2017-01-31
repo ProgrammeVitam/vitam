@@ -1,0 +1,5 @@
+#!/bin/sh
+
+getent group  vitam >/dev/null || groupadd -g 2000 vitam
+getent passwd vitam >/dev/null || useradd -u 2000 -g 2000 -s /bin/bash -c "Vitam application user" vitam
+getent group  vitam-admin >/dev/null || groupadd -g 3000 vitam-admin

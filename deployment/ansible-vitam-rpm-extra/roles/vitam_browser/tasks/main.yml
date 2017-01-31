@@ -1,28 +1,47 @@
 ---
 - name: Install vitam user for /vitam browser
-  yum:
+  package:
     name: vitam-user-vitam
     state: latest
 
 - name: Install Apache package for displaying data content
-  yum:
+  package:
     name: httpd
-    state: latest
   when: (ansible_distribution == "CentOS" )
 
-- name: Ensure  Apache autostart && Apache is started
+- name: Install Apache package for displaying data content
+  package:
+    name: apache2
+  when: ( ansible_distribution == "Debian")
+
+- name: Ensure  Apache autostart && Apache is started on Centos
   service: 
     name: httpd
     enabled: yes
     state: started
   when: (ansible_distribution == "CentOS" )
 
-- name: add vitam group to apache user
+- name: Ensure  Apache autostart && Apache is started on Debian
+  service: 
+    name: apache2
+    enabled: yes
+    state: started
+  when: (ansible_distribution == "Debian" )
+
+
+- name: add vitam group to apache user on Centos
   user:
     name: apache
     groups: vitam
+  when: (ansible_distribution == "CentOS" )
 
-- name: add configuration file for mapping # + notify httpd restart
+- name: add vitam group to apache user on Centos
+  user:
+    name: www-data
+    groups: vitam
+  when: (ansible_distribution == "Debian" )
+
+- name: add configuration file for mapping on Centos # + notify httpd restart
   template:
     src: "{{item}}.j2"
     dest: "/etc/httpd/conf.d/{{item}}"
@@ -30,5 +49,26 @@
     owner: root
   when: (ansible_distribution == "CentOS" )
   notify: restart apache
+  with_items:
+  - "httpd-offer-view.conf"
+
+- name: add configuration file for mapping on Debian # + notify httpd restart
+  template:
+    src: "{{item}}.j2"
+    dest: "/etc/apache2/sites-available/{{item}}"
+    mode: 0500
+    owner: root
+  when: (ansible_distribution == "Debian" )
+  notify: restart apache2
+  with_items:
+  - "httpd-offer-view.conf"
+
+- name: activate offer view in Debian only
+  file:
+    src: '/etc/apache2/sites-available/{{item}}'
+    dest: '/etc/apache2/sites-enabled/{{item}}'
+    state: link
+  when: (ansible_distribution == "Debian" )
+  notify: restart apache2
   with_items:
   - "httpd-offer-view.conf"

@@ -20,12 +20,20 @@
 
 # tasks file for elasticsearch-cluster
 
-- name: install vitam-elasticsearch rpm
-  yum:
+- name: install vitam-{{cluster_name}} package
+  package:
     name: vitam-{{cluster_name}}
     state: latest
   notify:
     - restart elasticsearch
+
+- name: ensure /var/run/{{cluster_name}} exists
+  file:
+    path: "/var/run/{{cluster_name}}"
+    owner: "{{ vitamdb_user }}"
+    group: "{{ vitam_group }}"
+    state: directory
+    mode: "{{vitam_folder_permission}}"
 
 - name: Disable standard Easticsearch service
   service:
@@ -33,7 +41,7 @@
     state: stopped
     enabled: no
 
-- name: Add {{cluster_name}} autostart at boot
+- name: Add vitam-{{cluster_name}} autostart at boot
   service:
     name: "vitam-{{cluster_name}}"
     enabled: yes
@@ -158,7 +166,7 @@
     name: "vitam-{{cluster_name}}"
     state: started
 
-- name: install vitam-elasticsearch-kopf rpm
-  yum:
+- name: install vitam-elasticsearch-kopf package
+  package:
     name: vitam-elasticsearch-kopf
     state: latest

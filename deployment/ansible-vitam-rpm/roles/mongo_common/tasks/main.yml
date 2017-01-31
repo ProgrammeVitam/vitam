@@ -22,6 +22,16 @@
   stat:
     path: /usr/lib/systemd/system/tuned.service
   register: tuned_service_status
+  when: ansible_distribution == "CentOS"
+
+- name: Check if tuned is installed
+  stat:
+    path: /lib/systemd/system/tuned.service
+  register: tuned_service_status
+  when: ansible_distribution == "Debian"
+
+- set_fact: status_tuned_present="{{tuned_service_status.stat.exists}}"
+  when: tuned_service_status.changed
 
 - name: create the tuned conf directory
   file:
@@ -29,7 +39,7 @@
     state: directory
     owner: root
     mode: "{{vitam_folder_permission}}"
-  when: tuned_service_status.stat.exists
+  when: status_tuned_present
 
 - name: add the tuned conf file
   copy:
@@ -37,17 +47,17 @@
     dest: /etc/tuned/no-thp/tuned.conf
     owner: root
     mode: "{{vitam_conf_permission}}"
-  when: tuned_service_status.stat.exists
+  when: status_tuned_present
 
 - name: enable the new tuned profile
   command: tuned-adm profile no-thp
-  when: tuned_service_status.stat.exists
+  when: status_tuned_present
 
 - name: restart tuned
   service:
     name: tuned
     state: restarted
-  when: tuned_service_status.stat.exists
+  when: status_tuned_present
 
 - name: add systemd service unit to disable THP
   copy:
@@ -55,6 +65,15 @@
     dest: /usr/lib/systemd/system/disable_transparent_hugepages.service
     owner: root
     mode: 0700
+  when: ansible_distribution == "CentOS"
+
+- name: add systemd service unit to disable THP
+  copy:
+    src: disable_transparent_hugepages.service
+    dest: /lib/systemd/system/disable_transparent_hugepages.service
+    owner: root
+    mode: 0700
+  when: ansible_distribution == "Debian"
 
 - name: enable systemd service unit to disable THP
   service:

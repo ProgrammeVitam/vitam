@@ -72,14 +72,14 @@ RUN yum install -y git vim && yum clean all
 # Note : declare at the end ; else other yum commandes will fail. Ideally, we would need a "createrepo" here, but it wouldn't work, as the volume /code is normally mounter externally.
 RUN yum install -y createrepo \
     && yum clean all
-COPY devlocal.repo /etc/yum.repos.d/devlocal.repo
+COPY rpm/devlocal.repo /etc/yum.repos.d/devlocal.repo
 
 ################################## Add dev helpers #################################
 
-COPY vitam-build-repo /usr/bin
+COPY rpm/vitam-build-repo /usr/bin
 COPY vitam-deploy /usr/bin
 COPY vitam-deploy-extra /usr/bin
-COPY vitam-maven-build-only /usr/bin
+COPY rpm/vitam-maven-build-only /usr/bin
 COPY vitam-redeploy /usr/bin
 COPY vitam-redeploy-extra /usr/bin
 COPY vitam-command /usr/bin
@@ -92,19 +92,16 @@ RUN chmod a+x /usr/bin/install-meteor.sh && \
    mv /root/.meteor /devhome && \
    chmod -R o+wX /devhome/.meteor
 
-COPY profile-build-repo.sh /etc/profile.d
+COPY rpm/profile-build-repo.sh /etc/profile.d
 COPY profile-prompt-usage.sh /etc/profile.d
 COPY .bashrc /devhome
 COPY vitam-usage.txt /etc
-COPY wheel-nopwd /etc/sudoers.d
+COPY rpm/wheel-nopwd /etc/sudoers.d
 
 # Disable fastestmirror ; helps gain several seconds per yum invocation
-COPY fastestmirror.conf /etc/yum/pluginconf.d
+COPY rpm/fastestmirror.conf /etc/yum/pluginconf.d
 
 ENV TERM xterm
-
-# FIX to solve problems with glibc-common update (locales are missing)
-# RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 ##################################  CONTAINER SETTINGS  #################################
 

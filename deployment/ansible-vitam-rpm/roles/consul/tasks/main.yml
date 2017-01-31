@@ -1,6 +1,6 @@
 ---
-- name: Install Consul rpm
-  yum:
+- name: Install Consul package
+  package:
     name: "{{consul_service}}"
     state: latest
   notify:

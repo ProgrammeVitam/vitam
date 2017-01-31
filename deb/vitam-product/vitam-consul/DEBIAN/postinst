@@ -1,0 +1,26 @@
+#!/bin/sh
+echo "Post-installation..."
+case "$1" in
+    configure)
+		echo "   Configuration..."
+		systemctl daemon-reload
+        chown -R vitam:vitam /vitam/bin/consul
+		chmod 750 /vitam/bin/consul
+		chown -R vitam:vitam /vitam/conf/consul
+		chmod 750 /vitam/conf/consul
+		chown -R vitam:vitam /vitam/data/consul
+		chmod 750 /vitam/data/consul
+		# A faire en fin
+		setcap CAP_NET_BIND_SERVICE=+eip /vitam/bin/consul/consul
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0
