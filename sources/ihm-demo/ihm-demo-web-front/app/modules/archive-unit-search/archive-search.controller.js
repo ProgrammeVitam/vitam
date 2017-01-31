@@ -108,7 +108,10 @@ angular
 
         },
         function(error) {
-         console.log('Error retrieving archive units! ' + error.message);
+         console.log('Error ! ' + error.message);
+         if (typeof error.data === 'string' && error.data.indexOf("PROGRAMME VITAM")>-1) {
+            return;
+         }
          $scope.error = true;
          $scope.showResult = false;
          $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_ERROR_MSG;
@@ -269,7 +272,10 @@ angular
           }
          },
          function(error) {
-          console.log('Error retrieving archive units! ' + error.message);
+          console.log('Error ! ' + error.message);
+          if (typeof error.data === 'string' && error.data.indexOf("PROGRAMME VITAM")>-1) {
+            return;
+          }
           $scope.error = true;
           $scope.showResult = false;
           $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_ERROR_MSG;
