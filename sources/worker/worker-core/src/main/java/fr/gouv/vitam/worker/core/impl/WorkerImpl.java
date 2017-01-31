@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -78,7 +79,6 @@ import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
-import fr.gouv.vitam.worker.core.plugin.PluginHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 
@@ -244,20 +244,22 @@ public class WorkerImpl implements Worker {
         if (step.getDistribution().getElement()
             .equals(LogbookType.UNITS.getType())) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
-                GUIDFactory.newEventGUID(0),
-                VitamLogbookMessages.getEventTypeLfc(handlerName),
-                GUIDReader.getGUID(workParams.getContainerName()),
-                LogbookTypeProcess.INGEST,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
+                GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()), 
+                VitamLogbookMessages.getEventTypeLfc(handlerName), 
+                GUIDReader.getGUID(workParams.getContainerName()), 
+                // TODO Le type de process devrait venir du message recu (paramètre du workflow)
+                LogbookTypeProcess.INGEST, 
+                StatusCode.STARTED, 
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED), 
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED), 
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         } else if (step.getDistribution().getElement()
             .equals(LogbookType.OBJECTGROUP.getType())) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                GUIDFactory.newEventGUID(0),
+                GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()),
                 VitamLogbookMessages.getEventTypeLfc(handlerName),
                 GUIDReader.getGUID(workParams.getContainerName()),
+                // TODO Le type de process devrait venir du message recu (paramètre du workflow)
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
