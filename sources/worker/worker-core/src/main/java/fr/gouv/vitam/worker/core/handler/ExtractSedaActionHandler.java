@@ -104,6 +104,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -244,6 +245,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingUnitNotFoundException e) {
             LOGGER.debug("ProcessingException : unit not found", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingManifestReferenceException e) {
+            LOGGER.debug("ProcessingException : reference incorrect in Manifest", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
@@ -774,6 +778,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                 }
             }
+        } catch (final ProcessingManifestReferenceException e) {
+            LOGGER.error("Reference issue within the SEDA", e);
+            throw e;
         } catch (final ProcessingException e) {
             LOGGER.error("Can not extract Object from SEDA XMLStreamException", e);
             throw e;
@@ -1143,7 +1150,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @param objIdRefByUnit il s'agit du DataObjectGroupReferenceId
      * @return
      */
-    private String getNewGdoIdFromGdoByUnit(String objIdRefByUnit) throws ProcessingException {
+    private String getNewGdoIdFromGdoByUnit(String objIdRefByUnit) throws ProcessingManifestReferenceException {
 
         final String gotGuid = binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit) != null
             ? binaryDataObjectIdWithoutObjectGroupId.get(objIdRefByUnit).getGotGuid() : null;
@@ -1168,7 +1175,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // case objIdRefByUnit is an GO
             return objIdRefByUnit;
         } else {
-            throw new ProcessingException(
+            throw new ProcessingManifestReferenceException(
                 "The group id " + objIdRefByUnit + " doesn't reference an bdo or go and it not include in bdo");
         }
     }
@@ -1431,6 +1438,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // delete created temporary file
             tmpFile.delete();
             throw new ProcessingException(e);
+        } catch (final ProcessingManifestReferenceException e) {
+            LOGGER.error("Can not extract Object from SEDA IOException " + elementGuid);
+            // delete created temporary file
+            tmpFile.delete();
+            throw e;
         } catch (final Exception e) {
             LOGGER.error(e.getMessage());
             // delete created temporary file
