@@ -27,9 +27,27 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -48,10 +66,10 @@ import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -79,21 +97,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
 
 /**
  * StorageDistribution service Implementation process continue if needed)
@@ -263,8 +266,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         final Properties parameters = new Properties();
         parameters.putAll(offer.getParameters());
-        PutObjectRequest putObjectRequest = null;
-        PutObjectResult putObjectResult = null;
+        StoragePutRequest putObjectRequest = null;
+        StoragePutResult putObjectResult = null;
         Status objectStored = Status.INTERNAL_SERVER_ERROR;
         boolean existInOffer = false;
         Digest messageDigest = null;
@@ -282,7 +285,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                     mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is
                                                                                                        // closed
                         mockedWorkspaceClient) {
-                final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, category.getFolder());
+                final StorageObjectRequest request = new StorageObjectRequest(tenantId, category.getFolder(), objectId);
                 if (connection.objectExistsInOffer(request)) {
                     // TODO P2: when GUID will be correct, we can use the WORM property of the GUID
                     switch (category) {
@@ -355,7 +358,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @param objectStored the operation status
      * @return storage logbook parameters
      */
-    private StorageLogbookParameters getParameters(PutObjectRequest putObjectRequest, PutObjectResult putObjectResult,
+    private StorageLogbookParameters getParameters(StoragePutRequest putObjectRequest, StoragePutResult putObjectResult,
         Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
         final String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
         final String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
@@ -401,13 +404,13 @@ public class StorageDistributionImpl implements StorageDistribution {
             .getWorkspaceObjectURI());
     }
 
-    private PutObjectRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, Integer tenantId,
+    private StoragePutRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, Integer tenantId,
         String objectId, DataCategory category, Digest messageDigest, WorkspaceClient workspaceClient)
         throws StorageTechnicalException, StorageNotFoundException {
         final InputStream dataStream = retrieveDataFromWorkspace(createObjectDescription.getWorkspaceContainerGUID(),
             createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
-        return new PutObjectRequest(tenantId, digestType.getName(), objectId,
-            messageDigest.getDigestInputStream(dataStream), category.name());
+        return new StoragePutRequest(tenantId, category.name(), objectId, digestType.getName(),
+            messageDigest.getDigestInputStream(dataStream));
     }
 
     private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI,
@@ -537,23 +540,23 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            final GetObjectResult result =
+            final StorageGetResult result =
                 getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
             return result.getObject();
         }
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private GetObjectResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
+    private StorageGetResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
         List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
-        GetObjectResult result;
+        StorageGetResult result;
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             final Properties parameters = new Properties();
             parameters.putAll(offer.getParameters());
             try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-                final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, type.getFolder());
+                final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
                     final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());

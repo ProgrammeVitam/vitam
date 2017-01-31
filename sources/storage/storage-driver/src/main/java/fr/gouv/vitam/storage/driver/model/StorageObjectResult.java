@@ -28,47 +28,34 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Data structure representing global result from a 'get storage container information / capacity' request
+ * Holds minimal data that should be received a result from an object on the distant storage offer : object
+ * informations.
  */
-public class StorageCapacityResult extends StorageResult {
+public class StorageObjectResult extends StorageResult {
 
-    private long usableSpace;
-
-    private long usedSpace;
+    private final String guid;
 
     /**
-     * Empty constructor, needed for response parsing
-     */
-    public StorageCapacityResult() {
-        super(null, null);
-    }
-
-
-    /**
-     * Initialize the needed parameters for get capacity results
-     *
+     * Initialize the needed data for result on an object.
+     * 
      * @param tenantId The request tenantId
-     * @param usableSpace The usable space in offer
-     * @param usedSpace The used space in offer
+     * @param type the type The request type
+     * @param guid the object guid
      */
-    public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
-        // TODO : replace null with type (since a container is type_tenant)
-        super(tenantId, null);
-        this.usableSpace = usableSpace;
-        this.usedSpace = usedSpace;
+    public StorageObjectResult(Integer tenantId, String type, String guid) {
+        super(tenantId, type);
+        this.guid = guid;
     }
 
     /**
-     * @return The offer usable space
+     * Gets the guid
+     * 
+     * @return the guid
      */
-    public long getUsableSpace() {
-        return usableSpace;
+    public String getGuid() {
+        return guid;
     }
 
-    /**
-     * @return The offer used space
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
+
 }
+

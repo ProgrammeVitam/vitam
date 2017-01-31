@@ -27,35 +27,33 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
+import javax.ws.rs.core.Response;
 
 /**
- *
+ * Holds result data that come as a result of a request to retrieve an object on the distant storage offer
  */
-public class PutObjectResultTest {
-    private static PutObjectResult putObjectResult;
-    private static final Integer TENANT_ID = 0;
+public class StorageGetResult extends StorageObjectResult {
 
-    @BeforeClass
-    public static void init() {
-        putObjectResult = new PutObjectResult("doi", "dhb16", TENANT_ID, 10);
+    private final Response object;
+
+    /**
+     * Initialize the needed parameters for get results
+     *
+     * @param tenantId The request tenantId
+     * @param type the type The request type
+     * @param guid the object guid
+     * @param object Response of the object in the offer
+     */
+    public StorageGetResult(Integer tenantId, String type, String guid, Response object) {
+        super(tenantId, type, guid);
+        this.object = object;
     }
 
-    @Test
-    public void testGetSetDistantObjectId() {
-        assertEquals("doi", putObjectResult.getDistantObjectId());
+    /**
+     * @return the object Response
+     */
+    public Response getObject() {
+        return object;
     }
 
-    @Test
-    public void testGetDigestHashBase16() {
-        assertEquals("dhb16", putObjectResult.getDigestHashBase16());
-    }
-
-    @Test
-    public void testGetTenantId() {
-        assertEquals(TENANT_ID, putObjectResult.getTenantId());
-    }
 }

@@ -27,39 +27,34 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
-import javax.ws.rs.core.Response;
-
 /**
- * Holds result data that come as a result of a request to retrieve an object on the distant storage offer
+ * Holds minimal needed parameters that may be needed to send a request on an object on the distant storage offer :
+ * object informations.
  */
-public class GetObjectResult {
+public class StorageObjectRequest extends StorageRequest {
 
-    private final Integer tenantId;
-
-    private final Response object;
+    private final String guid;
 
     /**
-     * Initialize the needed parameters for get results
-     *
+     * Initialize the needed parameters for request on an object.
+     * 
      * @param tenantId The request tenantId
-     * @param object Response of the object in the offer
+     * @param type the type The request type
+     * @param guid the object guid
      */
-    public GetObjectResult(Integer tenantId, Response object) {
-        this.tenantId = tenantId;
-        this.object = object;
+    public StorageObjectRequest(Integer tenantId, String type, String guid) {
+        super(tenantId, type);
+        this.guid = guid;
     }
 
     /**
-     * @return the object Response
+     * Gets the guid
+     * 
+     * @return the guid
      */
-    public Response getObject() {
-        return object;
+    public String getGuid() {
+        return guid;
     }
 
-    /**
-     * @return the request tenantId
-     */
-    public Integer getTenantId() {
-        return tenantId;
-    }
+
 }

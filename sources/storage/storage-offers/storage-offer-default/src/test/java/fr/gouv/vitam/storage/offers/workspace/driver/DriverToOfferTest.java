@@ -37,7 +37,6 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
-import java.util.Random;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -61,9 +60,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
 
@@ -153,16 +152,15 @@ public class DriverToOfferTest {
         connection = driver.connect("http://localhost:" + serverPort, null);
         assertNotNull(connection);
 
-        PutObjectRequest request = null;
+        StoragePutRequest request = null;
         guid = GUIDFactory.newObjectGUID(1).toString();
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             final MessageDigest messageDigest =
                 MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
-                request = new PutObjectRequest(TENANT_ID, VitamConfiguration.getDefaultDigestType().getName(), guid,
-                    digestInputStream,
-                    DataCategory.UNIT.name());
-                final PutObjectResult result = connection.putObject(request);
+                request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), guid,
+                    VitamConfiguration.getDefaultDigestType().getName(), digestInputStream);
+                final StoragePutResult result = connection.putObject(request);
                 assertNotNull(result);
 
                 final StorageConfiguration conf =
@@ -181,15 +179,15 @@ public class DriverToOfferTest {
         }
 
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            request = new PutObjectRequest(null, VitamConfiguration.getDefaultDigestType().getName(), guid, fin,
-                DataCategory.UNIT.name());
+            request = new StoragePutRequest(null, DataCategory.UNIT.name(), guid,
+                VitamConfiguration.getDefaultDigestType().getName(), fin);
             connection.putObject(request);
             fail("Should have an exception !");
         } catch (final StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
 
-        final GetObjectRequest getRequest = new GetObjectRequest(TENANT_ID, guid, DataCategory.UNIT.getFolder());
+        final StorageObjectRequest getRequest = new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
         connection.getObject(getRequest);
 
     }

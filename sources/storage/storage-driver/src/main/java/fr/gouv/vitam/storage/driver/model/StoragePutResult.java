@@ -28,47 +28,52 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Data structure representing global result from a 'get storage container information / capacity' request
+ * Holds result data that come as a result of a request to put an object on the distant storage offer
  */
-public class StorageCapacityResult extends StorageResult {
+public class StoragePutResult extends StorageObjectResult {
 
-    private long usableSpace;
-
-    private long usedSpace;
-
-    /**
-     * Empty constructor, needed for response parsing
-     */
-    public StorageCapacityResult() {
-        super(null, null);
-    }
-
+    private final String distantObjectId;
+    private final String digestHashBase16;
+    private final long objectSize;
 
     /**
-     * Initialize the needed parameters for get capacity results
+     * Initialize the needed parameters for put results
      *
      * @param tenantId The request tenantId
-     * @param usableSpace The usable space in offer
-     * @param usedSpace The used space in offer
+     * @param type the type The request type
+     * @param guid the object guid
+     * @param distantObjectId The distant object id
+     * @param digestHashBase16 the object digest hash
+     * @param objectSize size of the object
      */
-    public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
-        // TODO : replace null with type (since a container is type_tenant)
-        super(tenantId, null);
-        this.usableSpace = usableSpace;
-        this.usedSpace = usedSpace;
+    public StoragePutResult(Integer tenantId, String type, String guid, String distantObjectId, String digestHashBase16,
+        long objectSize) {
+        super(tenantId, type, guid);
+        this.distantObjectId = distantObjectId;
+        this.digestHashBase16 = digestHashBase16;
+        this.objectSize = objectSize;
+    }
+
+
+    /**
+     * @return the object Id
+     */
+    public String getDistantObjectId() {
+        return distantObjectId;
     }
 
     /**
-     * @return The offer usable space
+     * @return the digest
      */
-    public long getUsableSpace() {
-        return usableSpace;
+    public String getDigestHashBase16() {
+        return digestHashBase16;
     }
 
     /**
-     * @return The offer used space
+     * @return the object Size
      */
-    public long getUsedSpace() {
-        return usedSpace;
+    public long getObjectSize() {
+        return objectSize;
     }
+
 }

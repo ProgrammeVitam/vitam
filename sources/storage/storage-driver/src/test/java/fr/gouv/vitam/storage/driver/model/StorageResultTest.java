@@ -29,33 +29,29 @@ package fr.gouv.vitam.storage.driver.model;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.ByteArrayInputStream;
-
-import javax.ws.rs.core.Response;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Test for GetObjectResult
+ * Test for StorageResult
  */
-public class GetObjectResultTest {
-    private static ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
-    private static GetObjectResult getObjectResult;
+public class StorageResultTest {
+    private static StorageResult storageResult;
     private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void init() {
-        getObjectResult = new GetObjectResult(TENANT_ID, Response.ok(BYTES).build());
+        storageResult = new StorageResult(TENANT_ID, "object");
     }
 
     @Test
-    public void testGetTenentId() {
-        assertEquals(TENANT_ID, getObjectResult.getTenantId());
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageResult.getTenantId());
     }
 
     @Test
-    public void testGetResultStream() {
-        assertEquals(BYTES, getObjectResult.getObject().getEntity());
+    public void testGetType() throws Exception {
+        assertEquals("object", storageResult.getType());
     }
+
 }

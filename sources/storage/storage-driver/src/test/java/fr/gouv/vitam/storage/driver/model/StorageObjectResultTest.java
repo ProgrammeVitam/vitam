@@ -29,46 +29,35 @@ package fr.gouv.vitam.storage.driver.model;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.ByteArrayInputStream;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * TEst for PutObjectRequestTest
+ * Test for StorageObjectResultTest
  */
-public class PutObjectRequestTest {
-    private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
-    private static PutObjectRequest putObjectRequest;
+public class StorageObjectResultTest {
+    private static StorageObjectResult storageObjectResult;
     private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void init() {
-        putObjectRequest = new PutObjectRequest(TENANT_ID, "da", "guid", BYTES, "type");
+        storageObjectResult = new StorageObjectResult(TENANT_ID, "object", "guid");
     }
 
     @Test
     public void testGetTenantId() throws Exception {
-        assertEquals(TENANT_ID, putObjectRequest.getTenantId());
-    }
-
-    @Test
-    public void testGetDataStream() throws Exception {
-        assertEquals(BYTES, putObjectRequest.getDataStream());
-    }
-
-    @Test
-    public void testGetGuid() throws Exception {
-        assertEquals("guid", putObjectRequest.getGuid());
-    }
-
-    @Test
-    public void testGetDigestAlgorithm() throws Exception {
-        assertEquals("da", putObjectRequest.getDigestAlgorithm());
+        assertEquals(TENANT_ID, storageObjectResult.getTenantId());
     }
 
     @Test
     public void testGetType() throws Exception {
-        assertEquals("type", putObjectRequest.getType());
+        assertEquals("object", storageObjectResult.getType());
     }
+
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storageObjectResult.getGuid());
+    }
+
+
 }

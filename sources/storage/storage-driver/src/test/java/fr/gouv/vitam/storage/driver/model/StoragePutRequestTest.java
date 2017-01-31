@@ -27,48 +27,51 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 /**
- * Data structure representing global result from a 'get storage container information / capacity' request
+ * Test for StoragePutRequest
  */
-public class StorageCapacityResult extends StorageResult {
+public class StoragePutRequestTest {
+    private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
+    private static StoragePutRequest storagePutRequest;
+    private static final Integer TENANT_ID = 0;
 
-    private long usableSpace;
+    @BeforeClass
+    public static void init() {
+        storagePutRequest = new StoragePutRequest(TENANT_ID, "object", "guid", "digest", BYTES);
+    }
 
-    private long usedSpace;
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storagePutRequest.getTenantId());
+    }
 
-    /**
-     * Empty constructor, needed for response parsing
-     */
-    public StorageCapacityResult() {
-        super(null, null);
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals("object", storagePutRequest.getType());
+    }
+
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storagePutRequest.getGuid());
+    }
+
+    @Test
+    public void testGetDigestAlgorithm() throws Exception {
+        assertEquals("digest", storagePutRequest.getDigestAlgorithm());
+    }
+
+    @Test
+    public void testGetDataStream() throws Exception {
+        assertEquals(BYTES, storagePutRequest.getDataStream());
     }
 
 
-    /**
-     * Initialize the needed parameters for get capacity results
-     *
-     * @param tenantId The request tenantId
-     * @param usableSpace The usable space in offer
-     * @param usedSpace The used space in offer
-     */
-    public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
-        // TODO : replace null with type (since a container is type_tenant)
-        super(tenantId, null);
-        this.usableSpace = usableSpace;
-        this.usedSpace = usedSpace;
-    }
 
-    /**
-     * @return The offer usable space
-     */
-    public long getUsableSpace() {
-        return usableSpace;
-    }
-
-    /**
-     * @return The offer used space
-     */
-    public long getUsedSpace() {
-        return usedSpace;
-    }
 }
