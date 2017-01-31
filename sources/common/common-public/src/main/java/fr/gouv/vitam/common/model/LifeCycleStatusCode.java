@@ -32,61 +32,15 @@ package fr.gouv.vitam.common.model;
  * different constants status code for workflow , action handler and process
  *
  */
-public enum StatusCode {
+public enum LifeCycleStatusCode {
 
     /**
-     * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
+     * COMMITTED : indicates that the lifeCycle has been committed
      */
-    UNKNOWN,
+    COMMITTED,
 
     /**
-     * STARTED : indicates that the workflow or the action handler or the process has been started
+     * NOT_COMMITTED : indicates that the lifeCycle hasn't been committed yet
      */
-    STARTED,
-
-    /**
-     * OK : indicates the successful without warning
-     */
-    OK,
-
-    /**
-     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action
-     * problems
-     */
-    WARNING,
-
-    /**
-     * KO : indicates the failed execution of the action
-     */
-    KO,
-
-    /**
-     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
-     * null pointer exception ...)
-     */
-    FATAL;
-
-    /**
-     * @return Status Level
-     */
-    public int getStatusLevel() {
-        return ordinal();
-    }
-
-    /**
-     *
-     * @return True if the status is greater or equal to OK
-     */
-    public boolean isGreaterOrEqualToKo() {
-        return compareTo(KO) >= 0;
-    }
-
-    /**
-     *
-     * @return True if the status is greater or equal to FATAL
-     */
-    public boolean isGreaterOrEqualToFatal() {
-        return compareTo(FATAL) >= 0;
-    }
-
+    NOT_COMMITTED;
 }

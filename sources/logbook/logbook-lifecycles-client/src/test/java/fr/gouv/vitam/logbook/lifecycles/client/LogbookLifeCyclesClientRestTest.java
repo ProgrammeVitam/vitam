@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -196,6 +197,22 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response getStatus() {
             return expectedResponse.get();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/objectgrouplifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response rollBackObjectGroupsByOperation(String operationId) {
+            return expectedResponse.delete();
+        }
+
+        @DELETE
+        @Path("/operations/{id_op}/unitlifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response rollBackUnitsByOperation(String operationId) {
+            return expectedResponse.delete();
         }
     }
 
@@ -575,12 +592,97 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         } catch (final LogbookClientException e) {
 
         }
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id"));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id"));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
     }
 
     @Test
     public void closeExecution() throws Exception {
         client.close();
+    }
+
+    @Test
+    public void commitUnitThenReturnOk()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        GUID unitId = GUIDFactory.newUnitGUID(0);
+        client.commitUnit(operationId.getId(), unitId.getId());
+    }
+
+    @Test
+    public void commitObjectGroupThenReturnOk()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        GUID objectGroup = GUIDFactory.newUnitGUID(0);
+        client.commitUnit(operationId.getId(), objectGroup.getId());
+    }
+
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void commitUnit_ThrowLogbookClientBadRequestException()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        GUID unit = GUIDFactory.newUnitGUID(0);
+        client.commitUnit(operationId.getId(), unit.getId());
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void commitUnit_ThrowLogbookClientNotFoundException()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        GUID unit = GUIDFactory.newUnitGUID(0);
+        client.commitUnit(operationId.getId(), unit.getId());
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void commitUnit_ThrowLogbookClientServerException()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.put()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        GUID unit = GUIDFactory.newUnitGUID(0);
+        client.commitUnit(operationId.getId(), unit.getId());
+    }
+
+    @Test
+    public void rollBackUnitsByOperationThenReturnOk()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        client.rollBackUnitsByOperation(operationId.getId());
+    }
+
+    @Test
+    public void rollBackObjetctGroupsByOperationThenReturnOk()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.OK).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        client.rollBackObjectGroupsByOperation(operationId.getId());
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void rollBackUnitsByOperation__ThrowLogbookClientNotFoundException()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        client.rollBackUnitsByOperation(operationId.getId());
+    }
+
+    @Test(expected = LogbookClientBadRequestException.class)
+    public void rollBackUnitsByOperation__ThrowLogbookClientBadRequestException()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        client.rollBackUnitsByOperation(operationId.getId());
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void rollBackUnitsByOperation__ThrowLogbookClientServerException()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        when(mock.delete()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
+        client.rollBackUnitsByOperation(operationId.getId());
     }
 }

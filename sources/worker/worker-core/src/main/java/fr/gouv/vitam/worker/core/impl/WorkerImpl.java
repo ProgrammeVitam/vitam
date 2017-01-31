@@ -76,8 +76,11 @@ import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
+import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
+import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
+import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginHelper;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -147,6 +150,12 @@ public class WorkerImpl implements Worker {
         actions.put(TransferNotificationActionHandler.getId(),
             new TransferNotificationActionHandler());
         actions.put(DummyHandler.getId(), new DummyHandler());
+
+        actions.put(CommitLifeCycleUnitActionHandler.getId(), new CommitLifeCycleUnitActionHandler());
+        actions.put(CommitLifeCycleObjectGroupActionHandler.getId(), new CommitLifeCycleObjectGroupActionHandler());
+
+        actions.put(RollBackActionHandler.getId(),
+            new RollBackActionHandler());
     }
 
     @Override

@@ -27,7 +27,11 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.ws.rs.HttpMethod;
 
@@ -42,6 +46,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -51,8 +56,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
 /**
  * LogbookLifeCyclesClient Mock implementation
@@ -66,6 +69,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private static final String CREATE = "CREATE";
     private static final String COMMIT = "COMMIT";
     private static final String ROLLBACK = "ROLLBACK";
+    private static ConcurrentMap<String, List<String>> lifeCyclesByOperation = new ConcurrentHashMap<>();
 
     @Override
     public void create(LogbookLifeCycleParameters parameters)
@@ -88,9 +92,11 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             LocalDateUtil.now().toString());
         ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+
         logInformation(UPDATE, parameters);
     }
 
+    @Deprecated
     @Override
     public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
@@ -138,15 +144,19 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         return ClientMockResultHelper.getLogbookOperation();
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
             "/", JsonNode.class, null, ClientMockResultHelper.getLogbookOperation());
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus)
         throws InvalidParseOperationException {
         return new VitamRequestIterator(this, HttpMethod.GET,
             "/", JsonNode.class, null, ClientMockResultHelper.getLogbookOperation());
@@ -207,4 +217,47 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         bulkUpdate(eventIdProc, queue);
     }
 
+    @Override
+    public void commitUnit(String operationId, String unitId)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        commitObject(operationId, unitId);
+    }
+
+    @Override
+    public void commitObjectGroup(String operationId, String objectGroupId)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        commitObject(operationId, objectGroupId);
+    }
+
+    private void commitObject(String operationId, String unitId) {
+        if (!lifeCyclesByOperation
+            .containsKey(operationId)) {
+            List<String> objectList = new ArrayList<>();
+            objectList.add(unitId);
+            lifeCyclesByOperation.put(operationId, objectList);
+        } else if (!lifeCyclesByOperation.get(operationId).contains(unitId)) {
+            lifeCyclesByOperation.get(operationId).add(unitId);
+        }
+    }
+
+    @Override
+    public void rollBackUnitsByOperation(String operationId)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        rollBackObjectByOperation(operationId);
+    }
+
+    @Override
+    public void rollBackObjectGroupsByOperation(String operationId)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        rollBackObjectByOperation(operationId);
+    }
+
+    private void rollBackObjectByOperation(String operationId) throws LogbookClientNotFoundException {
+        if (!lifeCyclesByOperation
+            .containsKey(operationId)) {
+            throw new LogbookClientNotFoundException("Operation not found");
+        } else {
+            lifeCyclesByOperation.remove(operationId);
+        }
+    }
 }

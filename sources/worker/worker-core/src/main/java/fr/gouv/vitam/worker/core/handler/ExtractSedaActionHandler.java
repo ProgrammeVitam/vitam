@@ -197,6 +197,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
 
+    private static final List<String> REQUIRED_GLOBAL_INFORMATIONS = initGlobalRequiredInformations();
+    private static final String MISSING_REQUIRED_GLOBAL_INFORMATIONS =
+        "Global required informations are not found after extracting the manifest.xml";
+
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -223,6 +227,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     public static final String getId() {
         return HANDLER_ID;
+    }
+
+    private static final List<String> initGlobalRequiredInformations() {
+        List<String> globalRequiredInfos = new ArrayList<>();
+        globalRequiredInfos.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+        globalRequiredInfos.add(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+
+        return globalRequiredInfos;
     }
 
 
@@ -330,12 +342,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
             writer.add(eventFactory.createStartDocument());
             boolean globalMetadata = true;
+            List<String> globalRequiredInfosFound = new ArrayList<>();
+
             while (true) {
                 final XMLEvent event = reader.nextEvent();
 
                 // extract info for ATR
                 // The DataObjectPackage EndElement is tested before the add condition as we need to add a empty
-                // DAtaObjectPackage endElement event
+                // DataObjectPackage endElement event
                 if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
                     globalMetadata = true;
                 }
@@ -350,6 +364,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     globalMetadata = false;
+
+                    globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                 }
 
                 if (event.isStartElement() &&
@@ -362,6 +378,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     globalMetadata = false;
+
+                    globalRequiredInfosFound.add(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                 }
                 // Process rules : build mgtRulesMap
                 if (event.isStartElement() &&
@@ -419,7 +437,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
             writer.add(eventFactory.createEndDocument());
             writer.close();
-            // 1-detect cycle : if graph has a cycle throw CycleFoundException
+
+            // 1- Check if required informations exist
+            for (String currentInfo : REQUIRED_GLOBAL_INFORMATIONS) {
+                if (!globalRequiredInfosFound.contains(currentInfo)) {
+                    throw new ProcessingException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
+                }
+            }
+
+            // 2-detect cycle : if graph has a cycle throw CycleFoundException
             // Define Treatment DirectedCycle detection
             final DirectedCycle directedCycle = new DirectedCycle(new DirectedGraph(archiveUnitTree));
             if (directedCycle.isCyclic()) {

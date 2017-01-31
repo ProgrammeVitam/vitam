@@ -28,11 +28,13 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -43,6 +45,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -54,8 +57,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -72,6 +73,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
+    private static final String COMMIT_URL = "/commit";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
 
@@ -170,6 +172,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         }
     }
 
+    @Deprecated
     @Override
     public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
@@ -295,12 +298,18 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus)
         throws LogbookClientException, InvalidParseOperationException {
         try {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            if (lifeCycleStatus != null) {
+                headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
+            }
+
             return new VitamRequestIterator<>(this, HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL,
-                JsonNode.class, null, new Select().getFinalSelect());
+                JsonNode.class, headers, new Select().getFinalSelect());
         } catch (final IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
@@ -308,12 +317,18 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId)
+    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus)
         throws LogbookClientException, InvalidParseOperationException {
         try {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            if (lifeCycleStatus != null) {
+                headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
+            }
+
             return new VitamRequestIterator<>(this, HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
-                JsonNode.class, null, new Select().getFinalSelect());
+                JsonNode.class, headers, new Select().getFinalSelect());
         } catch (final IllegalArgumentException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
@@ -418,5 +433,97 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
     }
+
+    @Override
+    public void commitUnit(String operationId, String unitId)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        commitLifeCycle(operationId, unitId, UNIT_LIFECYCLES_URL);
+    }
+
+    @Override
+    public void commitObjectGroup(String operationId, String objectGroupId)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        commitLifeCycle(operationId, objectGroupId, OBJECT_GROUP_LIFECYCLES_URL);
+    }
+
+    private void commitLifeCycle(String operationId, String idLc, String uri)
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+
+        Response response = null;
+        String commitPath = OPERATIONS_URL + "/" + operationId + uri + "/" + idLc;
+        try {
+            response = performRequest(HttpMethod.PUT, commitPath + COMMIT_URL, null,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    LOGGER.debug(operationId + " " + Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(operationId + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(operationId + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void rollBackUnitsByOperation(String operationId)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        rollBackOperationObjects(operationId, UNIT_LIFECYCLES_URL);
+    }
+
+    @Override
+    public void rollBackObjectGroupsByOperation(String operationId)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        rollBackOperationObjects(operationId, OBJECT_GROUP_LIFECYCLES_URL);
+    }
+
+
+    private void rollBackOperationObjects(String operationId, String uri)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+
+        Response response = null;
+        String rollBackPath = OPERATIONS_URL + "/" + operationId + uri;
+        try {
+            response = performRequest(HttpMethod.DELETE, rollBackPath, null,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    LOGGER.debug(operationId + " " + Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(operationId + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(operationId + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 
 }

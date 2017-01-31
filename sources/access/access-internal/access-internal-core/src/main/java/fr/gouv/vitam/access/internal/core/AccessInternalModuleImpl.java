@@ -407,8 +407,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
 
-            // commit logbook lifecycle
-            logbookLifeCycleClient.commit(logbookLCParamEnd);
+            // Commit logbook lifeCycle action
+            logbookLifeCycleClient.commitUnit(updateOpGuidStart.toString(), idUnit);
 
             return jsonNode;
 
@@ -461,16 +461,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         LogbookOperationsClient logbookOperationClient, GUID updateOpGuidStart, JsonNode queryJson,
         GUID objectIdentifier) {
         try {
-            final LogbookOperationParameters logbookOpParamEnd =
-                getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), objectIdentifier);
-            logbookOperationClient.update(logbookOpParamEnd);
-
-            // TODO Add LifeCycle RollBack process
-            final LogbookLifeCycleUnitParameters logbookParametersEnd =
-                getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.KO,
-                    objectIdentifier);
-            logbookLifeCycleClient.update(logbookParametersEnd);
+            logbookLifeCycleClient.rollBackUnitsByOperation(updateOpGuidStart.toString());
         } catch (final LogbookClientBadRequestException lcbre) {
             LOGGER.error(BAD_REQUEST, lcbre);
         } catch (final LogbookClientNotFoundException lcbre) {
@@ -484,10 +475,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         StatusCode logbookOutcome, GUID objectIdentifier) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()); // eventidentifier
-        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
-            eventIdentifierProcess,
-            eventTypeProcess, logbookOutcome, VitamLogbookMessages.getOutcomeDetail(STP_UPDATE_UNIT, logbookOutcome),
-            VitamLogbookMessages.getCodeLfc(STP_UPDATE_UNIT, logbookOutcome) + objectIdentifier, objectIdentifier);
+
+
+        LogbookLifeCycleUnitParameters logbookLifeCycleUnitParameters =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
+                eventIdentifierProcess,
+                eventTypeProcess, logbookOutcome,
+                VitamLogbookMessages.getOutcomeDetail(STP_UPDATE_UNIT, logbookOutcome),
+                VitamLogbookMessages.getCodeLfc(STP_UPDATE_UNIT, logbookOutcome) + objectIdentifier, objectIdentifier);
+        return logbookLifeCycleUnitParameters;
     }
 
     private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier,
