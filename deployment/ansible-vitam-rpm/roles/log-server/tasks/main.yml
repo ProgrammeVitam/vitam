@@ -3,8 +3,8 @@
 
 #### Kibana installation ####
 
-- name: Install kibana rpm from repo
-  yum:
+- name: Install kibana package from repo
+  package:
     name: kibana
     state: latest
   notify:
@@ -32,9 +32,16 @@
   yum:
     name: java-1.8.0
     state: latest
+  when: ansible_distribution == "CentOS"
 
-- name: Install logstash rpm from repo
-  yum:
+- name: Install java (prerequisite for other components)
+  package:
+    name: openjdk-8-jre
+    state: latest
+  when: ansible_distribution == "Debian"
+
+- name: Install logstash package from repo
+  package:
     name: logstash-all-plugins
     state: latest
   notify:
@@ -88,6 +95,16 @@
     mode: 0644
   notify:
     - restart logstash
+
+# FIXME : find a more proper solution later for this on Debian
+- name : ensure /etc/sysyconfig exists on Debian
+  file:
+    path: /etc/sysconfig
+    state: directory
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_distribution == "Debian"
 
 - name: configure logstash sysconfig file
   template:
@@ -157,13 +174,13 @@
 # Disabled when docker detected (local deployement)
 # TODO: check if localhost instead of ansible_virtualization_type != docker
 - name: remove PyYAML.x86_64 as incompatible with Curator
-  yum:
+  package:
     name: PyYAML.x86_64
     state: absent
   when: ansible_virtualization_type != 'docker'
 
 - name: install Curator package
-  yum:
+  package:
     name: python-elasticsearch-curator
     state: latest
   when: ansible_virtualization_type != 'docker'
@@ -195,9 +212,16 @@
   when: ansible_virtualization_type != 'docker'
 
 - name: ensure cronie (for crontab) is installed
-  yum:
+  package:
     name: cronie
     state: present
+  when: ansible_distribution == "CentOS"
+
+- name: ensure cron (for crontab) is installed
+  package:
+    name: cron
+    state: present
+  when: ansible_distribution == "Debian"
 
 - name: create root crontab entry for curator for deleting old indexes
   cron:

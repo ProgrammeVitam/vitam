@@ -1,13 +1,19 @@
 #### Packetbeat installation ###
 
 - name: install libpcap (prerequisite for Packetbeat)
-  yum:
+  package:
     name: libpcap
     state: latest
+  when: (ansible_distribution == "CentOS" )
+
+- name: install libpcap (prerequisite for Packetbeat)
+  package:
+    name: libpcap0.8
+  when: (ansible_distribution == "Debian" )
 
 # TODO Run packetbeat as a non-root user, using a specific user with full restrictions
 - name: install Packetbeat
-  yum:
+  package:
     name: packetbeat
     state: latest
 

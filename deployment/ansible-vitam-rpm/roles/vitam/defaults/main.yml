@@ -6,7 +6,7 @@ memory_opts: -Xms512m -Xmx512m
 gc_opts: "-Xloggc:{{vitam_folder_log}}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
 java_opts: ""
 java_args: ""
-rpm_name: "vitam-{{ vitam_component }}"
+package_name: "vitam-{{ vitam_component }}"
 port_http: 8082
 tls_active: false
 days_to_delete_local: 30

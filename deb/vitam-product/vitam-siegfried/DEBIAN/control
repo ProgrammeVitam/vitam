@@ -1,0 +1,13 @@
+Package: vitam-siegfried
+Source: siegfried
+Section: devel
+Priority: extra
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Homepage: https://github.com/richardlehane/siegfried
+Vcs-Browser: https://anonscm.debian.org/cgit/pkg-go/packages/siegfried.git
+Vcs-Git: git://anonscm.debian.org/pkg-go/packages/siegfried.git
+XS-Go-Import-Path: github.com/richardlehane/siegfried
+Architecture: amd64
+Depends: vitam-user-vitam
+Description: Signature-based file format identification
+Version: 1.6.5

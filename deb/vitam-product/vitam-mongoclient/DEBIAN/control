@@ -1,0 +1,8 @@
+Package: vitam-mongoclient
+Version: 1.4.0
+Section: admin
+Priority: optional
+Architecture: all
+Depends: bash, vitam-user-vitam
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Description: Consul is a distributed, highly-available, and multi-datacenter aware tool for service discovery, configuration, and orchestration. This package includes VITAM-specific folders configuration.

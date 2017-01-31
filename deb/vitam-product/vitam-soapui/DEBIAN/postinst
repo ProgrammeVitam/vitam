@@ -1,0 +1,3 @@
+#!/bin/sh
+chown -R vitam:vitam /vitam/app/soapui
+chmod 750 /vitam/app/soapui/bin/soapui.sh

@@ -35,6 +35,7 @@ It implements:
 %build
 # *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
 # cf https://fedoraproject.org/wiki/PackagingDrafts/Go#Debuginfo
+# TODO: we disabled debug_package build, so we should be able to build siegfried normally -> remove gobuild function
 function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v "$@"; }
 
 mkdir -p ./_build/src/github.com/richardlehane

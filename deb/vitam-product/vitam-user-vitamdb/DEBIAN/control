@@ -1,0 +1,8 @@
+Package: vitam-user-vitamdb
+Version: 0.7.0
+Section: comm
+Priority: optional
+Architecture: all
+Depends: bash, sudo
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Description: Package used to create the vitamdb user and group

@@ -1,5 +1,5 @@
-- name: install vitam-ihm-demo-front
-  yum:
+- name: install vitam-ihm-demo-front package
+  package:
     name: vitam-ihm-demo-front
     state: latest
   tags:

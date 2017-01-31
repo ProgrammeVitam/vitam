@@ -2,12 +2,12 @@
 
 # Check SELinux with command line instead of using ansible facts since we may not have libselinux-python
 - name: Get selinux mode
-  shell: which getenforce >/dev/null 2>&1; if (( $? != 0 )); then echo "Disabled"; else getenforce; fi
+  shell: which getenforce > /dev/null 2>&1;if [ $? != 0 ]; then echo "Not installed"; else getenforce; fi
   register: selinux
 
 - name: Check that selinux is not set to enforcing
   fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
-  when: selinux.stdout == "Enforcing"
+  when: (selinux.stdout == "Enforcing" )
 
 - name: Ensure parent dir is OK ith correct permissions
   file:
@@ -35,11 +35,21 @@
     - tmp
 
 - name: Install epel-release
-  yum:
+  package:
     name: epel-release
     state: present
+  when: ansible_distribution == "CentOS"
 
 - name: Update yum cache
-  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, {{vitam_repo}}' makecache"
+  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
+  when: ansible_distribution == "CentOS"
+  tags:
+    - update_package_vitam
+
+# KWA review : Vérifier la présence des backports Jessie ?
+
+- name: Update apt cache
+  shell: "apt-get clean && apt-get update"
+  when: ansible_distribution == "Debian"
   tags:
     - update_package_vitam

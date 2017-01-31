@@ -1,0 +1,2 @@
+CMD_OPTS="agent -config-dir=/vitam/conf/consul -data-dir=/vitam/data/consul"
+#GOMAXPROCS=4

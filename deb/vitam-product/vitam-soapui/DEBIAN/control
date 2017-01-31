@@ -1,0 +1,8 @@
+Package: vitam-soapui
+Version: 5.2.1
+Section: comm
+Priority: optional
+Architecture: all
+Depends: bash, openjdk-8-jre, vitam-user-vitam
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Description: SoapUI is the world's most widely-used open source API testing tool for SOAP and REST APIs.
