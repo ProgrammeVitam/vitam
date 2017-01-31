@@ -15,8 +15,8 @@ vitam_worker_capacity: 1
 # Possible values are : filesystem OR openstack-swift
 vitam_provider_offer: ""
 vitam_keystone_auth_url: ""
-vitam_tenant_name: ""
-vitam_keystone_login: ""
+vitam_swift_uid: ""
+vitam_swift_subuser: ""
 vitam_keystone_passwd: ""
 vitam_ceph_mode: true
 
