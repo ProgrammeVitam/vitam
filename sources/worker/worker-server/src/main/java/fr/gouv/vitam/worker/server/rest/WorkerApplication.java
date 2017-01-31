@@ -27,11 +27,14 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import java.io.FileNotFoundException;
+
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -40,7 +43,10 @@ import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.PluginException;
+import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.worker.core.api.Worker;
+import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -55,14 +61,20 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     // Only for Junit TODO P2
     static Worker mock = null;
     static VitamServiceRegistry serviceRegistry = null;
+    private PluginLoader pluginLoader;
 
     /**
      * WorkerApplication constructor
      *
      * @param configuration
      */
-    public WorkerApplication(String configuration) {
+    public WorkerApplication(String configuration)
+        throws FileNotFoundException, PluginException, InvalidParseOperationException {
         super(WorkerConfiguration.class, configuration);
+
+        // initialize in registerInResourceConfig()
+        pluginLoader.loadConfiguration();
+        checkPluginsCreation();
     }
 
     /**
@@ -85,11 +97,16 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
                 System.exit(1);
             }
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
+
             application.run();
         } catch (final Exception e) {
             LOGGER.error(String.format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
             System.exit(1);
         }
+    }
+
+    private void checkPluginsCreation() throws FileNotFoundException, InvalidParseOperationException, PluginException {
+        pluginLoader.loadAllPlugins();
     }
 
     @Override
@@ -104,10 +121,14 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
+
+        // initialisation here because this method is call in the parent constructor
+        pluginLoader = new PluginLoader();
+
         if (mock != null) {
-            resourceConfig.register(new WorkerResource(mock));
+            resourceConfig.register(new WorkerResource(pluginLoader, mock));
         } else {
-            resourceConfig.register(new WorkerResource(getConfiguration()));
+            resourceConfig.register(new WorkerResource(pluginLoader));
             WorkspaceClientFactory.changeMode(getConfiguration().getUrlWorkspace());
             // Logbook dependency
             serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
@@ -121,4 +142,5 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
         }
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
     }
+
 }

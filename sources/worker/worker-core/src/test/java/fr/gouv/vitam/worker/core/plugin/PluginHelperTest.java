@@ -27,11 +27,15 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
+import fr.gouv.vitam.processing.common.exception.PluginException;
 import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.worker.common.PluginProperties;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -44,11 +48,11 @@ public class PluginHelperTest {
     private static final String ACTION_NAME = "actionName";
 
     @Test
-    public void testPluginHelper() throws PluginNotFoundException {
-        assertEquals(0, PluginHelper.getPluginList().size());
-        ActionHandler handler = PluginHelper.loadActionHandler(ACTION_NAME, new PluginProperties(DUMMY_HANDLER, 
-            MESSAGE_PROPERTIES));
-        assertNotNull(handler);
+    public void testPluginHelper() throws PluginException {
+        Class<ActionHandler> actionHandlerClass =
+            PluginHelper.loadActionHandler(ACTION_NAME, new PluginProperties(DUMMY_HANDLER,
+                MESSAGE_PROPERTIES));
+        assertThat(actionHandlerClass).isNotNull();
     }
 
 }

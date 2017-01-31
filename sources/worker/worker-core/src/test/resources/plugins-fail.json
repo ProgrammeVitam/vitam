@@ -1,0 +1,6 @@
+{
+	"EXAMPLE_PLUGIN_FAIL": {
+		"className": "fr.gouv.vitam.worker.core.plugin.PluginLoaderTest$FakeBadPlugin",
+		"propertiesFile": "check_conformity_plugin.properties"
+	}
+}

@@ -24,24 +24,29 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.impl;
-
-import fr.gouv.vitam.worker.core.api.Worker;
+package fr.gouv.vitam.processing.common.exception;
 
 /**
- * WorkerImpl Factory to create workerImpl
+ * PluginNotFoundException thrown by worker when plugin is not installed
+ *
  */
-public final class WorkerImplFactory {
+public class InvocationPluginException extends PluginException {
 
-    private WorkerImplFactory() {
+    private static final long serialVersionUID = -2509124610929085300L;
 
+    /**
+     * @param message to be set
+     * @param cause to be set
+     */
+    public InvocationPluginException(String message, Throwable cause) {
+        super(message, cause);
     }
 
     /**
-     * @return WorkerImpl
+     * @param message to be set
      */
-    public static Worker create() {
-        return new WorkerImpl();
+    public InvocationPluginException(String message) {
+        super(message);
     }
 
 }
