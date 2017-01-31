@@ -304,6 +304,15 @@ public class LogBookLifeCycleUnitTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
+        // Commit the created unit lifeCycle
+        given()
+            .when()
+            .put(COMMIT_UNIT_ID_URI,
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
         // Test direct access
         given()
             .contentType(ContentType.JSON)
@@ -449,32 +458,6 @@ public class LogBookLifeCycleUnitTest {
     }
 
     @Test
-    public final void when_commit_OG_thenReturn_OK() {
-        given()
-            .contentType(ContentType.JSON)
-            .body(logbookLifeCyclesUnitParametersUpdate.toString())
-            .when()
-            .put(COMMIT_OG_ID_URI,
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.objectIdentifier))
-            .then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public final void when_commit_UNIT_thenReturn_OK() {
-        given()
-            .contentType(ContentType.JSON)
-            .body(logbookLifeCyclesUnitParametersUpdate.toString())
-            .when()
-            .put(COMMIT_UNIT_ID_URI,
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.objectIdentifier))
-            .then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
     public final void deleteObjectGroup_PassTheRightArgument_ResponseOK() {
         // Delete OK
         LogbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
@@ -502,6 +485,7 @@ public class LogBookLifeCycleUnitTest {
                 LogbookLifeCycleObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
             .then()
             .statusCode(Status.CREATED.getStatusCode());
+
         given()
             .when()
             .delete(LIFE_OG_ID_URI,

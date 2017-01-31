@@ -82,6 +82,7 @@
         </DescriptiveMetadata>
         <ManagementMetadata xml:id="ID019">
             <OriginatingAgencyIdentifier>FRAN_NP_050313</OriginatingAgencyIdentifier>
+			<SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
         </ManagementMetadata>
     </DataObjectPackage>
 

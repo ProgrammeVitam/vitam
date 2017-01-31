@@ -129,7 +129,12 @@ public class GlobalDataRest {
      * SECOND_PRIORITY_FILTER
      */
     public static final int SECOND_PRIORITY_FILTER = 2000;
-        
+
+    /**
+     * Event status
+     */
+    public static final String X_EVENT_STATUS = "X-Event-Status";
+
 
     private GlobalDataRest() {
         // empty

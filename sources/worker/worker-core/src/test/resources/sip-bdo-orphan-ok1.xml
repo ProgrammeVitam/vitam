@@ -129,6 +129,8 @@
         <ManagementMetadata xml:id="ID030">
             <ArchivalProfile>ArchivalProfile0</ArchivalProfile>
             <ServiceLevel>ServiceLevel0</ServiceLevel>
+            <OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
         </ManagementMetadata>
     </DataObjectPackage>
 

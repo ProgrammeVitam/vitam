@@ -24,69 +24,68 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.logbook.common.server.database.collections;
+
+import org.bson.Document;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- * Enum StatusCode
- *
- * different constants status code for workflow , action handler and process
- *
+ * Logbook LifeCycle ObjectGroup In Process item
  */
-public enum StatusCode {
+public class LogbookLifeCycleObjectGroupInProcess extends LogbookLifeCycle<LogbookLifeCycleObjectGroupParameters> {
+    private static final long serialVersionUID = -5894302547138497837L;
 
     /**
-     * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
+     * use for jackson serialization
      */
-    UNKNOWN,
-
-    /**
-     * STARTED : indicates that the workflow or the action handler or the process has been started
-     */
-    STARTED,
-
-    /**
-     * OK : indicates the successful without warning
-     */
-    OK,
-
-    /**
-     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action
-     * problems
-     */
-    WARNING,
-
-    /**
-     * KO : indicates the failed execution of the action
-     */
-    KO,
-
-    /**
-     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
-     * null pointer exception ...)
-     */
-    FATAL;
-
-    /**
-     * @return Status Level
-     */
-    public int getStatusLevel() {
-        return ordinal();
+    public LogbookLifeCycleObjectGroupInProcess() {
     }
 
     /**
+     * Constructor from LogbookLifeCycleParameters
      *
-     * @return True if the status is greater or equal to OK
+     * @param parameters
+     * @throws IllegalArgumentException if argument is null
      */
-    public boolean isGreaterOrEqualToKo() {
-        return compareTo(KO) >= 0;
+    public LogbookLifeCycleObjectGroupInProcess(LogbookLifeCycleObjectGroupParameters parameters) {
+        super(parameters);
+    }
+
+
+    /**
+     * Constructor for Codec
+     *
+     * @param content
+     */
+    public LogbookLifeCycleObjectGroupInProcess(Document content) {
+        super(content);
     }
 
     /**
+     * Constructor for Codec
      *
-     * @return True if the status is greater or equal to FATAL
+     * @param content
      */
-    public boolean isGreaterOrEqualToFatal() {
-        return compareTo(FATAL) >= 0;
+    public LogbookLifeCycleObjectGroupInProcess(String content) {
+        super(content);
+    }
+
+    /**
+     * Constructor for Codec
+     *
+     * @param content
+     */
+    public LogbookLifeCycleObjectGroupInProcess(JsonNode content) {
+        super(content);
+    }
+
+    @Override
+    protected LogbookLifeCycleObjectGroupParameters getLogbookParameters() {
+        return LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
     }
 
 }

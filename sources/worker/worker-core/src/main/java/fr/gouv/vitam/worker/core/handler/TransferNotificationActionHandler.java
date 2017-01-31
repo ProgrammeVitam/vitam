@@ -58,13 +58,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -561,7 +561,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
         xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
 
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (VitamRequestIterator<JsonNode> iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator =
+                client.unitLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
                 final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
@@ -583,8 +584,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
                 while (iterator.hasNext()) {
                     JsonNode next = iterator.next();
-                    final LogbookLifeCycleUnit logbookLifeCycleUnit =
-                        new LogbookLifeCycleUnit(next);
+
+                    final LogbookLifeCycleUnitInProcess logbookLifeCycleUnit =
+                        new LogbookLifeCycleUnitInProcess(next);
+
                     final List<Document> logbookLifeCycleUnitEvents =
                         (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
                     xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
@@ -611,7 +614,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
             try (VitamRequestIterator<JsonNode> iterator =
-                client.objectGroupLifeCyclesByOperationIterator(containerName)) {
+                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();
@@ -651,9 +654,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
                 while (iterator.hasNext()) {
-
-                    final LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
-                        new LogbookLifeCycleObjectGroup(iterator.next());
+                    final LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGroup =
+                        new LogbookLifeCycleObjectGroupInProcess(iterator.next());
 
                     final String eventIdentifier = null;
                     xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);

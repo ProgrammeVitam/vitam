@@ -31,9 +31,11 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -82,7 +84,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
-        throws LogbookNotFoundException, LogbookDatabaseException;
+        throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
      * Update logbook LifeCycle entries
@@ -94,7 +96,8 @@ public interface LogbookLifeCycles {
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
-        throws LogbookNotFoundException, LogbookDatabaseException;
+        throws LogbookNotFoundException, LogbookDatabaseException,
+        LogbookAlreadyExistsException;
 
     /**
      * Select logbook LifeCycle entries
@@ -197,7 +200,7 @@ public interface LogbookLifeCycles {
      * @return the X-Cursor-Id
      * @throws LogbookDatabaseException
      */
-    public String createCursorUnit(String operationId, JsonNode select)
+    public String createCursorUnit(String operationId, JsonNode select, LifeCycleStatusCode lifeCycleStatusCode)
         throws LogbookDatabaseException;
 
     /**
@@ -208,7 +211,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
      */
-    public LogbookLifeCycleUnit getCursorUnitNext(String cursorId)
+    public LogbookLifeCycle getCursorUnitNext(String cursorId)
         throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
@@ -219,7 +222,7 @@ public interface LogbookLifeCycles {
      * @return the X-Cursor-Id
      * @throws LogbookDatabaseException
      */
-    public String createCursorObjectGroup(String operationId, JsonNode select)
+    public String createCursorObjectGroup(String operationId, JsonNode select, LifeCycleStatusCode lifeCycleStatus)
         throws LogbookDatabaseException;
 
     /**
@@ -230,7 +233,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
      */
-    public LogbookLifeCycleObjectGroup getCursorObjectGroupNext(String cursorId)
+    public LogbookLifeCycle getCursorObjectGroupNext(String cursorId)
         throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
@@ -267,6 +270,43 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException
      */
     void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
-        throws LogbookDatabaseException, LogbookNotFoundException;
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+
+    /**
+     * Commits Unit lifeCycle
+     * 
+     * @param idOperation
+     * @param idLc
+     */
+    void commitUnit(String idOperation, String idLc)
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+
+    /**
+     * Commits ObjectGroup lifeCycle
+     * 
+     * @param idOperation
+     * @param idLc
+     */
+    void commitObjectGroup(String idOperation, String idLc)
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+
+    /**
+     * Removes the created unit lifeCycles during a given operation
+     * 
+     * @param idOperation the operation id
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     */
+    void rollBackUnitsByOperation(String idOperation) throws LogbookNotFoundException, LogbookDatabaseException;
+
+    /**
+     * Removes the created object groups lifeCycles during a given operation
+     * 
+     * @param idOperation the operation id
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     */
+    void rollBackObjectGroupsByOperation(String idOperation)
+        throws LogbookNotFoundException, LogbookDatabaseException;
 
 }

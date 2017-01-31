@@ -71,7 +71,11 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 /**
  * MongoDbAccessFactory Test
@@ -425,6 +429,10 @@ public class LogbookMongoDbAccessFactoryTest {
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parameters.setTypeProcess(LogbookTypeProcess.INGEST);
+
+        final String oi = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
+
         final LogbookLifeCycleUnitParameters parameters2 = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             parameters2.putParameterValue(name,
@@ -434,6 +442,7 @@ public class LogbookMongoDbAccessFactoryTest {
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parameters2.setTypeProcess(LogbookTypeProcess.INGEST);
 
         final LogbookLifeCycleUnitParameters parametersWrong =
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
@@ -443,36 +452,45 @@ public class LogbookMongoDbAccessFactoryTest {
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parametersWrong.setTypeProcess(LogbookTypeProcess.INGEST);
 
         try {
             mongoDbAccess.updateLogbookLifeCycleUnit(
                 parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
-        mongoDbAccess.createLogbookLifeCycleUnit(
-            parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
+
+        commitUnit(oi, true, parameters);
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleUnitSize());
-        final String oi = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
+
         assertNotNull(mongoDbAccess.getLogbookLifeCycleUnit(oi));
         try {
-            mongoDbAccess.createLogbookLifeCycleUnit(
-                parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
+            commitUnit(oi, true, parameters);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
+
         try {
-            mongoDbAccess.createLogbookLifeCycleUnit(
-                parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
+            commitUnit(oi, true, parameters2);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
+
+        // From now on, typeProcess will be UPDATE
+        parameters.setTypeProcess(LogbookTypeProcess.UPDATE);
+        parameters2.setTypeProcess(LogbookTypeProcess.UPDATE);
+        parametersWrong.setTypeProcess(LogbookTypeProcess.UPDATE);
+
         mongoDbAccess.updateLogbookLifeCycleUnit(
             parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
+
+        // Commit the last update
+        commitUnit(oi, false, parameters2);
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleUnitSize());
+
         try {
             mongoDbAccess.updateLogbookLifeCycleUnit(
                 parametersWrong.getParameterValue(LogbookParameterName.eventIdentifierProcess), parametersWrong);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
-
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newEventGUID(TENANT_ID).getId());
@@ -485,6 +503,10 @@ public class LogbookMongoDbAccessFactoryTest {
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, oi);
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier, oi);
         mongoDbAccess.updateBulkLogbookLifeCycleUnit(parameters, parameters2);
+
+        // Commit the last bulk update
+        commitUnit(oi, false, parameters2);
+
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleUnitSize());
 
 
@@ -542,6 +564,7 @@ public class LogbookMongoDbAccessFactoryTest {
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
 
+        final String oi2 = parameters.getMapParameters().get(LogbookParameterName.objectIdentifier);
         try {
             mongoDbAccess.updateBulkLogbookLifeCycleUnit(parameters, parameters2);
             fail("Should throw an exception");
@@ -556,10 +579,13 @@ public class LogbookMongoDbAccessFactoryTest {
         } catch (final IllegalArgumentException e) {
 
         }
-        mongoDbAccess.createBulkLogbookLifeCycleUnit(parameters, parameters2);
+
+        // Commit new lifeCycle
+        commitUnit(oi2, true, parameters, parameters2);
+
         assertEquals(nbl + 2, mongoDbAccess.getLogbookLifeCyleUnitSize());
         try {
-            mongoDbAccess.createBulkLogbookLifeCycleUnit(parameters, parameters2);
+            commitUnit(oi2, true, parameters, parameters2);
             fail("Should throw an exception");
         } catch (final VitamException e) {
 
@@ -615,6 +641,25 @@ public class LogbookMongoDbAccessFactoryTest {
         }
     }
 
+    private void commitUnit(String objectIdentifier, boolean isCreationProcess,
+        LogbookLifeCycleUnitParameters... parameters)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException, LogbookNotFoundException {
+        
+        if (isCreationProcess) {
+            // Create a unit lifeCycle in working collection
+            mongoDbAccess.createBulkLogbookLifeCycleUnit(parameters);
+        }
+
+        LogbookLifeCycleUnitInProcess inProcessUnit = mongoDbAccess
+            .getLogbookLifeCycleUnitInProcess(objectIdentifier);
+
+        if (isCreationProcess) {
+            mongoDbAccess.createLogbookLifeCycleUnit(inProcessUnit);
+        } else {
+            mongoDbAccess.updateLogbookLifeCycleUnit(inProcessUnit);
+        }
+    }
+
     @Test
     @RunWithCustomExecutor
     public void testFunctionalLifeCycleObjectGroup() throws VitamException {
@@ -630,6 +675,10 @@ public class LogbookMongoDbAccessFactoryTest {
         }
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parameters.setTypeProcess(LogbookTypeProcess.INGEST);
+
+        final String oi = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
+
         final LogbookLifeCycleObjectGroupParameters parameters2 =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
@@ -640,6 +689,7 @@ public class LogbookMongoDbAccessFactoryTest {
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parameters2.setTypeProcess(LogbookTypeProcess.INGEST);
 
         final LogbookLifeCycleObjectGroupParameters parametersWrong =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
@@ -649,29 +699,39 @@ public class LogbookMongoDbAccessFactoryTest {
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parametersWrong.setTypeProcess(LogbookTypeProcess.INGEST);
 
         try {
             mongoDbAccess.updateLogbookLifeCycleObjectGroup(
                 parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
-        mongoDbAccess.createLogbookLifeCycleObjectGroup(
-            parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
+
+        commitObjectGroup(oi, true, parameters);
+
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleObjectGroupSize());
-        final String oi = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
         assertNotNull(mongoDbAccess.getLogbookLifeCycleObjectGroup(oi));
         try {
-            mongoDbAccess.createLogbookLifeCycleObjectGroup(
-                parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
+            commitObjectGroup(oi, true, parameters);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
+
         try {
-            mongoDbAccess.createLogbookLifeCycleObjectGroup(
-                parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
+            commitObjectGroup(oi, true, parameters2);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
+
+        // From now on, typeProcess will be UPDATE
+        parameters.setTypeProcess(LogbookTypeProcess.UPDATE);
+        parameters2.setTypeProcess(LogbookTypeProcess.UPDATE);
+        parametersWrong.setTypeProcess(LogbookTypeProcess.UPDATE);
+
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(
             parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
+
+        // Commit the last update
+        commitObjectGroup(oi, false, parameters2);
+
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleObjectGroupSize());
         try {
             mongoDbAccess.updateLogbookLifeCycleObjectGroup(
@@ -691,6 +751,10 @@ public class LogbookMongoDbAccessFactoryTest {
         parameters.putParameterValue(LogbookParameterName.objectIdentifier, oi);
         parameters2.putParameterValue(LogbookParameterName.objectIdentifier, oi);
         mongoDbAccess.updateBulkLogbookLifeCycleObjectGroup(parameters, parameters2);
+
+        // Commit the last bulk update
+        commitObjectGroup(oi, false, parameters2);
+
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleObjectGroupSize());
 
 
@@ -744,6 +808,8 @@ public class LogbookMongoDbAccessFactoryTest {
             parameters.getMapParameters().get(LogbookParameterName.objectIdentifier));
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        
+        final String oi2 = parameters.getMapParameters().get(LogbookParameterName.objectIdentifier);
 
         try {
             mongoDbAccess.updateBulkLogbookLifeCycleObjectGroup(parameters, parameters2);
@@ -760,10 +826,13 @@ public class LogbookMongoDbAccessFactoryTest {
         } catch (final IllegalArgumentException e) {
 
         }
-        mongoDbAccess.createBulkLogbookLifeCycleObjectGroup(parameters, parameters2);
+
+        // Commit new lifeCycle
+        commitObjectGroup(oi2, true, parameters, parameters2);
+
         assertEquals(nbl + 2, mongoDbAccess.getLogbookLifeCyleObjectGroupSize());
         try {
-            mongoDbAccess.createBulkLogbookLifeCycleObjectGroup(parameters, parameters2);
+            commitObjectGroup(oi2, true, parameters, parameters2);
             fail("Should throw an exception");
         } catch (final VitamException e) {
 
@@ -817,6 +886,25 @@ public class LogbookMongoDbAccessFactoryTest {
             fail("Should throw an exception");
         } catch (final VitamException e) {
 
+        }
+    }
+
+    private void commitObjectGroup(String objectIdentifier, boolean isCreationProcess,
+        LogbookLifeCycleObjectGroupParameters... parameters)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException, LogbookNotFoundException {
+
+        if (isCreationProcess) {
+            // Create an object group lifeCycle in working collection
+            mongoDbAccess.createBulkLogbookLifeCycleObjectGroup(parameters);
+        }
+
+        LogbookLifeCycleObjectGroupInProcess inProcessObjectGroup = mongoDbAccess
+            .getLogbookLifeCycleObjectGroupInProcess(objectIdentifier);
+
+        if (isCreationProcess) {
+            mongoDbAccess.createLogbookLifeCycleObjectGroup(inProcessObjectGroup);
+        } else {
+            mongoDbAccess.updateLogbookLifeCycleObjectGroup(inProcessObjectGroup);
         }
     }
 }

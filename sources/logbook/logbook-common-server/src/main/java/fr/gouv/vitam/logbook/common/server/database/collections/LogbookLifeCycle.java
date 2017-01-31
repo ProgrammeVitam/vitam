@@ -45,7 +45,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 /**
  * Abstract class for Logbook LifeCycle item
  */
-abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
+public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     private static final long serialVersionUID = 105654500015427902L;
 
     public LogbookLifeCycle() {

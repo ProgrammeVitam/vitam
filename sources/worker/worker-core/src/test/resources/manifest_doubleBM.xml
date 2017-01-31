@@ -82,8 +82,11 @@
 				</DataObjectReference>
 			</ArchiveUnit>
 		</DescriptiveMetadata>
-		<ManagementMetadata />
-	</DataObjectPackage>
+		<ManagementMetadata>
+			<OriginatingAgencyIdentifier>FRAN_NP_005568</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005061</SubmissionAgencyIdentifier>
+		</ManagementMetadata>
+		</DataObjectPackage>
 	<ArchivalAgency>
 		<Identifier>Identifier4</Identifier>
 	</ArchivalAgency>

@@ -27,66 +27,30 @@
 package fr.gouv.vitam.common.model;
 
 /**
- * Enum StatusCode
+ * Enum BusinessObjectType
  *
- * different constants status code for workflow , action handler and process
+ * different constants business object types
  *
  */
-public enum StatusCode {
+public enum BusinessObjectType {
 
     /**
-     * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
+     * UNIT
      */
-    UNKNOWN,
+    UNIT("Unit"),
 
     /**
-     * STARTED : indicates that the workflow or the action handler or the process has been started
+     * Object Group
      */
-    STARTED,
+    OBJECT_GROUP("ObjectGroup");
 
-    /**
-     * OK : indicates the successful without warning
-     */
-    OK,
+    private String businessObjectName;
 
-    /**
-     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action
-     * problems
-     */
-    WARNING,
-
-    /**
-     * KO : indicates the failed execution of the action
-     */
-    KO,
-
-    /**
-     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
-     * null pointer exception ...)
-     */
-    FATAL;
-
-    /**
-     * @return Status Level
-     */
-    public int getStatusLevel() {
-        return ordinal();
+    BusinessObjectType(String businessObjectName) {
+        this.businessObjectName = businessObjectName;
     }
 
-    /**
-     *
-     * @return True if the status is greater or equal to OK
-     */
-    public boolean isGreaterOrEqualToKo() {
-        return compareTo(KO) >= 0;
+    public String businessObjectName() {
+        return businessObjectName;
     }
-
-    /**
-     *
-     * @return True if the status is greater or equal to FATAL
-     */
-    public boolean isGreaterOrEqualToFatal() {
-        return compareTo(FATAL) >= 0;
-    }
-
 }

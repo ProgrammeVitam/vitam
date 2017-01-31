@@ -97,9 +97,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
     private static final String XML_EXTENSION = ".xml";
     private static final String EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process distributor during runnig...";
-    private static final String ELEMENT_UNITS = "Units";
     private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
+    private static final String ELEMENT_UNITS = "Units";
 
 
     /**
@@ -128,7 +128,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
                     // Test regarding Unit to be indexed
-                    if (ELEMENT_UNITS.equals(step.getDistribution().getElement())) {
+                    if (ELEMENT_UNITS.equalsIgnoreCase(step.getDistribution().getElement())) {
                         // get the file to retrieve the GUID
                         final InputStream levelFile =
                             (InputStream) workspaceClient.getObject(workParams.getContainerName(),

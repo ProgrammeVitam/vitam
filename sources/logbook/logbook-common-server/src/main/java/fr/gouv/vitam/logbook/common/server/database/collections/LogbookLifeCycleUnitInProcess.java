@@ -24,69 +24,63 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.logbook.common.server.database.collections;
+
+import org.bson.Document;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 /**
- * Enum StatusCode
- *
- * different constants status code for workflow , action handler and process
- *
+ * Logbook LifeCycle Unit In Process item
  */
-public enum StatusCode {
+public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeCycleUnitParameters> {
+
+    private static final long serialVersionUID = 1975564499337835001L;
 
     /**
-     * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
+     * Constructor from LogbookLifeCycleUnitParameters
+     *
+     * @param parameters
+     * @throws IllegalArgumentException if argument is null
      */
-    UNKNOWN,
+    public LogbookLifeCycleUnitInProcess(LogbookLifeCycleUnitParameters parameters) {
+        super(parameters);
+    }
+
 
     /**
-     * STARTED : indicates that the workflow or the action handler or the process has been started
+     * Constructor for Codec
+     *
+     * @param content
      */
-    STARTED,
-
-    /**
-     * OK : indicates the successful without warning
-     */
-    OK,
-
-    /**
-     * WARNING : indicates successful with a general warning. Warning are often useful in preventing future Action
-     * problems
-     */
-    WARNING,
-
-    /**
-     * KO : indicates the failed execution of the action
-     */
-    KO,
-
-    /**
-     * FATAL : indicates a critical error such as technical Exception ( runtime exception, illegal argument exception,
-     * null pointer exception ...)
-     */
-    FATAL;
-
-    /**
-     * @return Status Level
-     */
-    public int getStatusLevel() {
-        return ordinal();
+    public LogbookLifeCycleUnitInProcess(Document content) {
+        super(content);
     }
 
     /**
+     * Constructor for Codec
      *
-     * @return True if the status is greater or equal to OK
+     * @param content
      */
-    public boolean isGreaterOrEqualToKo() {
-        return compareTo(KO) >= 0;
+    public LogbookLifeCycleUnitInProcess(String content) {
+        super(content);
     }
 
     /**
+     * Constructor for Codec
      *
-     * @return True if the status is greater or equal to FATAL
+     * @param content
      */
-    public boolean isGreaterOrEqualToFatal() {
-        return compareTo(FATAL) >= 0;
+    public LogbookLifeCycleUnitInProcess(JsonNode content) {
+        super(content);
+    }
+
+    @Override
+    protected LogbookLifeCycleUnitParameters getLogbookParameters() {
+        return LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
     }
 
 }

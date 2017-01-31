@@ -32,6 +32,7 @@ import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bson.Document;
@@ -74,6 +75,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -106,6 +108,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private static final String CREATION_ISSUE = "Creation issue";
     private static final String UPDATE_ISSUE = "Update issue";
     private static final String ROLLBACK_ISSUE = "Rollback issue";
+    private static final String INIT_UPDATE_LIFECYCLE = "Initialize update lifeCycle process";
+    private static final String ANOTHER_UPDATE_OPERATION_INPROCESS = "An update operation already in process";
 
     /**
      * Quick projection for ID Only
@@ -139,6 +143,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LogbookCollections.OPERATION.initialize(getMongoDatabase(), recreate);
         LogbookCollections.LIFECYCLE_UNIT.initialize(getMongoDatabase(), recreate);
         LogbookCollections.LIFECYCLE_OBJECTGROUP.initialize(getMongoDatabase(), recreate);
+        LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.initialize(getMongoDatabase(), recreate);
+        LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.initialize(getMongoDatabase(), recreate);
     }
 
     /**
@@ -147,12 +153,25 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     static final MongoClientOptions getMongoClientOptions() {
         final VitamDocumentCodec<LogbookOperation> operationCodec = new VitamDocumentCodec<>(LogbookOperation.class);
+
         final VitamDocumentCodec<LogbookLifeCycleUnit> lifecycleUnitCodec =
             new VitamDocumentCodec<>(LogbookLifeCycleUnit.class);
+
         final VitamDocumentCodec<LogbookLifeCycleObjectGroup> lifecycleObjectGroupCodec =
             new VitamDocumentCodec<>(LogbookLifeCycleObjectGroup.class);
+
+        final VitamDocumentCodec<LogbookLifeCycleUnitInProcess> lifecycleUnitInProcessCodec =
+            new VitamDocumentCodec<>(LogbookLifeCycleUnitInProcess.class);
+
+        final VitamDocumentCodec<LogbookLifeCycleObjectGroupInProcess> lifecycleObjectGroupInProcessCodec =
+            new VitamDocumentCodec<>(LogbookLifeCycleObjectGroupInProcess.class);
+
+
         final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
-            CodecRegistries.fromCodecs(operationCodec, lifecycleUnitCodec, lifecycleObjectGroupCodec));
+            CodecRegistries.fromCodecs(operationCodec, lifecycleUnitCodec, lifecycleObjectGroupCodec,
+                lifecycleUnitInProcessCodec, lifecycleObjectGroupInProcessCodec));
+
+
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
     }
 
@@ -175,7 +194,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
         LogbookOperation.addIndexes();
         LogbookLifeCycle.addIndexes();
-        LogbookLifeCycle.addIndexes();
     }
 
     /**
@@ -183,7 +201,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     static final void removeIndexBeforeImport() {
         LogbookOperation.dropIndexes();
-        LogbookLifeCycle.dropIndexes();
         LogbookLifeCycle.dropIndexes();
     }
 
@@ -229,6 +246,16 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public final long getLogbookLifeCyleObjectGroupSize() throws LogbookDatabaseException, LogbookNotFoundException {
         return LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().count();
+    }
+
+    @Override
+    public long getLogbookLifeCyleUnitInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException {
+        return LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection().count();
+    }
+
+    @Override
+    public long getLogbookLifeCyleObjectGroupInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException {
+        return LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection().count();
     }
 
     /**
@@ -279,11 +306,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(Select select)
+    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection, Select select)
         throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
-            return selectExecute(LogbookCollections.LIFECYCLE_UNIT, select);
+            return selectExecute(collection, select);
         } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
@@ -299,11 +326,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(Select select)
+    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(LogbookCollections collection,
+        Select select)
         throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
-            return selectExecute(LogbookCollections.LIFECYCLE_OBJECTGROUP, select);
+            return selectExecute(collection, select);
         } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
@@ -344,7 +372,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public boolean existsLogbookLifeCycleUnit(String unitId) throws LogbookDatabaseException, LogbookNotFoundException {
+    public boolean existsLogbookLifeCycleUnit(String unitId) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, unitId);
         return exists(LogbookCollections.LIFECYCLE_UNIT, unitId);
     }
@@ -538,9 +566,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
-            return new LogbookLifeCycleUnit((LogbookLifeCycleUnitParameters) item);
+            return new LogbookLifeCycleUnitInProcess((LogbookLifeCycleUnitParameters) item);
         } else {
-            return new LogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters) item);
+            return new LogbookLifeCycleObjectGroupInProcess((LogbookLifeCycleObjectGroupParameters) item);
         }
     }
 
@@ -549,9 +577,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item, true);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
-            return new LogbookLifeCycleUnit((LogbookLifeCycleUnitParameters) item);
+            return new LogbookLifeCycleUnitInProcess((LogbookLifeCycleUnitParameters) item);
         } else {
-            return new LogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters) item);
+            return new LogbookLifeCycleObjectGroupInProcess((LogbookLifeCycleObjectGroupParameters) item);
         }
     }
 
@@ -589,7 +617,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to create the LifeCycle");
         }
-        createLogbook(LogbookCollections.LIFECYCLE_UNIT, lifecycleItem);
+        createLogbook(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItem);
     }
 
     @Override
@@ -599,7 +627,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to create the LifeCycle");
         }
-        createLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItem);
+        createLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
     }
 
     final void updateLogbook(LogbookCollections collection, LogbookParameters item)
@@ -632,7 +660,68 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                         e);
             }
         }
+
+
+
     }
+
+    private LogbookCollections fromInProcessToProdCollection(LogbookCollections collection) {
+        if (LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.equals(collection)) {
+            return LogbookCollections.LIFECYCLE_UNIT;
+        } else if (LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.equals(collection)) {
+            return LogbookCollections.LIFECYCLE_OBJECTGROUP;
+        }
+        return null;
+    }
+
+    @SuppressWarnings({"rawtypes"})
+    private void updateLogbookLifeCycle(LogbookCollections inProcessCollection, LogbookParameters... parameters)
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException
+    {
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, inProcessCollection);
+        if (parameters == null || parameters.length == 0) {
+            throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
+        }
+
+        LogbookTypeProcess processMode = parameters[0].getTypeProcess();
+        String objectId = parameters[0].getParameterValue(LogbookParameterName.objectIdentifier);
+        LogbookCollections prodCollection = fromInProcessToProdCollection(inProcessCollection);
+
+        // 1- Check if it exists in Production Collection before proceeding to update
+        LogbookLifeCycle lifeCycleInProd = null;
+
+        try {
+            lifeCycleInProd = (LogbookLifeCycle) getLogbook(prodCollection, objectId);
+        } catch (LogbookNotFoundException e) {
+            if (LogbookTypeProcess.UPDATE.equals(processMode)) {
+                throw e;
+            }
+        }
+
+        if (lifeCycleInProd != null) {
+
+            // Check if there are other operations in process for the given item
+            LogbookLifeCycle lifeCycleInProcess = null;
+            try {
+                lifeCycleInProcess = (LogbookLifeCycle) getLogbook(inProcessCollection, objectId);
+            } catch (LogbookNotFoundException e) {
+                LOGGER.info(INIT_UPDATE_LIFECYCLE);
+            }
+
+            if (lifeCycleInProcess == null) {
+                // This is the first and the only operation on the current object
+                // So add an element in temporary collection
+                // Copy the main part of the lifeCycle saved on production collection and append given parameters to
+                // events
+                createLogbookLifeCycleForUpdate(inProcessCollection, lifeCycleInProd);
+            }
+        }
+
+        // Update the temporary lifeCycle
+        updateBulkLogbook(inProcessCollection, parameters);
+    }
+
+
 
     @Override
     public void updateLogbookOperation(LogbookOperationParameters operationItem)
@@ -642,21 +731,23 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public void updateLogbookLifeCycleUnit(String idOperation, LogbookLifeCycleUnitParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to update the LifeCycle");
         }
-        updateLogbook(LogbookCollections.LIFECYCLE_UNIT, lifecycleItem);
+
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItem);
     }
 
     @Override
     public void updateLogbookLifeCycleObjectGroup(String idOperation,
         LogbookLifeCycleObjectGroupParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to update the LifeCycle");
         }
-        updateLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItem);
+
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
     }
 
     final void rollbackLogbookLifeCycle(LogbookCollections collection, String idOperation, String lifecycleItem)
@@ -688,13 +779,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public void rollbackLogbookLifeCycleUnit(String idOperation, String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        rollbackLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT, idOperation, lifecycleItem);
+        rollbackLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, idOperation, lifecycleItem);
     }
 
     @Override
     public void rollbackLogbookLifeCycleObjectGroup(String idOperation, String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        rollbackLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP, idOperation, lifecycleItem);
+        rollbackLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, idOperation, lifecycleItem);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -740,14 +831,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public final void createBulkLogbookLifeCycleUnit(final LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.LIFECYCLE_UNIT, lifecycleItems);
+        createBulkLogbook(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItems);
     }
 
     @Override
     public final void createBulkLogbookLifeCycleObjectGroup(
         final LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItems);
+        createBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItems);
     }
 
     @SuppressWarnings("rawtypes")
@@ -802,14 +893,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public void updateBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        updateBulkLogbook(LogbookCollections.LIFECYCLE_UNIT, lifecycleItems);
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItems);
     }
 
     @Override
     public void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        updateBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItems);
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItems);
     }
 
     // Not check, test feature !
@@ -829,5 +920,260 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     .getDeletedCount(), count));
             }
         }
+    }
+
+    @Override
+    public LogbookLifeCycleUnitInProcess getLogbookLifeCycleUnitInProcess(String unitId)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return (LogbookLifeCycleUnitInProcess) getLogbook(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, unitId);
+    }
+
+    @Override
+    public LogbookLifeCycleObjectGroupInProcess getLogbookLifeCycleObjectGroupInProcess(String objectGroupId)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return (LogbookLifeCycleObjectGroupInProcess) getLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS,
+            objectGroupId);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void createLogbookLifeCycleUnit(
+        LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+
+        // Create Unit lifeCycle from LogbookLifeCycleUnitInProcess instance
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleUnitInProcess);
+
+        try {
+            LogbookLifeCycleUnit logbookLifeCycleUnit =
+                new LogbookLifeCycleUnit(logbookLifeCycleUnitInProcess.toJson());
+
+            LogbookCollections.LIFECYCLE_UNIT.getCollection()
+                .insertOne(logbookLifeCycleUnit);
+        } catch (final MongoException e) {
+            switch (getErrorCategory(e)) {
+                case DUPLICATE_KEY:
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
+                case EXECUTION_TIMEOUT:
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
+                case UNCATEGORIZED:
+                default:
+                    throw new LogbookDatabaseException(
+                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
+                            ")",
+                        e);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void createLogbookLifeCycleObjectGroup(
+        LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGrouptInProcess)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+
+        // Create ObjectGRoup lifeCycle from LogbookLifeCycleObjectGroupInProcess instance
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleObjectGrouptInProcess);
+
+        try {
+            LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
+                new LogbookLifeCycleObjectGroup(logbookLifeCycleObjectGrouptInProcess.toJson());
+
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection()
+                .insertOne(logbookLifeCycleObjectGroup);
+        } catch (final MongoException e) {
+            switch (getErrorCategory(e)) {
+                case DUPLICATE_KEY:
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
+                case EXECUTION_TIMEOUT:
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
+                case UNCATEGORIZED:
+                default:
+                    throw new LogbookDatabaseException(
+                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
+                            ")",
+                        e);
+            }
+        }
+    }
+
+    private void rollBackLifeCyclesByOperation(LogbookCollections isProcessCollection, String operationId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        ParametersChecker.checkParameter(OPERATION_ITEM, operationId);
+        try {
+
+            // 1- Delete temporary lifeCycles
+            DeleteResult result = isProcessCollection.getCollection()
+                .deleteMany(or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId),
+                    eq(LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
+                        operationId)));
+
+            if (result.getDeletedCount() == 0) {
+                throw new LogbookNotFoundException(ROLLBACK_ISSUE + " not found: " + operationId);
+            }
+        } catch (final MongoException e) {
+            switch (getErrorCategory(e)) {
+                case EXECUTION_TIMEOUT:
+                    throw new LogbookDatabaseException(ROLLBACK_ISSUE + TIMEOUT_OPERATION, e);
+                case UNCATEGORIZED:
+                default:
+                    throw new LogbookDatabaseException(
+                        ROLLBACK_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
+                            ")",
+                        e);
+            }
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public void createLogbookLifeCycleForUpdate(LogbookCollections inProccessCollection,
+        LogbookLifeCycle logbookLifeCycleInProd)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+
+        // Create Unit lifeCycle from LogbookLifeCycleUnitInProcess instance
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleInProd);
+
+        try {
+            LogbookLifeCycle logbookLifeCycleInProcess = null;
+            
+            if (LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.equals(inProccessCollection)) {
+                logbookLifeCycleInProcess =
+                    new LogbookLifeCycleUnitInProcess(logbookLifeCycleInProd.toJson());
+            } else if (LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.equals(inProccessCollection)) {
+                logbookLifeCycleInProcess =
+                    new LogbookLifeCycleObjectGroup(logbookLifeCycleInProd.toJson());
+            }
+
+            if (logbookLifeCycleInProcess == null) {
+                throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION);
+            }
+
+            logbookLifeCycleInProcess.remove(LogbookDocument.EVENTS);
+            logbookLifeCycleInProcess.append(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname(),
+                LogbookTypeProcess.UPDATE.toString());
+            logbookLifeCycleInProcess.append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
+
+
+            inProccessCollection.getCollection()
+                .insertOne(logbookLifeCycleInProcess);
+        } catch (final MongoException e) {
+            switch (getErrorCategory(e)) {
+                case DUPLICATE_KEY:
+                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
+                case EXECUTION_TIMEOUT:
+                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
+                case UNCATEGORIZED:
+                default:
+                    throw new LogbookDatabaseException(
+                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
+                            ")",
+                        e);
+            }
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void updateLogbookLifeCycleUnit(LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleUnitInProcess);
+        String logbookLifeCycleId = logbookLifeCycleUnitInProcess.getId();
+
+        try {
+            final UpdateResult result = LogbookCollections.LIFECYCLE_UNIT.getCollection().updateOne(
+                eq(LogbookDocument.ID, logbookLifeCycleId),
+                Updates.pushEach(LogbookDocument.EVENTS,
+                    (List<VitamDocument>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS)));
+
+            if (result.getModifiedCount() != 1) {
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
+            }
+
+            // Do not delete the temporary lifeCycle when it is on an INGEST process
+            List<VitamDocument> newEvents =
+                (List<VitamDocument>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS);
+            if (newEvents != null && newEvents.size() != 0) {
+                LogbookTypeProcess typeProcess = LogbookTypeProcess
+                    .valueOf(
+                        ((Document) newEvents.get(0))
+                            .get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname())
+                        .toString());
+                if (!LogbookTypeProcess.INGEST.equals(typeProcess)) {
+                    // Delete the temporary lifeCycle
+                    LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection()
+                        .deleteOne(logbookLifeCycleUnitInProcess);
+                }
+            }
+        } catch (final MongoException e) {
+            switch (getErrorCategory(e)) {
+                case EXECUTION_TIMEOUT:
+                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
+                case UNCATEGORIZED:
+                default:
+                    throw new LogbookDatabaseException(
+                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
+                        e);
+            }
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public void updateLogbookLifeCycleObjectGroup(
+        LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGrouptInProcess)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+
+        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleObjectGrouptInProcess);
+        String logbookLifeCycleId = logbookLifeCycleObjectGrouptInProcess.getId();
+
+        try {
+            final UpdateResult result = LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().updateOne(
+                eq(LogbookDocument.ID, logbookLifeCycleId),
+                Updates.pushEach(LogbookDocument.EVENTS,
+                    (List<VitamDocument>) logbookLifeCycleObjectGrouptInProcess.get(LogbookDocument.EVENTS)));
+
+            if (result.getModifiedCount() != 1) {
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
+            }
+
+            // Do not delete the temporary lifeCycle when it is on an INGEST process
+            List<VitamDocument> newEvents =
+                (List<VitamDocument>) logbookLifeCycleObjectGrouptInProcess.get(LogbookDocument.EVENTS);
+            if (newEvents != null && newEvents.size() != 0) {
+                LogbookTypeProcess typeProcess = LogbookTypeProcess
+                    .valueOf(
+                        ((Document) newEvents.get(0))
+                            .get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname())
+                            .toString());
+                if (!LogbookTypeProcess.INGEST.equals(typeProcess)) {
+                    // Delete the temporary lifeCycle
+                    LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection()
+                        .deleteOne(logbookLifeCycleObjectGrouptInProcess);
+                }
+            }
+        } catch (final MongoException e) {
+            switch (getErrorCategory(e)) {
+                case EXECUTION_TIMEOUT:
+                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
+                case UNCATEGORIZED:
+                default:
+                    throw new LogbookDatabaseException(
+                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
+                        e);
+            }
+        }
+    }
+
+    @Override
+    public void rollBackUnitLifeCyclesByOperation(String operationId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        rollBackLifeCyclesByOperation(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, operationId);
+    }
+
+    @Override
+    public void rollBackObjectGroupLifeCyclesByOperation(String operationId)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        rollBackLifeCyclesByOperation(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, operationId);
     }
 }

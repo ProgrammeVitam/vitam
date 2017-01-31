@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -208,7 +209,17 @@ public class LogbookLifeCyclesImplWithMongoTest {
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
             logbookLifeCyclesUnitParametersStart);
 
+        // Commit the created lifeCycle
+        logbookLifeCyclesImpl.commitUnit(
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+
         try {
+            logbookLifeCyclesImpl.createUnit(
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+                logbookLifeCyclesUnitParametersStart);
+
             logbookLifeCyclesImpl.createUnit(
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
@@ -305,12 +316,13 @@ public class LogbookLifeCyclesImplWithMongoTest {
     public void givenCreateAndUpdateObjectGroup() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+
         logbookLifeCyclesImpl.createObjectGroup(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
             logbookLifeCyclesObjectGroupParametersStart);
 
-        // update unit ok
+        // update objectGroup ok
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "ModifiedoutcomeDetailMessage");
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
@@ -319,14 +331,27 @@ public class LogbookLifeCyclesImplWithMongoTest {
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
             logbookLifeCyclesObjectGroupParametersStart);
 
+        // Commit the created lifeCycle
+        logbookLifeCyclesImpl.commitObjectGroup(
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+
+
         try {
+            // Try to create two objects with the same objectIdentifier
             logbookLifeCyclesImpl.createObjectGroup(
                 logbookLifeCyclesObjectGroupParametersStart
                     .getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
                 logbookLifeCyclesObjectGroupParametersStart);
 
-            fail("Should failed");
+            logbookLifeCyclesImpl.createObjectGroup(
+                logbookLifeCyclesObjectGroupParametersStart
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+                logbookLifeCyclesObjectGroupParametersStart);
+
+            fail("Should fail");
         } catch (final LogbookAlreadyExistsException e) {}
 
 
@@ -400,18 +425,18 @@ public class LogbookLifeCyclesImplWithMongoTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         String result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorUnitNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorObjectGroupNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
 
         result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         while (true) {
             try {
@@ -426,7 +451,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         } catch (final LogbookDatabaseException e) {}
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         while (true) {
             try {
