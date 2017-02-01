@@ -53,12 +53,13 @@ Affichage des résultats
 -----------------------
 Suite à la recherche, le résultat de la recherche est affiché sous forme de tableau, comportant les colonnes suivantes :
 
+- la catégorie de l'opération
 - le type d'opération
 - la date de fin d'opération
 - le statut de l'opération (en cours, échec, succès, avertissement)
 - Le message de l'opération (Identifiant de l'opération)
 
-.. image:: images/op_resultat.jpg
+.. image:: images/op_resultat.png
 
 Consultation du détail d'une opération
 --------------------------------------
@@ -74,7 +75,7 @@ Le détail est affiché sous forme de tableau comportant pour chaque événement
 - Statut : statut final de l'étape
 - Message : message expliquant le statut de cette étape
 
-.. image:: images/op_detail.jpg
+.. image:: images/op_detail.png
 
 Référentiel des formats
 =======================
