@@ -184,6 +184,7 @@ public class ProcessingIT {
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
+    private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
     // TODO : use for IT test to add a link between two AUs (US 1686)
     private static String SIP_FILE_AU_LINK_OK_NAME_TARGET = "integration-processing";
     // TODO : use for IT test to add a link between two AUs (US 1686)
@@ -407,6 +408,45 @@ public class ProcessingIT {
             RestAssured.basePath = WORKSPACE_PATH;
             final InputStream zipInputStreamSipObject =
                 PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME);
+            assertNotNull(ret);
+            // check conformity in warning state
+           assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowWithSIPContainsSystemId() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_WITH_SYSTEMID);
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
