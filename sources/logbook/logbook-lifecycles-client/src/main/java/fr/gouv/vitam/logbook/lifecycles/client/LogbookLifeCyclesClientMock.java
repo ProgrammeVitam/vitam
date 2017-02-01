@@ -56,6 +56,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 
 /**
  * LogbookLifeCyclesClient Mock implementation
@@ -70,6 +71,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private static final String COMMIT = "COMMIT";
     private static final String ROLLBACK = "ROLLBACK";
     private static ConcurrentMap<String, List<String>> lifeCyclesByOperation = new ConcurrentHashMap<>();
+
+    private static final String OB_ID = "obId";
 
     @Override
     public void create(LogbookLifeCycleParameters parameters)
@@ -133,13 +136,19 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String id) throws InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String id) throws InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws InvalidParseOperationException {
+        LOGGER.debug("Select request with id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }

@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -62,6 +63,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             "    \"obIdReq\": null," +
             "    \"obIdIn\": null," +
             "    \"events\": []}";
+    final String BODY_WITH_ID = "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
     final String ID = "identfier1";
     final String USAGE = "BinaryMaster";
     final int VERSION = 1;
@@ -217,12 +219,21 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-        // Logbook lifecycle
+        // Logbook lifecycle by id
         @GET
         @Path("/unitlifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
+            return expectedResponse.get();
+        }
+
+        // Logbook lifecycle dsl Query
+        @GET
+        @Path("/unitlifecycles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getUnitLifeCycle(JsonNode queryDsl) {
             return expectedResponse.get();
         }
 
@@ -539,22 +550,41 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      *
      ***/
     @Test
-    public void selectLogbookLifeCyclesUnit() throws Exception {
+    public void selectLogbookLifeCyclesUnitById() throws Exception {
         when(mock.get())
             .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponse()).build());
         assertThat(client.selectUnitLifeCycleById(ID, TENANT_ID)).isNotNull();
     }
 
+    @Test
+    public void selectLogbookLifeCyclesUnit() throws Exception {
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookRequestResponseWithObId()).build());
+        assertThat(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID)).isNotNull();
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void givenSelectLogbookLifeCyclesUnitByIdNotFoundThenNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.selectUnitLifeCycleById(ID, TENANT_ID);
+    }
+
     @Test(expected = LogbookClientNotFoundException.class)
     public void givenSelectLogbookLifeCyclesUnitNotFoundThenNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID);
+    }
+
+    @Test(expected = LogbookClientException.class)
+    public void givenSelectLogbookLifeCyclesUnitByIdBadQueryThenPreconditionFailed() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.selectUnitLifeCycleById(ID, TENANT_ID);
     }
 
     @Test(expected = LogbookClientException.class)
     public void givenSelectLogbookLifeCyclesUnitBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.selectUnitLifeCycleById(ID, TENANT_ID);
+        client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID);
     }
 
     /***

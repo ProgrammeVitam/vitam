@@ -20,6 +20,7 @@ public class AccessExternalClientMockTest {
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
+    final String BODY_WITH_ID = "{$query: {$eq: {\"#id\": \"identifier1\" }}, $projection: {}, $filter: {}}";
     final String ID = "identifier1";
     final String USAGE = "usage";
     final int VERSION = 1;
@@ -91,6 +92,14 @@ public class AccessExternalClientMockTest {
         AccessExternalClientNotFoundException,
         LogbookClientException {
         assertNotNull(client.selectUnitLifeCycleById(ID, TENANT_ID));
+    }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleLogbook_ThenRetururnResult()
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException,
+        LogbookClientException {
+        assertNotNull(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID));
     }
 
     @Test

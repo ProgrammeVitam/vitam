@@ -153,6 +153,17 @@ public interface AccessExternalClient extends BasicClient {
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
+     * selectUnitLifeCycle
+     *
+     * @param queryDsl
+     * @return Json representation
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId)
+        throws LogbookClientException, InvalidParseOperationException;
+
+    /**
      * selectObjectGroupLifeCycleById
      *
      * @param idObject

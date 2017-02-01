@@ -37,12 +37,17 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -62,6 +67,9 @@ public class LogbookInternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImpl.class);
     private static final String LOGBOOK_MODULE = "LOGBOOK";
     private static final String CODE_VITAM = "code_vitam";
+    //TODO Extract values from DSLQueryHelper
+    private static final String EVENT_ID_PROCESS = "evIdProc";
+    private static final String OB_ID = "obId";
 
     /**
      * Default Constructor
@@ -79,10 +87,17 @@ public class LogbookInternalResourceImpl {
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperationById(@PathParam("id_op") String operationId) {
+    public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
         Status status;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final JsonNode result = client.selectOperationbyId(operationId);
+            SanityChecker.checkJsonAll(queryDsl);
+            SanityChecker.checkParameter(operationId);
+            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
+            queryDsl = parser.getRequest().getFinalSelect();
+            final JsonNode result = client.selectOperationById(operationId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -91,6 +106,10 @@ public class LogbookInternalResourceImpl {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -142,10 +161,12 @@ public class LogbookInternalResourceImpl {
     @GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
+    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
         Status status;
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId);
+            SanityChecker.checkParameter(unitLifeCycleId);
+            SanityChecker.checkJsonAll(queryDsl);
+            final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -154,6 +175,41 @@ public class LogbookInternalResourceImpl {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+    }
+
+    /**
+     * gets the unit life cycle based on its id
+     *
+     * @param queryDsl dsl query containing obId
+     * @return the unit life cycle
+     */
+    @GET
+    @Path("/unitlifecycles")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCycle(JsonNode queryDsl) {
+        Status status;
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(queryDsl);
+            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(OB_ID, queryDsl.findValue(OB_ID).asText()));
+            queryDsl = parser.getRequest().getFinalSelect();
+            final JsonNode result = client.selectUnitLifeCycle(queryDsl);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final LogbookClientException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -168,10 +224,12 @@ public class LogbookInternalResourceImpl {
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
+    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {
         Status status;
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
+            SanityChecker.checkParameter(objectGroupLifeCycleId);
+            SanityChecker.checkJsonAll(queryDsl);
+            final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);

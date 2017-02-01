@@ -147,6 +147,19 @@ public interface LogbookDbAccess {
     /**
      * Get one Lifecycle
      *
+     * @param queryDsl
+     * @return the corresponding LogbookLibeCycle if it exists
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    LogbookLifeCycleUnit getLogbookLifeCycleUnit(final JsonNode queryDsl)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Get one Lifecycle
+     *
      * @param objectIdentifier
      * @return the full corresponding LogbookLibeCycle if it exists
      *
@@ -398,21 +411,20 @@ public interface LogbookDbAccess {
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
      * @param select
-     * @param sliced If true will return the first and last events only
+     * @param sliced
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select)
+    MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
      * @param select
-     * @param sliced If true will return the first and last events only
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty
@@ -425,13 +437,14 @@ public interface LogbookDbAccess {
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
      * @param select
+     * @param sliced
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select)
+    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
 

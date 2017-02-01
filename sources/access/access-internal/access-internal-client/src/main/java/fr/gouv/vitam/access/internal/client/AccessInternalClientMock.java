@@ -98,18 +98,24 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public JsonNode selectOperationbyId(String processId) throws InvalidParseOperationException {
+    public JsonNode selectOperationById(String processId, JsonNode queryDsl) throws InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String idUnit)
+    public JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookOperation();
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String idObject)
+    public JsonNode selectUnitLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookOperation();
     }

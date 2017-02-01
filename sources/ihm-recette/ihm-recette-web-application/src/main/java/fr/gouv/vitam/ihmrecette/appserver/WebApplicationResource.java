@@ -561,7 +561,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * This method exist only to download a file with a browser
-     * 
+     *
      * @param operationId
      * @param asyncResponse
      */

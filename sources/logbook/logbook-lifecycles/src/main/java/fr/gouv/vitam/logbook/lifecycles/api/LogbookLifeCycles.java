@@ -115,12 +115,38 @@ public interface LogbookLifeCycles {
      * Select logbook LifeCycle entries
      *
      * @param select the select request in format of JsonNode
+     * @param sliced the boolean sliced filtering events or not
+     * @return List of the logbook LifeCycle
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
+     */
+    List<LogbookLifeCycleUnit> selectUnit(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+
+    /**
+     * Selects object group life cycle entries
+     *
+     * @param select the select request in format of JsonNode
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
     List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+
+    /**
+     * Selects object group life cycle entries
+     *
+     * @param select the select request in format of JsonNode
+     * @param sliced the boolean sliced filtering events or not
+     * @return List of the logbook LifeCycle
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
+     */
+    List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
@@ -180,6 +206,16 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      */
     LogbookLifeCycleUnit getUnitById(String idUnit) throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Selects logbook life cycle by lifecycle ID (using a queryDsl)
+     *
+     * @param queryDsl
+     * @return the logbook LifeCycle found by the ID
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
+     */
+    LogbookLifeCycleUnit getUnitById(JsonNode queryDsl) throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Select logbook life cycle by the lifecycle's ID

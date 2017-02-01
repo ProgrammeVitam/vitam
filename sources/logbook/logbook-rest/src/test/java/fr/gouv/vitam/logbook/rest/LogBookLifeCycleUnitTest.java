@@ -34,6 +34,9 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
@@ -115,6 +118,8 @@ public class LogBookLifeCycleUnitTest {
     private static LogbookLifeCycleObjectGroupParameters LogbookLifeCycleObjectGroupParametersStart;
 
     private static JunitHelper junitHelper;
+
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -316,6 +321,8 @@ public class LogBookLifeCycleUnitTest {
         // Test direct access
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new Select().getFinalSelect())
             .when()
             .get("/unitlifecycles/" +
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
@@ -325,6 +332,7 @@ public class LogBookLifeCycleUnitTest {
         // Test Iterator
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
             .when()
             .get(LIFE_UNIT_URI,
@@ -510,11 +518,13 @@ public class LogBookLifeCycleUnitTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get(SELECT_UNIT_BY_ID_URI);
+        JsonNode query = JsonHandler.getFromString(LIFECYCLE_SAMPLE);
+        when(logbookLifeCycles.getUnitById(query)).thenThrow(LogbookNotFoundException.class);
+        given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
+            .param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode())
+            .when().get(SELECT_UNIT_BY_ID_URI);
     }
 
     @SuppressWarnings("unchecked")
@@ -523,7 +533,7 @@ public class LogBookLifeCycleUnitTest {
         throws LogbookDatabaseException, LogbookNotFoundException {
         final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
         when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().contentType(ContentType.JSON).body(new Select().getFinalSelect()).param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }
 }

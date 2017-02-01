@@ -173,7 +173,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -201,7 +201,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -228,7 +228,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(false);
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -249,7 +249,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         throws Exception {
         final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
         action.reset();
@@ -273,7 +273,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
@@ -301,7 +301,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationbyId(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
         Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
             .objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),

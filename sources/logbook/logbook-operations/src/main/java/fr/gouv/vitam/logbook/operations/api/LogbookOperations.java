@@ -80,6 +80,19 @@ public interface LogbookOperations {
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
+     * Select logbook operation entries
+     *
+     * @param select the select request in format of JsonNode
+     * @param sliced the boolean sliced to filter events or not
+     * @return List of the logbook operation
+     * @throws LogbookNotFoundException if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the operation
+     */
+    List<LogbookOperation> select(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
+
+    /**
      * Select logbook operation by the operation's ID
      *
      * @param IdProcess

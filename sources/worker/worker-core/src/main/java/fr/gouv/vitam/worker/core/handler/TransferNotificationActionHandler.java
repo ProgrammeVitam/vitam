@@ -537,7 +537,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final JsonNode node = client.selectOperationbyId(containerName);
+            final JsonNode node = client.selectOperationById(containerName, JsonHandler.createObjectNode());
             // FIXME P1 hack since Jackson cannot parse it correctly
             // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);

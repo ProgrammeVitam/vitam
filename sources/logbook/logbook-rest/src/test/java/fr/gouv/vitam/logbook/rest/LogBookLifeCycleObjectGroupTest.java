@@ -301,6 +301,8 @@ public class LogBookLifeCycleObjectGroupTest {
         // Test direct access
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .body(new Select().getFinalSelect())
             .when()
             .get("/objectgrouplifecycles/" + objectId)
             .then()
@@ -309,6 +311,7 @@ public class LogBookLifeCycleObjectGroupTest {
         // Test Iterator
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
             .when()
             .get(LIFE_OBJECT_GROUP_URI, operationId)
