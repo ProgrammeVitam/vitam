@@ -268,9 +268,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
+        final BlobStore blobStore = context.getBlobStore();
         try {
-            final BlobStore blobStore = context.getBlobStore();
-
             if (isExistingObject(containerName, objectName)) {
                 LOGGER.debug(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
             }
@@ -281,7 +280,8 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(e);
         } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("Rollback", e.getMessage());
+            blobStore.removeBlob(containerName, objectName);
             throw new ContentAddressableStorageException(e);
         } finally {
             context.close();
@@ -392,7 +392,6 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         } finally {
             context.close();
         }
-
     }
 
     @Override
