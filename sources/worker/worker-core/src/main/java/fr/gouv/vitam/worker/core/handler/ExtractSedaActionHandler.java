@@ -1281,6 +1281,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final QName archiveUnitRefIdTag = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT_REF_ID_TAG);
         final QName ruleTag = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.TAG_RULE_RULE);
         final QName systemIdTag = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.TAG_ARCHIVE_SYSTEM_ID);
+        final QName updateOperationTag = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.UPDATE_OPERATION);
 
         // Add new node in archiveUnitNode
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnitTree.get(archiveUnitId);
@@ -1301,6 +1302,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                 startElement.getName().getLocalPart()));
             writer.add(eventFactory.createAttribute("id", elementGuid));
+            boolean existingUpdateOperation = false;
             while (true) {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() && event.asStartElement().getName().equals(name)) {
@@ -1438,13 +1440,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createCharacters(idRule));
                     writer.add(
                         eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaConstants.TAG_RULE_RULE));
+                } else if (event.isStartElement() && updateOperationTag.equals(event.asStartElement().getName())) {
+                    existingUpdateOperation = true;
+                    writer.add(event);
                 } else if (event.isStartElement() && systemIdTag.equals(event.asStartElement().getName())) {
                     // referencing existing element
-                    existingElementGuid = reader.getElementText();
+                    String elementText = reader.getElementText();
+                    existingElementGuid = existingUpdateOperation ? elementText : null;
                     writer.add(
                         eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                             SedaConstants.TAG_ARCHIVE_SYSTEM_ID));
-                    writer.add(eventFactory.createCharacters(existingElementGuid));
+                    writer.add(eventFactory.createCharacters(elementText));
                     writer.add(
                         eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                             SedaConstants.TAG_ARCHIVE_SYSTEM_ID));
