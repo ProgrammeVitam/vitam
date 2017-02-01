@@ -4,7 +4,7 @@ Workflow d'ingest/d'entrée
 Introduction
 ============
 
-Ce document décrit le processus (workflow) d'entrée mis en place dans la solution logicielle Vitam, et notamment l'implémentation mise en place pour celui-ci dans la version bêta de cette solution.
+Ce document décrit le processus (workflow) d'entrée mis en place dans la solution logicielle Vitam, l'implémentation mise en place pour celui-ci dans la version bêta et la V1 de cette solution.
 
 Processus d'entrée (vision métier)
 ==================================
@@ -266,6 +266,19 @@ Rangement des objets (STP_OG_STORING)
 
       - FATAL : l'indexation des métadonnées des groupes d'objets n'a pas pu être réalisée suite à une erreur système (OG_METADATA_INDEXATION.FATAL=Erreur fatale lors de l'indexation des métadonnées des objets et groupes d'objets)
 
+  * Sécurisation du journal des cycles de vie des groupes d'objets (COMMIT_LIFE_CYCLE_OBJECT_GROUP) (post Bêta)
+
+    + **Règle** : Suite à l'indexation des métadonnées liées aux groupe d'objets, les journaux de cycle de vie des groupes d'objets sont sécurisés en base (Avant cette étape, les journaux de cycle de vie des groupes d'objets sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les JCV lors d'une entrée en succès ou en échec)
+
+    + **Type** : bloquant.
+
+    + **Statuts** :
+
+      - OK : La sécurisation s'est correctement déroulée (COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK=Succès de la sécurisation du journal du cycle de vie des groupes d'objets)
+
+      - FATAL : La sécurisation du journal du cycle de vie n'a pas pu être réalisée suite à une erreur système (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL=Erreur fatale lors de la sécurisation du journal du cycle de vie des groupes d'objets)
+
+
 
 Rangement des unites archivistiques (STP_UNIT_STORING)
 ------------------------------------------------------
@@ -281,6 +294,18 @@ Rangement des unites archivistiques (STP_UNIT_STORING)
       - KO : les métadonnées des unités archivistiques n'ont pas pu être indexées (UNIT_METADATA_INDEXATION.KO=Échec de l'indexation des métadonnées des unités archivistiques)
 
       - FATAL : l'indexation des métadonnées des unités archivistiques n'a pas pu être réalisée suite à une erreur système (UNIT_METADATA_INDEXATION.FATAL=Erreur fatale lors de l'indexation des métadonnées des unités archivistiques)
+
+  * Sécurisation du journal des cycles de vie des unités archivistiques (COMMIT_LIFE_CYCLE_UNIT) (post Bêta)
+
+    + **Règle** : Suite à l'indexation des métadonnées liées aux unités archivistiques, les journaux de cycle de vie des unités archivistiques sont sécurisés en base (Avant cette étape, les journaux de cycle de vie des unités archivistiques sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les JCV lors d'une entrée en succès ou en échec)
+
+    + **Type** : bloquant.
+
+    + **Statuts** :
+
+      - OK : La sécurisation s'est correctement déroulée (COMMIT_LIFE_CYCLE_UNIT.OK=Succès de la sécurisation du journal du cycle de vie des unités archivistiques)
+
+      - FATAL : La sécurisation du journal du cycle de vie n'a pas pu être réalisée suite à une erreur système (COMMIT_LIFE_CYCLE_UNIT.FATAL=Erreur fatale lors de la sécurisation du journal du cycle de vie des unités archivistiques)
 
 
 
@@ -309,7 +334,7 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
 
     + **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée. Elle gènere un message de réponse (ArchiveTransferReply ou ATR), le stocke dans l'offre de stockage et l'envoie au service versant.
 
-    + **Type** : bloquant.
+    + **Type** : non bloquant.
 
     + **Statuts** :
 
@@ -318,6 +343,18 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
       - KO : Le message de réponse n'a pas été correctement généré, stocké dans l'offre de stockage ou reçu par le service versant (ATR_NOTIFICATION.KO=Échec de la notification à l'opérateur de versement)
 
       - FATAL : la notification de la fin de l'opération n'a pas pu être réalisée suite à une erreur système (ATR_NOTIFICATION.FATAL=Erreur fatale lors de la notification à l'opérateur de versement)
+
+  * Notification de la fin de l'opération d'entrée (ATR_NOTIFICATION) (post Bêta)
+
+    + **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée suite à la notification de la fin d'opération d'entrée afin de purger les collections temporaire des journaux de cycle de vie. 
+
+    + **Type** : bloquant.
+
+    + **Statuts** :
+
+      - OK : La purge s'est correctement déroulée (ROLL_BACK.OK=Succès de la mise en cohérence des journaux de cycle de vie)
+
+      - FATAL : la purge n'a pas pu être réalisée suite à une erreur système (ROLL_BACK.FATAL=Erreur fatale lors la mise en cohérence des journaux de cycle de vie)
 
 
 Structure du Workflow (Bêta)
@@ -625,6 +662,10 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Test de l'existence du manifest.xml,
 
+    + Test de l'existence d'un fichier unique à la racine du SIP
+
+    + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
+
     + Validation XSD du manifeste,
 
     + Validation de la structure du manifeste par rapport au schema par défaut fourni avec le standard SEDA v. 2.0.
@@ -671,14 +712,14 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 2** - STP_OG_CHECK_AND_TRANSFORME : Contrôle et traitements des objets / distribution sur LIST GUID/BinaryDataObject
 
-  * CHECK_DIGEST (CheckConformityActionHandler.java) :
+  * CHECK_DIGEST (CheckConformityActionPlugin.java) :
 
     + Contrôle de l'objet binaire correspondant : la taille et l'empreinte du BinaryDataObject.
 
   * Calcul d'une empreinte avec l'algorithme SHA-512 si l'empreinte du manifeste n'a pas été calculée avec cet algorithme
 
 
-  * OG_OBJECTS_FORMAT_CHECK (FormatIdentificationActionHandler.java):
+  * OG_OBJECTS_FORMAT_CHECK (FormatIdentificationActionPlugin.java):
 
     + Identification du format des BinaryDataObject,
 
@@ -688,7 +729,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
 
-  * UNITS_RULES_COMPUTE (UnitsRulesComputeHandler.java) :
+  * UNITS_RULES_COMPUTE (UnitsRulesComputePlugin.java) :
 
     + vérification de l'existence de la règle dans le référentiel des règles de gestion
 
@@ -704,17 +745,17 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 5** - STP_OG_STORING : Rangement des objets
 
-  * OG_STORAGE (StoreObjectGroupActionHandler.java) :
+  * OG_STORAGE (StoreObjectGroupActionPlugin.java) :
 
     + Écriture des objets sur l’offre de stockage des BinaryDataObject des ObjectGroup.
 
-  * OG_METADATA_INDEXATION (IndexObjectGroupActionHandler.java) :
+  * OG_METADATA_INDEXATION (IndexObjectGroupActionPlugin.java) :
 
     + Enregistrement en base des métadonnées des ObjectGroup.
 
 - **Step 6** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
 
-  * UNIT_METADATA_INDEXATION (IndexUnitActionHandler.java) :
+  * UNIT_METADATA_INDEXATION (IndexUnitActionPlugin.java) :
 
     + Transformation sous la forme Json des ArchiveUnits et intégration du GUID Unit et du GUID ObjectGroup,
 
