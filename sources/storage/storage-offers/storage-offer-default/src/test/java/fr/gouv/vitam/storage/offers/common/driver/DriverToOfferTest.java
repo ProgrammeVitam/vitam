@@ -25,9 +25,27 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.offers.workspace.driver;
+package fr.gouv.vitam.storage.offers.common.driver;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 
 import com.jayway.restassured.RestAssured;
+
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -46,23 +64,8 @@ import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.offers.workspace.rest.DefaultOfferApplication;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
+import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
 
 /**
  * Integration driver offer tests
@@ -185,7 +188,8 @@ public class DriverToOfferTest {
             // Nothing, missing tenant parameter
         }
 
-        final StorageObjectRequest getRequest = new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
+        final StorageObjectRequest getRequest =
+            new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
         connection.getObject(getRequest);
 
     }

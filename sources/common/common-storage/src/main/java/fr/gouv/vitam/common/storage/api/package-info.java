@@ -25,7 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides core implementation (Workspace based) for the Storage Offer Default module 
- *
+ * Provides API classes for the Workspace module
  */
-package fr.gouv.vitam.storage.offers.workspace.core;
+package fr.gouv.vitam.common.storage.api;

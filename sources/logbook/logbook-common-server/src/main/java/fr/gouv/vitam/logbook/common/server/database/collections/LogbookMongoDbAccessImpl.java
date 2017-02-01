@@ -541,7 +541,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
         // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
-        // if the collection should not be filtered, then the method should be overridden        
+        // if the collection should not be filtered, then the method should be overridden
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final Bson condition = and(QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery()),
             eq(VitamDocument.TENANT_ID, tenantId));
@@ -691,8 +691,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings({"rawtypes"})
     private void updateLogbookLifeCycle(LogbookCollections inProcessCollection, LogbookParameters... parameters)
-        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException
-    {
+        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, inProcessCollection);
         if (parameters == null || parameters.length == 0) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
@@ -1050,7 +1049,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycle logbookLifeCycleInProcess = null;
-            
+
             if (LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
                     new LogbookLifeCycleUnitInProcess(logbookLifeCycleInProd.toJson());
@@ -1113,7 +1112,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     .valueOf(
                         ((Document) newEvents.get(0))
                             .get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname())
-                        .toString());
+                            .toString());
                 if (!LogbookTypeProcess.INGEST.equals(typeProcess)) {
                     // Delete the temporary lifeCycle
                     LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection()

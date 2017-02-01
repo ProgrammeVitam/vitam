@@ -24,35 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.storage.offers.workspace.core;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-
 /**
- * Object init test implementation
+ * Provides core implementation (Workspace based) for the Storage Offer Default module 
+ *
  */
-public class ObjectInitTest {
-
-    @Test
-    public void objectInitTest() {
-        final ObjectInit objectInit = new ObjectInit();
-        objectInit.setId("id");
-        objectInit.setSize(1024);
-        objectInit.setType(DataCategory.UNIT);
-        objectInit.setDigestAlgorithm(VitamConfiguration.getDefaultDigestType());
-
-        assertNotNull(objectInit);
-        assertEquals("id", objectInit.getId());
-        assertEquals(1024, objectInit.getSize());
-        assertEquals(DataCategory.UNIT, objectInit.getType());
-        assertEquals(VitamConfiguration.getDefaultDigestType(), objectInit.getDigestAlgorithm());
-    }
-}
+package fr.gouv.vitam.storage.offers.common.core;

@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.offers.workspace.core;
+package fr.gouv.vitam.storage.offers.common.core;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,9 +48,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;

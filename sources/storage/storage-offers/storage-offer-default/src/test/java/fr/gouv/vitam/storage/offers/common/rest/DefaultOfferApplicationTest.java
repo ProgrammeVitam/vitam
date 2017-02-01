@@ -24,7 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.offers.common.rest;
+
+import static org.junit.Assert.fail;
+
+import org.junit.Test;
+
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
+
 /**
- * Provides API classes for the Workspace module
+ * DefaultOfferApplication Test
  */
-package fr.gouv.vitam.workspace.api;
+public class DefaultOfferApplicationTest {
+    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+
+    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
+    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+
+    @Test
+    public final void testFictiveLaunch() {
+        try {
+            new DefaultOfferApplication(DEFAULT_OFFER_CONF);
+        } catch (final IllegalStateException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+
+        try {
+            new DefaultOfferApplication(DEFAULT_OFFER_CONF);
+        } catch (final IllegalStateException e) {
+            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        }
+
+        try {
+            new DefaultOfferApplication(WORKSPACE_OFFER_CONF);
+            fail("Should raize an IllegalStateException");
+        } catch (final IllegalStateException exc) {
+            // Result Expected
+        }
+    }
+}

@@ -27,10 +27,10 @@
 package fr.gouv.vitam.common.storage.builder;
 
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.common.storage.swift.OpenstackSwift;
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
 
 /**
  * Creates {@link ContentAddressableStorage} configured in a configuration file <br/>
