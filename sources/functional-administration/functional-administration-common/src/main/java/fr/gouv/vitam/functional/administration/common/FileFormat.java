@@ -113,7 +113,7 @@ public class FileFormat extends VitamDocument<FileFormat> {
     public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
         "properties : { "  +
         NAME + ": { type : \"string\", index : \"analyzed\" }, " +
-        PUID + ": { type : \"string\", index : \"analyzed\" }, " +
+        PUID + ": { type : \"string\", index : \"not_analyzed\" }, " +
         MIME_TYPE + ": { type : \"string\", index : \"analyzed\" }, " +
         EXTENSION + ": { type : \"string\", index : \"analyzed\" } " +
         " } } }";

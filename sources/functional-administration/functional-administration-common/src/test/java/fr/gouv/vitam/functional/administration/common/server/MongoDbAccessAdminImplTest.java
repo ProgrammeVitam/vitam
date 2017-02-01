@@ -26,8 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
@@ -99,6 +101,11 @@ public class MongoDbAccessAdminImplTest {
     static final String COLLECTION_NAME = "FileFormat";
     static final String COLLECTION_RULES = "FileRules";
     private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
+
+    private static final String REUSE_RULE = "ReuseRule";
+    private static final String RULE_ID_VALUE = "APK-485";
+    private static final String RULE_ID = "RuleId";
+    private static final String FILEFORMAT_PUID = "x-fmt/33";
     private static final String AGENCY = "Agency";
     private static final Integer TENANT_ID = 0;
 
@@ -147,12 +154,13 @@ public class MongoDbAccessAdminImplTest {
             .setName("this is a very long name")
             .setPriorityOverIdList(testList)
             .setPronomVersion("pronom version")
-            .setPUID("puid")
+            .setPUID(FILEFORMAT_PUID)
             .setVersion("version");
 
         fileRules = new FileRules(TENANT_ID)
-            .setRuleId("APK-485")
-            .setRuleType("testList")
+            .setRuleId(RULE_ID_VALUE)
+            .setRuleValue("Actes de naissance")
+            .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("10")
             .setRuleMeasurement("Annee");
@@ -195,7 +203,9 @@ public class MongoDbAccessAdminImplTest {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
         final Select select = new Select();
-        select.setQuery(match("Name", "name"));
+        select.setQuery(and()
+            .add(match(FileFormat.NAME, "name"))
+            .add(eq(FileFormat.PUID, FILEFORMAT_PUID)));
         final MongoCursor<FileFormat> fileList =
             (MongoCursor<FileFormat>) mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
         final FileFormat f1 = fileList.next();
@@ -230,12 +240,17 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(1, collection.count());
         
         final Select select = new Select();
-        select.setQuery(eq("RuleId", "APK-485"));
+        select.setQuery(and()
+            .add(match(FileRules.RULEVALUE, "acte"))
+            .add(or()
+                .add(eq(FileRules.RULETYPE, REUSE_RULE))
+                .add(eq(FileRules.RULETYPE, "AccessRule")))
+            );
         final MongoCursor<FileRules> fileList =
             (MongoCursor<FileRules>) mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
         final FileRules f1 = fileList.next();
-        assertEquals("APK-485", f1.getString("RuleId"));
-        final String id = f1.getString("RuleId");
+        assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
+        final String id = f1.getString(RULE_ID);
         final FileRules f2 = (FileRules) mongoAccess.getDocumentById(id, rulesCollection);
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
         

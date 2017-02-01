@@ -144,11 +144,6 @@ public final class DslQueryHelper {
                         query.add(match("Name", searchValue));
                     }
                     break;
-                case PUID:
-                    if (!searchValue.trim().isEmpty()) {
-                        query.add(match(PUID, searchValue));
-                    }
-                    break;
                     
                 case RULE_VALUE:
                     if (!searchValue.trim().isEmpty()) {

@@ -62,7 +62,7 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
         "properties : { "  +
-        RULETYPE + ": { type : \"string\", index : \"analyzed\" }, " +
+        RULETYPE + ": { type : \"string\", index : \"not_analyzed\" }, " +
         RULEVALUE + ": { type : \"string\", index : \"analyzed\" }, " +
         RULEDESCRIPTION + ": { type : \"string\", index : \"analyzed\" }, " +
         RULEDURATION + ": { type : \"string\", index : \"analyzed\" } " +
