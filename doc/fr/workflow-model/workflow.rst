@@ -357,8 +357,8 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
       - FATAL : la purge n'a pas pu être réalisée suite à une erreur système (ROLL_BACK.FATAL=Erreur fatale lors la mise en cohérence des journaux de cycle de vie)
 
 
-Structure du Workflow (Bêta)
-============================
+Structure du Workflow (Implémenté en V1)
+========================================
 
 Le workflow actuel mis en place dans la solution Vitam est défini dans l'unique fichier "DefaultIngestWorkflow.json".
 Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, indexer les métadonnées et stocker les objets contenues dans le SIP.
