@@ -62,7 +62,11 @@ public enum VitamHttpHeader {
     /**
      * The X-Version header, used to get an object
      */
-    VERSION(GlobalDataRest.X_VERSION, "[0-9]+");
+    VERSION(GlobalDataRest.X_VERSION, "[0-9]+"),
+    /**
+     * The X-Content-Length used to have object size (for storage)
+     */
+    X_CONTENT_LENGTH(GlobalDataRest.X_CONTENT_LENGTH, "[0-9]+");
 
     private String name;
     private String regExp;

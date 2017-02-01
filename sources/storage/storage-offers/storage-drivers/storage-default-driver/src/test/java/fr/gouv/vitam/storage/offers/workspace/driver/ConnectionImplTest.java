@@ -26,40 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
@@ -78,6 +47,34 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ConnectionImplTest extends VitamJerseyTest {
 
@@ -274,7 +271,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     // chunk size (1024) factor size case
     @Test
     public void putBigObjectWithRequestOk() throws Exception {
-        final StoragePutRequest request = new StoragePutRequest(1, DataCategory.OBJECT.name(), "GUID",
+        final StoragePutRequest request = new StoragePutRequest(1, DataCategory.OBJECT.getFolder(), "GUID",
             DigestType.MD5.getName(), new FakeInputStream(2097152, true));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
@@ -293,7 +290,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     // No chunk size (1024) factor case
     @Test
     public void putBigObject2WithRequestOk() throws Exception {
-        final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.name(), "GUID",
+        final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.getFolder(), "GUID",
             DigestType.MD5.getName(), new FakeInputStream(2201507, true));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
@@ -549,7 +546,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             tenantId = 0;
         }
         if (putType) {
-            type = DataCategory.OBJECT.name();
+            type = DataCategory.OBJECT.getFolder();
         }
         return new StoragePutRequest(tenantId, type, guid, digest, stream);
     }

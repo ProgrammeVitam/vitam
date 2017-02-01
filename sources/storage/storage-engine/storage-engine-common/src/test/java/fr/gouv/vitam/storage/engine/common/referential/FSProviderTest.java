@@ -27,21 +27,22 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.util.List;
-
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -55,7 +56,7 @@ public class FSProviderTest {
         assertEquals("default", strategy.getId());
         final HotStrategy hot = strategy.getHotStrategy();
         assertNotNull(hot);
-        assertEquals((Integer) 1, hot.getCopy());
+        assertEquals((Integer) 2, hot.getCopy());
         final List<OfferReference> offerReferences = hot.getOffers();
         assertNotNull(offerReferences);
         assertEquals(2, offerReferences.size());
@@ -72,7 +73,7 @@ public class FSProviderTest {
         assertEquals("default", strategy.getId());
         final HotStrategy hot = strategy.getHotStrategy();
         assertNotNull(hot);
-        assertEquals((Integer) 1, hot.getCopy());
+        assertEquals((Integer) 2, hot.getCopy());
         final List<OfferReference> offerReferences = hot.getOffers();
         assertNotNull(offerReferences);
         assertEquals(2, offerReferences.size());
@@ -129,5 +130,17 @@ public class FSProviderTest {
         } finally {
             offer.setReadable(true);
         }
+    }
+
+    @Test
+    public void testInvalidCopyValue() throws Exception {
+        final FSProvider fsProvider = new FSProvider();
+        fsProvider.setStorageStrategy(null);
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        assertTrue(strategy.getHotStrategy().isCopyValid());
+        strategy.getHotStrategy().setCopy(3);
+        assertFalse(strategy.getHotStrategy().isCopyValid());
+        strategy.getHotStrategy().setCopy(1);
+        assertFalse(strategy.getHotStrategy().isCopyValid());
     }
 }

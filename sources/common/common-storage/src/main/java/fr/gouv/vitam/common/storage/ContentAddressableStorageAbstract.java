@@ -26,18 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.storage.constants.StorageMessage;
+import fr.gouv.vitam.common.storage.utils.UriUtils;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -51,30 +63,18 @@ import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.domain.StorageType;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.CharsetUtils;
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.storage.constants.StorageMessage;
-import fr.gouv.vitam.common.storage.utils.UriUtils;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.model.ContainerInformation;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract Content Addressable Storage
@@ -287,7 +287,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob) {
                 return new AbstractMockClient.FakeInboundResponse(Status.OK, blob.getPayload().openStream(),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(blob));
             } else {
                 LOGGER.error(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
@@ -308,6 +308,14 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         }
     }
 
+    private MultivaluedHashMap<String, Object> getXContentLengthHeader(Blob blob) {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        List<Object> headersList = new ArrayList<>();
+        headersList.add(blob.getMetadata().getSize().toString());
+        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
+        return headers;
+    }
+
     @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageException {
@@ -326,7 +334,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final Blob blob = blobStore.getBlob(containerName, objectName);
             if (null != blob) {
                 return new AbstractMockClient.FakeInboundResponse(Status.OK, blob.getPayload().openStream(),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(blob));
             } else {
                 LOGGER.error(
                     ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");

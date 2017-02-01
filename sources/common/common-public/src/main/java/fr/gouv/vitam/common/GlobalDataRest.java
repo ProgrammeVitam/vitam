@@ -114,7 +114,10 @@ public class GlobalDataRest {
      * Recursive deletion
      */
     public static final String X_RECURSIVE = "X-Recursive";
-    
+    /**
+     * Header use to have the body (object) size even if Content-Type is chunkec
+     */
+    public static final String X_CONTENT_LENGTH = "X-Content-Length";
     /**
      * Transfer Encoding Header
      */
