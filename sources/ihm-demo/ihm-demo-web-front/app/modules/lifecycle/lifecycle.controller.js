@@ -39,10 +39,11 @@ angular.module('lifecycle')
     }
 
     // ************************************Pagination  **************************** //
-    self.viewby = 30;
+    self.viewby = 25;
     self.currentPage = 1;
     self.itemsPerPage = self.viewby;
     self.maxSize = 5;
+    self.resultPages ="";
 
     self.setPage = function(pageNo) {
       selfcurrentPage = pageNo;
@@ -96,6 +97,8 @@ angular.module('lifecycle')
         } else {
           // Valid response
           self.showResult = true;
+          self.resultPages = Math.ceil(response.data.$results[0].events.length/self.itemsPerPage);
+          console.log(response.data.$results[0].events.length);
 
           // Build unit LifeCycle details
           // Add just result events
@@ -121,8 +124,6 @@ angular.module('lifecycle')
               var uppercaseKey = key.toUpperCase();
               if (uppercaseKey === 'EVTYPE') {
                 newEvent[uppercaseKey] = $filter('replaceDoubleQuote')($filter('translate')(value));
-              } else if (uppercaseKey === 'EVDATETIME') {
-                newEvent[uppercaseKey] = $filter('vitamFormatDate')(value);
               } else {
                 newEvent[uppercaseKey] = value;
               }
@@ -141,6 +142,19 @@ angular.module('lifecycle')
         self.showResult = false;
       });
     };
+
+      self.startFormat = function(){
+        var start="";
+
+        if(self.currentPage > 0 && self.currentPage <= self.resultPages){
+          start= (self.currentPage-1)*self.itemsPerPage;
+        }
+
+        if(self.currentPage>self.resultPages){
+          start= (self.resultPages-1)*self.itemsPerPage;
+        }
+        return start;
+      };
 
     // Display life cycle
     buildLifeCycle();

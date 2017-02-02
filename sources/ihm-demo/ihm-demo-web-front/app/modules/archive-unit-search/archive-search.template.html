@@ -113,13 +113,13 @@
     <div class="table-responsive ">
       <table class="table">
         <tr>
-          <th><a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
-            <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-            <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-          </th>
           <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
             <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
             <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          </th>
+          <th><a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
+            <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
           <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Date</a>
             <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
@@ -135,8 +135,8 @@
         <tbody ng-if="showResult && totalResult>0">
           <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)"
               ng-repeat="result in archiveUnitsSearchResult | startFormat: startFormat()| limitTo: itemsPerPage | orderBy:orderByField:reverseSort">
-            <td>{{result.Title}}</td>
             <td>{{result._id}}</td>
+            <td>{{result.Title}}</td>
             <td>{{result.TransactedDate | vitamFormatDate}}</td>
             <td>
               <i ng-if = "!isObjectExist(result._og)" class="material-icons" style="color:#ccc">close</i>
