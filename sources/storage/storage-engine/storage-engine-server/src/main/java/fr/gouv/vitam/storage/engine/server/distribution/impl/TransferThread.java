@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -39,6 +39,7 @@ import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -102,8 +103,12 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
                 StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
 
-                // check digest (old style, to remove when check object US will be done (#1851)
-                if (!BaseXx.getBase16(digest.digest()).equals(putObjectResult.getDigestHashBase16())) {
+                // Check digest
+                StorageCheckRequest storageCheckRequest =
+                    new StorageCheckRequest(request.getTenantId(), request.getType(),
+                        request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()),
+                        putObjectResult.getDigestHashBase16());
+                if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
                     throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content " +
                         "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
                 }
@@ -117,8 +122,8 @@ public class TransferThread implements Callable<ThreadResponseData> {
         return response;
     }
 
-    private boolean isObjectExistsInOffer(StoragePutRequest request, Connection connection) throws
-        StorageDriverException, StorageObjectAlreadyExistsException {
+    private boolean isObjectExistsInOffer(StoragePutRequest request, Connection connection)
+        throws StorageDriverException, StorageObjectAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
         if (connection.objectExistsInOffer(req)) {

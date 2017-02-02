@@ -547,4 +547,11 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
+    @Override
+    public boolean checkObject(String containerName, String objectId, String digest,
+        DigestType digestAlgorithm) throws ContentAddressableStorageException {
+        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
+        return offerDigest.equals(digest);
+    }
+
 }

@@ -70,6 +70,7 @@ public class DefaultOfferServiceTest {
     private static final String FOLDER_PATH = "folder";
     private static final String OBJECT_ID = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_2 = GUIDFactory.newObjectGUID(0).getId();
+    private static final String OBJECT_ID_3 = GUIDFactory.newObjectGUID(0).getId();
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
@@ -81,10 +82,12 @@ public class DefaultOfferServiceTest {
             StorageConfiguration.class);
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_3));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_2));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_3));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH));
     }
 
@@ -291,4 +294,20 @@ public class DefaultOfferServiceTest {
         assertNotNull(jsonNode.get("usableSpace"));
         assertNotNull(jsonNode.get("usedSpace"));
     }
+
+    @Test
+    public void checkObjectTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+
+        final ObjectInit objectInit = getObjectInit(true);
+        offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID_3);
+
+        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true);
+
+        assertTrue(offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest,
+            VitamConfiguration.getDefaultDigestType()));
+    }
+
 }

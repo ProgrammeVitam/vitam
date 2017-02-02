@@ -141,4 +141,17 @@ public interface DefaultOfferService {
      */
     JsonNode getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+
+    /**
+     * Check object
+     * 
+     * @param containerName the container name
+     * @param objectId the objectId to check
+     * @param digest the digest to be compared with
+     * @param digestAlgorithm the digest Algorithm
+     * @return true if the digest is correct
+     * @throws ContentAddressableStorageException
+     */
+    boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
+        throws ContentAddressableStorageException;
 }

@@ -24,7 +24,6 @@
 
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
                 <configuration>
                     <filesets>
                         <fileset>
@@ -123,7 +122,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
-                <version>2.1.5</version>
                 <configuration>
                     <name>vitam-${unix.name}</name>
                     <disabled>false</disabled>

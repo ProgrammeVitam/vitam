@@ -25,34 +25,53 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.engine.common;
+package fr.gouv.vitam.storage.driver.model;
+
+import static org.junit.Assert.assertEquals;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 
 /**
- * Common storage values
+ * Test for StoragePutRequest
  */
-public final class StorageConstants {
-    /**
-     * X-Command header INIT value
-     */
-    public static final String COMMAND_INIT = "INIT";
+public class StorageCheckRequestTest {
+    private static StorageCheckRequest storageCheckRequest;
+    private static final Integer TENANT_ID = 0;
 
-    /**
-     * X-Command header WRITE value
-     */
-    public static final String COMMAND_WRITE = "WRITE";
-
-    /**
-     * X-Command header END value
-     */
-    public static final String COMMAND_END = "END";
-
-    /**
-     * Storage object verification
-     */
-    public static final String OBJECT_VERIFICATION = "objectVerification";
-
-    private StorageConstants() {
-        // Just hiding empty constructor
+    @BeforeClass
+    public static void init() {
+        storageCheckRequest = new StorageCheckRequest(TENANT_ID, "object", "guid",
+            VitamConfiguration.getDefaultDigestType(), "digest_test");
     }
+
+    @Test
+    public void testGetTenantId() throws Exception {
+        assertEquals(TENANT_ID, storageCheckRequest.getTenantId());
+    }
+
+    @Test
+    public void testGetType() throws Exception {
+        assertEquals("object", storageCheckRequest.getType());
+    }
+
+    @Test
+    public void testGetGuid() throws Exception {
+        assertEquals("guid", storageCheckRequest.getGuid());
+    }
+
+    @Test
+    public void testGetDigestAlgorithm() throws Exception {
+        assertEquals(VitamConfiguration.getDefaultDigestType(), storageCheckRequest.getDigestAlgorithm());
+    }
+
+    @Test
+    public void testGetDigest() throws Exception {
+        assertEquals("digest_test", storageCheckRequest.getDigestHashBase16());
+    }
+
+
 
 }

@@ -27,9 +27,29 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -81,24 +101,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 /**
  * StorageDistribution service Implementation process continue if needed)
@@ -175,8 +177,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         CreateObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageException, StorageObjectAlreadyExistsException {
         // Check input params
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-    	checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
@@ -444,7 +446,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public JsonNode getContainerInformation(String strategyId)
         throws StorageException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-    	ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
@@ -466,8 +468,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws
-        StorageException {
+    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         final Properties parameters = new Properties();
@@ -544,7 +545,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public Response getContainerByCategory(String strategyId, String objectId,
         DataCategory category, AsyncResponse asyncResponse) throws StorageException {
         // Check input params
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", objectId);

@@ -49,6 +49,8 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 
 /**
  * Driver implementation for test only
@@ -93,7 +95,7 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageCapacityResult getStorageCapacity(Integer tenantId)
             throws StorageDriverException {
-        	Integer fakeTenant = -1;
+            Integer fakeTenant = -1;
             if (fakeTenant.equals(tenantId)) {
                 throw new StorageDriverException("driverInfo", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "ExceptionTest");
@@ -144,6 +146,16 @@ public class FakeDriverImpl implements Driver {
         @Override
         public void close() throws StorageDriverException {
             // Empty
+        }
+
+        @Override
+        public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
+            if ("digest_bad_test".equals(request.getGuid())) {
+                throw new StorageDriverException("checkObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    "ExceptionTest");
+            }
+            return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
+                request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
         }
     }
 }

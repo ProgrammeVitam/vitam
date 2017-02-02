@@ -26,7 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -37,6 +47,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
@@ -47,14 +59,6 @@ import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl.InternalDriverFactory;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.Properties;
 
 /**
  * Workspace Connection Implementation
@@ -67,6 +71,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     private static final String OBJECT = "object_";
 
     private static final String OBJECTS_PATH = "/objects";
+    private static final String CHECK_PATH = "/check";
 
     private static final String NOT_YET_IMPLEMENTED = "Not yet implemented";
 
@@ -79,6 +84,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
+    private static final String DIGEST_IS_A_MANDATORY_PARAMETER = "Digest is a mandatory parameter";
+
     private final String driverName;
 
     private final Properties parameters;
@@ -103,7 +110,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.OBJECT, getDefaultHeaders(tenantId, null),
+            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.OBJECT,
+                getDefaultHeaders(tenantId, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return handleResponseStatus(response, StorageCapacityResult.class);
@@ -127,10 +135,11 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
         Response response = null;
-        try {            
+        try {
             response =
-                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null),
+                performRequest(HttpMethod.GET,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null, null, null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -180,11 +189,11 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             objectInit.setType(DataCategory.getByFolder(request.getType()));
             response =
                 performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
-                	getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT),
+                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             return performPutRequests(stream, handleResponseStatus(response, ObjectInit.class),
-            		request.getTenantId());
+                request.getTenantId());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
@@ -211,8 +220,9 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/"  + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null),
+                performRequest(HttpMethod.HEAD,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null, null, null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -279,9 +289,12 @@ public class ConnectionImpl extends DefaultClient implements Connection {
      *
      * @param tenantId the tenantId
      * @param command the command to be added
+     * @param digest the digest of the object to be added
+     * @param digestType the type of the digest to be added 
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command) {
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command, String digest,
+        String digestType) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (tenantId != null) {
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -289,8 +302,15 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         if (command != null) {
             headers.add(GlobalDataRest.X_COMMAND, command);
         }
+        if (digest != null) {
+            headers.add(GlobalDataRest.X_DIGEST, digest);
+        }
+        if (digestType != null) {
+            headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, digestType);
+        }
         return headers;
     }
+
 
     /**
      * Method performing a PutRequests
@@ -309,7 +329,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
-            	getDefaultHeaders(tenantId, StorageConstants.COMMAND_END),
+                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
@@ -326,6 +346,55 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             consumeAnyEntityAndClose(response);
         }
         return finalResult;
+    }
+
+    @Override
+    public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
+        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" +
+                    request.getGuid() + CHECK_PATH,
+                    getDefaultHeaders(request.getTenantId(), null,
+                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                    MediaType.WILDCARD_TYPE);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    final JsonNode json = handleResponseStatus(response, JsonNode.class);
+                    final StorageCheckResult result =
+                        new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
+                            request.getDigestAlgorithm(), request.getDigestHashBase16(),
+                            json.get(StorageConstants.OBJECT_VERIFICATION).asBoolean());
+                    return result;
+                case NOT_FOUND:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                        "not found");
+                case PRECONDITION_FAILED:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Precondition failed");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } catch (final VitamClientInternalException e1) {
+            LOGGER.error(e1);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e1.getMessage());
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
     }
 
 }

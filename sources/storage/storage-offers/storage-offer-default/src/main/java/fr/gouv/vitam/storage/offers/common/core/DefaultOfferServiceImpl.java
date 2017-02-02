@@ -179,4 +179,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private DigestType getDigestAlgoFor(String id) {
         return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : VitamConfiguration.getDefaultDigestType();
     }
+
+    @Override
+    public boolean checkObject(String containerName, String objectId, String digest,
+        DigestType digestAlgorithm) throws ContentAddressableStorageException {
+        String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
+        return offerDigest.equals(digest);
+    }
 }
