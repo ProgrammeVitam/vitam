@@ -1,5 +1,5 @@
 Name:          vitam-consul
-Version:       0.7.0
+Version:       0.7.2
 Release:       1%{?dist}
 Summary:       Consul is a distributed, highly-available, and multi-datacenter aware tool for service discovery, configuration, and orchestration. This package includes vitam-specific folders configuration.
 Group:         System Environment/Daemons
