@@ -73,6 +73,7 @@ angular.module('ihm.demo')
           displayError("Il n'y a aucun résultat pour votre recherche");
           return;
         }
+        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
         ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
           return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
          });
