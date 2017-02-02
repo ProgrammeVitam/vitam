@@ -238,8 +238,52 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     @Override
     public StorageRemoveResult removeObject(StorageRemoveRequest request) throws StorageDriverException {
-        throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
+        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.DELETE,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null,
+                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                    MediaType.APPLICATION_JSON_TYPE, false);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    final JsonNode json = handleResponseStatus(response, JsonNode.class);
+                    final StorageRemoveResult result =
+                        new StorageRemoveResult(request.getTenantId(), request.getType(), request.getGuid(),
+                            request.getDigestAlgorithm(), request.getDigestHashBase16(),
+                            Response.Status.OK.toString().equals(json.get("status").asText()));
+                    return result;
+                case NOT_FOUND:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                        "not found");
+                case BAD_REQUEST:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Bad request");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
+
 
     @Override
     public Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {

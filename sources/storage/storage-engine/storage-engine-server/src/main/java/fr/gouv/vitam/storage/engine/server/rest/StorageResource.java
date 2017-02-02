@@ -47,17 +47,16 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -65,11 +64,9 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
@@ -115,6 +112,20 @@ public class StorageResource extends ApplicationStatusResource {
     private Response checkTenantStrategyHeader(HttpHeaders headers) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        }
+        return null;
+    }
+
+    /**
+     * @param headers http headers
+     * @return null if strategy, tenant, digest and digest algorithm headers have values, an error response otherwise
+     */
+    private Response checkDigestAlgorithmHeader(HttpHeaders headers) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID) ||
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST) ||
+            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST_ALGORITHM)) {
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
@@ -369,14 +380,16 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        String tenantId, strategyId;
-        final Response response = checkTenantStrategyHeader(headers);
+        String tenantId, strategyId, digestAlgorithm, digest;
+        final Response response = checkDigestAlgorithmHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            digest = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_DIGEST).get(0);
+            digestAlgorithm = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_DIGEST_ALGORITHM).get(0);
             try {
-                distribution.deleteObject(strategyId, objectId);
+                distribution.deleteObject(strategyId, objectId, digest, DigestType.fromValue(digestAlgorithm));
                 return Response.status(Status.NO_CONTENT).build();
-            } catch (final StorageNotFoundException e) {
+            } catch (final StorageException e) {
                 LOGGER.error(e);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
             }

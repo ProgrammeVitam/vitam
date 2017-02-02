@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -106,10 +107,13 @@ public interface StorageClient extends BasicClient {
      * @param strategyId the storage strategy id
      * @param type the type of object collection
      * @param guid vitam guid
+     * @param digest the digest to be compared with
+     * @param digestAlgorithm the digest Algorithm
      * @return true if deleted
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean delete(String strategyId, StorageCollectionType type, String guid)
+    boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
+        DigestType digestAlgorithm)
         throws StorageServerClientException;
 
 

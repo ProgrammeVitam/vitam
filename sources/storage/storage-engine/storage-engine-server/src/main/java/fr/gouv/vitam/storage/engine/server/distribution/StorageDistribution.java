@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -151,15 +152,18 @@ public interface StorageDistribution {
     JsonNode getContainerObjectInformations(String strategyId, String objectId)
         throws StorageNotFoundException;
 
-    // FIXME P1 missing digest which is mandatory for a delete
     /**
      * Delete an object
      *
      * @param strategyId id of the strategy
      * @param objectId id of the object to be deleted
-     * @throws StorageNotFoundException Thrown in case the Container or the object does not exist
+     * @param digest the digest to be compared with
+     * @param digestAlgorithm the digest Algorithm
+     * @throws StorageNotFoundException Thrown if the Container or the object does not exist
+     * @throws StorageTechnicalException thrown if a technical error happened
      */
-    void deleteObject(String strategyId, String objectId) throws StorageNotFoundException;
+    void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
+        throws StorageException;
 
     // TODO P2 see list/count/size API
     /**

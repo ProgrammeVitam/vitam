@@ -37,6 +37,8 @@ import javax.ws.rs.core.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+
 /**
  * TEst for PutObjectRequestTest
  */
@@ -55,8 +57,10 @@ public class RequestResultTest {
     public static void init() {
         getObjectRequest = new StorageObjectRequest(TENANT_ID, "object", "oi");
         getObjectResult = new StorageGetResult(TENANT_ID, "object", "oi", Response.ok(BYTES).build());
-        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi");
-        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi");
+        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi",
+            VitamConfiguration.getDefaultDigestType(), "digest");
+        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi",
+            VitamConfiguration.getDefaultDigestType(), "digest", true);
         storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
         storageCountResult = new StorageCountResult(TENANT_ID, "object", 2L);
     }

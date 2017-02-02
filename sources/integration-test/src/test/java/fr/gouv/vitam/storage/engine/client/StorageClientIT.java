@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
@@ -44,6 +45,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -287,16 +290,31 @@ public class StorageClientIT {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
 
+            try {
+                assertTrue(storageClient.exists("default", StorageCollectionType.MANIFESTS, MANIFEST));
+            } catch (StorageServerClientException svce) { // not yet implemented
+                LOGGER.error(svce);
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
 
-            // TODO P0 : when implemented, uncomment this
-            /*
-             * try { storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
-             * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet
-             * implemented } try { storageClient.delete("0", "default", StorageCollectionType.OBJECTS, "objectId");
-             * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (Exception svce) { // not yet implemented }
-             */
+            try {
+                final InputStream stream =
+                    storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
+                        .readEntity(InputStream.class);
+                assertNotNull(stream);
+                Digest digest = Digest.digest(stream, VitamConfiguration.getDefaultDigestType());
+                storageClient.delete("default", StorageCollectionType.OBJECTS, "objectId", digest.toString(),
+                    VitamConfiguration.getDefaultDigestType());
+            } catch (Exception svce) {
+                LOGGER.error(svce);
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
 
-        } catch (final Exception e) {
+
+
+        } catch (
+
+        final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }

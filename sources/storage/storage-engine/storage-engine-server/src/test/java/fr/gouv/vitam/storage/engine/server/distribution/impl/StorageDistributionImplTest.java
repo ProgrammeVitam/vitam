@@ -52,6 +52,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -230,6 +232,13 @@ public class StorageDistributionImplTest {
         info = storedInfoResult.getInfo();
         assertNotNull(info);
         assertTrue(info.contains("ObjectGroup") && info.contains("successfully"));
+
+        Digest digest = Digest.digest(new FileInputStream(PropertiesUtils.findFile("object.zip")),
+            VitamConfiguration.getDefaultDigestType());
+        // lets delete the object on offers
+        customDistribution.deleteObject(STRATEGY_ID, objectId, digest.toString(),
+            DigestType.SHA1);
+
     }
 
     @Test(expected = StorageTechnicalException.class)
@@ -388,6 +397,44 @@ public class StorageDistributionImplTest {
         simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT,
             new AsyncResponseJunitTest());
     }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void deleteObjectOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        customDistribution.deleteObject(STRATEGY_ID, "0", "digest",
+            DigestType.SHA1);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testdeleteObjectIllegalArgumentException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        try {
+            customDistribution.deleteObject(null, null, null, null);
+            fail("Exception excepted");
+        } catch (final IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+        try {
+            customDistribution.deleteObject(STRATEGY_ID, null, null, null);
+            fail("Exception excepted");
+        } catch (final IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+        try {
+            customDistribution.deleteObject(STRATEGY_ID, "0", null, null);
+            fail("Exception excepted");
+        } catch (final IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+        try {
+            customDistribution.deleteObject(STRATEGY_ID, "0", "digest", null);
+            fail("Exception excepted");
+        } catch (final IllegalArgumentException exc) {
+            // nothing, exception needed
+        }
+    }
 
     @Test(expected = UnsupportedOperationException.class)
     public void testGetStorageContainer() throws Exception {
@@ -413,11 +460,6 @@ public class StorageDistributionImplTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testGetContainerByCategoryInformations() throws Exception {
         simpleDistribution.getContainerObjectInformations(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void testDeleteObject() throws Exception {
-        simpleDistribution.deleteObject(null, null);
     }
 
     @Test(expected = UnsupportedOperationException.class)

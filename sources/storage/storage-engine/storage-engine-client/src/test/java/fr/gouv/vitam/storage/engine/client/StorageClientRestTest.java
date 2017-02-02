@@ -56,6 +56,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
@@ -451,10 +452,14 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.deleteContainer("idStrategy"));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject"));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits"));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks"));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups"));
+        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject", "digest",
+            VitamConfiguration.getDefaultDigestType()));
+        assertTrue(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits", "digest",
+            VitamConfiguration.getDefaultDigestType()));
+        assertTrue(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", "digest",
+            VitamConfiguration.getDefaultDigestType()));
+        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", "digest",
+            VitamConfiguration.getDefaultDigestType()));
     }
 
     @RunWithCustomExecutor
@@ -463,17 +468,21 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.deleteContainer("idStrategy"));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject"));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits"));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks"));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups"));
+        assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject", "digest",
+            VitamConfiguration.getDefaultDigestType()));
+        assertFalse(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits", "digest",
+            VitamConfiguration.getDefaultDigestType()));
+        assertFalse(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", "digest",
+            VitamConfiguration.getDefaultDigestType()));
+        assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", "digest",
+            VitamConfiguration.getDefaultDigestType()));
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void deleteContainerWithIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.delete("idStrategy", StorageCollectionType.CONTAINERS, "guid");
+        client.delete("idStrategy", StorageCollectionType.CONTAINERS, "guid", null, null);
     }
 
     @RunWithCustomExecutor

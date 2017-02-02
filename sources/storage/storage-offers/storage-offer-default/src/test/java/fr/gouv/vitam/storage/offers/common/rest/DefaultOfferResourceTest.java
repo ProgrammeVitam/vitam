@@ -42,6 +42,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
@@ -495,11 +496,107 @@ public class DefaultOfferResourceTest {
             .statusCode(204);
     }
 
+
     @Test
-    public void deleteObjectTest() {
+    public void deleteObjectTestNotExisting() {
+        // no object found -> 404
         given().header(GlobalDataRest.X_TENANT_ID, 0)
-            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, UNIT_CODE, "id1").then().statusCode(501);
+            .header(GlobalDataRest.X_DIGEST, "digest")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(404);
     }
+
+    @Test
+    public void deleteObjectTestBadRequests() {
+        // bad requests (missing headers) -> 400
+        given().header(GlobalDataRest.X_DIGEST, "digest")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(400);
+
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_DIGEST, "digest")
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(400);
+
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(400);
+
+        // unknwonw digest algorithm -> 500
+        given().header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_DIGEST, "digest")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, "wrongTypeShouldTriggerAnInternalServerError")
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(500);
+    }
+
+
+    @Test
+    public void deleteObjectTest() throws Exception {
+        // init object
+        final ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
+        with().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectInit).when().post(OBJECTS_URI + "/" + OBJECT_CODE + "/" + "id1");
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertNotNull(in);
+            with().header(GlobalDataRest.X_TENANT_ID, "1")
+                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
+        }
+
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+
+        // object is found, creation worked
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .contentType(MediaType.APPLICATION_JSON).then()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
+
+        // wrong digest -> no object found -> 404
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST, "fakeDigest")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(404);
+
+        // object is found, delete has failed, for sure
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .contentType(MediaType.APPLICATION_JSON).then()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
+
+        // wrong digest algorithm -> no object found -> 404
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST, digest.toString())
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getSecurityDigestType().getName())
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(404);
+
+        // object is found, delete has failed, for sure
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .contentType(MediaType.APPLICATION_JSON).then()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
+
+        String responseAsJson =
+            "{\"id\":\"" + "id1" + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}";
+        // good combo digest algorithm + digest -> object found and deleted
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST, digest.toString())
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, VitamConfiguration.getDefaultDigestType().getName())
+            .delete(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1").then().statusCode(200)
+            .body(Matchers.equalTo(responseAsJson));
+
+        // lets check that we cant find the object again, meaning we re sure that the object has been deleted
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .contentType(MediaType.APPLICATION_JSON).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
+
+    }
+
 
     @Test
     public void statusTest() {
