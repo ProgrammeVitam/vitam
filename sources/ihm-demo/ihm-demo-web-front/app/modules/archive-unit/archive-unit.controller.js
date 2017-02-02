@@ -117,7 +117,7 @@ angular.module('archive.unit')
     self.archiveDetailsConfig = $window.dataConfig;
 
     // Function buildSingleField: build single field structure
-    var buildSingleField = function buildSingleField (value, key, parent, parents, constants) {
+    var buildSingleField = function buildSingleField (value, key, parent, parents, constants, modifAllowed) {
       var fieldSet = {};
       var isMgtChild = false;
 
@@ -151,7 +151,7 @@ angular.module('archive.unit')
 
       if(!angular.isObject(value)) {
         fieldSet.typeF = ARCHIVE_UNIT_MODULE_CONST.SIMPLE_FIELD_TYPE;
-        if(!isMgtChild){
+        if(!isMgtChild && modifAllowed){
           fieldSet.isModificationAllowed = true;
         }
       } else {
@@ -169,7 +169,7 @@ angular.module('archive.unit')
 
           if(key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
             key.toString().charAt(0)!==ARCHIVE_UNIT_MODULE_CONST.TECH_KEY){
-            var fieldSetSecond = buildSingleField(value, key, fieldSet.fieldId, fieldSet.parents, constants);
+            var fieldSetSecond = buildSingleField(value, key, fieldSet.fieldId, fieldSet.parents, constants, modifAllowed);
             fieldSetSecond.isChild = true;
 
             if(angular.isArray(contentField)){
@@ -436,8 +436,7 @@ angular.module('archive.unit')
                 var tmpValue = value;
                 self.archiveFields[key] = tmpValue[0];
                 value = tmpValue[0];
-                var fieldSet = buildSingleField(value, key, key, []);
-                 fieldSet.isModificationAllowed = true;
+                var fieldSet = buildSingleField(value, key, key, [], null, true);
 
                 if (mainFields.indexOf(key) >= 0) {
                   self.mainFields[key] = fieldSet;
@@ -449,8 +448,7 @@ angular.module('archive.unit')
                   if (index > 0) {
                     var newKey = self.displayLabel(key, key) + ' ' + index;
                     self.archiveFields[newKey] = objectValue;
-                    fieldSet = buildSingleField(objectValue, newKey, newKey, []);
-                    fieldSet.isModificationAllowed = true;
+                    fieldSet = buildSingleField(objectValue, newKey, newKey, [], null, true);
                     self.archiveArray.push(fieldSet);
                   }
                 });
@@ -463,8 +461,7 @@ angular.module('archive.unit')
                   $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
               }
 
-              self.fieldSet = buildSingleField(value, key, key, []);
-              self.fieldSet.isModificationAllowed = true;
+              self.fieldSet = buildSingleField(value, key, key, [], null, true);
               if (!addedField) {
                 if (mainFields.indexOf(key) >= 0 ) {
                   self.mainFields[key] = self.fieldSet;
@@ -478,8 +475,7 @@ angular.module('archive.unit')
           // Handle missing main fields
           angular.forEach(mainFields, function(key) {
             if (!self.mainFields[key]) {
-              self.fieldSet = buildSingleField('', key, key, []);
-              self.fieldSet.isModificationAllowed = true;
+              self.fieldSet = buildSingleField('', key, key, [], null, true);
               self.mainFields[key] = self.fieldSet;
             }
 
@@ -505,8 +501,7 @@ angular.module('archive.unit')
 
                 if(!found){
                   // Add mandatory field
-                  self.fieldSet = buildSingleField('', childKey, key, []);
-                  self.fieldSet.isModificationAllowed = true;
+                  self.fieldSet = buildSingleField('', childKey, key, [], null, true);
                   essentialFinalContent.push(self.fieldSet);
                 }
               });
@@ -544,8 +539,7 @@ angular.module('archive.unit')
             angular.forEach(contentField, function (value, key) {
               if (key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
                 key.toString().charAt(0) !== ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
-                var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents);
-                fieldSetSecond.isModificationAllowed = false;
+                var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents, null, false);
                 fieldSetSecond.isChild = false;
                 self.managmentItems.push(fieldSetSecond);
               }
@@ -561,8 +555,7 @@ angular.module('archive.unit')
       angular.forEach($scope.archiveObjectGroups.versions, function(version) {
         var fieldSet = [];
         angular.forEach(version.metadatas, function(value, key) {
-          var fieldSetSecond = buildSingleField(value, key, key, [], ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL);
-          fieldSetSecond.isModificationAllowed = false;
+          var fieldSetSecond = buildSingleField(value, key, key, [], ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
           fieldSetSecond.isChild = false;
           fieldSet.push(fieldSetSecond);
         });
