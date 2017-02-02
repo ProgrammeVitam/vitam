@@ -33,6 +33,7 @@ import com.mongodb.MongoClient;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 
@@ -64,6 +65,18 @@ public final class MongoDbAccessAdminFactory {
             MongoDbAccess.createMongoClient(configuration, VitamCollection.getMongoClientOptions(classList));
 
         return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false);
+    }
+    
+    /**
+     * Creation of one MongoDbAccess and initialize elasticsearch access
+     *
+     * @param configuration config of MongoDbAcess
+     * @return the MongoDbAccess
+     * @throws IllegalArgumentException if argument is null
+     */
+    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, String clusterName, List<ElasticsearchNode> nodes) {
+        ElasticsearchAccessAdminFactory.create(clusterName, nodes);
+        return create(configuration);
     }
 
 }
