@@ -59,7 +59,12 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,6 +73,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -211,7 +217,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * get units list by query based on identifier
      *
@@ -325,6 +330,18 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
+    /**
+     * @param idObjectGroup
+     * @return Response
+     */
+    @GET
+    @Path("/objects/{ido}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        getObject (headers,idObjectGroup,query,asyncResponse,false) ;
+    }
 
     /**
      * @param headers
@@ -353,40 +370,88 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * @param headers
      * @param idObjectGroup
-     * @param query
-     * @param asyncResponse
+     * @return Response
      */
-    @GET
-    @Path("/units/{ido}/object")
+    @POST
+    @Path("/objects/{ido}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObject(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
+    public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, false));
+            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
     }
 
 
     /**
      * @param headers
-     * @param idObjectGroup
+     * @param idu
+     * @param query
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObject(@Context HttpHeaders headers, @PathParam("idu") String idu,
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        Status status;
+        try {
+            String idObjectGroup = idObjectGroup(idu);
+            getObject(headers, idObjectGroup, query, asyncResponse,false) ;
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(status).build());
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Unauthorized request Exception ", e);
+            status = Status.UNAUTHORIZED;
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(status).build());
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error("Request resources does not exits", e);
+            status = Status.NOT_FOUND;
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(status).build());
+        }
+    }
+
+
+
+    /**
+     * @param headers
+     * @param idu
      * @param query
      * @param asyncResponse
      */
     @POST
-    @Path("/units/{ido}/object")
+    @Path("/units/{idu}/object")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObjectPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
+    public void getObjectPost(@Context HttpHeaders headers, @PathParam("idu") String idu,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, true));
-    }
+        Status status;
+        try {
+            String idObjectGroup = idObjectGroup(idu);
+            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
 
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(status).build());
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Unauthorized request Exception ", e);
+            status = Status.UNAUTHORIZED;
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(status).build());
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error("Request resources does not exits", e);
+            status = Status.NOT_FOUND;
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(status).build());
+        }
+    }
 
     /**
      * get object group list by query
@@ -426,7 +491,27 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
-
+    private String idObjectGroup(String idu)
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException {
+        // Select  "Object from ArchiveUNit idu
+        JsonNode result = null;
+        ParametersChecker.checkParameter("unit id is required", idu);
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+            Select select = new Select();
+            select.addUsedProjection("#object");
+            result = client.selectUnitbyId(select.getFinalSelect(), idu);
+            SanityChecker.checkJsonAll(result);
+            return result.findValue("#object").textValue();
+        }
+    }
+    private void getObject( HttpHeaders headers, String idObjectGroup,
+        JsonNode query,final AsyncResponse asyncResponse, boolean post ){
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, post));
+    }
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query, boolean post) {
 

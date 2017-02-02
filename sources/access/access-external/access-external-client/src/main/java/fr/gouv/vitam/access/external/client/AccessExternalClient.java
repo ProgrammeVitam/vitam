@@ -117,6 +117,20 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
+    /**
+     * selectObjectById
+     *
+     * @param selectObjectQuery
+     * @param unitId
+     * @param tenantId
+     * @return Json representation
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     */
+    Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
 
     /**
      * selectOperation

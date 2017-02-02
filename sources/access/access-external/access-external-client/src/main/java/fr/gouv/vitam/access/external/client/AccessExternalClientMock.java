@@ -54,6 +54,13 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         return ClientMockResultHelper.getArchiveUnitResult();
     }
 
+    @Override public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
+        Integer tenantId) throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
     @Override
     public RequestResponse selectOperation(JsonNode select, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
