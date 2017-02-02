@@ -233,7 +233,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final List<String> initGlobalRequiredInformations() {
         List<String> globalRequiredInfos = new ArrayList<>();
         globalRequiredInfos.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-        globalRequiredInfos.add(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
 
         return globalRequiredInfos;
     }
@@ -382,8 +381,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
                     globalMetadata = false;
-
-                    globalRequiredInfosFound.add(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                 }
                 // Process rules : build mgtRulesMap
                 if (event.isStartElement() &&
