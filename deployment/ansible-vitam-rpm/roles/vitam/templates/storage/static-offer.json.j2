@@ -1,14 +1,12 @@
 [
-{% for i in vitam_storageofferdefault_list %}
-{% if i.name is defined %}
+{% for item in groups['hosts-storage-offer-default'] %}
 {
-    "id" : "{{i.name}}",
-    "baseUrl" : "{{i.protocol}}://{{i.host}}:{{i.port}}",
+    "id" : "{{item}}",
+    "baseUrl" : "http://{{item}}:{{vitam_storageofferdefault_port}}",
     "parameters" : {
     }
 }
 {% if not loop.last %},
-{% endif %}
 {% endif %}
 {% endfor %}
 ]

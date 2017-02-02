@@ -76,13 +76,13 @@ vitam_storageengine_baseurl: "http://{{vitam_storageengine_host}}:{{vitam_storag
 vitam_storageengine_baseuri: "/storage-engine"
 
 vitam_storageofferdefault_port: 9900
-vitam_storageofferdefault2_port: "{{vitam_storageofferdefault_port + 1}}"
+# vitam_storageofferdefault2_port: "{{vitam_storageofferdefault_port + 1}}"
 vitam_storageofferdefault_baseuri: "/storage-offer-default"
-vitam_storageofferdefault_list:
- - name: default
-   host: "{{vitam_storageofferdefault_host_1}}"
-   port: "{{vitam_storageofferdefault_port}}"
-   protocol: http
+# vitam_storageofferdefault_list:
+# - name: default
+#   host: "{{vitam_storageofferdefault_host_1}}"
+#   port: "{{vitam_storageofferdefault_port}}"
+#   protocol: http
  # - name: default2
  #   host: "{{vitam_storageofferdefault_host_2}}"
  #   port: "{{vitam_storageofferdefault2_port}}"

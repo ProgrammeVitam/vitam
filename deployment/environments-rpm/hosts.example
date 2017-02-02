@@ -122,7 +122,11 @@ hosts-storage-offer-default
 
 [hosts-storage-offer-default]
 # TODO: Put here servers where this service will be deployed : storage-offer-default
-
+# LIMIT : only 1 offer per machine and 1 machine per offer
+# Additional params for openstack-swift
+# hostname-offre-1.vitam vitam_keystone_auth_url=http://hostname-rados-gw:port/auth/1.0 vitam_swift_subuser=subuser vitam_swift_uid=tenant$user vitam_provider_offer=openstack-swift
+# for filesystem
+# hostname-offre-2.vitam vitam_provider_offer=filesystem
 
 
 ##### Zone data
