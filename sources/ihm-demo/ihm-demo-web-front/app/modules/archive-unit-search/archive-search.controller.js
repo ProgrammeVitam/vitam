@@ -61,10 +61,34 @@ angular
       .clickOutsideToClose(true).title(dialogTitle).textContent(message)
       .ariaLabel('Alert Dialog Demo').ok('OK').targetEvent($event));
     };
-    // ****************************************************************************
-    // //
 
-    // ***************** Archive Units Search Result
+       // ************************************Pagination
+       // **************************** //
+       $scope.viewby = ITEM_PER_PAGE;
+       $scope.currentPage = 0;
+       $scope.itemsPerPage = $scope.viewby;
+       $scope.maxSize = 5;
+       $scope.resultPages=0;
+
+       $scope.setPage = function(pageNo) {
+           $scope.currentPage = pageNo;
+       };
+
+       $scope.pageChanged = function() {
+           console.log('Page changed to: ' + $scope.currentPage);
+       };
+
+       $scope.setItemsPerPage = function(num) {
+           $scope.itemsPerPage = num;
+           $scope.currentPage = 1; // reset to first page
+       }
+       // ****************************************************************************
+       // //
+
+
+       // ****************************************************************************
+       // //
+       // ***************** Archive Units Search Result
     // ********************** //
     $scope.archiveUnitsSearchResult;
     var criteriaSearch = {};
@@ -101,7 +125,9 @@ angular
           // ************************************Pagination
           // ****************************
           // //
+          $scope.currentPage = 1;
           $scope.totalItems = $scope.archiveUnitsSearchResult.length;
+          $scope.resultPages = Math.ceil($scope.totalResult /$scope.itemsPerPage);
           // ****************************************************************************
           // //
          }
@@ -141,29 +167,6 @@ angular
       return false;
      }
     };
-
-    // ************************************Pagination
-    // **************************** //
-    $scope.viewby = ITEM_PER_PAGE;
-    $scope.currentPage = "";
-    $scope.itemsPerPage = $scope.viewby;
-    $scope.maxSize = 5;
-    $scope.resultPages="";
-
-    $scope.setPage = function(pageNo) {
-     $scope.currentPage = pageNo;
-    };
-
-    $scope.pageChanged = function() {
-     console.log('Page changed to: ' + $scope.currentPage);
-    };
-
-    $scope.setItemsPerPage = function(num) {
-      $scope.itemsPerPage = num;
-      $scope.currentPage = 1; // reset to first page
-     }
-     // ****************************************************************************
-     // //
 
     // ***************** Archive Units Search Result
     // ********************** //
@@ -255,6 +258,8 @@ angular
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
            $scope.showAlert($event, "Erreur", $scope.errorMessage);
             $scope.totalResult = 0;
+              $scope.currentPage =0;
+              $scope.resultPages=0;
           } else {
            $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
            $scope.showResult = true;
