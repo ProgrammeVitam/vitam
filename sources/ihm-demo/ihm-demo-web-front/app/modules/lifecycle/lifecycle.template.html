@@ -45,7 +45,7 @@
       <div  ng-if = "$ctrl.showResult" class="table-responsive ">
         <table class="table">
           <tr>
-            <th ng-repeat = "column in $ctrl.columnsToDisplay">
+            <th ng-repeat = "column in $ctrl.columnsToDisplay" style="min-width:300px">
               {{column.label | translate}}
             </th>
             <th ng-repeat = "column in $ctrl.selectedObjects">
