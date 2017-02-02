@@ -173,7 +173,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         final ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
         result.put("usableSpace", containerInformation.getUsableSpace());
         result.put("usedSpace", containerInformation.getUsedSpace());
-        result.put("tenantId", containerName);
         return result;
     }
 
