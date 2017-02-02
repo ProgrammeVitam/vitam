@@ -124,7 +124,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                     .getElasticsearchNodes());
         }
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration);
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes());
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         LOGGER.debug("init Admin Management Resource server");
