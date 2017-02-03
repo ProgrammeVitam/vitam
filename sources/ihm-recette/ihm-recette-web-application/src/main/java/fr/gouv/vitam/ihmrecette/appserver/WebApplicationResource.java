@@ -76,12 +76,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -119,7 +121,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     public static final String IHM_RECETTE = "IHM_RECETTE";
-    private static final String DEFAULT_TENANT = "0";
     private final WebApplicationConfig webApplicationConfig;
 
     // FIXME : replace the boolean by a static timestamp updated by the soap ui
@@ -588,8 +589,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
             List<JsonNode> results = responseOK.getResults();
             JsonNode operation = results.get(0);
 
+            int tenantId = operation.get("_tenant").intValue();
+
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
             ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
             JsonNode lastEvent = Iterables.getLast(events);
+
             String evDetData = lastEvent.get("evDetData").textValue();
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
@@ -621,6 +627,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } finally {
+            // clean tenantId
+            VitamThreadUtils.getVitamSession().setTenantId(null);
         }
     }
 
