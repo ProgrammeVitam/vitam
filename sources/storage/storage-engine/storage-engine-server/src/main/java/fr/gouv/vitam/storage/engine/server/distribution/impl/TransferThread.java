@@ -27,7 +27,12 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import fr.gouv.vitam.common.BaseXx;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.concurrent.Callable;
+
+import javax.ws.rs.core.Response;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -50,11 +55,6 @@ import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFacto
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.Properties;
-import java.util.concurrent.Callable;
-
 /**
  * Thread Future used to send stream to one offer
  */
@@ -69,7 +69,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
     private StoragePutRequest request;
 
     /**
-     * Dafault constructor
+     * Default constructor
      *
      * @param driver thre diver
      * @param offerReference the offer reference to put object

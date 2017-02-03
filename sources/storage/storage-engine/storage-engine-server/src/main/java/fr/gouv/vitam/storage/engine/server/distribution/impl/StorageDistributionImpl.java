@@ -191,81 +191,98 @@ public class StorageDistributionImpl implements StorageDistribution {
             if (offerReferences.isEmpty()) {
                 throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            final Map<String, Status> offerResults = new HashMap<>();
 
-            StorageLogbookParameters parameters = null;
+            TryAndRetryData datas = new TryAndRetryData();
+            datas.populateFromOfferReferences(offerReferences);
 
-            Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
-
-            MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace(
-                (InputStream) streamAndInfos.get(STREAM_KEY), offerReferences.size());
-
-            VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
-
-            // init thread and make future map
-            // Map here to keep offerId linked to Future
-            Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
-            int rank = 0;
-            for (final OfferReference offerReference : offerReferences) {
-                final Driver driver = retrieveDriverInternal(offerReference.getId());
-                StoragePutRequest request = new StoragePutRequest(tenantId, category.getFolder(), objectId,
-                    digestType.name(), streams.getInputStream(rank));
-                futureMap.put(offerReference.getId(), executor.submit(new TransferThread(driver, offerReference,
-                    request)));
-                rank++;
-            }
-
-            // wait all tasks submission
-            try {
-                Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
-            } catch (InterruptedException exc) {
-                LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
-            }
-
-            executor.shutdown();
-
-            // wait for all threads execution
-            // TODO: manage interruption and error execution
-            try {
-                executor.awaitTermination(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
-                    TimeUnit.MILLISECONDS);
-            } catch (InterruptedException exc) {
-                LOGGER.warn("ExecutorService interrupted !", exc);
-            }
-
-            executor.shutdownNow();
-
-            for (String offerId : futureMap.keySet()) {
-                try {
-                    ThreadResponseData res = futureMap.get(offerId).get();
-                    parameters = setLogbookStorageParameters(parameters, offerId, res, requester);
-                } catch (InterruptedException exc) {
-                    // Interrupted = shutdownNow
-                    // TODO: rollback (delete on all offers)
-                    LOGGER.error("Interrupted on offer ID " + offerId, exc);
-                    parameters = setLogbookStorageParameters(parameters, offerId, null, requester);
-                } catch (ExecutionException exc) {
-                    // Execution = thread error (exception)
-                    // TODO: rollback (delete on all offers)
-                    LOGGER.error("Error on offer ID " + offerId, exc);
-                    parameters = setLogbookStorageParameters(parameters, offerId, null, requester);
-                    logStorage(parameters);
-                    // TODO: review this exception to manage errors correctly
-                    if (exc.getCause() instanceof StorageObjectAlreadyExistsException) {
-                        throw (StorageObjectAlreadyExistsException) exc.getCause();
-                    } else if (exc.getCause() instanceof StorageTechnicalException) {
-                        throw (StorageTechnicalException) exc.getCause();
-                    } else {
-                        throw new StorageTechnicalException(exc.getCause());
-                    }
-                }
-            }
+            StorageLogbookParameters parameters =
+                tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, 1);
 
             logStorage(parameters);
             // TODO P1 Handle Status result if different for offers
-            return buildStoreDataResponse(objectId, category, offerResults);
+            return buildStoreDataResponse(objectId, category, datas.getGlobalOfferResult());
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
+    }
+
+    private StorageLogbookParameters tryAndRetry(String objectId, CreateObjectDescription createObjectDescription,
+        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt)
+        throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
+        StorageLogbookParameters parameters = null;
+
+        Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
+
+        MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace((InputStream) streamAndInfos.get
+                (STREAM_KEY), datas.getKoList().size());
+
+        VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
+
+        // init thread and make future map
+        // Map here to keep offerId linked to Future
+        Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
+        int rank = 0;
+        for (final String offerId : datas.getKoList()) {
+            OfferReference offerReference = new OfferReference();
+            offerReference.setId(offerId);
+            final Driver driver = retrieveDriverInternal(offerReference.getId());
+            StoragePutRequest request = new StoragePutRequest(tenantId, category.getFolder(), objectId,
+                digestType.name(), streams.getInputStream(rank));
+            futureMap.put(offerReference.getId(), executor.submit(new TransferThread(driver, offerReference,
+                request)));
+            rank++;
+        }
+
+        // wait all tasks submission
+        try {
+            Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
+        } catch (InterruptedException exc) {
+            LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
+        }
+
+        executor.shutdown();
+
+        // wait for all threads execution
+        // TODO: manage interruption and error execution (US #2008 && 2009)
+        try {
+            executor.awaitTermination(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
+                TimeUnit.MILLISECONDS);
+        } catch (InterruptedException exc) {
+            LOGGER.warn("ExecutorService interrupted !", exc);
+        }
+
+        executor.shutdownNow();
+
+        for (String offerId : futureMap.keySet()) {
+            try {
+                ThreadResponseData res = futureMap.get(offerId).get();
+                parameters = setLogbookStorageParameters(parameters, offerId, res, requester, attempt);
+                datas.koListToOkList(offerId);
+            } catch (InterruptedException exc) {
+                // Interrupted = shutdownNow
+                LOGGER.error("Interrupted on offer ID " + offerId, exc);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+            } catch (ExecutionException exc) {
+                // Execution = thread error (exception)
+                LOGGER.error("Error on offer ID " + offerId, exc);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+                logStorage(parameters);
+                // TODO: review this exception to manage errors correctly
+                // Take into account Exception class
+                // For example, for particular exception do not retry (because it's useless)
+                // US : #2009
+            }
+        }
+        if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
+            attempt++;
+            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt);
+        }
+
+        // TODO : error management (US #2008)
+        if (!datas.getKoList().isEmpty()) {
+            deleteObjects(datas.getOkList(), tenantId, category, objectId);
+        }
+
+        return parameters;
     }
 
     private long getTransferTimeout(long sizeToTransfer) {
@@ -295,15 +312,15 @@ public class StorageDistributionImpl implements StorageDistribution {
         return new MultipleInputStreamHandler(digestOriginalStream, nbCopy);
     }
 
-    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId,
-        ThreadResponseData res,
-        String requester) {
+
+    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId, ThreadResponseData res,
+        String requester, int attempt) {
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
-                null, offerId, res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, requester);
+                null, offerId, res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, requester, attempt);
         } else {
-            updateStorageLogbookParameters(parameters, offerId,
-                res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR);
+            updateStorageLogbookParameters(parameters, offerId, res != null ? res.getStatus() : Status
+                .INTERNAL_SERVER_ERROR, attempt);
         }
         return parameters;
     }
@@ -381,7 +398,7 @@ public class StorageDistributionImpl implements StorageDistribution {
      * @return storage logbook parameters
      */
     private StorageLogbookParameters getParameters(String objectGuid, StoragePutResult putObjectResult,
-        Digest messageDigest, String offerId, Status objectStored, String requester) {
+        Digest messageDigest, String offerId, Status objectStored, String requester, int attempt) {
         final String objectIdentifier = objectGuid != null ? objectGuid : "objectRequest NA";
         final String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
         final String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
@@ -389,21 +406,24 @@ public class StorageDistributionImpl implements StorageDistribution {
         final StorageLogbookOutcome outcome = error ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
 
         return getStorageLogbookParameters(
-            objectIdentifier, null, messageDig, digestType.getName(), size, error ? offerId + " : KO" : offerId + " " +
-                ": OK",
-            requester,
-            null,
-            null, outcome);
+            objectIdentifier, null, messageDig, digestType.getName(), size, getAttemptLog(offerId, attempt, error),
+            requester, null, null, outcome);
+    }
+
+    private String getAttemptLog(String offerId, int attempt, boolean error) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(offerId).append(" attempt ").append(attempt).append(" : ").append(error ? "KO" : "OK");
+        return sb.toString();
     }
 
     private void updateStorageLogbookParameters(StorageLogbookParameters parameters, String offerId,
-        Status status) {
+        Status status, int attempt) {
         String offers = parameters.getMapParameters().get(StorageLogbookParameterName.agentIdentifiers);
         if (Status.INTERNAL_SERVER_ERROR.equals(status)) {
             parameters.getMapParameters().put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.KO.name());
-            offers += ", " + offerId + " : KO";
+            offers += ", " + offerId + " attempt " + attempt + " : KO";
         } else {
-            offers += ", " + offerId + " : OK";
+            offers += ", " + offerId + " attempt " + attempt +  " : OK";
         }
         parameters.getMapParameters().put(StorageLogbookParameterName.agentIdentifiers, offers);
     }
@@ -602,6 +622,34 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
+    private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId)
+        throws StorageTechnicalException {
+        VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
+        for (String offerId : offerIdList) {
+            final Driver driver = retrieveDriverInternal(offerId);
+            // TODO: review if digest value is really good ?
+            StorageRemoveRequest request = new StorageRemoveRequest(tenantId, category.getFolder(), objectId,
+            digestType, digest.digestHex());
+            executor.submit(new DeleteThread(driver, request, offerId));
+        }
+
+        // wait all tasks submission
+        try {
+            Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
+        } catch (InterruptedException exc) {
+            LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
+        }
+
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException exc) {
+            LOGGER.warn("ExecutorService interrupted !", exc);
+        }
+
+        executor.shutdownNow();
+    }
 
     @Override
     public void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)

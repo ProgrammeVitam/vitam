@@ -125,6 +125,9 @@ public class FakeDriverImpl implements Driver {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
                     objectRequest.getGuid(), objectRequest.getGuid(), "different_digest_hash", 0);
+            } if ("retry_test".equals(objectRequest.getGuid())) {
+                throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    "retry_test");
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
