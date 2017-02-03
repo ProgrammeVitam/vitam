@@ -344,9 +344,9 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
 
       - FATAL : la notification de la fin de l'opération n'a pas pu être réalisée suite à une erreur système (ATR_NOTIFICATION.FATAL=Erreur fatale lors de la notification à l'opérateur de versement)
 
-  * Notification de la fin de l'opération d'entrée (ATR_NOTIFICATION) (post Bêta)
+  * Mise en cohérence des journaux de cycle de vie (ROLL_BACK) (post Bêta)
 
-    + **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée suite à la notification de la fin d'opération d'entrée afin de purger les collections temporaire des journaux de cycle de vie. 
+    + **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée suite à la notification de la fin d'opération d'entrée afin de purger les collections temporaire des journaux de cycle de vie.
 
     + **Type** : bloquant.
 
