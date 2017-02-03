@@ -86,6 +86,7 @@ angular.module('ihm.demo')
 
     ctrl.deleteRuleValue = function () {
       delete ctrl.searchOptions.RuleValue;
+      ctrl.getFileRules();
     };
 
       ctrl.startFormat = function(){
