@@ -38,6 +38,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String UNITS = "/units/";
+    private static final String OBJECTS = "/objects/";
     private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
@@ -220,7 +221,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
 
         try {
-            response = performRequest(HttpMethod.POST, UNITS + objectId + "/object", headers,
+            response = performRequest(HttpMethod.POST, OBJECTS + objectId, headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -245,7 +246,51 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
+    @Override
+    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
+        Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        SanityChecker.checkJsonAll(selectObjectQuery);
+        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
+            throw new IllegalArgumentException(BLANK_DSL);
+        }
+        ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, unitId);
+        ParametersChecker.checkParameter(BLANK_USAGE, usage);
+        ParametersChecker.checkParameter(BLANK_VERSION, version);
 
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
+        headers.add(GlobalDataRest.X_QUALIFIER, usage);
+        headers.add(GlobalDataRest.X_VERSION, version);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+
+        try {
+            response = performRequest(HttpMethod.POST, UNITS + unitId + "/object", headers,
+                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
+                throw new AccessExternalClientServerException("Internal Server Error");
+            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
+            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
+                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
+            }
+
+            return response;
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
     /* Logbook external */
 
     @Override

@@ -149,7 +149,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         // @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
+        public Response getUnitObject(@PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.get();
         }
 
@@ -158,6 +158,25 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         // @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response getUnitObject(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
+            @PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.post();
+        }
+
+
+        @GET
+        @Path("/objects/{id_object_group}")
+        @Consumes(MediaType.APPLICATION_JSON)
+         @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.get();
+        }
+
+
+        @POST
+        @Path("/objects/{id_object_group}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
             @PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.post();
