@@ -44,12 +44,25 @@ public enum BusinessObjectType {
      */
     OBJECT_GROUP("ObjectGroup");
 
+    /**
+     * Business Object Name
+     */
     private String businessObjectName;
 
+    /**
+     * Constructor.
+     * 
+     * @param businessObjectName
+     */
     BusinessObjectType(String businessObjectName) {
         this.businessObjectName = businessObjectName;
     }
 
+    /**
+     * Gets the businessObjectName
+     * 
+     * @return the businessObjectName
+     */
     public String businessObjectName() {
         return businessObjectName;
     }
