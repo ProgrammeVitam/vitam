@@ -20,10 +20,17 @@ Rest API
 |
 | POST /units -> **POST nouvelle unit et selection d'une liste des units avec une réquête **
 |
+|GET /units  ->  **GET sélectionne une liste des units avec une requete 
+|
 | GET /status -> **statut du server rest metadata (available/unavailable)**
 |
 | POST /objectgroups -> **POST : insérer une nouvelle object groups avec une requête DSL**
-
+|
+|GET /objectgroups/{id_og} -> avoir un object groups par id avec une requete DSL
+|
+|GET /units/{id_unit} -> **POST nouvelle unit et selection d'une liste des units avec une réquête **
+|
+|PUT /units/{id_unit}  -> mettre à jour une unit par identifiant
 
 
 
