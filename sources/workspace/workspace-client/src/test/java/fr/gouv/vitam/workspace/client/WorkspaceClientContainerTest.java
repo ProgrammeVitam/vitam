@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -42,7 +44,10 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -85,6 +90,13 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response isExistingContainer(@PathParam("containerName") String containerName) {
             return expectedResponse.head();
+        }
+
+        @GET
+        @Path("{containerName}/count")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response countObjects(@PathParam("containerName") String containerName) {
+            return expectedResponse.get();
         }
     }
 
@@ -173,5 +185,28 @@ public class WorkspaceClientContainerTest extends WorkspaceClientTest {
         throws ContentAddressableStorageServerException {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertFalse(client.isExistingContainer(CONTAINER_NAME));
+    }
+
+    @Test
+    public void givenContainerAlreadyExistsWhenCountObjectsThenReturnOk()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        ObjectNode node = JsonHandler.createObjectNode();
+        node.put("objectNumber", 2L);
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(node).build());
+        assertEquals(2L, client.countObjects(CONTAINER_NAME));
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenContainerNotFoundWhenCountObjectsThenThrowException()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.countObjects(CONTAINER_NAME);
+    }
+
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void givenInternalErrorWhenCountObjectsThenThrowException()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.countObjects(CONTAINER_NAME);
     }
 }

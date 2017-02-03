@@ -51,11 +51,13 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -182,6 +184,38 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+        }
+    }
+
+
+    /**
+     * Count the number of binary files in the container
+     *
+     * @param containerName path param for container name
+     * @return Response containing the number of objects in "objectNumber"
+     */
+    @Path("/containers/{containerName}/count")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response countObjects(@PathParam(CONTAINER_NAME) String containerName) {
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName);
+            final long objectNumber = workspace.countObjects(containerName);
+            // TODO should use a common model object, but since it should be common with driver, where ?
+            final ObjectNode result = JsonHandler.createObjectNode();
+            result.put("objectNumber", objectNumber);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
@@ -413,8 +447,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName, @PathParam
-        (OBJECT_NAME) String objectName) {
+    public Response putObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
@@ -588,9 +622,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
             Response response = workspace.getObject(containerName, objectName);
             helper = new AsyncInputStreamHelper(asyncResponse, (InputStream) response.getEntity());
-            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType
-                .APPLICATION_OCTET_STREAM).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM)
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                    response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
             helper.writeResponse(responseBuilder);
 
 

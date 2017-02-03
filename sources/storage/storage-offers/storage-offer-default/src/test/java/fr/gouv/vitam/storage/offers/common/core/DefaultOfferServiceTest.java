@@ -121,6 +121,20 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    public void countObjectsTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+
+        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
+        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
+
+        JsonNode result = offerService.countObjects(CONTAINER_PATH);
+        assertEquals(1, result.get("objectNumber").longValue());
+
+    }
+
+    @Test
     public void createFolderTest() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
@@ -251,7 +265,6 @@ public class DefaultOfferServiceTest {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
 
-        final ObjectInit objectInit = getObjectInit(false);
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
 
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);

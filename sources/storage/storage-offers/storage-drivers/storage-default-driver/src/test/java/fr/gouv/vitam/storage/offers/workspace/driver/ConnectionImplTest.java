@@ -40,6 +40,7 @@ import java.time.Instant;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -61,6 +62,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
@@ -77,10 +79,12 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
+import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -176,6 +180,14 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @Path("/objects/{type}/{id:.+}/check")
         @Produces(MediaType.APPLICATION_JSON)
         public Response checkObject(@PathParam("id") String objectId) {
+            return expectedResponse.get();
+        }
+
+        @GET
+        @Path("/objects/{type}/count")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            @PathParam("type") String type) {
             return expectedResponse.get();
         }
 
@@ -611,6 +623,64 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public void checkObjectTestVitamClientException() throws Exception {
         when(mock.get()).thenThrow(VitamClientInternalException.class);
         connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
+    }
+
+    public void countObjectOK() throws Exception {
+        final ObjectNode dataResult = JsonHandler.createObjectNode();
+        dataResult.put("numberObjects", 2L);
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(dataResult).build());
+        final StorageRequest request = new StorageRequest(tenant, DataCategory.OBJECT.getFolder());
+        final StorageCountResult result = connection.countObjects(request);
+        assertNotNull(result);
+        assertEquals(2L, result.getNumberObjects());
+    }
+
+    @Test
+    public void countObjectNotFound() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        final StorageRequest request = new StorageRequest(tenant, DataCategory.OBJECT.getFolder());
+        try {
+            connection.countObjects(request);
+        } catch (final StorageDriverException exc) {
+            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+        }
+    }
+
+
+    @Test
+    public void countObjectBadRequest() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        final StorageRequest request = new StorageRequest(tenant, DataCategory.OBJECT.getFolder());
+        try {
+            connection.countObjects(request);
+        } catch (final StorageDriverException exc) {
+            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+        }
+    }
+
+    @Test
+    public void countObjectIllegalParam() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        StorageRequest request = new StorageRequest(null, DataCategory.OBJECT.getFolder());
+        try {
+            connection.countObjects(request);
+            fail("Expected exception");
+        } catch (final IllegalArgumentException exc) {
+
+        }
+        request = new StorageRequest(tenant, null);
+        try {
+            connection.countObjects(request);
+            fail("Expected exception");
+        } catch (final IllegalArgumentException exc) {
+
+        }
+        try {
+            connection.countObjects(null);
+            fail("Expected exception");
+        } catch (final IllegalArgumentException exc) {
+
+        }
     }
 
     private StoragePutRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,

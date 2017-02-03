@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static org.junit.Assert.assertFalse;
@@ -36,6 +35,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -76,7 +77,6 @@ import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
  * DefaultOfferResource Test
  */
 public class DefaultOfferResourceTest {
-
 
     private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
     private static File newWorkspaceOfferConf;
@@ -506,6 +506,7 @@ public class DefaultOfferResourceTest {
         given().get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
+
     @Test
     public void checkObjectTestNotExisting() {
         // no object -> 500
@@ -567,6 +568,51 @@ public class DefaultOfferResourceTest {
             .get(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI + CHECK_URI, OBJECT_CODE, "id1").then().statusCode(200)
             .body(Matchers.equalTo(responsetrueAsString));
 
+    }
+
+
+
+    @Test
+    public void countObjectsTestKOBadRequest() throws FileNotFoundException, IOException {
+        // test
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then()
+            .statusCode(400);
+    }
+
+    @Test
+    public void countObjectsTestKONotFound() throws FileNotFoundException, IOException {
+        // test
+        given().header(GlobalDataRest.X_TENANT_ID, "0")
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then()
+            .statusCode(404);
+    }
+
+    @Test
+    public void countObjectsTestOK() throws FileNotFoundException, IOException {
+
+        final ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.UNIT);
+        with().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectInit).when().post(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/id1");
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertNotNull(in);
+            with().header(GlobalDataRest.X_TENANT_ID, "1")
+                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .put(OBJECTS_URI + "/" + DataCategory.UNIT.name() + OBJECT_ID_URI, "id1");
+        }
+
+        // test
+        given().header(GlobalDataRest.X_TENANT_ID, "1")
+            .contentType(MediaType.APPLICATION_JSON)
+            .when().get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then()
+            .statusCode(200);
     }
 
 }

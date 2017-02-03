@@ -31,12 +31,14 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
+import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
@@ -61,6 +63,15 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException;
+
+    /**
+     * Count the number of binary objects ine the container
+     *
+     * @param request the request to send. It contains informations of the container.
+     * @return the number of binary objects and a remind of the given tenantId and type
+     * @throws StorageDriverException if any problem occurs during request
+     */
+    StorageCountResult countObjects(StorageRequest request) throws StorageDriverException;
 
     /**
      * Retrieve an object from the storage offer based on criterias defined in request argument.

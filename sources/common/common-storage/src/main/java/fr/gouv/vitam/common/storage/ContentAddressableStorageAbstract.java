@@ -190,6 +190,23 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
     }
 
     @Override
+    public long countObjects(String containerName) throws ContentAddressableStorageNotFoundException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        try {
+            final BlobStore blobStore = context.getBlobStore();
+            if (!isExistingContainer(containerName)) {
+                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+                throw new ContentAddressableStorageNotFoundException(
+                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            }
+            return blobStore.countBlobs(containerName);
+        } finally {
+            context.close();
+        }
+    }
+
+    @Override
     public void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),

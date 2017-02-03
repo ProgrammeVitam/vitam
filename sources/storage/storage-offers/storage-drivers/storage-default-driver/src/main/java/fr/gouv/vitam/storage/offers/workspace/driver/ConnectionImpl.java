@@ -49,12 +49,14 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
+import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -72,6 +74,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     private static final String OBJECTS_PATH = "/objects";
     private static final String CHECK_PATH = "/check";
+    private static final String COUNT_PATH = "/count";
 
     private static final String NOT_YET_IMPLEMENTED = "Not yet implemented";
 
@@ -115,6 +118,32 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return handleResponseStatus(response, StorageCapacityResult.class);
+            }
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                response.getStatusInfo().getReasonPhrase());
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getType() + COUNT_PATH,
+                getDefaultHeaders(request.getTenantId(), null, null, null),
+                MediaType.APPLICATION_JSON_TYPE, false);
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                JsonNode result = handleResponseStatus(response, JsonNode.class);
+                return new StorageCountResult(request.getTenantId(), request.getType(),
+                    result.get("numberObjects").longValue());
             }
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 response.getStatusInfo().getReasonPhrase());
@@ -290,7 +319,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
      * @param tenantId the tenantId
      * @param command the command to be added
      * @param digest the digest of the object to be added
-     * @param digestType the type of the digest to be added 
+     * @param digestType the type of the digest to be added
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command, String digest,

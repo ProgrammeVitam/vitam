@@ -57,6 +57,31 @@ Vérification de la capacité de l'offre
         // Un problème est survenu lors de la communication avec le service distant
     }
 
+Compter les objets d'un conteneur de l'offre
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageRequest request = new StorageRequest(tenantId, type);
+        StorageCountResult result = myConnection.countObjects(request);
+        // On peut vérifier ici le résultat du count
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+
 
 Put d'un objet dans l'offre de stockage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -79,7 +104,7 @@ Put d'un objet dans l'offre de stockage
     // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
     try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
         StoragePutRequest request = new StoragePutRequest(tenantId, type, guid, digestAlgorithm, dataStream);
-        PutObjectResult result = myConnection.putObject(request);
+        StoragePutResult result = myConnection.putObject(request);
         // On peut vérifier ici le résultat du put
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
