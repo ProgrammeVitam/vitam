@@ -34,84 +34,25 @@ angular.module('ihm.demo')
       return input.slice(start);
     }
   })
-  .controller('fileformatController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, $timeout) {
+  .controller('fileformatController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 1;
     ctrl.maxSize = 5;
     ctrl.searchOptions = {};
     ctrl.fileFormatList = [];
-    ctrl.client = ihmDemoCLient.getClient('admin');
     ctrl.fileNotFoundError = false;
 
+    ctrl.startFormat = function(){
+      var start="";
 
-    /**
-     * FIXME : Remove me ? Useless Function ?
-     */
-    function clearResults() {
-      ctrl.fileFormatList = [];
-      ctrl.currentPage = "";
-      ctrl.resultPages = "";
-      ctrl.fileNotFoundError = false;
-    }
-
-    function displayError(message) {
-      ctrl.fileNotFoundError = true;
-      ctrl.errorMessage = message;
-      $timeout(function() {
-        ctrl.fileNotFoundError = false;
-      }, 5000);
-    }
-
-    ctrl.getFileFormats = function () {
-      clearResults();
-      ctrl.searchOptions.FORMAT = "all";
-      ctrl.searchOptions.orderby = "Name";
-      ctrl.client.all('formats').post(ctrl.searchOptions).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          ctrl.results = 0;
-          displayError("Il n'y a aucun résultat pour votre recherche");
-          return;
-        }
-        ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
-          return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
-         });
-        ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
-         ctrl.currentPage = 1;
-         ctrl.results = response.data.$hits.total;
-         $scope.totalItems = ctrl.results;
-        }, function(response) {
-         displayError("Il n'y a aucun résultat pour votre recherche");
-        });
-    };
-
-      ctrl.startFormat = function(){
-        var start="";
-
-        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-         start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
-        }
-
+      if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
+       start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+      }
         if(ctrl.currentPage>ctrl.resultPages){
-          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+            start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
         }
         return start;
-      };
-
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.searchOptions = {};
-      clearResults();
-      ctrl.client.all('formats').post({FORMAT: "all", orderby: "Name"}).then(function(response) {
-        ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
-          return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
-         });
-         ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
-         ctrl.results = ctrl.fileFormatList.length;
-         ctrl.currentPage = 1 ;
-        }, function(response) {
-         displayError("Il n'y a aucun résultat pour votre recherche");
-        });
     };
 
     ctrl.openDialog = function($event, id) {
@@ -128,17 +69,58 @@ angular.module('ihm.demo')
       })
     };
 
-      ctrl.clearInput = function (object){
-        if(object == 'FormatName'){
-          ctrl.searchOptions.FormatName='';
-        } ;
-        if(object == 'PUID'){
-          ctrl.searchOptions.PUID ='';
-        } ;
-        ctrl.getFileFormats();
-      };
+    var preSearch = function() {
+      ctrl.searchOptions.FORMAT = "all";
+      ctrl.searchOptions.orderby = "Name";
+      return ctrl.searchOptions;
+    };
 
-    ctrl.clearSearchOptions();
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
+        return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
+      });
+      ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
+      ctrl.currentPage = 1;
+      ctrl.results = response.data.$hits.total;
+      $scope.totalItems = ctrl.results;
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    $scope.error = {
+      message: '',
+      displayMessage: false
+    };
+
+    function clearResults() {
+      ctrl.fileFormatList = [];
+      ctrl.currentPage = "";
+      ctrl.resultPages = "";
+      ctrl.results = 0;
+    }
+
+    ctrl.getFileFormats = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
+
+    ctrl.clearInput = function (object){
+      if(object == 'FormatName'){
+        delete ctrl.searchOptions.FormatName;
+      }
+      if(object == 'PUID'){
+        ctrl.searchOptions.PUID ='';
+      }
+      ctrl.getFileFormats();
+    };
+
+    ctrl.clearSearchOptions = function() {
+      ctrl.searchOptions = {};
+      ctrl.getFileFormats();
+    };
 
   })
   .controller('fileformatEntryController', function($scope, $mdDialog, formatId, ihmDemoCLient, idOperationService) {

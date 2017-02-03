@@ -34,7 +34,7 @@ angular.module('ihm.demo')
       return input.slice(start);
     }
   })
-  .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, $timeout) {
+  .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 0;
@@ -43,78 +43,22 @@ angular.module('ihm.demo')
     ctrl.client = ihmDemoCLient.getClient('admin');
     ctrl.fileNotFoundError = false;
 
-    function clearResults() {
-      ctrl.fileRulesList = [];
-      ctrl.currentPage = "";
-      ctrl.resultPages = "";
-      ctrl.fileNotFoundError = false;
-    }
-
-    function displayError(message) {
-
-      ctrl.fileNotFoundError = true;
-      ctrl.errorMessage = message;
-      $timeout(function() {
-        ctrl.fileNotFoundError = false;
-      }, 5000);
-    }
-
-    ctrl.getFileRules = function () {
-      clearResults();
-      ctrl.searchOptions.RULES = "all";
-      ctrl.searchOptions.orderby = "RuleValue";
-      if( ctrl.RuleType)
-      {
-      ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
-    }
-      ctrl.client.all('rules').post(ctrl.searchOptions).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          ctrl.results = 0;
-          displayError("Il n'y a aucun résultat pour votre recherche");
-          return;
-        }
-        ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
-          return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
-        });
-        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
-        ctrl.currentPage = 1;
-        ctrl.results = response.data.$hits.total;
-      }, function(response) {
-        displayError("Il n'y a aucun résultat pour votre recherche");
-      });
-    };
-
     ctrl.deleteRuleValue = function () {
       delete ctrl.searchOptions.RuleValue;
       ctrl.getFileRules();
     };
 
-      ctrl.startFormat = function(){
-        var start="";
+    ctrl.startFormat = function(){
+      var start="";
 
-        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-          start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
-        }
+      if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
+        start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+      }
 
-        if(ctrl.currentPage>ctrl.resultPages){
-          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
-        }
-        return start;
-      };
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.searchOptions = {};
-      clearResults();
-      ctrl.client.all('rules').post({RULES: "all", orderby: "RuleValue"}).then(function(response) {
-        ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
-          return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
-        });
-        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
-        ctrl.currentPage = 1;
-        ctrl.results = response.data.$hits.total;
-      }, function(response) {
-        displayError("Il n'y a aucun résultat pour votre recherche");
-      });
+      if(ctrl.currentPage>ctrl.resultPages){
+        start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+      }
+      return start;
     };
 
     ctrl.openDialog = function($event, id) {
@@ -131,8 +75,51 @@ angular.module('ihm.demo')
       })
     };
 
-    ctrl.clearSearchOptions();
+    var clearResults = function() {
+      ctrl.fileRulesList = [];
+      ctrl.currentPage = "";
+      ctrl.resultPages = "";
+      ctrl.results = 0;
+    };
 
+    var preSearch = function() {
+      ctrl.searchOptions.RULES = "all";
+      ctrl.searchOptions.orderby = "RuleValue";
+      if( ctrl.RuleType)
+      {
+        ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
+      }
+      return ctrl.searchOptions;
+    };
+
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
+        return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
+      });
+      ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
+      ctrl.currentPage = 1;
+      ctrl.results = response.data.$hits.total;
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    $scope.error = {
+      message: '',
+      displayMessage: false
+    };
+
+    ctrl.getFileRules = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
+
+    ctrl.clearSearchOptions = function() {
+      ctrl.searchOptions = {};
+      ctrl.getFileRules();
+    };
   })
   .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService, $filter) {
     var self = this;

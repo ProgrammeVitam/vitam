@@ -13,7 +13,7 @@
       <!-- <div class="tab-content"> -->
       <md-tabs role="tablist" md-stretch-tabs="always" md-dynamic-height>
         <md-tab label="Recherche simple" role="presentation" class="active">
-          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult($event, titleCriteria)">
+          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult(titleCriteria)">
             <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
               <div class="input-group m-b-25">
                 <input ng-model="titleCriteria" type="text" class="form-control input-lg"/>
@@ -31,7 +31,8 @@
         -->
         </md-tab>
         <md-tab label="Recherche avancée" role="presentation" class="col-md-6">
-          <form role="tabpanel" class="tab-pane active" id="complexeSearch" ng-submit="getElasticSearchUnitsResult($event,idCriteria2,titleCriteria2,descriptionCriteria2,startDate,endDate)">
+          <form role="tabpanel" class="tab-pane active" id="complexeSearch"
+                ng-submit="getElasticSearchUnitsResult({id: idCriteria2, title: titleCriteria2, description: descriptionCriteria2, startDate: startDate, endDate: endDate})">
             <div class="clearfix"></div>
             <div class="container col-md-12">
               <div class="panel panel-default col-md-12">
@@ -74,9 +75,9 @@
       </md-tabs>
 
     <!--  Nbre d'archives trouvées -->
-    <div class="text-center" style="padding-bottom: 20px">
-        <label ng-if = "showResult && totalResult == 0">Il n'y a aucun résultat pour votre recherche</label>
-    </div>
+    <button ng-if="error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+        {{error.message}}
+    </button>
 
   </div>
 </div>

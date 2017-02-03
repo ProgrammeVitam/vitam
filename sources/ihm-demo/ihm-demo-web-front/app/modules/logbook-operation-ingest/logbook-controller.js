@@ -44,7 +44,7 @@ angular.module('ihm.demo')
         return input;
       }
     })
-  .controller('logbookController', function($scope, $window, $timeout, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
+  .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER, processSearchService) {
     var ctrl = this;
     ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 1;
@@ -54,84 +54,39 @@ angular.module('ihm.demo')
     ctrl.resultPages = '';
     ctrl.logbookEntryList = [];
     ctrl.pageActive = [true, false, false, false, false];
-    ctrl.client = ihmDemoCLient.getClient('logbook');
     var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
     ctrl.noResult = false;
 
-    function displayError(message) {
-      ctrl.noResult = true;
-      ctrl.errorMessage = message;
-      $timeout(function() {
-        ctrl.noResult = false;
-      }, 5000);
-    }
+    ctrl.startFormat = function(){
+      var start="";
 
-    ctrl.getLogbooks = function() {
-      ctrl.logbookEntryList = [];
-      ctrl.results = 0;
-      ctrl.noResult = false;
-      ctrl.searchOptions.INGEST = "all";
-      ctrl.searchOptions.orderby = "evDateTime";
-      if(ctrl.searchOptions.obIdIn === ""){
-    	  delete ctrl.searchOptions.obIdIn;
+      if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
+        start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
       }
-      ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          ctrl.results = 0;
-          displayError("Il n'y a aucun résultat pour votre recherche");
-          return;
-        }
-        ctrl.logbookEntryList = response.data.$results;
-        ctrl.logbookEntryList.map(function(item) {
-          item.obIdIn = ctrl.searchOptions.obIdIn;
-        });
-        ctrl.currentPage = 1;
-        ctrl.results = response.data.$hits.total;
-     //   ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
-        header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
-        ctrl.resultPages = Math.ceil(ctrl.results/ctrl.itemsPerPage);
-      }, function(response) {
-        ctrl.searchOptions = {};
-        ctrl.results = 0;
-      });
+
+      if(ctrl.currentPage>ctrl.resultPages){
+        start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+      }
+      return start;
     };
 
-      ctrl.startFormat = function(){
-        var start="";
+    ctrl.downloadObject = function(objectId, type) {
+      ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
 
-        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-          start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+        a.href = url;
+
+        if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null) {
+          a.download = response.headers('content-disposition').split('filename=')[1];
+          a.click();
         }
-
-        if(ctrl.currentPage>ctrl.resultPages){
-          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
-        }
-        return start;
-      };
-
-      ctrl.downloadObject = function(objectId, type) {
-          ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
-              var a = document.createElement("a");
-              document.body.appendChild(a);
-
-              var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
-              a.href = url;
-
-              if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
-                a.download = response.headers('content-disposition').split('filename=')[1];
-                a.click();
-              }
-          }, function(response) {
-            $mdDialog.show($mdDialog.alert().parent(
-              angular.element(document.querySelector('#popupContainer')))
+      }, function(response) {
+      $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
               .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
               .ariaLabel('Alert Dialog Demo').ok('OK'));
-          });
-        };
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.noResult = false;
-      ctrl.searchOptions = {};
+      });
     };
 
     ctrl.diplayFromCurrentPage = function(id) {
@@ -178,12 +133,65 @@ angular.module('ihm.demo')
       }
     };
 
-      ctrl.goToDetails = function(id) {
-        $window
-            .open('#!/admin/logbookOperations/'
-            + id)
-      };
+    ctrl.goToDetails = function(id) {
+      $window.open('#!/admin/logbookOperations/' + id);
+    };
 
-    ctrl.getLogbooks();
+
+    var preSearch = function() {
+      ctrl.logbookEntryList = [];
+      ctrl.results = 0;
+      ctrl.noResult = false;
+      ctrl.searchOptions.INGEST = "all";
+      ctrl.searchOptions.orderby = "evDateTime";
+      if(ctrl.searchOptions.obIdIn === ""){
+        delete ctrl.searchOptions.obIdIn;
+      }
+      return [ctrl.searchOptions, header];
+    };
+
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      ctrl.logbookEntryList = response.data.$results;
+      ctrl.logbookEntryList.map(function(item) {
+        item.obIdIn = ctrl.searchOptions.obIdIn;
+      });
+      ctrl.currentPage = 1;
+      ctrl.results = response.data.$hits.total;
+      // ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
+      // FIXME What about X-REQUEST-ID in header ?
+      // header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
+      ctrl.resultPages = Math.ceil(ctrl.results/ctrl.itemsPerPage);
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    var clearResults = function() {
+      ctrl.logbookEntryList = [];
+      ctrl.currentPage = "";
+      ctrl.resultPages = "";
+      ctrl.results = 0;
+    };
+
+    $scope.error = {
+      message: '',
+      displayMessage: false
+    };
+
+    var searchFunction = function(result) {
+      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(result[0], null, null, result[1]);
+    };
+
+    ctrl.getLogbooks = processSearchService.initAndServe(searchFunction, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
+
+    ctrl.clearSearchOptions = function() {
+      ctrl.searchOptions = {};
+      ctrl.getLogbooks();
+    };
 
   });
