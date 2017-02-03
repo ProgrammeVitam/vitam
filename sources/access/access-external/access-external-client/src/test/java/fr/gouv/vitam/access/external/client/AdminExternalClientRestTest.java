@@ -138,8 +138,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID).getStatus(),
+            Status.OK.getStatusCode());
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
@@ -149,11 +149,12 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
 
-    @Test(expected = AccessExternalClientException.class)
+    @Test
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        Response resp = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        assertEquals(Status.BAD_REQUEST.getStatusCode() , resp.getStatus());
     }
 
     @Test
@@ -161,8 +162,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID).getStatus(),
+            Status.OK.getStatusCode());
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
@@ -172,11 +173,12 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
     }
 
-    @Test(expected = AccessExternalClientException.class)
+    @Test
     public void testImportDocumentAccessExternalClientException()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("not well formated").build());
+        Response resp = client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        assertEquals(Status.BAD_REQUEST.getStatusCode() , resp.getStatus());
     }
 
     @Test

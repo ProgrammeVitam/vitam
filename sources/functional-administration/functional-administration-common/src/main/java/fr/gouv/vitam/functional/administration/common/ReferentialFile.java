@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -79,15 +80,15 @@ public interface ReferentialFile<E> {
     public List<E> findDocuments(JsonNode select) throws ReferentialException;
 
     /**
-     * checkFile : check if file is OK
-     *
+     * Checks File : checks if a stream of referential data is valid
+     * @return The JsonArray containing the referential data if they are all valid
      * @param file as InputStream
      * @throws ReferentialException when there is errors import
      * @throws IOException when there is IO Exception
      * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException 
      */
-    void checkFile(InputStream file)
-        throws ReferentialException, IOException, InvalidParseOperationException, InvalidCreateOperationException;
+    ArrayNode checkFile(InputStream file)
+        throws ReferentialException, IOException, InvalidCreateOperationException, InvalidParseOperationException;
 
 }

@@ -7,11 +7,11 @@ import static org.mockito.Matchers.anyObject;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -32,9 +32,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -131,7 +128,7 @@ public class AdminManagementExternalResourceImplTest {
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(FORMAT_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -164,12 +161,13 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject());
+        PowerMockito.doReturn(Response.ok().build()).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         PowerMockito.doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject());
 

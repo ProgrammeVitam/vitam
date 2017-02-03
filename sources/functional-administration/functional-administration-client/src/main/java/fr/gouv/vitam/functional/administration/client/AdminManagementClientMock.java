@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.client;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -62,18 +63,19 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementClientMock.class);
 
     @Override
-    public Status checkFormat(InputStream stream) throws FileFormatException {
+    public Response checkFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file format request:");
         StreamUtils.closeSilently(stream);
-        return Status.OK;
+        return Response.status(Status.OK).build();
     }
 
     @Override
-    public void importFormat(InputStream stream) throws FileFormatException {
+    public Response importFormat(InputStream stream) throws FileFormatException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Import file format request:");
         StreamUtils.closeSilently(stream);
+        return Response.status(Status.CREATED).build();
     }
 
     @Override
@@ -94,18 +96,19 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status checkRulesFile(InputStream stream) throws FileRulesException {
+    public Response checkRulesFile(InputStream stream) throws FileRulesException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file rules  request:");
         StreamUtils.closeSilently(stream);
-        return Status.OK;
+        return Response.status(Status.OK).build();
     }
 
     @Override
-    public void importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
+    public Response importRulesFile(InputStream stream) throws FileRulesException, DatabaseConflictException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("import file Rules request:");
         StreamUtils.closeSilently(stream);
+        return Response.status(Status.CREATED).build();
     }
 
     @Override

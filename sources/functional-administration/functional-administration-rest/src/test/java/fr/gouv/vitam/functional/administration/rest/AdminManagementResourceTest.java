@@ -233,7 +233,7 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_FORMAT_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -241,12 +241,12 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -277,7 +277,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
@@ -307,7 +307,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
@@ -335,7 +335,7 @@ public class AdminManagementResourceTest {
         with()
             .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -358,7 +358,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -381,7 +381,7 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -389,12 +389,12 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -406,7 +406,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
@@ -435,7 +435,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
@@ -464,7 +464,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -486,7 +486,7 @@ public class AdminManagementResourceTest {
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)

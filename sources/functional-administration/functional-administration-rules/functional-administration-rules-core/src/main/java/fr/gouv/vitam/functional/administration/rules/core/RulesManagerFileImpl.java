@@ -96,8 +96,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static final String RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER = "rulesFileStream is a mandatory parameter";
     private static final String THE_COLLECTION_IS_NOT_EMPTY = "The Collection is Not Empty";
     private static final String INVALID_CSV_FILE = "Invalid CSV File :";
-    private static final String ALREADY_EXISTS = " Already exists";
-    private static final String FILE_RULE_WITH_RULE_ID = "File Rule with Rule Id";
+    private static final String FILE_RULE_WITH_RULE_ID = "File Rule with Rule Id %s already exists";
     private static final String RULES_NOT_FOUND = "Rules not found";
     private static final String TXT = ".txt";
     private static final String TMP = "tmp";
@@ -110,16 +109,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "RulesFile";
 
-    private static final String MESSAGE_LOGBOOK_IMPORT = "Référentiel des règles de gestion importé avec succès ";
-    private static final String MESSAGE_LOGBOOK_IMPORT_ERROR = "Echec de l'import du référentiel de règle de gestion";
     private static final String RULEID = "RuleId";
-
     private LogbookOperationsClient client;
     private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static String STP_IMPORT_RULES_EXIST = "STP_IMPORT_RULES.EXIST";
 
-    private static String INVALIDPARAMETERS = "Invalid Parameters Value";
-    private static String MANDATORYRULEPARAMETERISMISSING = "Check Parameters : Mandatory rule Parameters is missing";
+    private static String INVALIDPARAMETERS = "Invalid Parameter Value %s : %s";
+    private static String NOT_SUPPORTED_VALUE = "The value %s of parameter %s is not supported";
+    private static String MANDATORYRULEPARAMETERISMISSING = "The following mandatory parameters are missing %s";
 
 
 
@@ -136,50 +133,46 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     public void importFile(InputStream rulesFileStream)
         throws DatabaseConflictException, IOException, InvalidParseOperationException, ReferentialException {
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
-        File csvFile = null;
-        try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
-            client = client2;
-            csvFile = convertInputStreamToFile(rulesFileStream);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
-            final LogbookOperationParameters logbookParametersStart =
-                LogbookParametersFactory.newLogbookOperationParameters(
-                    eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
-            createLogBookEntry(logbookParametersStart);
+        /* To process import validate the file first */
+        final ArrayNode rulesManagerList = checkFile(rulesFileStream);
+        if (rulesManagerList != null) {
+            try (LogbookOperationsClient client2 = LogbookOperationsClientFactory.getInstance().getClient()) {
+                client = client2;
+                final GUID eip = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
+                final LogbookOperationParameters logbookParametersStart =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        eip, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                        VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.STARTED), eip);
+                createLogBookEntry(logbookParametersStart);
 
-            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
-            try {
-                final ArrayNode rulesManagerList = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFile);
+                final GUID eip1 = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
+                try {
+                    if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+                        mongoAccess.insertDocuments(rulesManagerList, FunctionalAdminCollections.RULES);
 
-                if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
-                    mongoAccess.insertDocuments(rulesManagerList, FunctionalAdminCollections.RULES);
-
-                    final LogbookOperationParameters logbookParametersEnd =
-                        LogbookParametersFactory.newLogbookOperationParameters(
-                            eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
-                            eip1);
-                    updateLogBookEntry(logbookParametersEnd);
-                } else {
+                        final LogbookOperationParameters logbookParametersEnd =
+                            LogbookParametersFactory.newLogbookOperationParameters(
+                                eip1, STP_IMPORT_RULES, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                                VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.OK),
+                                eip1);
+                        updateLogBookEntry(logbookParametersEnd);
+                    } else {
+                        final LogbookOperationParameters logbookParametersEnd =
+                            LogbookParametersFactory.newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip,
+                                LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                                VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES_EXIST, StatusCode.KO), eip1);
+                        updateLogBookEntry(logbookParametersEnd);
+                        throw new DatabaseConflictException(FILE_RULES_COLLECTION_IS_NOT_EMPTY);
+                    }
+                } catch (final FileRulesException e) {
+                    LOGGER.error(e.getMessage());
                     final LogbookOperationParameters logbookParametersEnd =
                         LogbookParametersFactory.newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip,
                             LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES_EXIST, StatusCode.KO), eip1);
+                            VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.KO), eip1);
                     updateLogBookEntry(logbookParametersEnd);
-                    throw new DatabaseConflictException(FILE_RULES_COLLECTION_IS_NOT_EMPTY);
+                    throw new FileRulesException(e);
                 }
-            } catch (final FileRulesException e) {
-                LOGGER.error(e.getMessage());
-                final LogbookOperationParameters logbookParametersEnd =
-                    LogbookParametersFactory.newLogbookOperationParameters(eip1, STP_IMPORT_RULES, eip,
-                        LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                        VitamLogbookMessages.getCodeOp(STP_IMPORT_RULES, StatusCode.KO), eip1);
-                updateLogBookEntry(logbookParametersEnd);
-                throw new FileRulesException(e);
-            }
-        } finally {
-            if (csvFile != null) {
-                csvFile.delete();
             }
         }
     }
@@ -214,51 +207,52 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     @Override
-    public void checkFile(InputStream rulesFileStream)
-        throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+    public ArrayNode checkFile(InputStream rulesFileStream)
+        throws IOException, ReferentialException, InvalidParseOperationException {
         ParametersChecker.checkParameter(RULES_FILE_STREAM_IS_A_MANDATORY_PARAMETER, rulesFileStream);
         if (checkifTheCollectionIsEmptyBeforeImport()) {
             throw new FileRulesException(THE_COLLECTION_IS_NOT_EMPTY);
         }
-        File csvFileReader = null;
-        try {
-            csvFileReader = convertInputStreamToFile(rulesFileStream);
-            try (FileReader reader = new FileReader(csvFileReader)) {
-                @SuppressWarnings("resource")
-                final CSVParser parser = new CSVParser(
-                    reader,
-                    CSVFormat.DEFAULT.withHeader());
-                final HashSet<String> ruleIdSet = new HashSet<>();
-                for (final CSVRecord record : parser) {
-                    try {
-                        if (checkRecords(record)) {
-                            final String ruleId = record.get(RULEID);
-                            final String ruleType = record.get(RULE_TYPE);
-                            final String ruleValue = record.get(RULE_VALUE);
-                            final String ruleDuration = record.get(RULE_DURATION);
-                            final String ruleMeasurementValue = record.get(RULE_MEASUREMENT);
+        File csvFileReader = convertInputStreamToFile(rulesFileStream);
+        try (FileReader reader = new FileReader(csvFileReader)) {
+            @SuppressWarnings("resource")
+            final CSVParser parser = new CSVParser(
+                reader,
+                CSVFormat.DEFAULT.withHeader());
+            final HashSet<String> ruleIdSet = new HashSet<>();
+            for (final CSVRecord record : parser) {
+                try {
+                    if (checkRecords(record)) {
+                        final String ruleId = record.get(RULEID);
+                        final String ruleType = record.get(RULE_TYPE);
+                        final String ruleValue = record.get(RULE_VALUE);
+                        final String ruleDuration = record.get(RULE_DURATION);
+                        final String ruleMeasurementValue = record.get(RULE_MEASUREMENT);
 
-                            checkParametersNotEmpty(ruleId, ruleType, ruleValue, ruleDuration,
-                                ruleMeasurementValue);
-                            checkRuleDurationIsInteger(ruleDuration);
-                            if (ruleIdSet.contains(ruleId)) {
-                                throw new FileRulesException(FILE_RULE_WITH_RULE_ID + ruleId + ALREADY_EXISTS);
-                            }
-                            ruleIdSet.add(ruleId);
-                            if (!contains(ruleMeasurementValue)) {
-                                throw new InvalidParameterException(INVALIDPARAMETERS + " : " + RULE_MEASUREMENT);
-                            }
+                        checkParametersNotEmpty(ruleId, ruleType, ruleValue, ruleDuration,
+                            ruleMeasurementValue);
+                        checkRuleDurationIsInteger(ruleDuration);
+                        if (ruleIdSet.contains(ruleId)) {
+                            throw new FileRulesException(String.format(FILE_RULE_WITH_RULE_ID, ruleId));
                         }
-                    } catch (final Exception e) {
-                        throw new FileRulesException(INVALID_CSV_FILE + e.getMessage());
+                        ruleIdSet.add(ruleId);
+                        if (!contains(ruleMeasurementValue)) {
+                            throw new FileRulesException(
+                                String.format(NOT_SUPPORTED_VALUE, RULE_MEASUREMENT, ruleMeasurementValue));
+                        }
                     }
+                } catch (final Exception e) {
+                    throw new FileRulesException(INVALID_CSV_FILE + e.getMessage());
                 }
             }
-        } finally {
-            if (csvFileReader != null) {
-                csvFileReader.delete();
-            }
         }
+        if (csvFileReader != null) {
+            final ArrayNode readRulesAsJson = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFileReader);
+            csvFileReader.delete();
+            return readRulesAsJson;
+        }
+        /* this line is reached only if temporary file is null */
+        throw new FileRulesException(INVALID_CSV_FILE);
     }
 
     /**
@@ -271,8 +265,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @throws InvalidCreateOperationException
      * @throws ReferentialException
      */
-    private boolean checkifTheCollectionIsEmptyBeforeImport()
-        throws InvalidParseOperationException, InvalidCreateOperationException, ReferentialException {
+    private boolean checkifTheCollectionIsEmptyBeforeImport() throws ReferentialException {
         return FunctionalAdminCollections.RULES.getCount() > 0;
     }
 
@@ -301,31 +294,48 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      *
      *
      * @param ruleDuration
+     * @throws FileRulesException
      */
-    private void checkRuleDurationIsInteger(String ruleDuration) {
+    private void checkRuleDurationIsInteger(String ruleDuration) throws FileRulesException {
         try {
             Integer.parseInt(ruleDuration);
         } catch (final NumberFormatException e) {
-            throw new InvalidParameterException(INVALIDPARAMETERS + ": " + RULE_DURATION);
+            throw new FileRulesException(String.format(INVALIDPARAMETERS, RULE_DURATION, ruleDuration));
         }
     }
 
     /**
      *
-     * check if Records is not Empty
-     *
+     * check if Records are not Empty
+     * 
      * @param ruleId
      * @param ruleType
      * @param ruleValue
      * @param ruleDuration
      * @param ruleMeasurementValue
+     * @throws FileRulesException thrown if one ore more parameters are missing
      *
      */
     private void checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
-        String ruleMeasurementValue) {
-        if (ruleId.isEmpty() || ruleType.isEmpty() || ruleValue.isEmpty() || ruleDuration.isEmpty() ||
-            ruleMeasurementValue.isEmpty()) {
-            throw new InvalidParameterException(MANDATORYRULEPARAMETERISMISSING);
+        String ruleMeasurementValue) throws FileRulesException {
+        StringBuffer missingParam = new StringBuffer();
+        if (ruleId == null || ruleId.isEmpty()) {
+            missingParam.append(",").append(RULEID);
+        }
+        if (ruleType == null || ruleType.isEmpty()) {
+            missingParam.append(",").append(RULE_TYPE);
+        }
+        if (ruleValue == null || ruleValue.isEmpty()) {
+            missingParam.append(",").append(RULE_VALUE);
+        }
+        if (ruleDuration == null || ruleDuration.isEmpty()) {
+            missingParam.append(",").append(RULE_DURATION);
+        }
+        if (ruleMeasurementValue==null || ruleMeasurementValue.isEmpty()) {
+            missingParam.append(",").append(RULE_MEASUREMENT);
+        }
+        if (missingParam.length() > 0) {
+            throw new FileRulesException(String.format(MANDATORYRULEPARAMETERISMISSING, missingParam.toString()));
         }
     }
 
