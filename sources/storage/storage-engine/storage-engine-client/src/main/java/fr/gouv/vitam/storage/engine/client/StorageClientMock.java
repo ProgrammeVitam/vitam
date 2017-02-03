@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -94,7 +95,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, StorageCollectionType type, String guid)
+    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest, DigestType digestAlgorithm)
         throws StorageServerClientException {
         return true;
     }

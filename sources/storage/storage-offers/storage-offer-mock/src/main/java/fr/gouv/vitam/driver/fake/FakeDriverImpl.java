@@ -141,8 +141,15 @@ public class FakeDriverImpl implements Driver {
 
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
-            return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
-                objectRequest.getGuid());
+            if ("digest_bad_test".equals(objectRequest.getGuid())) {
+                throw new StorageDriverException("removeObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    "ExceptionTest");
+
+            } else {
+                return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
+                    objectRequest.getGuid(), objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(),
+                    true);
+            }
         }
 
         @Override

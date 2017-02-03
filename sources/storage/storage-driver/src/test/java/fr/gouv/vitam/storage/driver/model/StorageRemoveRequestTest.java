@@ -32,6 +32,8 @@ import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+
 /**
  * Test for StorageRemoveRequest
  */
@@ -41,7 +43,8 @@ public class StorageRemoveRequestTest {
 
     @BeforeClass
     public static void init() {
-        storageRemoveRequest = new StorageRemoveRequest(TENANT_ID, "object", "guid");
+        storageRemoveRequest = new StorageRemoveRequest(TENANT_ID, "object", "guid",
+            VitamConfiguration.getDefaultDigestType(), "digest_test");
     }
 
     @Test
@@ -57,5 +60,15 @@ public class StorageRemoveRequestTest {
     @Test
     public void testGetGuid() throws Exception {
         assertEquals("guid", storageRemoveRequest.getGuid());
+    }
+
+    @Test
+    public void testGetDigestAlgorithm() throws Exception {
+        assertEquals(VitamConfiguration.getDefaultDigestType(), storageRemoveRequest.getDigestAlgorithm());
+    }
+
+    @Test
+    public void testGetDigestHashBase16() throws Exception {
+        assertEquals("digest_test", storageRemoveRequest.getDigestHashBase16());
     }
 }

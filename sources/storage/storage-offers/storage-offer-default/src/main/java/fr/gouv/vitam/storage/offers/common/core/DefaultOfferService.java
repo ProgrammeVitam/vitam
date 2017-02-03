@@ -167,4 +167,19 @@ public interface DefaultOfferService {
     JsonNode countObjects(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
+    /**
+     * Deletes a object representing the data at location containerName/objectName
+     *
+     * @param containerName container where this exists.
+     * @param objectId the objectId to delete
+     * @param digest the digest to be compared with
+     * @param digestAlgorithm the digest Algorithm
+     *
+     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
+     *         be located in the container.
+     * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
+     */
+
+    void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 }

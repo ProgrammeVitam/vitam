@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.offers.common.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -59,6 +60,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 
 /**
  * Default offer service test implementation
@@ -71,6 +73,8 @@ public class DefaultOfferServiceTest {
     private static final String OBJECT_ID = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_2 = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_3 = GUIDFactory.newObjectGUID(0).getId();
+    private static final String OBJECT_ID_DELETE = GUIDFactory.newObjectGUID(0).getId();
+
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
@@ -83,11 +87,14 @@ public class DefaultOfferServiceTest {
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_3));
+        Files.deleteIfExists(
+            Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_DELETE));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_2));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_3));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_DELETE));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH));
     }
 
@@ -323,4 +330,50 @@ public class DefaultOfferServiceTest {
             VitamConfiguration.getDefaultDigestType()));
     }
 
+    public void deleteObjectTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+        offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_DELETE);
+
+        // creation of an object
+        final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
+        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true);
+
+        // check if the object has been created
+        final Response response = offerService.getObject(CONTAINER_PATH,
+            OBJECT_ID_DELETE, new AsyncResponseJunitTest());
+        assertNotNull(response);
+
+        try {
+            // check that if we try to delete an object with a wrong digest, we get a not found exception
+            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, "fakeDigest",
+                VitamConfiguration.getDefaultDigestType());
+            fail("Should raized an exception");
+        } catch (ContentAddressableStorageNotFoundException exc) {
+
+        }
+
+        try {
+            // check that if we try to delete an object with the wrong digest algorithm, we get a not found exception
+            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest,
+                VitamConfiguration.getSecurityDigestType());
+            fail("Should raized an exception");
+        } catch (ContentAddressableStorageNotFoundException exc) {
+
+        }
+
+        // check that if we try to delete an object with the correct digest + algorithm, it succeeds
+        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest,
+            VitamConfiguration.getDefaultDigestType());
+
+        try {
+            // check that the object has been deleted
+            offerService.getObject(CONTAINER_PATH,
+                OBJECT_ID_DELETE, new AsyncResponseJunitTest());
+            fail("Should raized an exception");
+        } catch (ContentAddressableStorageNotFoundException exc) {
+
+        }
+
+    }
 }

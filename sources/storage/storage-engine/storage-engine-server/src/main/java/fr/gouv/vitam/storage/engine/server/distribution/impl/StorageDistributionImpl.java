@@ -74,6 +74,8 @@ import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -152,7 +154,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
         // allow check of duplicated files)
         digestType = VitamConfiguration.getDefaultDigestType();
-        digest =  new Digest(digestType);
+        digest = new Digest(digestType);
     }
 
     /**
@@ -166,7 +168,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         millisecondsPerKB = 100;
         mockedWorkspaceClient = wkClient;
         this.digestType = digestType;
-        digest =  new Digest(digestType);
+        digest = new Digest(digestType);
     }
 
     // TODO P1 : review design : for the moment we handle createObjectDescription AND jsonData in the same params but
@@ -195,8 +197,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
 
-            MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace((InputStream) streamAndInfos.get
-                    (STREAM_KEY), offerReferences.size());
+            MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace(
+                (InputStream) streamAndInfos.get(STREAM_KEY), offerReferences.size());
 
             VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
 
@@ -276,31 +278,32 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private Map<String, Object> getInputStreamFromWorkspace(CreateObjectDescription
-        createObjectDescription) throws StorageTechnicalException, StorageNotFoundException {
-        try (WorkspaceClient workspaceClient = mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance
-            ().getClient() : mockedWorkspaceClient) {
+    private Map<String, Object> getInputStreamFromWorkspace(CreateObjectDescription createObjectDescription)
+        throws StorageTechnicalException, StorageNotFoundException {
+        try (WorkspaceClient workspaceClient =
+            mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient() : mockedWorkspaceClient) {
             return retrieveDataFromWorkspace(createObjectDescription
-                    .getWorkspaceContainerGUID(),
+                .getWorkspaceContainerGUID(),
                 createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
         }
 
     }
 
-    private MultipleInputStreamHandler getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy) throws
-        StorageTechnicalException, StorageNotFoundException {
+    private MultipleInputStreamHandler getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy)
+        throws StorageTechnicalException, StorageNotFoundException {
         DigestInputStream digestOriginalStream = (DigestInputStream) digest.getDigestInputStream(stream);
         return new MultipleInputStreamHandler(digestOriginalStream, nbCopy);
     }
 
-    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId, ThreadResponseData res,
+    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId,
+        ThreadResponseData res,
         String requester) {
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
                 null, offerId, res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, requester);
         } else {
-            updateStorageLogbookParameters(parameters, offerId, res != null ? res.getStatus() : Status
-                .INTERNAL_SERVER_ERROR);
+            updateStorageLogbookParameters(parameters, offerId,
+                res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR);
         }
         return parameters;
     }
@@ -387,7 +390,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         return getStorageLogbookParameters(
             objectIdentifier, null, messageDig, digestType.getName(), size, error ? offerId + " : KO" : offerId + " " +
-                ": OK", requester,
+                ": OK",
+            requester,
             null,
             null, outcome);
     }
@@ -598,10 +602,49 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
+
     @Override
-    public void deleteObject(String strategyId, String objectId)
-        throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    public void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
+        throws StorageException {
+
+        // Check input params
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
+        ParametersChecker.checkParameter("Object id is mandatory", objectId);
+        ParametersChecker.checkParameter("Digest is mandatory", digest);
+        ParametersChecker.checkParameter("Digest Algorithm is mandatory", digestAlgorithm);
+
+        // Retrieve strategy data
+        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy != null) {
+            // TODO: check this on starting application
+            isStrategyValid(hotStrategy);
+            final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+            if (offerReferences.isEmpty()) {
+                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            }
+            // TODO : Improve this code, use same thread system as used for the storeData method see @TrasferThread
+            for (final OfferReference offerReference : offerReferences) {
+                final Driver driver = retrieveDriverInternal(offerReference.getId());
+                final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+                final Properties parameters = new Properties();
+                parameters.putAll(offer.getParameters());
+                try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                    StorageRemoveRequest request = new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(),
+                        objectId, digestType, digest);
+                    StorageRemoveResult result = connection.removeObject(request);
+                    if (!result.isObjectDeleted()) {
+                        throw new StorageNotFoundException(
+                            VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
+                    }
+                } catch (StorageDriverException | RuntimeException exc) {
+                    throw new StorageTechnicalException(exc);
+                }
+
+            }
+        }
     }
 
     @Override

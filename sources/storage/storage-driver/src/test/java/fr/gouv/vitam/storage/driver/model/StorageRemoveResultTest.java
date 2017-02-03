@@ -28,9 +28,12 @@
 package fr.gouv.vitam.storage.driver.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import fr.gouv.vitam.common.VitamConfiguration;
 
 /**
  * Test for StorageRemoveResultTest
@@ -41,7 +44,8 @@ public class StorageRemoveResultTest {
 
     @BeforeClass
     public static void init() {
-        storageRemoveResult = new StorageRemoveResult(TENANT_ID, "object", "guid");
+        storageRemoveResult = new StorageRemoveResult(TENANT_ID, "object", "guid",
+            VitamConfiguration.getDefaultDigestType(), "digest", true);
     }
 
     @Test
@@ -59,5 +63,20 @@ public class StorageRemoveResultTest {
         assertEquals("guid", storageRemoveResult.getGuid());
     }
 
+    @Test
+    public void testGetDigestAlgorithm() throws Exception {
+        assertEquals(VitamConfiguration.getDefaultDigestType(), storageRemoveResult.getDigestAlgorithm());
+    }
+
+    @Test
+    public void testGetDigestHashBase16() throws Exception {
+        assertEquals("digest", storageRemoveResult.getDigestHashBase16());
+    }
+    
+    @Test
+    public void testIsObjectDeleted() throws Exception {
+        assertTrue(storageRemoveResult.isObjectDeleted());
+    }
+    
 
 }

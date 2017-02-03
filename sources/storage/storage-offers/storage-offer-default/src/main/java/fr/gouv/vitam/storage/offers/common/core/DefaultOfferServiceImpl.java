@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -194,5 +195,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
         String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
+    }
+
+    @Override
+    public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        // TODO G1 : replace with checkObject when merged
+        String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
+        if (offerDigest.equals(digest)) {
+            defaultStorage.deleteObject(containerName, objectId);
+        } else {
+            throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
+        }
     }
 }

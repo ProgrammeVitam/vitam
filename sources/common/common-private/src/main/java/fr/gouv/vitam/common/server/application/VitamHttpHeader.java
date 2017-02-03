@@ -66,7 +66,17 @@ public enum VitamHttpHeader {
     /**
      * The X-Content-Length used to have object size (for storage)
      */
-    X_CONTENT_LENGTH(GlobalDataRest.X_CONTENT_LENGTH, "[0-9]+");
+    X_CONTENT_LENGTH(GlobalDataRest.X_CONTENT_LENGTH, "[0-9]+"),
+    
+    /**
+     * The X_DIGEST used to have digest value (for storage)
+     */
+    X_DIGEST(GlobalDataRest.X_DIGEST, ".+"),
+    
+    /**
+     * The X_DIGEST_ALGORITHM used to have digest algrithm (for storage)
+     */
+    X_DIGEST_ALGORITHM(GlobalDataRest.X_DIGEST_ALGORITHM, ".+");
 
     private String name;
     private String regExp;

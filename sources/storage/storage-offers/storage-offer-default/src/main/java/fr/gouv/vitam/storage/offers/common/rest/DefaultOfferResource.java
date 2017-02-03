@@ -89,6 +89,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
     private static final String CODE_VITAM = "code_vitam";
 
+    private static final String MISSING_X_DIGEST_ALGORITHM = "Missing the digest type (X-digest-algorithm)";
+    private static final String MISSING_X_DIGEST = "Missing the type (X-digest)";
+
     /**
      * Constructor
      */
@@ -335,7 +338,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
     /**
      * Delete an Object
-     *
+     * 
+     * @param headers http header
      * @param type Object type to delete
      * @param idObject the id of the object to be tested
      * @return the response with a specific HTTP status
@@ -343,12 +347,38 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @DELETE
     @Path("/objects/{type}/{id:.+}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteObject(@Context HttpHeaders headers, @PathParam("type") DataCategory type,
+    public Response deleteObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
+        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm,
+        @PathParam("type") DataCategory type,
         @PathParam("id") String idObject) {
-        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (Strings.isNullOrEmpty(xDigestAlgorithm)) {
+            LOGGER.error(MISSING_X_DIGEST_ALGORITHM);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (Strings.isNullOrEmpty(xDigest)) {
+            LOGGER.error(MISSING_X_DIGEST);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
+            final String containerName = buildContainerName(type, xTenantId);
+            DefaultOfferServiceImpl.getInstance().deleteObject(containerName, idObject, xDigest,
+                DigestType.fromValue(xDigestAlgorithm));
+            return Response.status(Response.Status.OK)
+                .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}").build();
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
     }
 
     /**

@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -74,14 +75,14 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
             response =
                 performRequest(HttpMethod.GET, "/",
-                    getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
+                    getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_JSON_TYPE, false);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
@@ -98,8 +99,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         String guid,
         CreateObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-    	ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
@@ -113,7 +114,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId), description, MediaType.APPLICATION_JSON_TYPE,
+                getDefaultHeaders(tenantId, strategyId, null, null), description, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return handlePostResponseStatus(response, StoredInfoResult.class);
         } catch (final VitamClientInternalException e) {
@@ -128,13 +129,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public boolean existsContainer(String strategyId) throws StorageServerClientException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, "/",
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
+                getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
@@ -149,7 +150,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public boolean exists(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
@@ -160,7 +161,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
+                getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
@@ -175,13 +176,13 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public boolean deleteContainer(String strategyId) throws StorageServerClientException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, "/",
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
+                getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
@@ -194,13 +195,16 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, StorageCollectionType type, String guid)
+    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
+        DigestType digestAlgorithm)
         throws StorageServerClientException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
+        ParametersChecker.checkParameter("Digest must have a valid value", digest);
+        ParametersChecker.checkParameter("Digest Algorithm must have a valid value", digestAlgorithm);
         if (StorageCollectionType.CONTAINERS.equals(type)) {
             throw new IllegalArgumentException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE,
                 type.getCollectionName()));
@@ -208,7 +212,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_JSON_TYPE, false);
+                getDefaultHeaders(tenantId, strategyId, digest, digestAlgorithm), MediaType.APPLICATION_JSON_TYPE, false);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
@@ -250,12 +254,21 @@ class StorageClientRest extends DefaultClient implements StorageClient {
      *
      * @param tenantId the tenant id
      * @param strategyId the storage strategy id
+     * @param digest the digest
+     * @param digestAlgorithm the digest Algorithm
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String strategyId) {
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String strategyId, String digest,
+        DigestType digestAlgorithm) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
+        if (digest != null) {
+            headers.add(GlobalDataRest.X_DIGEST, digest);
+        }
+        if (digestAlgorithm != null) {
+            headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, digestAlgorithm);
+        }
         return headers;
     }
 
@@ -330,7 +343,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
@@ -338,7 +351,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         boolean ok = false;
         try {
             response = performRequest(HttpMethod.GET, "/" + type.getCollectionName() + "/" + guid,
-                getDefaultHeaders(tenantId, strategyId), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {

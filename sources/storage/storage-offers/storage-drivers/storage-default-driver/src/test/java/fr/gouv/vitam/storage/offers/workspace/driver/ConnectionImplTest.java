@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,6 +40,7 @@ import java.io.InputStream;
 import java.time.Instant;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -84,6 +86,8 @@ import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -93,9 +97,11 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     private static final Integer TENANT_ID = 1;
     protected static final String HOSTNAME = "localhost";
+    protected static final String DEFAULT_GUID = "GUID";
     private static JunitHelper junitHelper;
     private static int tenant;
     private static ConnectionImpl connection;
+
 
     public ConnectionImplTest() {
         super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
@@ -213,6 +219,13 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
         public Response getObject(@PathParam("id") String objectId) {
             return expectedResponse.get();
+        }
+
+        @DELETE
+        @Path("/objects/{type}/{id:.+}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeObject(@PathParam("id") String objectId, @PathParam("type") String type) {
+            return expectedResponse.delete();
         }
     }
 
@@ -401,11 +414,6 @@ public class ConnectionImplTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.SERVICE_UNAVAILABLE).build());
         final StoragePutRequest request = getPutObjectRequest(true, true, true, true, true);
         connection.putObject(request);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
-    public void removeObjectNotImplemented() throws Exception {
-        connection.removeObject(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -762,6 +770,127 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private JsonNode getCheckObjectResult() throws IOException {
         final ObjectNode result = JsonHandler.createObjectNode();
         result.put(StorageConstants.OBJECT_VERIFICATION, true);
+        return result;
+    }
+
+    @Test
+    public void deleteObjectTestIllegalArgument() throws Exception {
+        try {
+            connection.removeObject(null);
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.removeObject(getStorageRemoveRequest(false, true, true, true, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.removeObject(getStorageRemoveRequest(true, false, true, true, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.removeObject(getStorageRemoveRequest(true, true, false, true, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.removeObject(getStorageRemoveRequest(true, true, true, false, true));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            connection.removeObject(getStorageRemoveRequest(true, true, true, true, false));
+            fail("Should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+
+        }
+    }
+
+    @Test
+    public void deleteObjectTestOK() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Status.OK).entity(getRemoveObjectResult()).build());
+        StorageRemoveResult storageRemoveResult =
+            connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+        assertNotNull(storageRemoveResult);
+        assertTrue(storageRemoveResult.isObjectDeleted());
+
+        when(mock.delete()).thenReturn(Response.status(Status.OK).entity(getRemoveObjectResultNotFound()).build());
+        StorageRemoveResult storageRemoveResult2 =
+            connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+        assertNotNull(storageRemoveResult2);
+        assertTrue(!storageRemoveResult2.isObjectDeleted());
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void deleteObjectTestNotFound() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void deleteObjectTestPreconditionFailed() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void deleteObjectTestBadRequest() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void deleteObjectTestInternalServerError() throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+    }
+
+    private StorageRemoveRequest getStorageRemoveRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
+        boolean putTenantId, boolean putType)
+        throws Exception {
+        DigestType digestType = null;
+        String digest = null;
+        String guid = null;
+        Integer tenantId = null;
+        String type = null;
+
+        if (putDigestType) {
+            digestType = VitamConfiguration.getDefaultDigestType();
+        }
+        if (putDigestA) {
+            digest = "digest";
+        }
+        if (putGuid) {
+            guid = DEFAULT_GUID;
+        }
+        if (putTenantId) {
+            tenantId = tenant;
+        }
+        if (putType) {
+            type = DataCategory.OBJECT.getFolder();
+        }
+        return new StorageRemoveRequest(tenantId, type, guid, digestType, digest);
+    }
+
+    private JsonNode getRemoveObjectResult() throws IOException {
+        final ObjectNode result = JsonHandler.createObjectNode();
+        result.put("id", DEFAULT_GUID);
+        result.put("status", Response.Status.OK.toString());
+        return result;
+    }
+
+    private JsonNode getRemoveObjectResultNotFound() throws IOException {
+        final ObjectNode result = JsonHandler.createObjectNode();
+        result.put("id", DEFAULT_GUID);
+        result.put("status", Response.Status.NOT_FOUND.toString());
         return result;
     }
 

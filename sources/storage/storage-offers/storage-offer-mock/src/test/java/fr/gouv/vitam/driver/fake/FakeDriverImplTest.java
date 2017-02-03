@@ -112,10 +112,20 @@ public class FakeDriverImplTest {
             new StoragePutRequest(tenant, "type", "digest_bad_test",
                 VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
-
         assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
-        assertNotNull(connect.removeObject(new StorageRemoveRequest(tenant, "type", "digest_bad_test")));
+        try {
+            final StorageRemoveRequest storageRemoveRequest =
+                new StorageRemoveRequest(tenant, "type", "digest_bad_test",
+                    VitamConfiguration.getDefaultDigestType(), "digest_test");
+            connect.removeObject(storageRemoveRequest);
+            fail("Should raized an exception");
+        } catch (final StorageDriverException e) {
+
+        }
+        assertNotNull(connect.removeObject(new StorageRemoveRequest(tenant, "type", "guid",
+            VitamConfiguration.getDefaultDigestType(), "digest_test")));
+
         assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
 
         final StorageCheckRequest storageCheckRequest = new StorageCheckRequest(2, "type", "digest_test",

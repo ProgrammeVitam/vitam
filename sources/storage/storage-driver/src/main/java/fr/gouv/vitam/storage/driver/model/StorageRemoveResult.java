@@ -27,22 +27,57 @@
 
 package fr.gouv.vitam.storage.driver.model;
 
+import fr.gouv.vitam.common.digest.DigestType;
+
 /**
  * Holds result data that come as a result of a request to remove an object on the distant storage offer
  */
 public class StorageRemoveResult extends StorageObjectResult {
 
-    // TODO P1 : implements me
-    
+    private final DigestType digestAlgorithm;
+    private final String digestHashBase16;
+    private final boolean objectDeleted;
+
     /**
      * Initialize the needed parameters for remove results
      *
      * @param tenantId The request tenantId
      * @param type the type The request type
      * @param guid the object guid
+     * @param digestAlgorithm the digest algorithm
+     * @param digestHashBase16 the digest
+     * @param objectDeleted true if the object has been deleted
      */
-    public StorageRemoveResult(Integer tenantId, String type, String guid) {
+    public StorageRemoveResult(Integer tenantId, String type, String guid, DigestType digestAlgorithm,
+        String digestHashBase16, boolean objectDeleted) {
         super(tenantId, type, guid);
+        this.digestAlgorithm = digestAlgorithm;
+        this.digestHashBase16 = digestHashBase16;
+        this.objectDeleted = objectDeleted;
     }
+
+    /**
+     * @return the digestAlgorithm
+     */
+    public DigestType getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
+
+
+    /**
+     * @return the digestHashBase16
+     */
+    public String getDigestHashBase16() {
+        return digestHashBase16;
+    }
+
+    /**
+     * @return the objectDeleted
+     */
+    public boolean isObjectDeleted() {
+        return objectDeleted;
+    }
+
+
 
 }
