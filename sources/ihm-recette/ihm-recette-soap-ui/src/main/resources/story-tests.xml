@@ -324,15 +324,22 @@ if (context.category == "Test API external"){
 		context.outIteration = context.outIteration + 1	
 	}	
 } else {
-	HttpGet httpGet = new HttpGet(url);
-	
-	if (context.inputJSON.params[i].tenant != null){
-		httpGet.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
+	HttpPost httppost = new HttpPost(url); 
+ 	StringEntity reqEntity = new StringEntity('{}') ;
+ 		
+ 	reqEntity.setContentType("application/json");
+ 		
+	httppost.setHeader("Accept-Encoding", "UTF-8");
+ 	httppost.addHeader("X-Http-Method-Override", "GET");
+
+ 	if (context.inputJSON.params[i].tenant != null){
+		httppost.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
 	} else {
-		httpGet.addHeader("X-Tenant-Id", "0");
+		httppost.addHeader("X-Tenant-Id", "0");
 	}
-	
-	response = http.execute(httpGet);
+
+ 	httppost.setEntity(reqEntity);
+ 	response = http.execute(httppost);
 
 	if (response !=null )
 	{	
