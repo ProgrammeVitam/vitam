@@ -442,6 +442,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param operationId the operation id
      * @param xcursor if True means new query, if False means end of query from client side
      * @param xcursorId if present, means continue on Cursor
+     * @param evtStatus the evenement status (commited / not_commited)
      * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
@@ -886,6 +887,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param operationId the operation id
      * @param xcursor if True means new query, if False means end of query from client side
      * @param xcursorId if present, means continue on Cursor
+     * @param evtStatus the evenement status (commited / not_commited)
      * @param query as JsonNode
      * @return the response with a specific HTTP status
      */

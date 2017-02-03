@@ -133,13 +133,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
 
     /**
-     *
+     * Constructor
+     * 
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
-
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate) {
         super(mongoClient, dbname, recreate);
         LogbookCollections.OPERATION.initialize(getMongoDatabase(), recreate);

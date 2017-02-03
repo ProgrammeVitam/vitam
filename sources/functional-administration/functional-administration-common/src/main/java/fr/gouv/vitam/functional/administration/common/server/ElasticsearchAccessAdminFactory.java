@@ -55,6 +55,15 @@ public final class ElasticsearchAccessAdminFactory {
     }
     
 
+    /**
+     * Creation of one ElasticsearchDbAcess
+     * 
+     * @param clusterName the cluster name
+     * @param nodes the node list
+     * @return the ElasticsearchDbAcess
+     * @throws VitamException if elasticsearch list nodes is empty 
+     * @throws IllegalArgumentException if argument is null
+     */
     public static final ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", clusterName, nodes);
         try {
