@@ -129,7 +129,7 @@ public class DbRequestTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -165,8 +165,10 @@ public class DbRequestTest {
     private static int port;
     private static final String REQUEST_SELECT_TEST = "{$query: {$eq: {\"id\" : \"id\" }}, $projection : []}";
     private static final String REQUEST_UPDATE_TEST = "{$query: {$eq: {\"id\" : \"id\" }}}";
-    private static final String REQUEST_INSERT_TEST = "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", \"id\": \"id\" }";
-    private static final String REQUEST_INSERT_TEST_2 = "{ \"#id\": \"aeaqaaaaaaaaaaababid6akzxqwg6qqaaaaq\", \"id\": \"id\" }";    
+    private static final String REQUEST_INSERT_TEST =
+        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", \"id\": \"id\" }";
+    private static final String REQUEST_INSERT_TEST_2 =
+        "{ \"#id\": \"aeaqaaaaaaaaaaababid6akzxqwg6qqaaaaq\", \"id\": \"id\" }";
     private static final String REQUEST_SELECT_TEST_ES_1 =
         "{$query: { $match : { 'Description' : 'OK' , '$max_expansions' : 1  } }}";
     private static final String REQUEST_SELECT_TEST_ES_2 =
@@ -256,15 +258,16 @@ public class DbRequestTest {
         esClient.close();
     }
 
-
     /**
      * Test method for
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
      * .
+     * 
+     * @throws MetaDataExecutionException
      */
-    @Test
+    @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequest() {
+    public void testExecRequest() throws MetaDataExecutionException {
         // input data
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -338,6 +341,21 @@ public class DbRequestTest {
             LOGGER.debug("DeleteParser: " + deleteParser.toString());
             // Now execute the request
             executeRequest(dbRequest, deleteParser);
+        } catch (MetaDataAlreadyExistException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataNotFoundException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (InstantiationException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (InvalidParseOperationException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
         } finally {
             // clean
             MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
@@ -349,9 +367,9 @@ public class DbRequestTest {
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
      * .
      */
-    @Test
+    @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequestThroughRequestParserHelper() {
+    public void testExecRequestThroughRequestParserHelper() throws MetaDataExecutionException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -425,8 +443,23 @@ public class DbRequestTest {
                 fail(e.getMessage());
             }
             LOGGER.debug("DeleteParser: " + requestParser.toString());
-            // Now execute the request
+
             executeRequest(dbRequest, requestParser);
+        } catch (MetaDataAlreadyExistException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (MetaDataNotFoundException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (InstantiationException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
+        } catch (InvalidParseOperationException e1) {
+            e1.printStackTrace();
+            fail(e1.getMessage());
         } finally {
             // clean
             MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
@@ -438,10 +471,19 @@ public class DbRequestTest {
      * Test method for
      * {@link fr.gouv.vitam.database.collections.DbRequest#execRequest(fr.gouv.vitam.request.parser.RequestParser, fr.gouv.vitam.database.collections.Result)}
      * .
+     * 
+     * @throws InvalidParseOperationException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataExecutionException
      */
-    @Test
+    @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequestThroughAllCommands() {
+    public void testExecRequestThroughAllCommands()
+        throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
+        InstantiationException, IllegalAccessException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -544,7 +586,7 @@ public class DbRequestTest {
      *
      * @throws Exception
      */
-    @Test
+    @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
     public void testExecRequestMultiple() throws Exception {
         // input data
@@ -694,18 +736,22 @@ public class DbRequestTest {
     /**
      * @param dbRequest
      * @param requestParser
+     * @throws InvalidParseOperationException
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     * @throws MetaDataNotFoundException
+     * @throws MetaDataAlreadyExistException
+     * @throws MetaDataExecutionException
      */
-    private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser) {
-        try {
-            final Result result = dbRequest.execRequest(requestParser, null);
-            LOGGER.debug("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
-            assertEquals("Must have 1 result", result.getNbResult(), 1);
-            assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
-        } catch (InstantiationException | IllegalAccessException | MetaDataExecutionException |
-            InvalidParseOperationException | MetaDataAlreadyExistException | MetaDataNotFoundException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+    private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
+        throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
+        InstantiationException, IllegalAccessException, InvalidParseOperationException {
+
+        final Result result = dbRequest.execRequest(requestParser, null);
+        LOGGER.debug("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
+        assertEquals("Must have 1 result", result.getNbResult(), 1);
+        assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
+
     }
 
     /**
@@ -1118,7 +1164,7 @@ public class DbRequestTest {
     public void shouldSelectUnitResult() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        
+
         final DbRequest dbRequest = new DbRequest();
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1132,7 +1178,7 @@ public class DbRequestTest {
         final Result result2 = dbRequest.execRequest(selectParser, null);
         assertEquals(1, result2.nbResult);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void shouldSelectNoResultSinceOtherTenantUsed() throws Exception {
@@ -1145,21 +1191,21 @@ public class DbRequestTest {
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);        
-        final SelectParserMultiple selectParser = new SelectParserMultiple();        
+        final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
+        final SelectParserMultiple selectParser = new SelectParserMultiple();
         selectParser.parse(selectRequest);
         LOGGER.debug("SelectParser: {}", selectRequest);
         final Result result2 = dbRequest.execRequest(selectParser, null);
         assertEquals(0, result2.nbResult);
     }
-    
+
 
     @Test
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithES() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         esClient.deleteIndex(MetadataCollections.C_UNIT);
-        esClient.addIndex(MetadataCollections.C_UNIT);        
+        esClient.addIndex(MetadataCollections.C_UNIT);
 
         final DbRequest dbRequest = new DbRequest();
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES);
@@ -1255,7 +1301,8 @@ public class DbRequestTest {
         esClient.refreshIndex(MetadataCollections.C_UNIT);
 
         select = new Select();
-        select.addQueries(match("Title", "othervalue").setDepthLimit(1)).addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
+        select.addQueries(match("Title", "othervalue").setDepthLimit(1))
+            .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel5 = dbRequest.execRequest(selectParser1, null);
@@ -1272,7 +1319,7 @@ public class DbRequestTest {
         assertEquals(1, resultSelectRel6.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel6.getCurrentIds().iterator().next().toString());
-        
+
         // Check for "social vs sociales"
         select = new Select();
         select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq").addQueries(match("Title", "social").setDepthLimit(1));
@@ -1282,10 +1329,11 @@ public class DbRequestTest {
         assertEquals(1, resultSelectRel7.nbResult);
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel7.getCurrentIds().iterator().next().toString());
-        
+
         // Check for "name_with_underscore"
         select = new Select();
-        select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq").addQueries(match("Title", "underscore").setDepthLimit(1));
+        select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq")
+            .addQueries(match("Title", "underscore").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
         final Result resultSelectRel8 = dbRequest.execRequest(selectParser1, null);

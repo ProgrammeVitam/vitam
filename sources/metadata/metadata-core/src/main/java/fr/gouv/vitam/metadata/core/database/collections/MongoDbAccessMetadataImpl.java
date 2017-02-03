@@ -86,6 +86,10 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         // init Unit Mapping for ES
         MetadataCollections.C_UNIT.initialize(this.esClient);
         MetadataCollections.C_UNIT.getEsClient().addIndex(MetadataCollections.C_UNIT);
+
+        // init OG Mapping for ES
+        MetadataCollections.C_OBJECTGROUP.initialize(this.esClient);
+        MetadataCollections.C_OBJECTGROUP.getEsClient().addIndex(MetadataCollections.C_OBJECTGROUP);
     }
 
     /**

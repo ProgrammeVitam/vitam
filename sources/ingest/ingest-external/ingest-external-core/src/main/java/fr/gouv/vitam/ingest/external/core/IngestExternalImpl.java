@@ -141,7 +141,7 @@ public class IngestExternalImpl implements IngestExternal {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         FileSystem workspaceFileSystem = null;
         Response responseNoProcess = null;
-        
+
         try {
 
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(

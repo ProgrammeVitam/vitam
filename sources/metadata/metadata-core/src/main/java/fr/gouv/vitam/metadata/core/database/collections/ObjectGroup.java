@@ -149,17 +149,22 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String MAPPING = "{" + TYPEUNIQUE +
         // Will keep NBCHILD as value to get (_id is implicit)
-        " : { " + "_source : { includes : [\"" + ObjectGroup.NB_COPY + "\"] }," +
+        " : { " + "properties : { " +
         // NBCHILD as the number of immediate child
         ObjectGroup.NB_COPY + " : { type : \"long\" }," +
         // Immediate parents will be included but not tokenized [ UUID1, UUID2 ]
         VitamLinks.UNIT_TO_OBJECTGROUP.field2to1 + " : { type : \"string\", index : \"not_analyzed\" } " +
         " } } }";
 
+    /**
+     * depths
+     */
+    public static final String OGDEPTHS = "_ops";
 
     /**
      * Empty constructor
      */
+
     public ObjectGroup() {
         // Empty constructor
     }

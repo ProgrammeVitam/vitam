@@ -58,8 +58,7 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
     public String getVariableName(String name) throws InvalidParseOperationException {
         // FIXME P1 INSERT should generate #id, #mgt, ...
         /*
-         * final String newname = null;
-         * newname = super.getVariableName(name); if (newname != null) { return newname; }
+         * final String newname = null; newname = super.getVariableName(name); if (newname != null) { return newname; }
          */
         if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
             // Check on prefix (preceding '.')
