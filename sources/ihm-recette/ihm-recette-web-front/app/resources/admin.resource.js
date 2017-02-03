@@ -27,7 +27,7 @@
 
 // Define resources in order to call WebApp http endpoints for administration
 angular.module('core')
-  .factory('adminResource', function($http, IHM_URLS) {
+  .factory('adminResource', function($http, IHM_URLS, tenantService) {
 
     var DELETE_ROOT = '/delete';
     var FORMAT_ROOT = '/formats/';
@@ -40,6 +40,14 @@ angular.module('core')
     var ARCHIVE_UNIT_ROOT = '/metadata/unit';
     var AdminResource = {};
 
+    /** get tenant of session and set to header
+    *
+    * @returns set tenant to header
+    */    
+    var getTenantHeader = function() { 
+    	return {headers : {'X-Tenant-Id' : tenantService.getTenant()}} 
+    };
+    
     /** Delete all the formats (DELETE method)
      *
      * @returns {HttpPromise} The promise returned by the http call
@@ -53,7 +61,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteRules = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + RULE_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + RULE_ROOT, getTenantHeader());
     };
 
     /** Delete all the accession register (DELETE method)
@@ -61,7 +69,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteAccessionRegisters = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ACCESSION_REGISTER_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ACCESSION_REGISTER_ROOT, getTenantHeader());
     };
 
     /** Delete all the logbooks (DELETE method)
@@ -69,7 +77,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteLogbooks = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + LOGBOOK_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + LOGBOOK_ROOT, getTenantHeader());
     };
 
     /** Delete all the archive unit lifeCycle (DELETE method)
@@ -77,7 +85,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteUnitLifeCycles = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + UNIT_LIFE_CYCLE_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + UNIT_LIFE_CYCLE_ROOT, getTenantHeader());
     };
 
     /** Delete all the object group life cycles (DELETE method)
@@ -85,7 +93,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteOGLifeCycles = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_LIFE_CYCLE_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_LIFE_CYCLE_ROOT, getTenantHeader());
     };
 
     /** Delete all the archive units (DELETE method)
@@ -93,7 +101,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteArchiveUnits = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ARCHIVE_UNIT_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + ARCHIVE_UNIT_ROOT,  getTenantHeader());
     };
 
     /** Delete all the object groups (DELETE method)
@@ -101,7 +109,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteObjectGroups = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT + OBJECT_GROUP_ROOT, getTenantHeader());
     };
 
     /** Delete all the mongo collections (DELETE method)
@@ -109,7 +117,7 @@ angular.module('core')
      * @returns {HttpPromise} The promise returned by the http call
      */
     AdminResource.deleteAll = function() {
-      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT);
+      return $http.delete(IHM_URLS.IHM_BASE_URL + DELETE_ROOT, getTenantHeader());
     };
 
     return AdminResource;

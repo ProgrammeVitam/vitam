@@ -31,7 +31,6 @@ angular.module('core')
     $scope.showMenuBar = true;
     $scope.credentials = usernamePasswordToken;
     $scope.session = {};
-
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
       if ($scope.session.status != 'logged') {

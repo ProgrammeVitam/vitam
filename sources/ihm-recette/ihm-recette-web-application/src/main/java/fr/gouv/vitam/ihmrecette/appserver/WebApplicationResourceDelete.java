@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -67,9 +68,13 @@ import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
+
+// TODO : appliquer le filtre sur le check de tenantId , US#1993 
+
 /**
  * Web Application Resource class for delete features
  */
+
 @Path("/v1/api/delete")
 public class WebApplicationResourceDelete extends ApplicationStatusResource {
 
@@ -186,7 +191,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_RULES, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -224,8 +230,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAccessionRegister() {
-        // Summary
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_ACCESSION_REGISTER_SUMMARY, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -291,7 +297,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookOperation() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_OPERATION, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -339,7 +346,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleOG() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_OG, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -375,7 +383,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleUnit() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -411,7 +420,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataObjectGroup() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_OG, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -447,7 +457,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataUnit() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_UNIT, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -482,7 +493,8 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAll() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final List<String> collectionKO = new ArrayList<>();
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_ALL, eip, LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -527,23 +539,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
             LOGGER.error(e);
             collectionKO.add(MetadataCollections.C_UNIT.name());
         }
-        parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_FORMAT).setStatus(StatusCode.OK)
-            .putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.OK));
-        try {
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.FORMATS);
-            helper.updateDelegate(parameters);
-        } catch (final Exception e) {
-            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.KO));
-            try {
-                helper.updateDelegate(parameters);
-            } catch (final LogbookClientNotFoundException exc) {
-                LOGGER.error("Cannot update delegate logbook operation", exc);
-            }
-            LOGGER.error(e);
-            collectionKO.add(FunctionalAdminCollections.FORMATS.name());
-        }
+
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_RULES).setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK));
