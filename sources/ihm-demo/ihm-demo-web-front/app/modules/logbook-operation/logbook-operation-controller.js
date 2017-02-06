@@ -30,6 +30,7 @@
 angular.module('ihm.demo')
   .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient,
 																										 ITEM_PER_PAGE, $timeout, loadStaticValues,$translate){
+    var defaultSearchType = "--";
     var ctrl = this;
     ctrl.client = ihmDemoCLient.getClient('logbook');
     ctrl.itemsPerPage = ITEM_PER_PAGE;
@@ -37,7 +38,7 @@ angular.module('ihm.demo')
     ctrl.searchOptions = {};
     ctrl.operationList = [];
     ctrl.resultPages = 0;
-    ctrl.searchType = "--";
+    ctrl.searchType = defaultSearchType;
 
 		function initFields(fields) {
 			var result = [];
@@ -78,13 +79,13 @@ angular.module('ihm.demo')
 
       ctrl.searchOptions.EventType = ctrl.searchType;
 
-      if(ctrl.searchOptions.EventType == "--" || ctrl.searchOptions.EventType == undefined) {
+      if (ctrl.searchOptions.EventType === defaultSearchType || ctrl.searchOptions.EventType == undefined) {
         ctrl.searchOptions.EventType = "all";
       }
 
       ctrl.searchOptions.EventID = ctrl.searchID;
 
-      if(ctrl.searchOptions.EventID == "" || ctrl.searchOptions.EventID == undefined) {
+      if (ctrl.searchOptions.EventID == "" || ctrl.searchOptions.EventID == undefined) {
         ctrl.searchOptions.EventID = "all";
       }
 
@@ -92,7 +93,7 @@ angular.module('ihm.demo')
 
       ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
         if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          if (ctrl.searchType && ctrl.searchID) {
+          if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
             displayError("Veuillez ne remplir qu'un seul champ");
           } else {
             displayError("Il n'y a aucun résultat pour votre recherche");
@@ -109,7 +110,7 @@ angular.module('ihm.demo')
         ctrl.resultPages = 0;
         ctrl.currentPage = 0;
         ctrl.results = 0;
-        if (ctrl.searchType && ctrl.searchID) {
+        if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
           displayError("Veuillez ne remplir qu'un seul champ");
         } else {
           displayError("Il n'y a aucun résultat pour votre recherche");
