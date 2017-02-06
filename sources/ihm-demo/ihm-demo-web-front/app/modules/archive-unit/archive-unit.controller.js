@@ -123,9 +123,8 @@ angular.module('archive.unit')
 
       fieldSet.fieldId = key;
       //Turns date into correct format for display
-      if (key.includes('Date') || key.includes('LastModified')){
-        var myFilteredDate = $filter('vitamFormatDate')(value);
-        fieldSet.fieldValue = myFilteredDate;
+      if (key.indexOf('Date') != -1 || key.indexOf('LastModified') != -1){
+        fieldSet.fieldValue = $filter('vitamFormatDate')(value);
       } else {
         fieldSet.fieldValue = value;
       }
