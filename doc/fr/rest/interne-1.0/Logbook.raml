@@ -77,6 +77,10 @@ documentation:
           Response model for the listing of Logbook unit life cycles. The request is using POST with X-Http-Method-Override: GET
         is: [LogbookTraits.UnitLifeCycleListingResponse, StandardTraits.OverrideGet]
 
+      delete:
+         description: |
+          rollback Unit LifeCycles By Operation 
+          
       /{id_lfc}:
         displayName: Unit Life Cycle Logbook For Operation
         description: |
@@ -99,7 +103,15 @@ documentation:
         head:
           description: Allow to know if a life cycle exists
           is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
-
+          
+        /commit:
+          displayName: commit Unit Life Cycle Logbook By operation 
+          description:  |
+              commit Unit Life Cycle Logbook By operation.
+          put:
+            description: |
+              commit one item or item bundle to an existing operation
+          
     /objectlifecycles:
       displayName: Object Life Cycles Logbooks For Operation
       description: |
@@ -114,7 +126,10 @@ documentation:
         description : |
           Response model for the listing of Logbook object life cycles. The request is using POST with X-Http-Method-Override: GET
         is: [LogbookTraits.ObjectLifeCycleListingResponse, StandardTraits.OverrideGet]
-
+      delete:
+         description: |
+          rollback object group LifeCycles By Operation  
+       
       /{id_lfc}:
         displayName: Object Life Cycle Logbook For Operation
         description: |
@@ -138,7 +153,15 @@ documentation:
         head:
           description: Allow to know if a life cycle exists
           is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
-
+      
+        /commit:
+          displayName: commit object group life Cycle Logbook For Operation  
+          description:  |
+              commit one Logbook object group cycle item.
+          put:
+            description: |
+              commit one item or item bundle to an existing operation
+            
 /unitlifecycles:
   displayName: Unit Life Cycle Logbook
   description: |
