@@ -196,7 +196,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             datas.populateFromOfferReferences(offerReferences);
 
             StorageLogbookParameters parameters =
-                tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, 1);
+                tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, 1, null);
 
             logStorage(parameters);
             // TODO P1 Handle Status result if different for offers
@@ -206,9 +206,8 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StorageLogbookParameters tryAndRetry(String objectId, CreateObjectDescription createObjectDescription,
-        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt)
+        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt, StorageLogbookParameters parameters)
         throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
-        StorageLogbookParameters parameters = null;
 
         Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
 
@@ -274,7 +273,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
             attempt++;
-            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt);
+            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
         }
 
         // TODO : error management (US #2008)
