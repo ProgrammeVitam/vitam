@@ -38,6 +38,8 @@ Les fonctionnalités sont :
 - tester l'existence d'un objet
 - récupérer l'empreinte d'un objet
 - compter le nombre d'objets d'un conteneur
+- contrôler un objet pour valider son transfert
+- supprimer un objet
 
 REST
 ====
@@ -112,6 +114,26 @@ REST API
   - contenu : data ou empreinte de l'objet
 
 
+**GET /objects/{type}/{id:.+}/check**
+
+- description : vérification d'un objet
+
+- headers :
+
+  - X-Type: DATA / DIGEST
+  - X-Tenant-Id: id du tenant
+
+- path :
+   
+  - {id} : path de l'objet
+  - {type} : le type permettant d'identifier un conteneur (unit/report/logbook/etc, se basant sur une enum)
+
+- response :
+
+  - code : 200
+  - contenu : un boolean indiquant si le digest de l'objet correspond ou non
+
+
 **POST /objects**
 
 - description : création d'un nouvel objet vide sur l'offre
@@ -172,22 +194,24 @@ REST API
   - code : 204
 
 
-**DELETE /objects/{id}**
+**DELETE /objects/{type}/{id}**
 
 - description : suppression d'un objet de l'offre
 
 - headers :
 
   - X-Tenant-Id: id du tenant
+  - X-Type: DATA / DIGEST
 
 - path :
 
   - {id} : id de l'objet
+  - {type} : le type permettant d'identifier un conteneur (unit/report/logbook/etc, se basant sur une enum)
 
 - response :
 
   - code : 200
-  - contenu : l'id de l'objet supprimé
+  - contenu : l'id de l'objet supprimé + le statut
 
 
 **GET /status**

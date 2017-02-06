@@ -92,6 +92,20 @@ documentation:
               type: object
               example: !include libraries/samples/collectionList.sample
 
+    /count:
+      displayName: Count operation
+      description: Pour compter le nombre d'objets d'un container (hors dossiers)
+      get:
+        description: Nombre d'objets binaires pour le container.
+        is: [ StandardTraits.StandardOptionalHeader,StandardTraits.StandardHeader200, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader400]
+        responses:
+          200:
+            body:
+              application/json:
+                type: object
+                example: !include libraries/samples/count.sample
+
+
     /folders:
       displayName: Folders operations
       description: Pour gérer la création de sous-dossiers
