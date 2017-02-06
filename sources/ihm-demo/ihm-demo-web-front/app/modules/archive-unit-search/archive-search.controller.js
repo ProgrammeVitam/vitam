@@ -147,6 +147,9 @@ angular
      } else {
        $scope.showResult = false;
        $scope.totalResult = 0;
+       $scope.currentPage = 0;
+       $scope.totalItems = 0;
+       $scope.resultPages = 0;
        $scope.showAlert($event, "Info", ARCHIVE_SEARCH_MODULE_CONST.NO_CRITERIA_SET);
      }
     };
@@ -257,9 +260,9 @@ angular
            $scope.showResult = false;
            $scope.errorMessage = ARCHIVE_SEARCH_MODULE_CONST.SEARCH_RESULT_INVALID;
            $scope.showAlert($event, "Erreur", $scope.errorMessage);
-            $scope.totalResult = 0;
-              $scope.currentPage =0;
-              $scope.resultPages=0;
+           $scope.totalResult = 0;
+           $scope.currentPage =0;
+           $scope.resultPages=0;
           } else {
            $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
            $scope.showResult = true;
@@ -305,8 +308,18 @@ angular
            }
            return start;
        };
-       $scope.reinitTab= function( ){
+       $scope.reinitTab= function(){
                $scope.idCriteria2='';
-       };
+               $scope.titleCriteria2='';
+               $scope.descriptionCriteria2='';
+               $scope.startDate='';
+               $scope.endDate='';
+               
+               $scope.showResult = false;
+               $scope.totalResult = 0;
+               $scope.currentPage = 0;
+               $scope.totalItems = 0;
+               $scope.resultPages = 0;
+       }
 
    });
