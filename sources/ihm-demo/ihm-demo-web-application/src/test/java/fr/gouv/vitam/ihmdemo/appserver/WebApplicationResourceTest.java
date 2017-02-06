@@ -418,7 +418,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testUpdateArchiveUnitWithoutBody() {
         given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .put("/archiveupdate/units/1");
+            .post("/archiveupdate/units/1");
     }
 
     @SuppressWarnings({"unchecked"})
@@ -438,7 +438,7 @@ public class WebApplicationResourceTest {
 
         given().contentType(ContentType.JSON).body(UPDATE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
-            .put("/archiveupdate/units/1");
+            .post("/archiveupdate/units/1");
     }
 
     @Test
