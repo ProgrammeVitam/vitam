@@ -62,6 +62,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OpenstackSwift.class);
     private static final String CONTAINER_API_IS_NULL = "container api is null";
+    private static final String ACCOUNT_API_IS_NULL = "Account api is null";
     private static final String SWIFT_IS_NULL = "swift is null";
     // maximum list size of the blob store. In S3, Azure, and Swift, this is 1000, 5000, and 10000
     // respectively
@@ -69,6 +70,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
 
     private SwiftApi swiftApi;
     private ContainerApi containerApi;
+    private AccountApi accountApi;
 
     /**
      * @param configuration
@@ -158,13 +160,12 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
      * @return ContainerApi
      */
     private AccountApi getAccountApi() {
-        AccountApi accountApi = null;
-        if (this.containerApi == null) {
+        if (accountApi == null) {
             accountApi = getSwiftAPi().getAccountApi(swiftApi.getConfiguredRegions().iterator().next());
         }
         if (accountApi == null) {
-            LOGGER.error(CONTAINER_API_IS_NULL);
-            throw new IllegalArgumentException(CONTAINER_API_IS_NULL);
+            LOGGER.error(ACCOUNT_API_IS_NULL);
+            throw new IllegalArgumentException(ACCOUNT_API_IS_NULL);
         }
         return accountApi;
     }
