@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.apache.http.HttpHeaders.EXPECT;
+import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
+
 import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
@@ -77,14 +80,16 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     @Override
     public Response upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
-        
+
         ParametersChecker.checkParameter("Stream is a mandatory parameter", stream);
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", tenantId);
         Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();        
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACTION, action);
+        headers.add(EXPECT, EXPECT_CONTINUE);
+
         try {
             response = performRequest(HttpMethod.POST, INGEST_URL, headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_XML_TYPE);
@@ -99,16 +104,20 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 case PARTIAL_CONTENT:
                     LOGGER.warn(ErrorMessage.INGEST_EXTERNAL_UPLOAD_WITH_WARNING.getMessage());
                     break;
+                case INTERNAL_SERVER_ERROR:
+                    LOGGER.warn(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
+                    break;
                 default:
                     throw new IngestExternalException("Unknown error");
             }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("Ingest Extrenal Internal Server Error", e);
-            throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
+            LOGGER.error("Ingest External Internal Server Error", e);
+            throw new IngestExternalException("Ingest External Internal Server Error", e);
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode() &&
                 response.getStatus() != Status.BAD_REQUEST.getStatusCode() &&
-                response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode()) {
+                response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode() &&
+                response.getStatus() != Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
             }
         }
@@ -117,11 +126,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
-        Integer tenantId = ParameterHelper.getTenantParameter();
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -132,7 +140,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
-            throw new IngestExternalException("Ingest Extrenal Internal Server Error", e);
+            throw new IngestExternalException("Ingest External Internal Server Error", e);
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
