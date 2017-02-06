@@ -47,6 +47,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -116,6 +119,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private HandlerIO handlerIO;
     private static final String DEFAULT_STRATEGY = "default";
+    private static final String EVENT_ID_PROCESS = "evIdProc";
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
@@ -537,7 +541,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final JsonNode node = client.selectOperationById(containerName, JsonHandler.createObjectNode());
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, containerName));
+            final JsonNode node = client.selectOperationById(containerName, select.getFinalSelect());
             // FIXME P1 hack since Jackson cannot parse it correctly
             // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
@@ -549,6 +555,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             logbookOperation = new LogbookOperation(elmt);
         } catch (final LogbookClientException e) {
             LOGGER.error("Error while loading logbook operation", e);
+            throw new ProcessingException(e);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("Error while creating DSL query", e);
             throw new ProcessingException(e);
         }
 
