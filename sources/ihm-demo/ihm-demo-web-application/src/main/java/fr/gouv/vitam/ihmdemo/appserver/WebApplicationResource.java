@@ -568,7 +568,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param unitId archive unit id
      * @return archive unit details
      */
-    @PUT
+    @POST
     @Path("/archiveupdate/units/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
