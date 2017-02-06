@@ -138,7 +138,7 @@ Get d'un objet dans l'offre de stockage
 
 
 Head d'un objet dans l'offre de stockage
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: java
 
@@ -161,4 +161,64 @@ Head d'un objet dans l'offre de stockage
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
+    
+Delete d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    String digestAlgorithm = DigestType.MD5.getName();
+    final Digest digest = new Digest(algo);
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    digest.update(dataStream);
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageRemoveRequest request = new StorageRemoveRequest(tenantId, type, guid, digestType, digest.toString());
+        StorageRemoveResult result = myConnection.removeObject(request);
+        // On peut vérifier ici le résultat du delete
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
       
+      
+Check d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    String digestAlgorithm = DigestType.MD5.getName();
+    final Digest digest = new Digest(algo);
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    digest.update(dataStream);
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageCheckRequest request = new StorageCheckRequest(tenantId, type, guid, digestType, digest.toString());
+        StorageCheckResult result = myConnection.checkObject(request);
+        // On peut vérifier ici le résultat du check
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+    
+        
