@@ -138,7 +138,7 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(1, collection.count());
         final JsonNode totalUnit = JsonHandler.toJsonNode(collection.find().first().get("TotalUnits"));
-        assertEquals(2, totalUnit.get("Total").asInt());
+        assertEquals(2, totalUnit.get("total").asInt());
         register.setOriginatingAgency("newOriginalAgency");
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(2, collection.count());
