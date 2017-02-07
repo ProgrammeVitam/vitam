@@ -19,5 +19,4 @@ vitam_swift_uid: ""
 vitam_swift_subuser: ""
 vitam_keystone_passwd: ""
 vitam_ceph_mode: true
-
-
+vitam_site_id: 1

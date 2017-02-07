@@ -35,7 +35,8 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
 
     private static final String CONFIGURATION_PARAMETERS = "ServerIdentityConfiguration parameters";
     private String identityName;
-    private int identityPlatformId;
+    private int identityServerId;
+    private int identitySiteId;
     private String identityRole;
 
 
@@ -54,14 +55,18 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
      * @param identityRole identity role
      * @throws IllegalArgumentException if identityName or identityRole
      */
-    public ServerIdentityConfigurationImpl(String identityName, int identityPlatformId, String identityRole) {
+    public ServerIdentityConfigurationImpl(String identityName, int identityServerId, int identitySiteId,String identityRole) {
         ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
             identityName, identityRole);
-        if (identityPlatformId < 0) {
-            throw new IllegalArgumentException("Platform id must be positive");
+        if (identitySiteId < 0) {
+            throw new IllegalArgumentException("Site id must be positive");
+        }
+        if (identityServerId < 0) {
+            throw new IllegalArgumentException("Server id must be positive");
         }
         this.identityName = identityName;
-        this.identityPlatformId = identityPlatformId;
+        this.identityServerId = identityServerId;
+        this.identitySiteId = identitySiteId;
         this.identityRole = identityRole;
     }
 
@@ -71,10 +76,15 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     }
 
     @Override
-    public int getIdentityPlatformId() {
-        return identityPlatformId;
+    public int getIdentityServerId() {
+        return identityServerId;
     }
 
+    @Override
+    public int getIdentitySiteId() {
+        return identitySiteId;
+    }
+    
     @Override
     public String getIdentityRole() {
         return identityRole;
@@ -93,18 +103,32 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
     }
 
     /**
-     * @param identityPlatformId the identityPlatformId to set
+     * @param identityServerId the identityServerId to set
      * @return this
      * @throws IllegalArgumentException if identityPlatformId < 0
      */
-    public ServerIdentityConfigurationImpl setIdentityPlatformId(int identityPlatformId) {
-        if (identityPlatformId < 0) {
+    public ServerIdentityConfigurationImpl setIdentityServerId(int identityServerId) {
+        if (identityServerId < 0) {
             throw new IllegalArgumentException("Platform id must be positive");
         }
-        this.identityPlatformId = identityPlatformId;
+        this.identityServerId = identityServerId;
         return this;
     }
 
+    /**
+     * @param identitySiteId the identitySiteId to set
+     * @return this
+     * @throws IllegalArgumentException if identityPlatformId < 0
+     */
+    public ServerIdentityConfigurationImpl setIdentitySiteId(int identitySiteId) {
+        if (identitySiteId < 0) {
+            throw new IllegalArgumentException("Platform id must be positive");
+        }
+        this.identitySiteId = identitySiteId;
+        return this;
+    }
+    
+    
     /**
      * @param identityRole the identityRole to set
      * @return this

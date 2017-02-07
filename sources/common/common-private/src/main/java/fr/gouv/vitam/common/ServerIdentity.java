@@ -56,7 +56,8 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * <ul>
  * <li>ServerName: hostname or UnknownHostname if not found</li>
  * <li>ServerRole: UnknownRole</li>
- * <li>PlatformId: partial MAC ADDRESS as integer</li>
+ * <li>ServerId: partial MAC ADDRESS as integer</li>
+ * <li>SiteId : 0</li>
  * </ul>
  * <br>
  * One should initialize its server instance by calling:<br>
@@ -82,14 +83,19 @@ import fr.gouv.vitam.common.server.application.configuration.ServerIdentityConfi
  * int platformId = serverIdentity.getPlatformId();
  * </pre>
  *
- * Main usages are for:<br>
+ * Main usages are for:<br/>
  * <ul>
  * <li>GUID for PlatformId</li>
  * <li>Logger and Logbook: for all</li>
  * </ul>
  * <br>
  * <br>
- * NOTE for developers: Do not add LOGGER there
+ * NOTE for developers:<br/> 
+ * <ul>
+ * <li>Do not add LOGGER there</li>
+ * <li>Do not modify directly serverId attribute . Use setServerId</li>
+ * <li>Do not modify directly siteId attribute . Use setSiteId</li>
+ * </ul>
  */
 
 public final class ServerIdentity implements ServerIdentityInterface {
@@ -124,12 +130,16 @@ public final class ServerIdentity implements ServerIdentityInterface {
 
     private String name;
     private String role;
-    private int platformId;
+    // This attribute must NEVER be modified directly . Use setServerId(value)
+    private int serverId;
+    // This attribute must NEVER be modified directly . Use setSiteId(value)
+    private int siteId;
     private final StringBuilder preMessage = new StringBuilder();
     private String preMessageString;
+    private int globalPlatformId;
 
     private ServerIdentity() {
-        boolean propertyFileNotFound = false;
+        defaultServerIdentity();
         ServerIdentityConfigurationImpl serverIdentityConf;
         try {
             final File file = PropertiesUtils.findFile(SERVER_IDENTITY_CONF_FILE_NAME);
@@ -141,11 +151,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
             SysErrLogger.FAKE_LOGGER.syserr(
                 "Issue while getting configuration File: " +
                     e.getMessage());
-            propertyFileNotFound = true;
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-        if (propertyFileNotFound) {
-            defaultServerIdentity();
         }
     }
 
@@ -180,7 +186,8 @@ public final class ServerIdentity implements ServerIdentityInterface {
         }
         name = name.replaceAll("[\n\r]", "");
         role = UNKNOWN_ROLE;
-        platformId = macAddress(macAddress());
+        setServerId(macAddress(macAddress()));
+        setSiteId(0);
         initializeCommentFormat();
     }
 
@@ -225,7 +232,7 @@ public final class ServerIdentity implements ServerIdentityInterface {
     private void initializeCommentFormat() {
         preMessage.setLength(0);
         preMessage.append('[').append(getName()).append(':').append(getRole())
-            .append(':').append(getPlatformId()).append("] ");
+            .append(':').append(getGlobalPlatformId()).append("] ");
         preMessageString = preMessage.toString();
     }
 
@@ -265,9 +272,15 @@ public final class ServerIdentity implements ServerIdentityInterface {
          */
         ROLE,
         /**
-         * Global PlatformId: Integer or String representing integer
+         * SiteId: Integer or String representing integer
          */
-        PLATFORMID;
+        SITEID,
+        /**
+         * ServerId (Id of the VM/server): Integer or String representing integer
+         */
+        SERVERID;
+        
+        
     }
 
     /**
@@ -290,8 +303,14 @@ public final class ServerIdentity implements ServerIdentityInterface {
             if (svalue != null) {
                 role = svalue;
             }
-            svalue = properties.getProperty(MAP_KEYNAME.PLATFORMID.name());
-            platformId = Integer.parseInt(svalue);
+            svalue = properties.getProperty(MAP_KEYNAME.SERVERID.name());
+            if (svalue != null){
+                setServerId(Integer.parseInt(svalue));
+            }
+            svalue = properties.getProperty(MAP_KEYNAME.SITEID.name());
+            if (svalue != null){
+                setSiteId(Integer.parseInt(svalue));
+            }
         } catch (final IOException | NumberFormatException e) {
             // ignore
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -326,7 +345,12 @@ public final class ServerIdentity implements ServerIdentityInterface {
     private final void setYamlConfiguration(ServerIdentityConfigurationImpl serverIdentityConf) {
         name = serverIdentityConf.getIdentityName();
         role = serverIdentityConf.getIdentityRole();
-        platformId = serverIdentityConf.getIdentityPlatformId();
+        if (serverIdentityConf.getIdentityServerId()>0){
+            setServerId(serverIdentityConf.getIdentityServerId());
+        }
+        if (serverIdentityConf.getIdentitySiteId() > 0){
+            setSiteId(serverIdentityConf.getIdentitySiteId());
+        }
     }
 
     private final String getStringFromMap(Map<String, Object> map, String key) {
@@ -378,10 +402,15 @@ public final class ServerIdentity implements ServerIdentityInterface {
         if (svalue != null) {
             role = svalue;
         }
-        final Integer pid = getIntegerFromMap(map, MAP_KEYNAME.PLATFORMID.name());
+        final Integer pid = getIntegerFromMap(map, MAP_KEYNAME.SERVERID.name());
         if (pid != null) {
-            platformId = pid.intValue();
+            setServerId(pid.intValue());
         }
+        final Integer sId = getIntegerFromMap(map, MAP_KEYNAME.SITEID.name());
+        if (sId != null) {
+            setSiteId(sId.intValue());
+        }
+        
         initializeCommentFormat();
         return this;
     }
@@ -422,27 +451,61 @@ public final class ServerIdentity implements ServerIdentityInterface {
         return this;
     }
 
+    // TODO :   P2 protect race condition on GlobalPlatform ID
+    private final void calculateGlobalPlatformId(){
+        globalPlatformId = ((siteId & 0x0F) << 27) + (serverId & 0x07FFFFFF);
+    }
+    
     @Override
-    public final int getPlatformId() {
-        return platformId;
+    public final int getGlobalPlatformId() {
+        return globalPlatformId;
     }
 
     /**
      * The PlatformId is a unique name per site (each of the 3 sites of Vitam should have a different id).
      *
-     * @param platformId the platformId of the Vitam Platform to set
+     * @param serverId the platformId of the Vitam Platform to set
      *
      * @return this
      * @throws IllegalArgumentException platformId < 0
      */
-    public final ServerIdentity setPlatformId(int platformId) {
-        ParametersChecker.checkValue("platform", platformId, 0);
-        this.platformId = platformId;
+    public final ServerIdentity setServerId(int serverId) {
+        ParametersChecker.checkValue("server", serverId, 0);
+        this.serverId = serverId;
+        calculateGlobalPlatformId();
         initializeCommentFormat();
         return this;
     }
 
+    @Override
+    public final int getServerId(){
+        return serverId;
+    }
+    
 
+    /**
+     * @return the siteID
+     */
+    @Override
+    public final int getSiteId() {
+        return siteId;
+    }
+
+    /**
+     * Set the SideID
+     * @param siteId the siteId to set
+     *
+     * @return this
+     */
+    public final ServerIdentity setSiteId(int siteId) {
+        ParametersChecker.checkValue("siteID", siteId, 0);
+        this.siteId = siteId;
+        calculateGlobalPlatformId();
+        initializeCommentFormat();
+        return this;
+    }
+
+    
     /**
      *
      * @return the mac address if possible, else random values
@@ -469,6 +532,11 @@ public final class ServerIdentity implements ServerIdentityInterface {
         }
     }
 
+    /**
+     * 
+     * @param mac
+     * @return the last 31 bits of the macAddress
+     */
     private static final int macAddress(byte[] mac) {
         int macl = 0;
         if (mac == null) {

@@ -28,16 +28,18 @@ ServerIdentity
 
 Cet utilitaire propose une implémentation de la carte d'identité de chaque service/serveur.
 
-ServerIdentity contient le ServerName, le ServerRole, et le Global PlatformId.
+ServerIdentity contient le ServerName, le ServerRole, le siteId, serverId et le PlatformGlobalID
 
 Pour une JVM, un seul ServerIdentity existe.
 
 C'est un Common Private.
 
 Par défaut cette classe est initialisée avec les valeurs suivantes :
-* ServerName: hostname ou UnknownHostname si introuvable
-* ServerRole: UnknownRole
-* PlatformId: MAC adresse partielle comme entier
+* ServerName (String) : hostname ou UnknownHostname si introuvable
+* ServerRole (String) : UnknownRole
+* ServerId (int): MAC adresse partielle comme entier (31 derniers bits de la MAC)
+* SiteId (int) : Id du site (entier entre 0 et 15) . Les serveurs de 2 régions informatiques (sites/salles) doivent avoir des Id différents
+* GlobalPlatformID (int) : nombre aggrégé du siteId et d'une partie du ServerId
 
 **Il est important que chaque server à son démarrage initialise les valeurs correctement.**
 
@@ -60,7 +62,7 @@ Usage
     ServerIdentity serverIdentity = ServerIdentity.getInstance();
     String name = serverIdentity.getName();
     String role = serverIdentity.getRole();
-    int platformId = serverIdentity.getPlatformId();
+    int platformId = serverIdentity.getGlobalPlatformId();
 
 Les usages principaux
 ---------------------
