@@ -76,11 +76,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 
 public class MongoDbAccessAdminImplTest {
 
@@ -165,7 +165,7 @@ public class MongoDbAccessAdminImplTest {
             .setRuleDuration("10")
             .setRuleMeasurement("Annee");
 
-        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(1).setDeleted(0).setRemained(1);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(1, 0, 1, null);
         register = new AccessionRegisterDetail(TENANT_ID)
             .setObjectSize(initialValue)
             .setOriginatingAgency(AGENCY)

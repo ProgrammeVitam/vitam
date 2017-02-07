@@ -44,9 +44,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -88,7 +88,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
 
         // store accession register summary
-        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, null);
         try {
             final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister

@@ -15,6 +15,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 
 public class AccessionRegisterDetailTest {
 
@@ -29,7 +30,7 @@ public class AccessionRegisterDetailTest {
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
     	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, null);
         final String id = GUIDFactory.newGUID().getId();
         AccessionRegisterDetail register = new AccessionRegisterDetail()
             .setOriginatingAgency(id)

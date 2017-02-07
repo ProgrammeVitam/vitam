@@ -47,8 +47,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -408,10 +408,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private AccessionRegisterDetail mappingDetailModelToDetail(AccessionRegisterDetailModel model) {
         AccessionRegisterDetail accessionRegisterDetail = new AccessionRegisterDetail();
-        RegisterValueDetail totalObjectsGroups = new RegisterValueDetail();
-        RegisterValueDetail totalUnits = new RegisterValueDetail();
-        RegisterValueDetail totalObjects = new RegisterValueDetail();
-        RegisterValueDetail objectSize = new RegisterValueDetail();
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
         accessionRegisterDetail.setId(model.getId()).
             setOriginatingAgency(model.getOriginatingAgency()).
             setSubmissionAgency(model.getSubmissionAgency()).
