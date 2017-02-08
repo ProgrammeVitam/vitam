@@ -27,7 +27,7 @@
 
 // Define controller for admin_home
 angular.module('admin.home')
-  .controller('adminHomeController', function($scope, $filter, adminService, messageService) {
+  .controller('adminHomeController', function($scope, $filter, adminService, messageService, tenantService) {
 
     /**
      * Prefix code for callback message of this page
@@ -81,6 +81,14 @@ angular.module('admin.home')
 
       messageService.specificTemplateMessageAlert(template, locals, controller);
     };
+
+      $scope.checkTenant = function(){
+          if (tenantService.getTenant()==null || tenantService.getTenant()=="") {
+              return true;
+          } else {
+              return false;
+          }
+      }
 
     /**
      * Display a delete confirmation message and launch deletion if user confirm.

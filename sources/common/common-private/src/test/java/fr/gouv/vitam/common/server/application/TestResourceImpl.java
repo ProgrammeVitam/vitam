@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application;
 
+import java.util.Arrays;
+import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -46,13 +49,14 @@ import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 @javax.ws.rs.ApplicationPath("webresources")
 public class TestResourceImpl extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestResourceImpl.class);
+    private static final List<String> tenants = Arrays.asList("0", "1", "2");
 
     /**
      *
      * @param configuration to associate with TestResourceImpl
      */
     public TestResourceImpl(TestConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
+        super(new BasicVitamStatusServiceImpl(), tenants);
         LOGGER.debug("TestResource initialized");
     }
 
@@ -62,7 +66,7 @@ public class TestResourceImpl extends ApplicationStatusResource {
      * @param statusService
      */
     public TestResourceImpl(TestConfiguration configuration, VitamStatusService statusService) {
-        super(statusService);
+        super(statusService, tenants);
         LOGGER.debug("TestResource initialized");
     }
 

@@ -144,7 +144,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param webApplicationConfig
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
-        super(new BasicVitamStatusServiceImpl());
+        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
 
         LOGGER.debug("init Admin Management Resource server");
         this.webApplicationConfig = webApplicationConfig;

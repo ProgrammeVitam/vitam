@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.min.css"/>
     <link rel="stylesheet" href="vendor/bootstrap-material-design-icons/css/material-icons.css">
     <link rel="stylesheet" href="css/styles.css"/>
+    <link rel="stylesheet" href="css/toast-theme.css"/>
     <link rel="stylesheet" href="vendor/angular-material/angular-material.min.css">
     <link rel="stylesheet" href="vendor/v-accordion/dist/v-accordion.css"/>
 
@@ -149,6 +150,23 @@
                         </ul>
                     </li>
                 </ul>
+                
+                <ul class="nav navbar-nav" style="margin: 10px 0 0 100px; width: 500px; float: right">
+                	<li><b> Tenant en cours : {{tenantChosen}} </b></li>
+                	<li style="min-width: 500px">
+                		<div class="form-group" ng-class="{'has-error': logginError}">
+  							<!-- <label style="display: inline" for="tenantId">Sélection du tenant</label>-->
+  							Sélection du tenant
+    						<select ng-model="tenantId" style="display: inline; margin: 0 0 0 10px">
+    							<option ng-repeat='tenant in tenants' value="{{tenant}}">{{tenant}}</option>
+    						</select>
+    						<button class="btn btn-primary" style="display: inline; margin: 0 0 0 10px" type="button" ng-disabled="tenantId == '-'" class="btn btn-success" ng-click="setCurrentTenant(tenantId);">
+    							Accéder
+    						</button>
+  						</div>
+  					</li>
+                </ul>
+                <div id="toaster"></div>
             </div>
         </div>
 

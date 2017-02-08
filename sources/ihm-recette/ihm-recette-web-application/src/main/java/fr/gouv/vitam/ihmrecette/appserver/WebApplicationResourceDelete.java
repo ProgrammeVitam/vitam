@@ -101,7 +101,7 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
      * @param webApplicationConfig application configuration
      */
     public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig) {
-        super(new BasicVitamStatusServiceImpl());
+        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
         DbConfigurationImpl adminConfiguration;
         DbConfigurationImpl logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;

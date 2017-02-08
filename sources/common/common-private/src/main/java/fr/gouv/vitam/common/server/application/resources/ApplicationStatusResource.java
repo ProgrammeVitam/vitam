@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.common.server.application.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -48,8 +51,10 @@ public class ApplicationStatusResource implements VitamResource {
      * Status for Application resource path
      */
     public static final String STATUS_URL = VitamConfiguration.STATUS_URL;
+    public static final String TENANTS_URL = VitamConfiguration.TENANTS_URL;
 
     private final VitamStatusService statusService;
+    private List<String> tenants;
 
     /**
      *
@@ -57,6 +62,7 @@ public class ApplicationStatusResource implements VitamResource {
      */
     public ApplicationStatusResource() {
         statusService = new BasicVitamStatusServiceImpl();
+        this.tenants = new ArrayList<>();
     }
 
     /**
@@ -65,8 +71,9 @@ public class ApplicationStatusResource implements VitamResource {
      *
      * @param statusService
      */
-    public ApplicationStatusResource(VitamStatusService statusService) {
+    public ApplicationStatusResource(VitamStatusService statusService, List<String> tenants) {
         this.statusService = statusService;
+        this.tenants = tenants;
     }
 
     /**
@@ -83,6 +90,18 @@ public class ApplicationStatusResource implements VitamResource {
         } else {
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
         }
+    }
+    
+    /**
+     * Retrieve all the tenants defined on the plateform
+     *
+     * @return Response containing a list of tenants as string
+     */
+    @GET
+    @Path(TENANTS_URL)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTenants() {
+        return Response.status(Status.OK).entity(tenants).build();
     }
 
 }

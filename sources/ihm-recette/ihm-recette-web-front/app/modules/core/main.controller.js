@@ -27,10 +27,14 @@
 
 angular.module('core')
   .controller('mainViewController', function($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
-                                             $window, Restangular, subject, usernamePasswordToken) {
+                                             $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory, tenantService, $mdToast) {
     $scope.showMenuBar = true;
     $scope.credentials = usernamePasswordToken;
     $scope.session = {};
+    $scope.tenants = ['0'];
+    $scope.tenantChosen = tenantService.getTenant() || "-";
+    $scope.tenantId = $scope.tenantChosen;
+
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
       if ($scope.session.status != 'logged') {
@@ -39,7 +43,31 @@ angular.module('core')
         $location.path(IHM_URLS.IHM_DEFAULT_URL);
       }
 
+      ihmDemoFactory.getTenants().then(function(repsonse) {
+          if (repsonse.data.length !== 0) {
+            $scope.tenants = repsonse.data;
+          }
+        }, function(error) {
+          console.log('Error while get tenant. Set default list : ', error);
+        });
+
     });
+    
+    $scope.setCurrentTenant = function(tenantId) {
+        if (!tenantId) {
+            return;
+        }
+    	$scope.tenantChosen = tenantId;
+    	tenantService.setTenant(tenantId);
+        $mdToast.show(
+            $mdToast.simple()
+                .textContent('Nouveau tenant : ' + tenantId)
+                .parent(document.querySelectorAll('#toaster'))
+                .position('top middle')
+                .theme('success-toast')
+                .hideDelay(5000)
+        );
+    };
 
     $rootScope.$on('$routeChangeStart', function(event, next, current) {
       if ($location.path() != '/login') {
@@ -70,6 +98,8 @@ angular.module('core')
     };
 
     $scope.logoutUser = function() {
+        $scope.tenantId = $scope.tenantChosen = "-";
+        tenantService.deleteTenant();
       subject.logout();
       $scope.session.status = 'notlogged';
       delete authVitamService.url;

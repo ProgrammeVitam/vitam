@@ -33,6 +33,8 @@ import static org.junit.Assert.assertTrue;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.SortedMap;
@@ -88,6 +90,8 @@ public class VitamMetricsConfigurationImplTest {
     private static TestVitamApplication application;
     private static final PrintStream out = System.out; // NOSONAR since Logger test
     private static final StringBuilder buf = new StringBuilder();
+    
+    private static final List<String> tenants = Arrays.asList("0", "1", "2");
 
     /**
      * The test application that will load a test resource.
@@ -119,7 +123,7 @@ public class VitamMetricsConfigurationImplTest {
          * @param configuration to associate with TestResourceImpl
          */
         public TestResourceImpl() {
-            super(new BasicVitamStatusServiceImpl());
+            super(new BasicVitamStatusServiceImpl(), tenants);
             // register the gauge if it doesn't exist
             registry.register(TEST_GAUGE_NAME, new Gauge<Integer>() {
                 @Override

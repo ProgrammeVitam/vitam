@@ -59,10 +59,12 @@ module('ihm.demo').
       .otherwise('/adminHome');
     }
   ])
-  .config(function($translateProvider) {
+  .config(function($translateProvider, $mdThemingProvider) {
       $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
       $translateProvider.useLoader('MessagesResource', {});
       // prefered language set options for useLoader
       $translateProvider.preferredLanguage('fr');
+      console.log($mdThemingProvider);
+      $mdThemingProvider.theme('success-toast');
     }
   );
