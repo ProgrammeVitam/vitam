@@ -1,0 +1,9 @@
+---
+# tasks file for bootstrap_repo
+- name: create VITAM repositories
+  template:
+    src: vitam.repo.j2
+    dest: /etc/yum.repos.d/vitam-repositories.repo
+    owner: root
+    group: root
+    mode: 0644

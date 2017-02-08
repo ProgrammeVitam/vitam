@@ -194,6 +194,26 @@ Basé sur le contenu du fichier ``vault.yml``, ce script  génère des stores n�
 
 pour recopier dans les bons répertoires d'ansiblerie les certificats et stores précédemment créés.
 
+Mise en place des repositories VITAM (optionnel)
+-------------------------------------------------
+Si gestion par VITAM des repositories CentOS spécifiques à VITAM :
+
+Editer le fichier ``environments-rpm/group_vars/all/example_repo.yml`` (sert de modèle)
+
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_repo.yml
+   :language: yaml
+   :linenos:
+
+Ce fichier permet de définir une liste de repositories. Décommenter et adapter à votre cas.
+
+Pour mettre en place ces repositories sur les machines cibles, lancer la commande :
+
+``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
+
+ou
+
+``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
 
 Déploiement
 -------------
