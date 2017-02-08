@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -52,9 +53,14 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -69,6 +75,11 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 public class LogbookLifeCyclesImplWithMongoTest {
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     private static final String DATABASE_HOST = "localhost";
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
@@ -80,14 +91,14 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersBAD;
     // ObjectGroup
-
+    private static int tenantId = 0;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
 
-    final static GUID eip = GUIDFactory.newEventGUID(0);
-    final static GUID iop = GUIDFactory.newEventGUID(2);
-    final static GUID ioL = GUIDFactory.newEventGUID(2);
-    final static GUID eip3 = GUIDFactory.newEventGUID(3);
+    final static GUID eip = GUIDFactory.newEventGUID(tenantId);
+    final static GUID iop = GUIDFactory.newEventGUID(tenantId);
+    final static GUID ioL = GUIDFactory.newEventGUID(tenantId);
+    final static GUID eip3 = GUIDFactory.newEventGUID(tenantId);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -179,7 +190,9 @@ public class LogbookLifeCyclesImplWithMongoTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenCreateAndUpdateUnit() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.createUnit(
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
@@ -196,7 +209,17 @@ public class LogbookLifeCyclesImplWithMongoTest {
             logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
             logbookLifeCyclesUnitParametersStart);
 
+        // Commit the created lifeCycle
+        logbookLifeCyclesImpl.commitUnit(
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+
         try {
+            logbookLifeCyclesImpl.createUnit(
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+                logbookLifeCyclesUnitParametersStart);
+
             logbookLifeCyclesImpl.createUnit(
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
@@ -269,7 +292,9 @@ public class LogbookLifeCyclesImplWithMongoTest {
     }
 
     @Test(expected = LogbookNotFoundException.class)
+    @RunWithCustomExecutor
     public void given_Select_When_UnitNotExist_ThenThrow_NotFoundException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
@@ -287,14 +312,17 @@ public class LogbookLifeCyclesImplWithMongoTest {
      */
 
     @Test
+    @RunWithCustomExecutor
     public void givenCreateAndUpdateObjectGroup() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+
         logbookLifeCyclesImpl.createObjectGroup(
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
             logbookLifeCyclesObjectGroupParametersStart);
 
-        // update unit ok
+        // update objectGroup ok
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "ModifiedoutcomeDetailMessage");
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
@@ -303,14 +331,27 @@ public class LogbookLifeCyclesImplWithMongoTest {
             logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
             logbookLifeCyclesObjectGroupParametersStart);
 
+        // Commit the created lifeCycle
+        logbookLifeCyclesImpl.commitObjectGroup(
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+
+
         try {
+            // Try to create two objects with the same objectIdentifier
             logbookLifeCyclesImpl.createObjectGroup(
                 logbookLifeCyclesObjectGroupParametersStart
                     .getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
                 logbookLifeCyclesObjectGroupParametersStart);
 
-            fail("Should failed");
+            logbookLifeCyclesImpl.createObjectGroup(
+                logbookLifeCyclesObjectGroupParametersStart
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+                logbookLifeCyclesObjectGroupParametersStart);
+
+            fail("Should fail");
         } catch (final LogbookAlreadyExistsException e) {}
 
 
@@ -362,7 +403,9 @@ public class LogbookLifeCyclesImplWithMongoTest {
     }
 
     @Test(expected = LogbookNotFoundException.class)
+    @RunWithCustomExecutor
     public void given_Select_When_ObjectGroupNotExist_ThenThrow_NotFoundException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
@@ -376,22 +419,24 @@ public class LogbookLifeCyclesImplWithMongoTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testIterator()
         throws LogbookDatabaseException, InvalidParseOperationException, LogbookNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         String result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorUnitNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorObjectGroupNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
 
         result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         while (true) {
             try {
@@ -406,7 +451,7 @@ public class LogbookLifeCyclesImplWithMongoTest {
         } catch (final LogbookDatabaseException e) {}
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()));
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
         assertNotNull(result);
         while (true) {
             try {

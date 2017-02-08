@@ -120,7 +120,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (!client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
-                final String mapping = collection == MetadataCollections.C_UNIT ? Unit.MAPPING : ObjectGroup.MAPPING;
+                final String mapping =
+                    collection == MetadataCollections.C_UNIT ? Unit.MAPPING : ObjectGroup.MAPPING;
                 final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
                 LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response =
@@ -177,7 +178,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param mapIdJson
      * @return the listener on bulk insert
      */
-    final ListenableActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
+    final ListenableActionFuture<BulkResponse> addEntryIndexesByBulk(final MetadataCollections collection,
         final Map<String, String> mapIdJson) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         // either use client#prepare, or use Requests# to directly build index/delete requests
@@ -199,7 +200,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     final boolean addEntryIndexesBlocking(final MetadataCollections collection,
         final Map<String, String> mapIdJson) {
-        final BulkResponse bulkResponse = addEntryIndexes(collection, mapIdJson).actionGet();
+        final BulkResponse bulkResponse = addEntryIndexesByBulk(collection, mapIdJson).actionGet();
         if (bulkResponse.hasFailures()) {
             LOGGER.error("ES previous insert in error: " + bulkResponse.buildFailureMessage());
         }
@@ -269,7 +270,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         int nb = 0;
         if (indexes.size() > GlobalDatasDb.LIMIT_ES_NEW_INDEX) {
             nb = indexes.size();
-            addEntryIndexes(collection, indexes);
+            addEntryIndexesByBulk(collection, indexes);
             indexes.clear();
         }
         newdoc.clear();
@@ -655,5 +656,150 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (!response.isFound()) {
             throw new MetaDataNotFoundException("Item not found when trying to delete");
         }
+    }
+
+    /**
+     * create indexes during Object group insert
+     * 
+     * 
+     * @param cursor
+     * @throws MetaDataExecutionException
+     */
+    public void insertBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) throws MetaDataExecutionException {
+        if (!cursor.hasNext()) {
+            LOGGER.error("ES insert in error since no results to insert");
+            throw new MetaDataExecutionException("No result to insert");
+        }
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final ObjectGroup og = cursor.next();
+            final String id = og.getId();
+            og.remove(VitamDocument.ID);
+
+            final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            // TODO Empty variable (null) might be ignore here
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            final String toInsert = dbObject.toString().trim();
+            if (toInsert.isEmpty()) {
+                LOGGER.error("ES insert in error since result to insert is empty");
+                throw new MetaDataExecutionException("Result to insert is empty");
+            }
+            bulkRequest.add(
+                client.prepareIndex(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
+                    id).setSource(toInsert));
+        }
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            int duplicates = 0;
+            for (BulkItemResponse bulkItemResponse : bulkResponse) {
+                if (bulkItemResponse.getVersion() > 1) {
+                    duplicates++;
+                }
+            }
+            LOGGER.error("ES insert in error with possible duplicates {}: {}", duplicates,
+                bulkResponse.buildFailureMessage());
+            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
+    }
+
+    /**
+     * updateBulkOGEntriesIndexes
+     *
+     * Update a set of entries in the ElasticSearch index based in Cursor Result. <br>
+     *
+     * @param cursor :containing all OG to be indexed
+     * @throws MetaDataExecutionException if the bulk update failed
+     */
+    final boolean updateBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) throws MetaDataExecutionException {
+        if (!cursor.hasNext()) {
+            LOGGER.error("ES update in error since no results to update");
+            throw new MetaDataExecutionException("No result to update");
+        }
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final ObjectGroup og = cursor.next();
+            final String id = og.getId();
+            og.remove(VitamDocument.ID);
+
+            final String mongoJson = og.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            // TODO Empty variable (null) might be ignore here
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            final String toUpdate = dbObject.toString().trim();
+            if (toUpdate.isEmpty()) {
+                LOGGER.error("ES update in error since result to update is empty");
+                throw new MetaDataExecutionException("Result to update is empty");
+            }
+
+            bulkRequest.add(
+                client.prepareUpdate(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
+                    id).setDoc(toUpdate));
+        }
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
+            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
+        return true;
+    }
+
+    /**
+     * deleteBulkOGEntriesIndexes
+     * 
+     * Bulk to delete entry indexes
+     * 
+     * @param cursor
+     * @throws MetaDataExecutionException
+     */
+    public boolean deleteBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor) throws MetaDataExecutionException {
+        if (!cursor.hasNext()) {
+            LOGGER.error("ES delete in error since no results to delete");
+            throw new MetaDataExecutionException("No result to delete");
+        }
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final ObjectGroup og = cursor.next();
+            final String id = og.getId();
+            og.remove(VitamDocument.ID);
+            bulkRequest.add(
+                client.prepareDelete(MetadataCollections.C_OBJECTGROUP.getName().toLowerCase(), ObjectGroup.TYPEUNIQUE,
+                    id));
+        }
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
+        return true;
+
+    }
+
+    /**
+     * deleteBulkUnitEntriesIndexes
+     * 
+     * Bulk to delete entry indexes
+     * 
+     * @param cursor
+     * @throws MetaDataExecutionException
+     */
+    public void deleteBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor) throws MetaDataExecutionException {
+        if (!cursor.hasNext()) {
+            LOGGER.error("ES delete in error since no results to delete");
+            throw new MetaDataExecutionException("No result to delete");
+        }
+        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        while (cursor.hasNext()) {
+            final Unit unit = cursor.next();
+            final String id = unit.getId();
+            unit.remove(VitamDocument.ID);
+            bulkRequest.add(
+                client.prepareDelete(MetadataCollections.C_UNIT.getName().toLowerCase(), Unit.TYPEUNIQUE,
+                    id));
+        }
+        final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new thread
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
+            throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
+        }
+
     }
 }

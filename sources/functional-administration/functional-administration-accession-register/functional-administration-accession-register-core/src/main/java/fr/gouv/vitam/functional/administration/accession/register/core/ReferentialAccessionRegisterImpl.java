@@ -43,9 +43,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.RegisterValueDetail;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -75,9 +76,6 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public void createOrUpdateAccessionRegister(AccessionRegisterDetail registerDetail)
         throws ReferentialException {
 
-
-        // TODO P1 replace with real tenant
-        final int tenantId = 0;
         LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
             registerDetail.getOriginatingAgency());
         // store accession register detail
@@ -90,11 +88,11 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
 
         // store accession register summary
-        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, null);
         try {
             final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
-                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(tenantId).getId())
+                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId())
                 .setOriginatingAgency(registerDetail.getOriginatingAgency())
                 .setTotalObjects(initialValue)
                 .setTotalObjectGroups(initialValue)
@@ -177,7 +175,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<AccessionRegisterSummary> registers =
-            (MongoCursor<AccessionRegisterSummary>) mongoAccess.select(select,
+            (MongoCursor<AccessionRegisterSummary>) mongoAccess.findDocuments(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             final List<AccessionRegisterSummary> result = new ArrayList<>();
             if (registers == null || !registers.hasNext()) {
@@ -203,7 +201,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     public List<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<AccessionRegisterDetail> registers =
-            (MongoCursor<AccessionRegisterDetail>) mongoAccess.select(select,
+            (MongoCursor<AccessionRegisterDetail>) mongoAccess.findDocuments(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
 
             final List<AccessionRegisterDetail> result = new ArrayList<>();

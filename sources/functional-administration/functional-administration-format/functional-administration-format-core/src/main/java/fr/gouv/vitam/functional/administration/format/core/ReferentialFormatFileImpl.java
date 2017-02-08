@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -91,7 +92,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final GUID eip = GUIDFactory.newGUID();
+            final GUID eip = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
             final LogbookOperationParameters logbookParametersStart =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
@@ -105,7 +106,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
                 throw new ReferentialException(e);
             }
 
-            final GUID eip1 = GUIDFactory.newGUID();
+            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
             try {
                 final ArrayNode pronomList = PronomParser.getPronom(xmlPronom);
                 if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
@@ -195,7 +196,8 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
         final MongoCursor<FileFormat> formats =
-            (MongoCursor<FileFormat>) mongoAccess.select(select, FunctionalAdminCollections.FORMATS)) {
+            (MongoCursor<FileFormat>) mongoAccess.findDocuments(select, FunctionalAdminCollections.FORMATS)) {
+            
             final List<FileFormat> result = new ArrayList<>();
             if (formats == null || !formats.hasNext()) {
                 throw new FileFormatNotFoundException("Format not found");

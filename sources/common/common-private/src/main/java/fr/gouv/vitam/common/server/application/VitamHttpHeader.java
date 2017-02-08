@@ -42,7 +42,7 @@ public enum VitamHttpHeader {
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
     STRATEGY_ID(GlobalDataRest.X_STRATEGY_ID, ".+"),
     /**
-     * The X_STRATEGY_ID header, used in requests to use a particular strategy </br>
+     * The X_TENANT_ID header, used in requests to specify the used tenant</br>
      */
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
     TENANT_ID(GlobalDataRest.X_TENANT_ID, ".+"),
@@ -62,7 +62,21 @@ public enum VitamHttpHeader {
     /**
      * The X-Version header, used to get an object
      */
-    VERSION(GlobalDataRest.X_VERSION, "[0-9]+");
+    VERSION(GlobalDataRest.X_VERSION, "[0-9]+"),
+    /**
+     * The X-Content-Length used to have object size (for storage)
+     */
+    X_CONTENT_LENGTH(GlobalDataRest.X_CONTENT_LENGTH, "[0-9]+"),
+    
+    /**
+     * The X_DIGEST used to have digest value (for storage)
+     */
+    X_DIGEST(GlobalDataRest.X_DIGEST, ".+"),
+    
+    /**
+     * The X_DIGEST_ALGORITHM used to have digest algrithm (for storage)
+     */
+    X_DIGEST_ALGORITHM(GlobalDataRest.X_DIGEST_ALGORITHM, ".+");
 
     private String name;
     private String regExp;

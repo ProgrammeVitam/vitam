@@ -1,7 +1,7 @@
 ---
 # tasks file for soapui_get_tests
 - name: install vitam-soapui
-  yum:
+  package:
     name: vitam-soapui
     state: latest
 
@@ -30,10 +30,12 @@
     json_deploy: "{{ response.content | from_json }}"
   when: (ansible_virtualization_type != 'docker') and (response is defined)
 
+# TODO: Refactor this after the non regression tech design
+
 - name: create subdir for soapUI tests
   with_items: "{{json_deploy.params}}"
   file:
-    path:  "{{ vitam_folder_root }}/data/ihm-recette/{{ item.sipName|dirname() }}"
+    path:  "{{ vitam_folder_root }}/data/ihm-recette/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% endif %}"
     state: directory
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
@@ -43,8 +45,8 @@
 - name: loop data.json and download files to {{vitam_folder_root}}/data/ihm-recette
   with_items: "{{json_deploy.params}}"
   uri:
-    url: "{{ web_dir_soapui_tests }}/tests_soapui/{{ item.sipName }}"
-    dest: "{{ vitam_folder_root }}/data/ihm-recette/{{ item.sipName }}"
+    url: "{{ web_dir_soapui_tests }}/tests_soapui/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% endif %}"
+    dest: "{{ vitam_folder_root }}/data/ihm-recette/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% endif %}"
     method: GET
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"

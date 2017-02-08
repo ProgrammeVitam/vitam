@@ -64,6 +64,10 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -93,6 +97,11 @@ public class ExtractSedaActionHandlerTest {
     private MetaDataClientFactory metadataClientFactory;
     private HandlerIOImpl action;
     private List<IOParameter> out;
+    private static final Integer TENANT_ID = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     public ExtractSedaActionHandlerTest() throws FileNotFoundException {}
 
@@ -134,8 +143,10 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
         throws XMLStreamException, IOException, ProcessingException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
@@ -149,7 +160,9 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -167,9 +180,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipWithBdoWithoutGoWhenReadSipThenDetectBdoWithoutGo()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -185,10 +200,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenReadSuccess()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -204,10 +220,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipFctTestWithBdoWithGoWithArchiveUnitReferenceBDOWhenReadSipThenThrowException()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -223,10 +240,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipWithBdoWithGoWithArchiveUnitNotReferenceGoWhenReadSipThenReadSuccess()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -242,10 +260,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipWithDoubleBMThenFatal()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -261,10 +280,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipTransformToUsage_1ThenSuccess()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -280,10 +300,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenSipWithBdoWithGoWithArchiveUnitReferenceGoWhenReadSipThenThrowException()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -299,9 +320,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenManifestWithMngMdAndAuWithMngtWhenExtractSedaThenReadSuccess()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -318,9 +341,11 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenManifestWithMngMdAndAuTreeWhenExtractSedaThenReadSuccess()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -341,8 +366,10 @@ public class ExtractSedaActionHandlerTest {
 
     // TODO : US 1686 test for add link between 2 existing units
     @Test
+    @RunWithCustomExecutor
     public void givenManifestWithUpdateLinkExtractSedaThenReadSuccess()
         throws VitamException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -365,8 +392,10 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadSuccess()
         throws VitamException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
@@ -386,8 +415,10 @@ public class ExtractSedaActionHandlerTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadKO()
         throws VitamException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");

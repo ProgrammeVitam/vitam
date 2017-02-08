@@ -38,6 +38,7 @@ public enum StatusCode {
      * UNKNOWN : indicates that the workflow or the action handler or the process is in unknown status!
      */
     UNKNOWN,
+
     /**
      * STARTED : indicates that the workflow or the action handler or the process has been started
      */

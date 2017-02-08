@@ -217,6 +217,12 @@ public class SedaUtils {
         final InputStream input;
         try {
             input = checkExistenceManifest();
+            if (checkMultiManifest()){
+                return CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST;
+            }
+            if (!checkFolderContentNumber()){
+                return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
+            }
             new ValidationXsdUtils().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
@@ -255,9 +261,20 @@ public class SedaUtils {
         /**
          * File not found
          */
-        NO_FILE;
+        NO_FILE, 
+        /**
+         * more than one manifest in SIP
+         */
+        MORE_THAN_ONE_MANIFEST,
+        /**
+         * More than one folder dans SIP
+         */
+        MORE_THAN_ONE_FOLDER_CONTENT;
     }
 
+    /**
+    * check if there is manifest.xml file in the SIP
+    */    
     private InputStream checkExistenceManifest()
         throws IOException, ProcessingException {
         InputStream manifest = null;
@@ -269,6 +286,51 @@ public class SedaUtils {
             throw new ProcessingException("Manifest not found", e);
         }
         return manifest;
+    }
+    
+    /**
+    * check if there are many folder content in the SIP
+    */
+    private boolean checkFolderContentNumber() throws ProcessingException {
+        List<URI> list = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
+        String contentName = null;
+        for (int i=0; i<list.size(); i++){
+            String s = list.get(i).toString();
+            if (s.contains("/")) {
+                String directory = s.split("/")[0];
+                if (directory.equalsIgnoreCase("content")){
+                    if (contentName == null){
+                        contentName = directory;
+                    } else {
+                        if (!contentName.equals(directory)) {
+                            return false;
+                        }
+                    }
+                } else {
+                    return false;
+                }
+                
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+    * check if there are many file manifest.xml another in the SIP root
+    */    
+    private boolean checkMultiManifest() throws ProcessingException {
+        List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
+        int countManifest = 0;
+        for (int i=0; i<listURI.size(); i++){
+            if (!listURI.get(i).toString().contains("/")) {
+                countManifest ++;
+                if (countManifest>1) {
+                        return true;
+                    }
+            }
+        }
+        return false;
     }
 
     /**

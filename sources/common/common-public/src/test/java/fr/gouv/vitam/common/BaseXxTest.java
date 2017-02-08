@@ -52,13 +52,13 @@ public class BaseXxTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testBase64() throws IOException {
-        BaseXx.getBase64(null);
+        BaseXx.getBase64UrlWithoutPadding(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testBase64Padding() throws IOException {
-        BaseXx.getBase64Padding(null);
+    public void testBase64UrlPadding() throws IOException {
+        BaseXx.getBase64UrlWithPadding(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
 
@@ -77,30 +77,39 @@ public class BaseXxTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testFromBase64() throws IOException {
-        BaseXx.getFromBase64(null);
+        BaseXx.getFromBase64UrlWithoutPadding(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testFromBase64Padding() throws IOException {
-        BaseXx.getFromBase64Padding(null);
+        BaseXx.getFromBase64UrlPadding(null);
         fail(ResourcesPublicUtilTest.EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
     }
 
     @Test
-    public void testBase64PaddingOK() throws IOException {
-        final String encoded = BaseXx.getBase64Padding("VitamTest64P".getBytes());
+    public void testBase64UrlPaddingOK() throws IOException {
+        final String encoded = BaseXx.getBase64UrlWithPadding("VitamTest64P".getBytes());
         assertNotNull(encoded);
-        final byte[] bytes = BaseXx.getFromBase64Padding(encoded);
+        final byte[] bytes = BaseXx.getFromBase64UrlPadding(encoded);
         assertNotNull(bytes);
         assertTrue(Arrays.equals(bytes, "VitamTest64P".getBytes()));
     }
 
     @Test
-    public void testBase64OK() throws IOException {
-        final String encoded = BaseXx.getBase64("VitamTest64".getBytes());
+    public void testBase64PaddingOK() throws IOException {
+        final String encoded = BaseXx.getBase64("VitamTest64P".getBytes());
         assertNotNull(encoded);
         final byte[] bytes = BaseXx.getFromBase64(encoded);
+        assertNotNull(bytes);
+        assertTrue(Arrays.equals(bytes, "VitamTest64P".getBytes()));
+    }
+
+    @Test
+    public void testBase64UrlWithoutPaddingOK() throws IOException {
+        final String encoded = BaseXx.getBase64UrlWithoutPadding("VitamTest64".getBytes());
+        assertNotNull(encoded);
+        final byte[] bytes = BaseXx.getFromBase64UrlWithoutPadding(encoded);
         assertNotNull(bytes);
         assertTrue(Arrays.equals(bytes, "VitamTest64".getBytes()));
     }

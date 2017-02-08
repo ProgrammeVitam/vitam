@@ -27,10 +27,29 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.BaseXx;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -43,14 +62,20 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.stream.MultipleInputStreamHandler;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -78,21 +103,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeMap;
 
 /**
  * StorageDistribution service Implementation process continue if needed)
@@ -108,12 +118,22 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
+    private static final String SIZE_KEY = "size";
+    private static final String STREAM_KEY = "stream";
+
+    /**
+     * Used to wait for all task submission (executorService)
+     */
+    private static final long threadSleep = 10;
     private final String urlWorkspace;
+    private final Integer millisecondsPerKB;
+
     // TODO P2 see API
     // TODO P2 : later, the digest type may be retrieve via REST parameters. Fot the moment (as of US 72 dev) there is
     // no
     // specification about that
     private final DigestType digestType;
+    private Digest digest;
     // FOR JUNIT TEST ONLY (TODO P1: review WorkspaceClientFactory to offer a mocked WorkspaceClient)
     private final WorkspaceClient mockedWorkspaceClient;
 
@@ -126,6 +146,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter("Storage service configuration is mandatory", configuration);
         urlWorkspace = configuration.getUrlWorkspace();
         WorkspaceClientFactory.changeMode(urlWorkspace);
+        millisecondsPerKB = configuration.getTimeoutMsPerKB();
         mockedWorkspaceClient = null;
         // TODO P2 : a real design discussion is needed : should we force it ? Should we negociate it with the offer ?
         // TODO P2 Might be negotiated but limited to available digestType from Vitam (MD5, SHA-1, SHA-256, SHA-512,
@@ -133,67 +154,184 @@ public class StorageDistributionImpl implements StorageDistribution {
         // Just to note, I prefer SHA-512 (more CPU but more accurate and already the default for Vitam, notably to
         // allow check of duplicated files)
         digestType = VitamConfiguration.getDefaultDigestType();
+        digest = new Digest(digestType);
     }
 
     /**
      * For JUnit ONLY
      *
      * @param wkClient a custom instance of workspace client
-     * @param digest a custom digest
+     * @param digestType a custom digest
      */
-    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digest) {
+    StorageDistributionImpl(WorkspaceClient wkClient, DigestType digestType) {
         urlWorkspace = null;
+        millisecondsPerKB = 100;
         mockedWorkspaceClient = wkClient;
-        digestType = digest;
+        this.digestType = digestType;
+        digest = new Digest(digestType);
     }
 
     // TODO P1 : review design : for the moment we handle createObjectDescription AND jsonData in the same params but
     // they should not be both resent at the same time. Maybe encapsulate or create 2 methods
     // TODO P1 : refactor me !
     @Override
-    public StoredInfoResult storeData(String tenantId, String strategyId, String objectId,
+    public StoredInfoResult storeData(String strategyId, String objectId,
         CreateObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageException, StorageObjectAlreadyExistsException {
         // Check input params
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
         if (hotStrategy != null) {
+            // TODO: check this on starting application
+            isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
                 throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            final Map<String, Status> offerResults = new HashMap<>();
 
-            StorageLogbookParameters parameters = null;
-            // For each offer, store object on it
-            for (final OfferReference offerReference : offerReferences) {
-                // TODO P1 : sequential process for now (we have only 1 offer anyway) but storing object should be
-                // processed in parallel for each driver, in order to not be blocked on 1 driver storage process
-                // TODO P1 special notice: when parallel, try to get only once the inputstream and then multiplexing it
-                // to
-                // multiple intputstreams as needed
-                // 1 IS => 3 IS (if 3 offers) where this special class handles one IS as input to 3 IS as output
-                final Map<String, Object> result =
-                    tryAndRetryStoreObjectInOffer(createObjectDescription, tenantId, objectId, category,
-                        offerReference, parameters, requester);
-                parameters = (StorageLogbookParameters) result.get("Parameters");
-                offerResults.put(offerReference.getId(), (Status) result.get("Status"));
-                // TODO IT_13 (celeg): think rollback !
-            }
+            TryAndRetryData datas = new TryAndRetryData();
+            datas.populateFromOfferReferences(offerReferences);
 
-            try {
-                final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
-                storageLogbook.add(parameters);
-            } catch (final StorageException exc) {
-                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
-                    exc);
-            }
+            StorageLogbookParameters parameters =
+                tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, 1, null);
+
+            logStorage(parameters);
             // TODO P1 Handle Status result if different for offers
-            return buildStoreDataResponse(objectId, category, offerResults);
+            return buildStoreDataResponse(objectId, category, datas.getGlobalOfferResult());
         }
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
+    }
+
+    private StorageLogbookParameters tryAndRetry(String objectId, CreateObjectDescription createObjectDescription,
+        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt, StorageLogbookParameters parameters)
+        throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
+
+        Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
+
+        MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace((InputStream) streamAndInfos.get
+                (STREAM_KEY), datas.getKoList().size());
+
+        VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
+
+        // init thread and make future map
+        // Map here to keep offerId linked to Future
+        Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
+        int rank = 0;
+        for (final String offerId : datas.getKoList()) {
+            OfferReference offerReference = new OfferReference();
+            offerReference.setId(offerId);
+            final Driver driver = retrieveDriverInternal(offerReference.getId());
+            StoragePutRequest request = new StoragePutRequest(tenantId, category.getFolder(), objectId,
+                digestType.name(), streams.getInputStream(rank));
+            futureMap.put(offerReference.getId(), executor.submit(new TransferThread(driver, offerReference,
+                request)));
+            rank++;
+        }
+
+        // wait all tasks submission
+        try {
+            Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
+        } catch (InterruptedException exc) {
+            LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
+        }
+
+        executor.shutdown();
+
+        // wait for all threads execution
+        // TODO: manage interruption and error execution (US #2008 && 2009)
+        try {
+            executor.awaitTermination(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
+                TimeUnit.MILLISECONDS);
+        } catch (InterruptedException exc) {
+            LOGGER.warn("ExecutorService interrupted !", exc);
+        }
+
+        executor.shutdownNow();
+
+        for (String offerId : futureMap.keySet()) {
+            try {
+                ThreadResponseData res = futureMap.get(offerId).get();
+                parameters = setLogbookStorageParameters(parameters, offerId, res, requester, attempt);
+                datas.koListToOkList(offerId);
+            } catch (InterruptedException exc) {
+                // Interrupted = shutdownNow
+                LOGGER.error("Interrupted on offer ID " + offerId, exc);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+            } catch (ExecutionException exc) {
+                // Execution = thread error (exception)
+                LOGGER.error("Error on offer ID " + offerId, exc);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+                logStorage(parameters);
+                // TODO: review this exception to manage errors correctly
+                // Take into account Exception class
+                // For example, for particular exception do not retry (because it's useless)
+                // US : #2009
+            }
+        }
+        if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
+            attempt++;
+            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
+        }
+
+        // TODO : error management (US #2008)
+        if (!datas.getKoList().isEmpty()) {
+            deleteObjects(datas.getOkList(), tenantId, category, objectId);
+        }
+
+        return parameters;
+    }
+
+    private long getTransferTimeout(long sizeToTransfer) {
+        return (sizeToTransfer / 1024) * millisecondsPerKB;
+    }
+
+    private void isStrategyValid(HotStrategy hotStrategy) throws StorageTechnicalException {
+        if (!hotStrategy.isCopyValid()) {
+            throw new StorageTechnicalException("Invalid number of copy");
+        }
+    }
+
+    private Map<String, Object> getInputStreamFromWorkspace(CreateObjectDescription createObjectDescription)
+        throws StorageTechnicalException, StorageNotFoundException {
+        try (WorkspaceClient workspaceClient =
+            mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient() : mockedWorkspaceClient) {
+            return retrieveDataFromWorkspace(createObjectDescription
+                .getWorkspaceContainerGUID(),
+                createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
+        }
+
+    }
+
+    private MultipleInputStreamHandler getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy)
+        throws StorageTechnicalException, StorageNotFoundException {
+        DigestInputStream digestOriginalStream = (DigestInputStream) digest.getDigestInputStream(stream);
+        return new MultipleInputStreamHandler(digestOriginalStream, nbCopy);
+    }
+
+
+    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId, ThreadResponseData res,
+        String requester, int attempt) {
+        if (parameters == null) {
+            parameters = getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
+                null, offerId, res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, requester, attempt);
+        } else {
+            updateStorageLogbookParameters(parameters, offerId, res != null ? res.getStatus() : Status
+                .INTERNAL_SERVER_ERROR, attempt);
+        }
+        return parameters;
+    }
+
+    private void logStorage(StorageLogbookParameters parameters) throws StorageTechnicalException {
+        try {
+            final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
+            storageLogbook.add(parameters);
+        } catch (final StorageException exc) {
+            throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
+                exc);
+        }
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category,
@@ -248,133 +386,45 @@ public class StorageDistributionImpl implements StorageDistribution {
         return result;
     }
 
-    // TODO P1 : globalize try and retry mechanism to avoid implementing it manually on all methods (C++ would have been
-    // great here) by creating an interface of Retryable actions and different implementations for each retryable action
-    // TODO P1 : refactor me (the map return seems bad and the offer list is a quick fix, to review too) !
-    private Map<String, Object> tryAndRetryStoreObjectInOffer(CreateObjectDescription createObjectDescription,
-        String tenantId, String objectId, DataCategory category, OfferReference offerReference,
-        StorageLogbookParameters logbookParameters, String requester)
-        throws StorageException, StorageObjectAlreadyExistsException {
-        // TODO P1 : optimize workspace InputStream to not request workspace for each offer but only once.
-        final Driver driver = retrieveDriverInternal(offerReference.getId());
-        // Retrieve storage offer description and parameters
-        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-        final Properties parameters = new Properties();
-        parameters.putAll(offer.getParameters());
-        PutObjectRequest putObjectRequest = null;
-        PutObjectResult putObjectResult = null;
-        Status objectStored = Status.INTERNAL_SERVER_ERROR;
-        boolean existInOffer = false;
-        Digest messageDigest = null;
-        int i = 0;
-        while (i < NB_RETRY && objectStored == Status.INTERNAL_SERVER_ERROR) {
-            i++;
-            LOGGER.info("[Attempt " + i + "] Trying to store object '" + objectId + "' in offer " + offer.getId());
-            try {
-                messageDigest = new Digest(digestType);
-            } catch (final IllegalArgumentException exc) {
-                throw new StorageTechnicalException(exc);
-            }
-            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters);
-                WorkspaceClient workspaceClient =
-                    mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient() : // NOSONAR is
-                                                                                                       // closed
-                        mockedWorkspaceClient) {
-                final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, category.getFolder());
-                if (connection.objectExistsInOffer(request)) {
-                    // TODO P2: when GUID will be correct, we can use the WORM property of the GUID
-                    switch (category) {
-                        case LOGBOOK:
-                        case OBJECT:
-                        case MANIFEST:
-                        case REPORT:
-                            throw new StorageObjectAlreadyExistsException(VitamCodeHelper
-                                .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, objectId));
-                        case UNIT:
-                        case OBJECT_GROUP:
-                            existInOffer = true;
-                            break;
-                        default:
-                            throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-                    }
-                }
-
-                putObjectRequest =
-                    buildPutObjectRequest(createObjectDescription, tenantId, objectId, category, messageDigest,
-                        workspaceClient);
-                // Perform actual object upload
-                putObjectResult = connection.putObject(putObjectRequest);
-
-                // Check digest
-                if (BaseXx.getBase16(messageDigest.digest()).equals(putObjectResult.getDigestHashBase16())) {
-                    if (existInOffer) {
-                        objectStored = Status.OK;
-                    } else {
-                        objectStored = Status.CREATED;
-                    }
-                } else {
-                    throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content digest invalid in " +
-                        "offer id : '" + offer.getId() + "' for object " + objectId);
-                }
-            } catch (StorageDriverException | StorageNotFoundException | StorageTechnicalException exc) {
-                LOGGER.error(exc);
-                if (i >= NB_RETRY) {
-                    objectStored = Status.INTERNAL_SERVER_ERROR;
-                    break;
-                }
-            } finally {
-                if (putObjectRequest != null && putObjectRequest.getDataStream() != null) {
-                    IOUtils.closeQuietly(putObjectRequest.getDataStream());
-                    LOGGER.debug("Manually closing the data stream for object id '" + objectId + "'");
-                }
-            }
-        }
-
-        // TODO P1 : refactor for more than one offer
-        if (logbookParameters == null) {
-            logbookParameters = getParameters(putObjectRequest, putObjectResult, messageDigest, offer, objectStored,
-                requester);
-        } else {
-            updateStorageLogbookParameters(logbookParameters, offer, objectStored);
-        }
-        final Map<String, Object> ret = new HashMap<>();
-        ret.put("Parameters", logbookParameters);
-        ret.put("Status", objectStored);
-        return ret;
-    }
-
     /**
      * Storage logbook entry for ONE offer
      *
-     * @param putObjectRequest the request
+     * @param objectGuid the object Guid
      * @param putObjectResult the response
      * @param messageDigest the computed digest
-     * @param offer the offer
+     * @param offerId the offerId
      * @param objectStored the operation status
      * @return storage logbook parameters
      */
-    private StorageLogbookParameters getParameters(PutObjectRequest putObjectRequest, PutObjectResult putObjectResult,
-        Digest messageDigest, StorageOffer offer, Status objectStored, String requester) {
-        final String objectIdentifier = putObjectRequest != null ? putObjectRequest.getGuid() : "objectRequest NA";
+    private StorageLogbookParameters getParameters(String objectGuid, StoragePutResult putObjectResult,
+        Digest messageDigest, String offerId, Status objectStored, String requester, int attempt) {
+        final String objectIdentifier = objectGuid != null ? objectGuid : "objectRequest NA";
         final String messageDig = messageDigest != null ? messageDigest.digestHex() : "messageDigest NA";
         final String size = putObjectResult != null ? String.valueOf(putObjectResult.getObjectSize()) : "Size NA";
-        final StorageLogbookOutcome outcome =
-            objectStored == Status.INTERNAL_SERVER_ERROR ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
+        boolean error = objectStored == Status.INTERNAL_SERVER_ERROR;
+        final StorageLogbookOutcome outcome = error ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
 
         return getStorageLogbookParameters(
-            objectIdentifier, null, messageDig, digestType.getName(), size, offer.getId(), requester, null,
-            null, outcome);
+            objectIdentifier, null, messageDig, digestType.getName(), size, getAttemptLog(offerId, attempt, error),
+            requester, null, null, outcome);
     }
 
-    private void updateStorageLogbookParameters(StorageLogbookParameters parameters, StorageOffer offer,
-        Status status) {
-        String offers = parameters.getMapParameters().get(StorageLogbookParameterName.agentIdentifiers);
-        offers += ", " + offer.getId();
-        parameters.getMapParameters().put(StorageLogbookParameterName.agentIdentifiers, offers);
+    private String getAttemptLog(String offerId, int attempt, boolean error) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(offerId).append(" attempt ").append(attempt).append(" : ").append(error ? "KO" : "OK");
+        return sb.toString();
+    }
 
+    private void updateStorageLogbookParameters(StorageLogbookParameters parameters, String offerId,
+        Status status, int attempt) {
+        String offers = parameters.getMapParameters().get(StorageLogbookParameterName.agentIdentifiers);
         if (Status.INTERNAL_SERVER_ERROR.equals(status)) {
             parameters.getMapParameters().put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.KO.name());
+            offers += ", " + offerId + " attempt " + attempt + " : KO";
+        } else {
+            offers += ", " + offerId + " attempt " + attempt +  " : OK";
         }
+        parameters.getMapParameters().put(StorageLogbookParameterName.agentIdentifiers, offers);
     }
 
     private Driver retrieveDriverInternal(String offerId) throws StorageTechnicalException {
@@ -385,7 +435,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private void checkStoreDataParams(CreateObjectDescription createObjectDescription, String tenantId,
+    private void checkStoreDataParams(CreateObjectDescription createObjectDescription, Integer tenantId,
         String strategyId, String dataId, DataCategory category) {
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
@@ -399,20 +449,15 @@ public class StorageDistributionImpl implements StorageDistribution {
             .getWorkspaceObjectURI());
     }
 
-    private PutObjectRequest buildPutObjectRequest(CreateObjectDescription createObjectDescription, String tenantId,
-        String objectId, DataCategory category, Digest messageDigest, WorkspaceClient workspaceClient)
-        throws StorageTechnicalException, StorageNotFoundException {
-        final InputStream dataStream = retrieveDataFromWorkspace(createObjectDescription.getWorkspaceContainerGUID(),
-            createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
-        return new PutObjectRequest(tenantId, digestType.getName(), objectId,
-            messageDigest.getDigestInputStream(dataStream), category.name());
-    }
-
-    private InputStream retrieveDataFromWorkspace(String containerGUID, String objectURI,
+    private Map<String, Object> retrieveDataFromWorkspace(String containerGUID, String objectURI,
         WorkspaceClient workspaceClient)
         throws StorageNotFoundException, StorageTechnicalException {
         try {
-            return (InputStream) workspaceClient.getObject(containerGUID, objectURI).getEntity();
+            Response response = workspaceClient.getObject(containerGUID, objectURI);
+            Map<String, Object> result = new HashMap<>();
+            result.put(SIZE_KEY, response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+            result.put(STREAM_KEY, response.getEntity());
+            return result;
         } catch (final ContentAddressableStorageNotFoundException exc) {
             throw new StorageNotFoundException(exc);
         } catch (final ContentAddressableStorageServerException exc) {
@@ -421,14 +466,17 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerInformation(String tenantId, String strategyId)
+    public JsonNode getContainerInformation(String strategyId)
         throws StorageException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
         if (hotStrategy != null) {
+            // TODO: check this on starting application
+            isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
                 throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
@@ -443,8 +491,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private JsonNode getOfferInformation(OfferReference offerReference, String tenantId) throws
-        StorageException {
+    private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         final Properties parameters = new Properties();
@@ -461,7 +508,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public InputStream getStorageContainer(String tenantId, String strategyId)
+    public InputStream getStorageContainer(String strategyId)
         throws StorageNotFoundException, StorageTechnicalException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
@@ -502,25 +549,26 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode createContainer(String tenantId, String strategyId) throws StorageException {
+    public JsonNode createContainer(String strategyId) throws StorageException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteContainer(String tenantId, String strategyId) throws StorageTechnicalException,
+    public void deleteContainer(String strategyId) throws StorageTechnicalException,
         StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjects(String tenantId, String strategyId) throws StorageNotFoundException {
+    public JsonNode getContainerObjects(String strategyId) throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public Response getContainerByCategory(String tenantId, String strategyId, String objectId,
+    public Response getContainerByCategory(String strategyId, String objectId,
         DataCategory category, AsyncResponse asyncResponse) throws StorageException {
         // Check input params
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", objectId);
@@ -529,27 +577,29 @@ public class StorageDistributionImpl implements StorageDistribution {
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
         if (hotStrategy != null) {
+            // TODO: check this on starting application
+            isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
-            final GetObjectResult result =
+            final StorageGetResult result =
                 getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
             return result.getObject();
         }
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private GetObjectResult getGetObjectResult(String tenantId, String objectId, DataCategory type,
+    private StorageGetResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
         List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
-        GetObjectResult result;
+        StorageGetResult result;
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             final Properties parameters = new Properties();
             parameters.putAll(offer.getParameters());
             try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-                final GetObjectRequest request = new GetObjectRequest(tenantId, objectId, type.getFolder());
+                final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
                     final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());
@@ -566,66 +616,133 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerObjectInformations(String tenantId, String strategyId, String objectId)
+    public JsonNode getContainerObjectInformations(String strategyId, String objectId)
+        throws StorageNotFoundException {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    }
+
+    private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId)
+        throws StorageTechnicalException {
+        VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
+        for (String offerId : offerIdList) {
+            final Driver driver = retrieveDriverInternal(offerId);
+            // TODO: review if digest value is really good ?
+            StorageRemoveRequest request = new StorageRemoveRequest(tenantId, category.getFolder(), objectId,
+            digestType, digest.digestHex());
+            executor.submit(new DeleteThread(driver, request, offerId));
+        }
+
+        // wait all tasks submission
+        try {
+            Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
+        } catch (InterruptedException exc) {
+            LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
+        }
+
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException exc) {
+            LOGGER.warn("ExecutorService interrupted !", exc);
+        }
+
+        executor.shutdownNow();
+    }
+
+    @Override
+    public void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
+        throws StorageException {
+
+        // Check input params
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
+        ParametersChecker.checkParameter("Object id is mandatory", objectId);
+        ParametersChecker.checkParameter("Digest is mandatory", digest);
+        ParametersChecker.checkParameter("Digest Algorithm is mandatory", digestAlgorithm);
+
+        // Retrieve strategy data
+        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy != null) {
+            // TODO: check this on starting application
+            isStrategyValid(hotStrategy);
+            final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+            if (offerReferences.isEmpty()) {
+                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            }
+            // TODO : Improve this code, use same thread system as used for the storeData method see @TrasferThread
+            for (final OfferReference offerReference : offerReferences) {
+                final Driver driver = retrieveDriverInternal(offerReference.getId());
+                final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+                final Properties parameters = new Properties();
+                parameters.putAll(offer.getParameters());
+                try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                    StorageRemoveRequest request = new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(),
+                        objectId, digestType, digest);
+                    StorageRemoveResult result = connection.removeObject(request);
+                    if (!result.isObjectDeleted()) {
+                        throw new StorageNotFoundException(
+                            VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
+                    }
+                } catch (StorageDriverException | RuntimeException exc) {
+                    throw new StorageTechnicalException(exc);
+                }
+
+            }
+        }
+    }
+
+    @Override
+    public JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    }
+
+    @Override
+    public JsonNode getContainerLogbook(String strategyId, String logbookId)
+        throws StorageNotFoundException {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    }
+
+
+    @Override
+    public void deleteLogbook(String strategyId, String logbookId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteObject(String tenantId, String strategyId, String objectId)
+    public JsonNode getContainerUnits(String strategyId) throws StorageNotFoundException {
+        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    }
+
+    @Override
+    public JsonNode getContainerUnit(String strategyId, String unitId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerLogbooks(String tenantId, String strategyId) throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerLogbook(String tenantId, String strategyId, String logbookId)
-        throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-
-    @Override
-    public void deleteLogbook(String tenantId, String strategyId, String logbookId)
+    public void deleteUnit(String strategyId, String unitId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerUnits(String tenantId, String strategyId) throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerUnit(String tenantId, String strategyId, String unitId)
+    public JsonNode getContainerObjectGroups(String strategyId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteUnit(String tenantId, String strategyId, String unitId)
+    public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjectGroups(String tenantId, String strategyId)
-        throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public JsonNode getContainerObjectGroup(String tenantId, String strategyId, String objectGroupId)
-        throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
-    }
-
-    @Override
-    public void deleteObjectGroup(String tenantId, String strategyId, String objectGroupId)
+    public void deleteObjectGroup(String strategyId, String objectGroupId)
         throws StorageNotFoundException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }

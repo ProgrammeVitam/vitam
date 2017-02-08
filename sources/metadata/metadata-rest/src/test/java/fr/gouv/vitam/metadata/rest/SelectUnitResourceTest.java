@@ -42,6 +42,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -56,6 +57,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -64,6 +66,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
@@ -72,11 +77,15 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
  */
 public class SelectUnitResourceTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
     private static final String DATA2 =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+    private static final Integer TENANT_ID = 0;
 
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
@@ -260,6 +269,7 @@ public class SelectUnitResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void given_2units_insert_when_searchUnitsByID_thenReturn_Found() throws Exception {
         with()
             .contentType(ContentType.JSON)
@@ -275,6 +285,7 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .get("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
@@ -317,12 +328,13 @@ public class SelectUnitResourceTest {
         GlobalDatasParser.limitRequest = limitRequest;
     }
 
-
+    
     @Test
+    @RunWithCustomExecutor
     public void given_pathWithId_when_get_SelectByID_thenReturn_Found() throws InvalidParseOperationException {
-
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .get("/units/" + ID_UNIT)

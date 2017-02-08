@@ -31,6 +31,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Map;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -38,6 +39,10 @@ import org.mockito.Mockito;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -54,6 +59,11 @@ public class ProcessEngineImplTest {
     private ItemStatus response;
     private ProcessMonitoringImpl processMonitoring;
     private ProcessDistributor processDistributor;
+    private static final Integer TENANT_ID = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void init() throws WorkflowNotFoundException {
@@ -70,7 +80,9 @@ public class ProcessEngineImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void processEngineTest() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         response = processEngine.startWorkflow(workParams, "workflowJSONv1");
         assertNotNull(response);
         final String processId = workParams.getProcessId();
@@ -79,7 +91,9 @@ public class ProcessEngineImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void processEngineTestWithFinallyStep() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ItemStatus responses = new ItemStatus("stepName");
         responses.increment(StatusCode.KO);
         Mockito.when(processDistributor.distribute(Matchers.anyObject(), Matchers.anyObject(),
@@ -93,7 +107,9 @@ public class ProcessEngineImplTest {
     }
 
     @Test(expected = WorkflowNotFoundException.class)
+    @RunWithCustomExecutor
     public void givenWorkFlowIdasNullThenReturnNotFoundException() throws Exception {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         processEngine.startWorkflow(workParams, "notExist");
     }
 

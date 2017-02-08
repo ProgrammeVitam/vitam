@@ -1,2 +1,4 @@
 storagePath: {{vitam_folder_data}}
 jettyConfig: jetty-config.xml
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
+provider: filesystem

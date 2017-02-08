@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.13.0-SNAPSHOT</version>
+		<version>0.14.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>workspace</artifactId>
@@ -13,7 +13,6 @@
 
 	<modules>
 		<module>workspace-api</module>
-		<module>workspace-core</module>
 		<module>workspace-rest</module>
 		<module>workspace-client</module>
 		<module>workspace-common</module>

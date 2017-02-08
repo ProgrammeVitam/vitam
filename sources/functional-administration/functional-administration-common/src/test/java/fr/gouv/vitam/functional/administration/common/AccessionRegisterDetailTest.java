@@ -6,18 +6,31 @@ import java.io.InputStream;
 import java.util.Map;
 
 import org.bson.Document;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 
 public class AccessionRegisterDetailTest {
 
     private static final String TEST = "test";
+    private static final Integer TENANT_ID = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test
+    @RunWithCustomExecutor
     public void testConstructor() throws Exception {
-        final RegisterValueDetail initialValue = new RegisterValueDetail().setTotal(0).setDeleted(0).setRemained(0);
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, null);
         final String id = GUIDFactory.newGUID().getId();
         AccessionRegisterDetail register = new AccessionRegisterDetail()
             .setOriginatingAgency(id)

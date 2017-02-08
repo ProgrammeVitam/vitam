@@ -66,7 +66,7 @@ public class StorageClientMockTest {
         final StorageClient client =
             StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final JsonNode result = client.getStorageInformation("idTenant", "idStrategy");
+        final JsonNode result = client.getStorageInformation("idStrategy");
         assertEquals(result, expectedResult);
     }
 
@@ -82,7 +82,7 @@ public class StorageClientMockTest {
         assertNotNull(client);
 
         final StoredInfoResult result =
-            client.storeFileFromWorkspace("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid", description);
+            client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "guid", description);
         assertEquals(result.getId(), expectedResult.getId());
     }
 
@@ -90,16 +90,16 @@ public class StorageClientMockTest {
     public void checkExists() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertTrue(client.exists("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid"));
-        assertTrue(client.existsContainer("idTenant", "idStrategy"));
+        assertTrue(client.exists("idStrategy", StorageCollectionType.OBJECTS, "guid"));
+        assertTrue(client.existsContainer("idStrategy"));
     }
 
     @Test
     public void checkDelete() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertTrue(client.delete("idTenant", "idStrategy", StorageCollectionType.OBJECTS, "guid"));
-        assertTrue(client.deleteContainer("idTenant", "idStrategy"));
+        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTS, "guid", null, null));
+        assertTrue(client.deleteContainer("idStrategy"));
     }
 
     @Test
@@ -107,7 +107,7 @@ public class StorageClientMockTest {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
         final InputStream stream =
-            client.getContainerAsync("tenantId", "strategyId", "guid", StorageCollectionType.OBJECTS)
+            client.getContainerAsync("strategyId", "guid", StorageCollectionType.OBJECTS)
                 .readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);

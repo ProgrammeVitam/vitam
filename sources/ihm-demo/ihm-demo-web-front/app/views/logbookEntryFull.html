@@ -1,0 +1,43 @@
+<div id="global" class="container-fluid">
+    <ol class="breadcrumb">
+        <li>Administration</li>
+        <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
+        <li><a ng-href="#!/admin/detailOperation/{{detailId}}">Détail d'une opération</a></li>
+    </ol>
+
+    <div class="panel panel-default col-md-12">
+
+        <a class="panel-header" data-target="#boxLogbookEntries" data-toggle="collapse">
+            <h2>Détail de l'opération - {{detailId}}</h2>
+        </a>
+
+        <div id="boxLogbookEntries" class="panel-body panel-collapse collapse in">
+            <table class="table" id="detail" align="center">
+                <thead  style="text-align: center">
+                <tr>
+                    <th>Etape</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Message</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>{{detail.evType | translate | replaceDoubleQuote}}</td>
+                    <td>{{detail.evDateTime | vitamFormatDate}}</td>
+                    <td>{{detail.outcome}}</td>
+                    <td>{{detail.outMessg}}</td>
+                </tr>
+                </tbody>
+                <tbody ng-repeat="event in detail.events">
+                <tr>
+                    <td>{{event.evType | translate | replaceDoubleQuote}}</td>
+                    <td>{{event.evDateTime | vitamFormatDate}}</td>
+                    <td>{{event.outcome}}</td>
+                    <td>{{event.outMessg}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

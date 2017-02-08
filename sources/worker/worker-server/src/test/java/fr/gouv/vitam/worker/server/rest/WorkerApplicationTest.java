@@ -29,16 +29,19 @@ package fr.gouv.vitam.worker.server.rest;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.processing.common.exception.PluginException;
 
 
 /**
@@ -83,7 +86,8 @@ public class WorkerApplicationTest {
     }
 
     @Test
-    public final void testFictiveLaunch() {
+    public final void testFictiveLaunch()
+        throws FileNotFoundException, PluginException, InvalidParseOperationException {
         try {
             new WorkerApplication(worker.getAbsolutePath());
         } catch (final IllegalStateException e) {

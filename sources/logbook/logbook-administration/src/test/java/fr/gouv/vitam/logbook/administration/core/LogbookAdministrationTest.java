@@ -51,6 +51,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
@@ -70,6 +74,12 @@ public class LogbookAdministrationTest {
     private static fr.gouv.vitam.common.junit.JunitHelper junitHelper;
     private static int port;
 
+    private static final Integer tenantId = 0;
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     @BeforeClass
     public static void init() throws IOException {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -93,8 +103,9 @@ public class LogbookAdministrationTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
+    @RunWithCustomExecutor
     public void should_generate_secure_file_without_element() throws Exception {
-
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Given
         byte[] hash = {1, 2, 3, 4};
         File file = folder.newFolder();
@@ -133,8 +144,9 @@ public class LogbookAdministrationTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_generate_secure_file_with_one_element() throws Exception {
-
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Given
         byte[] hash = {1, 2, 3, 4};
         File file = folder.newFolder();
@@ -178,7 +190,7 @@ public class LogbookAdministrationTest {
 
         // Then
         assertThat(archive).exists();
-        validateFile(archive, 2, BaseXx.getBase64Padding(lastTimestampToken.getBytes()));
+        validateFile(archive, 2, BaseXx.getBase64(lastTimestampToken.getBytes()));
     }
 
     private String extractLastTimestampToken(LogbookOperationsImpl logbookOperations, Select select)

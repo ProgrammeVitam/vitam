@@ -49,6 +49,7 @@ public class ItemStatus {
     private static final String MANDATORY_PARAMETER = "Mandatory parameter";
     @JsonProperty("itemsStatus")
     private LinkedHashMap<String, ItemStatus> itemsStatus = new LinkedHashMap<>();
+    private LinkedHashMap<String, ItemStatus> subTaskStatus = new LinkedHashMap<>();
 
     @JsonProperty("itemId")
     protected String itemId;
@@ -62,7 +63,18 @@ public class ItemStatus {
     protected Map<String, Object> data;
 
 
-    protected ItemStatus() {}
+    /**
+     * Empty Constructor 
+     */
+    public ItemStatus() {
+        statusMeter = new ArrayList<>();
+        for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
+            statusMeter.add(0);
+        }
+
+        globalStatus = StatusCode.UNKNOWN;
+        data = new HashMap<>();
+    }
 
     /**
      * @param message
@@ -90,13 +102,7 @@ public class ItemStatus {
      * @param itemId
      */
     public ItemStatus(String itemId) {
-        statusMeter = new ArrayList<>();
-        for (int i = StatusCode.UNKNOWN.getStatusLevel(); i <= StatusCode.FATAL.getStatusLevel(); i++) {
-            statusMeter.add(0);
-        }
-
-        globalStatus = StatusCode.UNKNOWN;
-        data = new HashMap<>();
+        this();
         this.itemId = itemId;
     }
 
@@ -326,6 +332,24 @@ public class ItemStatus {
     public boolean shallStop(boolean blocking) {
         return getGlobalStatus().isGreaterOrEqualToFatal() ||
             blocking && getGlobalStatus().isGreaterOrEqualToKo();
+    }
+
+    /**
+     * @return the subTaskStatus
+     */
+    public LinkedHashMap<String, ItemStatus> getSubTaskStatus() {
+        return subTaskStatus;
+    }
+
+    /**
+     * @param subTaskStatus the subTaskStatus to set
+     *
+     * @return this
+     */
+    public ItemStatus setSubTaskStatus(String taskId, ItemStatus taskStatus) {
+        ParametersChecker.checkParameterDefault("taskId", taskId);
+        this.subTaskStatus.put(taskId, taskStatus);
+        return this;
     }
 
 }

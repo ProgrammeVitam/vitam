@@ -11,6 +11,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -22,6 +23,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -30,6 +32,9 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -52,6 +57,8 @@ public class AdminManagementExternalResourceImplTest {
     private static final String DOCUMENT_ID = "/1";
 
     private static final String WRONG_URI = "/wrong-uri";
+
+    private static final String TENANT_ID = "0";
 
 
     private InputStream stream;
@@ -94,16 +101,19 @@ public class AdminManagementExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(WRONG_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -119,6 +129,7 @@ public class AdminManagementExternalResourceImplTest {
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -128,15 +139,18 @@ public class AdminManagementExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(WRONG_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -153,6 +167,7 @@ public class AdminManagementExternalResourceImplTest {
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -160,6 +175,7 @@ public class AdminManagementExternalResourceImplTest {
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.CONFLICT.getStatusCode());
 
@@ -174,36 +190,42 @@ public class AdminManagementExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(WRONG_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -224,12 +246,14 @@ public class AdminManagementExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -240,12 +264,14 @@ public class AdminManagementExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 

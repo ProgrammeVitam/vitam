@@ -47,6 +47,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -58,12 +61,13 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -114,8 +118,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XSD_VERSION = " seda-2.0-main.xsd";
 
     private HandlerIO handlerIO;
-    private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
+    private static final String EVENT_ID_PROCESS = "evIdProc";
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
@@ -172,7 +176,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
             description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.storeFileFromWorkspace(
-                    DEFAULT_TENANT,
                     DEFAULT_STRATEGY,
                     StorageCollectionType.REPORTS,
                     params.getContainerName() + XML, description);
@@ -181,7 +184,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     description.setWorkspaceObjectURI(
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
                     storageClient.storeFileFromWorkspace(
-                        DEFAULT_TENANT,
                         DEFAULT_STRATEGY,
                         StorageCollectionType.MANIFESTS,
                         params.getContainerName() + XML, description);
@@ -539,7 +541,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final JsonNode node = client.selectOperationbyId(containerName);
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, containerName));
+            final JsonNode node = client.selectOperationById(containerName, select.getFinalSelect());
             // FIXME P1 hack since Jackson cannot parse it correctly
             // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
@@ -552,6 +556,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
         } catch (final LogbookClientException e) {
             LOGGER.error("Error while loading logbook operation", e);
             throw new ProcessingException(e);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("Error while creating DSL query", e);
+            throw new ProcessingException(e);
         }
 
         final List<Document> logbookOperationEvents =
@@ -563,7 +570,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
         xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
 
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            try (VitamRequestIterator<JsonNode> iterator = client.unitLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator =
+                client.unitLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
                 final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
@@ -585,8 +593,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
                 while (iterator.hasNext()) {
                     JsonNode next = iterator.next();
-                    final LogbookLifeCycleUnit logbookLifeCycleUnit =
-                        new LogbookLifeCycleUnit(next);
+
+                    final LogbookLifeCycleUnitInProcess logbookLifeCycleUnit =
+                        new LogbookLifeCycleUnitInProcess(next);
+
                     final List<Document> logbookLifeCycleUnitEvents =
                         (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
                     xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
@@ -612,7 +622,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 LOGGER.error("Error while loading logbook lifecycle units", e);
                 throw new ProcessingException(e);
             }
-            try (VitamRequestIterator<JsonNode> iterator = client.objectGroupLifeCyclesByOperationIterator(containerName)) {
+            try (VitamRequestIterator<JsonNode> iterator =
+                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();
@@ -652,9 +663,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
                 xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
                 while (iterator.hasNext()) {
-
-                    final LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
-                        new LogbookLifeCycleObjectGroup(iterator.next());
+                    final LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGroup =
+                        new LogbookLifeCycleObjectGroupInProcess(iterator.next());
 
                     final String eventIdentifier = null;
                     xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);

@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -286,14 +287,12 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             throw new ProcessingException("Cannot found source file: " + sourceFile);
         }
         try (FileInputStream inputStream = new FileInputStream(sourceFile)) {
-            client.putObject(containerName, workspacePath, inputStream);
+            transferInputStreamToWorkspace(workspacePath, inputStream);
             if (toDelete && !sourceFile.delete()) {
                 LOGGER.warn("File could not be deleted: " + sourceFile);
             }
         } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
-        } catch (final ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Cannot write file to workspace: " + containerName + "/" + workspacePath, e);
         }
     }
 
@@ -303,7 +302,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
         try {
             client.putObject(containerName, workspacePath, inputStream);
         } catch (final ContentAddressableStorageServerException e) {
-            throw new ProcessingException("Cannot write stream to workspace: " + containerName + "/" + workspacePath,
+            throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath,
                 e);
         }
     }
@@ -375,21 +374,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        final File file = getNewLocalFile(objectName);
-        if (!file.exists()) {
-            Response response = null;
-            try {
-                response = client.getObject(containerName, objectName);
-                if (response != null) {
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                        StreamUtils.copy((InputStream) response.getEntity(), fileOutputStream);
-                    }
-                }
-            } finally {
-                client.consumeAnyEntityAndClose(response);
-            }
-        }
-        return new FileInputStream(file);
+        return new FileInputStream(getFileFromWorkspace(objectName));
     }
 
     @Override
@@ -438,5 +423,15 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             return file.delete();
         }
         return true;
+    }
+
+    @Override
+    public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
+        try {
+            return client.getListUriDigitalObjectFromFolder(containerName, folderName);
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.debug("Workspace Server Error", e);
+            throw new ProcessingException(e);
+        }
     }
 }

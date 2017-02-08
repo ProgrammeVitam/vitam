@@ -26,8 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import org.junit.Rule;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
@@ -35,6 +40,11 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 
 public class ProcessManagementImplTest {
     private ProcessManagementImpl processManagementImpl;
+    private static final Integer TENANT_ID = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test(expected = IllegalArgumentException.class)
     public void givenProcessingManagementWhenWorkflowIsNullThenThrowIllegalArgumentException()
@@ -44,7 +54,9 @@ public class ProcessManagementImplTest {
     }
 
     @Test(expected = WorkflowNotFoundException.class)
+    @RunWithCustomExecutor
     public void test2() throws ProcessingException {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration().setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083"));
@@ -52,7 +64,9 @@ public class ProcessManagementImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenProcessingManagementWhenExcuteThenReturnReponse() throws ProcessingException {
+    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration().setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083"));

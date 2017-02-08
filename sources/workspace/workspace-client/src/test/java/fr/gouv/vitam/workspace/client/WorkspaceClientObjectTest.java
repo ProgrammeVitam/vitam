@@ -33,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -55,6 +56,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -378,4 +380,32 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     private InputStream getInputStream(String file) throws FileNotFoundException {
         return PropertiesUtils.getResourceAsStream("file1.pdf");
     }
+    
+    @Test
+    public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
+        throws ContentAddressableStorageException, IOException {
+        when(mock.head()).thenReturn(Response.status(Status.OK).header(X_DIGEST, MESSAGE_DIGEST).build());
+        assertTrue(client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5));
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenContainerNotExistingWhenCheckObjectThenNotFound()
+        throws ContentAddressableStorageException, IOException {
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5);
+    }
+    
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void givenObjectNotExistingWhenCheckObjectThenOK()
+        throws ContentAddressableStorageException, IOException {       
+        when(mock.headContainer()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.checkObject(CONTAINER_NAME, OBJECT_NAME, MESSAGE_DIGEST, DigestType.MD5);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullParamWhenCheckObjectThenRaiseAnException()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        client.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
+    }
+    
 }

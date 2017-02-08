@@ -1,6 +1,6 @@
 ---
-- name: Install mongo rpm
-  yum:
+- name: Install vitam-mongos package
+  package:
     name: vitam-mongos
     state: latest
   notify:

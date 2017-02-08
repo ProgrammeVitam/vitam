@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
@@ -44,6 +45,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -214,7 +217,7 @@ public class StorageClientIT {
             // status
             // storageClient.getStatus();
             try {
-                final JsonNode node = storageClient.getStorageInformation("0", "default");
+                final JsonNode node = storageClient.getStorageInformation("default");
                 assertNotNull(node);
                 // fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             } catch (final VitamException svce) {
@@ -228,9 +231,9 @@ public class StorageClientIT {
              * implemented }
              */
             try {
-                storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.OBJECTS, "objectId",
+                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, "objectId",
                     description);
-                storageClient.storeFileFromWorkspace("0", "default2", StorageCollectionType.OBJECTS, "objectId",
+                storageClient.storeFileFromWorkspace("default2", StorageCollectionType.OBJECTS, "objectId",
                     description);
             } catch (final StorageServerClientException svce) {
                 LOGGER.error(svce);
@@ -238,7 +241,7 @@ public class StorageClientIT {
             }
 
             try {
-                storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.REPORTS, "objectId",
+                storageClient.storeFileFromWorkspace("default", StorageCollectionType.REPORTS, "objectId",
                     description1);
             } catch (final StorageServerClientException svce) {
                 LOGGER.error(svce);
@@ -246,7 +249,7 @@ public class StorageClientIT {
             }
 
             try {
-                storageClient.storeFileFromWorkspace("0", "default", StorageCollectionType.MANIFESTS, "objectId",
+                storageClient.storeFileFromWorkspace("default", StorageCollectionType.MANIFESTS, "objectId",
                     description2);
             } catch (final StorageServerClientException svce) {
                 LOGGER.error(svce);
@@ -256,11 +259,11 @@ public class StorageClientIT {
 
             try {
                 final InputStream stream =
-                    storageClient.getContainerAsync("0", "default", OBJECT_ID, StorageCollectionType.OBJECTS)
+                    storageClient.getContainerAsync("default", OBJECT_ID, StorageCollectionType.OBJECTS)
                         .readEntity(InputStream.class);
                 assertNotNull(stream);
                 final InputStream stream2 =
-                    storageClient.getContainerAsync("0", "default2", OBJECT_ID, StorageCollectionType.OBJECTS)
+                    storageClient.getContainerAsync("default2", OBJECT_ID, StorageCollectionType.OBJECTS)
                         .readEntity(InputStream.class);
                 assertNotNull(stream2);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
@@ -269,7 +272,7 @@ public class StorageClientIT {
 
             try {
                 final InputStream stream =
-                    storageClient.getContainerAsync("0", "default", REPORT, StorageCollectionType.REPORTS)
+                    storageClient.getContainerAsync("default", REPORT, StorageCollectionType.REPORTS)
                         .readEntity(InputStream.class);
                 assertNotNull(stream);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
@@ -279,7 +282,7 @@ public class StorageClientIT {
 
             try {
                 final InputStream stream =
-                    storageClient.getContainerAsync("0", "default", MANIFEST, StorageCollectionType.MANIFESTS)
+                    storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
                         .readEntity(InputStream.class);
                 assertNotNull(stream);
             } catch (StorageServerClientException | StorageNotFoundException svce) {
@@ -287,16 +290,31 @@ public class StorageClientIT {
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
             }
 
+            try {
+                assertTrue(storageClient.exists("default", StorageCollectionType.MANIFESTS, MANIFEST));
+            } catch (StorageServerClientException svce) { // not yet implemented
+                LOGGER.error(svce);
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
 
-            // TODO P0 : when implemented, uncomment this
-            /*
-             * try { storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
-             * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet
-             * implemented } try { storageClient.delete("0", "default", StorageCollectionType.OBJECTS, "objectId");
-             * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (Exception svce) { // not yet implemented }
-             */
+            try {
+                final InputStream stream =
+                    storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
+                        .readEntity(InputStream.class);
+                assertNotNull(stream);
+                Digest digest = Digest.digest(stream, VitamConfiguration.getDefaultDigestType());
+                storageClient.delete("default", StorageCollectionType.OBJECTS, "objectId", digest.toString(),
+                    VitamConfiguration.getDefaultDigestType());
+            } catch (Exception svce) {
+                LOGGER.error(svce);
+                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+            }
 
-        } catch (final Exception e) {
+
+
+        } catch (
+
+        final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }

@@ -41,6 +41,8 @@ public final class ParametersChecker {
     private ParametersChecker() {
         // empty
     }
+    
+    private static final String MANDATORY_PARAMETER = " is mandatory parameter";
 
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
@@ -56,6 +58,24 @@ public final class ParametersChecker {
         for (final String parameter : parameters) {
             if (Strings.isNullOrEmpty(parameter) || parameter.trim().isEmpty()) {
                 throw new IllegalArgumentException(errorMessage);
+            }
+        }
+    }
+    
+    /**
+     * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
+     *
+     * @param errorMessage
+     * @param parameters
+     * @throws IllegalArgumentException if null or empty
+     */
+    public static final void checkParameterDefault(String item, String... parameters) {
+        if (parameters == null) {
+            throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+        }
+        for (final String parameter : parameters) {
+            if (Strings.isNullOrEmpty(parameter) || parameter.trim().isEmpty()) {
+                throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
             }
         }
     }

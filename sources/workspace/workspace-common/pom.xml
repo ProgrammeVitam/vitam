@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>workspace</artifactId>
-		<version>0.13.0-SNAPSHOT</version>
+		<version>0.14.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>workspace-common</artifactId>
 	<name>Workspace Common</name>
@@ -46,6 +46,11 @@
 		<dependency>
 			<groupId>com.mikesamuel</groupId>
 			<artifactId>json-sanitizer</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-storage</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 			<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
 		<dependency>

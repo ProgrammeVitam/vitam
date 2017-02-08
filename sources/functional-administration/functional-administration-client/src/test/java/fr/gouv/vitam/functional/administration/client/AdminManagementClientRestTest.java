@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,14 +56,22 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 
 public class AdminManagementClientRestTest extends VitamJerseyTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/adminmanagement/v1";
@@ -70,6 +79,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     static final String QUERY =
         "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
 
+    private static final Integer TENANT_ID = 0;
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -360,22 +370,28 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void createAccessionRegister()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     @Test(expected = AccessionRegisterException.class)
+    @RunWithCustomExecutor
     public void createAccessionRegisterError()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
     @Test(expected = AccessionRegisterException.class)
+    @RunWithCustomExecutor
     public void createAccessionRegisterUnknownError()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }

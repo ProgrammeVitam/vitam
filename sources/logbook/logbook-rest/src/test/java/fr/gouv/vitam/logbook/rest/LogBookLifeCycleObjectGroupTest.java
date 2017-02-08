@@ -225,14 +225,19 @@ public class LogBookLifeCycleObjectGroupTest {
             LocalDateUtil.now().toString());
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
+
+        String objectId =
+            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier);
+        String operationId = logbookLifeCyclesObjectGroupParametersStart
+            .getParameterValue(LogbookParameterName.eventIdentifierProcess);
+
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
             .post(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+                operationId,
+                objectId)
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -243,10 +248,8 @@ public class LogBookLifeCycleObjectGroupTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .post(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .post(LIFE_OBJECT_GROUP_ID_URI, operationId,
+                objectId)
             .then()
             .statusCode(Status.CONFLICT.getStatusCode());
 
@@ -255,9 +258,7 @@ public class LogBookLifeCycleObjectGroupTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .post(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            .post(LIFE_OBJECT_GROUP_ID_URI, operationId,
                 "bad_id")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -271,10 +272,8 @@ public class LogBookLifeCycleObjectGroupTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .put(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .put(LIFE_OBJECT_GROUP_ID_URI, operationId,
+                objectId)
             .then()
             .statusCode(Status.OK.getStatusCode());
 
@@ -284,30 +283,38 @@ public class LogBookLifeCycleObjectGroupTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .put(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            .put(LIFE_OBJECT_GROUP_ID_URI, operationId,
                 "bad_id")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
+
+        // Commit
+        given().contentType(ContentType.JSON)
+            .when()
+            .put("/operations/" + operationId + "/objectgrouplifecycles/" +
+                objectId +
+                "/commit")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
         // Test direct access
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .body(new Select().getFinalSelect())
             .when()
-            .get("/objectgrouplifecycles/" +
-                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .get("/objectgrouplifecycles/" + objectId)
             .then()
             .statusCode(Status.OK.getStatusCode());
 
         // Test Iterator
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
             .when()
-            .get(LIFE_OBJECT_GROUP_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .get(LIFE_OBJECT_GROUP_URI, operationId)
             .then()
             .statusCode(Status.OK.getStatusCode()).header(GlobalDataRest.X_CURSOR_ID, new BaseMatcher() {
 

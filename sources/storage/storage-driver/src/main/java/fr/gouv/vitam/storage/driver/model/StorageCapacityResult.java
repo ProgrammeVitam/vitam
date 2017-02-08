@@ -28,22 +28,21 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Data structure representing global result from a 'get storage information / capacity' request
+ * Data structure representing global result from a 'get storage container information / capacity' request
  */
-public class StorageCapacityResult {
-
-    private String tenantId;
+public class StorageCapacityResult extends StorageResult {
 
     private long usableSpace;
 
     private long usedSpace;
 
     /**
-     * Empty constructor
+     * Empty constructor, needed for response parsing
      */
     public StorageCapacityResult() {
-        // Empty
+        super(null, null);
     }
+
 
     /**
      * Initialize the needed parameters for get capacity results
@@ -52,17 +51,11 @@ public class StorageCapacityResult {
      * @param usableSpace The usable space in offer
      * @param usedSpace The used space in offer
      */
-    public StorageCapacityResult(String tenantId, long usableSpace, long usedSpace) {
-        this.tenantId = tenantId;
+    public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
+        // TODO : replace null with type (since a container is type_tenant)
+        super(tenantId, null);
         this.usableSpace = usableSpace;
         this.usedSpace = usedSpace;
-    }
-
-    /**
-     * @return The request tenantId
-     */
-    public String getTenantId() {
-        return tenantId;
     }
 
     /**
@@ -77,26 +70,5 @@ public class StorageCapacityResult {
      */
     public long getUsedSpace() {
         return usedSpace;
-    }
-
-    /**
-     * @param tenantId The request tenantId
-     */
-    public void setTenantId(String tenantId) {
-        this.tenantId = tenantId;
-    }
-
-    /**
-     * @param usableSpace The usable space in offer
-     */
-    public void setUsableSpace(long usableSpace) {
-        this.usableSpace = usableSpace;
-    }
-
-    /**
-     * @param usedSpace The used space in offer
-     */
-    public void setUsedSpace(long usedSpace) {
-        this.usedSpace = usedSpace;
     }
 }

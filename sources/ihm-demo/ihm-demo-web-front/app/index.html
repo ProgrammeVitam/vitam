@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" ng-app="ihm.demo">
+<head>
+  <meta charset="utf-8">
+  <meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+
+  <title>PROGRAMME VITAM</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="stylesheet" href="css/app.css" />
+  <!-- <link rel="stylesheet" href="css/app.animations.css" /> -->
+
+  <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="vendor/bootstrap-material-design-icons/css/material-icons.css">
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="vendor/angular-material/angular-material.min.css">
+  <link rel="stylesheet" href="vendor/v-accordion/dist/v-accordion.css" />
+
+  <script src="vendor/jquery/dist/jquery.min.js"></script>
+  <script src="vendor/angular/angular.min.js"></script>
+  <script src="vendor/angular-cookies/angular-cookies.min.js"></script>
+  <script src="vendor/angular-aria/angular-aria.min.js"></script>
+  <script src="vendor/angular-material/angular-material.min.js"></script>
+  <script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+  <script src="vendor/angular-file-upload/dist/angular-file-upload.min.js"></script>
+  <script src="vendor/angular-animate/angular-animate.min.js"></script>
+  <script src="vendor/angular-resource/angular-resource.min.js"></script>
+  <script src="vendor/angular-route/angular-route.min.js"></script>
+  <script src="vendor/angular-ui-bootstrap-bower/ui-bootstrap-tpls.min.js"></script>
+  <script src="vendor/lodash/dist/lodash.min.js"></script>
+  <script src="vendor/restangular/dist/restangular.min.js"></script>
+  <script src="vendor/angular-messages/angular-messages.min.js"></script>
+  <script src="vendor/v-accordion/dist/v-accordion.min.js"></script>
+  <script src="vendor/angular-shiro/dist/angular-shiro.min.js"></script>
+  <script src="vendor/jquery-ui/jquery-ui.min.js"></script>
+  <script src="vendor/angular-translate/angular-translate.min.js"></script>
+  <script src="vendor/angular-translate-loader-static-files/angular-translate-loader-static-files.min.js"></script>
+  <script src="vendor/angular-mocks/angular-mocks.js"></script>
+  <!-- concatenated flow.js + ng-flow libraries -->
+  <!-- <script src="bower_components/ng-flow/dist/ng-flow-standalone.js"></script> -->
+  <!-- or include the files separately -->
+  <!-- <script src="bower_components/flow.js/dist/flow.min.js"></script> -->
+  <!-- <script src="bower_components/ng-flow/dist/ng-flow.min.js"></script> -->
+  <script src="modules/flow/ng-flow-standalone.js"></script>
+
+  <script src="modules/parent/app.module.js"></script>
+  <script src="modules/parent/app.config.js"></script>
+  <script src="js/controller/upload-sip-controller.js"></script>
+  <script src="modules/logbook-operation-ingest/logbook-controller.js"></script>
+  <script src="modules/logbook-operation-ingest/logbook-component.js"></script>
+  <script src="modules/logbook-operation-ingest/logbook-entry-controller.js"></script>
+
+  <script src="modules/file-format/fileformat-component.js"></script>
+  <script src="modules/file-format/fileformat-controller.js"></script>
+  <script src="js/controller/admin-controller.js"></script>
+  <script src="js/controller/import-pronoun-controller.js"></script>
+
+  <script src="modules/file-rules/filerules-component.js"></script>
+  <script src="modules/file-rules/filerules-controller.js"></script>
+  <script src="js/controller/import-rulesfile-controller.js"></script>
+
+  <script src="modules/core/core.module.js"></script>
+  <script src="modules/core/ihm-demo-factory.js"></script>
+  <script src="modules/core/main.controller.js"></script>
+  <script src="modules/core/ihm-demo-service.js"></script>
+
+  <script src="core/directives/dynamic-table.directive.js"></script>
+  <script src="core/directives/datepicker.directive.js"></script>
+
+  <script src="modules/archive-unit-search/archive-search.module.js"></script>
+  <script src="modules/archive-unit-search/archive-search.controller.js"></script>
+  <script src="modules/archive-unit-search/archive-search.component.js"></script>
+
+  <script src="modules/archive-unit/archive-unit.module.js"></script>
+  <script src="modules/archive-unit/archive-unit.constant.js"></script>
+  <script src="modules/archive-unit/archive-unit.controller.js"></script>
+  <script src="modules/archive-unit/archive-unit.component.js"></script>
+  <script src="core/directives/display-field.directive.js"></script>
+  <script src="core/directives/display-fieldtree.directive.js"></script>
+
+  <script src="modules/logbook-operation/logbook-operation-component.js"></script>
+  <script src="modules/logbook-operation/logbook-operation-controller.js"></script>
+  <script src="js/controller/operation-logbook-entry.controller.js"></script>
+
+  <script src="modules/lifecycle/lifecycle.module.js"></script>
+  <script src="modules/lifecycle/lifecycle.controller.js"></script>
+  <script src="modules/lifecycle/lifecycle.component.js"></script>
+
+  <script src="modules/accession-register-search/accession-register-search.module.js"></script>
+  <script src="modules/accession-register-search/accession-register-search.controller.js"></script>
+  <script src="modules/accession-register-search/accession-register-search.component.js"></script>
+
+  <script src="resources/messages.resource.js"></script>
+
+  <script src="pages/accession-register-details/accession-register-details.module.js"></script>
+  <script src="pages/accession-register-details/accession-register-details.controller.js"></script>
+  <script src="pages/accession-register-details/accession-register-details.component.js"></script>
+
+  <script src="services/accession-register.service.js"></script>
+  <script src="resources/accession-register.resource.js"></script>
+  <script src="core/services/process-response.service.js"></script>
+
+  <script src="core/filters/date.filter.js"></script>
+
+  <!-- FIXME Find better way to fix it -->
+  <script src="modules/multiselect/angular-bootstrap-multiselect.js"></script>
+
+</head>
+
+<body  ng-controller='mainViewController'>
+
+<!--
+*
+*    #GLOBAL
+*
+*    @desc: Main container
+*
+-->
+<div id="global" class="container-fluid">
+
+  <!-- MAIN HEADER -->
+  <header id="mainHeader" class="navbar navbar-default navbar-fixed-top" ng-if="showMenuBar">
+
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a href="#" class="navbar-brand"><img class="logo img-responsive pull-left" src="images/logoIHMBeta.png" alt="Vitam Beta" title="Vitam" />vitam</a>
+      </div>
+
+      <div id="navbar" class="navbar-collapse collapse" ng-if="session.status=='logged'">
+        <ul class="nav navbar-nav">
+          <li class="@@mainMenu1 dropdown">
+            <button class="block dropdown-toggle" data-toggle="dropdown">
+              <i class="material-icons pull-left">cloud_queue</i>
+              <span class="pull-left m-l-10">Entrée</span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
+              <li><a tabindex="-1" href="#!/uploadSIP">Transfert</a></li>
+              <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrée</a></li>
+            </ul>
+          </li>
+          <li class="@@mainMenu2 dropdown">
+            <button class="block dropdown-toggle" data-toggle="dropdown">
+              <i class="material-icons pull-left">search</i>
+              <span class="pull-left m-l-10">Recherche</span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="Recherche">
+                <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+                <li><a href="#!/accessionRegister/search">Registre des fonds</a></li>
+            </ul>
+          </li>
+          <li class="@@mainMenu3 dropdown">
+            <button class="block dropdown-toggle" data-toggle="dropdown">
+              <i class="material-icons pull-left">access_time</i>
+              <span class="pull-left m-l-10">Administration</span>
+            </button>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="AdminFonctionnelle">
+              <li><a href="#!/admin/rules">Référentiel des règles de gestion</a></li>
+              <li><a href="#!/admin/formats">Référentiel des formats</a></li>
+              <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
+              <!-- <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li> -->
+              <li class="divider"></li>
+              <li><a href="#!/admin/importFileRules">Import du Référentiel des Règles de gestion</a></li>
+              <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>
+            </ul>
+          </li>
+          <li class="@@mainMenu2">
+            <a href="#!/archiveGestion">
+              <i class="material-icons pull-left">data_usage</i>
+              <span class="pull-left m-l-10">Gestion des archives</span>
+            </a>
+          </li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown">
+            <button class="block dropdown-toggle" data-toggle="dropdown">
+              <i class="material-icons">settings</i>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+              <li><a href="" ng-click="logoutUser()">Déconnexion</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+  </header>
+  <!-- end MAIN HEADER -->
+
+  <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+  <div class="page-container" ng-if="showMenuBar">
+    <div ng-view class="page"></div>
+  </div>
+  <div class="view-container" ng-if="!showMenuBar">
+    <div ng-view class="view-frame"></div>
+  </div>
+
+  <!-- ////////////////////////////////////////////////////////////////////////////// -->
+
+  <!-- MAIN FOOTER -->
+  <footer class="mainFooter"></footer>
+  <!-- end MAIN FOOTER -->
+
+</div>
+</body>
+
+</html>

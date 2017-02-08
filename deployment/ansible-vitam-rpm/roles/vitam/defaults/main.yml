@@ -6,8 +6,18 @@ memory_opts: -Xms512m -Xmx512m
 gc_opts: "-Xloggc:{{vitam_folder_log}}/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
 java_opts: ""
 java_args: ""
-rpm_name: "vitam-{{ vitam_component }}"
+package_name: "vitam-{{ vitam_component }}"
 port_http: 8082
 tls_active: false
 days_to_delete_local: 30
 days_to_delete_access_local: 7
+vitam_worker_capacity: 1
+# Possible values are : filesystem OR openstack-swift
+vitam_provider_offer: ""
+vitam_keystone_auth_url: ""
+vitam_swift_uid: ""
+vitam_swift_subuser: ""
+vitam_keystone_passwd: ""
+vitam_ceph_mode: true
+
+

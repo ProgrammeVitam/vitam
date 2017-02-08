@@ -32,11 +32,13 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -190,10 +192,10 @@ public class LogbookLifeCyclesClientMockTest {
         final LogbookLifeCyclesClient client =
             LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertNotNull(client.selectObjectGroupLifeCycleById("id"));
-        assertNotNull(client.selectUnitLifeCycleById("id"));
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id"));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id"));
+        assertNotNull(client.selectObjectGroupLifeCycleById("id", JsonHandler.createObjectNode()));
+        assertNotNull(client.selectUnitLifeCycleById("id", JsonHandler.createObjectNode()));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
 
     }
 

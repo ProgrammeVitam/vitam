@@ -28,9 +28,7 @@ package fr.gouv.vitam.access.internal.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -55,7 +53,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -244,6 +241,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query,
         boolean post) {
+    	
         if (post) {
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
@@ -271,14 +269,13 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
-        final String xTenantId = headers.getRequestHeader(GlobalDataRest.X_TENANT_ID).get(0);
         try {
             SanityChecker.checkHeaders(headers);
             HttpHeaderHelper.checkVitamHeaders(headers);
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
             accessModule.getOneObjectFromObjectGroup(asyncResponse, idObjectGroup, query, xQualifier,
-                Integer.valueOf(xVersion), xTenantId);
+                Integer.valueOf(xVersion));
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
@@ -306,6 +303,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+    	  
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override

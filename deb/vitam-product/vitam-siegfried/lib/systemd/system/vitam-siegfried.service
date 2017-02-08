@@ -1,0 +1,14 @@
+[Unit]
+Description=Siegfried is a signature-based file format identification tool
+Documentation=http://www.itforarchivists.com/siegfried
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vitam
+Group=vitam
+EnvironmentFile=/vitam/conf/siegfried/sysconfig/siegfried
+ExecStart=/vitam/bin/siegfried/sf -home /vitam/app/siegfried -serve $LISTEN
+
+[Install]
+WantedBy=multi-user.target

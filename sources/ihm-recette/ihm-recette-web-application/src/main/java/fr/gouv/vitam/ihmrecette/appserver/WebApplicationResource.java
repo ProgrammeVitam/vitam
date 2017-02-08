@@ -76,12 +76,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -120,6 +122,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     public static final String IHM_RECETTE = "IHM_RECETTE";
     private final WebApplicationConfig webApplicationConfig;
+
     // FIXME : replace the boolean by a static timestamp updated by the soap ui
     // thread
     private static volatile boolean soapUiRunning = false;
@@ -257,7 +260,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId);
+                .selectOperationbyId(operationId, TENANT_ID);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD))
                     .get(0);
@@ -305,7 +308,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // Read the selected file into an InputStream
         try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
             IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            final Response response = client.upload(sipInputStream);
+            final Response response = client.upload(sipInputStream, TENANT_ID);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             return Response.status(response.getStatus()).entity(ingestOperationId).build();
@@ -493,7 +496,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query);
+                result = UserInterfaceTransactionManager.selectOperation(query, TENANT_ID);
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -528,7 +531,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookResultById(@PathParam("idOperation") String operationId) {
         try {
-            final RequestResponse<JsonNode> result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse<JsonNode> result =
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, TENANT_ID);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -558,6 +562,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * This method exist only to download a file with a browser
+     *
      * @param operationId
      * @param asyncResponse
      */
@@ -577,21 +582,25 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
-            final RequestResponse<JsonNode> result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
+            final RequestResponse<JsonNode> result =
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, TENANT_ID);
 
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
             List<JsonNode> results = responseOK.getResults();
             JsonNode operation = results.get(0);
 
+            int tenantId = operation.get("_tenant").intValue();
+
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
             ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
             JsonNode lastEvent = Iterables.getLast(events);
+
             String evDetData = lastEvent.get("evDetData").textValue();
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
             StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
-
-            final Response response = storageClient.getContainerAsync("0", "default", fileName, documentType);
+            final Response response = storageClient.getContainerAsync("default", fileName, documentType);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response
@@ -618,6 +627,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } finally {
+            // clean tenantId
+            VitamThreadUtils.getVitamSession().setTenantId(null);
         }
     }
 

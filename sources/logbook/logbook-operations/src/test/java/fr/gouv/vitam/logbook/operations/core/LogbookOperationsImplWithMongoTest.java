@@ -40,6 +40,7 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.mongodb.client.MongoCursor;
@@ -61,6 +62,10 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -73,12 +78,18 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsExcepti
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 public class LogbookOperationsImplWithMongoTest {
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     private static final String DATABASE_HOST = "localhost";
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
+    private static int tenantId = 0;
     private LogbookOperationsImpl logbookOperationsImpl;
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -94,13 +105,13 @@ public class LogbookOperationsImplWithMongoTest {
     private static LogbookOperationParameters securityEvent;
 
 
-    final static GUID eip = GUIDFactory.newEventGUID(0);
-    final static GUID eip1 = GUIDFactory.newEventGUID(2);
-    final static GUID eip2 = GUIDFactory.newEventGUID(2);
-    final static GUID eip3 = GUIDFactory.newEventGUID(3);
+    final static GUID eip = GUIDFactory.newEventGUID(tenantId);
+    final static GUID eip1 = GUIDFactory.newEventGUID(tenantId);
+    final static GUID eip2 = GUIDFactory.newEventGUID(tenantId);
+    final static GUID eip3 = GUIDFactory.newEventGUID(tenantId);
 
-    final static GUID eip4 = GUIDFactory.newEventGUID(4);
-    final static GUID eip5 = GUIDFactory.newEventGUID(5);
+    final static GUID eip4 = GUIDFactory.newEventGUID(tenantId);
+    final static GUID eip5 = GUIDFactory.newEventGUID(tenantId);
 
 
 
@@ -202,7 +213,9 @@ public class LogbookOperationsImplWithMongoTest {
     }
 
     @Test(expected = LogbookNotFoundException.class)
+    @RunWithCustomExecutor
     public void givenSelectWhenOperationNotExistThenThrowNotFoundException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
@@ -210,7 +223,9 @@ public class LogbookOperationsImplWithMongoTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenCreateAndSelect() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);

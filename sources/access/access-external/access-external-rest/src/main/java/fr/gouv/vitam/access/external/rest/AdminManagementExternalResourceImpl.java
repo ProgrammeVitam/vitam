@@ -67,7 +67,6 @@ public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private final int tenantId = 0;
 
     /**
      * Constructor
@@ -88,6 +87,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
@@ -129,6 +129,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importDocument(@PathParam("collection") String collection, InputStream document) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
@@ -177,6 +178,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
@@ -221,6 +223,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
+    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {

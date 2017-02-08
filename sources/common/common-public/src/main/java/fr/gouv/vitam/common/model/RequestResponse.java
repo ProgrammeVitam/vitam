@@ -88,7 +88,7 @@ public abstract class RequestResponse<T> {
         if (result != null && !result.isEmpty()) {
             if (result.contains("$hits")) {
                 try {
-                    return JsonHandler.getFromString(result, RequestResponseOK.class);
+                    return JsonHandler.getFromString(result, RequestResponseOK.class, JsonNode.class);
                 } catch (final InvalidParseOperationException e) {
                     // Issue, trying VitamError model
                     LOGGER.warn("Issue while decoding RequestResponseOk", e);

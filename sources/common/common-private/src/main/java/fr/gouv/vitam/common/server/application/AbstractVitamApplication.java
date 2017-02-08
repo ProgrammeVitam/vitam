@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.metrics.VitamMetrics;
 import fr.gouv.vitam.common.metrics.VitamMetricsType;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
 import fr.gouv.vitam.common.server.RequestIdContainerFilter;
+import fr.gouv.vitam.common.server.TenantIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
@@ -278,8 +279,9 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             .register(JacksonFeature.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper())
-            // Register a container filter to copy the header's parameters
-            .register(RequestIdContainerFilter.class);
+            // Register container filters to copy the header's parameters (tenant_id and request_id)
+            .register(RequestIdContainerFilter.class)
+            .register(TenantIdContainerFilter.class);
 
         // Register Jersey Metrics Listener
         clearAndconfigureMetrics();

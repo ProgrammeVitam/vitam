@@ -2,12 +2,21 @@
 # tasks file for mongo-express
 # Docker role tasks
 - name: installer le package docker
-  yum:
+  package:
     name: "{{item}}"
     state: latest
   with_items:
   - docker
-  - docker-python
+
+- name: installer le package docker-python
+  package:
+    name: docker-python
+  when: (ansible_distribution == "CentOS")
+
+- name: installer le package python-docker
+  package:
+      name: python-docker
+  when: (ansible_distribution == "Debian") 
 
 # OMA : add for unity
 - name: create docker group
@@ -107,7 +116,7 @@
 - name: deploy docker container
   docker:
     name: "mongo-express"
-    image: "{{ docker_registry_hostname }}/mongo-express"
+    image: "{{ docker_registry_hostname }}/mongo-express:0.34.0"
     state: started
     restart_policy: always
     ports:

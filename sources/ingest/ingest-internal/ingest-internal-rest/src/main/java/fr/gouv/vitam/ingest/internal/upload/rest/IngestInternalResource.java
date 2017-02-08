@@ -45,7 +45,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -82,9 +81,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
@@ -109,7 +106,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final String FOLDER_SIP = "SIP";
     private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
     private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
-    private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
     private static final String XML = ".xml";
     private static final String FOLDERNAME = "ATR/";
@@ -224,9 +220,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Download object stored by Ingest operation (currently ATR and manifest) 
+     * Download object stored by Ingest operation (currently ATR and manifest)
      * 
-     * Return the object as stream asynchronously 
+     * Return the object as stream asynchronously
+     * 
      * @param objectId
      * @param type
      * @param asyncResponse
@@ -237,9 +234,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
     public void downloadObjectAsStream(@PathParam("objectId") String objectId, @PathParam("type") String type,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getDefaultExecutor()
-        .execute(() -> downloadObjectAsync(asyncResponse, objectId, type));
+            .execute(() -> downloadObjectAsync(asyncResponse, objectId, type));
     }
-    
+
     /**
      * @param atr
      * @param asyncResponse
@@ -247,7 +244,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @POST
     @Path("/ingests/{objectId}/report")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public Response storeATR(@PathParam("objectId") String guid, InputStream atr){
+    public Response storeATR(@PathParam("objectId") String guid, InputStream atr) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             LOGGER.error("storage atr internal");
@@ -257,12 +254,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             final CreateObjectDescription description = new CreateObjectDescription();
             description.setWorkspaceContainerGUID(guid);
-            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
-            
-            storageClient.storeFileFromWorkspace(DEFAULT_TENANT, DEFAULT_STRATEGY,
+            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);   
+            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
                 StorageCollectionType.REPORTS, guid + XML, description);
             return Response.status(Status.OK).build();
-            
+
         } catch (StorageClientException | ContentAddressableStorageServerException |
             ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e);
@@ -278,10 +274,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 objectId += XML;
             } else {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                    Response.status(Status.METHOD_NOT_ALLOWED).build()); 
+                    Response.status(Status.METHOD_NOT_ALLOWED).build());
                 return;
             }
-            final Response response = storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
+            final Response response = storageClient.getContainerAsync(DEFAULT_STRATEGY,
                 objectId, documentType);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeResponse(Response.status(Status.OK));
@@ -342,8 +338,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         callProcessingEngine(parameters, logbookOperationsClient, containerGUID.getId());
                     try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                         final Response response =
-                            storageClient.getContainerAsync(DEFAULT_TENANT, DEFAULT_STRATEGY,
-                                containerGUID.getId() + XML,
+                            storageClient.getContainerAsync(DEFAULT_STRATEGY, containerGUID.getId() + XML,
                                 StorageCollectionType.REPORTS);
                         final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
                         Status finalStatus = Status.OK;

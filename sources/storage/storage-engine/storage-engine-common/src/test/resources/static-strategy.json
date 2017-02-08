@@ -1,7 +1,7 @@
 {
   "id" : "default",
   "hot" : {
-    "copy" : 1,
+    "copy" : 2,
     "offers" : [
       {"id" : "default"},
       {"id" : "default2"}

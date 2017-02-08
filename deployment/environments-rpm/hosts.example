@@ -122,7 +122,11 @@ hosts-storage-offer-default
 
 [hosts-storage-offer-default]
 # TODO: Put here servers where this service will be deployed : storage-offer-default
-
+# LIMIT : only 1 offer per machine and 1 machine per offer
+# Additional params for openstack-swift
+# hostname-offre-1.vitam vitam_keystone_auth_url=http://hostname-rados-gw:port/auth/1.0 vitam_swift_subuser=subuser vitam_swift_uid=tenant$user vitam_provider_offer=openstack-swift
+# for filesystem
+# hostname-offre-2.vitam vitam_provider_offer=filesystem
 
 
 ##### Zone data
@@ -197,8 +201,8 @@ environnement=
 vitam_reverse_external_dns=
 
 # Version that has to be deployed (defined in the release note)
-# Example: rpm_version=0.9.0-RC1*
-rpm_version=
+# Example: package_version=0.9.0-RC1*
+package_version=
 
 # Configuration for Curator
 #	Days before deletion on log management cluster; 365 for production environment
@@ -233,5 +237,20 @@ installation_clamav=true
 # cas de l'appel au webDAV pour récupérer les jeux de tests
 http_proxy_environnement=
 
+# Adresse des offres de stockage (sans le port)
 vitam_storageofferdefault_host_1=
 # vitam_storageofferdefault_host_2=
+
+vitam_tenant_ids=[0,1,2]
+
+# ces paramètres peuvent être soit globaux, ici, soit ajoutés après chaque partition hébergeant une offre de stockage
+
+#Valeur possibles : openstack-swift ou chaîne vide
+vitam_provider_offer=openstack-swift
+# URL d'authentification si openstack-swift
+vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
+# subUser pour swift
+vitam_swift_subuser=
+# Nom du tenant associé (concaténation tenant$user ; le mot de passe est renseigné dans vault.yml sous la directive vitam_keystone_passwd )
+vitam_swift_uid=
+

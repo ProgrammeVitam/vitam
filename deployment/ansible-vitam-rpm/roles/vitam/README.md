@@ -19,7 +19,7 @@ Les variables attendues pour ce rôle sont :
 * Variables optionnelles : permet de surcharger une valeur par défaut (valeur par défaut) 
   + {{ vitam_user }} : propriétaire unix des fichiers déployés (valeur par défaut : vitam)
   + {{ vitam_group }} : groupe unix des fichiers déployés (valeur par défaut : vitam)
-  + {{ rpm_name }} : nom du fichier rpm à déployer (valeur par défaut : vitam-{{ vitam_component }})
+  + {{ package_name }} : nom du fichier rpm à déployer (valeur par défaut : vitam-{{ vitam_component }})
   + {{ memory_opts }} : paramétres mémoire de la JVM (valeur par défaut : -Xms512m -Xmx512m) 
   + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" ) 
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")

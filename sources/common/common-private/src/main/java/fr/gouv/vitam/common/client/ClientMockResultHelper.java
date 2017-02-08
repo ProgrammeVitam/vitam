@@ -79,6 +79,27 @@ public class ClientMockResultHelper {
             "\"obIdReq\": null," +
             "\"obIdIn\": null," +
             "\"events\": []}";
+
+    private static final String LOGBOOK_OPERATION_WITH_OBID =
+        "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
+            "\"evType\": \"Process_SIP_unitary\"," +
+            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"evTypeProc\": \"INGEST\"," +
+            "\"outcome\": \"STARTED\"," +
+            "\"outDetail\": null," +
+            "\"outMessg\": \"SIP entry : SIP.zip\"," +
+            "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+            "\"agIdApp\": null," +
+            "\"agIdAppSession\": null," +
+            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"agIdSubm\": null," +
+            "\"agIdOrig\": null," +
+            "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"obIdReq\": null," +
+            "\"obIdIn\": null," +
+            "\"events\": []}";
+
     private static final String RULE = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
         "\"RuleId\":\"APP-00005\", " +
@@ -192,12 +213,29 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * @return one default Logbook response
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getLogbookRequestResponseWithObId() throws InvalidParseOperationException {
+        return RequestResponseOK.getFromJsonNode(getLogbookOperationWithObId());
+    }
+
+    /**
      * @return a default Logbook Operation
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
         return JsonHandler
             .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
+    }
+
+    /**
+     * @return a default Logbook Operation
+     * @throws InvalidParseOperationException
+     */
+    public static JsonNode getLogbookOperationWithObId() throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
     }
 
     /**
@@ -225,6 +263,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default Access Register Summary
      * @throws InvalidParseOperationException
      */
@@ -233,6 +272,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default Access Register Detail
      * @throws InvalidParseOperationException
      */
@@ -241,6 +281,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default Format
      * @throws InvalidParseOperationException
      */
@@ -249,6 +290,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default Rule
      * @throws InvalidParseOperationException
      */
@@ -257,6 +299,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
@@ -265,6 +308,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */
@@ -273,6 +317,7 @@ public class ClientMockResultHelper {
     }
 
     /**
+     *
      * @return a default list of Rules
      * @throws InvalidParseOperationException
      */

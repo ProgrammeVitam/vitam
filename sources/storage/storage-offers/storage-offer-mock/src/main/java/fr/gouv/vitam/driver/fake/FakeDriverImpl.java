@@ -42,13 +42,17 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 
 /**
  * Driver implementation for test only
@@ -91,36 +95,46 @@ public class FakeDriverImpl implements Driver {
     class ConnectionImpl implements Connection {
 
         @Override
-        public StorageCapacityResult getStorageCapacity(String tenantId)
+        public StorageCapacityResult getStorageCapacity(Integer tenantId)
             throws StorageDriverException {
-            if ("daFakeTenant".equals(tenantId)) {
+            Integer fakeTenant = -1;
+            if (fakeTenant.equals(tenantId)) {
                 throw new StorageDriverException("driverInfo", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "ExceptionTest");
             }
-            final StorageCapacityResult result = new StorageCapacityResult();
-            result.setUsableSpace(1000000);
-            result.setUsedSpace(99999);
+
+            final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
             return result;
         }
 
         @Override
-        public GetObjectResult getObject(GetObjectRequest objectRequest) throws StorageDriverException {
+        public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
+            return new StorageCountResult(request.getTenantId(), request.getType(), 1);
+        }
 
-            return new GetObjectResult("0",
+        @Override
+        public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
+
+            return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
                 new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
 
         @Override
-        public PutObjectResult putObject(PutObjectRequest objectRequest) throws StorageDriverException {
+        public StoragePutResult putObject(StoragePutRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new PutObjectResult(objectRequest.getGuid(), "different_digest_hash", "0", 0);
+                return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
+                    objectRequest.getGuid(), objectRequest.getGuid(), "different_digest_hash", 0);
+            } if ("retry_test".equals(objectRequest.getGuid())) {
+                throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    "retry_test");
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
-                    return new PutObjectResult(objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
-                        "0", bytes.length);
+                    return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
+                        objectRequest.getGuid(), objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
+                        bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                         e);
@@ -128,20 +142,37 @@ public class FakeDriverImpl implements Driver {
             }
         }
 
-
         @Override
-        public RemoveObjectResult removeObject(RemoveObjectRequest objectRequest) throws StorageDriverException {
-            return new RemoveObjectResult();
+        public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
+            if ("digest_bad_test".equals(objectRequest.getGuid())) {
+                throw new StorageDriverException("removeObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    "ExceptionTest");
+
+            } else {
+                return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
+                    objectRequest.getGuid(), objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(),
+                    true);
+            }
         }
 
         @Override
-        public Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException {
+        public Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
             return "already_in_offer".equals(request.getGuid());
         }
 
         @Override
         public void close() throws StorageDriverException {
             // Empty
+        }
+
+        @Override
+        public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
+            if ("digest_bad_test".equals(request.getGuid())) {
+                throw new StorageDriverException("checkObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                    "ExceptionTest");
+            }
+            return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
+                request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
         }
     }
 }

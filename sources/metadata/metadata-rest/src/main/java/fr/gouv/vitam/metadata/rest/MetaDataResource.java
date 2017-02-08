@@ -213,6 +213,16 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(status.getReasonPhrase()))
                 .build();
 
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
         }
 
         return Response.status(Status.FOUND).entity(new RequestResponseOK()
@@ -287,7 +297,6 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    // FIXME P1 : maybe produces NOT_FOUND when unit is not found?
     private Response selectUnitById(JsonNode selectRequest, String unitId) {
         Status status;
         ArrayNode arrayNodeResults;
@@ -308,6 +317,16 @@ public class MetaDataResource extends ApplicationStatusResource {
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext(ACCESS)
@@ -444,7 +463,6 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Selects unit by request and unit id
      */
-    // FIXME P1 : maybe produce NOT_FOUND when objectGroup is not found?
     private Response selectObjectGroupById(JsonNode selectRequest, String objectGroupId) {
         Status status;
         ArrayNode arrayNodeResults;
@@ -465,6 +483,16 @@ public class MetaDataResource extends ApplicationStatusResource {
         } catch (final MetaDataDocumentSizeException e) {
             LOGGER.error(e);
             status = Status.REQUEST_ENTITY_TOO_LARGE;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("METADATA")
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
                     .setContext("METADATA")

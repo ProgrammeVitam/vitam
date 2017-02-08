@@ -1,0 +1,74 @@
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li>Recherche</li>
+    <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
+    <li><a ng-href="#!/archiveunit/{{$ctrl.lifeCycleId}}">Détail de l'unité archivistique</a></li>
+    <li ng-if="$ctrl.lifeCycleType === 'unit'">
+      <a ng-href="#!/lifecycle/unit/{{$ctrl.lifeCycleId}}/{{$ctrl.lifeCycleId}}">
+        Journal du cycle de vie de l'unité archivistique
+      </a>
+    </li>
+    <li ng-if="$ctrl.lifeCycleType === 'objectgroup'">
+      <a ng-href="#!/lifecycle/objectgroup/{{$ctrl.lifeCycleId}}/{{$ctrl.lifeCycleId}}">
+        Journal du cycle de vie du groupe d'objet
+      </a>
+    </li>
+  </ol>
+
+  <div class="panel panel-default col-md-12  dynamic-table-box">
+    <a class="panel-header"  data-target="#boxLifeCycle" data-toggle="collapse">
+      <h2>JOURNAL DE CYCLE DE VIE - {{$ctrl.title}} - {{$ctrl.lifeCycleId}}</h2>
+    </a>
+    <div id="boxLifeCycle" class="panel-body panel-collapse collapse in">
+
+      <!--Pagination -->
+      <div style="text-align: center" ng-if = "$ctrl.showResult" >
+        <button class="btn btn-default btn-s" ng-disabled="$ctrl.currentPage <= 1" ng-click="$ctrl.currentPage=+$ctrl.currentPage-1">
+          Précédent
+        </button>
+        <input ng-model="$ctrl.currentPage" style="max-width: 40px">/{{$ctrl.resultPages}}
+        <button class="btn btn-default btn-s" ng-disabled="$ctrl.currentPage >= $ctrl.resultPages" ng-click="$ctrl.currentPage=+$ctrl.currentPage+1">
+          Suivant
+        </button>
+      </div>
+
+        <!--Nbre d'archives trouvées -->
+      <div  ng-if = "!$ctrl.showResult" class="text-center" style="padding-bottom: 20px">
+          <h3><span class="label label-danger">Impossible d'afficher le cycle de vie demandé</span></h3>
+      </div>
+
+      <dynamic-table custom-fields="$ctrl.customFields" selected-objects="$ctrl.selectedObjects">
+      </dynamic-table>
+
+      <div  ng-if = "$ctrl.showResult" class="table-responsive ">
+        <table class="table">
+          <tr>
+            <th ng-repeat = "column in $ctrl.columnsToDisplay" style="min-width:300px">
+              {{column.label | translate}}
+            </th>
+            <th ng-repeat = "column in $ctrl.selectedObjects">
+              {{column.label | translate}}
+            </th>
+          </tr>
+          <tbody>
+            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-repeat="result in $ctrl.lifeCycleDetails | startFormat : $ctrl.startFormat() | limitTo : $ctrl.itemsPerPage">
+              <td ng-repeat = "column in $ctrl.columnsToDisplay" ng-class="result.isStepLevelEvent ? 'logbookProcess': 'logbookTask'">
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
+              </td>
+              
+              <td ng-repeat = "column in $ctrl.selectedObjects" ng-class="result.isStepLevelEvent ? 'logbookProcess': 'logbookTask'">
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
+                <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

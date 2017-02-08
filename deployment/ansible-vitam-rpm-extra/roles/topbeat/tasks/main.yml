@@ -1,7 +1,7 @@
 ---
 # tasks file for topbeat
 - name: install topbeat rpm
-  yum:
+  package:
     name: topbeat
     state: latest
 

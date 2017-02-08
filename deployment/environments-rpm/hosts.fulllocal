@@ -159,7 +159,7 @@ environnement=fulllocal
 
 consul_domain=consul
 vitam_reverse_external_dns=localhost
-rpm_version=*
+package_version=*
 days_to_delete=365
 days_to_close=20
 days_to_delete_topbeat=20
@@ -186,3 +186,5 @@ http_proxy_environnement=
 
 vitam_storageofferdefault_host_1=localhost
 # vitam_storageofferdefault_host_2=localhost
+
+vitam_tenant_ids=[0,1,2]

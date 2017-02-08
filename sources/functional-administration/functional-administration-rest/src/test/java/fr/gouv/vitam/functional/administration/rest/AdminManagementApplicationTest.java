@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,7 +35,9 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -44,10 +47,15 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
@@ -66,21 +74,39 @@ public class AdminManagementApplicationTest {
     private static int serverPort;
     private static int oldPort;
     private static JunitHelper junitHelper;
-    private AdminManagementApplication application;
     static AdminManagementConfiguration configuration;
     private static File adminConfigFile;
+    private static ElasticsearchTestConfiguration configEs = null;
 
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    private final static String CLUSTER_NAME = "vitam-cluster";
+    private static ElasticsearchAccessFunctionalAdmin esClient;
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
 
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
+        // ES
+        try {
+            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
 
+        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
+        nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
+        esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
+        
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
+        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setClusterName(CLUSTER_NAME);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -93,7 +119,8 @@ public class AdminManagementApplicationTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        configuration = new AdminManagementConfiguration(nodes, "db-functional-administration");
+        configuration = new AdminManagementConfiguration(nodes, "db-functional-administration", 
+            CLUSTER_NAME, nodesEs);
         mongoDbAccess = MongoDbAccessAdminFactory.create(configuration);
         serverPort = junitHelper.findAvailablePort();
         oldPort = VitamServerFactory.getDefaultPort();

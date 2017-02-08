@@ -55,9 +55,10 @@ public class VitamSession {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamSession.class);
     private final VitamThreadFactory.VitamThread owningThread;
     private String requestId = null;
+    private Integer tenantId = null;
 
     /**
-     * @param owningThread
+     * @param owningThread the owning thread
      */
     public VitamSession(VitamThreadFactory.VitamThread owningThread) {
         this.owningThread = owningThread;
@@ -72,6 +73,7 @@ public class VitamSession {
     public static VitamSession from(VitamSession origin) {
         final VitamSession newSession = new VitamSession(origin.owningThread);
         newSession.requestId = origin.getRequestId();
+        newSession.tenantId = origin.getTenantId();
         return newSession;
     }
 
@@ -97,7 +99,7 @@ public class VitamSession {
     /**
      * Set the request id and saves it to the MDC
      *
-     * @param newRequestId
+     * @param newRequestId the request id
      */
     public void setRequestId(String newRequestId) {
         checkCallingThread();
@@ -113,9 +115,27 @@ public class VitamSession {
     }
 
     /**
+     * @return the current X-Tenant-Id
+     */
+    public Integer getTenantId() {
+        return tenantId;
+    }
+
+
+    /**
+     * Sets the tenantId 
+     * 
+     * @param newTenantId
+     */
+    public void setTenantId(Integer newTenantId) {
+        checkCallingThread();
+        this.tenantId = newTenantId;
+    }
+
+    /**
      * Sets the request id from the guid
      *
-     * @param guid
+     * @param guid the guid
      */
     public void setRequestId(GUID guid) {
         setRequestId(guid.getId());
@@ -132,6 +152,7 @@ public class VitamSession {
             throw new IllegalArgumentException("VitamSession should not be null");
         }
         setRequestId(newSession.getRequestId());
+        setTenantId(newSession.getTenantId());
     }
 
     /**
@@ -153,7 +174,7 @@ public class VitamSession {
 
     @Override
     public String toString() {
-        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + '\'' + '}';
+        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "'}";
     }
 
 

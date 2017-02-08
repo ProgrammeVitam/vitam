@@ -20,9 +20,11 @@ public class AccessExternalClientMockTest {
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
             " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
             " }";
+    final String BODY_WITH_ID = "{$query: {$eq: {\"#id\": \"identifier1\" }}, $projection: {}, $filter: {}}";
     final String ID = "identifier1";
     final String USAGE = "usage";
     final int VERSION = 1;
+    final int TENANT_ID = 0;
     AccessExternalClient client;
 
     @Before
@@ -37,35 +39,35 @@ public class AccessExternalClientMockTest {
     public void givenMockConfExistWhenAccessExternalSelectUnitsThenReturnResult()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        assertNotNull(client.selectUnits(JsonHandler.getFromString(queryDsql)));
+        assertNotNull(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitbyIDThenReturnResult()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        assertNotNull(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID));
+        assertNotNull(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalUpdateUnitbyIDThenReturnResult()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID));
+        assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectOfUnitbyIDThenReturnResult()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, IOException {
-        assertNotNull(client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION));
+        assertNotNull(client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectbyIDThenReturnResult()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        assertNotNull(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID));
+        assertNotNull(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
     }
 
     @Test
@@ -73,7 +75,7 @@ public class AccessExternalClientMockTest {
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException,
         LogbookClientException {
-        assertNotNull(client.selectOperation(JsonHandler.getFromString(queryDsql)));
+        assertNotNull(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID));
     }
 
     @Test
@@ -81,7 +83,7 @@ public class AccessExternalClientMockTest {
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException,
         LogbookClientException {
-        assertNotNull(client.selectOperationbyId(ID));
+        assertNotNull(client.selectOperationbyId(ID, TENANT_ID));
     }
 
     @Test
@@ -89,7 +91,15 @@ public class AccessExternalClientMockTest {
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException,
         LogbookClientException {
-        assertNotNull(client.selectUnitLifeCycleById(ID));
+        assertNotNull(client.selectUnitLifeCycleById(ID, TENANT_ID));
+    }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleLogbook_ThenRetururnResult()
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException,
+        LogbookClientException {
+        assertNotNull(client.selectUnitLifeCycle(JsonHandler.getFromString(BODY_WITH_ID), TENANT_ID));
     }
 
     @Test
@@ -97,6 +107,6 @@ public class AccessExternalClientMockTest {
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException,
         LogbookClientException {
-        assertNotNull(client.selectObjectGroupLifeCycleById(ID));
+        assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID));
     }
 }

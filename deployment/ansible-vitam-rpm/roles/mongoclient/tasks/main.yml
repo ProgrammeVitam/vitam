@@ -1,6 +1,6 @@
 ---
 
-- name: mongoclient rpm is installed
+- name: Ensure vitam-mongoclient package is installed
   package:
     name: vitam-mongoclient
     state: present

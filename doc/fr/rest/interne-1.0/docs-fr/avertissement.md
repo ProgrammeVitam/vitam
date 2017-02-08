@@ -12,3 +12,5 @@ Cette version d'API présente des fonctionnalités sous différents statuts :
   - **Beta** : l'API est proche de sa version stable
   - **Production** : l'API est considérée comme "production ready"
   - **Deprecated** : l'API est considérée comme obsolète et devrait disparaître dans une version majeure prochaine
+
+  Pour le moment, la partie **/containers/{cid}** des paths n'est pas encore pris en compte mais doit être ajoutée à terme.

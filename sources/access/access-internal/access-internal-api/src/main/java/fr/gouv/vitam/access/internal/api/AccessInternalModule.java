@@ -101,7 +101,6 @@ public interface AccessInternalModule {
      * @param queryJson the DSL query
      * @param qualifier the qualifier to be retrieve (ie: Dissemination etc.)
      * @param version the version number to get
-     * @param tenantId the tenant id
      * @return The object requested as an InputStream within a Response from remote server and its original filename and
      *         mimetype
      *
@@ -111,7 +110,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException For other technical errors
      */
     AccessBinaryData getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup, JsonNode queryJson,
-        String qualifier, int version, String tenantId)
+        String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessInternalExecutionException;
 }

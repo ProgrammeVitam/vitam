@@ -1,9 +1,0 @@
-.DS_Store
-*.custom.*
-*.log
-*.map
-lodash.compat.min.js
-coverage
-node_modules
-.opt-in
-.opt-out

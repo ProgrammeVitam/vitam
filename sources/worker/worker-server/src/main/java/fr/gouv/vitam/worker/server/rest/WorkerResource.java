@@ -1,5 +1,3 @@
-package fr.gouv.vitam.worker.server.rest;
-
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -26,6 +24,7 @@ package fr.gouv.vitam.worker.server.rest;
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.server.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -40,10 +39,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,11 +51,11 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.worker.core.api.Worker;
-import fr.gouv.vitam.worker.core.impl.WorkerImplFactory;
+import fr.gouv.vitam.worker.core.impl.WorkerFactory;
+import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
@@ -68,28 +68,33 @@ public class WorkerResource extends ApplicationStatusResource {
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
 
+    public final WorkerFactory WORKER_FACTORY;
+
     private final int tenantId = 0;
     private final Worker workerMocked;
 
     /**
      * Constructor
      *
-     * @param configuration the worker configuration to be applied
+     * @param pluginLoader the plugin loader
      */
-    public WorkerResource(WorkerConfiguration configuration) {
+    public WorkerResource(PluginLoader pluginLoader) {
         LOGGER.info("init Worker Resource server");
         workerMocked = null;
+        WORKER_FACTORY = WorkerFactory.getInstance(pluginLoader);
     }
 
 
     /**
      * Constructor for tests
      *
+     * @param pluginLoader the plugin loader
      * @param worker the worker service be applied
      */
-    WorkerResource(Worker worker) {
+    WorkerResource(PluginLoader pluginLoader, Worker worker) {
         LOGGER.info("init Worker Resource server");
         workerMocked = worker;
+        WORKER_FACTORY = WorkerFactory.getInstance(pluginLoader);
     }
 
     /**
@@ -102,7 +107,6 @@ public class WorkerResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getStepsList() {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
@@ -111,21 +115,22 @@ public class WorkerResource extends ApplicationStatusResource {
      * Submit a step to be launched
      *
      * @param headers http header
-     * @param descriptionStep the description of the step as a {fr.gouv.vitam.worker.common.DescriptionStep}
+     * @param descriptionStepJson the description of the step as a {fr.gouv.vitam.worker.common.DescriptionStep}
      * @return Response containing the status of the step
      */
     @Path("tasks")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response submitStep(@Context HttpHeaders headers, DescriptionStep descriptionStep) {
+    public Response submitStep(@Context HttpHeaders headers, JsonNode descriptionStepJson) {
         HttpHeaderHelper.checkVitamHeaders(headers);
         try {
-            ParametersChecker.checkParameter("Must have a step description", descriptionStep);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStep));
+            ParametersChecker.checkParameter("Must have a step description", descriptionStepJson);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(descriptionStepJson));
             final ItemStatus responses;
+            DescriptionStep descriptionStep = JsonHandler.getFromJsonNode(descriptionStepJson, DescriptionStep.class);
             if (workerMocked == null) {
-                try (Worker worker = WorkerImplFactory.create()) {
+                try (Worker worker = WORKER_FACTORY.create()) {
                     responses =
                         worker.run(descriptionStep.getWorkParams(),
                             descriptionStep.getStep());
@@ -157,7 +162,6 @@ public class WorkerResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStepStatus(@PathParam("id_async") String idAsync) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
@@ -173,7 +177,6 @@ public class WorkerResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response modifyStep(@PathParam("id_async") String idAsync) {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
     }

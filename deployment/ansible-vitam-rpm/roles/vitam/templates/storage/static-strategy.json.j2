@@ -1,12 +1,10 @@
 {
     "id" : "default",
     "hot" : {
-        "copy" : 1,
+        "copy" : {{ groups['hosts-storage-offer-default']|length }},
         "offers" : [
-            {% for i in vitam_storageofferdefault_list %}
-            {% if i.name is defined %}
-            {"id" : "{{i.name}}"}{% if not loop.last %},{% endif %}
-            {% endif %}
+            {% for item in groups['hosts-storage-offer-default'] %}
+            {"id" : "{{item}}"}{% if not loop.last %},{% endif %}
             {% endfor %}
         ]
     }

@@ -1,1 +1,8 @@
-storagePath: {{vitam_folder_data}}
+{% if vitam_provider_offer != "openstack-swift" %}storagePath: {{vitam_folder_data}}
+{% endif %}
+provider: {{vitam_provider_offer}}
+keystoneEndPoint: {{vitam_keystone_auth_url}}
+swiftUid: {{ vitam_swift_uid }}
+swiftSubUser: {{vitam_swift_subuser }}
+credential: {{ vitam_keystone_passwd }}
+cephMode: {{ vitam_ceph_mode }}

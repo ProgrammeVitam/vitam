@@ -61,6 +61,8 @@ public enum FunctionalAdminCollections {
     ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class);
 
     private VitamCollection vitamCollection;
+    
+    final public static String ID = "_id";
 
     private FunctionalAdminCollections(final Class<?> clasz) {
         vitamCollection = VitamCollectionHelper.getCollection(clasz);
@@ -74,6 +76,17 @@ public enum FunctionalAdminCollections {
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
         vitamCollection.initialize(db, recreate);
+    }
+    
+    /**
+     * Initialize the collection
+     *
+     * @param db database type
+     * @param recreate true is as recreate type
+     */
+    protected void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
+        vitamCollection.initialize(esClient);
+        esClient.addIndex(this);
     }
 
     /**
@@ -111,5 +124,13 @@ public enum FunctionalAdminCollections {
     public long getCount() {
         return vitamCollection.getCollection().count();
     }
-
+    
+    
+    /**
+     * get ElasticSearch Client
+     * @return client Es
+     */
+    public ElasticsearchAccessFunctionalAdmin getEsClient() {
+        return (ElasticsearchAccessFunctionalAdmin) vitamCollection.getEsClient();
+    }
 }

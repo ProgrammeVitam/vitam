@@ -34,6 +34,9 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
@@ -115,6 +118,8 @@ public class LogBookLifeCycleUnitTest {
     private static LogbookLifeCycleObjectGroupParameters LogbookLifeCycleObjectGroupParametersStart;
 
     private static JunitHelper junitHelper;
+
+    private static final Integer TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -304,9 +309,20 @@ public class LogBookLifeCycleUnitTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
+        // Commit the created unit lifeCycle
+        given()
+            .when()
+            .put(COMMIT_UNIT_ID_URI,
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .then()
+            .statusCode(Status.OK.getStatusCode());
+
         // Test direct access
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new Select().getFinalSelect())
             .when()
             .get("/unitlifecycles/" +
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
@@ -316,6 +332,7 @@ public class LogBookLifeCycleUnitTest {
         // Test Iterator
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
             .when()
             .get(LIFE_UNIT_URI,
@@ -449,32 +466,6 @@ public class LogBookLifeCycleUnitTest {
     }
 
     @Test
-    public final void when_commit_OG_thenReturn_OK() {
-        given()
-            .contentType(ContentType.JSON)
-            .body(logbookLifeCyclesUnitParametersUpdate.toString())
-            .when()
-            .put(COMMIT_OG_ID_URI,
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.objectIdentifier))
-            .then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
-    public final void when_commit_UNIT_thenReturn_OK() {
-        given()
-            .contentType(ContentType.JSON)
-            .body(logbookLifeCyclesUnitParametersUpdate.toString())
-            .when()
-            .put(COMMIT_UNIT_ID_URI,
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.objectIdentifier))
-            .then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
     public final void deleteObjectGroup_PassTheRightArgument_ResponseOK() {
         // Delete OK
         LogbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
@@ -502,6 +493,7 @@ public class LogBookLifeCycleUnitTest {
                 LogbookLifeCycleObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
             .then()
             .statusCode(Status.CREATED.getStatusCode());
+
         given()
             .when()
             .delete(LIFE_OG_ID_URI,
@@ -526,11 +518,13 @@ public class LogBookLifeCycleUnitTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        when(logbookLifeCycles.getUnitById(FAKE_UNIT_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get(SELECT_UNIT_BY_ID_URI);
+        JsonNode query = JsonHandler.getFromString(LIFECYCLE_SAMPLE);
+        when(logbookLifeCycles.getUnitById(query)).thenThrow(LogbookNotFoundException.class);
+        given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
+            .param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode())
+            .when().get(SELECT_UNIT_BY_ID_URI);
     }
 
     @SuppressWarnings("unchecked")
@@ -539,7 +533,7 @@ public class LogBookLifeCycleUnitTest {
         throws LogbookDatabaseException, LogbookNotFoundException {
         final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
         when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().contentType(ContentType.JSON).body(new Select().getFinalSelect()).param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }
 }

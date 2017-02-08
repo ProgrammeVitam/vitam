@@ -3,15 +3,17 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>parent</artifactId>
-    <version>0.13.0-SNAPSHOT</version>
+    <version>0.14.0-SNAPSHOT</version>
   </parent>
   <artifactId>ihm-recette</artifactId>
   <packaging>pom</packaging>
   <name>ihm-recette</name>
   <description>IHM Admin recette VITAM</description>
 
-  <modules>
-  	<module>ihm-recette-web-application</module>
-  	<module>ihm-recette-soap-ui</module>
-  </modules>
+    <modules>
+        <module>ihm-recette-web-application</module>
+        <module>ihm-recette-soap-ui</module>
+        <module>ihm-recette-web-front</module>
+    </modules>
+
 </project>

@@ -40,7 +40,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -53,7 +52,6 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -68,6 +66,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
@@ -82,6 +81,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
@@ -159,23 +159,27 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * Select an operation
+     * Selects an operation
      *
-     * @param operationId the operation id
+     * @param id operation ID
+     * @param queryDsl the query containing the ID
      * @return the response with a specific HTTP status
      */
     @GET
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getOperation(@PathParam("id_op") String operationId) {
+    public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl) {
         Status status;
         try {
-            final LogbookOperation result = logbookOperation.getById(operationId);
+            final List<LogbookOperation> result = logbookOperation.select(queryDsl, false);
+            if (result.size() != 1) {
+                throw new LogbookDatabaseException("Result size different than 1.");
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
@@ -438,6 +442,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param operationId the operation id
      * @param xcursor if True means new query, if False means end of query from client side
      * @param xcursorId if present, means continue on Cursor
+     * @param evtStatus the evenement status (commited / not_commited)
      * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
@@ -447,7 +452,8 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, JsonNode query) {
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
+        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
         Status status;
         try {
             String cursorId = xcursorId;
@@ -461,15 +467,23 @@ public class LogbookResource extends ApplicationStatusResource {
             if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
+                LifeCycleStatusCode lifeCycleStatus = null;
+
+                if (evtStatus == null) {
+                    lifeCycleStatus = LifeCycleStatusCode.COMMITTED;
+                } else {
+                    lifeCycleStatus = LifeCycleStatusCode.valueOf(evtStatus);
+                }
+
                 // create the cursor
-                cursorId = logbookLifeCycle.createCursorUnit(operationId, query);
+                cursorId = logbookLifeCycle.createCursorUnit(operationId, query, lifeCycleStatus);
             }
             final RequestResponseOK responseOK =
                 new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
-                    final LogbookLifeCycleUnit lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
+                    final LogbookLifeCycle lcUnit = logbookLifeCycle.getCursorUnitNext(cursorId);
                     responseOK.addResult(JsonHandler.toJsonNode(lcUnit));
                 }
             } catch (final LogbookNotFoundException e) {
@@ -621,6 +635,14 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()))
                 .build();
+        } catch (LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            status = Status.CONFLICT;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
         }
         return Response.status(Response.Status.OK).build();
     }
@@ -683,6 +705,19 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response commitUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @PathParam("id_lc") String unitLcId) {
         LOGGER.debug("UnitLifeCycle commited: " + unitLcId);
+        try {
+            logbookLifeCycle.commitUnit(operationId, unitLcId);
+        } catch (LogbookDatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (LogbookNotFoundException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (LogbookAlreadyExistsException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.CONFLICT).build();
+        }
+
         return Response.status(Response.Status.OK).build();
     }
 
@@ -755,6 +790,9 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.CONFLICT).build();
         }
         return Response.status(Response.Status.OK).build();
     }
@@ -768,14 +806,17 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId) {
+    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
         Status status;
         try {
-            final LogbookLifeCycleUnit result = logbookLifeCycle.getUnitById(unitLifeCycleId);
+            final List<LogbookLifeCycleUnit> result = logbookLifeCycle.selectUnit(queryDsl, false);
+            if (result.size() != 1) {
+                throw new LogbookDatabaseException("Result size different than 1.");
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
@@ -797,6 +838,46 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * gets the unit life cycle based on its id (using a queryDsl)
+     *
+     * @param queryDsl dsl query containing the life cycle id
+     * @return the unit life cycle
+     */
+    @GET
+    @Path("/unitlifecycles")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getUnitLifeCycle(JsonNode queryDsl) {
+        Status status;
+        try {
+            final LogbookLifeCycleUnit result = logbookLifeCycle.getUnitById(queryDsl);
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK()
+                    .setHits(1, 0, 1)
+                    .addResult(result))
+                .build();
+        } catch (final LogbookNotFoundException exc) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(new RequestResponseOK()
+                    .setHits(0, 0, 1)
+                    .addResult(JsonHandler.createArrayNode()))
+                .build();
+        } catch (final LogbookException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+    }
+
+
     /***** LIFE CYCLES UNIT - END *****/
 
     /***** LIFE CYCLES OBJECT GROUP - START *****/
@@ -806,6 +887,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * @param operationId the operation id
      * @param xcursor if True means new query, if False means end of query from client side
      * @param xcursorId if present, means continue on Cursor
+     * @param evtStatus the evenement status (commited / not_commited)
      * @param query as JsonNode
      * @return the response with a specific HTTP status
      */
@@ -815,7 +897,8 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, JsonNode query) {
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
+        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
         Status status;
         try {
             String cursorId = xcursorId;
@@ -829,15 +912,23 @@ public class LogbookResource extends ApplicationStatusResource {
             if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
                 // check null or empty parameters
                 ParametersChecker.checkParameter("Arguments must not be null", operationId, query);
+
+                LifeCycleStatusCode lifeCycleStatus = null;
+                if (evtStatus == null) {
+                    lifeCycleStatus = LifeCycleStatusCode.COMMITTED;
+                } else {
+                    lifeCycleStatus = LifeCycleStatusCode.valueOf(evtStatus);
+                }
+
                 // create the cursor
-                cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query);
+                cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query, lifeCycleStatus);
             }
             final RequestResponseOK responseOK =
                 new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
-                    final LogbookLifeCycleObjectGroup lcObjectGroup =
+                    final LogbookLifeCycle lcObjectGroup =
                         logbookLifeCycle.getCursorObjectGroupNext(cursorId);
                     responseOK.addResult(JsonHandler.toJsonNode(lcObjectGroup));
                 }
@@ -987,6 +1078,14 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
                     .setDescription(exc.getMessage()))
                 .build();
+        } catch (LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            status = Status.CONFLICT;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
         }
         return Response.status(Response.Status.OK).build();
     }
@@ -1048,7 +1147,20 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response commitObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @PathParam("id_lc") String objGrpId) {
-        LOGGER.debug("ObjectGroupLifeCycle commited: " + objGrpId);
+        LOGGER.debug("ObjectGroup commited: " + objGrpId);
+        try {
+            logbookLifeCycle.commitObjectGroup(operationId, objGrpId);
+        } catch (LogbookDatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (LogbookNotFoundException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (LogbookAlreadyExistsException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.CONFLICT).build();
+        }
+
         return Response.status(Response.Status.OK).build();
     }
 
@@ -1121,6 +1233,9 @@ public class LogbookResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.BAD_REQUEST).build();
+        } catch (LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            return Response.status(Response.Status.CONFLICT).build();
         }
         return Response.status(Response.Status.OK).build();
     }
@@ -1134,14 +1249,17 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId) {
+    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {
         Status status;
         try {
-            final LogbookLifeCycleObjectGroup result = logbookLifeCycle.getObjectGroupById(objectGroupLifeCycleId);
+            final List<LogbookLifeCycleObjectGroup> result = logbookLifeCycle.selectObjectGroup(queryDsl, false);
+            if (result.size() != 1) {
+                throw new LogbookDatabaseException("Result size different than 1.");
+            }
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK()
                     .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.toJson())))
+                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
@@ -1164,5 +1282,73 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /***** LIFE CYCLES OBJECT GROUP - END *****/
+
+    @DELETE
+    @Path("/operations/{id_op}/unitlifecycles")
+    public Response rollBackUnitLifeCyclesByOperation(@PathParam("id_op") String operationId) {
+        Status status;
+        try {
+            logbookLifeCycle.rollBackUnitsByOperation(operationId);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    @DELETE
+    @Path("/operations/{id_op}/objectgrouplifecycles")
+    public Response rollBackObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId) {
+        Status status;
+        try {
+            logbookLifeCycle.rollBackObjectGroupsByOperation(operationId);
+        } catch (final LogbookNotFoundException exc) {
+            LOGGER.error(exc);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook").setState("code_vitam").setMessage(status.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+        return Response.status(Response.Status.OK).build();
+    }
 
 }

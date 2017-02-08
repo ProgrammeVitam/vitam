@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.server.application.configuration;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
@@ -34,6 +36,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 public abstract class DefaultVitamApplicationConfiguration implements VitamApplicationConfiguration {
     protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     protected String jettyConfig;
+    protected List<String> tenants;
 
     @Override
     public String getJettyConfig() {
@@ -44,6 +47,18 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
     public VitamApplicationConfiguration setJettyConfig(String jettyConfig) {
         ParametersChecker.checkParameter("JettyConfiguration file" + IS_A_MANDATORY_PARAMETER, jettyConfig);
         this.jettyConfig = jettyConfig;
+        return this;
+    }
+    
+    @Override
+    public List<String> getTenants() {
+        return tenants;
+    }
+
+    @Override
+    public VitamApplicationConfiguration setTenants(List<String> tenants) {
+        ParametersChecker.checkParameter("Tenant id" + IS_A_MANDATORY_PARAMETER, tenants);
+        this.tenants = tenants;
         return this;
     }
 }

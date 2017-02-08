@@ -43,6 +43,7 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -71,7 +72,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -115,6 +122,11 @@ public class WebApplicationResourceDeleteTest {
     private static JunitHelper.ElasticsearchTestConfiguration config = null;
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
+    private static final Integer TENANT_ID = 0;
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -176,6 +188,8 @@ public class WebApplicationResourceDeleteTest {
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
+        ElasticsearchAccessAdminFactory.create(
+            new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, nodes));
 
         try {
             application = new ServerApplication(adminConfigFile.getAbsolutePath());
@@ -234,7 +248,9 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteRulesFileOK() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
@@ -246,7 +262,9 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testAccessionRegisterOK() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
             final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
@@ -322,7 +340,9 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteAllOk() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
             // insert and check data
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);

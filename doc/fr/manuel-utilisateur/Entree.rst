@@ -104,7 +104,7 @@ Le résultat de la recherche est affiché sous forme de tableau, comprenant les 
 
 Par défaut, les colonnes sont triées par dates de versement, du plus récent au plus ancien.
 
-.. image:: images/op_entree_liste.jpg
+.. image:: images/op_entree_liste.png
 
 Depuis cette liste de résultats, l'utilisateur peut consulter le détail d'une opération d'entrée en cliquant sur la ligne de cette opération.
 
@@ -114,10 +114,11 @@ Consultation du détail
 
 Suite à la recherche d'une opération d'entrée, l'utilisateur peut choisir de consulter le détail des événements intervenus durant le processus d'entrée.
 Pour cela, il clique sur la ligne de l'entrée voulue.
-Une fenêtre de type "modale" s'ouvre, pour présenter le détail de cette entrée, sans perdre le focus sur la liste globale des résultats.
+La page sur laquelle est présenté le détail du journal d'entrée s'ouvre dans un nouvel onglet. L'utilisateur peut ainsi revenir à la page d'affichage de la liste globale des resultats.
 
-L'utilisateur peut consulter sur cet écran toutes les informations contenues dans le journal des opérations associées à cette entrée.
 Le processus d'entrée est décrit étape par étape avec des messages correspondant au résultat de chaque étape (avec les informations de début et de fin d'étape) et de chaque tâche (associée à une étape, seule l'information de fin de tâche est affichée).
+
+En haut de la page figure le numéro de l'opération d'entrée, sous la forme "Détail de l'opération - Numéro de l'opération d'entrée"
 
 Le détail est affiché sous forme de tableau comportant pour chaque événement les éléments suivants :
 
@@ -126,6 +127,6 @@ Le détail est affiché sous forme de tableau comportant pour chaque événement
 - Statut : statut final de l'étape ou de la tâche
 - Message : message expliquant le statut de cette étape ou de la tâche
 
-.. image:: images/op_entree_detail.jpg
+.. image:: images/op_entree_detail.png
 
-Un clic sur le bouton "Fermer" ou hors de la fenêtre "modale" referme celle-ci.
+L'onglet d'affichage de la page détail d'une opération d'entrée peut être fermé à tout moment.

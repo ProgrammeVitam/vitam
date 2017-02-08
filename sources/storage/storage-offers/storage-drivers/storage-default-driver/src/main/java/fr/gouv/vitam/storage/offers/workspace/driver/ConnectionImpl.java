@@ -46,13 +46,17 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.PutObjectResult;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
+import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -66,7 +70,11 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
+    private static final String OBJECT = "object_";
+
     private static final String OBJECTS_PATH = "/objects";
+    private static final String CHECK_PATH = "/check";
+    private static final String COUNT_PATH = "/count";
 
     private static final String NOT_YET_IMPLEMENTED = "Not yet implemented";
 
@@ -79,6 +87,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
+    private static final String DIGEST_IS_A_MANDATORY_PARAMETER = "Digest is a mandatory parameter";
+
     private final String driverName;
 
     private final Properties parameters;
@@ -95,12 +105,16 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         this.parameters = parameters;
     }
 
+    /**
+     * return account capacity for swift offer
+     */
     @Override
-    public StorageCapacityResult getStorageCapacity(String tenantId) throws StorageDriverException {
+    public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OBJECTS_PATH, getDefaultHeaders(tenantId, null),
+            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.OBJECT,
+                getDefaultHeaders(tenantId, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return handleResponseStatus(response, StorageCapacityResult.class);
@@ -117,23 +131,51 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
-    public GetObjectResult getObject(GetObjectRequest request) throws StorageDriverException {
+    public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getType() + COUNT_PATH,
+                getDefaultHeaders(request.getTenantId(), null, null, null),
+                MediaType.APPLICATION_JSON_TYPE, false);
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                JsonNode result = handleResponseStatus(response, JsonNode.class);
+                return new StorageCountResult(request.getTenantId(), request.getType(),
+                    result.get("numberObjects").longValue());
+            }
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                response.getStatusInfo().getReasonPhrase());
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public StorageGetResult getObject(StorageObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
-        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getFolder());
-        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getFolder()));
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getFolder() + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                performRequest(HttpMethod.GET,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null, null, null),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    final GetObjectResult result =
-                        new GetObjectResult(request.getTenantId(), response);
+                    final StorageGetResult result =
+                        new StorageGetResult(request.getTenantId(), request.getType(), request.getGuid(), response);
                     return result;
                 case NOT_FOUND:
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
@@ -158,7 +200,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
-    public PutObjectResult putObject(PutObjectRequest request) throws StorageDriverException {
+    public StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException {
         Response response = null;
         try {
             ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
@@ -166,20 +208,21 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
             ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
             ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
-            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.valueOf(request.getType()));
+            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
             ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
 
             final InputStream stream = request.getDataStream();
             // init
             final ObjectInit objectInit = new ObjectInit();
-            objectInit.setDigestAlgorithm(DigestType.fromValue(request.getDigestAlgorithm()));
-            objectInit.setType(DataCategory.valueOf(request.getType()));
+            objectInit.setDigestAlgorithm(DigestType.valueOf(request.getDigestAlgorithm()));
+            objectInit.setType(DataCategory.getByFolder(request.getType()));
             response =
-                performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT),
+                performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null),
                     objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
-            return performPutRequests(request.getTenantId(), stream, handleResponseStatus(response, ObjectInit.class));
+            return performPutRequests(stream, handleResponseStatus(response, ObjectInit.class),
+                request.getTenantId());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
@@ -194,20 +237,66 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
-    public RemoveObjectResult removeObject(RemoveObjectRequest request) throws StorageDriverException {
-        throw new UnsupportedOperationException(NOT_YET_IMPLEMENTED);
+    public StorageRemoveResult removeObject(StorageRemoveRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
+        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.DELETE,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null,
+                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                    MediaType.APPLICATION_JSON_TYPE, false);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    final JsonNode json = handleResponseStatus(response, JsonNode.class);
+                    final StorageRemoveResult result =
+                        new StorageRemoveResult(request.getTenantId(), request.getType(), request.getGuid(),
+                            request.getDigestAlgorithm(), request.getDigestHashBase16(),
+                            Response.Status.OK.toString().equals(json.get("status").asText()));
+                    return result;
+                case NOT_FOUND:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                        "not found");
+                case BAD_REQUEST:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Bad request");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(e);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e.getMessage());
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
+
     @Override
-    public Boolean objectExistsInOffer(GetObjectRequest request) throws StorageDriverException {
+    public Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null), MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                performRequest(HttpMethod.HEAD,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null, null, null),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -273,15 +362,24 @@ public class ConnectionImpl extends DefaultClient implements Connection {
      *
      * @param tenantId the tenantId
      * @param command the command to be added
+     * @param digest the digest of the object to be added
+     * @param digestType the type of the digest to be added
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(String tenantId, String command) {
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command, String digest,
+        String digestType) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (tenantId != null) {
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         }
         if (command != null) {
             headers.add(GlobalDataRest.X_COMMAND, command);
+        }
+        if (digest != null) {
+            headers.add(GlobalDataRest.X_DIGEST, digest);
+        }
+        if (digestType != null) {
+            headers.add(GlobalDataRest.X_DIGEST_ALGORITHM, digestType);
         }
         return headers;
     }
@@ -290,23 +388,25 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     /**
      * Method performing a PutRequests
      *
-     * @param tenantId the tenant Id
+     * @param containerName the container Name
      * @param stream the stream to be chunked if necessary
      * @param result the result received from the server after the init
+     * @param tenantId the tenant id
      * @return a PutObjectResult the final result received from the server
      * @throws StorageDriverException in case the server encounters an exception
      */
-    private PutObjectResult performPutRequests(String tenantId, InputStream stream, ObjectInit result)
+    private StoragePutResult performPutRequests(InputStream stream, ObjectInit result,
+        Integer tenantId)
         throws StorageDriverException {
-        PutObjectResult finalResult = null;
+        StoragePutResult finalResult = null;
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getId(),
-                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END),
+            response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
+                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
-            finalResult = new PutObjectResult(result.getId(), json.get("digest").textValue(), tenantId,
-                Long.valueOf(json.get("size").textValue()));
+            finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
+                json.get("digest").textValue(), Long.valueOf(json.get("size").textValue()));
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                     "Error to perfom put object");
@@ -319,6 +419,55 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             consumeAnyEntityAndClose(response);
         }
         return finalResult;
+    }
+
+    @Override
+    public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+        ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestAlgorithm());
+        ParametersChecker.checkParameter(DIGEST_IS_A_MANDATORY_PARAMETER, request.getDigestHashBase16());
+        Response response = null;
+        try {
+            response =
+                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" +
+                    request.getGuid() + CHECK_PATH,
+                    getDefaultHeaders(request.getTenantId(), null,
+                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                    MediaType.WILDCARD_TYPE);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    final JsonNode json = handleResponseStatus(response, JsonNode.class);
+                    final StorageCheckResult result =
+                        new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
+                            request.getDigestAlgorithm(), request.getDigestHashBase16(),
+                            json.get(StorageConstants.OBJECT_VERIFICATION).asBoolean());
+                    return result;
+                case NOT_FOUND:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                        "not found");
+                case PRECONDITION_FAILED:
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
+                        "Precondition failed");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                        INTERNAL_SERVER_ERROR);
+            }
+        } catch (final VitamClientInternalException e1) {
+            LOGGER.error(e1);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                e1.getMessage());
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
     }
 
 }

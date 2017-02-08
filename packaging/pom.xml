@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.13.0-SNAPSHOT</version>
+		<version>0.14.0-SNAPSHOT</version>
 		<relativePath>../sources/pom.xml</relativePath>
 	</parent>
 
@@ -21,6 +21,7 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
 				<executions>
+					<!-- rpm -->
 					<execution>
 						<id>Build native vitam-product rpm</id>
 						<phase>compile</phase>
@@ -39,6 +40,28 @@
 						</goals>
 						<configuration>
 							<executable>../rpm/vitam-external/build_repo.sh</executable>
+						</configuration>
+					</execution>
+
+					<!-- debian -->
+					<execution>
+						<id>Build native vitam-product deb</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>../deb/vitam-product/build-all.sh</executable>
+						</configuration>
+					</execution>
+					<execution>
+						<id>Get native vitam-external deb</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>../deb/vitam-external/build_repo.sh</executable>
 						</configuration>
 					</execution>
 				</executions>
@@ -77,12 +100,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>access-internal-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>access-external-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>access-external-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<dependency>
@@ -91,12 +126,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>processing-management</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>workspace-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<dependency>
@@ -105,12 +152,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>metadata-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ingest-internal-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-internal-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<dependency>
@@ -119,12 +178,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-external-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-rest</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<dependency>
@@ -133,12 +204,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>worker-server</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>storage-engine-server</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-server</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<dependency>
@@ -147,12 +230,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-rest</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>storage-offer-default</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-offer-default</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<dependency>
@@ -161,12 +256,24 @@
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-demo-web-application</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ihm-recette-web-application</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-recette-web-application</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 		<!-- Docs dependencies -->
@@ -183,6 +290,12 @@
 			<artifactId>library-server</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>library-server</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
 		</dependency>
 
 	</dependencies>

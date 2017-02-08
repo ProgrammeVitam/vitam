@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public final class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String urlWorkspace;
+    private Integer timeoutMsPerKB;
 
     /**
      * StorageConfiguration empty constructor for YAMLFactory
@@ -60,4 +61,20 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
         return this;
     }
 
+    /**
+     * @return the timeout in millisecond for one kB
+     */
+    public Integer getTimeoutMsPerKB() {
+        return timeoutMsPerKB;
+    }
+
+    /**
+     * @param timeoutMsPerKB the timeout for on kB transfered in milliseconds
+     *
+     * @return this
+     */
+    public StorageConfiguration setTimeoutMsPerKB(Integer timeoutMsPerKB) {
+        this.timeoutMsPerKB = timeoutMsPerKB;
+        return this;
+    }
 }

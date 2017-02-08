@@ -52,7 +52,8 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.workspace.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -60,11 +61,12 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.common.ErrorMessage;
 
 
 /**
  * Workspace client which calls rest services
+ * <p>
+ * FIXME design : is it normal that the workspaceClient extends ContentAddressableStorage ?
  */
 public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage {
 
@@ -118,15 +120,15 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         // FIXME P1
     }
 
-    
+
     @Override
     public void deleteContainer(String containerName, boolean recursive)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {        
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         Response response = null;
         try {
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();                
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_RECURSIVE, recursive);
             response = performRequest(HttpMethod.DELETE, CONTAINERS + containerName, headers,
                 MediaType.APPLICATION_JSON_TYPE, false);
@@ -157,6 +159,34 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
             response = performRequest(HttpMethod.HEAD, CONTAINERS + containerName, null,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return Response.Status.OK.getStatusCode() == response.getStatus();
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public long countObjects(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + "/count", null,
+                MediaType.APPLICATION_JSON_TYPE, false);
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                JsonNode node = response.readEntity(JsonNode.class);
+                return node.get("objectNumber").asLong();
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
+                LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.FOLDER_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
             throw new ContentAddressableStorageServerException(e);
@@ -545,6 +575,13 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public boolean checkObject(String containerName, String objectId, String digest,
+        DigestType digestAlgorithm) throws ContentAddressableStorageException {
+        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
+        return offerDigest.equals(digest);
     }
 
 }

@@ -1,0 +1,110 @@
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li>Administration</li>
+    <li><a href="#!/admin/formats">Référentiel des formats</a></li>
+  </ol>
+
+  <div class="panel panel-default boxSearchWrapper col-md-12">
+    	<a class="panel-header" data-toggle="collapse">
+      		<h2>Référentiel des formats</h2>
+    	</a>
+
+    	<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="fileCtrl.getFileFormats()">
+    		<div class="col-md-12">
+        <div class="row">
+          <div class="boxSimpleSearchInput form-group col-md-6  m-b-50 "
+            style="width: 40%; margin-left: 0px">
+            <label for="entryName">Nom de format</label>
+            <div class="input-group">
+              <input ng-model="fileCtrl.searchOptions.FormatName" id="entryName"
+                name="entryName" type="text"
+                class="form-control input-lg" />
+              <div class="input-group-addon">
+                <button class="btn btn-primary center-block"
+                  ng-click="fileCtrl.clearInput('FormatName')" type="button">
+                  <i class="material-icons pull-left">clear</i>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="boxSimpleSearchInput form-group col-md-4  m-b-50 "
+            style="width: 20%; margin-left: 0px">
+            <label for="entrypuid">PUID</label>
+            <div class="input-group">
+              <input ng-model="fileCtrl.searchOptions.PUID" id="entrypuid"
+                name="entrypuid" type="text"
+                class="form-control input-lg" />
+              <div class="input-group-addon">
+                <button class="btn btn-primary center-block"
+                  ng-click="fileCtrl.clearInput('PUID')" type="button">
+                  <i class="material-icons pull-left">clear</i>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary center-block">
+          <i class="material-icons pull-left">search</i> <span>Rechercher</span>
+        </button>
+        <button ng-if="fileCtrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+                {{fileCtrl.errorMessage}}
+            </button>
+            </div>
+    </form>
+    
+  </div>
+    <div class="clearfix"></div>
+
+  <!--Pagination -->
+  <div style="text-align: center">
+    <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage-1">
+      Précédent
+    </button>
+    <input ng-model="fileCtrl.currentPage" style="max-width: 40px" >/{{fileCtrl.resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage+1">
+      Suivant
+    </button>
+  </div>
+
+    <div class="panel panel-default col-md-12">
+    	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
+      <h2>
+        Résultats
+        <span ng-if="fileCtrl.results == 0 || fileCtrl.results > 0">({{fileCtrl.results}})</span>
+      </h2>
+    </a>
+
+    <div id="boxSearchResults"
+      class="panel-body panel-collapse collapse in">
+      <div class="table-responsive">
+        		<div class="col-md-9" style="padding-top: 40px">
+            		<table class="table table-bordered">
+                		<thead style="text-align: center">
+                		<tr>
+                    		<th>PUID</th>
+                    		<th>Nom de format</th>
+                    		<th>Version</th>
+                    		<th>MIME</th>
+                   			<th>Extensions</th>
+                		</tr>
+                		</thead>
+                		<tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:fileCtrl.startFormat() | limitTo:fileCtrl.itemsPerPage">
+                		<tr ng-click="fileCtrl.openDialog($event, file._id)">
+                    		<th nowrap scope="row" >{{file.PUID}}</th>
+                    		<td nowrap>{{file.Name}}</td>
+                    		<td nowrap>{{file.Version}}</td>
+                    		<td nowrap>{{file.MIMEType.toString()}}</td>
+                    		<td nowrap>{{file.Extension.toString()}}</td>
+                		</tr>
+                		</tbody>
+            		</table>
+        		</div>
+        	</div>
+        </div>
+
+    </div>
+
+</div>

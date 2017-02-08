@@ -158,12 +158,12 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public JsonNode selectOperationbyId(String processId)
+    public JsonNode selectOperationById(String processId, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, OPERATIONS_URL + "/" + processId, null,
-                LogbookParametersFactory.newLogbookOperationParameters(), MediaType.APPLICATION_JSON_TYPE,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {

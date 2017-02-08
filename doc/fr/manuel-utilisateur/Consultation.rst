@@ -18,7 +18,7 @@ Par défaut, le mode recherche simple est affiché.
 
 .. image:: images/recherche_simple.png
 
-Au clic sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche complexe.
+Au clic sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche avancé.
 
 .. image:: images/recherche_avancee.png
 
@@ -57,6 +57,8 @@ Pour initier la recherche avancée, l'utilisateur saisit ses éléments de reche
 
 Au clic sur le champ "Effacer", tous les champs dans lesquels des informations ont été saisies sont vidés de leurs contenus.
 
+.. image:: images/search_v2.png
+
 NB 1 : lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
 
 - la date de début doit être antérieure à la date de fin
@@ -65,8 +67,6 @@ NB 1 : lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, u
 .. image:: images/date_KO.png
 
 NB 2 : La recherche par ID est particulière. Ce dernier étant unique, il n'est pas possible d'effectuer une recherche croisée par ID et tout autre champ. L'ID est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification (ATR).
-
-.. image:: images/search_v2.png
 
 Résultats de recherche
 ----------------------
@@ -80,11 +80,11 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 
 L'îcone "Résultat (X)" indique le nombre de résultats trouvé lorsque l'utilisateur effectue une recherche.
 
-.. image:: images/liste_resultats.jpg
+.. image:: images/liste_resultats.png
 
 Dans le cas où la recherche ne donne pas de résultats, un message informatif est remonté à l'utilisateur.
 
-.. image:: images/liste_resultats_KO.jpg
+.. image:: images/liste_resultats_KO.png
 
 Consultation du détail d'une unité archivistique
 ================================================
@@ -109,7 +109,7 @@ Les métadonnées (excepté l'ID) peuvent être modifiées en cliquant sur le bo
 Une fois les modifications saisies, un clic sur le bouton "Enregistrer" sauvegarde celles-ci et met à jour les métadonnées.
 Une fois les modification des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal de Cycle de Vie correspondant.
 
-.. image:: images/detail_modification.jpg
+.. image:: images/detail_modification.png
 
 .. image:: images/detail_v2.jpg
 
@@ -123,7 +123,7 @@ Chaque objet est listé dans un tableau, une ligne du tableau correspondant à u
 - la date de dernière modification
 - le téléchargement : une îcone ("flèche bleue pointant vers le bas") pour télécharger l'objet
 
-.. image:: images/detail_v3.jpg
+.. image:: images/detail_v3.png
 
 
 Journaux du Cycle de Vie
@@ -164,7 +164,7 @@ Une liste déroulante ("Informations supplémentaires") est proposée afin de s�
 
 NB : S'il le souhaite, l'utilisateur peut sélectionner la totalité des informations disponibles du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Tout sélectionner". Voir le document "Modèle de Donnés" pour la définition des champs proposés.
 
-.. image:: images/JCV_AU_supp.jpg
+.. image:: images/JCV_AU_supp.png
 
 Journal du cycle de vie du groupe d'objet
 -----------------------------------------
@@ -217,7 +217,7 @@ La recherche dans le registre des fonds s'effectue en utilisant le champ princip
 
 Pour initier la recherche, l'utilisateur presse la touche "Entrée" de son clavier ou clique sur le pictogramme de loupe. Un pictogramme en forme de croix permet de supprimer le texte saisi dans le champ de recherche.
 
-.. image:: images/registre_recherche.jpg
+.. image:: images/registre_recherche.png
 
 Affichage de la liste des résultats
 -----------------------------------
@@ -229,7 +229,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 
 L'îcone "Nombre de résultats : (X)" indique le nombre de résultats trouvé lorsque l'utilisateur effectue une recherche.
 
-.. image:: images/registre_resultats.jpg
+.. image:: images/registre_resultats.png
 
 Consultation du détail
 ----------------------
@@ -238,7 +238,7 @@ Depuis la liste des résultats, l'utilisateur peut consulter le détail du regis
 
 La consultation de ce détail s'affiche dans un nouvel onglet, afin de préserver la liste des résultats de recherche.
 
-.. image:: images/registre_detail.jpg
+.. image:: images/registre_detail.png
 
 Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
@@ -273,7 +273,7 @@ Cette vue affiche sous forme de tableau, les informations consolidées suivantes
   - Supprimé : Volume total des objets supprimés du système
   - Restants : Volume total des objets restants dans le système
 
-.. image:: images/registre_detail_operation.jpg
+.. image:: images/registre_detail_operation.png
 
 Cette vue affiche sous forme de tableau, les entrées effectuées pour ce service producteur.
 

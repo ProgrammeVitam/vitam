@@ -46,6 +46,11 @@ public final class StorageConstants {
      */
     public static final String COMMAND_END = "END";
 
+    /**
+     * Storage object verification
+     */
+    public static final String OBJECT_VERIFICATION = "objectVerification";
+
     private StorageConstants() {
         // Just hiding empty constructor
     }

@@ -33,7 +33,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 
 public class WorkspaceApplicationTest {
     private static final String CONFIG_FILE_NAME = "workspace-test.conf";
@@ -78,13 +78,13 @@ public class WorkspaceApplicationTest {
 
     @Test(expected = Exception.class)
     public void givenNullConfigWhenRunAppThenThrowException() throws Exception {
-        final WorkspaceConfiguration config = new WorkspaceConfiguration();
+        final StorageConfiguration config = new StorageConfiguration();
         application = new WorkspaceApplication(config);
     }
 
     @Test(expected = Exception.class)
     public void givenNullConfigWhenStartAppThenThrowException() throws Exception {
-        application = new WorkspaceApplication((WorkspaceConfiguration) null);
+        application = new WorkspaceApplication((StorageConfiguration) null);
     }
 
 

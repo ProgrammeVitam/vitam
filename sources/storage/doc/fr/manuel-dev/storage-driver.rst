@@ -12,6 +12,7 @@ avec une ou plusieurs offres de stockage distantes. Le choix du driver à utilis
 DriverManager qui fournit l'implémentation (si elle existe) du bon **Driver** en fonction de l'identifiant de l'offre
 de stockage.
 
+
 Vérifier la disponibilité de l'offre
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -47,15 +48,40 @@ Vérification de la capacité de l'offre
 
     // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
     try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
-        // Requête contant le tenantId afin de récupérer la capacité (objet permettant d'être enrichi dan le futur)
-        StorageCapacityRequest request = new StorageCapacityRequest();
-        request.setTenantId("tenantId");
+        // Le tenantId afin de récupérer la capacité
+        Integer tenantId = 0;
         // Récupération de la capacité
-        StorageCapacityResult capacity = myConnection.getStorageCapacity(request);
+        StorageCapacityResult capacity = myConnection.getStorageCapacity(tenantId);
         // On peut ici verifier que l'espace disponible est suffisant par exemple
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
+
+Compter les objets d'un conteneur de l'offre
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageRequest request = new StorageRequest(tenantId, type);
+        StorageCountResult result = myConnection.countObjects(request);
+        // On peut vérifier ici le résultat du count
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+
 
 Put d'un objet dans l'offre de stockage
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -70,16 +96,129 @@ Put d'un objet dans l'offre de stockage
     parameters.put(StorageDriverParameterNames.USER.name(), "bob");
     parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
 
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    String digestAlgorithm = DigestType.MD5.getName();
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
     // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
     try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
-        PutObjectRequest request = new PutObjectRequest();
-        request.setDataStream(new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf")));
-        request.setDigestAlgorithm(DigestType.MD5.getName());
-        request.setGuid("GUID");
-        request.setTenantId("0");
-        request.setFolder(DataCategory.OBJECT.getFolder());
-        PutObjectResult result = myConnection.putObject(request);
+        StoragePutRequest request = new StoragePutRequest(tenantId, type, guid, digestAlgorithm, dataStream);
+        StoragePutResult result = myConnection.putObject(request);
         // On peut vérifier ici le résultat du put
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
+
+
+Get d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageObjectRequest request = new StorageObjectRequest(tenantId, type, guid);
+        StorageGetResult result = myConnection.getObject(request);
+        // On peut vérifier ici le résultat du get
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+
+
+Head d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageObjectRequest request = new StorageObjectRequest(tenantId, type, guid);
+        Boolean result = myConnection.objectExistsInOffer(request);
+        // On peut vérifier ici le résultat du head
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+    
+Delete d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    String digestAlgorithm = DigestType.MD5.getName();
+    final Digest digest = new Digest(algo);
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    digest.update(dataStream);
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageRemoveRequest request = new StorageRemoveRequest(tenantId, type, guid, digestType, digest.toString());
+        StorageRemoveResult result = myConnection.removeObject(request);
+        // On peut vérifier ici le résultat du delete
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+      
+      
+Check d'un objet dans l'offre de stockage
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    String digestAlgorithm = DigestType.MD5.getName();
+    final Digest digest = new Digest(algo);
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    digest.update(dataStream);
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        StorageCheckRequest request = new StorageCheckRequest(tenantId, type, guid, digestType, digest.toString());
+        StorageCheckResult result = myConnection.checkObject(request);
+        // On peut vérifier ici le résultat du check
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
+    
+        

@@ -69,11 +69,12 @@ public interface MetaData {
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * @throws MetaDataNotFoundException
      *
      */
     public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException;
 
     /**
      * Search UNITs by Id {@link Select}Query <br>
@@ -90,11 +91,12 @@ public interface MetaData {
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
+     * @throws MetaDataNotFoundException
      *
      */
     public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException;
 
     /**
      * Search ObjectGroups by its Id and a Select Query <br>
@@ -111,10 +113,13 @@ public interface MetaData {
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
-     *
+     * @throws MetaDataNotFoundException
+     * 
+     * 
      */
     ArrayNode selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
-        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException;
+        throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
+        MetaDataNotFoundException;
 
     /**
      * Update UNITs by Id {@link Update}Query <br>

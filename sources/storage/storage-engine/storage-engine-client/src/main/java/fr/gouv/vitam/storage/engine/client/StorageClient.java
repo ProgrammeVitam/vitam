@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -46,19 +47,17 @@ public interface StorageClient extends BasicClient {
     /**
      * Check if the storage of objects could be done, knowing a required size
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return the capacity of the storage
      * @throws StorageNotFoundClientException if the Server got a NotFound result
      * @throws StorageServerClientException if the Server got an internal error
      */
-    JsonNode getStorageInformation(String tenantId, String strategyId)
+    JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Store an object available in workspace by its vitam guid
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
      * @param guid vitam guid
@@ -68,61 +67,59 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException if the Server got an internal error
      * @return the result status of object creation
      */
-    StoredInfoResult storeFileFromWorkspace(String tenantId, String strategyId, StorageCollectionType type, String guid,
+    StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
         CreateObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Check the existance of a tenant container in storage by its id
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return true if exist
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean existsContainer(String tenantId, String strategyId) throws StorageServerClientException;
+    boolean existsContainer(String strategyId) throws StorageServerClientException;
 
     /**
      * Check the existence of an object in storage by its id and type {@link StorageCollectionType}.
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
      * @param guid vitam guid
      * @return true if exist
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean exists(String tenantId, String strategyId, StorageCollectionType type, String guid)
+    boolean exists(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException;
 
     /**
      * Delete a container in the storage offer strategy A non-empty container CANNOT be deleted !
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @return true if deleted
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean deleteContainer(String tenantId, String strategyId) throws StorageServerClientException;
+    boolean deleteContainer(String strategyId) throws StorageServerClientException;
 
     /**
      * Delete an object of given type in the storage offer strategy
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param type the type of object collection
      * @param guid vitam guid
+     * @param digest the digest to be compared with
+     * @param digestAlgorithm the digest Algorithm
      * @return true if deleted
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean delete(String tenantId, String strategyId, StorageCollectionType type, String guid)
+    boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
+        DigestType digestAlgorithm)
         throws StorageServerClientException;
 
 
     /**
      * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy
      *
-     * @param tenantId the tenant id
      * @param strategyId the storage strategy id
      * @param guid vitam guid of the object to be returned
      * @param type
@@ -131,7 +128,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
      *         exist
      */
-    Response getContainerAsync(String tenantId, String strategyId, String guid, StorageCollectionType type)
+    Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException;
 
 }

@@ -1,0 +1,6 @@
+- name: install vitam-soapui
+  package:
+    name: vitam-ihm-recette-front
+    state: latest
+  tags:
+    - update_package_vitam

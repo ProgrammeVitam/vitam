@@ -1,0 +1,42 @@
+<div id="global" class="container-fluid">
+    <ol class="breadcrumb">
+        <li>Entrée</li>
+        <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrées</a></li>
+        <li><a ng-href="#!/admin/logbookOperations/{{entryCtrl.operationId}}">Détail d'une opération d'entrée</a></li>
+    </ol>
+    <div class="panel panel-default col-md-12">
+
+        <a class="panel-header" data-target="#boxLogbookEntries" data-toggle="collapse">
+            <h2>Détail de l'opération d'entrée - {{entryCtrl.operationId}}</h2>
+        </a>
+
+        <div id="boxLogbookEntries" class="panel-body panel-collapse collapse in">
+            <table class="table" id="detail" align="center">
+                <thead  style="text-align: center">
+                <tr>
+                    <th>Etape</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Message</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="logbookProcess">
+                    <td>{{entryCtrl.detail.evType | translate| replaceDoubleQuote}}</td>
+                    <td>{{entryCtrl.detail.evDateTime | vitamFormatDate}}</td>
+                    <td>{{entryCtrl.detail.outcome}}</td>
+                    <td>{{entryCtrl.detail.outMessg}}</td>
+                </tr>
+                </tbody>
+                <tbody ng-repeat="event in entryCtrl.detail.events">
+                <tr ng-class="$last ? 'logbookProcess': ''">
+                    <td ng-class="($last ? '' : ( event.evType.startsWith('STP') ? 'logbookStep': 'logbookTask' ))">{{event.evType | translate}}</td>
+                    <td>{{event.evDateTime | vitamFormatDate}}</td>
+                    <td>{{event.outcome}}</td>
+                    <td>{{event.outMessg}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

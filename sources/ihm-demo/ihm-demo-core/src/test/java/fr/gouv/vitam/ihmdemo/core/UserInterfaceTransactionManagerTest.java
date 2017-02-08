@@ -91,6 +91,7 @@ public class UserInterfaceTransactionManagerTest {
             "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
             "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
+    final int TENANT_ID = 0;
     private static String ID_OBJECT_GROUP = "idOG1";
     private static RequestResponse unitDetails;
     private static RequestResponse searchResult;
@@ -123,10 +124,10 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessSearchUnits()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException {
-        when(accessClient.selectUnits(anyObject())).thenReturn(searchResult);
+        when(accessClient.selectUnits(anyObject(), anyObject())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
-            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY));
+            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID);
         assertTrue(result.getHits().getTotal() == 1);
     }
 
@@ -134,13 +135,12 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetArchiveUnitDetails()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException {
-        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT))
+        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID))
             .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
             (RequestResponseOK) UserInterfaceTransactionManager
-                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT);
-
+                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID);
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
@@ -148,10 +148,10 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessUpdateUnits()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException {
-        when(accessClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(updateResult);
+        when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
-            .getFromString(UPDATE_UNIT_DSL_QUERY), "1");
+            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID);
         assertTrue(results.getHits().getTotal() == 1);
     }
 
@@ -162,13 +162,14 @@ public class UserInterfaceTransactionManagerTest {
         final RequestResponse result =
             JsonHandler.getFromString(
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
-                    SEARCH_UNIT_DSL_QUERY + "}", RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP))
+                    SEARCH_UNIT_DSL_QUERY + "}",
+                RequestResponseOK.class, JsonNode.class);
+        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID))
             .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
             (RequestResponseOK) UserInterfaceTransactionManager
-                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP);
+                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID);
         assertTrue(
             objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
     }
@@ -177,11 +178,12 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetObjectAsInputStream()
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, IOException {
-        when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1))
-            .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
+        when(accessClient.getObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1,
+            TENANT_ID))
+                .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test"));
+            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID));
     }
 
     @Test

@@ -28,7 +28,7 @@ Pour configurer le déploiement, il est nécessaire de créer dans le répertoir
 
 Pour chaque type de "host" (lignes 2 à 176), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
 
-.. warning:: indiquer les contre-indications !
+.. note:: pour les "hosts-worker", il est possible d'ajouter, à la suite de chaque "host", 2 paramètres optionnels : capacity et workerFamily. Se référer au :term:`DEX` pour plus de précisions.
 
 Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les valeurs comme décrit :
 
@@ -58,6 +58,7 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les vale
    "http_proxy_environnement","Cas particulier de la récupération des jeux de tests ; URL de squid",""
    "mongoclientPort","Port par lequel mongoclient est acessible","27016"
    "mongoclientDbName","Nom de la Base de donnée stockant la configuration mongoclient","mongoclient"
+   "vitam_tenant_ids","Liste des tenants de plateforme","[0,1,2] ; [0] par défaut"
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :

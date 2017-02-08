@@ -1,14 +1,49 @@
 ---
-# Ensure apache httpd is installed
-- name: install httpd
-  yum:
-    name: httpd
+
+- name: Set apache service name for CentOS
+  set_fact:
+    apache_service: "httpd"
+    apache_conf_dir: "conf.d"
+    apache_user: "apache"
+    apache_group: "apache"
+  when: (ansible_distribution == "CentOS")
+
+- name: Set apache service name for Debian
+  set_fact:
+    apache_service: "apache2"
+    apache_conf_dir: "sites-available"
+    apache_user: "root"
+    apache_group: "root"
+  when: (ansible_distribution == "Debian")
+
+- name: install apache2
+  package:
+    name: "{{apache_service}}"
     state: latest
 
-- name: Ensure mod_ssl is installed
-  yum:
+- name: Ensure mod_ssl is installed (CentOS)
+  package:
     name: mod_ssl
     state: present
+  when: (ansible_distribution == "CentOS")
+
+# TODO: We could use apache2_module of ansible but it is currently flagged as preview
+- name: Enable mod_ssl & mod_proxy (Debian)
+  file:
+    src: "/etc/{{apache_service}}/mods-available/{{item}}"
+    dest: "/etc/{{apache_service}}/mods-enabled/{{item}}"
+    owner: "root"
+    state: link
+  when:  ansible_distribution == "Debian"
+  with_items:
+    - ssl.conf
+    - ssl.load
+    - proxy.conf
+    - proxy.load
+    - proxy_http.load
+    - socache_shmcb.load
+  notify:
+     - reload apache
 
 - name: create DocumentRoot directory
   file:
@@ -17,53 +52,54 @@
     owner: root
     mode: 0755
   notify:
-     - reload apache httpd
+     - reload apache
 
-- name: create nightly-deploy subdirectory
+# FIXME - which group do we have to set ?
+- name: create logs-nightly-builds subdirectory
   file:
     path: "/var/www/html-{{environnement}}/logs-nightly-deploy"
     state: directory
-    owner: root
+    owner: "root"
     group: "{{ansible_user_id}}"
     mode: 0775
 
 - name: create certificates directory
   file:
-    path: "/etc/httpd/certs"
+    path: "/etc/{{apache_service}}/certs"
     state: directory
-    owner: root
-    group: apache
+    owner: "root"
+    group: "{{apache_group}}"
     mode: 0550
 
 - name: copy index resources
   copy:
     src: "{{item}}"
     dest: "/var/www/html-{{environnement}}/"
-    owner: root
+    owner: "root"
     mode: 0644
   with_items:
       - css
       - images
       - js
   notify:
-     - reload apache httpd
+     - reload apache
 
 - name: copy index default page
   template:
-    src: index.html.j2
+    src: "index.html.j2"
     dest: "/var/www/html-{{environnement}}/index.html"
-    owner: root
+    owner: "root"
     mode: 0644
   tags:
     - update_package_vitam
   notify:
-     - reload apache httpd
+     - reload apache
 
 - name: copy certificate
   copy:
     src: "keystore_client.p12"
-    dest: "/etc/httpd/certs/keystore_client_{{environnement}}.p12"
-    owner: apache
+    dest: "/etc/{{apache_service}}/certs/keystore_client_{{environnement}}.p12"
+    owner: "root"
     mode: 0400
   notify:
     - extract certificate
@@ -72,17 +108,29 @@
 - name: Copy the CA
   copy:
     src: ca_client.crt
-    dest: "/etc/httpd/certs/ca_client_{{environnement}}.crt"
-    owner: apache
+    dest: "/etc/{{apache_service}}/certs/ca_client_{{environnement}}.crt"
+    owner: "root"
     mode: 0400
 
 - name: copy httpd configuration template
   template:
     src: httpd_config
-    dest: "/etc/httpd/conf.d/zz_{{vitam_reverse_external_dns}}.conf"
-    owner: root
+    dest: "/etc/{{apache_service}}/{{apache_conf_dir}}/zz_{{vitam_reverse_external_dns}}.conf"
+    owner: "root"
     mode: 0644
   tags:
     - update_package_vitam
   notify:
-    - reload apache httpd
+     - reload apache
+
+- name: activate httpd configuration for debian
+  file:
+    src: /etc/{{apache_service}}/sites-available/zz_{{vitam_reverse_external_dns}}.conf
+    dest: /etc/{{apache_service}}/sites-enabled/zz_{{vitam_reverse_external_dns}}.conf
+    owner: "root"
+    state: link
+  when:  ansible_distribution == "Debian"
+  tags:
+    - update_package_vitam
+  notify:
+     - reload apache

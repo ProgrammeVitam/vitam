@@ -33,7 +33,7 @@ package fr.gouv.vitam.workspace.api.model;
 public class ContainerInformation {
 
     /**
-     * Usable space
+     * Usable space if usable space information not found, usableSpace will be -1
      */
     private long usableSpace;
 
@@ -43,9 +43,11 @@ public class ContainerInformation {
     private long usedSpace;
 
     /**
+     * 
      * Get usable space
      *
-     * @return usable space in byte
+     * @return usable space in byte, <br>
+     *         return -1 if usable space not specified
      */
     public long getUsableSpace() {
         return usableSpace;
@@ -62,7 +64,8 @@ public class ContainerInformation {
 
     /**
      * Get used space
-     *
+     * 
+     * 
      * @return used space in byte
      */
     public long getUsedSpace() {

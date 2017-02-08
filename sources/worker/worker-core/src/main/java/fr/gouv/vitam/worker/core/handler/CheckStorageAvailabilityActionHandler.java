@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -54,7 +55,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
 
-    private static final String DEFAULT_TENANT = "0";
     private static final String DEFAULT_STRATEGY = "default";
 
     /**
@@ -90,7 +90,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             final JsonNode storageCapacityNode;
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageCapacityNode = storageClient.getStorageInformation(DEFAULT_TENANT, DEFAULT_STRATEGY);
+                storageCapacityNode = storageClient.getStorageInformation(DEFAULT_STRATEGY);
             }
 
             final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
@@ -99,12 +99,14 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 ItemStatus is = new ItemStatus(information.getOfferId());
                 // Useful information ?
                 is.setData("offerId", information.getOfferId());
-                if (information.getUsableSpace() >= totalSizeToBeStored) {
+                // if usable space not specified getUsableSpace() return -1
+                if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
                     is.increment(StatusCode.OK);
                 } else {
                     is.increment(StatusCode.KO);
                 }
                 itemStatus.setItemsStatus(information.getOfferId(), is);
+
             }
 
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |

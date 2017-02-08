@@ -37,25 +37,32 @@ import javax.ws.rs.core.Response;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+
 /**
  * TEst for PutObjectRequestTest
  */
 public class RequestResultTest {
     private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
-    private static GetObjectRequest getObjectRequest;
-    private static GetObjectResult getObjectResult;
-    private static RemoveObjectRequest removeObjectRequest;
-    private static RemoveObjectResult removeObjectResult;
+    private static StorageObjectRequest getObjectRequest;
+    private static StorageGetResult getObjectResult;
+    private static StorageRemoveRequest removeObjectRequest;
+    private static StorageRemoveResult removeObjectResult;
     private static StorageCapacityResult storageCapacityResult;
+    private static StorageCountResult storageCountResult;
+    private static final Integer TENANT_ID = 0;
 
 
     @BeforeClass
     public static void init() {
-        getObjectRequest = new GetObjectRequest("ti", "oi", "object");
-        getObjectResult = new GetObjectResult("ti", Response.ok(BYTES).build());
-        removeObjectRequest = new RemoveObjectRequest();
-        removeObjectResult = new RemoveObjectResult();
-        storageCapacityResult = new StorageCapacityResult("ti", 1000, 100);
+        getObjectRequest = new StorageObjectRequest(TENANT_ID, "object", "oi");
+        getObjectResult = new StorageGetResult(TENANT_ID, "object", "oi", Response.ok(BYTES).build());
+        removeObjectRequest = new StorageRemoveRequest(TENANT_ID, "object", "oi",
+            VitamConfiguration.getDefaultDigestType(), "digest");
+        removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi",
+            VitamConfiguration.getDefaultDigestType(), "digest", true);
+        storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
+        storageCountResult = new StorageCountResult(TENANT_ID, "object", 2L);
     }
 
     @Test
@@ -72,9 +79,15 @@ public class RequestResultTest {
 
     @Test
     public void testStorageCapacity() throws Exception {
+        assertNotNull(storageCapacityResult);
         assertEquals(1000, storageCapacityResult.getUsableSpace());
         assertEquals(100, storageCapacityResult.getUsedSpace());
-        assertNotNull(storageCapacityResult);
+    }
+
+    @Test
+    public void testStorageCount() throws Exception {
+        assertNotNull(storageCountResult);
+        assertEquals(2L, storageCountResult.getNumberObjects());
     }
 
 }

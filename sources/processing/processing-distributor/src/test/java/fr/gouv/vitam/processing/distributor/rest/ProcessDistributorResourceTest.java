@@ -45,12 +45,14 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -60,6 +62,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -86,6 +92,7 @@ public class ProcessDistributorResourceTest {
     private static final String WORKERS_URI = "/workers";
     private static final String ID_FAMILY_URI = "/idFamily";
     private static final String ID_WORKER_URI = "/idWorker";
+    private static final Integer TENANT_ID = 0;
 
     private final String FAMILY_ID_E = "/error";
     private final String WORKER_ID_E = "/error";
@@ -94,6 +101,10 @@ public class ProcessDistributorResourceTest {
         "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     private static JunitHelper junitHelper;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     @BeforeClass
@@ -130,33 +141,42 @@ public class ProcessDistributorResourceTest {
 
     @Test
     public final void testPutWorkerFamilies() {
-        given().contentType(ContentType.JSON).body("").when()
+        given().contentType(ContentType.JSON).body("")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
             .put(WORKER_FAMILY_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
 
     @Test
     public final void testGetWorkerFamilyStatus() {
-        get(WORKER_FAMILY_URI + ID_FAMILY_URI).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+        get(WORKER_FAMILY_URI + ID_FAMILY_URI)
+            .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
 
     @Test
     public final void testCreateWorkerFamily() {
-        given().contentType(ContentType.JSON).body("").when()
+        given().contentType(ContentType.JSON).body("")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
             .post(WORKER_FAMILY_URI + ID_FAMILY_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
 
     @Test
     public final void testUpdateWorkerFamily() {
-        given().contentType(ContentType.JSON).body("").when()
+        given().contentType(ContentType.JSON).body("")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
             .put(WORKER_FAMILY_URI + ID_FAMILY_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
 
     @Test
     public final void testDeleteWorkerFamily() {
-        given().contentType(ContentType.JSON).body("").when()
+        given().contentType(ContentType.JSON).body("")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
             .delete(WORKER_FAMILY_URI + ID_FAMILY_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
@@ -167,8 +187,10 @@ public class ProcessDistributorResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public final void testDeleteFamilyWorkers() {
-        given().contentType(ContentType.JSON).body("").when()
+    	given().contentType(ContentType.JSON).body("")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).when()
             .delete(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
@@ -205,7 +227,9 @@ public class ProcessDistributorResourceTest {
 
     @Test
     public final void testUpdateWorker() {
-        given().contentType(ContentType.JSON).body("").when()
+        given().contentType(ContentType.JSON).body("")
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
             .put(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI + ID_WORKER_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }

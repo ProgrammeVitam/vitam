@@ -31,6 +31,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.time.Instant;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
@@ -40,21 +41,25 @@ import org.junit.Test;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.model.GetObjectRequest;
-import fr.gouv.vitam.storage.driver.model.GetObjectResult;
-import fr.gouv.vitam.storage.driver.model.PutObjectRequest;
-import fr.gouv.vitam.storage.driver.model.RemoveObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 
 public class FakeDriverImplTest {
 
     private static FakeDriverImpl driver;
+    private static int tenant;
 
     private static final String DRIVER_NAME = "Fake driver";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         driver = new FakeDriverImpl();
+        tenant = Instant.now().getNano();
     }
 
     @Test(expected = StorageDriverException.class)
@@ -70,46 +75,71 @@ public class FakeDriverImplTest {
         final Properties props = new Properties();
         final Connection connect = driver.connect("props", props);
         assertNotNull(connect);
-        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity("0");
+        StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
         assertEquals(storageCapacityResult.getUsedSpace(), 99999);
 
         try {
-            storageCapacityResult = connect.getStorageCapacity("daFakeTenant");
+            storageCapacityResult = connect.getStorageCapacity(-1);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
 
         }
 
-        final GetObjectResult getObjectResult = connect.getObject(new GetObjectRequest("0" + this, "guid", "folder"));
+        final StorageGetResult getObjectResult =
+            connect.getObject(new StorageObjectRequest(tenant, "object", "guid"));
         assertNotNull(getObjectResult);
+        assertNotNull(getObjectResult.getTenantId());
+        assertNotNull(getObjectResult.getType());
+        assertNotNull(getObjectResult.getGuid());
         assertNotNull(getObjectResult.getObject());
-        final PutObjectRequest putObjectRequest =
-            new PutObjectRequest("tenantId" + this, VitamConfiguration.getDefaultDigestType().getName(), "guid",
-                IOUtils.toInputStream("Vitam" +
-                    " test"),
-                "type");
+        final StoragePutRequest putObjectRequest =
+            new StoragePutRequest(tenant, "type", "guid", VitamConfiguration.getDefaultDigestType().getName(),
+                IOUtils.toInputStream("Vitam" + " test"));
         assertNotNull(connect.putObject(putObjectRequest));
 
         try {
-            final PutObjectRequest putObjectRequest2 =
-                new PutObjectRequest("tenantId" + this, "fakeAlgorithm", "guid", IOUtils.toInputStream("Vitam test"),
-                    "type");
+            final StoragePutRequest putObjectRequest2 =
+                new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
+                    IOUtils.toInputStream("Vitam test"));
             connect.putObject(putObjectRequest2);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
 
         }
 
-        final PutObjectRequest putObjectRequest3 =
-            new PutObjectRequest("tenantId" + this, VitamConfiguration.getDefaultDigestType().getName(),
-                "digest_bad_test",
-                IOUtils.toInputStream("Vitam test"),
-                "type");
+        final StoragePutRequest putObjectRequest3 =
+            new StoragePutRequest(tenant, "type", "digest_bad_test",
+                VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
+        assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
-        assertNotNull(connect.removeObject(new RemoveObjectRequest()));
-        assertTrue(connect.objectExistsInOffer(new GetObjectRequest("0" + this, "already_in_offer", "folder")));
+        try {
+            final StorageRemoveRequest storageRemoveRequest =
+                new StorageRemoveRequest(tenant, "type", "digest_bad_test",
+                    VitamConfiguration.getDefaultDigestType(), "digest_test");
+            connect.removeObject(storageRemoveRequest);
+            fail("Should raized an exception");
+        } catch (final StorageDriverException e) {
+
+        }
+        assertNotNull(connect.removeObject(new StorageRemoveRequest(tenant, "type", "guid",
+            VitamConfiguration.getDefaultDigestType(), "digest_test")));
+
+        assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
+
+        final StorageCheckRequest storageCheckRequest = new StorageCheckRequest(2, "type", "digest_test",
+            VitamConfiguration.getDefaultDigestType(), null);
+        assertNotNull(connect.checkObject(storageCheckRequest));
+
+        try {
+            final StorageCheckRequest storageCheckRequest2 = new StorageCheckRequest(-1, "type", "digest_bad_test",
+                VitamConfiguration.getDefaultDigestType(), null);
+            connect.checkObject(storageCheckRequest2);
+            fail("Should raized an exception");
+        } catch (final StorageDriverException e) {
+
+        }
 
         connect.close();
     }

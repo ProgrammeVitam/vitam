@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ingest-internal</artifactId>
-		<version>0.13.0-SNAPSHOT</version>
+		<version>0.14.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>ingest-internal-core</artifactId>
@@ -43,7 +43,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>workspace-core</artifactId>
+			<artifactId>common-storage</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>

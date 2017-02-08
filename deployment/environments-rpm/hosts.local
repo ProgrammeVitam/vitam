@@ -154,7 +154,7 @@ environnement=local
 
 consul_domain=consul
 vitam_reverse_external_dns=localhost
-rpm_version=*
+package_version=*
 days_to_delete=3
 days_to_close=2
 days_to_delete_topbeat=3
@@ -180,3 +180,6 @@ http_proxy_environnement=
 
 vitam_storageofferdefault_host_1=localhost
 # vitam_storageofferdefault_host_2=localhost
+
+vitam_keystone_auth_url=http://143.126.93.21:8080/auth/v1.0
+vitam_tenant_ids=[0,1,2]

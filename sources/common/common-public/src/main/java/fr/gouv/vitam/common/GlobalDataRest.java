@@ -114,7 +114,10 @@ public class GlobalDataRest {
      * Recursive deletion
      */
     public static final String X_RECURSIVE = "X-Recursive";
-    
+    /**
+     * Header use to have the body (object) size even if Content-Type is chunkec
+     */
+    public static final String X_CONTENT_LENGTH = "X-Content-Length";
     /**
      * Transfer Encoding Header
      */
@@ -129,7 +132,12 @@ public class GlobalDataRest {
      * SECOND_PRIORITY_FILTER
      */
     public static final int SECOND_PRIORITY_FILTER = 2000;
-        
+
+    /**
+     * Event status
+     */
+    public static final String X_EVENT_STATUS = "X-Event-Status";
+
 
     private GlobalDataRest() {
         // empty

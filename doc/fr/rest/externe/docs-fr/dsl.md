@@ -10,6 +10,7 @@ Une requête est composée de plusieurs parties, et en particulier le Body qui c
 Elle peut être complétée par quelques valeurs dans le *Header* :
 - **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
 - **X-Valid: true** : pour une requête HEAD sur un **Object** pour vérifier la validité (check d'empreinte)
+- **X-Tenant-Id** : pour chaque requête, le tenant sur lequel doit être exécutée la requête
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour récupérer un usage et une version particulière
 - **X-Callback** (**UNSUPPORTED**) : pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
 - **X-Cursor: true** et **X-Cursor-Id** (**UNSUPPORTED**) : pour la gestion d'une requête en mode "curseur"
@@ -253,6 +254,7 @@ Des champs sont protégés dans les requêtes :
 La réponse dispose également de champs dans le *Header* :
 - **FullApiVersion** : retourne le numéro précis de la version de l'API en cours d'exécution
 - **X-Request-Id** : pour chaque requête, un unique identifiant est fourni en réponse
+- **X-Tenant-Id** : pour chaque requête, le tenant sur lequel a été exécutée l'opération demandée
 - **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs associés à l'opération demandée
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour indiquer un usage et une version particulière
 - **X-Callback** (**UNSUPPORTED**): pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback

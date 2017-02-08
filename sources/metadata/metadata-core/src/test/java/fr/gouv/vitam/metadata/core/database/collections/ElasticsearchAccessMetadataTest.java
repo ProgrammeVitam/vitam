@@ -32,6 +32,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -39,9 +40,13 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.mongodb.MongoClient;
+
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -60,8 +65,12 @@ public class ElasticsearchAccessMetadataTest {
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchAccessMetadata esClient;
 
+    private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
+
     private static final int TENANT_ID = 0;
     private static final String S1 = "{ \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
+    private static final String S1_OG =
+        "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String S2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
     private static final String S3 =
         "{$roots:[\"id2\"],$query:[],$filter:{},$action:[{$set:{\"title\":\"Archive2\"}}]}";
@@ -69,7 +78,11 @@ public class ElasticsearchAccessMetadataTest {
     private static final String S6 = "{$match:{ \"id \": \"id2 \"}}";
     private static final String S5 =
         "{$bool : {$must : {$match : {\"title\" : {$query : \"Archive3\",$type : \"boolean\"}}},$filter : {$terms : {\"_up\" : [ \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\" ]}}} }";
-
+    private final int IntTest = 12345;
+    String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
+    private final String go = "{\"_id\":\"" + groupGUID +
+        "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\"}}, \"title\":\"title1\"}";
+    private MongoClient mongoClient;
     private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
@@ -98,7 +111,7 @@ public class ElasticsearchAccessMetadataTest {
 
 
     @Test
-    public void testElasticsearchAccessMetadatas() {
+    public void testElasticsearchAccessMetadatas() throws InvalidParseOperationException {
         // add index
         assertEquals(true, esClient.addIndex(MetadataCollections.C_UNIT));
         // add unit
@@ -123,6 +136,15 @@ public class ElasticsearchAccessMetadataTest {
         // delete index
         assertEquals(true, esClient.deleteIndex(MetadataCollections.C_UNIT));
 
+        @SuppressWarnings("unchecked")
+        Map<String, String> targetMap = (Map<String, String>) ((Object) JsonHandler.getMapFromString(S1));
+        // add entries
+        esClient.addEntryIndexesByBulk(MetadataCollections.C_UNIT, targetMap);
+        esClient.addEntryIndexesBlocking(MetadataCollections.C_UNIT, targetMap);
+
+        final Unit unit = new Unit();
+        esClient.addBulkEntryIndex(targetMap, unit.load(S1));
+
     }
 
     @Test
@@ -139,4 +161,59 @@ public class ElasticsearchAccessMetadataTest {
 
     }
 
+    @Test
+    public void testElasticsearchAccessOGMetadatas() throws MetaDataExecutionException, MetaDataNotFoundException {
+
+        esClient.refreshIndex(MetadataCollections.C_OBJECTGROUP);
+        // add index
+        assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP));
+        // add OG
+        final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, id, S1_OG));
+        // delete OG
+
+        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, ObjectGroup.TYPEUNIQUE, id);
+
+        // delete index
+        assertEquals(true, esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP));
+
+    }
+
+    @Test(expected = MetaDataNotFoundException.class)
+    public void testElasticSearchDeleteOGAccessMetadatsNotFoundThenThrowException()
+        throws MetaDataExecutionException, MetaDataNotFoundException {
+        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, ObjectGroup.TYPEUNIQUE,
+            GUIDFactory.newObjectGroupGUID(TENANT_ID).toString());
+    }
+
+    @Test
+    public void testElasticsearchUpdateOGAccessMetadatas() throws Exception {
+
+        // add index
+        assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP));
+        // add OG
+        final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID).toString();
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, id, S1_OG));
+
+        // update index
+        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_OBJECTGROUP, id, S3));
+
+    }
+
+    @Test
+    public void testElasticsearchOGAccessMetadatas() throws Exception {
+
+        // add index
+        assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP));
+        // add OG
+        final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID).toString();
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, id, S1_OG));
+
+        // update index
+        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_OBJECTGROUP, id, S3));
+
+        MetadataDocument<?> doc = new ObjectGroup(go);
+        assertEquals(true, esClient.addEntryIndex(doc));
+
+    }
 }

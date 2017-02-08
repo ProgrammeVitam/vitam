@@ -20,8 +20,9 @@ Sommaire
    :maxdepth: 2
 
    introduction.rst
-   scenarii_ingest.rst
-   scenarii_hors_ingest.rst
+   scenario_ingest.rst
+   scenario_hors_ingest.rst
+   scenario_api_external.rst
    include/_toc.rst
 
 

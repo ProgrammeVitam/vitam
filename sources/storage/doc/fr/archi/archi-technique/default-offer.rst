@@ -15,6 +15,7 @@ L'offre de stockage workspace est séparé en deux parties :
 - le serveur de l'offre de stockage par défaut
 - l'implémentation du driver associé à l'offre de stockage par défaut
 
+Dans l'offre, tout les objets binaires sont stockés dans des conteneur définis par : {type}_{tenant}. Un objet binaire est lui définit par son identifiant ET son conteneur. 
 
 Driver
 ******
@@ -36,6 +37,9 @@ Les fonctionnalités sont :
 - récupérer un objet
 - tester l'existence d'un objet
 - récupérer l'empreinte d'un objet
+- compter le nombre d'objets d'un conteneur
+- contrôler un objet pour valider son transfert
+- supprimer un objet
 
 REST
 ====
@@ -73,6 +77,24 @@ REST API
   - contenu : information sur l'offre (capacité, disponibilité, ...)
 
 
+**GET /{type}/count**
+
+- description : compter le nombre d'objet d'un conteneur de l'offre
+
+- headers :
+
+  - X-Tenant-Id: id du tenant
+
+- path :
+
+  - {type} : le type permettant d'identifier un conteneur (unit/report/logbook/etc, se basant sur une enum)
+
+- response :
+
+  - code : 200
+  - contenu : le nombre d'objets binaires (hors répertoires)
+
+
 **GET /objects/{id}**
 
 - description : recupération sur l'offre d'un objet ou de son empreinte
@@ -90,6 +112,26 @@ REST API
 
   - code : 200
   - contenu : data ou empreinte de l'objet
+
+
+**GET /objects/{type}/{id:.+}/check**
+
+- description : vérification d'un objet
+
+- headers :
+
+  - X-Type: DATA / DIGEST
+  - X-Tenant-Id: id du tenant
+
+- path :
+   
+  - {id} : path de l'objet
+  - {type} : le type permettant d'identifier un conteneur (unit/report/logbook/etc, se basant sur une enum)
+
+- response :
+
+  - code : 200
+  - contenu : un boolean indiquant si le digest de l'objet correspond ou non
 
 
 **POST /objects**
@@ -152,22 +194,24 @@ REST API
   - code : 204
 
 
-**DELETE /objects/{id}**
+**DELETE /objects/{type}/{id}**
 
 - description : suppression d'un objet de l'offre
 
 - headers :
 
   - X-Tenant-Id: id du tenant
+  - X-Type: DATA / DIGEST
 
 - path :
 
   - {id} : id de l'objet
+  - {type} : le type permettant d'identifier un conteneur (unit/report/logbook/etc, se basant sur une enum)
 
 - response :
 
   - code : 200
-  - contenu : l'id de l'objet supprimé
+  - contenu : l'id de l'objet supprimé + le statut
 
 
 **GET /status**

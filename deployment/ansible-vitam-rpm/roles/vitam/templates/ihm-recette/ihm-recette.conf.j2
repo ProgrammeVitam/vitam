@@ -5,6 +5,7 @@ baseUrl: "{{ vitam_ihm_recette_baseurl }}"
 staticContent: "{{ vitam_ihm_recette_static_content }}"
 
 jettyConfig: jetty-config.xml
+tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 secure: true
 sipDirectory: {{vitam_folder_data}}/
 

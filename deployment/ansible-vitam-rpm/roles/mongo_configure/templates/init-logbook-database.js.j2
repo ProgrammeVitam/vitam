@@ -11,6 +11,7 @@ db.LogbookOperation.createIndex( { "evTypeProc" : 1 } )
 db.LogbookOperation.createIndex( { "events.evType" : 1 } )
 db.LogbookOperation.createIndex( { "events.outcome" : 1 } )
 db.LogbookOperation.createIndex( { "outcome" : 1 } )
+db.LogbookOperation.createIndex( { "evDateTime" : 1 } )
 
 db.LogbookLifeCycleUnit.createIndex( { "_tenant" : 1 } )
 db.LogbookLifeCycleUnit.createIndex( { "evType" : 1 } )

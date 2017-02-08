@@ -49,7 +49,15 @@ public enum LogbookCollections {
     /**
      * LifeCycle object group Collection
      */
-    LIFECYCLE_OBJECTGROUP(LogbookLifeCycleObjectGroup.class);
+    LIFECYCLE_OBJECTGROUP(LogbookLifeCycleObjectGroup.class),
+    /**
+     * LifeCycle unit in process
+     */
+    LIFECYCLE_UNIT_IN_PROCESS(LogbookLifeCycleUnitInProcess.class),
+    /**
+     * LifeCycle object group in process
+     */
+    LIFECYCLE_OBJECTGROUP_IN_PROCESS(LogbookLifeCycleObjectGroupInProcess.class);
 
     private VitamCollection vitamCollection;
 
@@ -109,6 +117,24 @@ public enum LogbookCollections {
     @SuppressWarnings("unchecked")
     protected static final MongoCollection<LogbookLifeCycleObjectGroup> getLifeCycleObjectGroupCollection() {
         return (MongoCollection<LogbookLifeCycleObjectGroup>) LIFECYCLE_OBJECTGROUP.vitamCollection;
+    }
+
+    /**
+     *
+     * @return the casted MongoCollection
+     */
+    @SuppressWarnings("unchecked")
+    protected static final MongoCollection<LogbookLifeCycleUnitInProcess> getLifeCycleUnitInProcessCollection() {
+        return (MongoCollection<LogbookLifeCycleUnitInProcess>) LIFECYCLE_UNIT_IN_PROCESS.vitamCollection;
+    }
+
+    /**
+     *
+     * @return the casted MongoCollection
+     */
+    @SuppressWarnings("unchecked")
+    protected static final MongoCollection<LogbookLifeCycleObjectGroupInProcess> getLifeCycleObjectGroupInProcessCollection() {
+        return (MongoCollection<LogbookLifeCycleObjectGroupInProcess>) LIFECYCLE_OBJECTGROUP_IN_PROCESS.vitamCollection;
     }
 
     /**

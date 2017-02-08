@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -54,6 +55,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -104,6 +106,8 @@ public class LogbookResourceTest {
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static JunitHelper junitHelper;
     private static LogbookConfiguration realLogbook;
+
+    private static int TENANT_ID = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -367,6 +371,7 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersSelect.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
@@ -377,6 +382,7 @@ public class LogbookResourceTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_QUERY))
             .when()
             .get(OPERATIONS_URI)
@@ -385,14 +391,17 @@ public class LogbookResourceTest {
     }
 
     @Test
-    public void testSelectOperationId() {
+    public void testSelectOperationId() throws Exception {
         logbookParametersSelectId.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersSelectId.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
         with()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
             .body(logbookParametersSelectId.toString())
+            .pathParam("id_op",
+                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
                 logbookParametersSelectId.getParameterValue(
@@ -401,10 +410,9 @@ public class LogbookResourceTest {
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
-            .body(logbookParametersSelectId.toString())
-            .pathParam("id_op",
-                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .body(JsonHandler.getFromString(BODY_QUERY))
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
                 LogbookParameterName.eventIdentifierProcess))

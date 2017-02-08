@@ -51,30 +51,32 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
-import fr.gouv.vitam.workspace.common.ErrorMessage;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
-import fr.gouv.vitam.workspace.core.ContentAddressableStorageAbstract;
-import fr.gouv.vitam.workspace.core.WorkspaceConfiguration;
-import fr.gouv.vitam.workspace.core.filesystem.FileSystem;
-
 
 /**
  * The Workspace Resource.
@@ -91,17 +93,15 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
     private static final String CONTAINER_NAME = "containerName";
 
-    private final ContentAddressableStorageAbstract workspace;
+    private final ContentAddressableStorage workspace;
 
     /**
      * Constructor used to configure a workspace
      *
      * @param configuration the storage config
      */
-    public WorkspaceResource(WorkspaceConfiguration configuration) {
-        // FIXME P1 REVIEW this implements directly the Filesystem implementation while it should not! You should have a
-        // Factory/Helper to create the right one, ignoring here what is the chosen implementation.
-        workspace = new FileSystem(configuration);
+    public WorkspaceResource(StorageConfiguration configuration) {
+        workspace = StoreContextBuilder.newStoreContext(configuration);
         LOGGER.info("init Workspace Resource server");
     }
 
@@ -125,6 +125,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(e);
             return Response.status(Status.CONFLICT).entity(containerName).build();
+        } catch (ContentAddressableStorageServerException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
         return Response.status(Status.CREATED).entity(containerName).build();
@@ -151,6 +154,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
         return Response.status(Status.NO_CONTENT).entity(containerName).build();
@@ -178,6 +184,41 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+        }
+    }
+
+
+    /**
+     * Count the number of binary files in the container
+     *
+     * @param containerName path param for container name
+     * @return Response containing the number of objects in "objectNumber"
+     */
+    @Path("/containers/{containerName}/count")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response countObjects(@PathParam(CONTAINER_NAME) String containerName) {
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName);
+            final long objectNumber = workspace.countObjects(containerName);
+            // TODO should use a common model object, but since it should be common with driver, where ?
+            final ObjectNode result = JsonHandler.createObjectNode();
+            result.put("objectNumber", objectNumber);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
     }
 
@@ -202,6 +243,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
     }
 
@@ -230,6 +274,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
         return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
@@ -252,12 +299,15 @@ public class WorkspaceResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, folderName);
             workspace.deleteFolder(containerName, folderName);
-        } catch (final  IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
         return Response.status(Status.NO_CONTENT).entity(containerName + "/" + folderName).build();
@@ -287,6 +337,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
     }
 
@@ -386,7 +439,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * puts an object into a container
      *
      * @param stream data input stream
-     * @param header method for entry data
      * @param objectName name of data object
      * @param containerName name of container
      * @return Response
@@ -395,8 +447,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(InputStream stream,
-        @PathParam(CONTAINER_NAME) String containerName,
+    public Response putObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -440,6 +491,9 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
+        } catch (final ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
 
         return Response.status(Status.NO_CONTENT).entity(containerName).build();
@@ -543,27 +597,36 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, algo)
                 .header(GlobalDataRest.X_DIGEST, messageDigest).build();
         } else {
-            final boolean exists = workspace.isExistingObject(containerName, objectName);
-            if (exists) {
-                return Response.status(Status.OK).entity(containerName + "/" + objectName).build();
-            } else {
-                return Response.status(Status.NOT_FOUND).build();
+            try {
+                boolean exists = workspace.isExistingObject(containerName, objectName);
+
+                if (exists) {
+                    return Response.status(Status.OK).entity(containerName + "/" + objectName).build();
+                } else {
+                    return Response.status(Status.NOT_FOUND).build();
+                }
+            } catch (final ContentAddressableStorageException e) {
+                LOGGER.error(e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
             }
+
         }
     }
 
     private void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse) {
 
-        InputStream stream = null;
         AsyncInputStreamHelper helper = null;
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
-            stream = (InputStream) workspace.getObject(containerName, objectName).getEntity();
 
-            helper = new AsyncInputStreamHelper(asyncResponse, stream);
-            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
+            Response response = workspace.getObject(containerName, objectName);
+            helper = new AsyncInputStreamHelper(asyncResponse, (InputStream) response.getEntity());
+            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM)
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                    response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
             helper.writeResponse(responseBuilder);
+
 
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);

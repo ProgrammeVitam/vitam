@@ -249,6 +249,7 @@ public class SedaConstants {
     public static final String ATTRIBUTE_ID = "id";
     public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
     public static final String TAG_ARCHIVE_SYSTEM_ID = "SystemId";
+    public static final String UPDATE_OPERATION = "UpdateOperation";
     public static final String TAG_DATA_OBJECT_GROUP = "DataObjectGroup";
     public static final String TAG_BINARY_DATA_OBJECT_ID = "BinaryDataObjectID";
     public static final String TAG_BINARY_DATA_OBJECT_SYSTEM_ID = "BinaryDataObjectSystemId";
