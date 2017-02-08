@@ -1,0 +1,4 @@
+---
+- hosts: vitam
+  roles:
+    - bootstrap_repo
