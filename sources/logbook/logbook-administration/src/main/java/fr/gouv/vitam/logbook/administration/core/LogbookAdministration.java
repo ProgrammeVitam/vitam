@@ -112,6 +112,7 @@ public class LogbookAdministration {
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
 
     private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
+    private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
 
     private static final String STRATEGY_ID = "default";
 
@@ -242,8 +243,36 @@ public class LogbookAdministration {
             traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Base64, timestampToken2Base64,
                 timestampToken3Base64);
 
-            traceabilityEvent = new TraceabilityEvent(getString(startDate), endDate, rootHash, timeStampToken,
-                numberOfLine, fileName);
+            String previousDate = null;
+            String previousMonthDate = null;
+            String previousYearDate = null;
+            if (lastTraceabilityOperation != null) {
+                TraceabilityEvent lastTraceabilityEvent = extractEventDetData(lastTraceabilityOperation);
+                if (lastTraceabilityEvent != null) {
+                    previousDate = lastTraceabilityEvent.getStartDate();
+                }
+            }
+
+            final LogbookOperation oneMounthBeforeTraceabilityOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusMonths(1));
+            if (oneMounthBeforeTraceabilityOperation != null) {
+                TraceabilityEvent oneMonthBeforeTraceabilityEvent = extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                if (oneMonthBeforeTraceabilityEvent != null) {
+                    previousMonthDate = oneMonthBeforeTraceabilityEvent.getStartDate();
+                }
+            }
+
+            final LogbookOperation oneYearBeforeTraceabilityOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusYears(1));
+            if (oneYearBeforeTraceabilityOperation != null) {
+                TraceabilityEvent oneYearBeforeTraceabilityEvent = extractEventDetData(oneYearBeforeTraceabilityOperation);
+                if (oneYearBeforeTraceabilityEvent != null) {
+                    previousYearDate = oneYearBeforeTraceabilityEvent.getStartDate();
+                }
+            }
+
+            long size = zipFile.length();
+
+            traceabilityEvent = new TraceabilityEvent(TraceabilityType.OPERATION, getString(startDate), endDate, rootHash, timeStampToken,
+                previousDate, previousMonthDate, previousYearDate, numberOfLine, fileName, size);
 
         } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException |
             ArchiveException | InvalidParseOperationException e) {
@@ -310,6 +339,14 @@ public class LogbookAdministration {
     }
 
     private String extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
+        TraceabilityEvent traceabilityEvent = extractEventDetData(logbookOperation);
+        if (traceabilityEvent == null) {
+            return null;
+        }
+        return new String(traceabilityEvent.getTimeStampToken());
+    }
+
+    private TraceabilityEvent extractEventDetData(LogbookOperation logbookOperation) throws InvalidParseOperationException {
         if (logbookOperation == null) {
             return null;
         }
@@ -317,10 +354,9 @@ public class LogbookAdministration {
         final List<Document> events = (List<Document>) logbookOperation.get(EVENTS);
         final Document lastEvent = Iterables.getLast(events);
 
-        final String evDetData = (String) lastEvent.get(eventDetailData.getDbname());
+        final String evDetData = (String) lastEvent.get(EVENT_DETAIL_DATA);
 
-        final TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
-        return new String(traceabilityEvent.getTimeStampToken());
+        return JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
     }
 
     @VisibleForTesting

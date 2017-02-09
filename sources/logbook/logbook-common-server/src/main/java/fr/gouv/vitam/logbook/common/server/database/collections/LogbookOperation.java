@@ -51,6 +51,24 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     private static final long serialVersionUID = -8343195329673741173L;
 
     /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
+
+    /**
+     * Events
+     */
+    public static final String EVENTS = "events";
+
+    /**
+     * Mapping of this Collection
+     */
+    public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
+        "properties : { " + LogbookOperation.EVENTS + " : { type : \"nested\", enabled : true } " +
+        " } } }";
+
+
+    /**
      * Constructor from LogbookOperationParameters
      *
      * @param parameters
@@ -170,7 +188,10 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      */
     public List<LogbookOperationParameters> getOperations(boolean all) {
         @SuppressWarnings("unchecked")
-        final ArrayList<Document> events = (ArrayList<Document>) get(LogbookDocument.EVENTS);
+        ArrayList<Document> events = (ArrayList<Document>) get(LogbookDocument.EVENTS);
+        if (events == null) {
+            events = new ArrayList<>();
+        }
         final int nb = all ? events.size() : events.isEmpty() ? 1 : 2;
         final List<LogbookOperationParameters> list = new ArrayList<>(nb);
         list.add(getOperation(this));

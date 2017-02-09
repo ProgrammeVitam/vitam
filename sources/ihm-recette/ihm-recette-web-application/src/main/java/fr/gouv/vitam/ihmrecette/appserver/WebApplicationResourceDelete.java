@@ -56,6 +56,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
@@ -100,7 +101,7 @@ public class WebApplicationResourceDelete {
      */
     public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig) {
         DbConfigurationImpl adminConfiguration;
-        DbConfigurationImpl logbookConfiguration;
+        LogbookConfiguration logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
         if (webApplicationConfig.isDbAuthentication()) {
             adminConfiguration =
@@ -108,7 +109,9 @@ public class WebApplicationResourceDelete {
                     webApplicationConfig.getMasterdataDbName(),
                     true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
             logbookConfiguration =
-                new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(), webApplicationConfig.getLogbookDbName(),
+                new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
+                    webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
+                        .getElasticsearchNodes(),
                     true, webApplicationConfig.getDbUserName(), webApplicationConfig.getDbPassword());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
@@ -120,8 +123,10 @@ public class WebApplicationResourceDelete {
                 new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
                     webApplicationConfig.getMasterdataDbName());
             logbookConfiguration =
-                new DbConfigurationImpl(webApplicationConfig.getMongoDbNodes(),
-                    webApplicationConfig.getLogbookDbName());
+                new LogbookConfiguration(webApplicationConfig.getMongoDbNodes(),
+                    webApplicationConfig.getLogbookDbName(), webApplicationConfig.getClusterName(),
+                    webApplicationConfig
+                        .getElasticsearchNodes());
             metaDataConfiguration = new MetaDataConfiguration(webApplicationConfig.getMongoDbNodes(),
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                     .getElasticsearchNodes());

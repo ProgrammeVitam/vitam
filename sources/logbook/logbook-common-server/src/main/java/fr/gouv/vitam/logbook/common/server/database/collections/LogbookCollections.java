@@ -61,6 +61,8 @@ public enum LogbookCollections {
 
     private VitamCollection vitamCollection;
 
+    public final static String ID = "_id";
+
     private LogbookCollections(final Class<?> clasz) {
         vitamCollection = VitamCollectionHelper.getCollection(clasz);
     }
@@ -68,11 +70,21 @@ public enum LogbookCollections {
     /**
      * Initialize the collection
      *
-     * @param db
-     * @param recreate
+     * @param db the mongo database
+     * @param recreate if needs to be recreated
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
         vitamCollection.initialize(db, recreate);
+    }
+
+    /**
+     * Initialize the collection
+     *
+     * @param esClient the ElasticsearchAccess
+     */
+
+    protected void initialize(final LogbookElasticsearchAccess esClient) {
+        vitamCollection.initialize(esClient);
     }
 
     /**
@@ -143,5 +155,13 @@ public enum LogbookCollections {
      */
     public Class<?> getClasz() {
         return vitamCollection.getClasz();
+    }
+
+    /**
+     *
+     * @return the associated ES Client
+     */
+    public LogbookElasticsearchAccess getEsClient() {
+        return (LogbookElasticsearchAccess) vitamCollection.getEsClient();
     }
 }

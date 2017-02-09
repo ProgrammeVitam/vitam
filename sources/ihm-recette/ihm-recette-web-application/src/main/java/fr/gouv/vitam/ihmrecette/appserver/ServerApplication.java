@@ -31,7 +31,6 @@ import static java.lang.String.format;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;

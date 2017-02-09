@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 
 /**
  * Logbook web APPLICATION
@@ -107,7 +109,8 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
         setServiceRegistry(new VitamServiceRegistry());
         final LogbookResource resource = new LogbookResource(getConfiguration());
         // Database dependency
-        serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess());
+        serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess())
+        .register(((LogbookMongoDbAccessImpl)resource.getLogbookDbAccess()).getEsClient());
         resourceConfig.register(resource)
             .register(new AdminStatusResource(serviceRegistry));
     }

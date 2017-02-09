@@ -31,8 +31,19 @@ package fr.gouv.vitam.logbook.administration.core;
  */
 public class TraceabilityEvent {
 
+    /**
+     * traceability logbook type
+     */
+    private TraceabilityType logType;
+	
+    /**
+     * traceability start date
+     */
     private String startDate;
 
+    /**
+     * traceability end date
+     */
     private String endDate;
 
     /**
@@ -45,6 +56,21 @@ public class TraceabilityEvent {
      */
     private byte[] timeStampToken;
 
+    /**
+     * Start date of the previous traceability
+     */
+    private String previousLogbookTraceabilityDate;
+
+    /**
+     * Start date of the next traceability 1 month before - logbook.mounth(-1).next()
+     */
+    private String minusOneMonthLogbookTraceabilityDate;
+
+    /**
+     * Start date of the next traceability 1 year before - logbook.year(-1).next()
+     */
+    private String minusOneYearLogbookTraceabilityDate;
+    
     private long numberOfElement;
 
     /**
@@ -52,6 +78,11 @@ public class TraceabilityEvent {
      */
     private String fileName;
 
+    /**
+     * Total size of the ZIP entry
+     */
+    private long size;
+    
     /**
      * Empty constructor for Jackson
      */
@@ -67,14 +98,19 @@ public class TraceabilityEvent {
      * @param numberOfElement number of document to secure
      * @param fileName        path on the archive in workspace
      */
-    public TraceabilityEvent(String startDate, String endDate, String hash, byte[] timeStampToken, long numberOfElement,
-        String fileName) {
-        this.startDate = startDate;
+    public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash, 
+    	byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
+    	String minusOneYearLogbookTraceabilityDate, long numberOfElement, String fileName, long size) {
+    	this.logType = logType;
+    	this.startDate = startDate;
         this.endDate = endDate;
         this.hash = hash;
+        this.minusOneMonthLogbookTraceabilityDate = minusOneMonthLogbookTraceabilityDate;
+        this.minusOneYearLogbookTraceabilityDate = minusOneYearLogbookTraceabilityDate;
         this.timeStampToken = timeStampToken;
         this.numberOfElement = numberOfElement;
         this.fileName = fileName;
+        this.size = size;
     }
 
     /**
@@ -118,4 +154,39 @@ public class TraceabilityEvent {
     public byte[] getTimeStampToken() {
         return timeStampToken;
     }
+    
+    /**
+     * @return log type
+     */
+    public TraceabilityType getLogType() {
+        return logType;
+    }
+    
+    /**
+     * @return Date of the one month previous traceability logbook
+     */
+    public String getMinusOneMonthLogbookTraceabilityDate() {
+        return minusOneMonthLogbookTraceabilityDate;
+    }
+
+    /**
+     * @return Date of the one year previous traceability logbook
+     */
+    public String getMinusOneYearLogbookTraceabilityDate() {
+        return minusOneYearLogbookTraceabilityDate;
+    }
+
+    /**
+     * @return Date of the previous traceability logbook
+     */
+    public String getPreviousLogbookTraceabilityDate() {
+        return previousLogbookTraceabilityDate;
+    }
+
+    /**
+     * @return Size of the entry
+     */
+    public long getSize() {
+        return size;
+	}
 }

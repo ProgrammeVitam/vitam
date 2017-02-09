@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
@@ -34,23 +33,15 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 
-import org.bson.conversions.Bson;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.Block;
-import com.mongodb.CursorType;
-import com.mongodb.Function;
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoIterable;
 
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -58,7 +49,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
