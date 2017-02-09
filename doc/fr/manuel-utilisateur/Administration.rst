@@ -128,7 +128,7 @@ Par défaut, les formats sont affichés sous le formulaire de recherche et sont 
 
 Pour effectuer une recherche précise, on utilise le champ "Nom de format" ou le champ "PUID" (Le PUID étant l'ID unique du format dans PRONOM). L'utilisation des deux champs de façon simultanée fait un ET entre les 2 critères. La recherche alliera donc le nom du format avec le PUID et donnera ainsi un résultat plus précis.
 
-NB : la recherche est de type exacte.
+NB : La recherche n'a pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots aux singuliers comme aux pluriels, voir même avec une légère tolérance de faute : Vitam pourra trouver des résultats correspondants.
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher" ou appuie sur la touche "Entrée" si son curseur est encore positionné dans le champs de recherche.
 
@@ -245,7 +245,7 @@ Par défaut, les règles de gestion sont affichées sous le formulaire de recher
 
 Pour effectuer une recherche précise, on utilise le champ "Intitulé" et/ou le champ "Type".
 
-NB : La recherche est de type exacte.
+NB : La recherche n'a pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots aux singuliers comme aux pluriels, voir même avec une légère tolérance de faute : Vitam pourra trouver des résultats correspondants.
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher".
 La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée.

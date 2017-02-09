@@ -17,10 +17,11 @@ Connexion
 Pour s'identifier à l'IHM minimale Vitam, l'utilisateur doit saisir son identifiant et son mot de passe dans les champs du même nom.
 Pour des mesures de sécurité, le mot de passe saisi ne s'affichera pas en toutes lettres.
 
+L'utilisateur doit également choisir le tenant sur lequel il souhaite se connecter, en utilisant le sélecteur à la droite des champs identifiant et mot de passe. 
 
 Un clic sur le bouton "Se connecter" lance l'authentification.
 
-.. image:: images/authentification_OK.jpg
+.. image:: images/authentification_OK.png
 
 Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est à dire :
 
@@ -29,7 +30,7 @@ Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est à dire :
 
 Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de vérifier son identifiant et son mot de passe. Aucune autre information n'est donnée pour des mesures de sécurité.
 
-.. image:: images/authentification_KO.jpg
+.. image:: images/authentification_KO.png
 
 Par défaut, après connexion, la page "Transfert" d'un SIP est affichée.
 
