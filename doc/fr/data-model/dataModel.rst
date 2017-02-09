@@ -35,6 +35,7 @@ Ces opérations sont :
 - Elimination (développé post-bêta)
 - Préservation (développé post-bêta)
 - Vérification (développé post-bêta)
+- Sécurisation (développé en bêta)
 
 Exemple de JSON stocké en base
 ------------------------------
@@ -713,13 +714,6 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "evDetData" (event Detail Data) : détails des données de l'évènement.
     Donne plus de détail sur l'évènement.
-    Dans le cas d'un évènement final d'une opération de type traceability, ce champ contient un objet composé des champs suivants :
-      - startDate
-      - endDate
-      - hash
-      - timestampToken
-      - nbOfElement
-      - fileName
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -812,6 +806,47 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "_tenant": identifiant du tenant
       *Ce champ existe uniquement pour la structure incluante.*
+
+Détail des champ du JSON stocké en base spécifiques à une opération de Sécurisation
+-----------------------------------------------------------------------------------
+
+Exemple de données stockées :
+
+::
+
+  "evDetData":
+  "{
+  \"StartDate\": \"-999999999-01-01T00:00:00\",
+  \"EndDate\": \"2017-01-27T14:11:36.168\",
+  \"Hash\": \"cmKHRqv1HHB+Fd0JErOpztcdcV3BGlgcA0VAYxFjxjdEJO0+lOhhxNeK43mbrmgra6phNSuKBfVIXOE5i4877Q==\",
+  \"TimeStampToken\": \"MIIEezAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEYAYJKoZIhvcNAQcCoIIEUTCCBE0CAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAiTJZ9fQyplZfbRHe7j34JFw1iQlJMmwEn5\/oa9hha3oeJ7b7A+I0MOiz8n3lhajK5GWDMptybTI\/qyydRxRwqAIBARgPMjAxNzAxMjcxNDExMzdaMYIDsjCCA64CAQEwYzBdMQswCQYDVQQGEwJGUjEMMAoGA1UECBMDaWRmMQ4wDAYDVQQHEwVwYXJpczEPMA0GA1UEChMGVml0YW0uMR8wHQYDVQQDFBZDQV9zZXJ2ZXJfaW50ZXJtZWRpYXRlAgIAsDANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzAxMjcxNDExMzdaMC0GCSqGSIb3DQEJNDEgMB4wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQMa0fzRWvY0qJjOO4lO5aSfN3iW9xWwhSv24QSExqpp081WszJ0NIEP4gFOzAQIrE35Bz\/jgACNxVS8XXRda7\/AwZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQAkVA\/7GPyjlbJC2NJJK+1ZY6k2vvEQls\/YcVrP9SV81nRL7fmrSw0mmia0Dj+kuu+qAun5hB6X9pzy4lbATsfEwDQYJKoZIhvcNAQENBQAEggIAgMAyrR6uTJYHxKqofV+HnPV+9fiykPb4DwNTWYKGEBOlu44yVfzep1P2GofDVBBguYQZHF0zCQ0vjktfGuVflh4GtiHsbhqKm6TMqeH+pdRv0MQvEYA3VK0ydA+\/36xb+tbOy8RBqUe3uXGpaafuqcrmlx0EYK4ey4I4sinvZKoB9c9kNCujlvpLxwPnL8teDe6\/jE4sWqvCHCSxorjXCXDN6aJTGvbFHepqa987eHRckDS5pdTiZ1a7V1IRjsX+bubA+ZYhWM5sA9L202msa8s\/zF5Nn+mmcApzpjiAkHu5u8QGuIe17jgHV0o73Zkv3Oranskz3Q3F3xXdNT8wblevU4mWFGQkW5wWhyyTfEKE97+z7+HTa5P4eLCEZkAgevkZPMo21PyEvNBUeXM3QIzfOKExX+wYpuL9k2\/5kg3ZmX3dMT1jxhZAr75puxp5pxOryuR+j0JFmeA8JI8a+XYsYZm75lV4uzSYl4QytMwNaSyxDwC4PBmZ9IGbPwRP8ttC8LSjeB+zwQug063kT0ZKmkCHzbZvVWHJlr3Iaew2UXjOabrWNIEijg6b6DBtze7sC9T8LXGHOlcAFFsW0kYfHb7MziVv22CCuUw4JyI5882I\/huPztjJqn+4bwzmAuWc8X\/OiyAbe2Iag23oaVJ36UU3QxzDLPhCg0TvNZg=\",
+  \"NumberOfElement\": 366,
+  \"FileName\": \"0_LogbookOperation_20170127_141136.zip\"
+  }"
+
+Dans le cas d'un évènement final d'une opération de sécurisation du LogbookOperation, le champ **"evDetData"** est composé des champs suivants :
+
+"StartDate": date de début.
+      Date de début de la période de couverture de l'opération de sécurisation au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
+      ``Exemple : "2016-08-17T08:26:04.227"``
+
+"EndDate": date de fin.
+      Date de fin de la période de couverture de l'opération de sécurisation  au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée)
+      ``Exemple : "2016-08-17T08:26:04.227"``
+
+"Hash": Empreinte racine.
+      Empreinte de la racine de l'arbre de Merkle.
+
+"TimeStampToken": Tampon d’horodatage.
+      Tampon d’horodatage sûr du journal sécurisé.
+
+"NumberOfElement": Nombre d'élèments.
+      Nombre d'opérations sécurisées.
+
+"FileName": Identifiant du fichier.
+      Nom du fichier sécurisé dans le stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
+      ``Exemple : "0_LogbookOperation_20170127_141136.zip"``
+
 
 Collection LogbookLifeCycleUnit
 ===============================
@@ -958,7 +993,7 @@ Détail des champ du JSON stocké en base
     *Ce champ existe pour les structures incluantes et incluses*
 
 "obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
-
+    
     *Ce champ existe pour les structures incluantes et incluses*
 
 "evDetData" (event Detail Data) : détails des données de l'évènement.
@@ -973,6 +1008,27 @@ Détail des champ du JSON stocké en base
 
 "_tenant": identifiant du tenant
     *Ce champ existe pour les structures incluantes et incluses*
+
+
+
+Détail des champ du JSON stocké en base spécifiques à une mise à jour
+---------------------------------------------------------------------
+
+Exemple de données stockées :
+
+::
+
+   "evDetData": "{\"diff\":\"-  Title : Recommandation de 2012 du CCSDS for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS)\\n+  Title : Recommandation de 2012 du CCSDS for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS) 222\\n-  #operations : [ aedqaaaaacaam7mxabxecakz3jbfwpaaaaaq \\n+  #operations : [ aedqaaaaacaam7mxabxecakz3jbfwpaaaaaq, aecaaaaaacaam7mxabjssak2dzsjniyaaaaq \"}"
+
+
+Dans le cas d'une mise à jour de métadonnées d'une unité archivistique (ArchiveUnit), le champ **"evDetData"** de l'évènement final est composé des champs suivants :
+
+"diff": historisation des modifications de métadonnées.
+    Son contenu doit respecter la forme suivante : les anciennes valeurs sont précédées d'un "-" (``-champ1: valeur1``) et les nouvelles valeurs sont précédées d'un "+" (``+champ1: valeur2``)
+
+    ``Exemple :
+    -Titre: Discours du Roi \n+Titre: Discours du Roi Louis XVI \n-Description: Etat Généraux du 5 mai 1789 \n+Description: Etat Généraux du 5 mai 1789 au Château de Versailles``
+
 
 Collection LogbookLifeCycleObjectGroup
 ======================================
