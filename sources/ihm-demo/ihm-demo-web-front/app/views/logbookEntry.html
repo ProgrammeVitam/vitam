@@ -30,7 +30,7 @@
                 </tbody>
                 <tbody ng-repeat="event in entryCtrl.detail.events">
                 <tr ng-class="$last ? 'logbookProcess': ''">
-                    <td ng-class="($last ? '' : ( event.evType.startsWith('STP') ? 'logbookStep': 'logbookTask' ))">{{event.evType | translate}}</td>
+                    <td ng-class="($last ? '' : ( event.evType.startsWith('STP') ? 'logbookStep': 'logbookTask' ))">{{event.evType | translate | replaceDoubleQuote}}</td>
                     <td>{{event.evDateTime | vitamFormatDate}}</td>
                     <td>{{event.outcome}}</td>
                     <td>{{event.outMessg}}</td>
