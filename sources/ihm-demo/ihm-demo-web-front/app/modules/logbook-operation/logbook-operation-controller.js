@@ -28,11 +28,9 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient,
-																										 ITEM_PER_PAGE, $timeout, loadStaticValues,$translate){
+  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService){
     var defaultSearchType = "--";
     var ctrl = this;
-    ctrl.client = ihmDemoCLient.getClient('logbook');
     ctrl.itemsPerPage = ITEM_PER_PAGE;
     ctrl.currentPage = 0;
     ctrl.searchOptions = {};
@@ -61,19 +59,33 @@ angular.module('ihm.demo')
 
 		ctrl.selectedObjects = [];
 
-    function clearResults() {
+		ctrl.goToDetails = function(id) {
+			$window.open('#!/admin/detailOperation/' + id)
+		};
+
+    // FIXME P0: Useless Function ? When and why is it created ?
+    ctrl.openDialog = function($event, id) {
+      $mdDialog.show({
+        controller: 'logbookEntryController as entryCtrl',
+        templateUrl: 'views/logbookEntry.html',
+        parent: angular.element(document.body),
+        clickOutsideToClose:true,
+        targetEvent: $event,
+        locals : {
+          operationId : id
+        }
+      })
+    };
+
+    var clearResults = function() {
+      ctrl.searchOptions = {};
+      ctrl.resultPages = 0;
+      ctrl.currentPage = 0;
+      ctrl.results = 0;
       ctrl.operationList = [];
-    }
+    };
 
-    function displayError(message) {
-      ctrl.fileNotFoundError = true;
-      ctrl.errorMessage = message;
-      ctrl.timer = $timeout(function() {
-        ctrl.fileNotFoundError = false;
-      }, 5000);
-    }
-
-    ctrl.getList = function(){
+    var preSearch = function() {
       clearResults();
       ctrl.fileNotFoundError = false;
 
@@ -90,51 +102,34 @@ angular.module('ihm.demo')
       }
 
       ctrl.searchOptions.orderby = "evDateTime";
-
-      ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
-            displayError("Veuillez ne remplir qu'un seul champ");
-          } else {
-            displayError("Il n'y a aucun résultat pour votre recherche");
-          }
-          ctrl.results = 0;
-          return;
-        }
-        ctrl.operationList = response.data.$results;
-        ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
-        ctrl.results = response.data.$hits.total;
-        ctrl.currentPage = 1;
-      }, function(response) {
-        ctrl.searchOptions = {};
-        ctrl.resultPages = 0;
-        ctrl.currentPage = 0;
-        ctrl.results = 0;
-        if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
-          displayError("Veuillez ne remplir qu'un seul champ");
-        } else {
-          displayError("Il n'y a aucun résultat pour votre recherche");
-        }
-
-      });
+      return ctrl.searchOptions;
     };
 
-		ctrl.goToDetails = function(id) {
-			$window.open('#!/admin/detailOperation/' + id)
-		};
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      ctrl.operationList = response.data.$results;
+      ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
+      ctrl.results = response.data.$hits.total;
+      ctrl.currentPage = 1;
+      return true;
+    };
 
-    ctrl.openDialog = function($event, id) {
-      $mdDialog.show({
-        controller: 'logbookEntryController as entryCtrl',
-        templateUrl: 'views/logbookEntry.html',
-        parent: angular.element(document.body),
-        clickOutsideToClose:true,
-        targetEvent: $event,
-        locals : {
-          operationId : id
-        }
-      })
-    }
+    var computeErrorMessage = function() {
+      if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
+        return 'Veuillez ne remplir qu\'un seul champ';
+      } else {
+        return 'Il n\'y a aucun résultat pour votre recherche';
+      }
+    };
+
+    $scope.error = {
+      message: '',
+      displayMessage: false
+    };
+
+    ctrl.getList = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
   });
 
 

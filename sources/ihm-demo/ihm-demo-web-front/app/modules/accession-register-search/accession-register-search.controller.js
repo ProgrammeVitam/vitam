@@ -30,7 +30,7 @@ angular.module('accession.register.search')
     'GET_ALL_REGISTERS': 'ACCESSIONREGISTER',
     'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
   })
-  .controller('accessionRegisterSearchController', function($window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE) {
+  .controller('accessionRegisterSearchController', function($scope, $window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE, processSearchService) {
     var self = this;
 
     // ************************************Pagination  **************************** //
@@ -51,50 +51,6 @@ angular.module('accession.register.search')
     };
     // **************************************************************************** //
 
-    // Search criteria
-    // Default criteria
-    // Search for accession register
-    self.searchRegistersByCriteria = function(serviceProducerCriteria) {
-      self.searchCriteria = {};
-      self.searchCriteria.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
-
-      if(serviceProducerCriteria === null || serviceProducerCriteria === undefined
-        || serviceProducerCriteria === ''){
-        // Return all registers
-        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
-      } else {
-        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = serviceProducerCriteria;
-      }
-
-      ihmDemoFactory.getAccessionRegisters(self.searchCriteria)
-      .then(
-        // Succeeded search request
-        function(response) {
-          var isReponseValid = responseValidator.validateReceivedResponse(response);
-          if (isReponseValid) {
-            // Get total results
-            self.totalResult = response.data.$hits.total;
-            self.showResult = true;
-            self.resultPages = Math.ceil(self.totalResult/self.itemsPerPage);
-
-            if (self.totalResult > 0) {
-              // Display found registers
-              self.registers = response.data.$results;
-            }
-          } else {
-            // Invalid response
-            self.showResult = false;
-            self.totalResult = 0;
-          }
-        },
-        // Failed search request
-        function(error) {
-          self.showResult = false;
-          self.totalResult = 0;
-        }
-      );
-    };
-
       self.startFormat = function(){
         var start="";
 
@@ -112,7 +68,54 @@ angular.module('accession.register.search')
       $window.open('#!/accessionRegister/detail/' + id)
     };
 
-    // Default Search
-    self.searchRegistersByCriteria(null);
+    var preSearch = function(serviceProducerCriteria) {
+      self.searchCriteria = {};
+      self.searchCriteria.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
+
+      if(serviceProducerCriteria === null || serviceProducerCriteria === undefined
+        || serviceProducerCriteria === ''){
+        // Return all registers
+        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
+      } else {
+        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = serviceProducerCriteria;
+      }
+      return self.searchCriteria;
+    };
+
+    var successCallback = function(response) {
+      var isReponseValid = responseValidator.validateReceivedResponse(response);
+      if (!isReponseValid) {
+        return false;
+      }
+      // Get total results
+      self.totalResult = response.data.$hits.total;
+      self.showResult = true;
+      self.resultPages = Math.ceil(self.totalResult/self.itemsPerPage);
+
+      if (self.totalResult > 0) {
+        // Display found registers
+        self.registers = response.data.$results;
+      }
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    var clearResults = function() {
+      self.registers = [];
+      self.currentPage = "";
+      self.resultPages = "";
+      self.totalResult = 0;
+    };
+
+    $scope.error = {
+      message: '',
+      displayMessage: false
+    };
+
+    self.searchRegistersByCriteria =  processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true, null);
+
   });
 

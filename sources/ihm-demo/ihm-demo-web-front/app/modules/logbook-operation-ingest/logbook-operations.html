@@ -24,8 +24,8 @@
       </div>
     </div>
       <div class="col-md-12">
-          <button ng-if="logctrl.noResult" class="btn btn-danger center-block" type="button" style="margin-top: 20px; margin-bottom: 20px">
-              {{logctrl.errorMessage}}
+          <button ng-if="error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+              {{error.message}}
           </button>
       </div>
   </form>
