@@ -21,6 +21,7 @@
 
 
     <build>
+        <sourceDirectory>app</sourceDirectory>
         <plugins>
 
             <plugin>
