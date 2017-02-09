@@ -138,6 +138,11 @@ public class GlobalDataRest {
      */
     public static final String X_EVENT_STATUS = "X-Event-Status";
 
+    
+    /**
+     * Tenant List for Initialisation of Tenant Filter
+     */
+    public static final String TENANT_LIST = "tenantList";
 
     private GlobalDataRest() {
         // empty

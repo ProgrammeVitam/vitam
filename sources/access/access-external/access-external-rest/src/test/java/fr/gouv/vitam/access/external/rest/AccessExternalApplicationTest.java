@@ -12,6 +12,8 @@ import org.junit.Test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 
@@ -52,6 +54,12 @@ public class AccessExternalApplicationTest {
         application = new AccessExternalApplication("access-external-test-err1.conf");
         Assert.assertFalse(application.getVitamServer().getServer().isStarted());
     }
+    
+    @Test(expected = IllegalStateException.class)
+    public void shouldThrowExceptionWhenConfigureApplicationWithoutTenant() throws Exception {
+        application = new AccessExternalApplication("access-external-test-no-tenant.conf");
+        Assert.assertFalse(application.getVitamServer().getServer().isStarted());
+    }
 
     @Test
     public void shouldStartAndStopServerWhenStopApplicationWithFileExistsAndRun() throws Exception {
@@ -70,6 +78,7 @@ public class AccessExternalApplicationTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
             .header("test", "<script>(.*?)</script>")
             .body("{\"name\":\"123\"}")
             .when()
@@ -80,11 +89,33 @@ public class AccessExternalApplicationTest {
         given()
             .contentType(ContentType.JSON)
             .param("test", "<?php echo\" Hello \" ?>")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
             .body("{\"name\":\"123\"}")
             .when()
             .put("/units/1")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // without X-Tenant-Id --> Precondition Failed
+        given()
+            .contentType(ContentType.JSON)
+            .param("test", "<?php echo\" Hello \" ?>")
+            .body("{\"name\":\"123\"}")
+            .when()
+            .put("/units/1")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // Incorrect Tenant Id --> UNAUTHORIZED
+        given()
+            .contentType(ContentType.JSON)
+            .param("test", "<?php echo\" Hello \" ?>")
+            .header(GlobalDataRest.X_TENANT_ID, "7")
+            .body("{\"name\":\"123\"}")
+            .when()
+            .put("/units/1")
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
     }
 

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -24,70 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common;
-
-import com.google.common.base.Strings;
-
 /**
- * This class contains Vitam Data
+ * Tenant Filters
  */
-public class VitamConfigurationParameters {
-
-    protected String secret;
-    protected boolean filterActivation = true;
-
-    /**
-     * VitamData empty constructor for YAMLFactory
-     */
-    public VitamConfigurationParameters() {
-        // empty
-    }
-
-
-    /**
-     * Must return the value of a 'secret' attribute
-     *
-     * @return the secret value
-     */
-    public String getSecret() {
-
-        if (Strings.isNullOrEmpty(secret)) {
-            return "";
-        }
-        return secret;
-    }
-
-    /**
-     * @param secret the Platform secret to set
-     * @return this
-     * @throws IllegalArgumentException if secret is Null Or Empty
-     */
-    public VitamConfigurationParameters setSecret(String secret) {
-        ParametersChecker.checkParameter("Platform secret", secret);
-        this.secret = secret;
-        return this;
-    }
-
-
-    /**
-     * Must return the value of a 'filterActivation' attribute
-     *
-     * @return the filterActivation
-     */
-    public boolean isFilterActivation() {
-        return filterActivation;
-    }
-
-
-    /**
-     * @param filterActivation the filterActivation to set
-     *
-     * @return this
-     */
-    public VitamConfigurationParameters setFilterActivation(boolean filterActivation) {
-        this.filterActivation = filterActivation;
-        return this;
-    }
-
-
-}
+package fr.gouv.vitam.common.tenant.filter;

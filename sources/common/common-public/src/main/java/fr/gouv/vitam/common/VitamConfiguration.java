@@ -575,4 +575,5 @@ public class VitamConfiguration {
     public static int getWaitingDelay() {
         return WAITING_DELAY;
     }
+
 }
