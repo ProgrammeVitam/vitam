@@ -344,9 +344,9 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
 
       - FATAL : la notification de la fin de l'opération n'a pas pu être réalisée suite à une erreur système (ATR_NOTIFICATION.FATAL=Erreur fatale lors de la notification à l'opérateur de versement)
 
-  * Notification de la fin de l'opération d'entrée (ATR_NOTIFICATION) (post Bêta)
+  * Mise en cohérence des journaux de cycle de vie (ROLL_BACK) (post Bêta)
 
-    + **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée suite à la notification de la fin d'opération d'entrée afin de purger les collections temporaire des journaux de cycle de vie. 
+    + **Règle** : une fois toutes les étapes passées avec succès ou lorsqu'une étape est en échec, cette étape est lancée suite à la notification de la fin d'opération d'entrée afin de purger les collections temporaire des journaux de cycle de vie.
 
     + **Type** : bloquant.
 
@@ -357,8 +357,8 @@ Finalisation de l'entrée (STP_INGEST_FINALISATION)
       - FATAL : la purge n'a pas pu être réalisée suite à une erreur système (ROLL_BACK.FATAL=Erreur fatale lors la mise en cohérence des journaux de cycle de vie)
 
 
-Structure du Workflow (Bêta)
-============================
+Structure du Workflow (Implémenté en V1)
+========================================
 
 Le workflow actuel mis en place dans la solution Vitam est défini dans l'unique fichier "DefaultIngestWorkflow.json".
 Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, indexer les métadonnées et stocker les objets contenues dans le SIP.
@@ -664,10 +664,6 @@ D'une façon synthétique, le workflow est décrit de cette façon :
     
     + Test de l'existence d'un fichier unique à la racine du SIP
     
-    + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
-
-    + Test de l'existence d'un fichier unique à la racine du SIP
-
     + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
 
     + Validation XSD du manifeste,
