@@ -81,6 +81,7 @@ public class ProcessEngineImpl implements ProcessEngine {
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow not exist";
     private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
 
+
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
     private final Map<String, WorkFlow> poolWorkflows;
@@ -210,7 +211,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         int tenantId, boolean finished)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException, ProcessingException {
-
+        String eventDetailData;
         workParams.setStepUniqId(uniqueId);
         LOGGER.info("Start Workflow: " + uniqueId + " Step:" + step.getStepName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -280,6 +281,11 @@ public class ProcessEngineImpl implements ProcessEngine {
                             itemStatus.getGlobalStatus(),
                             null, " Detail= " + itemStatus.computeStatusMeterMessage(),
                             GUIDReader.getGUID(workParams.getContainerName()));
+                    if (stepResponse.getData().get(LogbookParameterName.eventDetailData.name()) != null) {
+                        eventDetailData =
+                            stepResponse.getData().get(LogbookParameterName.eventDetailData.name()).toString();
+                        sublogbook.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
+                    }
                     helper.updateDelegate(sublogbook);
                 }
             }
@@ -306,11 +312,14 @@ public class ProcessEngineImpl implements ProcessEngine {
 
             }
 
+
             if (messageIdentifier != null && !messageIdentifier.isEmpty()) {
                 parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
             }
 
-            parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(tenantId).getId());
+
+            parameters.putParameterValue(LogbookParameterName.eventIdentifier,
+                GUIDFactory.newEventGUID(tenantId).getId());
             parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
