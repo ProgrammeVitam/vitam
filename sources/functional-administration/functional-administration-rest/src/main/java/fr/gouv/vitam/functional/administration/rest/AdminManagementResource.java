@@ -323,9 +323,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage())
                 .build();
-        } catch (final DatabaseConflictException e) {
-            LOGGER.error(e);
-            return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;

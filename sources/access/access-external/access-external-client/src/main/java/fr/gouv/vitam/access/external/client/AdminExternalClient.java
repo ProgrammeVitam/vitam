@@ -29,7 +29,6 @@ package fr.gouv.vitam.access.external.client;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

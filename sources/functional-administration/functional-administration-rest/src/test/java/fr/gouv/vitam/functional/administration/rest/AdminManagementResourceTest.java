@@ -385,6 +385,7 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void insertRulesFile() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
@@ -395,6 +396,21 @@ public class AdminManagementResourceTest {
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void insertRulesForDifferentTenantsSuccess() throws Exception {
+
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 1)
+            .when().post(IMPORT_RULES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -468,7 +484,7 @@ public class AdminManagementResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, 1)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());

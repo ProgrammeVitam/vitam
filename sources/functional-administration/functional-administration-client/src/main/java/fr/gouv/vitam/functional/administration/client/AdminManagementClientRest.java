@@ -194,11 +194,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
-    /**************************
-     * rules Management
-     *
-     * @throws AdminManagementClientServerException
-     ****************************************/
 
     @Override
     public Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {

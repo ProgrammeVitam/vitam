@@ -42,7 +42,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-
         try {
             response = performRequest(HttpMethod.PUT, documentType.getName(), headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
