@@ -27,7 +27,9 @@
 package fr.gouv.vitam.storage.engine.client;
 
 import java.io.IOException;
+import java.net.URI;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -130,5 +132,18 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
 
     static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
+    }
+
+    /**
+     * change mode client by server url
+     * For test purpose
+     *
+     * @param serviceUrl as String
+     */
+    static final void changeMode(String serviceUrl) {
+        ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);
+        final URI uri = URI.create(serviceUrl);
+        final ClientConfiguration configuration = new ClientConfigurationImpl(uri.getHost(), uri.getPort());
+        changeMode(configuration);
     }
 }

@@ -6,8 +6,8 @@
 		<artifactId>parent</artifactId>
 		<version>0.15.0-SNAPSHOT</version>
 	</parent>
-	<artifactId>integration-test</artifactId>
-	<name>All Integration Tests</name>
+	<artifactId>storage-integration-test</artifactId>
+	<name>Storage Integration Test</name>
 
 	<build>
 		<pluginManagement>
@@ -34,42 +34,9 @@
 	<dependencies>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>processing-common</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>processing-management-client</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>processing-management</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-rest</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>metadata-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>functional-administration-rest</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
@@ -91,12 +58,6 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>storage-offer-mock</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>storage-engine-server</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
@@ -109,78 +70,12 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>worker-server</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>worker-core</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>worker-common</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>worker-client</artifactId>
-			<version>${project.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-internal-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-internal-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-internal-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-             <groupId>fr.gouv.vitam</groupId>
-             <artifactId>access-internal-client</artifactId>
-             <version>${project.version}</version>
-         </dependency>
- 
-         <dependency>
-             <groupId>fr.gouv.vitam</groupId>
-             <artifactId>access-internal-rest</artifactId>
-             <version>${project.version}</version>
-         </dependency>
-
-		
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.jayway.restassured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -211,21 +106,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.flapdoodle.embed</groupId>
-			<artifactId>de.flapdoodle.embed.mongo</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

@@ -32,6 +32,7 @@
 		<module>ihm-demo</module>
 		<module>integration-test</module>
 		<module>ihm-recette</module>
+		<module>storage-integration-test</module>
 	</modules>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->

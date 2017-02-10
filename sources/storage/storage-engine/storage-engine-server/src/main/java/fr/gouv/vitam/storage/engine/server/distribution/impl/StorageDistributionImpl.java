@@ -249,8 +249,6 @@ public class StorageDistributionImpl implements StorageDistribution {
             LOGGER.warn("ExecutorService interrupted !", exc);
         }
 
-        executor.shutdownNow();
-
         for (String offerId : futureMap.keySet()) {
             try {
                 ThreadResponseData res = futureMap.get(offerId).get();
