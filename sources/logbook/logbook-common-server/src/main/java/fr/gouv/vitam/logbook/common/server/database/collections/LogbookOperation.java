@@ -61,10 +61,34 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     public static final String EVENTS = "events";
 
     /**
-     * Mapping of this Collection
+     * Mapping of this Collection.
      */
     public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
-        "properties : { " + LogbookOperation.EVENTS + " : { type : \"nested\", enabled : true } " +
+        "properties : { " + LogbookOperation.EVENTS + " : { type : \"object\", enabled : true, " +
+        "properties : { " + LogbookMongoDbName.eventDetailData.getDbname() +
+        ": { type : \"object\",  enabled : true , " +
+        "properties : { " +
+        "LogType : { type : \"string\", index : \"not_analyzed\" }, " +
+        "StartDate : { type : \"date\", index : \"analyzed\" }, " +
+        "EndDate : { type : \"date\", index : \"analyzed\" }, " +
+        "PreviousLogbookTraceabilityDate : { type : \"date\", index : \"analyzed\" }, " +
+        "MinusOneMonthLogbookTraceabilityDate : { type : \"date\", index : \"analyzed\" }, " +
+        "MinusOneYearLogbookTraceabilityDate : { type : \"date\", index : \"analyzed\" }, " +
+        "Hash : { type : \"string\", index : \"not_analyzed\" }, " +
+        "TimeStampToken : { type : \"string\", index : \"not_analyzed\" }, " +
+        "NumberOfElement : { type : \"long\", index : \"analyzed\" }, " +
+        "Size : { type : \"long\", index : \"analyzed\" }, " +
+        "FileName : { type : \"string\", index : \"not_analyzed\" } " +
+        " } } " + // end evDetData
+        ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
+        ", evType : { type : \"string\", index : \"not_analyzed\" } " +
+        ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
+        ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
+        " } } " + // end events
+        ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
+        ", evType : { type : \"string\", index : \"not_analyzed\" } " +
+        ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
+        ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
         " } } }";
 
 

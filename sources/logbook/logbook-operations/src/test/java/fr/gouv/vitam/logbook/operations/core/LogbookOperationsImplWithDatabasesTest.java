@@ -36,6 +36,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bson.Document;
@@ -104,7 +105,9 @@ public class LogbookOperationsImplWithDatabasesTest {
     private final static String ES_HOST_NAME = "localhost";
     private static ElasticsearchTestConfiguration config = null;
 
-    private static int tenantId = 0;
+    private static final int tenantId = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+
     private LogbookOperationsImpl logbookOperationsImpl;
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -156,9 +159,12 @@ public class LogbookOperationsImplWithDatabasesTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory
-                .create(new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes));
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+
         final String datestring1 = "2015-01-01";
         final String datestring2 = "2016-12-12";
         final String datestring3 = "1990-10-01";
@@ -236,7 +242,9 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenCreateAndUpdate() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.create(logbookParametersStart);
         logbookOperationsImpl.update(logbookParametersAppend);
@@ -317,6 +325,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     @Test
     @RunWithCustomExecutor
     public void givenCreateAndSelectByTenant() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.create(logbookParameters5);
         logbookOperationsImpl.update(event2);

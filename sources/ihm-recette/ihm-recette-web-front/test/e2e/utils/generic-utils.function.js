@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,35 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.logbook.common.server.exception;
-
-/**
- * Exception indicating an error while executing a request on database index.
  */
-public class LogbookExecutionException extends LogbookException {
-    private static final long serialVersionUID = -8199144049313837512L;
 
-    /**
-     * @param message associated message
-     */
-    public LogbookExecutionException(String message) {
-        super(message);
-    }
+var genericUtils = function(){
+  var genericUtilsService = {};
 
-    /**
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * Check if the breadcrumb is absent from the page
+   *
+   * @param element the given function that select an html element, from protractor test
+   * @param by the given function that specify the kind of selector, from protractor test
+   * @param expect the given function that test an expected value, from ptotractor test
+   */
+  genericUtilsService.checkNoBreadcrumb = function(element, by, expect) {
+    var breadcrumb = element(by.css('[class="breadcrumb"]'));
+    expect(breadcrumb.isPresent()).toBeFalsy();
+  };
 
-    /**
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(String messsage, Throwable cause) {
-        super(messsage, cause);
-    }
-}
+  /**
+   * Check a part of the breadcrumb component of the page.
+   *
+   * @param element the given function that select an html element, from protractor test
+   * @param by the given function that specify the kind of selector, from protractor test
+   * @param expect the given function that test an expected value, from ptotractor test
+   * @param index The index of the breadcrumb element to test
+   * @param value The value expected for this breadcrumb element
+   */
+  genericUtilsService.checkBreadcrumbFinalPart = function(element, by, expect, index, value) {
+    var breadcrumb = element(by.css('[class="breadcrumb"]'));
+    var checkingPart = breadcrumb.all(by.css('li')).get(index);
+    expect(checkingPart.getText()).toBe(value);
+  };
+
+  return genericUtilsService;
+};
+module.exports = new genericUtils();

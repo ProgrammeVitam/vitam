@@ -5,11 +5,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -19,6 +21,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -37,12 +43,19 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
     private static final String user = "user-logbook";
     private static final String pwd = "user-logbook";
 
+    private static final Integer TENANT_ID = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+
     // ES
     @ClassRule
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
     private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private final static String ES_HOST_NAME = "localhost";
     private static ElasticsearchTestConfiguration config = null;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -72,7 +85,9 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testCreateLogbook() throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // mongo
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
@@ -80,9 +95,11 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
 
+        LogbookConfiguration config =
+            new LogbookConfiguration(nodes, databaseName, ES_CLUSTER_NAME, esNodes, true, user, pwd);
+        config.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(
-            new LogbookConfiguration(nodes, databaseName, ES_CLUSTER_NAME, esNodes, true, user, pwd));
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(config);
         assertNotNull(mongoDbAccess);
         assertEquals("db-logbook", mongoDbAccess.getMongoDatabase().getName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();

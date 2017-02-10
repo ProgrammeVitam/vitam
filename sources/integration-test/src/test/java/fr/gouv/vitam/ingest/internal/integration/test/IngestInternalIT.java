@@ -128,7 +128,7 @@ public class IngestInternalIT {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private static boolean imported = false; 
+    private static boolean imported = false;
     private final static String CLUSTER_NAME = "vitam-cluster";
     static JunitHelper junitHelper;
     private static int TCP_PORT = 54321;
@@ -380,7 +380,7 @@ public class IngestInternalIT {
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
             final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
             assertEquals(200, response.getStatus());
-            
+
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             Select select = new Select();
@@ -430,16 +430,18 @@ public class IngestInternalIT {
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
             LOGGER.warn("read: " + size2);
             assertTrue(size2 == size);
-            
-            JsonNode logbookOperation = accessClient.selectOperationById(operationGuid.getId(), new Select().getFinalSelect());
-            QueryBuilder query = QueryBuilders.matchQuery("_id",operationGuid.getId());
-            SearchResponse elasticSearchResponse = esClient.search(LogbookCollections.OPERATION, query, null);
+
+            JsonNode logbookOperation =
+                accessClient.selectOperationById(operationGuid.getId(), new Select().getFinalSelect());
+            QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 25);
             assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
             assertNotNull(elasticSearchResponse.getHits().getAt(0));
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
             assertNotNull(hit);
             // TODO compare
-            
+
             accessInternalApplication.stop();
         } catch (final Exception e) {
             e.printStackTrace();

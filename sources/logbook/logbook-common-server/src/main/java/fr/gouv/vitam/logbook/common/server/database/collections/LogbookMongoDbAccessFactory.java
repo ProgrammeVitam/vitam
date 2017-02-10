@@ -57,6 +57,7 @@ public final class LogbookMongoDbAccessFactory {
 
         final MongoClient mongoClient =
             MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
-        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false, esClient);
+        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false, esClient,
+            configuration.getTenants());
     }
 }

@@ -31,6 +31,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jhades.JHades;
@@ -84,6 +85,9 @@ public class LogbookApplicationTest {
     private static File logbook;
     private static LogbookConfiguration realLogbook;
 
+    private static final int TENANT_ID = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
@@ -112,9 +116,10 @@ public class LogbookApplicationTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory
-                .create(new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes));
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         JunitHelper.setJettyPortSystemProperty(serverPort);
