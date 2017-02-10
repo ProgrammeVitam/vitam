@@ -9,7 +9,7 @@
   file:
     path: "{{vitam_folder_root}}/data/ihm-recette/data.json"
     state: absent
-  when: ansible_virtualization_type != 'docker'
+  when: web_dir_soapui_tests != ''
 
 - name: get data.json from web directory
   uri:
@@ -24,29 +24,29 @@
   register: response
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
-  when: ansible_virtualization_type != 'docker'
+  when: web_dir_soapui_tests != ''
 
 - set_fact:
     json_deploy: "{{ response.content | from_json }}"
-  when: (ansible_virtualization_type != 'docker') and (response is defined)
+  when: ( response is defined) and (web_dir_soapui_tests != '')
 
 # TODO: Refactor this after the non regression tech design
 
 - name: create subdir for soapUI tests
   with_items: "{{json_deploy.params}}"
   file:
-    path:  "{{ vitam_folder_root }}/data/ihm-recette/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% endif %}"
+    path:  "{{ vitam_folder_root }}/data/ihm-recette/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% elif item.sipName is defined %}{{ item.sipName|dirname() }}{% elif item.ruleName is defined %}{{ item.ruleName|dirname() }}{% elif item.formatName is defined %}{{ item.formatName|dirname() }}{% endif %}"
     state: directory
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
     mode: "{{ vitam_folder_permission}}"
-  when: (ansible_virtualization_type != 'docker') and (response is defined)
+  when: ( response is defined) and (web_dir_soapui_tests != '')
 
 - name: loop data.json and download files to {{vitam_folder_root}}/data/ihm-recette
   with_items: "{{json_deploy.params}}"
   uri:
-    url: "{{ web_dir_soapui_tests }}/tests_soapui/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% endif %}"
-    dest: "{{ vitam_folder_root }}/data/ihm-recette/{% if item.fileName is defined %}{{ item.fileName|dirname() }}{% endif %}"
+    url: "{{ web_dir_soapui_tests }}/tests_soapui/{% if item.fileName is defined %}{{ item.fileName }}{% elif item.sipName is defined %}{{ item.sipName }}{% elif item.ruleName is defined %}{{ item.ruleName }}{% elif item.formatName is defined %}{{ item.formatName }}{% endif %}"
+    dest: "{{ vitam_folder_root }}/data/ihm-recette/{% if item.fileName is defined %}{{ item.fileName }}{% elif item.sipName is defined %}{{ item.sipName }}{% elif item.ruleName is defined %}{{ item.ruleName }}{% elif item.formatName is defined %}{{ item.formatName }}{% endif %}"
     method: GET
     owner: "{{ vitam_user }}"
     group: "{{ vitam_group }}"
@@ -54,4 +54,4 @@
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   ignore_errors: yes
-  when: (ansible_virtualization_type != 'docker') and (response is defined)
+  when: ( response is defined) and (web_dir_soapui_tests != '')
