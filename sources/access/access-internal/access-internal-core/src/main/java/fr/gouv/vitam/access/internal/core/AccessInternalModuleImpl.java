@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.access.internal.api.AccessBinaryData;
@@ -508,7 +509,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
         for (final JsonNode diffNode : arrayNode) {
             if (diffNode.get(ID) != null && unitId.equals(diffNode.get(ID).textValue())) {
-                return JsonHandler.writeAsString(diffNode.get(DIFF));
+                ObjectNode diffObject = JsonHandler.createObjectNode();
+                diffObject.set("diff", diffNode.get(DIFF));
+                return JsonHandler.writeAsString(diffObject);
             }
         }
         // TODO P1 : empty string or error because no diff for this id ?
