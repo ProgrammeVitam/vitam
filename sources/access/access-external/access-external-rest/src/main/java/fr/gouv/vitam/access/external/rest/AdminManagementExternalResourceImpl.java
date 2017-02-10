@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.external.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -35,9 +36,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.ws.soap.AddressingFeature.Responses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -49,7 +55,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -87,79 +92,81 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkDocument(@PathParam("collection") String collection, InputStream document) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    final Status status = client.checkFormat(document);
-                    return Response.status(status).entity(getErrorEntity(status)).build();
+                    final Response status = client.checkFormat(document);
+                    status.bufferEntity();
+                    return Response.fromResponse(status).build();
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    final Status status = client.checkRulesFile(document);
-                    return Response.status(status).entity(getErrorEntity(status)).build();
+                    final Response status = client.checkRulesFile(document);
+                    return Response.fromResponse(status).build();
                 }
-                final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status)).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                final Status status = Status.PRECONDITION_FAILED;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, null, null)).build();
+            } catch (ReferentialException ex) {
+                LOGGER.error(ex);
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, ex.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } finally {
             StreamUtils.closeSilently(document);
         }
     }
 
     /**
-     * importDocument
-     *
-     * @param collection
-     * @param document
-     * @return Response
+     * Import a referential document
+     * 
+     * @param uriInfo used to construct the created resource and send it back as location in the response
+     * @param collection target collection type
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
      */
     @Path("/{collection}")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importDocument(@PathParam("collection") String collection, InputStream document) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    public Response importDocument(@Context UriInfo uriInfo, @PathParam("collection") String collection,
+        InputStream document) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                Response resp = null;
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    client.importFormat(document);
-                    final Status status = Status.CREATED;
-                    return Response.status(status).entity(getErrorEntity(status)).build();
+                    resp = client.importFormat(document);
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    client.importRulesFile(document);
-                    final Status status = Status.CREATED;
-                    return Response.status(status).entity(getErrorEntity(status)).build();
+                    resp = client.importRulesFile(document);
                 }
-                final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                // final Status status = Status.CREATED;
+                ResponseBuilder ResponseBuilder = Response.status(resp.getStatus())
+                    .entity(resp.hasEntity() ? resp.getEntity() : "Successfully imported");
+                return ResponseBuilder.build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);
                 final Status status = Status.CONFLICT;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } finally {
             StreamUtils.closeSilently(document);
         }
@@ -178,7 +185,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
@@ -192,24 +199,22 @@ public class AdminManagementExternalResourceImpl {
                     return Response.status(Status.OK).entity(result).build();
                 }
                 final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, null, null)).build();
             } catch (ReferentialException | IOException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
                 final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         }
     }
-
-
 
     /**
      * findDocumentByID
@@ -223,7 +228,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         try {
@@ -237,28 +242,38 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRuleByID(documentId);
                     return Response.status(Status.OK).entity(result).build();
                 }
-
                 final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, null, null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error(e);
                 final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status)).build();
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
-    private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+    /**
+     * Construct the error following input
+     * 
+     * @param status  Http error status
+     * @param message functional error message, if absent the http reason phrase will be used instead
+     * @param code    The functional error code, if absent the http code will be used instead
+     * @return
+     */
+    private VitamError getErrorEntity(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty() ) ? message : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
 }

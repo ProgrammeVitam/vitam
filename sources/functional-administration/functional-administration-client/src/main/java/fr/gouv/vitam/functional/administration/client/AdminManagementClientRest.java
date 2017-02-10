@@ -82,7 +82,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     // régles
     // de gestions, contrat , etc)
     @Override
-    public Status checkFormat(InputStream stream) throws ReferentialException {
+    public Response checkFormat(InputStream stream) throws ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -93,23 +93,23 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new ReferentialException("File format error");
+                /* BAD_REQUEST status is more suitable when formats are not well formated */    
+                case BAD_REQUEST:
+                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new ReferentialException(reason);
                 default:
                     break;
             }
-            return status;
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public void importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException {
+    public Response importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -120,20 +120,20 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new ReferentialException("File format error");
+                case BAD_REQUEST:
+                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new ReferentialException(reason);
                 case CONFLICT:
                     LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
                     throw new DatabaseConflictException("Collection input conflic");
                 default:
                     break;
             }
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -201,7 +201,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
      ****************************************/
 
     @Override
-    public Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
+    public Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -213,24 +213,23 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new FileRulesException("File rules error");
+                /* BAD_REQUEST status is more suitable when rules are not well formated */
+                case BAD_REQUEST:
+                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new FileRulesException(reason);
                 default:
                     break;
             }
-            return status;
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-
+        } 
     }
 
     @Override
-    public void importRulesFile(InputStream stream)
+    public Response importRulesFile(InputStream stream)
         throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
@@ -243,22 +242,24 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
-                case PRECONDITION_FAILED:
-                    LOGGER.error(Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                    throw new FileRulesException("File rules error");
+                case CREATED:
+                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case BAD_REQUEST:
+                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new FileRulesException(reason);
                 case CONFLICT:
                     LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
                     throw new DatabaseConflictException("Collection input conflic");
                 default:
                     break;
             }
+            return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
