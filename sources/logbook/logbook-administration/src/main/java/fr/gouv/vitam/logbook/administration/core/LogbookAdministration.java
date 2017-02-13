@@ -166,11 +166,8 @@ public class LogbookAdministration {
         LogbookDatabaseException, InvalidCreateOperationException {
 
         final LogbookOperation lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        //Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        // TODO P0: WIP sera fixé avec la story #1653, contournement pour la démo
-        int tenantId = 0;
-        VitamThreadUtils.getVitamSession().setTenantId(0);
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         final List<String> expectedLogbookId = newArrayList(eip.getId());

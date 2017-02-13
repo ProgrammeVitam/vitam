@@ -26,8 +26,11 @@
  */
 package fr.gouv.vitam.logbook.administration.main;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -35,9 +38,11 @@ import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.elasticsearch.search.aggregations.metrics.geobounds.InternalGeoBounds;
 
 /**
  * Utility to launch the Traceability through command line and external scheduler
@@ -46,6 +51,7 @@ public class CallTraceability {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceability.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
+    private static final String VITAM_SECURISATION_NAME = "securisationDaemon.conf";
 
     /**
      * @param args ignored
@@ -53,14 +59,34 @@ public class CallTraceability {
      * @throws LogbookClientServerException
      */
     public static void main(String[] args) throws InvalidParseOperationException, LogbookClientServerException {
-
         platformSecretConfiguration();
-        final LogbookOperationsClientFactory logbookOperationsClientFactory =
-            LogbookOperationsClientFactory.getInstance();
-
-        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-            client.traceability();
+        try {
+            File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
+            final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
+            conf.getTenants().forEach((v) -> {
+                Integer i = Integer.parseInt(v);
+                VitamThreadUtils.getVitamSession().setTenantId(i);
+                secureByTenantId();
+            });
+        } catch (final IOException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException("Cannot start the Application Server", e);
         }
+    }
+
+    private static void secureByTenantId() {
+        try {
+            final LogbookOperationsClientFactory logbookOperationsClientFactory =
+                LogbookOperationsClientFactory.getInstance();
+
+            try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
+
+                client.traceability();
+            }
+        } catch (InvalidParseOperationException | LogbookClientServerException e) {
+            throw new IllegalStateException(" Error when securing Tenant  :  " + VitamThreadUtils.getVitamSession().getTenantId(), e);
+        }
+
     }
 
     private static void platformSecretConfiguration() {

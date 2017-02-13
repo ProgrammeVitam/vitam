@@ -35,7 +35,7 @@
 // Define resources in order to call WebApp http endpoints for operation's details
 angular.module('core').factory(
 		'detailOperationResource',
-		function($http, IHM_URLS) {
+		function($http, IHM_URLS, tenantService) {
 
 			var detail_operation_ROOT = '/logbooks';
 			var detailOperationResource = {};
@@ -47,7 +47,7 @@ angular.module('core').factory(
 			 */
 			detailOperationResource.result = function(operationId) {
 				return $http.get(IHM_URLS.IHM_BASE_URL
-						+detail_operation_ROOT + '/' + operationId , {'headers' : {'Accept' : 'application/json'}});
+						+detail_operation_ROOT + '/' + operationId , {'headers' : {'Accept' : 'application/json','X-Tenant-Id' : tenantService.getTenant()}});
 			};
 			return detailOperationResource;
 

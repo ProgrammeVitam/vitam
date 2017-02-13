@@ -9,7 +9,7 @@
  *
  * This software is governed by the CeCILL 2.1 license under French law and
  * abiding by the rules of distribution of free software. You can use, modify
- * and/ or redistribute the software under the terms of the CeCILL 2.1 license
+ * and/ or redistribute the softwarfe under the terms of the CeCILL 2.1 license
  * as circulated by CEA, CNRS and INRIA at the following URL
  * "http://www.cecill.info".
  * 
@@ -38,7 +38,6 @@ angular
     .controller(
         'operationTraceabilityController',
         function ($scope, $http, operationTraceabilityService, tenantService) {
-
             $scope.getResults = function () {
                 operationTraceabilityService
                     .getResults(
@@ -48,7 +47,6 @@ angular
                         function () {
                             $scope.data = "Echec de l'opération de sécurisation des journaux.";
                         });
-
             };
 
             $scope.checkTenant = function(){

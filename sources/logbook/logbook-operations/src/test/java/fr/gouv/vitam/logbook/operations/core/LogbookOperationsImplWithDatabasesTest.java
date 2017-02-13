@@ -116,7 +116,11 @@ public class LogbookOperationsImplWithDatabasesTest {
 
 
     private static LogbookOperationParameters logbookParameters4;
+    private static LogbookOperationParameters logbookParameters5;
+
     private static LogbookOperationParameters event;
+    private static LogbookOperationParameters event2;
+
     private static LogbookOperationParameters securityEvent;
 
 
@@ -127,6 +131,7 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     final static GUID eip4 = GUIDFactory.newEventGUID(tenantId);
     final static GUID eip5 = GUIDFactory.newEventGUID(tenantId);
+    final static GUID eip6 = GUIDFactory.newEventGUID(1);
 
 
 
@@ -159,6 +164,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         final String datestring3 = "1990-10-01";
         final String datestring4 = "2017-09-01";
         final String datestring5 = "2017-09-02";
+        final String datestring6 = "2017-11-02";
+
         final String dateStringSecurity = "2017-10-04";
 
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
@@ -196,10 +203,22 @@ public class LogbookOperationsImplWithDatabasesTest {
             StatusCode.STARTED, null, null, eip4);
 
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
+
+        logbookParameters5 = LogbookParametersFactory.newLogbookOperationParameters(
+            eip6,
+            "LOGBOOK_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
+            StatusCode.STARTED, null, null, eip6);
+
+        logbookParameters5.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
         event =
             LogbookParametersFactory.newLogbookOperationParameters(eip4, "eventType", eip4, LogbookTypeProcess.INGEST,
                 StatusCode.STARTED, "start ingest", eip4);
+        event2 =
+            LogbookParametersFactory.newLogbookOperationParameters(eip6, "eventType", eip6, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip6);
         event.putParameterValue(LogbookParameterName.eventDateTime, datestring5);
+        event2.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
+
 
         securityEvent = LogbookParametersFactory.newLogbookOperationParameters(
             eip5, "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
@@ -280,7 +299,7 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         MongoCursor<LogbookOperation> curseur;
         curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2017-01-30T12:01:00"));
-
+        assertTrue(curseur.hasNext());
         final LogbookOperation op = curseur.next();
 
         assertEquals(op.get("evDateTime"), "2017-09-01");
@@ -294,5 +313,19 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         assertEquals(secureOperation.get("evTypeProc"), LogbookTypeProcess.TRACEABILITY.toString());
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenCreateAndSelectByTenant() throws Exception {
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        logbookOperationsImpl.create(logbookParameters5);
+        logbookOperationsImpl.update(event2);
+        MongoCursor<LogbookOperation> curseur;
+        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2017-01-30T12:01:00"));
+        assertFalse(curseur.hasNext());
+
+
+    }
+
 
 }
