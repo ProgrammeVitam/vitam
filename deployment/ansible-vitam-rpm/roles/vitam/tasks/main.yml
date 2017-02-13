@@ -129,6 +129,73 @@
   notify:
     - restart service
 
+#### Certificates stores deployment ####
+
+- name: "Copy {{ vitam_component }} jks keystore (server)"
+  copy:
+    src: "{{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_component}}.jks"
+    dest: "{{vitam_folder_conf}}/keystore_{{vitam_component}}.jks"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "{{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_component}}.jks || echo nofile') == \"\" }}"
+  tags:
+    - update_vitam_certificates
+  notify:
+    - restart service
+
+- name: "Copy truststore"
+  copy:
+    src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/truststore_{{vitam_certificate_client_type}}.jks"
+    dest: "{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/truststore_{{vitam_certificate_client_type}}.jks || echo nofile') == \"\"}} )"
+  tags:
+    - update_vitam_certificates
+  notify:
+    - restart service
+
+- name: "Copy server grantedstore"
+  copy:
+    src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/grantedstore_{{vitam_certificate_client_type}}.jks"
+    dest: "{{vitam_folder_conf}}/grantedstore_{{vitam_component}}.jks"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_component}}.jks || echo nofile') == \"\"}} ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/grantedstore_{{vitam_certificate_client_type}}.jks || echo nofile') == \"\"}} )"
+  tags:
+    - update_vitam_certificates
+  notify:
+    - restart service
+
+- name: "Copy {{ vitam_component }} p12 keystore (clients)"
+  copy:
+    src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/keystore_{{vitam_component}}.p12"
+    dest: "{{vitam_folder_conf}}/keystore_{{vitam_component}}.p12"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/keystore_{{vitam_component}}.p12 || echo nofile') == \"\" }} )"
+  tags:
+    - update_vitam_certificates
+  notify:
+    - restart service
+
+- name: "Copy timestamp keystore"
+  copy:
+    src: "{{inventory_dir}}/keystores/timestamping/keystore_{{vitam_component}}.p12"
+    dest: "/vitam/conf/{{vitam_component}}/keystore_{{vitam_component}}.p12"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "{{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/timestamping/keystore_{{vitam_component}}.p12 || echo nofile') == \"\" }}"
+  tags:
+    - update_vitam_certificates
+  notify:
+    - restart service
+
 #### Consul configuration ####
 
 - name: Ensure consul config dir is OK

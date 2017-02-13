@@ -2,12 +2,12 @@
 {% for item in groups['hosts-storage-offer-default'] %}
 {
     "id" : "{{item}}",
-    "baseUrl" : "https://{{item}}:{{vitam_storageofferdefault_port_https}}",
+    "baseUrl" : "http://{{item}}:{{vitam_storageofferdefault_port_https}}",
     "parameters" : {
-      "keyStore-keyPath": "{{vitam_folder_conf}}/keystore_storage.p12",
-      "keyStore-keyPassword": "{{p12_storage_engine_password}}",
-      "trustStore-keyPath": "{{vitam_folder_conf}}/truststore_storage.jks",
-      "trustStore-keyPassword": "{{TrustStore_storage_engine_password}}"
+        "keyStore-keyPath": "{{vitam_folder_conf}}/keystore_storage.p12",
+        "keyStore-keyPassword": "{{keystores.client_storage.storage}}",
+        "trustStore-keyPath": "{{vitam_folder_conf}}/truststore_storage.jks",
+        "trustStore-keyPassword": "{{truststores.client_storage}}"
     }
 }
 {% if not loop.last %},
