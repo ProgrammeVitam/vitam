@@ -148,6 +148,9 @@ public class MultipleInputStreamHandlerTest {
 
     @Test
     public void testMultipleInputStreamHandlerBlock() {
+        testMultipleInputStreamHandlerBlock(100);
+        testMultipleInputStreamHandlerBlock(512);
+        testMultipleInputStreamHandlerBlock(1024);
         testMultipleInputStreamHandlerBlock(4000);
         testMultipleInputStreamHandlerBlock(8192);
         testMultipleInputStreamHandlerBlock(40000);
@@ -246,7 +249,8 @@ public class MultipleInputStreamHandlerTest {
         }
         final long stop = System.nanoTime();
         LOGGER.debug("Read {}: \t{} ns", size, stop - start);
-        addTimer((stop - start) / nb, "PARALLEL_" + (block ? "BLOCK_" : "BYTE_") + size + "_" + nb + " :\t" +
+
+        addTimer((stop - start) / nb, "PARALLEL_VAR_SIZE_" + (block ? "BLOCK_" : "BYTE_") + size + "_" + nb + " :\t" +
             (stop - start) + "  \t" + (stop - start) / nb);
     }
 
@@ -262,6 +266,17 @@ public class MultipleInputStreamHandlerTest {
         testMultipleInputStreamHandlerMultipleMultiThread(10, 8192, false);
         testMultipleInputStreamHandlerMultipleMultiThread(1, 65536, false);
         testMultipleInputStreamHandlerMultipleMultiThread(10, 65536, false);
+    }
+
+    @Test
+    public void testMultipleInputStreamHandlerMultipleMultiThreadWithVariableSizes() {
+        for (int len = 100; len < 80000; len += 500) {
+            testMultipleInputStreamHandlerMultipleMultiThread(1, len, true);
+            testMultipleInputStreamHandlerMultipleMultiThread(10, len, true);
+
+            testMultipleInputStreamHandlerMultipleMultiThread(1, len, false);
+            testMultipleInputStreamHandlerMultipleMultiThread(10, len, false);
+        }
     }
 
     @Test

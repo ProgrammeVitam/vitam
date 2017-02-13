@@ -388,7 +388,6 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     /**
      * Method performing a PutRequests
      *
-     * @param containerName the container Name
      * @param stream the stream to be chunked if necessary
      * @param result the result received from the server after the init
      * @param tenantId the tenant id
