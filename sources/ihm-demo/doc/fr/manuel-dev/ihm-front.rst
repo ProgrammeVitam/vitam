@@ -12,13 +12,15 @@ TODO
 Composition du projet
 =====================
 
-NPM + Bower
-Gulp + Archi projet (modules, css, ...) => AngularJS
+NPM + Bower : npm est utilisé pour gérer les dépendances liées au build de l'application (par exemple la minification), tandis que bower est utilisé pour gérer les dépendances de l'appication (par exemple angular, moment.js, ...)
+Pour construire le projet, l'outil gulp a été mis en place. Celui permet d'automatiser les tâches permettant d'arriver à la construction d'un livrable contenant les fichiers html, javascript et css minifiés.
+La commande 'gulp package' permet de construire le projet.
+
 Tests unitaires: Voir ihm-tests.rst
 
 
-Grunt et déployement à chaud
-============================
+Gulp et déploiement à chaud
+===========================
 
 Le déploiement à chaud est possible via la commande 'gulp serve'.
 Si un fichier est modifié pendant que le serve est lancé, les modifications seront automatiquement mises à jour.
@@ -27,24 +29,30 @@ Le backend ciblé peut être spécifié en ajoutant un fichier local.json (Voir 
 Karma et Tests unitaires
 ========================
 
-Les tests unitaires se lances vià les commandes:
- - 'gulp test' : Lance un serveur gulp + les tests karma (Unitaires) et Protractor (e2e)
+Les tests unitaires se lances via les commandes:
+ - 'gulp tests' : Lance un serveur (basé sur le module karma serveur) + les tests karma (Unitaires) et Protractor (e2e)
  - 'gulp testKarma' : Lance les tests unitaires seules (Nécéssite un serveur lancé)
  - 'gulp testProtractor' : Lance les tests end to end seuls (Nécéssite un serveur lancé)
+
+
+Qualité du code Javascript
+==========================
+
+La qualité du code javascript est validée grâce au module lint. Pour celà, il suffit de lancer la commande 'gulp lint'.
 
 Modèle MVC
 ==========
 
 Le front va petit à petit être migré vers une architecture reprenant le modèle MVC:
  - Une couche Modèle, récupérant les données depuis l'API vitam (Server d'app + dossier resources Angular)
- - Une couche Service, traitant les primise des resources ou proposant des méthodes utilitaires
+ - Une couche Service, traitant les promesses des resources ou proposant des méthodes utilitaires
  - Une couche Vues, proposant l'affichage d'une page avec son controller associé
  
 Au final l'arbo type des fichiers devrait être la suivante:
-/webapp
+/app
    => Fichiers de conf globaux du projet (bower/npm/jshint/index.html/...)
    /core
-      => Fichiers de config globaux (core.module.js, main.controller.js, app.config.js, app.module.js, ...)
+      => Fichiers de configuration globaux (core.module.js, main.controller.js, app.config.js, app.module.js, ...)
       /static => Fichiers de traductions front (Key=value pour les champs statiques de l'IHM)
       /services => Services utilitaires partagés de l'application (Faire des modules pour chaque services si externalisables)
       /directives => Directives utilitaires partagés de l'application (Faire des modules pour chaque directives si externalisables)
@@ -69,7 +77,7 @@ Au final l'arbo type des fichiers devrait être la suivante:
 Internationalisation
 ====================
 
-Cette partie est gérrée par le module angular-translate
+Cette partie est gérée par le module angular-translate
 
 Pour ajouter une traduction, ajouter une clé valeur dans le fichier static/languages_<lang>.json
 L'entrée être formatée de la manière suivante "<pageGroup>.<pageDetail>.<bloc>.<key>"="<value>"
