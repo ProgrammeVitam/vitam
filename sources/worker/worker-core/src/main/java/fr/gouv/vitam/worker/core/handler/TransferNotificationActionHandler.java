@@ -47,14 +47,16 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
@@ -148,11 +151,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
         final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
+        String eventDetailData;
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
         handlerIO = handler;
-
         try {
             workflowStatus =
                 StatusCode.valueOf(params.getMapParameters().get(WorkerParameterName.workflowStatusKo));
@@ -164,6 +166,21 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 checkMandatoryIOParameter(handler);
                 atrFile = createATROK(params, handlerIO);
             }
+            // calculate digest by vitam alog
+            final Digest vitamDigest = new Digest(VitamConfiguration.getDefaultDigestType());
+            final String vitamDigestString = vitamDigest.update(atrFile).digestHex();
+
+            LOGGER.debug(
+                "DEBUG: \n\t" + vitamDigestString);
+            // define eventDetailData
+            eventDetailData =
+                "{" +
+                    "\"MessageDigest\":\"" + atrFile.getName() +
+                    "\",\"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() +
+                    "\", \"SystemMessageDigest\": \"" + vitamDigestString +
+                    "\", \"SystemAlgorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"} ";
+
+            itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
             // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
             // 'xml:id' to a(n) 'attribute declaration' component.
             // Actually cannot reproduce but get another SAX exception on the seda-vitam-2.0-main.xsd file (and its
