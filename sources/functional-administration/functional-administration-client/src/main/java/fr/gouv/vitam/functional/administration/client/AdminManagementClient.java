@@ -94,6 +94,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
+     * Import a the set of rules for a given tenant
      * @param stream
      * @throws FileRulesException                   when file rules exception occurs
      * @throws DatabaseConflictException            when Database conflict exception occurs
@@ -104,7 +105,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      *
-     * @param id ide de rule
+     * @param  id The rule identifier
      * @return Rule in JsonNode format
      * @throws FileRulesException                   when file rules exception occurs
      * @throws InvalidParseOperationException       when a parse problem occurs
@@ -114,7 +115,7 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
-     *
+     * List the rules that match the query
      * @param query
      * @return Rules in JsonNode format
      * @throws FileRulesException                   when file rules exception occurs

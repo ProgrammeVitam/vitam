@@ -28,7 +28,6 @@ package fr.gouv.vitam.access.external.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -41,9 +40,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import javax.xml.ws.soap.AddressingFeature.Responses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -264,7 +261,7 @@ public class AdminManagementExternalResourceImpl {
      * Construct the error following input
      * 
      * @param status  Http error status
-     * @param message functional error message, if absent the http reason phrase will be used instead
+     * @param message The functional error message, if absent the http reason phrase will be used instead
      * @param code    The functional error code, if absent the http code will be used instead
      * @return
      */

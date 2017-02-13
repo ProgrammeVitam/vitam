@@ -31,7 +31,7 @@ angular.module('core')
     $scope.showMenuBar = true;
     $scope.credentials = usernamePasswordToken;
     $scope.session = {};
-    $scope.tenants = ['0'];
+    $scope.tenants = ['0', '1'];
     ihmDemoFactory.getTenants().then(function(repsonse) {
       if (repsonse.data.length !== 0) {
         $scope.tenants = repsonse.data;

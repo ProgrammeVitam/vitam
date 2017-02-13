@@ -110,16 +110,20 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenClientMockWhenWhenImportRuleThenReturnOK()
         throws FileFormatException, FileRulesException, DatabaseConflictException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
     }
 
     @Test
+    @RunWithCustomExecutor
     public void getRuleByIDTest() throws InvalidParseOperationException, ReferentialException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ObjectNode objectNode = (ObjectNode) client.getRuleByID("APP-00001");
         assertEquals(1, ((ArrayNode) objectNode.get("$results")).size());
         assertEquals("AppraisalRule",
@@ -130,12 +134,14 @@ public class AdminManagementClientMockTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void getRuleTest()
         throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
         IOException {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(client.getRules(select.getFinalSelect()));
     }
 

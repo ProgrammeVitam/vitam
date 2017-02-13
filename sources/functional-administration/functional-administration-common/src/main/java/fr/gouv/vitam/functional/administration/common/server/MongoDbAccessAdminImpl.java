@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -89,11 +90,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
     implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
-    private static final ArrayList<String> INDEX_ES_LIST = new ArrayList<String>() {{
-        add("FileFormat");
-        add("FileRules");
-    }
-    };
+    private static final List<String> INDEX_ES_LIST = Arrays.asList("FileFormat", "FileRules");
 
     /**
      * @param mongoClient client of mongo

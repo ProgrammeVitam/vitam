@@ -312,19 +312,23 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void givenInputstreamOKRulesFileWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
     }
 
 
     @Test(expected = FileRulesException.class)
+    @RunWithCustomExecutor
     public void givenAnInvalidFileThenKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
 
     }
@@ -338,6 +342,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
      * @throws AdminManagementClientServerException
      */
     @Test(expected = FileRulesException.class)
+    @RunWithCustomExecutor
     public void givenIllegalArgumentThenthrowFilesRuleException()
         throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
         AdminManagementClientServerException {
@@ -345,6 +350,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             client.importRulesFile(stream);
             final JsonNode result = client.getRuleByID("APP-00001");
         } catch (FileRulesException e) {
@@ -362,6 +368,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
      * @throws AdminManagementClientServerException
      */
     @Test(expected = InvalidParseOperationException.class)
+    @RunWithCustomExecutor
     public void givenInvalidQuerythenReturnko()
         throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
         AdminManagementClientServerException {
@@ -369,6 +376,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final Select select = new Select();
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
         final JsonNode result = client.getRules(select.getFinalSelect());
     }
