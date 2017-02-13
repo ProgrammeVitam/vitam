@@ -27,8 +27,21 @@
 
 'use strict';
 
-angular.module('ihm.demo')
-    .controller('logbookEntryController', function($scope, idOperationService, $routeParams , ihmDemoCLient) {
+describe('logbookEntryFullService', function() {
+  beforeEach(module('ihm.demo'));
 
-        $scope.operationId = $routeParams.entryId;
- });
+  var scope, LogbookEntryFullService;
+
+  beforeEach(inject(function ($rootScope, $controller, logbookEntryFullService) {
+    scope = $rootScope.$new(false, null);
+    LogbookEntryFullService = logbookEntryFullService;
+  }));
+
+  it('should return css class regarding outcome message provided', function() {
+    expect(LogbookEntryFullService.selectClassByStatus('OK')).toEqual('');
+    expect(LogbookEntryFullService.selectClassByStatus('Warning')).toEqual('warningLine');
+    expect(LogbookEntryFullService.selectClassByStatus('KO')).toEqual('koLine');
+    expect(LogbookEntryFullService.selectClassByStatus('FATAL')).toEqual('koLine');
+  });
+
+});

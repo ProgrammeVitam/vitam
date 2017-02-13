@@ -25,10 +25,25 @@
  * accept its terms.
  */
 
-'use strict';
+/**
+ * Service that handle all the search pages of IHM-DEMO,
+ * The getParams initialization function should be call before all using of this service.
+ * The parametters returned by getParams should be given to all function call of this service.
+ */
+angular.module('core')
+  .service('logbookEntryFullService', function() {
 
-angular.module('ihm.demo')
-    .controller('logbookEntryController', function($scope, idOperationService, $routeParams , ihmDemoCLient) {
+    var selectClassByStatus = function(status){
+      if (['KO', 'FATAL'].indexOf(status.toUpperCase()) > -1) {
+        return "koLine";
+      }
+      if (status.toUpperCase() === 'WARNING') {
+        return "warningLine";
+      }
+      return "";
+    };
 
-        $scope.operationId = $routeParams.entryId;
- });
+    return {
+        selectClassByStatus: selectClassByStatus
+    }
+  });

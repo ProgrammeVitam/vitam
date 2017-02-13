@@ -29,11 +29,6 @@
 
 angular.module('ihm.demo')
   .controller('OperationLogbookEntryController', function($scope, $mdDialog, ihmDemoCLient, idOperationService, $routeParams) {
-    var operationId = $routeParams.entryId;
-
-    ihmDemoCLient.getClient('logbook/operations').all(operationId).post({}).then(function(response) {
-      $scope.detail = response.data.$results[0];
-      $scope.detailId = operationId;
-    });
+    $scope.detailId = $routeParams.entryId;
 
   });

@@ -43,6 +43,7 @@ module.exports = function(config) {
       'app/resources/*.js',
       'app/services/*.js',
       'app/pages/**/*.js',
+      'app/core/directives/*.js',
       'test/spec/**/*.js'
     ],
 

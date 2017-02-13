@@ -26,7 +26,7 @@
  */
 
 angular.module('lifecycle')
-  .controller('lifeCycleController', function($routeParams, $filter, ihmDemoFactory, loadStaticValues) {
+  .controller('lifeCycleController', function($scope, $routeParams, $filter, ihmDemoFactory, loadStaticValues, logbookEntryFullService) {
     var self = this;
 
     function initFields(fields) {
@@ -129,6 +129,10 @@ angular.module('lifecycle')
               } else {
                 newEvent[uppercaseKey] = value;
               }
+
+              if (uppercaseKey === 'OUTCOME') {
+                newEvent.outcomeValue = value.toUpperCase();
+              }
             });
 
             // Add class type
@@ -144,6 +148,20 @@ angular.module('lifecycle')
         self.showResult = false;
       });
     };
+
+    $scope.selectStyleByStepLevel = function(isStepLevelEvent){
+      if (isStepLevelEvent) {
+        return "logbookProcess";
+      }
+      else {
+        return "logbookTask";
+      }
+    };
+
+    $scope.selectStyleByStatus = function(status){
+      return logbookEntryFullService.selectClassByStatus(status);
+    };
+
 
       self.startFormat = function(){
         var start="";
