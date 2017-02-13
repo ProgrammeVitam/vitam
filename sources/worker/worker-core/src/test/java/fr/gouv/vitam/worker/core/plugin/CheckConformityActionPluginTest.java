@@ -71,8 +71,12 @@ public class CheckConformityActionPluginTest {
     CheckConformityActionPlugin plugin;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private static final String HANDLER_ID = "CHECK_DIGEST";
+    private static final String CALC_CHECK = "CALC_CHECK";
 
+    private static final String EV_DETAIL_DATA = "{\"MessageDigest\":\"3273aa2ccb0cf4d5d37cef899d1774b9\"," +
+        "\"Algorithm\": \"MD5\", " +
+        "\"SystemMessageDigest\": \"d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4\", " +
+        "\"SystemAlgorithm\": \"SHA-512\"} "; 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq.json";
     private InputStream objectGroup;
     private static final String bdo1 =
@@ -123,6 +127,7 @@ public class CheckConformityActionPluginTest {
         handlerIO.addInIOParameters(in);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA);
         handlerIO.close();
     }
 
