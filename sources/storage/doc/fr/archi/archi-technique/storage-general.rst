@@ -58,3 +58,30 @@ Limites :
 
 - Une seule offre, ainsi la logique est simplifiée au niveau du distributeur qui ne gère alors pas le multi-offres
 - La gestion des erreurs est très basique, il serait certainement intéressant de gérer ces erreurs plus finement
+
+Itération 13
+------------
+
+Mise en place du multi-offres.
+
+La stratégie prend maintenant en compte le nombre de copie et les offres qui sont déclarées.
+Une limite est qu'il faut autant d'offre que de copie.
+
+Dans cette version, le moteur de stockage est séquentiel, il récupère l'objet sur le workspace et l'envoi à la
+première offre, puis il récupère à nouveau l'objet sur le workspace et l'envoi à l'offre suivante et ainsi de suite.
+
+Itération 14
+------------
+
+Implémentation multi-thread
+
+Dans cette version la distribution du moteur de stockage se charge d'envoyer l'objet issu du workspace en parallèle
+aux différentes offres. L'objet est récupéré sur le workspace et est "copié" n fois, n étant le nombre de copie à
+faire. Chacune de ces copies est envoyée à une offre au travers de threads.
+
+L'objet n'est pas tout à fait copié. Il passe au travers d'un **tee** qui crée autant de buffers que de copies. Chacun
+des buffers est rempli, puis lu en parallèle. Dès que tous les buffers sont vidés, ils sont tous réalimenté jusqu'à ce
+ qu'il n'y ait plus rien à transmettre. Cela signifie que le tee est bloquant. Si un buffer n'est pas vidé les autres
+ attendent potentiellement indéfinement s'il n'y a pas de timeout.
+
+Il n'y a pas de vrai pool de threads dans cette version.

@@ -88,10 +88,18 @@ Distribution
 
 Le distributeur (module distribution) est en charge de décider selon la stratégie de stockage dans quelles offres doit être stocké un objet binaire.
 
+Avant tout, le moteur de stockage récupère le binaire sur le workspace et le démultplie via un tee autant de fois que
+ de copies à réaliser.
 Pour chaque offre de stockage contenue dans la stratégie le distributeur demande au SPI DriverManager le driver associé.
-Une fois que le distributeur a récupéré le driver de l'offre, il utilise l'interface du driver pour stocker l'objet binaire sur l'offre associée au driver.
+Le distributeur instancie alors pour chaque offre un nouveau thread qui va se charger du transfert vers chacune des
+offres. Dans chaque thread le driver associé à l'offre est utilisé pour le transfert.
+
+Les thread font un retour OK ou KO. Pour chaque offre en KO, une nouvelle tentative de transfert est faite, jusqu'à
+trois tentatives. Si encore une offre est en KO après trois tentatives (retry), les binaires déposés sur les offres OK
+sont supprimés (rollback).
 
 Le distributeur gère la mise à jour du journal des écritures du storage liée à l'opération de stockage d'un objet binaire dans une offre.
+Toutes les tentatives y sont répertoriées pour chaque offre.
 
 D'un point de vue séquentiel :
 
@@ -100,14 +108,20 @@ D'un point de vue séquentiel :
  1. Il vérifie les paramètres d'entrée (nullité et cohérence simple)
  2. Il récupère la stratégie associée à l'ID fourni
  3. Regarde uniquement la partie "offres chaudes"
- 4. Pour chaque offre chaude :
+ 4. Récupère le fichier sur le workspace
+ 5. Pour chaque offre chaude :
     1. Récupération du Driver associé s'il existe (sinon remontée d'une exception technique)
-    2. Récupération des paramètres de l'offre : url du service, paramètres additionels
-    3. Tentative de connection à l'offre et d'upload de l'objet (avec un méchanisme de retry basé sur 3 tentatives)
-    4. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à l'offre
-    5. Stockage du résultat de l'upload (simple booléen aujourd'hui) dans une map temporaire contenant le résultat de l'upload sur chaque offre
- 5. Génération d'une réponse sérialisable, en mode 'succès' si **tous** les drivers ont correctement stocker l'objet (renvoi d'une exception sinon)
-
+    2. Instancie un thread et dans ce trhead :
+       1. Récupération des paramètres de l'offre : url du service, paramètres additionels
+       2. Tentative de connection à l'offre et d'upload de l'objet
+       3. Comparaison du digest hash renvoyé par l'offre avec le digest calculé à la volée lors de l'envoi du stream à
+     l'offre
+       4. Retour vers le distributeur du résultat (OK ou KO)
+    3. Stockage du résultat de l'upload dans une map temporaire contenant le résultat de l'upload sur chaque offre
+ 6. Pour chaque offre KO, un nouvelle tentative est faite (jusqu'à trois)
+ 7. Si tout est OK, génération d'une réponse sérialisable, en mode 'succès' si **tous** les drivers ont correctement
+ stocker l'objet.
+    Si une offre au moins est KO, suppression des binaires sur les offres en succès et renvoie une exception
 
 DriverManager : SPI
 ===================
