@@ -42,7 +42,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
@@ -200,5 +202,12 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         return maxResults;
     }
 
+
+    @Override
+    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId)
+        throws ContentAddressableStorageException {
+        // TODO just next in use story 1850
+        throw new UnsupportedOperationException();
+    }
 
 }

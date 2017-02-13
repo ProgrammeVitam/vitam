@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.api;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -312,5 +314,14 @@ public interface ContentAddressableStorage {
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
+    
+    /**
+     * @param containerName
+     * @param objectId
+     * @return MetadatasObjectResult
+     * @throws ContentAddressableStorageException 
+     * @throws IOException 
+     */
+    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
     
 }

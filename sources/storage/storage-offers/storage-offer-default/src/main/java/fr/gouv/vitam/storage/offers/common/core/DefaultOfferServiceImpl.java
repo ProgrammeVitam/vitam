@@ -43,6 +43,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -208,4 +210,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
         }
     }
+
+    @Override
+    public MetadatasObjectResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException {
+        return defaultStorage.getObjectMetadatas(tenantId, type, objectId);
+    }    
+    
 }

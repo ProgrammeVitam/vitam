@@ -92,6 +92,7 @@ public class DefaultOfferResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String UNIT_CODE = "UNIT";
     private static final String OBJECT_CODE = "OBJECT";
+    private static final String METADATA = "/metadatas";
 
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
@@ -710,6 +711,27 @@ public class DefaultOfferResourceTest {
             .contentType(MediaType.APPLICATION_JSON)
             .when().get(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/count").then()
             .statusCode(200);
+    }
+    
+    @Test
+    public void getObjectMetadataOK() throws FileNotFoundException, IOException{
+        final ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.UNIT);
+        with().header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectInit).when().post(OBJECTS_URI + "/" + DataCategory.UNIT.name() + "/id1");
+
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            assertNotNull(in);
+            with().header(GlobalDataRest.X_TENANT_ID, "1")
+                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .put(OBJECTS_URI + "/" + DataCategory.UNIT.name() + OBJECT_ID_URI, "id1");
+        }
+        // test
+        given().header(GlobalDataRest.X_TENANT_ID, 1)
+            .when().get(OBJECTS_URI + "/" + UNIT_CODE  + "/" + "id1" + METADATA).then().statusCode(200);
     }
 
 }
