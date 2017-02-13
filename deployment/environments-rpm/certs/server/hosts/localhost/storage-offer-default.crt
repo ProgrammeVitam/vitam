@@ -1,0 +1,140 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 193 (0xc1)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_server
+        Validity
+            Not Before: Mar  6 18:04:16 2017 GMT
+            Not After : Mar  5 18:04:16 2020 GMT
+        Subject: C=FR, ST=idf, L=paris, O=Vitam., CN=storage-offer-default.service.consul
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (4096 bit)
+                Modulus:
+                    00:e7:b2:00:3d:59:56:a6:e1:d2:ec:0f:ff:3f:8b:
+                    cb:23:44:02:20:96:ea:d9:46:0d:cf:46:03:3c:e8:
+                    03:1f:03:07:13:27:20:8b:68:db:02:e9:25:48:7b:
+                    cc:2e:c6:99:46:e1:d1:0f:f9:b5:1d:78:29:f2:a6:
+                    21:82:83:4b:17:ed:21:b6:be:af:14:53:55:29:5b:
+                    51:19:10:c8:ce:c5:d8:17:eb:ff:5f:dc:95:76:78:
+                    15:18:34:ec:2b:da:0f:a3:25:f7:23:d0:e6:ac:1e:
+                    63:29:cc:54:20:2c:f5:cc:a6:eb:ab:41:42:06:c9:
+                    47:b9:73:e5:15:42:99:fb:5b:92:79:9e:63:f4:e3:
+                    0c:74:dd:3f:d1:9e:a6:ed:75:98:0a:00:03:d7:90:
+                    a0:f0:78:1e:4f:c2:04:b3:b0:5d:9f:5b:2d:68:4d:
+                    fb:8f:15:e1:9f:b3:c9:da:fc:34:01:0e:f6:e9:b2:
+                    c0:82:ba:fa:34:07:ce:04:09:5b:07:7c:5d:b5:ff:
+                    4b:b4:79:18:37:7c:a2:48:2e:87:8c:a9:a0:ad:b3:
+                    45:d8:54:7f:f2:cb:28:50:a2:c0:bc:95:03:a3:14:
+                    49:c7:d7:4f:97:ef:d6:3a:e0:63:8a:23:ee:c8:59:
+                    14:6e:de:97:ea:e4:8f:2c:8c:3c:b8:90:69:4f:fc:
+                    8b:e8:03:3e:e4:23:64:7b:6a:b1:4b:f1:02:a6:22:
+                    a3:83:b0:2b:77:26:d3:a0:a3:af:c3:de:da:76:29:
+                    28:df:1e:0c:07:0b:45:55:df:95:a0:e0:28:7d:01:
+                    fe:3d:49:a2:13:b5:55:28:8c:c2:9c:d9:63:45:68:
+                    c5:a0:9d:ae:de:d2:ee:69:6e:ea:7c:24:87:70:95:
+                    9b:dc:6d:40:19:0e:0b:34:37:1a:92:2b:b9:8c:a2:
+                    1a:37:b7:0c:bd:d6:58:85:62:80:5e:2d:58:0c:22:
+                    23:ff:d5:d6:a9:38:02:a5:5e:39:fb:d3:3a:47:fd:
+                    95:a8:07:74:b4:78:47:94:1f:4b:b5:bb:ac:a6:3b:
+                    0f:c6:71:70:1b:41:bf:ef:b3:47:9a:59:cb:4f:4a:
+                    16:4b:04:69:2d:66:db:47:79:92:53:31:c0:d3:b0:
+                    73:ef:9b:f5:e0:a8:06:64:19:32:d3:3b:a8:3a:62:
+                    1c:94:57:72:c4:e6:1c:13:99:64:9d:30:a8:ac:99:
+                    b9:79:7e:fe:87:cb:5f:a2:08:40:e3:a3:35:23:b8:
+                    34:6f:c4:87:e3:da:22:f5:4d:08:c3:f2:88:a8:4e:
+                    52:59:f8:e2:2c:35:29:a5:ae:25:2b:1b:b7:3f:ff:
+                    ce:60:26:e2:89:12:fb:ae:08:91:45:03:32:e3:73:
+                    76:3f:1b
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            Netscape Comment: 
+                Certificat Serveur SSL
+            X509v3 Subject Key Identifier: 
+                78:1F:AD:F9:A8:5F:F0:93:C5:D6:6B:B5:3D:9D:69:8D:82:91:4D:19
+            X509v3 Authority Key Identifier: 
+                keyid:02:1D:D3:9D:31:15:D2:16:71:31:23:BE:98:05:EC:31:42:E7:77:E8
+                DirName:/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_server
+                serial:BE
+
+            X509v3 Issuer Alternative Name: 
+                <EMPTY>
+
+            X509v3 Subject Alternative Name: 
+                DNS:ingest-external.service.consul
+            X509v3 Basic Constraints: critical
+                CA:FALSE
+            X509v3 Key Usage: 
+                Digital Signature, Non Repudiation, Key Encipherment
+            Netscape Cert Type: 
+                SSL Server
+            X509v3 Extended Key Usage: 
+                TLS Web Server Authentication
+    Signature Algorithm: sha256WithRSAEncryption
+         b6:af:68:6a:bd:4a:a0:8f:c2:81:ae:eb:45:67:75:41:ab:97:
+         34:07:d5:5c:f9:3c:2e:63:61:7d:f3:16:0f:ec:1e:b9:ab:d9:
+         f9:dd:d3:2b:7e:35:24:91:80:06:f9:1c:c0:ea:d9:6d:06:7d:
+         02:fc:af:65:b9:4b:fb:44:ce:08:13:02:48:57:95:fe:f6:70:
+         5b:d0:e5:a7:df:a8:9d:1a:02:b7:97:cb:55:2d:17:03:94:db:
+         00:9a:4f:48:67:89:7f:b2:3a:eb:28:1e:1a:48:bc:49:c2:d1:
+         6a:89:68:05:1d:c3:6a:09:78:02:5e:c6:a6:8d:1e:1d:8a:f1:
+         70:27:dd:c1:8f:27:31:54:2f:fe:77:96:c7:28:c1:34:26:a9:
+         8d:00:7a:7b:72:ed:83:cf:83:78:ff:8d:29:1a:d3:1d:b7:7f:
+         95:46:9a:13:81:40:fd:d7:e3:22:9b:16:eb:b8:3b:c8:c2:53:
+         75:d1:d5:3d:5f:9f:bb:66:e4:40:f8:cd:af:c0:c3:ab:d2:01:
+         b0:03:f4:02:ab:37:f4:84:83:28:aa:4a:29:23:c4:9f:44:f2:
+         31:ef:9f:00:ce:66:14:be:ac:ed:ad:84:c1:8a:07:d1:17:4c:
+         2f:d0:a7:f9:a6:4b:30:0c:b4:c2:d2:3d:e9:3b:30:dd:26:6b:
+         0b:57:d9:e9:eb:0d:bc:46:02:d4:1c:a6:67:8f:d2:80:25:b0:
+         2a:9d:db:55:59:b7:59:2e:1a:12:87:24:53:2d:d0:38:af:94:
+         4d:a0:a3:90:f4:95:49:e6:72:ad:70:d0:89:d8:06:79:7d:1e:
+         11:09:fc:4b:13:a7:bf:92:3b:75:29:b0:d9:f1:30:b4:ea:22:
+         2c:1f:ac:48:86:e9:12:68:fe:9b:fa:8f:e4:84:ee:34:65:15:
+         1a:2a:e3:6f:e2:c9:a8:e5:1a:d0:cb:c5:16:d8:92:89:94:ba:
+         6a:b4:53:dd:dd:90:7d:98:af:a6:91:a7:20:c6:32:5b:08:e3:
+         c0:07:38:26:61:3d:7e:35:c0:7d:7a:59:3f:3d:cd:7a:06:4a:
+         45:1b:61:9e:a1:f7:17:50:33:b6:63:37:3e:5d:5a:e7:0f:3d:
+         69:ea:f4:cf:14:34:8f:d3:9c:c5:bb:91:6b:40:c3:19:0a:59:
+         c6:ec:4f:65:1d:ac:e1:30:29:b7:7d:93:f8:99:fd:b8:12:fe:
+         53:8e:f9:38:55:fc:7d:08:b1:1a:a4:7a:34:40:be:74:a1:91:
+         2b:82:de:b2:bd:36:17:79:65:65:6c:b9:83:22:c4:53:07:f9:
+         0e:5f:47:93:c1:d2:b6:8e:ca:d2:59:fd:5c:89:4f:fb:fe:19:
+         e3:42:6b:23:00:98:6e:ae
+-----BEGIN CERTIFICATE-----
+MIIGdzCCBF+gAwIBAgICAMEwDQYJKoZIhvcNAQELBQAwUDELMAkGA1UEBhMCRlIx
+DDAKBgNVBAgMA2lkZjEOMAwGA1UEBwwFcGFyaXMxDzANBgNVBAoMBlZpdGFtLjES
+MBAGA1UEAwwJQ0Ffc2VydmVyMB4XDTE3MDMwNjE4MDQxNloXDTIwMDMwNTE4MDQx
+NlowazELMAkGA1UEBhMCRlIxDDAKBgNVBAgMA2lkZjEOMAwGA1UEBwwFcGFyaXMx
+DzANBgNVBAoMBlZpdGFtLjEtMCsGA1UEAwwkc3RvcmFnZS1vZmZlci1kZWZhdWx0
+LnNlcnZpY2UuY29uc3VsMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+57IAPVlWpuHS7A//P4vLI0QCIJbq2UYNz0YDPOgDHwMHEycgi2jbAuklSHvMLsaZ
+RuHRD/m1HXgp8qYhgoNLF+0htr6vFFNVKVtRGRDIzsXYF+v/X9yVdngVGDTsK9oP
+oyX3I9DmrB5jKcxUICz1zKbrq0FCBslHuXPlFUKZ+1uSeZ5j9OMMdN0/0Z6m7XWY
+CgAD15Cg8HgeT8IEs7Bdn1staE37jxXhn7PJ2vw0AQ726bLAgrr6NAfOBAlbB3xd
+tf9LtHkYN3yiSC6HjKmgrbNF2FR/8ssoUKLAvJUDoxRJx9dPl+/WOuBjiiPuyFkU
+bt6X6uSPLIw8uJBpT/yL6AM+5CNke2qxS/ECpiKjg7ArdybToKOvw97adiko3x4M
+BwtFVd+VoOAofQH+PUmiE7VVKIzCnNljRWjFoJ2u3tLuaW7qfCSHcJWb3G1AGQ4L
+NDcakiu5jKIaN7cMvdZYhWKAXi1YDCIj/9XWqTgCpV45+9M6R/2VqAd0tHhHlB9L
+tbuspjsPxnFwG0G/77NHmlnLT0oWSwRpLWbbR3mSUzHA07Bz75v14KgGZBky0zuo
+OmIclFdyxOYcE5lknTCorJm5eX7+h8tfoghA46M1I7g0b8SH49oi9U0Iw/KIqE5S
+WfjiLDUppa4lKxu3P//OYCbiiRL7rgiRRQMy43N2PxsCAwEAAaOCAT4wggE6MCUG
+CWCGSAGG+EIBDQQYFhZDZXJ0aWZpY2F0IFNlcnZldXIgU1NMMB0GA1UdDgQWBBR4
+H635qF/wk8XWa7U9nWmNgpFNGTB5BgNVHSMEcjBwgBQCHdOdMRXSFnExI76YBewx
+Qud36KFUpFIwUDELMAkGA1UEBhMCRlIxDDAKBgNVBAgMA2lkZjEOMAwGA1UEBwwF
+cGFyaXMxDzANBgNVBAoMBlZpdGFtLjESMBAGA1UEAwwJQ0Ffc2VydmVyggIAvjAJ
+BgNVHRIEAjAAMCkGA1UdEQQiMCCCHmluZ2VzdC1leHRlcm5hbC5zZXJ2aWNlLmNv
+bnN1bDAMBgNVHRMBAf8EAjAAMAsGA1UdDwQEAwIF4DARBglghkgBhvhCAQEEBAMC
+BkAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwDQYJKoZIhvcNAQELBQADggIBALavaGq9
+SqCPwoGu60VndUGrlzQH1Vz5PC5jYX3zFg/sHrmr2fnd0yt+NSSRgAb5HMDq2W0G
+fQL8r2W5S/tEzggTAkhXlf72cFvQ5affqJ0aAreXy1UtFwOU2wCaT0hniX+yOuso
+HhpIvEnC0WqJaAUdw2oJeAJexqaNHh2K8XAn3cGPJzFUL/53lscowTQmqY0Aenty
+7YPPg3j/jSka0x23f5VGmhOBQP3X4yKbFuu4O8jCU3XR1T1fn7tm5ED4za/Aw6vS
+AbAD9AKrN/SEgyiqSikjxJ9E8jHvnwDOZhS+rO2thMGKB9EXTC/Qp/mmSzAMtMLS
+Pek7MN0mawtX2enrDbxGAtQcpmeP0oAlsCqd21VZt1kuGhKHJFMt0DivlE2go5D0
+lUnmcq1w0InYBnl9HhEJ/EsTp7+SO3UpsNnxMLTqIiwfrEiG6RJo/pv6j+SE7jRl
+FRoq42/iyajlGtDLxRbYkomUumq0U93dkH2Yr6aRpyDGMlsI48AHOCZhPX41wH16
+WT89zXoGSkUbYZ6h9xdQM7ZjNz5dWucPPWnq9M8UNI/TnMW7kWtAwxkKWcbsT2Ud
+rOEwKbd9k/iZ/bgS/lOO+ThV/H0IsRqkejRAvnShkSuC3rK9Nhd5ZWVsuYMixFMH
++Q5fR5PB0raOytJZ/VyJT/v+GeNCayMAmG6u
+-----END CERTIFICATE-----

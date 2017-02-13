@@ -77,17 +77,7 @@ vitam_storageengine_baseuri: "/storage-engine"
 
 vitam_storageofferdefault_port: 9900
 vitam_storageofferdefault_port_https: 9901
-# vitam_storageofferdefault2_port: "{{vitam_storageofferdefault_port + 1}}"
 vitam_storageofferdefault_baseuri: "/storage-offer-default"
-# vitam_storageofferdefault_list:
-# - name: default
-#   host: "{{vitam_storageofferdefault_host_1}}"
-#   port: "{{vitam_storageofferdefault_port}}"
-#   protocol: http
- # - name: default2
- #   host: "{{vitam_storageofferdefault_host_2}}"
- #   port: "{{vitam_storageofferdefault2_port}}"
- #   protocol: http
 
 vitam_functional_administration_host: "functional-administration.service.{{consul_domain}}"
 vitam_functional_administration_port: 8004

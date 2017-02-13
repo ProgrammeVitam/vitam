@@ -1,158 +1,341 @@
 #!/bin/bash
+set -e
+
+######################################################################
+############################# Includes  ##############################
+######################################################################
+
+. $(dirname $0)/pki/scripts/lib/functions.sh
+
+
+######################################################################
+############################# Functions ##############################
+######################################################################
+
+# Pour incorporer un certificat dans un store
+function addCrtInJks {
+    local STORE="${1}"
+    local MDP_STORE="${2}"
+    local CERTIFICAT="${3}"
+    local ALIAS="${4}"
+
+    keytool -import -keystore ${STORE} \
+        -file ${CERTIFICAT} \
+        -storepass ${MDP_STORE} \
+        -keypass ${MDP_STORE} \
+        -noprompt \
+        -alias ${ALIAS}
+}
+
+# Pour incorporer une CA dans un store
+function addCaInJks {
+    local STORE="${1}"
+    local MDP_STORE="${2}"
+    local CERTIFICAT="${3}"
+    local ALIAS="${4}"
+
+    keytool -import -trustcacerts -keystore ${STORE} \
+        -file ${CERTIFICAT} \
+        -storepass ${MDP_STORE} \
+        -keypass ${MDP_STORE} \
+        -noprompt \
+        -alias ${ALIAS}
+}
+
+# Génération d'un p12 et d'un pem depuis un certificat
+function crtKeyToP12 {
+    local BASEFILE="${1}"
+    local MDP_KEY="${2}"
+    local COMPOSANT="${3}"
+    local MDP_P12="${4}"
+    local TARGET_FILE="${5}"
+
+    openssl pkcs12 -export \
+        -inkey "${BASEFILE}/${COMPOSANT}.key" \
+        -in "${BASEFILE}/${COMPOSANT}.crt" \
+        -name "${COMPOSANT}" \
+        -passin pass:"${MDP_KEY}" \
+        -out "${BASEFILE}/${COMPOSANT}.p12" \
+        -passout pass:"${MDP_P12}"
+
+    if [ "${BASEFILE}/${COMPOSANT}.p12" != "${TARGET_FILE}" ]; then
+        mkdir -p $(dirname ${TARGET_FILE})
+        mv "${BASEFILE}/${COMPOSANT}.p12" "${TARGET_FILE}"
+    fi
+}
+
+# Pour incorporer un certificat p12 dans un keystore jks
+function addP12InJks {
+    local JKS_KEYSTORE="${1}"
+    local JKS_KEYSTORE_PASSWORD="${2}"
+    local P12_KEYSTORE="${3}"
+    local P12_STORE_PASSWORD="${4}"
+
+    mkdir -p "$(dirname ${JKS_KEYSTORE})"
+
+    keytool -importkeystore \
+        -srckeystore ${P12_KEYSTORE} -srcstorepass ${P12_STORE_PASSWORD} -srcstoretype PKCS12 \
+        -destkeystore ${JKS_KEYSTORE} -storepass ${JKS_KEYSTORE_PASSWORD} \
+        -keypass ${JKS_KEYSTORE_PASSWORD} -deststorepass ${JKS_KEYSTORE_PASSWORD} \
+        -destkeypass ${JKS_KEYSTORE_PASSWORD} -deststoretype JKS
+}
+
+# Renvoie la clé du keystore pour un composant donné
+function getKeystorePassphrase {
+    local YAML_PATH="${1}"
+    local RETURN_CODE=0
+
+    if [ ! -f ${VAULT_KEYSTORES} ]; then
+        return 1
+    fi
+
+    # Decrypt vault file
+    ansible-vault decrypt ${VAULT_KEYSTORES} ${ANSIBLE_VAULT_PASSWD}
+    # Try/catch/finally stuff with bash (to make sure the vault stay encrypted)
+    {
+        # Try
+        # Generate bash vars with the yml file:
+        #       $certKey_blah
+        #       $certKey_blahblah
+        #       $certKey_........
+        eval $(parse_yaml ${VAULT_KEYSTORES} "storeKey_") && \
+        # Get the value of the variable we are interested in
+        # And store it into another var: $CERT_KEY
+        eval $(echo "STORE_KEY=\$storeKey_$(echo ${YAML_PATH} |sed 's/[\.-]/_/g')") && \
+        # Print the $CERT_KEY var
+        echo ${STORE_KEY}
+    } || {
+        # Catch
+        RETURN_CODE=1
+        pki_logger "ERROR" "Error while reading keystore passphrase for ${YAML_PATH} in keystores vault: ${VAULT_KEYSTORES}"
+    } && {
+        # Finally
+        if [ ${STORE_KEY} == "" ]; then
+            pki_logger "ERROR" "Error while retrieving the store key: ${YAML_PATH}"
+            RETURN_CODE=1
+        fi
+        ansible-vault encrypt ${VAULT_KEYSTORES} ${ANSIBLE_VAULT_PASSWD}
+        return ${RETURN_CODE}
+    }
+}
+
+# Generate a trustore
+function generateTrustStore {
+    local TRUSTORE_TYPE=${1}
+    local CLIENT_TYPE=${2}
+
+    if [ ${TRUSTORE_TYPE} != "server" ] && [ ${TRUSTORE_TYPE} != "client" ]; then
+        pki_logger "ERROR" "Invalid trustore type: ${TRUSTORE_TYPE}"
+        return 1
+    fi
+
+    # Set truststore path and delete the store if already exists
+    if [ ${TRUSTORE_TYPE} == "client" ]; then
+        JKS_TRUST_STORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/truststore_${CLIENT_TYPE}.jks
+        TRUST_STORE_PASSWORD=$(getKeystorePassphrase "truststores_client_${CLIENT_TYPE}")
+    elif [ ${TRUSTORE_TYPE} == "server" ]; then
+        JKS_TRUST_STORE=${REPERTOIRE_KEYSTORES}/server/truststore_server.jks
+        TRUST_STORE_PASSWORD=$(getKeystorePassphrase "truststores_server")
+    else
+        pki_logger "ERROR" "Invalid trustore type: ${TRUSTORE_TYPE}"
+        return 1
+    fi
+
+    if [ -f ${JKS_TRUST_STORE} ]; then
+        rm -f ${JKS_TRUST_STORE}
+    fi
+
+    # Add the public client certificates to the truststore
+    pki_logger "Ajout des certificats client dans le truststore"
+    if [ ${TRUSTORE_TYPE} == "client" ]; then
+
+        for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/ca/*.crt); do
+            pki_logger "Ajout de ${CRT_FILE} dans le truststore ${CLIENT_TYPE}"
+            ALIAS="client-${CLIENT_TYPE}-$(basename ${CRT_FILE})"
+            addCrtInJks ${JKS_TRUST_STORE} \
+                        ${TRUST_STORE_PASSWORD} \
+                        ${CRT_FILE} \
+                        ${ALIAS}
+        done
+
+    fi
+
+    # Add the server certificates to the truststore
+    pki_logger "Ajout des certificats serveur dans le truststore"
+    for CRT_FILE in  $(ls ${REPERTOIRE_CERTIFICAT}/server/ca/*.crt); do
+        pki_logger "Ajout de ${CRT_FILE} dans le truststore ${CLIENT_TYPE}"
+        ALIAS="server-$(basename ${CRT_FILE})"
+        addCrtInJks ${JKS_TRUST_STORE} \
+                    ${TRUST_STORE_PASSWORD} \
+                    ${CRT_FILE} \
+                    ${ALIAS}
+    done
+
+}
+
+function generateHostKeystore {
+    local COMPONENT="${1}"
+    local JKS_KEYSTORE="${2}"
+    local P12_KEYSTORE="${3}"
+    local CRT_KEY_PASSWORD="${4}"
+    local JKS_PASSWORD="${5}"
+    local TMP_P12_PASSWORD="${6}"
+
+    if [ -f ${JKS_KEYSTORE} ]; then
+        rm -f ${JKS_KEYSTORE}
+    fi
+
+    pki_logger "Génération du p12"
+    crtKeyToP12 $(dirname ${P12_KEYSTORE}) \
+                ${CRT_KEY_PASSWORD} \
+                ${COMPONENT} \
+                ${TMP_P12_PASSWORD} \
+                ${P12_KEYSTORE}
+
+    pki_logger "Génération du jks"
+    addP12InJks ${JKS_KEYSTORE} \
+                ${JKS_PASSWORD} \
+                ${P12_KEYSTORE} \
+                ${TMP_P12_PASSWORD}
+
+    pki_logger "Suppression du p12"
+    if [ -f ${P12_KEYSTORE} ]; then
+        rm -f ${P12_KEYSTORE}
+    fi
+}
+
+
+######################################################################
+#############################    Main    #############################
+######################################################################
+
 if [ "$1" == "" ]; then
     echo "This script needs to know on which environment you want to apply to !"
     exit 1;
 fi
-ENVIRONNEMENT=${1}
+ENVIRONNEMENT="${1}"
 
-. $(dirname $0)/functions.sh
+TMP_P12_PASSWORD="$(generatePassphrase)"
+REPERTOIRE_KEYSTORES="${REPERTOIRE_ROOT}/environments-rpm/keystores"
 
-check_password_file
 
-echo "Sourcer les informations nécessaires dans vault.yml"
-eval $(ansible-vault view $(dirname $0)/environments-rpm/group_vars/all/vault.yml ${ANSIBLE_VAULT_PASSWD} | sed -e 's/: /=/')
+# Generate the server keystores
+for SERVER in $(ls ${REPERTOIRE_CERTIFICAT}/server/hosts/); do
 
-for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-demo ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
-	echo "Génération du keystore de ihm-demo"
-	echo "	Génération pour ${i}..."
-	echo "Génération du truststore de ihm-demo..."
-	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-	echo "	Import des CA server dans truststore de ihm-demo..."
-	echo "		... import CA server root..."
-	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
-	echo "		... import CA server intermediate..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
-	echo "		... import CA client root..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
-	echo "		... import CA client intermediate..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-demo.jks $(eval "echo \$TrustStore_ihm_demo_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+    mkdir -p ${REPERTOIRE_KEYSTORES}/server/${SERVER}
 
-	echo "Fin de génération du trustore de ihm-demo"
-	echo "------------------------------------------------"
-done
+    # awk : used to strip extension
+    for COMPONENT in $( ls ${REPERTOIRE_CERTIFICAT}/server/hosts/${SERVER}/ 2>/dev/null | awk -F "." '{for (i=1;i<NF;i++) print $i}' | sort | uniq ); do
 
-for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-ihm-recette ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
-	echo "Génération du keystore de ihm-recette"
-	echo "	Génération pour ${i}..."
-	echo "Génération du truststore de ihm-recette..."
-	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-	echo "	Import des CA server dans truststore de ihm-recette..."
-	echo "		... import CA server root..."
-	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
-	echo "		... import CA server intermediate..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
-	echo "		... import CA client root..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
-	echo "		... import CA client intermediate..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ihm-recette.jks $(eval "echo \$TrustStore_ihm_recette_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+        pki_logger "-------------------------------------------"
+        pki_logger "Creation du keystore de ${COMPONENT} pour le serveur ${SERVER}"
+        JKS_KEYSTORE=${REPERTOIRE_KEYSTORES}/server/${SERVER}/keystore_${COMPONENT}.jks
+        P12_KEYSTORE=${REPERTOIRE_CERTIFICAT}/server/hosts/${SERVER}/${COMPONENT}.p12
+        CRT_KEY_PASSWORD=$(getComponentCertPassphrase "server_${COMPONENT}_key")
+        JKS_PASSWORD=$(getKeystorePassphrase "keystores_server_${COMPONENT}")
 
-	echo "Fin de génération du trustore de ihm-recette"
-	echo "------------------------------------------------"
-done
+        generateHostKeystore    ${COMPONENT} \
+                                ${JKS_KEYSTORE} \
+                                ${P12_KEYSTORE} \
+                                ${CRT_KEY_PASSWORD} \
+                                ${JKS_PASSWORD} \
+                                ${TMP_P12_PASSWORD}
 
-for j in ingest access; do
-	for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-${j}-external ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
-		echo "Génération du keystore de access-external"
-		echo "	Génération pour ${i}..."
-		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_ingest-external.jks keystore_ingest-external ${KeyStorePassword_ingest_external}
+    done
 
-		# Importer les clés de ingest-external
-		echo "	Import du p12 de ${j}-external dans le keystore"
-		#addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_ingest-external.jks ${KeyStorePassword_ingest_external} ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/ingest-external.p12 ${p12_ihm_demo_password} ingest-external
-		# MDP=$(eval "echo \$KeyStorePassword_${j}_external")
-		# echo $MDP
-		# echo addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_${j}-external.jks  $MDP ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/${j}-external.p12 ${p12_ihm_demo_password} ${j}-external
-		addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_${j}-external.jks  $(eval "echo \$KeyStorePassword_${j}_external") ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/${j}-external.p12 ${p12_ihm_demo_password} ${j}-external
-		echo "Fin de génération du keystore ${j}-external"
-		echo "---------------------------------------------"
-
-		echo "Génération du truststore de ${j}-external..."
-		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-		echo "	Import des CA server dans truststore de ${j}-external..."
-		echo "		... import CA server root..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_${j}-external.jks $(eval "echo \$TrustStorePassword_${j}_external") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
-		echo "		... import CA server intermediate..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_${j}-external.jks $(eval "echo \$TrustStorePassword_${j}_external") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
-		echo "		... import CA client root..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_${j}-external.jks $(eval "echo \$TrustStorePassword_${j}_external") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
-		echo "		... import CA client intermediate..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_${j}-external.jks $(eval "echo \$TrustStorePassword_${j}_external") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
-
-		echo "Fin de génération du trustore de ${j}-external"
-		echo "------------------------------------------------"
-
-		echo "Génération du grantedstore de ${j}-external..."
-		# Gros doute sur comme ça se fait...
-		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_ingest-external.jks grantedstore_ingest-external ${grantedKeyStorePassphrase_ingest_external}
-
-	#	generatetruststore ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo.crt ihmdemotototiti ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_ingest-external.jks grantedstore_ingest-external ${grantedKeyStorePassphrase_ingest_external}
-	#	generatetruststore ${REPERTOIRE_CA}/server_intermediate/ca.crt azerty ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-		echo "	Import certificat IHM-demo, ihm-recette & reverse dans le grantedstore de ${j}-external..."
-		# FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE !
-		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/ihm-demo/ihm-demo.crt ihm-demo
-		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/ihm-recette/ihm-recette.crt ihm-recette
-        addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_${j}-external.jks $(eval "echo \$grantedKeyStorePassphrase_${j}_external") ${REPERTOIRE_CERTIFICAT}/client/reverse/reverse.crt reverse
-		echo "------------------------------------------------"
-	#	importcastore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks ${TrustStorePassword_ingest_external} ${REPERTOIRE_CA}/server/ca.crt azerty ca_server_root_crt
-	done
 done
 
 
+# Generate the timestamp keystores
+# awk : used to strip extension
+for COMPONENT in $( ls ${REPERTOIRE_CERTIFICAT}/timestamping/vitam/ 2>/dev/null | awk -F "." '{for (i=1;i<NF;i++) print $i}' | sort | uniq ); do
 
-for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-engine ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
-	echo "Génération du keystore de storage-engine"
-	echo "	Génération pour ${i}..."
-	echo "Génération du truststore de storage-engine..."
-	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-	echo "	Import des CA server dans truststore de storage-engine..."
-	echo "		... import CA server root..."
-	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
-	echo "		... import CA server intermediate..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
-	echo "		... import CA client root..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
-	echo "		... import CA client intermediate..."
-	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+    pki_logger "-------------------------------------------"
+    pki_logger "Creation du keystore timestamp de ${COMPONENT}"
+    P12_KEYSTORE=${REPERTOIRE_KEYSTORES}/timestamping/keystore_${COMPONENT}.p12
+    TMP_P12_KEYSTORE=${REPERTOIRE_CERTIFICAT}/timestamping/vitam/${COMPONENT}.p12
+    CRT_KEY_PASSWORD=$(getComponentCertPassphrase "timestamping_${COMPONENT}_key")
+    P12_PASSWORD=$(getKeystorePassphrase "keystores_timestamping_${COMPONENT}")
 
-	echo "Fin de génération du trustore de storage-engine"
-	echo "------------------------------------------------"
+    crtKeyToP12 $(dirname ${TMP_P12_KEYSTORE}) \
+                ${CRT_KEY_PASSWORD} \
+                ${COMPONENT} \
+                ${P12_PASSWORD} \
+                ${P12_KEYSTORE}
+
 done
 
-for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-offer-default ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
-		echo "Génération du keystore de hosts-storage-offer-default"
-		echo "	Génération pour ${i}..."
-		# Importer les clés de ingest-external
-		echo "	Import du p12 de hosts-storage-offer-default dans le keystore"
-		addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_storage-offer-default.jks  $(eval "echo \$KeyStorePassword_default_offer") ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/storage-offer-default.p12 ${p12_storage_offer_default} storage-offer-default
-		echo "Fin de génération du keystore ${j}-external"
-		echo "---------------------------------------------"
 
-		echo "Génération du truststore de ${j}-external..."
-		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
-		echo "	Import des CA server dans truststore de ${j}-external..."
-		echo "		... import CA server root..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
-		echo "		... import CA server intermediate..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
-		echo "		... import CA client root..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
-		echo "		... import CA client intermediate..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+# Keystores generation foreach client type (storage, external)
+for CLIENT_TYPE in external storage; do
 
-		echo "Fin de génération du trustore de ${j}-external"
-		echo "------------------------------------------------"
+    # Set grantedstore path and delete the store if already exists
+    JKS_GRANTED_STORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/grantedstore_${CLIENT_TYPE}.jks
+    GRANTED_STORE_PASSWORD=$(getKeystorePassphrase "grantedstores_client_${CLIENT_TYPE}")
 
-		echo "Génération du grantedstore de ${j}-external..."
-		echo "	Import certificat IHM-demo, ihm-recette & reverse dans le grantedstore de ${j}-external..."
-		# FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE !
-		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_storage-offer-default.jks $(eval "echo \$grantedKeyStorePassphrase_default_offer") ${REPERTOIRE_CERTIFICAT}/client/storage/storage.crt storage
-		echo "------------------------------------------------"
-	#	importcastore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks ${TrustStorePassword_ingest_external} ${REPERTOIRE_CA}/server/ca.crt azerty ca_server_root_crt
-	done
+    # Delete the old granted store if already exists
+    if [ -f ${JKS_GRANTED_STORE} ]; then
+        rm -f ${JKS_GRANTED_STORE}
+    fi
+
+    # client-${CLIENT_TYPE} keystores generation
+    for COMPONENT in $( ls ${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients 2>/dev/null | grep -v "^external$" ); do
+
+        # Generate the p12 keystore
+        pki_logger "-------------------------------------------"
+        pki_logger "Creation du keystore client de ${COMPONENT}"
+        CERT_DIRECTORY=${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/${COMPONENT}
+        CRT_KEY_PASSWORD=$(getComponentCertPassphrase "client_client-${CLIENT_TYPE}_${COMPONENT}_key")
+        P12_KEYSTORE=${REPERTOIRE_KEYSTORES}/client-${CLIENT_TYPE}/keystore_${COMPONENT}.p12
+        P12_PASSWORD=$(getKeystorePassphrase "keystores_client_${CLIENT_TYPE}_${COMPONENT}")
+
+        if [ -f ${P12_KEYSTORE} ]; then
+            rm -f ${P12_KEYSTORE}
+        fi
+
+        pki_logger "Génération du p12"
+        crtKeyToP12 ${CERT_DIRECTORY} \
+                    ${CRT_KEY_PASSWORD} \
+                    ${COMPONENT} \
+                    ${P12_PASSWORD} \
+                    ${P12_KEYSTORE}
 
 
-echo "============================================================================================="
-echo "Fin de script."
+        # Add the public certificate to the grantedstore
+        pki_logger "Ajout du certificat public de ${COMPONENT} dans le grantedstore ${CLIENT_TYPE}"
+        CRT_FILE="${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/${COMPONENT}/${COMPONENT}.crt"
+
+        addCrtInJks ${JKS_GRANTED_STORE} \
+                    ${GRANTED_STORE_PASSWORD} \
+                    ${CRT_FILE} \
+                    ${COMPONENT}
+
+    done
+
+    # Add the external certificates to the granted store
+    pki_logger "-------------------------------------------"
+    pki_logger "Ajout des certificat public du répertoire external dans le grantedstore ${CLIENT_TYPE}"
+    if [ ${CLIENT_TYPE} == "external" ]; then
+        for CRT_FILE in $(ls ${REPERTOIRE_CERTIFICAT}/client-${CLIENT_TYPE}/clients/external/*.crt 2>/dev/null); do
+            addCrtInJks ${JKS_GRANTED_STORE} \
+                        ${GRANTED_STORE_PASSWORD} \
+                        ${CRT_FILE} \
+                        $(basename ${CRT_FILE})
+        done
+    fi
+
+    # Generate the CLIENT_TYPE truststore
+    pki_logger "-------------------------------------------"
+    pki_logger "Génération du truststore client-${CLIENT_TYPE}"
+    generateTrustStore "client" ${CLIENT_TYPE}
+
+done
+
+
+# Generate the server trustore
+pki_logger "-------------------------------------------"
+pki_logger "Génération du truststore server"
+generateTrustStore "server" "server"
+
+pki_logger "-------------------------------------------"
+pki_logger "Fin de la génération des stores"

@@ -1,0 +1,78 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 189 (0xbd)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_server
+        Validity
+            Not Before: Mar  6 18:03:38 2017 GMT
+            Not After : Mar  4 18:03:38 2027 GMT
+        Subject: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_server
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:d5:38:22:de:e7:61:76:77:1c:ba:26:28:e0:ff:
+                    02:ef:38:ba:b5:17:e5:da:46:ed:a2:db:1b:f5:62:
+                    da:a0:15:26:9e:4a:1e:30:c2:05:04:fb:57:1b:a4:
+                    40:11:9a:dd:d6:0d:4d:e0:97:4c:11:aa:7b:19:1a:
+                    87:76:cf:bb:cb:20:58:f8:df:5f:b7:4d:b7:89:ad:
+                    14:c3:fd:4a:38:46:f0:de:87:80:66:a3:d7:e1:66:
+                    81:45:e3:1c:6b:7c:12:de:32:cd:d0:58:d9:9a:cc:
+                    d8:e1:12:8d:16:d4:61:35:f7:bd:53:19:d1:39:14:
+                    fb:81:49:d5:13:97:e7:44:b3:53:6d:12:2f:0a:42:
+                    94:c8:9a:56:8a:44:ef:c7:cf:47:e1:42:75:f9:ae:
+                    e7:d3:03:83:70:ac:02:7c:58:28:c0:c0:23:cb:95:
+                    b5:02:9b:c8:c5:b1:71:4d:90:79:98:38:63:8f:1b:
+                    4c:cb:5b:2d:24:70:db:5f:6d:32:ce:4e:13:29:b7:
+                    17:ab:8f:44:e7:cc:8f:b3:5c:4e:c4:82:56:1b:cb:
+                    22:b3:84:c9:d0:05:00:23:71:e0:05:66:90:17:72:
+                    b1:e3:e6:c6:fc:60:ef:ad:64:5e:db:98:85:c3:72:
+                    c4:4c:62:44:88:28:7d:2c:34:37:56:33:60:0f:21:
+                    bc:63
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                D1:A1:7D:0C:F9:D1:96:06:4E:AA:95:D4:24:83:D2:EC:43:F2:A8:39
+            X509v3 Authority Key Identifier: 
+                keyid:D1:A1:7D:0C:F9:D1:96:06:4E:AA:95:D4:24:83:D2:EC:43:F2:A8:39
+
+            X509v3 Basic Constraints: 
+                CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+         cb:fe:61:2e:ce:38:9f:c6:fc:71:81:d1:cc:39:ab:8d:f9:9b:
+         80:01:76:1f:81:a9:85:29:52:af:4d:b7:f9:69:b8:76:93:2c:
+         da:2b:88:b5:65:f6:b3:2c:80:7d:05:90:72:d6:f3:36:ec:14:
+         80:58:1f:f7:e4:e5:43:26:b0:e4:81:b5:19:0d:e2:00:5c:85:
+         5c:25:18:ae:84:b2:f1:c3:3d:8a:6b:53:0b:9f:37:78:6d:b0:
+         0c:a7:01:ee:79:2c:3d:12:f0:91:bd:12:8f:59:70:b9:20:df:
+         a6:85:92:e8:f9:64:a0:59:27:35:d9:89:cb:bd:86:ff:dd:93:
+         2e:79:c3:fe:01:39:15:2a:c7:73:4c:76:ca:42:0f:56:12:45:
+         a7:8c:ab:83:03:52:49:e6:2b:59:c0:71:f1:84:01:72:0b:87:
+         3a:5c:ef:8e:d8:2a:01:58:cf:15:e3:54:08:e5:6f:5f:e5:75:
+         71:a3:c0:98:a7:ac:72:65:20:f0:a0:d3:87:32:d9:27:75:3d:
+         d0:f1:4f:50:b2:8f:52:34:0c:a0:56:a1:2a:28:60:66:83:79:
+         43:33:00:5b:2f:5a:ff:95:18:2b:b0:d8:ea:a8:82:da:cf:05:
+         9a:48:1e:5a:f3:ff:0c:bc:83:4a:68:3c:c8:f9:80:de:08:4f:
+         1b:ee:7d:be
+-----BEGIN CERTIFICATE-----
+MIIDbDCCAlSgAwIBAgICAL0wDQYJKoZIhvcNAQELBQAwUDELMAkGA1UEBhMCRlIx
+DDAKBgNVBAgMA2lkZjEOMAwGA1UEBwwFcGFyaXMxDzANBgNVBAoMBlZpdGFtLjES
+MBAGA1UEAwwJQ0Ffc2VydmVyMB4XDTE3MDMwNjE4MDMzOFoXDTI3MDMwNDE4MDMz
+OFowUDELMAkGA1UEBhMCRlIxDDAKBgNVBAgMA2lkZjEOMAwGA1UEBwwFcGFyaXMx
+DzANBgNVBAoMBlZpdGFtLjESMBAGA1UEAwwJQ0Ffc2VydmVyMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1Tgi3udhdnccuiYo4P8C7zi6tRfl2kbtotsb
+9WLaoBUmnkoeMMIFBPtXG6RAEZrd1g1N4JdMEap7GRqHds+7yyBY+N9ft023ia0U
+w/1KOEbw3oeAZqPX4WaBReMca3wS3jLN0FjZmszY4RKNFtRhNfe9UxnRORT7gUnV
+E5fnRLNTbRIvCkKUyJpWikTvx89H4UJ1+a7n0wODcKwCfFgowMAjy5W1ApvIxbFx
+TZB5mDhjjxtMy1stJHDbX20yzk4TKbcXq49E58yPs1xOxIJWG8sis4TJ0AUAI3Hg
+BWaQF3Kx4+bG/GDvrWRe25iFw3LETGJEiCh9LDQ3VjNgDyG8YwIDAQABo1AwTjAd
+BgNVHQ4EFgQU0aF9DPnRlgZOqpXUJIPS7EPyqDkwHwYDVR0jBBgwFoAU0aF9DPnR
+lgZOqpXUJIPS7EPyqDkwDAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEA
+y/5hLs44n8b8cYHRzDmrjfmbgAF2H4GphSlSr023+Wm4dpMs2iuItWX2syyAfQWQ
+ctbzNuwUgFgf9+TlQyaw5IG1GQ3iAFyFXCUYroSy8cM9imtTC583eG2wDKcB7nks
+PRLwkb0Sj1lwuSDfpoWS6PlkoFknNdmJy72G/92TLnnD/gE5FSrHc0x2ykIPVhJF
+p4yrgwNSSeYrWcBx8YQBcguHOlzvjtgqAVjPFeNUCOVvX+V1caPAmKescmUg8KDT
+hzLZJ3U90PFPULKPUjQMoFahKihgZoN5QzMAWy9a/5UYK7DY6qiC2s8FmkgeWvP/
+DLyDSmg8yPmA3ghPG+59vg==
+-----END CERTIFICATE-----
