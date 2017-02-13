@@ -105,7 +105,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      *
-     * @param  The rule identifier
+     * @param  id The rule identifier
      * @return Rule in JsonNode format
      * @throws FileRulesException                   when file rules exception occurs
      * @throws InvalidParseOperationException       when a parse problem occurs
