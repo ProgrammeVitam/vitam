@@ -11,5 +11,6 @@ Common-private
    graph-dat.rst
    parametres.rst
    Uri.rst
-   security-filter.rst   
+   security-filter.rst
+   tenant-filter.rst   
 

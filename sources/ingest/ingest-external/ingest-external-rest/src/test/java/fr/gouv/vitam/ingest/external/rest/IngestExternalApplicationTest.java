@@ -66,6 +66,12 @@ public class IngestExternalApplicationTest {
     public void shouldRaiseAnExceptionWhenConfigureApplicationWithWrongConfigurationFile() throws Exception {
         application = new IngestExternalApplication("ingest-external-err1.conf");
     }
+    
+    @Test(expected = IllegalStateException.class)
+    public void shouldRaiseAnExceptionWhenConfigureApplicationWithoutTenant() throws Exception {
+        application = new IngestExternalApplication("ingest-external-test-no-tenant.conf");
+        Assert.assertFalse(application.getVitamServer().getServer().isStarted());
+    }
 
     @Test
     public void shouldRunServerWhenConfigureApplicationWithFileExists() throws Exception {
