@@ -13,3 +13,20 @@ traits:
         description: Identifiant de la Stratégie pour Offres de stockage et Copies (conservation)
         type: string
         required: true
+  StrategyStorageCheck:
+    displayName: StrategyStorageCheck
+    description: Strategy Storage Check
+    headers:
+      X-Tenant-Id:
+        type: number
+        required: true
+        description: Identifiant unique du tenant
+        example: 0
+      X-digest:
+        type: string
+        required: false
+        description: Empreinte du digest - Requis pour la validation digest
+      X-digest-algorithm:
+        tpye: string
+        required: false
+        description: Algorithme du digest - Requis pour la validation digest

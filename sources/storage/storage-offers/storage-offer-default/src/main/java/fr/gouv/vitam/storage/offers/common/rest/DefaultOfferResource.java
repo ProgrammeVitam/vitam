@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -146,6 +145,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      */
     @GET
+    // FIXME Later we should count in a standard get request (no /count in path) with a DSL that specify a count operation (aggregate)
     @Path("/objects/{type}/count")
     @Produces(MediaType.APPLICATION_JSON)
     public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
@@ -196,49 +196,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 getObjectAsync(type, objectId, headers, asyncResponse);
             }
         });
-    }
-
-    /**
-     * Check an Object
-     *
-     * @param type Object type
-     * @param idObject the id of the object to be tested
-     * @return the response with a specific HTTP status
-     */
-    // TODO : After analyzing US #2005 - change to @HEAD (without /check)  
-    @GET
-    @Path("/objects/{type}/{id:.+}/check")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response checkObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
-        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm,
-        @PathParam("type") DataCategory type,
-        @PathParam("id") String idObject) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        if (Strings.isNullOrEmpty(xDigestAlgorithm)) {
-            LOGGER.error("Missing the digest type (X-digest-algorithm)");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        if (Strings.isNullOrEmpty(xDigest)) {
-            LOGGER.error("Missing the type (X-digest)");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
-
-        try {
-            final String containerName = buildContainerName(type, xTenantId);
-            boolean objectIsOK = DefaultOfferServiceImpl.getInstance().checkObject(containerName, idObject, xDigest,
-                DigestType.fromValue(xDigestAlgorithm));
-            final ObjectNode result = JsonHandler.createObjectNode();
-            result.put(StorageConstants.OBJECT_VERIFICATION, objectIsOK);
-            return Response.status(Response.Status.OK).entity(result).build();
-        } catch (ContentAddressableStorageException exc) {
-            LOGGER.error(exc);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        }
     }
 
     /**
@@ -392,25 +349,50 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * @param type Object type to test
      * @param idObject the id of the object to be tested
      * @param xTenantId the id of the tenant
-     * @param xContainerName the container Name
-     * @return the response with a specific HTTP status
+     * @param xDigest the digest
+     * @param xDigestAlgorithm the digest algorithm
+     * @return the response with a specific HTTP status.
+     * 	If none of DIGEST or DIGEST_ALGORITHM headers is given, an existence test is done and can return 204/404 as response.
+     *  If only DIGEST or only DIGEST_ALGORITHM header is given, a not implemented exception is thrown. Later, this should respond with 200/409.
+     *  If both DIGEST and DIGEST_ALGORITHM header are given, a full digest check is done and can return 200/409 as response
      */
     @HEAD
     @Path("/objects/{type}/{id:.+}")
     public Response headObject(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
+        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
         String containerName = buildContainerName(type, xTenantId);
         if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+
+        Boolean checkDigest = !Strings.isNullOrEmpty(xDigest);
+        Boolean checkAlgo = !Strings.isNullOrEmpty(xDigestAlgorithm);
+
         try {
-            if (DefaultOfferServiceImpl.getInstance().isObjectExist(containerName, idObject)) {
-                return Response.status(Response.Status.NO_CONTENT).build();
+            boolean objectIsOK;
+            if (checkDigest && !checkAlgo) {
+                objectIsOK = DefaultOfferServiceImpl.getInstance().checkDigest(containerName, idObject, xDigest);
+            } else if (checkAlgo && !checkDigest) {
+                objectIsOK = DefaultOfferServiceImpl.getInstance().checkDigestAlgorithm(containerName, idObject, DigestType.fromValue(xDigestAlgorithm));
+            } else if (checkAlgo && checkDigest) {
+                objectIsOK = DefaultOfferServiceImpl.getInstance().checkObject(containerName, idObject, xDigest,
+                    DigestType.fromValue(xDigestAlgorithm));
             } else {
-                return Response.status(Response.Status.NOT_FOUND).build();
+	            if (DefaultOfferServiceImpl.getInstance().isObjectExist(containerName, idObject)) {
+	                return Response.status(Response.Status.NO_CONTENT).build();
+	            } else {
+	                return Response.status(Response.Status.NOT_FOUND).build();
+	            }
             }
-        } catch (final ContentAddressableStorageServerException e) {
+            if (objectIsOK) {
+                return Response.status(Status.OK).build();
+            } else {
+                return Response.status(Status.CONFLICT).build();
+            }
+        } catch (final ContentAddressableStorageException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }

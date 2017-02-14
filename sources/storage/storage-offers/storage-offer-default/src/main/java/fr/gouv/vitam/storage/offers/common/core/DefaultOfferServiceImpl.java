@@ -200,6 +200,18 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
+    public boolean checkDigest(String containerName, String idObject,
+        String digest) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public boolean checkDigestAlgorithm(String containerName, String idObject,
+        DigestType digestAlgorithm) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         // TODO G1 : replace with checkObject when merged

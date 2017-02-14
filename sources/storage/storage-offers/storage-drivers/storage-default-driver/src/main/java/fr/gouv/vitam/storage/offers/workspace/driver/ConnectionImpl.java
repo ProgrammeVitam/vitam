@@ -70,13 +70,8 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
-    private static final String OBJECT = "object_";
-
     private static final String OBJECTS_PATH = "/objects";
-    private static final String CHECK_PATH = "/check";
     private static final String COUNT_PATH = "/count";
-
-    private static final String NOT_YET_IMPLEMENTED = "Not yet implemented";
 
     private static final String REQUEST_IS_A_MANDATORY_PARAMETER = "Request is a mandatory parameter";
     private static final String GUID_IS_A_MANDATORY_PARAMETER = "GUID is a mandatory parameter";
@@ -432,20 +427,18 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" +
-                    request.getGuid() + CHECK_PATH,
-                    getDefaultHeaders(request.getTenantId(), null,
-                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
-                    MediaType.WILDCARD_TYPE);
+                    performRequest(HttpMethod.HEAD,
+                        OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                        getDefaultHeaders(request.getTenantId(), null,
+                                request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                        MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case OK:
-                    final JsonNode json = handleResponseStatus(response, JsonNode.class);
+                case OK: case CONFLICT:
                     final StorageCheckResult result =
                         new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
-                            request.getDigestAlgorithm(), request.getDigestHashBase16(),
-                            json.get(StorageConstants.OBJECT_VERIFICATION).asBoolean());
+                            request.getDigestAlgorithm(), request.getDigestHashBase16(), status.equals(Status.OK));
                     return result;
                 case NOT_FOUND:
                     throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
