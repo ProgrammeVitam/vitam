@@ -50,7 +50,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
 
     private final String name;
 
-    private static boolean hasServerIdentity = VitamLoggerFactory.serverIdentity != null;
+    private boolean hasServerIdentity = VitamLoggerFactory.serverIdentity != null;
 
     /**
      * Creates a new instance.
@@ -290,7 +290,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
      *
      * @return Message prepend using ServerIdentity
      */
-    static final String getMessagePrepend() {
+    final String getMessagePrepend() {
         if (hasServerIdentity) {
             return ((ServerIdentityInterface) VitamLoggerFactory.serverIdentity).getLoggerMessagePrepend();
         }

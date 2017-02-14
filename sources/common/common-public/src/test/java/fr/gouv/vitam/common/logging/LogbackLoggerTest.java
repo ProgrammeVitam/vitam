@@ -150,6 +150,7 @@ public class LogbackLoggerTest {
 
     @Test
     public void testIsErrorEnabled() {
+
         VitamLoggerFactory.setDefaultFactory(new LogbackLoggerFactory(VitamLogLevel.ERROR));
         VitamLogger logger = VitamLoggerFactory.getInstance("foo5");
         assertTrue(logger.isErrorEnabled());
@@ -246,7 +247,6 @@ public class LogbackLoggerTest {
         }
         AbstractVitamLogger.simpleClassName(LogbackLoggerTest.class);
         AbstractVitamLogger.simpleClassName(new Object());
-        AbstractVitamLogger.getMessagePrepend();
     }
 
 
