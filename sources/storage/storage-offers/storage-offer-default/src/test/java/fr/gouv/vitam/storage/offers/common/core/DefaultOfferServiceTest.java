@@ -28,7 +28,9 @@
 package fr.gouv.vitam.storage.offers.common.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -41,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -55,6 +58,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -95,6 +99,9 @@ public class DefaultOfferServiceTest {
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_2));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_3));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_DELETE));
+        for (int i = 0; i < 150; i++) {
+            Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, "object_" + i));
+        }
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH));
     }
 
@@ -375,5 +382,61 @@ public class DefaultOfferServiceTest {
 
         }
 
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void listCreateCursorNoContainerTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+        offerService.createCursor(CONTAINER_PATH);
+    }
+
+    @Test
+    public void listCreateCursorTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+        final ObjectInit objectInit = getObjectInit(false);
+        offerService.initCreateObject(CONTAINER_PATH, objectInit, "fake");
+        String cursorId = offerService.createCursor(CONTAINER_PATH);
+        assertNotNull(cursorId);
+        List<JsonNode> list = offerService.next(CONTAINER_PATH, cursorId);
+        assertNotNull(list);
+        assertTrue(list.isEmpty());
+        list = offerService.next(CONTAINER_PATH, cursorId);
+        // TODO manage with exception
+        assertNull(list);
+    }
+
+    @Test
+    public void listCursorTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+        final ObjectInit objectInit = getObjectInit(false);
+        for (int i = 0; i < 150; i++) {
+            offerService.initCreateObject(CONTAINER_PATH, objectInit, "object_" + i);
+            offerService.createObject(CONTAINER_PATH, "object_"+ i, new FakeInputStream(50, false), true);
+        }
+        String cursorId = offerService.createCursor(CONTAINER_PATH);
+        assertNotNull(cursorId);
+        boolean hasNext = offerService.hasNext(CONTAINER_PATH, cursorId);
+        assertTrue(hasNext);
+
+        List<JsonNode> list = offerService.next(CONTAINER_PATH, cursorId);
+        assertNotNull(list);
+        assertEquals(100, list.size());
+
+        hasNext = offerService.hasNext(CONTAINER_PATH, cursorId);
+        assertTrue(hasNext);
+
+        list = offerService.next(CONTAINER_PATH, cursorId);
+        assertNotNull(list);
+        assertEquals(50, list.size());
+
+        hasNext = offerService.hasNext(CONTAINER_PATH, cursorId);
+        assertFalse(hasNext);
+
+        list = offerService.next(CONTAINER_PATH, cursorId);
+        // TODO manage with exception
+        assertNull(list);
     }
 }

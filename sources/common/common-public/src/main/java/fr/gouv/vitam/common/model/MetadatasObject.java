@@ -61,7 +61,7 @@ public abstract class MetadatasObject {
     /**
      * Constructor to initialize the needed parameters for get metadata results
      * 
-     * @param object_name
+     * @param objectName
      * @param type
      * @param digest
      * @param fileSize
@@ -69,15 +69,15 @@ public abstract class MetadatasObject {
      * @param lastAccessDate
      * @param lastModifiedDate
      */
-    public MetadatasObject(String object_name, String type, String digest, long file_size, String file_owner,
-        String last_access_date, String last_modified_date) {
-        this.objectName = object_name;
+    public MetadatasObject(String objectName, String type, String digest, long fileSize, String fileOwner,
+        String lastAccessDate, String lastModifiedDate) {
+        this.objectName = objectName;
         this.type = type;
         this.digest = digest;
-        this.fileSize = file_size;
-        this.fileOwner = file_owner;
-        this.lastAccessDate = last_access_date;
-        this.lastModifiedDate = last_modified_date;
+        this.fileSize = fileSize;
+        this.fileOwner = fileOwner;
+        this.lastAccessDate = lastAccessDate;
+        this.lastModifiedDate = lastModifiedDate;
     }
     
     

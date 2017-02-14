@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -24,6 +27,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -548,11 +552,11 @@ public class FileSystemTest {
     }
     
     @Test
-    public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception{
+    public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
         String containerName = TYPE + "_" + TENANT_ID;
         storage.createContainer(containerName);
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
-        
+        //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         //get metadata of file
         MetadatasObject result = storage.getObjectMetadatas(TENANT_ID, TYPE, OBJECT_ID);
         assertEquals(OBJECT_ID, result.getObjectName());
@@ -574,5 +578,33 @@ public class FileSystemTest {
         assertEquals(13843, result.getFileSize());
         assertNotNull(result.getLastAccessDate());
         assertNotNull(result.getLastModifiedDate());
+    }
+
+    @Test
+    public void listTest() throws Exception {
+        storage.createContainer("container");
+        assertNotNull(storage.getContainerInformation("container"));
+        for (int i = 0; i < 100; i++) {
+            storage.putObject("container", "file_" + i, new FakeInputStream(100, false));
+        }
+        PageSet<? extends StorageMetadata> pageSet = storage.listContainer("container");
+        assertNotNull(pageSet);
+        assertFalse(pageSet.isEmpty());
+        assertEquals(100, pageSet.size());
+
+        for (int i = 100; i < 150; i++) {
+            storage.putObject("container", "file_" + i, new FakeInputStream(100, false));
+        }
+        pageSet = storage.listContainer("container");
+        assertNotNull(pageSet);
+        assertFalse(pageSet.isEmpty());
+        assertEquals(100, pageSet.size());
+        assertNotNull(pageSet.getNextMarker());
+
+        pageSet = storage.listContainerNext("container", pageSet.getNextMarker());
+        assertNotNull(pageSet);
+        assertFalse(pageSet.isEmpty());
+        assertEquals(50, pageSet.size());
+        assertNull(pageSet.getNextMarker());
     }
 }

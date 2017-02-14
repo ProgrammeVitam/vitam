@@ -85,6 +85,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -189,11 +190,11 @@ public class ConnectionImplTest extends VitamJerseyTest {
             return expectedResponse.head();
         }
 
-        @GET
+        @HEAD
         @Path("/objects/{type}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getContainerInformation() {
-            return expectedResponse.get();
+            return expectedResponse.head();
         }
 
         @GET
@@ -439,11 +440,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test
     public void getStorageCapacityOK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(getStorageCapacityResult()).build());
+        when(mock.head()).thenReturn(Response.status(Status.OK).header("X-Usable-Space", "1000").header("X-Used-Space",
+            "1000").header(GlobalDataRest.X_TENANT_ID, tenant).build());
         // TODO check result
         final StorageCapacityResult result = connection.getStorageCapacity(tenant);
         assertNotNull(result);
-        assertEquals(TENANT_ID, result.getTenantId());
+        assertEquals(Integer.valueOf(tenant), result.getTenantId());
         assertNotNull(result.getUsableSpace());
         assertNotNull(result.getUsedSpace());
     }
@@ -866,6 +868,14 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public void deleteObjectTestInternalServerError() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         connection.removeObject(getStorageRemoveRequest(true, true, true, true, true));
+    }
+
+    @Test
+    public void listObjectsTest() throws Exception {
+        StorageListRequest storageRequest = new StorageListRequest(TENANT_ID, DataCategory.OBJECT.getFolder(), null,
+            true);
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        assertNotNull(connection.listObjects(storageRequest));
     }
 
     private StorageRemoveRequest getStorageRemoveRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,

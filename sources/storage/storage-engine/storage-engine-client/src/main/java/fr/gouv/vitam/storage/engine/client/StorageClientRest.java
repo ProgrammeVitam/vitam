@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -81,7 +83,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response =
-                performRequest(HttpMethod.GET, "/",
+                performRequest(HttpMethod.HEAD, "/",
                     getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_JSON_TYPE, false);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (final VitamClientInternalException e) {
@@ -381,6 +383,17 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 StorageClientRest.staticConsumeAnyEntityAndClose(response);
             }
         }
+    }
+
+    @Override
+    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
+        ParametersChecker.checkParameter("Strategy cannot be null", strategyId);
+        ParametersChecker.checkParameter("Type cannot be null", type);
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
+        headers.add(GlobalDataRest.X_CURSOR, true);
+        return new VitamRequestIterator<>(this, HttpMethod.GET, type.name(), JsonNode.class,
+            headers, null);
     }
 
 }

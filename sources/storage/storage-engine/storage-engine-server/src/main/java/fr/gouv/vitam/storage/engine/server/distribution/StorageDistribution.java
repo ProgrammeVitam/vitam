@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -111,18 +112,16 @@ public interface StorageDistribution {
     // TODO P1 : container deletion possibility needs to be re-think then deleted or implemented. Vitam Architects are
     void deleteContainer(String strategyId) throws StorageTechnicalException, StorageNotFoundException;
 
-
-    // TODO P2 see list/count/size API
     /**
-     * Get Container Objects Information
-     * <p>
+     * List container objects
      *
-     * @param strategyId id of the strategy
-     * @return a JsonNode containing informations about objects contained in the requested container
-     * @throws StorageNotFoundException Thrown if the Container does not exist
+     * @param strategyId the strategy id to get offers
+     * @param category the object type to list
+     * @param cursorId the cursorId if exists
+     * @return a response with object listing
+     * @throws StorageException thrown in case of any technical problem
      */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to review this code then
-    JsonNode getContainerObjects(String strategyId) throws StorageNotFoundException;
+    Response listContainerObjects(String strategyId, DataCategory category, String cursorId) throws StorageException;
 
 
     /**

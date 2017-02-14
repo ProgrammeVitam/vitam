@@ -40,7 +40,7 @@ Plusieurs informations sont nécessaires dans la partie header :
 
 Méthodes
 ^^^^^^^^
-| GET /  -> **Permet d'accéder aux informations d'un container.**
+| HEAD /  -> **Permet d'accéder aux informations d'un container.**
 | POST / -> avec header X-Http-Method-Override: GET **Permet d'accéder aux informations d'un container.**
 | POST / -> **Permet de créer un nouveau container (nouveau tenant).**
 | DELETE / -> **Permet d'effacer un Container (si vide).**

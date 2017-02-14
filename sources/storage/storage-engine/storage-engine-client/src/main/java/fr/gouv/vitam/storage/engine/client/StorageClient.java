@@ -31,11 +31,13 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -130,5 +132,16 @@ public interface StorageClient extends BasicClient {
      */
     Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException;
+
+    /**
+     * List object type in container
+     *
+     * @param strategyId the strategy ID
+     * @param type the object type to list
+     * @return an iterator with object list
+     * @throws StorageServerClientException thrown if the server got an internal error
+     */
+    VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) throws
+        StorageServerClientException;
 
 }

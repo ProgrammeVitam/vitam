@@ -85,6 +85,12 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
+    /**
+     * Max result for listing option
+     * TODO: have to be configurable ?
+     */
+    private static final int LISTING_MAX_RESULTS = 100;
+
     // FIXME P1: the BlobStoreContext should be build for each call, since it is as a HttpClient. For now (Filesystem),
     // that's fine.
     protected final BlobStoreContext context;
@@ -711,6 +717,45 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
+    }
+
+    @Override
+    public PageSet<? extends StorageMetadata> listContainer(String containerName) throws ContentAddressableStorageNotFoundException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+
+        final BlobStore blobStore = context.getBlobStore();
+
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+
+        ListContainerOptions options = new ListContainerOptions();
+        options.maxResults(LISTING_MAX_RESULTS);
+        return blobStore.list(containerName, options);
+    }
+
+    @Override
+    public PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker) throws
+        ContentAddressableStorageNotFoundException{
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+
+        final BlobStore blobStore = context.getBlobStore();
+
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+
+        ListContainerOptions options = new ListContainerOptions();
+        options.maxResults(LISTING_MAX_RESULTS);
+        options.afterMarker(nextMarker);
+
+        return blobStore.list(containerName, options);
     }
     
 }

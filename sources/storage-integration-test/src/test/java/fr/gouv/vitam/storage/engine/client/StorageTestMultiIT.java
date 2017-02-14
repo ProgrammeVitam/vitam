@@ -35,12 +35,16 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -53,6 +57,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
@@ -62,6 +67,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import junit.framework.TestCase;
 
 public class StorageTestMultiIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiIT.class);
@@ -83,7 +89,7 @@ public class StorageTestMultiIT {
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
     private static int size = 500;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor
         .getDefaultExecutor());
@@ -205,7 +211,7 @@ public class StorageTestMultiIT {
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
             // nothing
         }
-        
+
         try (FakeInputStream fis = new FakeInputStream(size, false)) {
             workspaceClient.putObject(CONTAINER, OBJECT_ID, fis);
         }
@@ -237,6 +243,19 @@ public class StorageTestMultiIT {
                 assert(false);
                 break;
             }
+
+            // see other test for full listing, here, we only have one object !
+            try {
+                VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
+                TestCase.assertNotNull(result);
+                Assert.assertTrue(result.hasNext());
+                JsonNode node = result.next();
+                TestCase.assertNotNull(node);
+                Assert.assertFalse(result.hasNext());
+            } catch (StorageServerClientException exc) {
+                Assert.fail("Should not raize an exception");
+            }
+
             try {
                 afterTest();
             } catch (Exception e) {
@@ -251,6 +270,51 @@ public class StorageTestMultiIT {
                 break;
             }
             size += 500;
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void listingTest() {
+        size = 500;
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        for (int i = 0; i < 150; i++) {
+            OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
+            final CreateObjectDescription description = new CreateObjectDescription();
+            description.setWorkspaceContainerGUID(CONTAINER);
+            description.setWorkspaceObjectURI(OBJECT_ID);
+            try {
+                populateWorkspace();
+            } catch (Exception e1) {
+                LOGGER.error("During populate size: " + size, e1);
+                assert(false);
+                break;
+            }
+            try {
+                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID,
+                    description);
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+                StorageServerClientException e) {
+                LOGGER.error("Size: " + size, e);
+                assert(false);
+                break;
+            }
+        }
+
+        try {
+            VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
+            TestCase.assertNotNull(result);
+            int count = 0;
+            while (result.hasNext()) {
+                count++;
+                TestCase.assertNotNull(result.next());
+            }
+            TestCase.assertEquals(150, count);
+
+
+        } catch (StorageServerClientException exc) {
+            Assert.fail("Should not raize an exception");
         }
     }
 

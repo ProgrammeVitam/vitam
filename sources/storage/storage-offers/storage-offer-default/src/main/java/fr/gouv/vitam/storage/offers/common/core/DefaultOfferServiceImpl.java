@@ -29,13 +29,18 @@ package fr.gouv.vitam.storage.offers.common.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +49,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -74,6 +80,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, DigestType> digestTypeFor;
     private final Map<String, String> objectTypeFor;
 
+    private final Map<String, String> mapXCusor;
+
     private DefaultOfferServiceImpl() {
         StorageConfiguration configuration;
         try {
@@ -86,6 +94,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
         digestTypeFor = new HashMap<>();
         objectTypeFor = new HashMap<>();
+        mapXCusor = new HashMap<>();
     }
 
     /**
@@ -227,5 +236,61 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     public StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException {
         return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(tenantId, type, objectId));
     }    
-    
+
+    public String createCursor(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        if (!defaultStorage.isExistingContainer(containerName)) {
+            throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
+        }
+        String cursorId = GUIDFactory.newGUID().toString();
+        mapXCusor.put(getKeyMap(containerName, cursorId), null);
+        return cursorId;
+    }
+
+    @Override
+    public boolean hasNext(String containerName, String cursorId) {
+        return mapXCusor.containsKey(getKeyMap(containerName, cursorId));
+    }
+
+    @Override
+    public List<JsonNode> next(String containerName, String cursorId) throws
+        ContentAddressableStorageNotFoundException {
+        String keyMap = getKeyMap(containerName, cursorId);
+        if (mapXCusor.containsKey(keyMap)) {
+            PageSet<? extends StorageMetadata> pageSet;
+            if (mapXCusor.get(keyMap) == null) {
+                pageSet = defaultStorage.listContainer(containerName);
+            } else {
+                pageSet = defaultStorage.listContainerNext(containerName, mapXCusor.get(keyMap));
+            }
+            if (pageSet.getNextMarker() != null) {
+                mapXCusor.put(keyMap, pageSet.getNextMarker());
+            } else {
+                mapXCusor.remove(keyMap);
+            }
+            return getListFromPageSet(pageSet);
+        } else {
+            // TODO: manage with exception cursor already close
+            return null;
+        }
+    }
+
+    @Override
+    public void finalizeCursor(String containerName, String cursorId) {
+        if (mapXCusor.containsKey(getKeyMap(containerName, cursorId))) {
+            mapXCusor.remove(getKeyMap(containerName, cursorId));
+        }
+    }
+
+    private List<JsonNode> getListFromPageSet(PageSet<? extends StorageMetadata> pageSet) {
+        List<JsonNode> list = new ArrayList<>();
+        for (StorageMetadata storageMetadata : pageSet) {
+            list.add(JsonHandler.createObjectNode().put("objectId", storageMetadata.getName()));
+        }
+        return list;
+    }
+
+    private String getKeyMap(String containerName, String cursorId) {
+        return cursorId + containerName;
+    }
 }
