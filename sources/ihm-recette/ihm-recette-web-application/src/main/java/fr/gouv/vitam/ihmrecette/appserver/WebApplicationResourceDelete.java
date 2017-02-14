@@ -76,7 +76,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
  */
 
 @Path("/v1/api/delete")
-public class WebApplicationResourceDelete extends ApplicationStatusResource {
+public class WebApplicationResourceDelete {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDelete.class);
     private static final String STP_DELETE_FORMAT = "STP_DELETE_FORMAT";
@@ -101,7 +101,6 @@ public class WebApplicationResourceDelete extends ApplicationStatusResource {
      * @param webApplicationConfig application configuration
      */
     public WebApplicationResourceDelete(WebApplicationConfig webApplicationConfig) {
-        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
         DbConfigurationImpl adminConfiguration;
         DbConfigurationImpl logbookConfiguration;
         MetaDataConfiguration metaDataConfiguration;
