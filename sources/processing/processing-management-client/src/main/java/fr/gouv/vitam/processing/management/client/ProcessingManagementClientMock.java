@@ -60,7 +60,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null);
+        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null, "");
     }
 
     @Override

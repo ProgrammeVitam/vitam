@@ -48,6 +48,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -284,6 +285,9 @@ public class WorkerImpl implements Worker {
                 ItemStatus subItemStatus = subTaskEntry.getValue();
                 subLogbookLfcParam.setFinalStatus(handlerName,
                     entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
+                if (!subItemStatus.getEvDetailData().isEmpty()) {
+                    subLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData, subItemStatus.getEvDetailData());
+                }
                 logbookParamList.add(subLogbookLfcParam);
             }
             entry.getValue().getSubTaskStatus().clear();

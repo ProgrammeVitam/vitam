@@ -55,6 +55,8 @@ public class ItemStatus {
     protected String itemId;
     @JsonProperty("message")
     protected String message;
+    @JsonProperty("evDetailData")
+    protected String evDetailData;
     @JsonProperty("globalStatus")
     protected StatusCode globalStatus;
     @JsonProperty("statusMeter")
@@ -87,13 +89,14 @@ public class ItemStatus {
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
-        @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus) {
+        @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus, @JsonProperty("evDetailData") String evDetailData) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
         this.globalStatus = globalStatus;
         this.statusMeter = statusMeter;
         this.data = data;
+        this.evDetailData = evDetailData;
     }
 
     /**
@@ -349,6 +352,28 @@ public class ItemStatus {
     public ItemStatus setSubTaskStatus(String taskId, ItemStatus taskStatus) {
         ParametersChecker.checkParameterDefault("taskId", taskId);
         this.subTaskStatus.put(taskId, taskStatus);
+        return this;
+    }
+
+    /**
+     * @return evDetailData
+     */
+    public String getEvDetailData() {
+        if (Strings.isNullOrEmpty(evDetailData)) {
+            return "";
+        }
+        return evDetailData;
+    }
+
+    /**
+     * set EvDetailData
+     * 
+     * @param evDetailData
+     * @return this
+     */
+    public ItemStatus setEvDetailData(String evDetailData) {
+        ParametersChecker.checkParameterDefault("evDetailData", evDetailData);
+        this.evDetailData = evDetailData;
         return this;
     }
 
