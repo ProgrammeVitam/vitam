@@ -61,7 +61,7 @@ angular.module('core')
           }
           deferred.resolve(allData);
         }, function onError(error) {
-          logger.log('Error when resolving MessagesResource: ', error);
+          console.log('Error when resolving MessagesResource: ', error);
         }
       );
 

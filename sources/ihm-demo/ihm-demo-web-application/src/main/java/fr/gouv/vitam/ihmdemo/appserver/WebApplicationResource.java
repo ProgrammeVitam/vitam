@@ -94,6 +94,7 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -144,6 +145,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param webApplicationConfig
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
+        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
         this.webApplicationConfig = webApplicationConfig;
     }
 
@@ -160,18 +162,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // .properties file, MUST add an unique prefix per
         // file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
-    }
-
-    /**
-     * Retrieve all the tenants defined on the plateform
-     *
-     * @return Response containing a list of tenants as string
-     */
-    @GET
-    @Path("/tenants")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getTenants() {
-        return Response.status(Status.OK).entity(webApplicationConfig.getTenants()).build();
     }
 
     /**
