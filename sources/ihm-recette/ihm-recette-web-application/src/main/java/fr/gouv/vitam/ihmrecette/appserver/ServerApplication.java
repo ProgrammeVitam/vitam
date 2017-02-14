@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.TenantIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.ConsumeAllAfterResponseFilter;
@@ -138,6 +139,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonJsonProvider.class)
             .register(JacksonFeature.class)
+            .register(TenantIdContainerFilter.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
         // Register Jersey Metrics Listener
