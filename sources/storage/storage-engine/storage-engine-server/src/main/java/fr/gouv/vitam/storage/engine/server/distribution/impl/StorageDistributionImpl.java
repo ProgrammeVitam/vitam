@@ -34,11 +34,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
@@ -125,6 +128,12 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final int NB_RETRY = 3;
     private static final String SIZE_KEY = "size";
     private static final String STREAM_KEY = "stream";
+
+    /**
+     * Global pool thread
+     */
+     static final ExecutorService executor = new VitamThreadPoolExecutor();
+
 
     /**
      * Used to wait for all task submission (executorService)
@@ -219,8 +228,6 @@ public class StorageDistributionImpl implements StorageDistribution {
         MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace((InputStream) streamAndInfos.get
                 (STREAM_KEY), datas.getKoList().size());
 
-        VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
-
         // init thread and make future map
         // Map here to keep offerId linked to Future
         Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
@@ -243,35 +250,35 @@ public class StorageDistributionImpl implements StorageDistribution {
             LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
         }
 
-        executor.shutdown();
-
         // wait for all threads execution
         // TODO: manage interruption and error execution (US #2008 && 2009)
-        try {
-            executor.awaitTermination(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
-                TimeUnit.MILLISECONDS);
-        } catch (InterruptedException exc) {
-            LOGGER.warn("ExecutorService interrupted !", exc);
-        }
-
-        for (String offerId : futureMap.keySet()) {
+        for (Entry<String, Future<ThreadResponseData>> entry : futureMap.entrySet()) {
+            final Future<ThreadResponseData> future = entry.getValue();
+            String offerId = entry.getKey();
             try {
-                ThreadResponseData res = futureMap.get(offerId).get();
-                parameters = setLogbookStorageParameters(parameters, offerId, res, requester, attempt);
+                future.get(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
+                    TimeUnit.MILLISECONDS);
+                parameters = setLogbookStorageParameters(parameters, offerId, future.get(), requester, attempt);
                 datas.koListToOkList(offerId);
-            } catch (InterruptedException exc) {
-                // Interrupted = shutdownNow
-                LOGGER.error("Interrupted on offer ID " + offerId, exc);
+            } catch (TimeoutException e) {
+                LOGGER.error("Timeout on offer ID " + offerId);
+                future.cancel(true);
+                // TODO: manage thread to take into account this interruption
+                LOGGER.error("Interrupted after timeout on offer ID " + offerId);
                 parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
-            } catch (ExecutionException exc) {
-                // Execution = thread error (exception)
-                LOGGER.error("Error on offer ID " + offerId, exc);
+            } catch (InterruptedException e) {
+                LOGGER.error("Interrupted on offer ID " + offerId, e);
                 parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
-                logStorage(parameters);
+            } catch (ExecutionException e) {
+                LOGGER.error("Error on offer ID " + offerId, e);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
                 // TODO: review this exception to manage errors correctly
                 // Take into account Exception class
                 // For example, for particular exception do not retry (because it's useless)
                 // US : #2009
+            } catch (NumberFormatException e) {
+                LOGGER.error("Wrong number on wait on offer ID " + offerId, e);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
             }
         }
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
@@ -279,7 +286,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
         }
 
-        // TODO : error management (US #2008)
+        // TODO : error management (US #2009)
         if (!datas.getKoList().isEmpty()) {
             deleteObjects(datas.getOkList(), tenantId, category, objectId);
         }
@@ -288,7 +295,11 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private long getTransferTimeout(long sizeToTransfer) {
-        return (sizeToTransfer / 1024) * millisecondsPerKB;
+        long timeout = (sizeToTransfer / 1024) * millisecondsPerKB;
+        if (timeout < 1000) {
+            return 1000;
+        }
+        return timeout;
     }
 
     private void isStrategyValid(HotStrategy hotStrategy) throws StorageTechnicalException {
@@ -650,7 +661,6 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId)
         throws StorageTechnicalException {
-        VitamThreadPoolExecutor executor = new VitamThreadPoolExecutor();
         for (String offerId : offerIdList) {
             final Driver driver = retrieveDriverInternal(offerId);
             // TODO: review if digest value is really good ?
@@ -665,16 +675,6 @@ public class StorageDistributionImpl implements StorageDistribution {
         } catch (InterruptedException exc) {
             LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
         }
-
-        executor.shutdown();
-
-        try {
-            executor.awaitTermination(1, TimeUnit.MINUTES);
-        } catch (InterruptedException exc) {
-            LOGGER.warn("ExecutorService interrupted !", exc);
-        }
-
-        executor.shutdownNow();
     }
 
     @Override
@@ -777,5 +777,16 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public JsonNode status() throws StorageException {
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    }
+
+    @Override
+    public void close() {
+        executor.shutdown();
+        try {
+            executor.awaitTermination(10000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            LOGGER.warn(e);
+        }
+        executor.shutdownNow();
     }
 }

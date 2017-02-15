@@ -1091,6 +1091,11 @@ public class StorageResourceTest {
             return null;
         }
 
+        @Override
+        public void close() {
+            // Nothing
+        }
+
     }
 
 }

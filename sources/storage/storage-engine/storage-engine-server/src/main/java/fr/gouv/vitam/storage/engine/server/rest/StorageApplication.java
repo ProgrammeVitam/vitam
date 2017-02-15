@@ -51,7 +51,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
     static VitamServiceRegistry serviceRegistry = null;
-
+    static StorageResource storageResource;
     /**
      * StorageApplication constructor
      *
@@ -93,6 +93,9 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
             application.run();
         } catch (final Exception e) {
             LOGGER.error(format(VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            if (storageResource != null) {
+                storageResource.close();
+            }
             System.exit(1);
         }
     }
@@ -105,7 +108,8 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         // FIXME P2 register for default offer: useful ?
-        resourceConfig.register(new StorageResource(getConfiguration()));
+        storageResource = new StorageResource(getConfiguration());
+        resourceConfig.register(storageResource);
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
     }
 }

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -46,7 +47,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 /**
  * Interface Storage Distribution for Storage Operations
  */
-public interface StorageDistribution {
+public interface StorageDistribution extends VitamAutoCloseable {
 
     /**
      * Store data of any type for given tenant on storage offers associated to given strategy

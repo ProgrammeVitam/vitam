@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
@@ -33,16 +33,21 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -58,13 +63,16 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -72,7 +80,9 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -102,6 +112,12 @@ public class StorageDistributionImplTest {
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1);
     }
 
+    @AfterClass
+    public static void endOfClass() {
+        simpleDistribution.close();
+        // custom not necessary since static only
+    }
+    
     @Test
     @RunWithCustomExecutor
     public void testStoreData_IllegalArguments()
@@ -470,6 +486,31 @@ public class StorageDistributionImplTest {
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = StorageTechnicalException.class)
+    public void timeoutInterruptedTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
+        createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
+
+        FakeInputStream stream = new FakeInputStream(500, false);
+        reset(client);
+
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 500).build());
+
+        try {
+            // Store object
+            customDistribution
+                .storeData(STRATEGY_ID, "timeoutTest", createObjectDescription, DataCategory.OBJECT,
+                    "testRequester");
+        } finally {
+            IOUtils.closeQuietly(stream);
         }
     }
 
