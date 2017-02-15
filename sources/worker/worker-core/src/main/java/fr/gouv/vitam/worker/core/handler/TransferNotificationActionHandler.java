@@ -588,7 +588,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try (VitamRequestIterator<JsonNode> iterator =
-                client.unitLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
+                client.unitLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
                 final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
@@ -640,7 +640,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
             try (VitamRequestIterator<JsonNode> iterator =
-                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
+                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();
