@@ -102,6 +102,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
@@ -259,6 +260,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingManifestReferenceException e) {
             LOGGER.debug("ProcessingException : reference incorrect in Manifest", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final MissingFieldException e) {
+            LOGGER.debug("MissingFieldException", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
@@ -442,7 +446,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // 1- Check if required informations exist
             for (String currentInfo : REQUIRED_GLOBAL_INFORMATIONS) {
                 if (!globalRequiredInfosFound.contains(currentInfo)) {
-                    throw new ProcessingException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
+                    throw new MissingFieldException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
                 }
             }
 

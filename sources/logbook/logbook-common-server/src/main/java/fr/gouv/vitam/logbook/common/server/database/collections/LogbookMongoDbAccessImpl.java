@@ -300,15 +300,16 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select, boolean sliced)
+    public MongoCursor<LogbookLifeCycle> getLogbookLifeCycleUnits(JsonNode select, boolean sliced,
+        LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         if (sliced) {
             final ObjectNode operationSlice = JsonHandler.createObjectNode();
             operationSlice.putObject(LogbookDocument.EVENTS).put(SLICE, LAST_EVENT_SLICE);
-            return select(LogbookCollections.LIFECYCLE_UNIT, select, operationSlice);
+            return select(collection, select, operationSlice);
         } else {
-            return select(LogbookCollections.LIFECYCLE_UNIT, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
+            return select(collection, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
         }
     }
 
@@ -326,10 +327,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced)
+    public MongoCursor<LogbookLifeCycle> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced,
+        LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(LogbookCollections.LIFECYCLE_OBJECTGROUP, select, sliced);
+        return select(collection, select, sliced);
 
     }
 
@@ -381,7 +383,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public boolean existsLogbookLifeCycleUnit(String unitId) throws LogbookDatabaseException {
+    public boolean existsLogbookLifeCycleUnit(String unitId)
+        throws LogbookDatabaseException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, unitId);
         return exists(LogbookCollections.LIFECYCLE_UNIT, unitId);
     }
@@ -431,9 +434,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public LogbookLifeCycleUnit getLogbookLifeCycleUnit(JsonNode queryDsl)
+    public LogbookLifeCycleUnit getLogbookLifeCycleUnit(JsonNode queryDsl, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycleUnit) getLogbook(LogbookCollections.LIFECYCLE_UNIT, queryDsl.findValue(
+        return (LogbookLifeCycleUnit) getLogbook(collection, queryDsl.findValue(
             LogbookMongoDbName.objectIdentifier.getDbname()).asText());
     }
 
@@ -1189,5 +1192,19 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public void rollBackObjectGroupLifeCyclesByOperation(String operationId)
         throws LogbookNotFoundException, LogbookDatabaseException {
         rollBackLifeCyclesByOperation(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, operationId);
+    }
+
+    @Override
+    public boolean existsLogbookLifeCycleUnitInProcess(String unitId)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        ParametersChecker.checkParameter(LIFECYCLE_ITEM, unitId);
+        return exists(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, unitId);
+    }
+
+    @Override
+    public boolean existsLogbookLifeCycleObjectGroupInProcess(String objectGroupId)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        ParametersChecker.checkParameter(LIFECYCLE_ITEM, objectGroupId);
+        return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, objectGroupId);
     }
 }

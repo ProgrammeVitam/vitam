@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -67,6 +66,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
@@ -298,7 +298,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectUnit(JsonHandler.getFromString(select.getFinalSelect().toString()));
+        logbookLifeCyclesImpl.selectUnit(JsonHandler.getFromString(select.getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -409,7 +410,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectObjectGroup(JsonHandler.getFromString(select.getFinalSelect().toString()));
+        logbookLifeCyclesImpl.selectObjectGroup(JsonHandler.getFromString(select.getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -425,18 +427,19 @@ public class LogbookLifeCyclesImplWithMongoTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         String result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LogbookCollections.LIFECYCLE_UNIT);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorUnitNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorObjectGroupNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
 
         result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LogbookCollections.LIFECYCLE_UNIT);
         assertNotNull(result);
         while (true) {
             try {
@@ -451,7 +454,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         } catch (final LogbookDatabaseException e) {}
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP);
         assertNotNull(result);
         while (true) {
             try {

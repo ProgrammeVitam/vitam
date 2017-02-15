@@ -377,7 +377,7 @@ public final class DslQueryHelper {
             final String searchKeys = entry.getKey();
             final String searchValue = entry.getValue();
 
-            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+            if (searchKeys.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
             }
             // Add root

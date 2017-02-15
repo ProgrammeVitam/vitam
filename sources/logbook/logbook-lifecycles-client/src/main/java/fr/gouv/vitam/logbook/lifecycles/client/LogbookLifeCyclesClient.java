@@ -299,4 +299,22 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      */
     public void rollBackObjectGroupsByOperation(String operationId)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
+
+    /**
+     * Gets the unit lifeCycle status (COMMITTED or IN_PROCESS)
+     * 
+     * @param unitId the unit id
+     * @return the unit lifeCycle status (COMMITTED or IN_PROCESS)
+     */
+    public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
+        throws LogbookClientNotFoundException, LogbookClientServerException;
+
+    /**
+     * Gets the object group lifeCycle status (COMMITTED or IN_PROCESS)
+     * 
+     * @param objectGroupId the object group id
+     * @return the object group lifeCycle status (COMMITTED or IN_PROCESS)
+     */
+    public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
+        throws LogbookClientNotFoundException, LogbookClientServerException;
 }

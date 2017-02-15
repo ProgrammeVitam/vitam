@@ -27,24 +27,20 @@
 package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -58,13 +54,17 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -72,10 +72,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
-import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
-import fr.gouv.vitam.logbook.lifecycles.core.LogbookLifeCyclesImpl;
 
 /**
  *
@@ -239,7 +238,7 @@ public class LogBookLifeCycleUnitTest {
     }
 
     @Test
-    public final void given_lifeCycleUnit_when_create_update_test() {
+    public final void given_lifeCycleUnit_when_create_update_test() throws InvalidCreateOperationException {
         // Creation OK
 
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
@@ -311,18 +310,24 @@ public class LogBookLifeCycleUnitTest {
 
         // Commit the created unit lifeCycle
         given()
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)
             .when()
-            .put(COMMIT_UNIT_ID_URI,
+            .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
             .then()
             .statusCode(Status.OK.getStatusCode());
 
         // Test direct access
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(LogbookLifeCycleMongoDbName.objectIdentifier.getDbname(),
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier)));
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new Select().getFinalSelect())
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED.toString())
+            .body(select.getFinalSelect())
             .when()
             .get("/unitlifecycles/" +
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
@@ -379,6 +384,7 @@ public class LogBookLifeCycleUnitTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesUnitParametersBAD.toString())
             .when()
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString())
             .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.objectIdentifier))
@@ -457,6 +463,7 @@ public class LogBookLifeCycleUnitTest {
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesUnitParametersUpdate.toString())
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString())
             .when()
             .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),
@@ -518,11 +525,15 @@ public class LogBookLifeCycleUnitTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        JsonNode query = JsonHandler.getFromString(LIFECYCLE_SAMPLE);
-        when(logbookLifeCycles.getUnitById(query)).thenThrow(LogbookNotFoundException.class);
-        given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
+        InvalidCreateOperationException {
+
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(LogbookLifeCycleMongoDbName.objectIdentifier.getDbname(),
+            FAKE_UNIT_LF_ID));
+        JsonNode query = select.getFinalSelect();
+
+        given().contentType(ContentType.JSON).body(query)
             .param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode())
             .when().get(SELECT_UNIT_BY_ID_URI);
     }
@@ -531,8 +542,6 @@ public class LogBookLifeCycleUnitTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
-        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
         given().contentType(ContentType.JSON).body(new Select().getFinalSelect()).param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }

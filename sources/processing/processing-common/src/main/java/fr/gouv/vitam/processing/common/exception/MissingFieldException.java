@@ -1,8 +1,8 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * 
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,24 +23,40 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.model;
+ */
+package fr.gouv.vitam.processing.common.exception;
 
 /**
- * Enum StatusCode
- *
- * different constants status code for workflow , action handler and process
- *
+ * Define Missig field Exception, will be thrown when mandatory field is missing
  */
-public enum LifeCycleStatusCode {
+public class MissingFieldException extends ProcessingException {
+
+    private static final long serialVersionUID = 2020555531318906531L;
+
 
     /**
-     * LIFE_CYCLE_COMMITTED : indicates that the lifeCycle has been committed
+     * 
+     * @param message associated message
+     * @param cause associated cause
      */
-    LIFE_CYCLE_COMMITTED,
+    public MissingFieldException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 
     /**
-     * LIFE_CYCLE_IN_PROCESS : indicates that the lifeCycle hasn't been committed yet
+     * @param message
      */
-    LIFE_CYCLE_IN_PROCESS;
+    public MissingFieldException(String message) {
+        super(message);
+    }
+
+
+    /**
+     * @param cause associated cause
+     */
+    public MissingFieldException(Throwable cause) {
+        super(cause);
+    }
+
 }

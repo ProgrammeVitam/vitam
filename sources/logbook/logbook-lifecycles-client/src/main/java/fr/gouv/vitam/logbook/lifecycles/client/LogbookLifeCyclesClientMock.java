@@ -269,4 +269,23 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
             lifeCyclesByOperation.remove(operationId);
         }
     }
+
+    @Override
+    public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId) {
+        return getObjectLifeCycleStatus(unitId);
+    }
+
+    @Override
+    public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId) {
+        return getObjectLifeCycleStatus(objectGroupId);
+    }
+
+    private LifeCycleStatusCode getObjectLifeCycleStatus(String objectId) {
+        for (List<String> objectList : lifeCyclesByOperation.values()) {
+            if (objectList.contains(objectId)) {
+                return LifeCycleStatusCode.LIFE_CYCLE_COMMITTED;
+            }
+        }
+        return null;
+    }
 }

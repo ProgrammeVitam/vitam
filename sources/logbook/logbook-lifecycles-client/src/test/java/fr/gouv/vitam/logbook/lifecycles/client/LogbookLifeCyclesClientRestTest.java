@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -41,7 +42,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
@@ -214,6 +215,34 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response rollBackUnitsByOperation(String operationId) {
             return expectedResponse.delete();
+        }
+
+        @GET
+        @Path("/unitlifecycles/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectUnitLifeCycleById(String unitId) {
+            return expectedResponse.get();
+        }
+
+        @GET
+        @Path("/objectgrouplifecycles/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response selectObjectGroupLifeCycleById(String objectGroupId) {
+            return expectedResponse.get();
+        }
+
+        @HEAD
+        @Path("/unitlifecycles/{id}")
+        public Response getUnitLifeCycleStatus(String unitId) {
+            return expectedResponse.head();
+        }
+
+        @HEAD
+        @Path("/objectgrouplifecycles/{id}")
+        public Response getObjectGroupLifeCycleStatus(String unitId) {
+            return expectedResponse.head();
         }
     }
 
@@ -611,8 +640,8 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         } catch (final LogbookClientException e) {
 
         }
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
     }
 
     @Test
@@ -703,5 +732,65 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         GUID operationId = GUIDFactory.newOperationLogbookGUID(0);
         client.rollBackUnitsByOperation(operationId.getId());
+    }
+
+    @Test
+    public void getUnitLifeCycleStatusThenReturnOk()
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+
+        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
+
+        GUID unitId = GUIDFactory.newUnitGUID(0);
+        client.getUnitLifeCycleStatus(unitId.toString());
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void getUnitLifeCycleStatus_ThrowLogbookClientNotFoundException()
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+
+        when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+
+        GUID unitId = GUIDFactory.newUnitGUID(0);
+        client.getUnitLifeCycleStatus(unitId.toString());
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void getUnitLifeCycleStatus_ThrowLogbookClientServerException()
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+
+        when(mock.head()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+
+        GUID unitId = GUIDFactory.newUnitGUID(0);
+        client.getUnitLifeCycleStatus(unitId.toString());
+    }
+
+    @Test
+    public void getObjectGroupLifeCycleStatusThenReturnOk()
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+
+        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
+
+        GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
+        client.getObjectGroupLifeCycleStatus(objectGroupId.toString());
+    }
+
+    @Test(expected = LogbookClientNotFoundException.class)
+    public void getObjectGroupLifeCycleStatus_ThrowLogbookClientNotFoundException()
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+
+        when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+
+        GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
+        client.getObjectGroupLifeCycleStatus(objectGroupId.toString());
+    }
+
+    @Test(expected = LogbookClientServerException.class)
+    public void getObjectGroupLifeCycleStatus_ThrowLogbookClientServerException()
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+
+        when(mock.head()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+
+        GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
+        client.getObjectGroupLifeCycleStatus(objectGroupId.toString());
     }
 }
