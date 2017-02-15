@@ -652,11 +652,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
                                 globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
                             }
-                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
-                                unitIdToSetOfRuleId != null &&
-                                unitIdToSetOfRuleId.get(unitId) != null && !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
-                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
-                            }
+                            // All MngtRuleMetadata Must be shown in RootArchive
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
                                 listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
                             }
