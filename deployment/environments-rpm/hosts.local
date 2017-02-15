@@ -163,7 +163,7 @@ dns_servers=["10.100.211.222","8.8.8.8"]
 
 memory_opts="-Xms32m -Xmx256m"
 
-web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
+web_dir_soapui_tests=
 
 # Overrides
 vitam_folder_permission=0775
