@@ -80,8 +80,7 @@ Le détail est affiché sous forme de tableau comportant pour chaque événement
 Référentiel des formats
 =======================
 
-Cette partie décrit les fonctionnalités d'import du référentiel des formats, basé sur une version récente du référentiel PRONOM, pour
-ensuite le consulter et rechercher des formats spécifiques.
+Cette partie décrit les fonctionnalités d'import du référentiel des formats, basé sur une version récente du référentiel PRONOM, pour ensuite le consulter et rechercher des formats spécifiques.
 
 Import du référentiel des formats
 ---------------------------------
@@ -162,7 +161,7 @@ Pour accéder au détail de chaque format, l'utilisateur clique sur la ligne du 
 
 Une fenêtre de type "modale" s'ouvre, pour présenter le détail du format, tout en conservant la liste des résultats.
 
-.. image:: images/rf_format_detail.jpg
+.. image:: images/rf_format_detail.png
 
 Le détail d'un format est composé des informations suivantes :
 
