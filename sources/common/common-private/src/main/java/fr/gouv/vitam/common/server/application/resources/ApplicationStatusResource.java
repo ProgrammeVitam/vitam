@@ -100,7 +100,7 @@ public class ApplicationStatusResource implements VitamResource {
     @GET
     @Path(TENANTS_URL)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTenants() {
+    public Response getServerTenants() {
         return Response.status(Status.OK).entity(tenants).build();
     }
 
