@@ -77,7 +77,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
-    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit)
+    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws InvalidParseOperationException, AccessInternalExecutionException;
 
     /**

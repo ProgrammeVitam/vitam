@@ -91,7 +91,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         parameters.putAll(offer.getParameters());
         ThreadResponseData response;
         try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-            if (!isObjectExistsInOffer(request, connection)) {
+            if (isRewritableObject(request, connection)) {
 
                 // ugly way to get digest from stream
                 // TODO: How to do the cleaner ?
@@ -122,7 +122,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         return response;
     }
 
-    private boolean isObjectExistsInOffer(StoragePutRequest request, Connection connection)
+    private boolean isRewritableObject(StoragePutRequest request, Connection connection)
         throws StorageDriverException, StorageObjectAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
@@ -142,7 +142,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                     throw new UnsupportedOperationException("Not implemented");
             }
         }
-        return false;
+        return true;
     }
 
 

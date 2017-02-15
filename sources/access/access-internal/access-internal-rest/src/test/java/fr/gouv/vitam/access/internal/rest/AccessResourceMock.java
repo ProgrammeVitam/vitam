@@ -29,7 +29,6 @@ package fr.gouv.vitam.access.internal.rest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -90,7 +89,8 @@ public class AccessResourceMock implements AccessInternalResource {
     @Override
     @PUT
     @Path("/units/{id_unit}")
-    public Response updateUnitById(JsonNode dslQuery, @PathParam("id_unit") String unit_id) {
+    public Response updateUnitById(JsonNode dslQuery, @PathParam("id_unit") String unit_id,
+        @HeaderParam(GlobalDataRest.X_REQUEST_ID) String requestId) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 

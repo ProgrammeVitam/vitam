@@ -27,17 +27,25 @@
 
 package fr.gouv.vitam.storage.engine.common.model.request;
 
+import java.io.File;
+
+import org.apache.commons.lang3.StringUtils;
+
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+
 /**
  * Simple object holding data used to retrieve an Object from the workspace
  */
-public class CreateObjectDescription {
+public class ObjectDescription {
     private String workspaceContainerGUID;
     private String workspaceObjectURI;
+    private String objectName;
+    private StorageCollectionType type;
 
     /**
      * Empty Constructor.
      */
-    public CreateObjectDescription() {
+    public ObjectDescription() {
         // Empty
     }
 
@@ -47,23 +55,41 @@ public class CreateObjectDescription {
      * @param workspaceContainerGUID workspace container id
      * @param workspaceObjectURI workspace object URI
      */
-    public CreateObjectDescription(String workspaceContainerGUID, String workspaceObjectURI) {
+    public ObjectDescription(String workspaceContainerGUID, String workspaceObjectURI) {
         this.workspaceContainerGUID = workspaceContainerGUID;
         this.workspaceObjectURI = workspaceObjectURI;
+    }
+
+    /**
+     * Constructor with StorageCollectionType parameter
+     * 
+     * @param type
+     * @param workspaceContainerGUID
+     * @param objectName
+     */
+    public ObjectDescription(StorageCollectionType type, String workspaceContainerGUID, String objectName) {
+        this.type = type;
+        this.workspaceContainerGUID = workspaceContainerGUID;
+        this.objectName = objectName;
     }
 
     /**
      * @return workspaceObjectURI
      */
     public String getWorkspaceObjectURI() {
-        return workspaceObjectURI;
+        if (StringUtils.isNotBlank(workspaceObjectURI) || this.type == null) {
+            return workspaceObjectURI;
+        }
+        return this.type.getCollectionName() + File.separator + objectName;
     }
 
     /**
      * @param workspaceObjectURI
+     * @return this
      */
-    public void setWorkspaceObjectURI(String workspaceObjectURI) {
+    public ObjectDescription setWorkspaceObjectURI(String workspaceObjectURI) {
         this.workspaceObjectURI = workspaceObjectURI;
+        return this;
     }
 
     /**
@@ -75,9 +101,46 @@ public class CreateObjectDescription {
 
     /**
      * @param workspaceContainerGUID
+     * @return this
      */
-    public void setWorkspaceContainerGUID(String workspaceContainerGUID) {
+    public ObjectDescription setWorkspaceContainerGUID(String workspaceContainerGUID) {
         this.workspaceContainerGUID = workspaceContainerGUID;
+        return this;
+    }
+
+    /**
+     * @return the objectName
+     * 
+     */
+    public String getObjectName() {
+        return objectName;
+    }
+
+    /**
+     * @param objectName the objectName to set
+     *
+     * @return this
+     */
+    public ObjectDescription setObjectName(String objectName) {
+        this.objectName = objectName;
+        return this;
+    }
+
+    /**
+     * @return the type
+     */
+    public StorageCollectionType getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     *
+     * @return this
+     */
+    public ObjectDescription setType(StorageCollectionType type) {
+        this.type = type;
+        return this;
     }
 
 }

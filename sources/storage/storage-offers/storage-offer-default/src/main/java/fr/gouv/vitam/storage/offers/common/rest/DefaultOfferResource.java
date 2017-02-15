@@ -216,7 +216,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      */
     @GET
-    // FIXME Later we should count in a standard get request (no /count in path) with a DSL that specify a count operation (aggregate)
+    // FIXME Later we should count in a standard get request (no /count in path) with a DSL that specify a count
+    // operation (aggregate)
     @Path("/objects/{type}/count")
     @Produces(MediaType.APPLICATION_JSON)
     public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
@@ -321,7 +322,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
 
 
     /**
-     * Write a new chunk in an object or end its creation.
+     * Write a new chunk in an object or end its creation.<br>
+     * Replaces units and objectGroups object type if exist
      * <p>
      * HEADER X-Command (mandatory) : WRITE/END HEADER X-Tenant-Id (mandatory) : tenant's identifier
      * </p>
@@ -424,10 +426,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * @param xTenantId the id of the tenant
      * @param xDigest the digest
      * @param xDigestAlgorithm the digest algorithm
-     * @return the response with a specific HTTP status.
-     * 	If none of DIGEST or DIGEST_ALGORITHM headers is given, an existence test is done and can return 204/404 as response.
-     *  If only DIGEST or only DIGEST_ALGORITHM header is given, a not implemented exception is thrown. Later, this should respond with 200/409.
-     *  If both DIGEST and DIGEST_ALGORITHM header are given, a full digest check is done and can return 200/409 as response
+     * @return the response with a specific HTTP status. If none of DIGEST or DIGEST_ALGORITHM headers is given, an
+     *         existence test is done and can return 204/404 as response. If only DIGEST or only DIGEST_ALGORITHM header
+     *         is given, a not implemented exception is thrown. Later, this should respond with 200/409. If both DIGEST
+     *         and DIGEST_ALGORITHM header are given, a full digest check is done and can return 200/409 as response
      */
     @HEAD
     @Path("/objects/{type}/{id:.+}")
@@ -449,7 +451,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             if (checkDigest && !checkAlgo) {
                 objectIsOK = DefaultOfferServiceImpl.getInstance().checkDigest(containerName, idObject, xDigest);
             } else if (checkAlgo && !checkDigest) {
-                objectIsOK = DefaultOfferServiceImpl.getInstance().checkDigestAlgorithm(containerName, idObject, DigestType.fromValue(xDigestAlgorithm));
+                objectIsOK = DefaultOfferServiceImpl.getInstance().checkDigestAlgorithm(containerName, idObject,
+                    DigestType.fromValue(xDigestAlgorithm));
             } else if (checkAlgo && checkDigest) {
                 objectIsOK = DefaultOfferServiceImpl.getInstance().checkObject(containerName, idObject, xDigest,
                     DigestType.fromValue(xDigestAlgorithm));
@@ -470,20 +473,21 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     @GET
     @Path("/objects/{type}/{id:.+}/metadatas")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId){
-        
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        
+
         try {
-            StorageMetadatasResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(xTenantId, type.getFolder(), idObject);
+            StorageMetadatasResult result =
+                DefaultOfferServiceImpl.getInstance().getMetadatas(xTenantId, type.getFolder(), idObject);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);
@@ -491,7 +495,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (ContentAddressableStorageException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }  
+        }
     }
 
     private void getObjectAsync(DataCategory type, String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {

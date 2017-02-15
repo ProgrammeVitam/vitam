@@ -24,37 +24,54 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.storage.engine.common.model.request;
-
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
+package fr.gouv.vitam.storage.engine.common.model;
 
 /**
- *
+ * Storage collection types with collection names.
  */
-public class CreateObjectDescriptionTest {
+public enum StorageCollectionType {
+    // TODO P1 pourquoi pas de nom à Containers ?
+    CONTAINERS(""),
+    /**
+     * Units collection
+     */
+    UNITS("units"),
+    /**
+     * Objects collection
+     */
+    OBJECTS("objects"),
+    /**
+     * Logbooks collection
+     */
+    LOGBOOKS("logbooks"),
+    /**
+     * ObjectGroups collection
+     */
+    OBJECTGROUPS("objectgroups"),
+    /**
+     * Reports collection
+     */
+    REPORTS("reports"),
+    /**
+     * Manifests collection
+     */
+    MANIFESTS("manifests");
 
-    @Test
-    public void testGetSetWorkspaceObjectURI() throws Exception {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
-        createObjectDescription.setWorkspaceObjectURI("aa");
-        assertEquals("aa", createObjectDescription.getWorkspaceObjectURI());
+    /**
+     * Name
+     */
+    private String collectionName;
+
+    private StorageCollectionType(String collectionName) {
+        this.collectionName = collectionName;
     }
 
-    @Test
-    public void testGetSetWorkspaceContainerGUID() throws Exception {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
-        createObjectDescription.setWorkspaceContainerGUID("GUID");
-        assertEquals("GUID", createObjectDescription.getWorkspaceContainerGUID());
+    /**
+     *
+     * @return the Collection name
+     */
+    public String getCollectionName() {
+        return collectionName;
     }
 
-    @Test
-    public void testConstructorWithParam() throws Exception {
-        final CreateObjectDescription createObjectDescription =
-            new CreateObjectDescription("containerGUID", "objectURI");
-        assertEquals("containerGUID", createObjectDescription.getWorkspaceContainerGUID());
-        assertEquals("objectURI", createObjectDescription.getWorkspaceObjectURI());
-    }
 }

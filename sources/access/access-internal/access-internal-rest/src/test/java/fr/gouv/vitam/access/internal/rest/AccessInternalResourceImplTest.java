@@ -70,11 +70,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 // FIXME P1 : there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong
 public class AccessInternalResourceImplTest {
-	
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     // LOGGER
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImplTest.class);
 
@@ -160,7 +160,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void givenStartedServer_WhenUpdateUnitError_ThenReturnError() throws Exception {
         reset(mock);
-        when(mock.updateUnitbyId(anyObject(), anyObject()))
+        when(mock.updateUnitbyId(anyObject(), anyObject(), anyObject()))
             .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
@@ -324,7 +324,7 @@ public class AccessInternalResourceImplTest {
     public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() {
         given()
             .contentType(ContentType.JSON)
-            .body("")
+            .body("").header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7kjkkkkkmfjfikiaaaaq")
             .when()
             .put("/units/" + ID_UNIT)
             .then()
@@ -336,6 +336,7 @@ public class AccessInternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+            .header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7cabmgeak2mfjfikiaaaaq")
             .when()
             .put("/units/" + ID)
             .then()
@@ -465,8 +466,8 @@ public class AccessInternalResourceImplTest {
     @Test
     @RunWithCustomExecutor
     public void getObjectStreamNotFound() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(0);
-    	
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
         reset(mock);
         when(
             mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))
@@ -490,8 +491,8 @@ public class AccessInternalResourceImplTest {
     @Test
     @RunWithCustomExecutor
     public void getObjectStreamInternalServerError() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(0);
-    	
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
         reset(mock);
         when(
             mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))

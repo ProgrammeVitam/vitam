@@ -70,7 +70,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundExcept
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
@@ -110,7 +110,7 @@ public class StorageDistributionImplTest {
         // CreateObjectDescription createObjectDescription, DataCategory category,
         // JsonNode jsonData)
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final CreateObjectDescription emptyDescription = new CreateObjectDescription();
+        final ObjectDescription emptyDescription = new ObjectDescription();
         checkInvalidArgumentException(null, null, null, null);
         checkInvalidArgumentException(null, null, null, null);
         checkInvalidArgumentException("strategy_id", null, null, null);
@@ -133,7 +133,7 @@ public class StorageDistributionImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "id1";
         StoredInfoResult storedInfoResult = null;
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
@@ -248,7 +248,7 @@ public class StorageDistributionImplTest {
     public void testStoreData_retry_KO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "retry_test";
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
@@ -279,7 +279,7 @@ public class StorageDistributionImplTest {
     public void testStoreData_DigestKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "digest_bad_test";
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
@@ -304,7 +304,7 @@ public class StorageDistributionImplTest {
     public void testObjectAlreadyInOffer() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "already_in_offer";
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
@@ -331,7 +331,7 @@ public class StorageDistributionImplTest {
     public void testStoreData_NotFoundAndWorspaceErrorToTechnicalError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "id1";
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
@@ -376,7 +376,7 @@ public class StorageDistributionImplTest {
     }
 
     private void checkInvalidArgumentException(String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category)
+        ObjectDescription createObjectDescription, DataCategory category)
         throws StorageException, StorageObjectAlreadyExistsException {
         try {
             simpleDistribution.storeData(strategyId, objectId, createObjectDescription, category,

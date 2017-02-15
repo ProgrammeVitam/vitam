@@ -1,0 +1,84 @@
+{
+  "$hits" : {
+    "total" : 1,
+    "offset" : 0,
+    "limit" : 1,
+    "size" : 1
+  },
+  "$results" : [ {
+    "ArchiveUnitProfile" : "PresentationType",
+    "DescriptionLevel" : "Item",
+    "Title" : "Sensibilisation API",
+    "FilePlanPosition" : "FilePlanPosition0",
+    "OriginatingSystemId" : "OriginatingSystemId0",
+    "ArchivalAgencyArchiveUnitIdentifier" : "ArchivalAgencyArchiveUnitIdentifier0",
+    "OriginatingAgencyArchiveUnitIdentifier" : "OriginatingAgencyArchiveUnitIdentifier0",
+    "TransferringAgencyArchiveUnitIdentifier" : "TransferringAgencyArchiveUnitIdentifier0",
+    "Description" : "Sensibilisation au Technical Design et \u00E0 l'API Design Java et REST de la solution logicielle Vitam",
+    "Language" : "fr-FR",
+    "OriginatingAgency" : {
+      "Identifier" : "Identifier0"
+    },
+    "SubmissionAgency" : {
+      "Identifier" : "Identifier1"
+    },
+    "Writer" : {
+      "FirstName" : "FirstName0",
+      "BirthName" : "BirthName0"
+    },
+    "CreatedDate" : "2016-05-05T20:45:20",
+    "TransactedDate" : "2016-05-05",
+    "#id" : "aeaqaaaaaaag3r7caauy6ak2ikg3ktqaaaaq",
+    "#nbunits" : 0,
+    "#tenant" : 0,
+    "#object" : "aebaaaaaaaag3r7caauy6ak2ikg3keaaaaaq",
+    "#unitups" : [ ],
+    "#min" : 1,
+    "#max" : 1,
+    "#allunitups" : [ ],
+    "#management" : {
+      "StorageRule" : {
+        "Rule" : "STO-00001",
+        "StartDate" : "2016-01-01",
+        "EndDate" : "2017-01-01",
+        "FinalAction" : "RestrictAccess"
+      },
+      "AppraisalRule" : {
+        "Rule" : "APP-00001",
+        "StartDate" : "2016-01-01",
+        "EndDate" : "2026-01-01",
+        "FinalAction" : "Keep"
+      },
+      "AccessRule" : {
+        "Rule" : "ACC-00001",
+        "StartDate" : "2016-01-01",
+        "EndDate" : "2016-01-01"
+      },
+      "DisseminationRule" : {
+        "Rule" : "DIS-00004",
+        "StartDate" : "2016-01-01",
+        "EndDate" : "2116-01-01"
+      },
+      "ReuseRule" : {
+        "Rule" : "REU-00001",
+        "StartDate" : "2016-01-01",
+        "EndDate" : "2026-01-01"
+      },
+      "ClassificationRule" : {
+        "Rule" : "CLASS-00001",
+        "StartDate" : "2016-01-01",
+        "EndDate" : "2026-01-01",
+        "ClassificationLevel" : "ClassificationLevel0",
+        "ClassificationOwner" : "ClassificationOwner0"
+      },
+      "NeedAuthorization" : false
+    },
+    "#operations" : [ "aedqaaaaacag3r7caasheak2ikg2vaqaaaaq" ]
+  } ],
+  "$context" : {
+    "$roots" : [ "aeaqaaaaaaag3r7caauy6ak2ikg3ktqaaaaq" ],
+    "$query" : [ ],
+    "$filter" : { },
+    "$projection" : { }
+  }
+}

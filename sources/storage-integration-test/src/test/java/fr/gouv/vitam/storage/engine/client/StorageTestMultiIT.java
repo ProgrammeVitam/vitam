@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -58,7 +58,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
@@ -107,8 +108,8 @@ public class StorageTestMultiIT {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
         // first offer
-        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration = PropertiesUtils.readYaml(PropertiesUtils.findFile
-                (DEFAULT_OFFER_CONF), fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration = PropertiesUtils.readYaml(
+            PropertiesUtils.findFile(DEFAULT_OFFER_CONF), fr.gouv.vitam.common.storage.StorageConfiguration.class);
         defaultOfferApplication = new DefaultOfferApplication(offerConfiguration);
         defaultOfferApplication.start();
 
@@ -196,7 +197,7 @@ public class StorageTestMultiIT {
 
     private static void cleanOffers() {
         // ugly style but we don't have the digest here
-        File directory = new File(OFFER_FOLDER+"/"+CONTAINER+"_0");
+        File directory = new File(OFFER_FOLDER + "/" + CONTAINER + "_0");
         try {
             FileUtils.cleanDirectory(directory);
             FileUtils.deleteDirectory(directory);
@@ -224,14 +225,14 @@ public class StorageTestMultiIT {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         for (int i = 0; i < 34; i++) {
             OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(CONTAINER);
             description.setWorkspaceObjectURI(OBJECT_ID);
             try {
                 populateWorkspace();
             } catch (Exception e1) {
                 LOGGER.error("During populate size: " + size, e1);
-                assert(false);
+                assert (false);
                 break;
             }
             try {
@@ -240,7 +241,7 @@ public class StorageTestMultiIT {
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
-                assert(false);
+                assert (false);
                 break;
             }
 
@@ -266,7 +267,7 @@ public class StorageTestMultiIT {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 LOGGER.warn("Interruption with size: " + size);
-                assert(false);
+                assert (false);
                 break;
             }
             size += 500;
@@ -281,14 +282,14 @@ public class StorageTestMultiIT {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         for (int i = 0; i < 150; i++) {
             OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(CONTAINER);
             description.setWorkspaceObjectURI(OBJECT_ID);
             try {
                 populateWorkspace();
             } catch (Exception e1) {
                 LOGGER.error("During populate size: " + size, e1);
-                assert(false);
+                assert (false);
                 break;
             }
             try {
@@ -297,7 +298,7 @@ public class StorageTestMultiIT {
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
-                assert(false);
+                assert (false);
                 break;
             }
         }

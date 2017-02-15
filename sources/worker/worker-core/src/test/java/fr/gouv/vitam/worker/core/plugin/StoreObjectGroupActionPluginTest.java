@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -51,9 +51,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamSession;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -75,7 +72,6 @@ public class StoreObjectGroupActionPluginTest {
     private static final String CONTAINER_NAME = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
     private static final String OBJECT_GROUP_GUID = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
     StoreObjectGroupActionPlugin plugin;
-    private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private MetaDataClient metadataClient;
@@ -83,7 +79,6 @@ public class StoreObjectGroupActionPluginTest {
     private HandlerIOImpl action;
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private final InputStream objectGroup;
-    private static final String OBJ = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
 
     public StoreObjectGroupActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -123,13 +118,13 @@ public class StoreObjectGroupActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());;
-            
+
         Mockito.doThrow(new StorageServerClientException("Error storage")).when(storageClient)
             .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
-        plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
+        plugin = new StoreObjectGroupActionPlugin();
 
         final ItemStatus response = plugin.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -159,7 +154,7 @@ public class StoreObjectGroupActionPluginTest {
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
 
-        plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
+        plugin = new StoreObjectGroupActionPlugin();
 
         final ItemStatus response = plugin.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());

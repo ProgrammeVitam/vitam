@@ -434,4 +434,19 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             throw new ProcessingException(e);
         }
     }
+
+    @Override
+    public void transferJsonToWorkspace(String collectionName, String objectName, JsonNode jsonNode,
+        boolean toDelete)
+        throws ProcessingException {
+        File file = getNewLocalFile(objectName);
+        try {
+            JsonHandler.writeAsFile(jsonNode, file);
+            transferFileToWorkspace(collectionName + File.separator + objectName, file, toDelete);
+        } catch (final InvalidParseOperationException e) {
+            throw new ProcessingException("Invalid parse Exception: " + file, e);
+        }
+
+
+    }
 }

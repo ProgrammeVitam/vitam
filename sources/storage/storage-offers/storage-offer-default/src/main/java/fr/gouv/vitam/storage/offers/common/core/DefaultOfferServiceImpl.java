@@ -48,7 +48,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -233,9 +232,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException {
+    public StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId)
+        throws ContentAddressableStorageException, IOException {
         return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(tenantId, type, objectId));
-    }    
+    }
 
     public String createCursor(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
@@ -253,8 +253,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public List<JsonNode> next(String containerName, String cursorId) throws
-        ContentAddressableStorageNotFoundException {
+    public List<JsonNode> next(String containerName, String cursorId)
+        throws ContentAddressableStorageNotFoundException {
         String keyMap = getKeyMap(containerName, cursorId);
         if (mapXCusor.containsKey(keyMap)) {
             PageSet<? extends StorageMetadata> pageSet;
@@ -293,4 +293,5 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private String getKeyMap(String containerName, String cursorId) {
         return cursorId + containerName;
     }
+
 }

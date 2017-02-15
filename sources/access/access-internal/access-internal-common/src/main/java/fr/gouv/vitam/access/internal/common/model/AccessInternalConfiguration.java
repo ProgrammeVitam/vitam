@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
 public class AccessInternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String urlMetaData;
+    private String urlWorkspace;
 
     /**
      * AccessConfiguration empty constructor for YAMLFactory
@@ -69,6 +70,23 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
      */
     public AccessInternalConfiguration setUrlMetaData(String urlMetaData) {
         this.urlMetaData = urlMetaData;
+        return this;
+    }
+
+    /**
+     * @return the urlWorkspace
+     */
+    public String getUrlWorkspace() {
+        return urlWorkspace;
+    }
+
+    /**
+     * @param urlWorkspace the urlWorkspace to set
+     *
+     * @return this
+     */
+    public AccessInternalConfiguration setUrlWorkspace(String urlWorkspace) {
+        this.urlWorkspace = urlWorkspace;
         return this;
     }
 

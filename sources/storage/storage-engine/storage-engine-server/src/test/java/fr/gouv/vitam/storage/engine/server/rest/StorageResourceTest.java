@@ -78,7 +78,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
@@ -293,7 +293,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testObjectCreated() {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -305,7 +305,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testReportCreation() {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -335,7 +335,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testManifestCreation() {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("mm");
         createObjectDescription.setWorkspaceContainerGUID("mm");
         given().contentType(ContentType.JSON)
@@ -366,7 +366,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testObjectNotFound() {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -379,7 +379,7 @@ public class StorageResourceTest {
 
     @Test
     public final void testObjectTechnicalError() {
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("dd");
         createObjectDescription.setWorkspaceContainerGUID("dd");
         given().contentType(ContentType.JSON)
@@ -909,7 +909,7 @@ public class StorageResourceTest {
 
         @Override
         public StoredInfoResult storeData(String strategyId, String objectId,
-            CreateObjectDescription createObjectDescription, DataCategory category, String requester)
+            ObjectDescription createObjectDescription, DataCategory category, String requester)
             throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             if (TENANT_ID_E.equals(tenantId)) {

@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.List;
 
 import javax.ws.rs.ProcessingException;
@@ -42,6 +45,7 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -90,16 +94,24 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
  * AccessModuleImpl implements AccessModule
  */
 public class AccessInternalModuleImpl implements AccessInternalModule {
-
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
 
@@ -108,10 +120,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private final LogbookLifeCyclesClient logbookLifeCycleClientMock;
     private final LogbookOperationsClient logbookOperationClientMock;
     private final StorageClient storageClientMock;
+    private final WorkspaceClient workspaceClientMock;
 
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
+    private static final String METADATA_UNIT_STORAGE = "UNIT_METADATA_STORAGE";
     private static final String _DIFF = "$diff";
     private static final String _ID = "_id";
     private static final String RESULTS = "$results";
@@ -130,6 +144,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String BAD_REQUEST = "bad request";
     private static final String DIFF = "#diff";
     private static final String ID = "#id";
+    private static final String DEFAULT_STRATEGY = "default";
+
+
+    private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
+    private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
+    private static final String JSON = ".json";
+    private static final String CANNOT_CREATE_A_FILE = "Cannot create a file: ";
+    private static final String CANNOT_FOUND_OR_READ_SOURCE_FILE = "Cannot found or read source file: ";
+    private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
 
     /**
      * AccessModuleImpl constructor
@@ -142,6 +165,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         storageClientMock = null;
         logbookLifeCycleClientMock = null;
         logbookOperationClientMock = null;
+        workspaceClientMock = null;
     }
 
     /**
@@ -153,10 +177,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
     AccessInternalModuleImpl(StorageClient storageClient, LogbookOperationsClient pLogbookOperationClient,
-        LogbookLifeCyclesClient pLogbookLifeCycleClient) {
+        LogbookLifeCyclesClient pLogbookLifeCycleClient, WorkspaceClient workspaceClient) {
         storageClientMock = storageClient;
         logbookOperationClientMock = pLogbookOperationClient;
         logbookLifeCycleClientMock = pLogbookLifeCycleClient;
+        workspaceClientMock = workspaceClient;
     }
 
     /**
@@ -341,17 +366,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      *
      * @param queryJson json update query
      * @param idUnit as String
+     * @param requestId GUID operation as String
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
     @Override
-    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit)
+    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
+        JsonNode jsonNode = JsonHandler.createObjectNode();
         final GUID idGUID;
         try {
             idGUID = GUIDReader.getGUID(idUnit);
@@ -391,27 +418,61 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             // update logbook lifecycle
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
-                idGUID);
+                idGUID, STP_UPDATE_UNIT);
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // call update
-            final JsonNode jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
+            jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
+
+            // update logbook
 
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID);
             logbookOperationClient.update(logbookOpParamEnd);
 
-            // update logbook lifecycle
+            // update global logbook lifecycle
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                idGUID);
+                idGUID, STP_UPDATE_UNIT);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
 
+            /**
+             * replace or update stored metadata object
+             */
+
+            // Create logbook operation
+            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(METADATA_UNIT_STORAGE, StatusCode.STARTED),
+                idGUID);
+            logbookOperationClient.update(logbookOpParamStart);
+
+            // update logbook lifecycle
+            logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
+                idGUID, METADATA_UNIT_STORAGE);
+            logbookLifeCycleClient.update(logbookLCParamStart);
+
+            // update stored Metadata
+            replaceStoredUnitMetadata(idUnit, requestId);
+
+
+            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(METADATA_UNIT_STORAGE, StatusCode.OK), idGUID);
+            logbookOperationClient.update(logbookOpParamEnd);
+
+            // update logbook lifecycle
+            logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
+                idGUID, METADATA_UNIT_STORAGE);
+            logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
+                getDiffMessageFor(jsonNode, idUnit));
+            logbookLifeCycleClient.update(logbookLCParamEnd);
+
+            /**
+             * Commit
+             */
             // Commit logbook lifeCycle action
             logbookLifeCycleClient.commitUnit(updateOpGuidStart.toString(), idUnit);
-
-            return jsonNode;
 
         } catch (final InvalidParseOperationException ipoe) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
@@ -448,6 +509,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             LOGGER.error(METADATA_INTERNAL_SERVER_ERROR, e);
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             throw new AccessInternalExecutionException(e);
+        } catch (StorageClientException e) {
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(STORAGE_SERVER_EXCEPTION, e);
+        } catch (ContentAddressableStorageException e) {
+            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            LOGGER.error(WORKSPACE_SERVER_EXCEPTION, e);
+        } catch (AccessInternalException e) {
+            LOGGER.error(ARCHIVE_UNIT_NOT_FOUND, e);
+            throw new AccessInternalExecutionException(e);
         } finally {
             if (logbookLifeCycleClientMock == null && logbookLifeCycleClient != null) {
                 logbookLifeCycleClient.close();
@@ -456,7 +526,97 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookOperationClient.close();
             }
         }
+        return jsonNode;
     }
+
+    /**
+     * @param idUnit
+     * @param requestId
+     * @throws InvalidParseOperationException
+     * @throws StorageClientException
+     * @throws AccessInternalException
+     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageExceptionException
+     */
+    private void replaceStoredUnitMetadata(String idUnit, String requestId)
+        throws InvalidParseOperationException, ContentAddressableStorageException,
+        StorageClientException, AccessInternalException {
+
+        JsonNode jsonResponse = null;
+        Select query = new Select();
+        JsonNode constructQuery = query.getFinalSelect();
+        final String fileName = idUnit + JSON;
+
+        final WorkspaceClient workspaceClient =
+            workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
+        try {
+            jsonResponse = selectMetadataDocumentById(constructQuery, idUnit, DataCategory.UNIT);
+            if (jsonResponse != null) {
+                JsonNode unit = jsonResponse.get(RESULTS);
+                workspaceClient.createContainer(requestId);
+                File file = null;
+                try {
+                    file = File.createTempFile(idUnit, JSON);
+                    JsonHandler.writeAsFile(unit, file);
+                } catch (IOException e1) {
+                    throw new AccessInternalExecutionException(CANNOT_CREATE_A_FILE + file, e1);
+                }
+
+                try (FileInputStream inputStream = new FileInputStream(file)) {
+                    workspaceClient.putObject(requestId,
+                        StorageCollectionType.UNITS.getCollectionName() + File.separator + fileName,
+                        inputStream);
+                } catch (final IOException e) {
+                    throw new AccessInternalExecutionException(CANNOT_FOUND_OR_READ_SOURCE_FILE + file, e);
+                } finally {
+                    if (file != null) {
+                        file.delete();
+                    }
+                }
+                // updates (replaces) stored object
+                storeMetaDataUnit(new ObjectDescription(StorageCollectionType.UNITS, requestId, fileName));
+
+            } else {
+                LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
+                throw new AccessInternalException(ARCHIVE_UNIT_NOT_FOUND);
+            }
+        } finally {
+            cleanWorkspace(requestId);
+            if (workspaceClient != null && storageClientMock == null) {
+                workspaceClient.close();
+            }
+        }
+    }
+
+
+    /**
+     * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
+     *
+     * @param params work parameters
+     * @param itemStatus item status
+     * @throws StorageServerClientException
+     * @throws StorageNotFoundClientException
+     * @throws StorageAlreadyExistsClientException
+     * @throws ProcessingException when error in execution
+     */
+
+
+    private void storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
+        final StorageClient storageClient =
+            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+        try {
+            // store binary data object
+            storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+                description.getObjectName(),
+                description);
+        } finally {
+            if (storageClient != null && storageClientMock == null) {
+                storageClient.close();
+            }
+        }
+
+    }
+
 
     private void rollBackLogbook(LogbookLifeCyclesClient logbookLifeCycleClient,
         LogbookOperationsClient logbookOperationClient, GUID updateOpGuidStart, JsonNode queryJson,
@@ -473,7 +633,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess,
-        StatusCode logbookOutcome, GUID objectIdentifier) {
+        StatusCode logbookOutcome, GUID objectIdentifier, String stp) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
         final GUID updateGuid = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()); // eventidentifier
 
@@ -482,8 +642,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateGuid, STP_UPDATE_UNIT,
                 eventIdentifierProcess,
                 eventTypeProcess, logbookOutcome,
-                VitamLogbookMessages.getOutcomeDetail(STP_UPDATE_UNIT, logbookOutcome),
-                VitamLogbookMessages.getCodeLfc(STP_UPDATE_UNIT, logbookOutcome) + objectIdentifier, objectIdentifier);
+                VitamLogbookMessages.getOutcomeDetail(stp, logbookOutcome),
+                VitamLogbookMessages.getCodeLfc(stp, logbookOutcome) + objectIdentifier, objectIdentifier);
         return logbookLifeCycleUnitParameters;
     }
 
@@ -516,5 +676,24 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
         // TODO P1 : empty string or error because no diff for this id ?
         return "";
+    }
+
+
+    private void cleanWorkspace(final String containerName)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        // call workspace
+        WorkspaceClient workspaceClient = workspaceClientMock;
+        try {
+            if (workspaceClient == null) {
+                workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            }
+            if (workspaceClient.isExistingContainer(containerName)) {
+                workspaceClient.deleteContainer(containerName, true);
+            }
+        } finally {
+            if (workspaceClientMock == null && workspaceClient != null) {
+                workspaceClient.close();
+            }
+        }
     }
 }
