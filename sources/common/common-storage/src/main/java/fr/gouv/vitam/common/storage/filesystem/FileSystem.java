@@ -27,6 +27,14 @@
 package fr.gouv.vitam.common.storage.filesystem;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileOwnerAttributeView;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Properties;
 
 import org.jclouds.ContextBuilder;
@@ -34,10 +42,13 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.providers.ProviderMetadata;
 
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
@@ -104,5 +115,84 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
         LOGGER.debug("Get File System Context");
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
+    }
+
+    private File getFileFromJClouds(String containerName, String objectId) throws ContentAddressableStorageNotFoundException{
+        final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
+        final Properties properties = providerMetadata.getDefaultProperties();
+        final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
+        File file;
+        if (containerName != null) {
+            if (objectId != null) {
+                file = new File(baseDir, containerName + "/" + objectId);
+            } else {
+                file = new File(baseDir, containerName);
+            }            
+        } else {
+            file = new File(baseDir);
+        }
+        if (!file.exists()) {
+            LOGGER.error("container not found: " + containerName + "(BaseDir File: " + file + ")");
+            throw new ContentAddressableStorageNotFoundException("Storage not found");
+        }
+        return file;
+    }
+    
+    private String getFileOwner(File file) throws IOException{
+        Path path = Paths.get(file.getPath());        
+        FileOwnerAttributeView ownerAttributeView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
+        UserPrincipal owner = ownerAttributeView.getOwner();
+        return owner.getName();
+    }
+    
+    private BasicFileAttributes getFileAttributes(File file) throws IOException{
+        Path path = Paths.get(file.getPath());
+        BasicFileAttributeView basicView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
+        BasicFileAttributes basicAttribs = basicView.readAttributes();
+        return basicAttribs;
+    }
+    
+    @Override
+    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId) 
+        throws IOException, ContentAddressableStorageException {
+        MetadatasObjectResult result = new MetadatasObjectResult();
+        try {
+            String containerName = type + "_" + tenantId;
+            
+            File file = getFileFromJClouds(containerName, objectId);
+            BasicFileAttributes basicAttribs = getFileAttributes(file);
+            long size = Files.size(Paths.get(file.getPath()));
+            
+            if (null != file) { 
+                if (objectId != null) {
+                    result.setObjectName(objectId);
+                } else {
+                    result.setObjectName(containerName);
+                }                
+                result.setType(type.toString());
+                if (objectId != null) {
+                    result.setDigest(computeObjectDigest(containerName, objectId, DigestType.MD5));
+                } else {
+                    //TODO calculer l'empreint de répertoire
+                    result.setDigest(null);
+                }
+                result.setFileSize(size);
+                result.setFileOwner(getFileOwner(file));
+                result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
+                result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());                
+            }
+        } catch (final IOException e) {
+            LOGGER.error(e.getMessage());
+            throw e;
+        } catch (final ContentAddressableStorageNotFoundException e){
+            LOGGER.error(e.getMessage());
+            throw e;
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error(e.getMessage());
+            throw e;
+        } finally {
+            context.close();
+        }
+        return result;
     }
 }

@@ -25,6 +25,7 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -52,6 +53,10 @@ public class FileSystemTest {
     private static final String SIP_TAR_GZ = "sip.tar.gz";
     private static final String SIP_TAR = "sip.tar";
 
+    private static final String TENANT_ID = "0";
+    private static final String TYPE = "object";
+    private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
+    private static final String OBJECT_ID2 = "aeaaaaaaaaaam7mxaa2pkak2bnhxy4aaaaaq";
 
 
     @Before
@@ -540,5 +545,34 @@ public class FileSystemTest {
     public void givenNullParamWhenCheckObjectThenRaiseAnException()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
+    }
+    
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception{
+        String containerName = TYPE + "_" + TENANT_ID;
+        storage.createContainer(containerName);
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
+        //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
+        
+        //get metadata of file
+        MetadatasObjectResult result = storage.getObjectMetadatas(TENANT_ID, TYPE, OBJECT_ID);
+        assertEquals(OBJECT_ID, result.getObjectName());
+        assertEquals(TYPE, result.getType());
+        assertEquals("bd0a33cdbcc69c64a3424a64765963f0", result.getDigest());
+        assertEquals(6906, result.getFileSize());
+        assertNotNull(result.getFileOwner());
+        assertNotNull(result.getLastAccessDate());
+        assertNotNull(result.getLastModifiedDate());
+        
+        //get metadata of directory
+        result = storage.getObjectMetadatas(TENANT_ID, TYPE, null);
+        assertEquals("object_0", result.getObjectName());
+        assertEquals(TYPE, result.getType());
+        assertEquals(null, result.getDigest());
+        //size of the folder may be different for different system
+        assertNotNull(result.getFileSize());
+        assertNotNull(result.getFileOwner());
+        assertNotNull(result.getLastAccessDate());
+        assertNotNull(result.getLastModifiedDate());
     }
 }

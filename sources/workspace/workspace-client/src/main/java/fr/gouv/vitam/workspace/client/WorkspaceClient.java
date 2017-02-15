@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -582,6 +583,13 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
+    }
+
+
+    @Override
+    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId) {
+        // FIXME implémente dans workspace 
+        return new MetadatasObjectResult();
     }
 
 }

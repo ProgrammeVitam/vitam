@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.common.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -57,12 +58,14 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -411,6 +414,29 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+    
+    @GET
+    @Path("/objects/{type}/{id:.+}/metadatas")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId){
+        
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        
+        try {
+            MetadatasObjectResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(xTenantId, type.getFolder(), idObject);
+            return Response.status(Response.Status.OK).entity(result).build();
+        } catch (ContentAddressableStorageNotFoundException | IOException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        } catch (ContentAddressableStorageException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }  
     }
 
     private void getObjectAsync(DataCategory type, String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
