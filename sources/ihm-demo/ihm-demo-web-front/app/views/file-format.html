@@ -80,30 +80,28 @@
     <div id="boxSearchResults"
       class="panel-body panel-collapse collapse in">
       <div class="table-responsive">
-        		<div class="col-md-9" style="padding-top: 40px">
-            		<table class="table table-bordered">
-                		<thead style="text-align: center">
-                		<tr>
-                    		<th>PUID</th>
-                    		<th>Nom de format</th>
-                    		<th>Version</th>
-                    		<th>MIME</th>
-                   			<th>Extensions</th>
-                		</tr>
-                		</thead>
-                		<tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:fileCtrl.startFormat() | limitTo:fileCtrl.itemsPerPage">
-                		<tr ng-click="fileCtrl.openDialog($event, file._id)">
-                    		<th nowrap scope="row" >{{file.PUID}}</th>
-                    		<td nowrap>{{file.Name}}</td>
-                    		<td nowrap>{{file.Version}}</td>
-                    		<td nowrap>{{file.MIMEType.toString()}}</td>
-                    		<td nowrap>{{file.Extension.toString()}}</td>
-                		</tr>
-                		</tbody>
-            		</table>
-        		</div>
-        	</div>
+        <div style="padding-top: 40px">
+          <table class="table">
+            <tr>
+              <th>PUID</th>
+              <th>Nom de format</th>
+              <th>Version</th>
+              <th>MIME</th>
+              <th>Extension</th>
+            </tr>
+            <tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:fileCtrl.startFormat() | limitTo:fileCtrl.itemsPerPage">
+              <tr ng-click="fileCtrl.openDialog($event, file._id)">
+                <td style="text-overflow: ellipsis;max-width:20%" scope="row" >{{file.PUID}}</td>
+                <td style="text-overflow: ellipsis;max-width:20%">{{file.Name}}</td>
+                <td style="text-overflow: ellipsis;max-width:20%">{{file.Version}}</td>
+                <td style="text-overflow: ellipsis;max-width:20%">{{file.MIMEType.toString()}}</td>
+                <td style="text-overflow: ellipsis;max-width:20%">{{file.Extension.toString()}}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+    </div>
 
     </div>
 
