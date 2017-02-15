@@ -43,6 +43,7 @@ import com.codahale.metrics.Timer;
 import com.codahale.metrics.jersey2.InstrumentedResourceMethodApplicationListener;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import jersey.repackaged.com.google.common.collect.ImmutableMap;
 
 /**
@@ -297,7 +298,7 @@ public final class VitamInstrumentedResourceMethodApplicationListener
         if (!method.isExtended() && method.getHttpMethod() != null) {
             // TODO P2 /admin/v1/... and .../status URI are removed here but should be removed with regex in Kibana the
             // day it is possible
-            if (rootPath != null && ("/admin/v1".equals(rootPath) || "/status".equals(path))) {
+            if (rootPath != null && ("/admin/v1".equals(rootPath) || "/status".equals(path) || VitamConfiguration.TENANTS_URL.equals(path))) {
                 return;
             } else if (rootPath == null) {
                 metricName = metricGenericName(method, path);
