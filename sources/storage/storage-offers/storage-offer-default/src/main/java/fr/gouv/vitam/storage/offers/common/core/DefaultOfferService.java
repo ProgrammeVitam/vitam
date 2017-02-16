@@ -198,4 +198,26 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageNotFoundException 
      */
     MetadatasObjectResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
+
+	/**
+     * Check digest (UNIMPLEMENTED)
+     * 
+     * @param containerName the container name
+     * @param objectId the objectId to check
+     * @param digest the digest to be compared with
+     * @throws UnsupportedOperationException (UNIMPLEMENTED)
+     * @return true if the digest is correct
+	 */
+	boolean checkDigest(String containerName, String idObject, String digest);
+
+	/**
+     * Check digest algorithm (UNIMPLEMENTED)
+     * 
+     * @param containerName the container name
+     * @param objectId the objectId to check
+     * @param digestAlgorithm the digest Algorithm
+     * @throws UnsupportedOperationException (UNIMPLEMENTED)
+     * @return true if the digest algorithm is correct
+	 */
+	boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
 }

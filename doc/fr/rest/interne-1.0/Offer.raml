@@ -70,18 +70,26 @@ documentation:
     /{id_object}:
       displayName: Object operations
       type: StorageResourceTraits.StoreWmrmItem
-
-      /check:
-        get:
-          description: |
-            Vérifie la cohérence d'un objet.
-          is: [CollectionTraits.collection-get, StorageTraits.StrategyStorage]
-          responses:
-            200:
-              body:
-                application/json:
-                  type: StorageTypes.ContainerInfo
-                  example: !include libraries/samples/containerInfo.sample
+      head:
+        description: |
+          Vérifie l'existance et la cohérence d'un objet.
+        is: [CollectionTraits.collection-head, StorageTraits.StrategyStorageCheck]
+      get:
+        description: |
+          Récupère l'objet associé au type/identifiant donné
+        is: [CollectionTraits.collection-get, StorageTraits.StrategyStorage]
+      post:
+        description: |
+          Initialise la création d'un nouvel objet
+        is: [CollectionTraits.collection-post, StorageTraits.StrategyStorage]
+      put:
+        description: |
+          Ajoute un nouveau chunk à un objet précédement initialisé ou termine sa création.
+        is: [CollectionTraits.collection-put, StorageTraits.StrategyStorage]
+      delete:
+        description: |
+          Supprime un objet
+        is: [CollectionTraits.collection-delete, StorageTraits.StrategyStorage]
 
 /status:
   get:

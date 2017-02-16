@@ -42,6 +42,7 @@ import java.time.Instant;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -175,17 +176,19 @@ public class ConnectionImplTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
+        @HEAD
+        @Path("/objects/{type}/{id:.+}")
+        public Response headObject(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
+            @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
+            return expectedResponse.head();
+        }
+
         @GET
         @Path("/objects/{type}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getContainerInformation() {
-            return expectedResponse.get();
-        }
-
-        @GET
-        @Path("/objects/{type}/{id:.+}/check")
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response checkObject(@PathParam("id") String objectId) {
             return expectedResponse.get();
         }
 
@@ -508,7 +511,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test
     public void objectExistInOfferInternalServerError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final StorageObjectRequest request =
             new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try {
@@ -521,7 +524,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test
     public void objectExistInOfferNotFound() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final StorageObjectRequest request =
             new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try {
@@ -548,7 +551,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test
     public void objectExistInOfferPreconditionFailed() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.head()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final StorageObjectRequest request =
             new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try {
@@ -561,7 +564,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test
     public void checkObjectTestOK() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(getCheckObjectResult()).build());
+        when(mock.head()).thenReturn(Response.status(Status.OK).build());
         StorageCheckResult storageCheckResult =
             connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
         assertNotNull(storageCheckResult);
@@ -610,26 +613,26 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void checkObjectTestNotFound() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
     }
 
     @Test(expected = StorageDriverException.class)
     public void checkObjectTestPreconditionFailed() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
     }
 
     @Test(expected = StorageDriverException.class)
     public void checkObjectTestInternalServerError() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
     }
 
     @SuppressWarnings("unchecked")
     @Test(expected = StorageDriverException.class)
     public void checkObjectTestVitamClientException() throws Exception {
-        when(mock.get()).thenThrow(VitamClientInternalException.class);
+        when(mock.head()).thenThrow(VitamClientInternalException.class);
         connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
     }
 
