@@ -128,7 +128,7 @@ angular
         $scope.currentPage = 0;
         $scope.totalItems = 0;
         $scope.resultPages = 0;
-      }
+      };
 
       var preSearch = function (titleCriteria) {
         if (!!titleCriteria) {
@@ -179,12 +179,22 @@ angular
         $scope.totalItems = 0;
       };
 
-      $scope.error = {
-        message: '',
-        displayMessage: false
+      $scope.search = {
+        form: {
+        }, pagination: {
+          currentPage: 0,
+          resultPages: 0
+        }, error: {
+          message: '',
+          displayMessage: false
+        }, response: {
+          data: [],
+          hints: {},
+          totalResult: 0
+        }
       };
 
-      $scope.getSearchResult = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, false);
+      $scope.getSearchResult = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, false);
 
       var preSearchElastic = function (parameters) {
         $scope.criteriaSearch = {};
@@ -274,6 +284,6 @@ angular
         return {searchProcessSkip: true};
       };
 
-      $scope.getElasticSearchUnitsResult = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearchElastic, successCallback, computeErrorMessage, $scope.error, clearResults, false);
+      $scope.getElasticSearchUnitsResult = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearchElastic, successCallback, computeErrorMessage, $scope.search, clearResults, false);
 
     });

@@ -41,7 +41,7 @@ angular.module('accession.register.search')
 
     // FIXME Useless function ?
     self.setPage = function(pageNo) {
-     selfcurrentPage = pageNo;
+      selfcurrentPage = pageNo;
     };
 
     // FIXME Useless function ?
@@ -51,18 +51,18 @@ angular.module('accession.register.search')
     };
     // **************************************************************************** //
 
-      self.startFormat = function(){
-        var start="";
+    self.startFormat = function(){
+      var start="";
 
-        if(self.currentPage > 0 && self.currentPage <= self.resultPages){
-          start= (self.currentPage-1)*self.itemsPerPage;
-        }
+      if(self.currentPage > 0 && self.currentPage <= self.resultPages){
+        start= (self.currentPage-1)*self.itemsPerPage;
+      }
 
-        if(self.currentPage>self.resultPages){
-          start= (self.resultPages-1)*self.itemsPerPage;
-        }
-        return start;
-      };
+      if(self.currentPage>self.resultPages){
+        start= (self.resultPages-1)*self.itemsPerPage;
+      }
+      return start;
+    };
 
     self.goToDetails = function(id) {
       $window.open('#!/accessionRegister/detail/' + id)
@@ -110,12 +110,22 @@ angular.module('accession.register.search')
       self.totalResult = 0;
     };
 
-    $scope.error = {
-      message: '',
-      displayMessage: false
+    $scope.search = {
+      form: {
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
     };
 
-    self.searchRegistersByCriteria =  processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true, null);
+    self.searchRegistersByCriteria =  processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true, null);
 
   });
 

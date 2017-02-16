@@ -93,9 +93,19 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    $scope.error = {
-      message: '',
-      displayMessage: false
+    $scope.search = {
+      form: {
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
     };
 
     function clearResults() {
@@ -105,7 +115,7 @@ angular.module('ihm.demo')
       ctrl.results = 0;
     }
 
-    ctrl.getFileFormats = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
+    ctrl.getFileFormats = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
 
     ctrl.clearInput = function (object){
       if(object == 'FormatName'){

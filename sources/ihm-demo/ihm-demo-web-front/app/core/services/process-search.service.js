@@ -31,20 +31,22 @@
  * The parametters returned by getParams should be given to all function call of this service.
  */
 angular.module('core')
-  .service('processSearchService', function($timeout) {
+  .service('processSearchService', function() {
     // TODO Change me in a directive that handle display of error by an unique way
     // TODO Change me in a directive that handle display of result array by an unique way
     var ProcessSearchService = {};
 
-    var processSearch = function(searchParams) {
+    var isInError = function(searchParams) {
       if (!searchParams.isInitalized) {
-        console.error('Params not initialized: ', searchParams.isInitalized, searchParams);
-        return;
+        throw new Error('Params not initialized ' + searchParams.initError);
       }
+    };
 
+    var processSearch = function(searchParams) {
+      isInError(searchParams);
       var handleSuccessCallback = function(response) {
         searchParams.clearResults();
-        searchParams.errorScope.displayMessage = false;
+        searchParams.searchScope.error.displayMessage = false;
         if (!searchParams.successCallback(response)) {
           errorCallback();
         }
@@ -53,32 +55,52 @@ angular.module('core')
       var errorCallback = function(errorStructure) {
         // reinit scope values ?
         searchParams.clearResults();
-        searchParams.errorScope.displayMessage = false;
+        searchParams.searchScope.error.displayMessage = false;
 
-        // TODO Do some general job before compute (Like return no connection / 404 or else for other problems ?)
+        // TODO Do some general job before compute (Like check no connection / 404 or else for other problems ?)
         if (!!errorStructure && errorStructure.searchProcessError === true) {
-          searchParams.errorScope.message = errorStructure.message;
+          searchParams.searchScope.error.message = errorStructure.message;
         } else {
-          searchParams.errorScope.message = searchParams.computeErrorMessage();
+          searchParams.searchScope.error.message = searchParams.computeErrorMessage();
         }
 
-        searchParams.errorScope.displayMessage = true;
-        $timeout(function() {
-          searchParams.errorScope.displayMessage = false;
-        }, searchParams.displayMessageTime);
+        searchParams.searchScope.error.displayMessage = true;
+        if (searchParams.displayMessageTime !== 0) {
+          setTimeout(function () {
+            searchParams.searchScope.error.displayMessage = false;
+            searchParams.searchScope.error.message = '';
+          }, searchParams.displayMessageTime);
+        }
       };
 
       var options = searchParams.preProcessParams;
-      if (searchParams.callbackPreProcess != null) {
+      if (!!searchParams.callbackPreProcess) {
         options = searchParams.callbackPreProcess(searchParams.preProcessParams);
       }
 
       if (!!options && options.searchProcessError === true) {
         errorCallback(options);
       } else if (!!options && !options.searchProcessSkip) {
-        searchParams.searchFunction(options).then(handleSuccessCallback, errorCallback);
+        var promise = searchParams.searchFunction(options);
+        promise.then(handleSuccessCallback, errorCallback);
       }
     };
+
+    function checkParam(params, param, type, varName, mandatory, defaultValue) {
+      if (!!param) {
+        if (typeof param === type) {
+          return param;
+        } else {
+          params.initError += '-' + varName + 'Type';
+          return null;
+        }
+      } else if (mandatory) {
+        params.initError += '-' + varName;
+        return null;
+      } else {
+        return defaultValue;
+      }
+    }
 
     /**
      * Initialize the service by checking and prepare the parameters. Do the first call if 'isAutoSearch' is true and return a function to trigger another search.
@@ -92,82 +114,56 @@ angular.module('core')
      *  Should return false if any result is wrong and should trigger errorCallback
      *  Should return true if there is no error
      * @param {Function} computeErrorMessage A function that return the error message
-     * @param {Object} errorScope An object present in the controller scope that handle error information. This object will be updated by errorCallback.
-     * @param {Object} errorScope.message Will contains the error message if an error occures.
-     * @param {Object} errorScope.displayMessage Will contains true/false if the error message should be displayed
+     * @param {Object} searchScope An object updated by the search service and that update some data for display
+     * @param {Object} searchScope.form [LATER]An object to handle form inputs. Usefull to reset input values or check update on them.
+     * @param {Object} searchScope.pagination [LATER]An object to handle pagination values.
+     * @param {Number} searchScope.pagination.currentPage [LATER]The current page number
+     * @param {Number} searchScope.pagination.resultPages [LATER]The result page
+     * @param {Object} searchScope.error An object to handle error values. Fill by the service to display / update / hide error message
+     * @param {String} searchScope.error.message Will contains the error message if an error occures.
+     * @param {Boolean} searchScope.error.displayMessage Will contains true/false if the error message should be displayed
+     * @param {Object} searchScope.response [LATER]An object to handle response. Fill by the service to put searchFunction returns values.
+     * @param {Array} searchScope.response.data [LATER]Will contains the list of items returned by the searchFunction
+     * @param {Object} searchScope.response.hints [LATER]Will contains response structure for ES / number of results / ...
+     * @param {Number} searchScope.response.totalResult [LATER]Will contains the total number of result of the search
      * @param {Function} clearResults a callback function call any times the searchFunction is called.
-     * @param {Boolean} [isAutoSearch] true if the searchFunction must be call at the initialization of the service (ie: and of this function).
+     * @param {Boolean} [isAutoSearch] true if the searchFunction must be call at the initialization of the service (ie: end of this function).
      *  Default: false
      * @param {Object} [preProcessParams] Some custom values for callbackPreProcess parameters.
      * @param {Integer} [displayMessageTime] Override the timer of message display (in ms).
-     *  Default: 5000
+     *  Default: 0 (infinite)
      * @returns {Function} The function that call the processSearch with initialized parameters.
      * If any preProcessParams update is needed, it can be given as first parameter of that function
      */
-    ProcessSearchService.initAndServe = function(searchFunction, callbackPreProcess, successCallback, computeErrorMessage, errorScope, clearResults, isAutoSearch, preProcessParams, displayMessageTime) {
+    ProcessSearchService.initAndServe = function(searchFunction, callbackPreProcess, successCallback, computeErrorMessage, searchScope, clearResults, isAutoSearch, preProcessParams, displayMessageTime) {
       var params = {};
-      params.preProcessParams = preProcessParams;
-      params.displayMessageTime = 5000;
+      params.displayMessageTime = 0;
       params.isInitalized = true;
+      params.initError = '';
       params.callbackPreProcess = null;
       params.successCallback = angular.noop;
       params.computeErrorMessage = null;
       params.clearResults = null;
-      params.errorScope = null;
+      params.searchScope = null;
       params.searchFunction = null;
 
-      var error = false;
       var autoSearch = false;
 
-      if (!!displayMessageTime) {
-        params.displayMessageTime = displayMessageTime;
-      } else {
-        console.info('No displayMessageTime provided, default to: ', params.displayMessageTime);
-      }
-      if (!!isAutoSearch) {
-        autoSearch = isAutoSearch;
-      } else {
-        console.info('No autoSearch provided, default to: ', autoSearch);
-      }
-      if (!!callbackPreProcess) {
-        params.callbackPreProcess = callbackPreProcess;
-      } else {
-        console.log('No pre process provided: ', callbackPreProcess);
-      }
-      if (!!successCallback) {
-        params.successCallback = successCallback;
-      } else {
-        console.error('No success process provided: ', successCallback);
-        error = true;
-      }
-      if (!!computeErrorMessage) {
-        params.computeErrorMessage = computeErrorMessage;
-      } else {
-        console.error('No error message provided: ', computeErrorMessage);
-        error = true;
-      }
-      if (!!clearResults) {
-        params.clearResults = clearResults;
-      } else {
-        console.error('No clear results provided: ', clearResults);
-        error = true;
-      }
-      if (!!errorScope) {
-        params.errorScope = errorScope;
-      } else {
-        console.error('No error scope provided: ', errorScope);
-        error = true;
-      }
-      if(!!searchFunction) {
-        params.searchFunction = searchFunction;
-      } else {
-        console.error('No search function provided: ', searchFunction);
-        error = true;
-      }
+      params.displayMessageTime = checkParam(params, displayMessageTime, 'number', 'displayMessageTime', false, params.displayMessageTime);
+      autoSearch = checkParam(params, isAutoSearch, 'boolean', 'isAutoSearch', false, autoSearch);
+      params.callbackPreProcess = checkParam(params, callbackPreProcess, 'function', 'callbackPreProcess', false, null);
+      params.preProcessParams = checkParam(params, preProcessParams, 'object', 'preProcessParams', false, null);
+      params.successCallback = checkParam(params, successCallback, 'function', 'successCallback', true);
+      params.computeErrorMessage = checkParam(params, computeErrorMessage, 'function', 'computeErrorMessage', true);
+      params.clearResults = checkParam(params, clearResults, 'function', 'clearResults', true);
+      params.searchScope = checkParam(params, searchScope, 'object', 'searchScope', true);
+      params.searchFunction = checkParam(params, searchFunction, 'function', 'searchFunction', true);
 
-      if (error) {
+      if (params.initError !== '') {
         params.isInitalized = false;
       }
+
+      isInError(params);
 
       if (autoSearch) {
         processSearch(params);
