@@ -25,10 +25,36 @@
  * accept its terms.
  */
 
+/*
+ Used to select the displayed column of a dynamic table
+
+ It takes some mandatory parameters:
+ custom-fields: Array of items for the editable fields that can be added as column of the table
+  The objects in custom-fields must have at least id (Technical and unique value) and label (User friendly value) column.
+  These objects can have a 'order' number attribute used to display columns in the exactly same order each time.
+ selectedObjects: Object selected by the dynamic array (items come from custom fields
+  selectedObjects will return a list of item selected
+ */
+
 'use strict';
 
 angular.module('ihm.demo')
-    .controller('logbookEntryController', function($scope, idOperationService, $routeParams , ihmDemoCLient) {
-
-        $scope.operationId = $routeParams.entryId;
- });
+  .controller('logbookEntryTableController', function($scope, ihmDemoCLient, logbookEntryFullService) {
+    ihmDemoCLient.getClient('logbook/operations').all($scope.operationId).post({}).then(function(response) {
+      $scope.detail = response.data.$results[0];
+    })
+    $scope.selectStyleByStatus = function(status){
+      return logbookEntryFullService.selectClassByStatus(status);
+    };
+  })
+  .directive('logbookEntryTable', function()  {
+    return {
+      require : "ngModel",
+      restrict: 'E',
+      scope: {
+        operationId: '=id'
+      },
+      controller: 'logbookEntryTableController',
+      templateUrl: 'core/directives/logbook-entry-table.directive.html'
+    };
+  });

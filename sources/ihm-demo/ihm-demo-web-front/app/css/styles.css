@@ -562,3 +562,11 @@ table {
   width: inherit;
   min-width: 100%;
 }
+
+.table > tbody > tr > td.koLine {
+  background-color: #FFA4B0;
+}
+
+.table > tbody > tr > td.warningLine {
+  color: #FF6600;
+}
