@@ -39,7 +39,7 @@ angular
 				'searchOperationController',
 				function($scope, $http, $timeout, $window, lodash,
 						searchOperationService, ihmDemoCLient,
-						downloadOperationService) {
+						downloadOperationService, tenantService) {
 
 					var ctrl = this;
 					ctrl.itemsPerPage = 50;
@@ -108,6 +108,14 @@ angular
 					ctrl.downloadOperation = function(objectId) {
 						$window.open(downloadOperationService.getLogbook(objectId));
 					};
+
+                    $scope.checkTenant = function(){
+                        if (tenantService.getTenant()==null || tenantService.getTenant()=="") {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    };
 
 
 				}).constant('lodash', window._);
