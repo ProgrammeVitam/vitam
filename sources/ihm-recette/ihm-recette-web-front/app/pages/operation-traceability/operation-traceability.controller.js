@@ -37,7 +37,7 @@ angular
     .module('operation.traceability')
     .controller(
         'operationTraceabilityController',
-        function ($scope, $http, operationTraceabilityService) {
+        function ($scope, $http, operationTraceabilityService, tenantService) {
 
             $scope.getResults = function () {
                 operationTraceabilityService
@@ -49,5 +49,13 @@ angular
                             $scope.data = "Echec de l'opération de sécurisation des journaux.";
                         });
 
+            };
+
+            $scope.checkTenant = function(){
+                if (tenantService.getTenant()==null || tenantService.getTenant()=="") {
+                    return true;
+                } else {
+                    return false;
+                }
             };
         });
