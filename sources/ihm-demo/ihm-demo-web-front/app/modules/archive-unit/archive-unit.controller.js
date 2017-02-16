@@ -456,8 +456,6 @@ angular.module('archive.unit')
               // Get Title archive
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
                 self.archiveTitle = value;
-                $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
-                  $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
               }
 
               self.fieldSet = buildSingleField(value, key, key, [], null, true);

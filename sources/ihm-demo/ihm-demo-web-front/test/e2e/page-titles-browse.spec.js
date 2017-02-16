@@ -25,52 +25,50 @@
  * accept its terms.
  */
 
-'use strict';
+describe('page titles', function() {
+  var logInlogOutUtilsService = require('./utils/login-logout.functions.js');
+  var genericUtilsService = require('./utils/generic-utils.function');
 
-angular.
-module('ihm.demo').
-  config(['$locationProvider' ,'$routeProvider',
-    function config($locationProvider, $routeProvider) {
-      $locationProvider.hashPrefix('!');
+  beforeAll(function() {
+    if(browser.params.mock === true) {
+      browser.addMockModule('httpMocker', function () {
+        angular.module('httpMocker', ['ngMockE2E'])
+          .run(function ($httpBackend) {
+            // Mock login http call
+            $httpBackend.whenPOST(/ihm-demo\/v1\/api\/login/)
+              .respond(200, {});
 
-      $routeProvider.
-      when('/login', {
-        templateUrl: 'views/login.html'
-      }).
-      when('/uploadperf', {
-        template: '<upload-sip-perf></upload-sip-perf>',
-        title: 'Téléchargement - Tests de perfs'
-      }).
-      when('/adminHome', {
-        template: '<admin-home></admin-home>',
-        title: 'Administration des collections'
-      }).
-      when('/soapUi', {
-        template: '<soap-ui></soap-ui>',
-        title: 'Tests SOAP-UI'
-      }).
-      when('/operationTraceability', {
-          template: '<operation-traceability></operation-traceability>',
-          title: 'Génération journal des opérations sécurisé'
-      }).
-      when('/searchOperation', {
-          template: '<search-operation></search-operation>',
-          title: 'Recherche d\'un journal sécurisé'
-      }).
-      when('/searchOperation/detailOperation/:entryId', {
-          templateUrl: 'pages/search-operation/detailOperation.html',
-          controller: 'DetailOperationController',
-          title: 'Détail du journal sécurisé'
-      })
-      .otherwise('/adminHome');
+            $httpBackend.whenPOST(/ihm-demo\/v1\/api\/uploadSip/)
+              .respond(200, {});
+
+            $httpBackend.whenPOST(/ihm-demo\/v1\/api\/archiveSearch/)
+              .respond(200, {});
+
+            // Ignore static resources call (html/json)
+            $httpBackend.whenGET(/views\/login.html/).passThrough();
+            $httpBackend.whenGET(/views\/upload-sip.html/).passThrough();
+            $httpBackend.whenGET(/modules\/archive-unit-search\/archive-search.template.html/).passThrough();
+            $httpBackend.whenGET(/\.json$/).passThrough();
+          })
+      });
     }
-  ])
-  .config(function($translateProvider, $mdThemingProvider) {
-      $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
-      $translateProvider.useLoader('MessagesResource', {});
-      // prefered language set options for useLoader
-      $translateProvider.preferredLanguage('fr');
-      console.log($mdThemingProvider);
-      $mdThemingProvider.theme('success-toast');
-    }
-  );
+
+    logInlogOutUtilsService.doLogin(browser, element, by);
+  });
+
+  afterAll(function() {
+    logInlogOutUtilsService.doLogout(element, by);
+  });
+
+
+  it('should get correct page titles', function () {
+    browser.get(browser.baseUrl + '/uploadSip');
+    expect(browser.getTitle()).toEqual('Transfert');
+    expect(browser.getCurrentUrl()).toMatch(/.*\/uploadSIP/);
+
+    browser.get(browser.baseUrl + '/archiveSearch');
+    expect(browser.getTitle()).toEqual('Recherche d\'archives');
+    expect(browser.getCurrentUrl()).toMatch(/.*\/archiveSearch/);
+  });
+
+});

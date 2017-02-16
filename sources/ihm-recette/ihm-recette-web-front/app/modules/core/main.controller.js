@@ -37,6 +37,12 @@ angular.module('core')
 
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
+      if (!angular.isUndefined(next.$$route.title)) {
+        $rootScope.title = "Recette - " + next.$$route.title;
+      } else {
+        $rootScope.title = 'VITAM';
+      }
+
       if ($scope.session.status != 'logged') {
         $location.path('/login');
       } else if ($location.path() == '/login') {
