@@ -73,7 +73,7 @@
 						<th ng-repeat="column in logctrl.selectedObjects">{{column.label | translate}}</th>
 					</tr>
 
-					<tbody ng-repeat='log in logctrl.operationList | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage'>
+					<tbody ng-repeat='log in logctrl.operationList | startFrom:logctrl.startFormat() | limitTo:logctrl.itemsPerPage'>
 					<tr ng-click="logctrl.goToDetails(log.evIdProc)">
                         <td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>
