@@ -28,6 +28,12 @@
 'use strict';
 
 angular.module('ihm.demo')
+    .filter('startFrom', function() {
+        return function (input, start) {
+            start = +start; //parse to int
+            return input.slice(start);
+        }
+    })
   .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService){
     var defaultSearchType = "--";
     var ctrl = this;
@@ -37,7 +43,18 @@ angular.module('ihm.demo')
     ctrl.operationList = [];
     ctrl.resultPages = 0;
     ctrl.searchType = defaultSearchType;
+    ctrl.startFormat = function(){
+        var start="";
 
+        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
+            start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+        }
+
+        if(ctrl.currentPage>ctrl.resultPages){
+            start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+        }
+        return start;
+      };
 		function initFields(fields) {
 			var result = [];
 			for (var i = 0, len = fields.length; i<len; i++) {
