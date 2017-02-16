@@ -816,15 +816,24 @@ Exemple de données stockées :
 
   "evDetData":
   "{
-  \"StartDate\": \"-999999999-01-01T00:00:00\",
-  \"EndDate\": \"2017-01-27T14:11:36.168\",
+  \"LogType\": \"operation\",
+  \"StartDate\": \"2017-02-27T00:00:00.000\",
+  \"EndDate\": \"2017-02-27T14:11:36.168\",
+  \"PreviousLogbookTraceabilityDate\": \"2017-02-26T00:00:00.000\",
+  \"MinusOneMonthLogbookTraceabilityDate\": \"2017-01-28T00:00:00.000\",
+  \"MinusOneYearLogbookTraceabilityDate\": \"2016-02-28T00:00:00.000\",
   \"Hash\": \"cmKHRqv1HHB+Fd0JErOpztcdcV3BGlgcA0VAYxFjxjdEJO0+lOhhxNeK43mbrmgra6phNSuKBfVIXOE5i4877Q==\",
   \"TimeStampToken\": \"MIIEezAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEYAYJKoZIhvcNAQcCoIIEUTCCBE0CAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAiTJZ9fQyplZfbRHe7j34JFw1iQlJMmwEn5\/oa9hha3oeJ7b7A+I0MOiz8n3lhajK5GWDMptybTI\/qyydRxRwqAIBARgPMjAxNzAxMjcxNDExMzdaMYIDsjCCA64CAQEwYzBdMQswCQYDVQQGEwJGUjEMMAoGA1UECBMDaWRmMQ4wDAYDVQQHEwVwYXJpczEPMA0GA1UEChMGVml0YW0uMR8wHQYDVQQDFBZDQV9zZXJ2ZXJfaW50ZXJtZWRpYXRlAgIAsDANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzAxMjcxNDExMzdaMC0GCSqGSIb3DQEJNDEgMB4wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQMa0fzRWvY0qJjOO4lO5aSfN3iW9xWwhSv24QSExqpp081WszJ0NIEP4gFOzAQIrE35Bz\/jgACNxVS8XXRda7\/AwZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQAkVA\/7GPyjlbJC2NJJK+1ZY6k2vvEQls\/YcVrP9SV81nRL7fmrSw0mmia0Dj+kuu+qAun5hB6X9pzy4lbATsfEwDQYJKoZIhvcNAQENBQAEggIAgMAyrR6uTJYHxKqofV+HnPV+9fiykPb4DwNTWYKGEBOlu44yVfzep1P2GofDVBBguYQZHF0zCQ0vjktfGuVflh4GtiHsbhqKm6TMqeH+pdRv0MQvEYA3VK0ydA+\/36xb+tbOy8RBqUe3uXGpaafuqcrmlx0EYK4ey4I4sinvZKoB9c9kNCujlvpLxwPnL8teDe6\/jE4sWqvCHCSxorjXCXDN6aJTGvbFHepqa987eHRckDS5pdTiZ1a7V1IRjsX+bubA+ZYhWM5sA9L202msa8s\/zF5Nn+mmcApzpjiAkHu5u8QGuIe17jgHV0o73Zkv3Oranskz3Q3F3xXdNT8wblevU4mWFGQkW5wWhyyTfEKE97+z7+HTa5P4eLCEZkAgevkZPMo21PyEvNBUeXM3QIzfOKExX+wYpuL9k2\/5kg3ZmX3dMT1jxhZAr75puxp5pxOryuR+j0JFmeA8JI8a+XYsYZm75lV4uzSYl4QytMwNaSyxDwC4PBmZ9IGbPwRP8ttC8LSjeB+zwQug063kT0ZKmkCHzbZvVWHJlr3Iaew2UXjOabrWNIEijg6b6DBtze7sC9T8LXGHOlcAFFsW0kYfHb7MziVv22CCuUw4JyI5882I\/huPztjJqn+4bwzmAuWc8X\/OiyAbe2Iag23oaVJ36UU3QxzDLPhCg0TvNZg=\",
   \"NumberOfElement\": 366,
+  \"Size\": 2554545,
   \"FileName\": \"0_LogbookOperation_20170127_141136.zip\"
   }"
 
 Dans le cas d'un évènement final d'une opération de sécurisation du LogbookOperation, le champ **"evDetData"** est composé des champs suivants :
+
+"LogType": type de logbook sécurisé.
+      Type de la collection logbook sécurisée (LogbookOperation)
+      ``Exemple : "operation"``
 
 "StartDate": date de début.
       Date de début de la période de couverture de l'opération de sécurisation au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
@@ -834,6 +843,18 @@ Dans le cas d'un évènement final d'une opération de sécurisation du LogbookO
       Date de fin de la période de couverture de l'opération de sécurisation  au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée)
       ``Exemple : "2016-08-17T08:26:04.227"``
 
+"PreviousLogbookTraceabilityDate": date de la précédente sécurisation.
+      Date de début de la précédente sécurisation du même type au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation précédente)
+      ``Exemple : "2016-08-17T08:26:04.227"``
+
+"MinusOneMonthLogbookTraceabilityDate": date de la sécurisation passée d'un mois.
+      Date de début de la sécurisation un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation passée d'un mois : logbook start 1 mois avant - logbookDate.mois(-1).suivant().sartDate)
+      ``Exemple : "2016-08-17T08:26:04.227"``
+
+"MinusOneMonthLogbookTraceabilityDate": date de la sécurisation passée d'un an.
+     Date de début de la sécurisation un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation passée d'un an : logbook start 1 an avant - logbookDate.an(-1).suivant().sartDate)
+     ``Exemple : "2016-08-17T08:26:04.227"``
+
 "Hash": Empreinte racine.
       Empreinte de la racine de l'arbre de Merkle.
 
@@ -842,6 +863,9 @@ Dans le cas d'un évènement final d'une opération de sécurisation du LogbookO
 
 "NumberOfElement": Nombre d'élèments.
       Nombre d'opérations sécurisées.
+
+"Size": Taille du fichier.
+      Taille du fichier sécurisé (en bytes).
 
 "FileName": Identifiant du fichier.
       Nom du fichier sécurisé dans le stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
@@ -993,7 +1017,7 @@ Détail des champ du JSON stocké en base
     *Ce champ existe pour les structures incluantes et incluses*
 
 "obId" (object Identifier) : identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
-    
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 "evDetData" (event Detail Data) : détails des données de l'évènement.

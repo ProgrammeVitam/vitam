@@ -26,37 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import com.mongodb.MongoClient;
-
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
+
 /**
- * Factory to get MongoDbAccess for Logbook
+ * ElasticsearchAccess Factory
  */
-public final class LogbookMongoDbAccessFactory {
+public class LogbookElasticsearchAccessFactory {
+
 
     /**
-     * Creation of one MongoDbAccess
+     * Creation of one ElasticsearchAccess
      *
-     * @param configuration
-     * @return the MongoDbAccess
+     * @param configuration config of elasticsearch
+     * @return the ElasticsearchAccess
+     * @throws LogbookException
      * @throws IllegalArgumentException if argument is null
      */
-    public static final LogbookMongoDbAccessImpl create(LogbookConfiguration configuration) {
-        ParametersChecker.checkParameter("configuration", configuration);
-        LogbookElasticsearchAccess esClient;
+    public LogbookElasticsearchAccess create(LogbookConfiguration configuration) throws LogbookException {
+        ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         try {
-            esClient = new LogbookElasticsearchAccessFactory().create(configuration);
-
-        } catch (final LogbookException e1) {
-            throw new IllegalArgumentException(e1);
+            return new LogbookElasticsearchAccess(configuration.getClusterName(),
+                configuration.getElasticsearchNodes());
+        } catch (final VitamException e) {
+            throw new LogbookException(e);
         }
-
-        final MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, LogbookMongoDbAccessImpl.getMongoClientOptions());
-        return new LogbookMongoDbAccessImpl(mongoClient, configuration.getDbName(), false, esClient);
     }
 }

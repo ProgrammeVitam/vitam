@@ -15,3 +15,11 @@ p12LogbookPassword: {{p12_logbook_password}}
 p12LogbookFile: logbook.p12
 workspaceUrl: {{vitam_workspace_baseurl}}
 
+# ElasticSearch
+clusterName: {{cluster_name}}
+elasticsearchNodes:
+{% for server in groups['hosts-elasticsearch-data'] %}
+- hostName: {{server}}
+  tcpPort: {{elasticsearch_data_tcp_port}}
+{% endfor %}
+

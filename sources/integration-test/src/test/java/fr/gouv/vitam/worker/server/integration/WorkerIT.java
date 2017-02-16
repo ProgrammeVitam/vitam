@@ -224,10 +224,10 @@ public class WorkerIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (config == null) {
-            return;
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
         }
-        JunitHelper.stopElasticsearchForTest(config);
+        
         if (mongod == null) {
             return;
         }

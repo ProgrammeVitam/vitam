@@ -69,8 +69,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
@@ -80,6 +78,7 @@ import fr.gouv.vitam.logbook.administration.core.TraceabilityException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
@@ -106,7 +105,7 @@ public class LogbookResource extends ApplicationStatusResource {
     public static final String CERTIFICATE_ALIAS = "localhost";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
-    private final DbConfiguration logbookConfiguration;
+    private final LogbookConfiguration logbookConfiguration;
     private final LogbookDbAccess mongoDbAccess;
     private final LogbookAdministration logbookAdministration;
 
@@ -118,15 +117,17 @@ public class LogbookResource extends ApplicationStatusResource {
     public LogbookResource(LogbookConfiguration configuration) {
         if (configuration.isDbAuthentication()) {
             logbookConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
-                    true, configuration.getDbUserName(), configuration.getDbPassword());
+                new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
+                    configuration.getClusterName(), configuration.getElasticsearchNodes(), true,
+                    configuration.getDbUserName(), configuration.getDbPassword());
 
         } else {
             logbookConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(),
-                    configuration.getDbName());
+                new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
+                    configuration.getClusterName(), configuration.getElasticsearchNodes());
         }
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+
 
         logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
 
@@ -216,35 +217,35 @@ public class LogbookResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOperation(@PathParam("id_op") String operationId,
         LogbookOperationParameters operation) {
-            Response finalResponse;
-            finalResponse = Response.status(Response.Status.CREATED).build();
+        Response finalResponse;
+        finalResponse = Response.status(Response.Status.CREATED).build();
+        try {
+            LOGGER.debug(
+                operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId) + " " +
+                    operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
             try {
-                LOGGER.debug(
-                    operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId) + " " +
-                        operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
-                try {
-                    ParameterHelper.checkNullOrEmptyParameters(operation);
-                } catch (final IllegalArgumentException e) {
-                    LOGGER.error("Operations is incorrect", e);
-                    return Response.status(Response.Status.BAD_REQUEST).build();
-                }
-                if (!operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
-                    LOGGER.error("OperationId is not the same as in the operation parameter");
-                    return Response.status(Response.Status.BAD_REQUEST).build();
-                }
-
-                logbookOperation.create(operation);
-            } catch (final LogbookAlreadyExistsException exc) {
-                LOGGER.error(exc);
-                finalResponse = Response.status(Response.Status.CONFLICT).build();
-            } catch (final LogbookDatabaseException exc) {
-                LOGGER.error(exc);
-                finalResponse = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final IllegalArgumentException exc) {
-                LOGGER.error(exc);
-                finalResponse = Response.status(Response.Status.BAD_REQUEST).build();
+                ParameterHelper.checkNullOrEmptyParameters(operation);
+            } catch (final IllegalArgumentException e) {
+                LOGGER.error("Operations is incorrect", e);
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
-            return finalResponse;
+            if (!operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
+                LOGGER.error("OperationId is not the same as in the operation parameter");
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
+            logbookOperation.create(operation);
+        } catch (final LogbookAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            finalResponse = Response.status(Response.Status.CONFLICT).build();
+        } catch (final LogbookDatabaseException exc) {
+            LOGGER.error(exc);
+            finalResponse = Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            finalResponse = Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        return finalResponse;
     }
 
 
@@ -315,7 +316,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
         }
     }
-    
+
     /**
      * Bulk Create Operation
      *
@@ -327,35 +328,35 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response bulkCreateOperation(JsonNode query) {
-            // query is in fact a bulk LogbookOperationsParameter
-            try {
-                ParametersChecker.checkParameter("Logbook parameters", query);
-            } catch (final IllegalArgumentException e) {
-                LOGGER.error("Operations is incorrect", e);
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            }
-            try {
-                final LogbookOperationParameters[] arrayOperations =
-                    JsonHandler.getFromJsonNode(query, LogbookOperationParameters[].class);
-                logbookOperation.createBulkLogbookOperation(arrayOperations);
-            } catch (final LogbookDatabaseException e) {
-                LOGGER.error(e);
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            } catch (final LogbookAlreadyExistsException e) {
-                LOGGER.error(e);
-                return Response.status(Response.Status.CONFLICT).build();
-            } catch (InvalidParseOperationException | IllegalArgumentException e) {
-                LOGGER.error(e);
-                final Status status = Status.PRECONDITION_FAILED;
-                return Response.status(status)
-                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("logbook")
-                        .setState("code_vitam")
-                        .setMessage(status.getReasonPhrase())
-                        .setDescription(e.getMessage()))
-                    .build();
-            }
-            return Response.status(Response.Status.CREATED).build();
+        // query is in fact a bulk LogbookOperationsParameter
+        try {
+            ParametersChecker.checkParameter("Logbook parameters", query);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error("Operations is incorrect", e);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            final LogbookOperationParameters[] arrayOperations =
+                JsonHandler.getFromJsonNode(query, LogbookOperationParameters[].class);
+            logbookOperation.createBulkLogbookOperation(arrayOperations);
+        } catch (final LogbookDatabaseException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final LogbookAlreadyExistsException e) {
+            LOGGER.error(e);
+            return Response.status(Response.Status.CONFLICT).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext("logbook")
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+        return Response.status(Response.Status.CREATED).build();
 
     }
 
@@ -376,11 +377,11 @@ public class LogbookResource extends ApplicationStatusResource {
             final List<LogbookOperation> result = logbookOperation.select(query);
 
             return Response.status(Status.OK)
-                    .entity(new RequestResponseOK<LogbookOperation>()
-                        .setHits(result.size(), 0, 1)
-                        .setQuery(query)
-                        .addAllResults(result))
-                    .build();
+                .entity(new RequestResponseOK<LogbookOperation>()
+                    .setHits(result.size(), 0, 1)
+                    .setQuery(query)
+                    .addAllResults(result))
+                .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;

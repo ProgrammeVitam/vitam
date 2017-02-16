@@ -25,43 +25,33 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.logbook.rest;
-
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+package fr.gouv.vitam.logbook.common.server.exception;
 
 /**
- * Logbook configuration class mapping
+ * Exception indicating a resource requested by a client was not found on the server.
  */
-public final class LogbookConfiguration extends DbConfigurationImpl {
-    // Empty
+public class LogbookExecutionException extends LogbookException {
+    private static final long serialVersionUID = -8199144049313837512L;
 
-    private String p12LogbookPassword;
-
-    private String p12LogbookFile;
-
-    private String workspaceUrl;
-
-    public String getP12LogbookPassword() {
-        return p12LogbookPassword;
+    /**
+     * @param message associated message
+     */
+    public LogbookExecutionException(String message) {
+        super(message);
     }
 
-    public void setP12LogbookPassword(String p12LogbookPassword) {
-        this.p12LogbookPassword = p12LogbookPassword;
+    /**
+     * @param cause associated cause
+     */
+    public LogbookExecutionException(Throwable cause) {
+        super(cause);
     }
 
-    public String getP12LogbookFile() {
-        return p12LogbookFile;
-    }
-
-    public void setP12LogbookFile(String p12LogbookFile) {
-        this.p12LogbookFile = p12LogbookFile;
-    }
-
-    public String getWorkspaceUrl() {
-        return workspaceUrl;
-    }
-
-    public void setWorkspaceUrl(String workspaceUrl) {
-        this.workspaceUrl = workspaceUrl;
+    /**
+     * @param messsage associated message
+     * @param cause associated cause
+     */
+    public LogbookExecutionException(String messsage, Throwable cause) {
+        super(messsage, cause);
     }
 }

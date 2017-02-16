@@ -35,4 +35,16 @@ Plus tard, ces journaux seront aussi écrits dans des fichiers.
 - LifeCycles
   
   - Un fichier unique, les events dans l'ordre chronologique (qui correspond à l'odre deans events)
- 
+
+Données
+-------
+
+Les données sont stockées dans 3 types de stockage :
+
+- une base maître (MongoDB) qui contient toutes les données de type journal
+- un base index (EslasticSearch) qui contient uniquement les journaux de type operation
+- les offres de stockage qui contienent des fichiers sécurisés des journaux de type opération
+
+La gestion de la base MongoDB se fait par le service d'accès *LogbookMongoDbAccessImpl* (implémentation de *LogbookDbAccess*).
+La gestion de la base ElasticSearch se fait par le service d'accès *LogbookElasticsearchAccess* (implémentation de *ElasticsearchAccess*).
+Les données sont d'abord enregistrées (ou supprimées) dans MongoDB puis mises à jour (si nécessaire) dans ElasticSearch.

@@ -109,7 +109,7 @@
                      </Array>
                  </Arg>
                  <Set name="port">
-                     <SystemProperty name="jetty.access-internal.port" default="8100"/>
+                     <SystemProperty name="jetty.access-internal.port" default="8092"/>
                  </Set>
                  <Set name="idleTimeout">
                      <Property name="http.timeout" default="99999999"/>

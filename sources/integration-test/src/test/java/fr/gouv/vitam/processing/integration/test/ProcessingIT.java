@@ -122,12 +122,10 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * Processing integration test
  */
 public class ProcessingIT {
-    private static final String JETTY_FUNCTIONAL_ADMIN_PORT = "jetty.functional-admin.port";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
-
     private static final Integer tenantId = 0;
 
     @Rule
@@ -301,10 +299,10 @@ public class ProcessingIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
         }
-        JunitHelper.stopElasticsearchForTest(config);
+        
         mongod.stop();
         mongodExecutable.stop();
         try {

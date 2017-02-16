@@ -83,6 +83,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -145,9 +146,6 @@ public class WebApplicationResourceDeleteTest {
             assumeTrue(false);
         }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-
         databasePort = junitHelper.findAvailablePort();
         serverPort = junitHelper.findAvailablePort();
 
@@ -158,8 +156,8 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
         realAdminConfig.setSecure(false);
         realAdminConfig.setClusterName(CLUSTER_NAME);
-        realAdminConfig.setElasticsearchNodes(nodes);
         realAdminConfig.setTenants(tenantList);
+        realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
         adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -173,6 +171,9 @@ public class WebApplicationResourceDeleteTest {
         final List<MongoDbNode> mongoNodes = new ArrayList<>();
         mongoNodes.add(new MongoDbNode("localhost", databasePort));
 
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        
         RestAssured.port = serverPort;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
@@ -182,8 +183,9 @@ public class WebApplicationResourceDeleteTest {
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration);
 
-        final DbConfigurationImpl logbookConfiguration =
-            new DbConfigurationImpl(realAdminConfig.getMongoDbNodes(), realAdminConfig.getLogbookDbName(), false,
+        final LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getLogbookDbName(),
+                realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
@@ -194,7 +196,7 @@ public class WebApplicationResourceDeleteTest {
         metaDataConfiguration.setTenants(tenantList);
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, nodes));
+            new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, esNodes));
 
         try {
             application = new ServerApplication(realAdminConfig);
@@ -218,6 +220,9 @@ public class WebApplicationResourceDeleteTest {
         mongoDbAccessAdmin.close();
         mongoDbAccessLogbook.close();
         mongoDbAccessMetadata.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);

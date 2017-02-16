@@ -33,14 +33,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
@@ -55,12 +58,15 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -72,7 +78,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
@@ -83,13 +91,21 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 public class LogbookMongoDbAccessFactoryTest {
 
     private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
     private static final Integer TENANT_ID = 0;
-    
+
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -104,17 +120,30 @@ public class LogbookMongoDbAccessFactoryTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+
+
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+
         mongoDbAccess =
-            LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(nodes,
-                    "vitam-test"));
+            LogbookMongoDbAccessFactory
+                .create(new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         mongoDbAccess.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
@@ -122,6 +151,9 @@ public class LogbookMongoDbAccessFactoryTest {
 
     @Test
     public void testStructure() {
+        assertNotNull(((LogbookMongoDbAccessImpl) mongoDbAccess).getEsClient());
+        assertTrue(((LogbookMongoDbAccessImpl) mongoDbAccess).getEsClient().checkConnection());
+
         assertEquals(LogbookMongoDbName.agentIdentifier,
             LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.agentIdentifier));
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
@@ -230,7 +262,8 @@ public class LogbookMongoDbAccessFactoryTest {
         try {
             JsonNode queryDsl =
                 JsonHandler.getFromString(
-                    "{ $query: { $eq: {obId: \"" + GUIDFactory.newGUID().getId() + "\"} }, $projection: {}, $filter: {} }");
+                    "{ $query: { $eq: {obId: \"" + GUIDFactory.newGUID().getId() +
+                        "\"} }, $projection: {}, $filter: {} }");
             mongoDbAccess.getLogbookLifeCycleUnit(queryDsl, LogbookCollections.LIFECYCLE_UNIT);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
@@ -521,6 +554,7 @@ public class LogbookMongoDbAccessFactoryTest {
         JsonNode node =
             JsonHandler.getFromString(
                 "{ $query: { $eq: {_id: \"" + oi2 + "\"} }, $projection: {}, $filter: {} }");
+        // sliced
         try (MongoCursor<LogbookLifeCycle> cursor =
             mongoDbAccess.getLogbookLifeCycleUnits(node, true, LogbookCollections.LIFECYCLE_UNIT)) {
             assertTrue(cursor.hasNext());
@@ -529,6 +563,28 @@ public class LogbookMongoDbAccessFactoryTest {
             assertEquals(2, lifeCycle.getLifeCycles(true).size());
             assertEquals(2, lifeCycle.getLifeCycles(false).size());
         }
+        // non sliced
+        try (MongoCursor<LogbookLifeCycle> cursor =
+            mongoDbAccess.getLogbookLifeCycleUnits(node, false, LogbookCollections.LIFECYCLE_UNIT)) {
+            assertTrue(cursor.hasNext());
+            final LogbookLifeCycle lifeCycle = cursor.next();
+            assertNotNull(lifeCycle);
+            assertEquals(4, lifeCycle.getLifeCycles(true).size());
+            assertEquals(2, lifeCycle.getLifeCycles(false).size());
+        }
+        //full
+        final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+        parser.parse(node);
+        try (MongoCursor<LogbookLifeCycleUnit> cursor =
+            mongoDbAccess.getLogbookLifeCycleUnitsFull(LogbookCollections.LIFECYCLE_UNIT, parser.getRequest())) {
+            assertTrue(cursor.hasNext());
+            final LogbookLifeCycle lifeCycle = cursor.next();
+            assertNotNull(lifeCycle);
+            assertEquals(4, lifeCycle.getLifeCycles(true).size());
+            assertEquals(2, lifeCycle.getLifeCycles(false).size());
+        }
+        
+        
         LogbookLifeCycleUnit lifeCycle = mongoDbAccess.getLogbookLifeCycleUnit(oi2);
         assertNotNull(lifeCycle);
         assertEquals(4, lifeCycle.getLifeCycles(true).size());
