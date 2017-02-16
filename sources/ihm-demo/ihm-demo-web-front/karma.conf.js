@@ -39,6 +39,7 @@ module.exports = function(config) {
       'app/modules/multiselect/angular-bootstrap-multiselect.js',
       'app/modules/flow/ng-flow-standalone.js',
       'app/**/*.module.js',
+      'app/core/**/*.js',
       'app/modules/**/*.js',
       'app/resources/*.js',
       'app/services/*.js',

@@ -109,12 +109,22 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    $scope.error = {
-      message: '',
-      displayMessage: false
+    $scope.search = {
+      form: {
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
     };
 
-    ctrl.getFileRules = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
+    ctrl.getFileRules = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
 
     ctrl.clearSearchOptions = function() {
       ctrl.searchOptions = {};

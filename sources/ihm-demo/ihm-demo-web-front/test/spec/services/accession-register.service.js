@@ -47,8 +47,6 @@ describe('accessionRegisterService', function() {
   }));
 
   it('should transfer the response from resource to service callback for getDetails', function() {
-    console.log('Start test Details');
-
     var detailsCallback = function(response) {
       $scope.response = response;
       expect($scope.response.length).toEqual(1);

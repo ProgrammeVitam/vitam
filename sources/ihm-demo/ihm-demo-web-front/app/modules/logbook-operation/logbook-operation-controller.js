@@ -124,12 +124,22 @@ angular.module('ihm.demo')
       }
     };
 
-    $scope.error = {
-      message: '',
-      displayMessage: false
+    $scope.search = {
+      form: {
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
     };
 
-    ctrl.getList = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.error, clearResults, true);
+    ctrl.getList = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
   });
 
 
