@@ -56,7 +56,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -65,6 +64,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultipleInputStreamHandler;
@@ -81,7 +81,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -117,9 +116,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class StorageDistributionImpl implements StorageDistribution {
 
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
-    private static final String TENANT_ID_IS_MANDATORY = "Tenant id is mandatory";
     public static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
     private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory
         .getDefaultProvider();
@@ -193,8 +190,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         ObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageException, StorageObjectAlreadyExistsException {
         // Check input params
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        checkStoreDataParams(createObjectDescription, tenantId, strategyId, objectId, category);
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        checkStoreDataParams(createObjectDescription, strategyId, objectId, category);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
@@ -220,13 +217,14 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StorageLogbookParameters tryAndRetry(String objectId, ObjectDescription createObjectDescription,
-        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt, StorageLogbookParameters parameters)
+        DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt,
+        StorageLogbookParameters parameters)
         throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
 
         Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
 
-        MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace((InputStream) streamAndInfos.get
-                (STREAM_KEY), datas.getKoList().size());
+        MultipleInputStreamHandler streams =
+            getMultipleInputStreamFromWorkspace((InputStream) streamAndInfos.get(STREAM_KEY), datas.getKoList().size());
 
         // init thread and make future map
         // Map here to keep offerId linked to Future
@@ -326,14 +324,15 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
 
-    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId, ThreadResponseData res,
+    private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId,
+        ThreadResponseData res,
         String requester, int attempt) {
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
                 null, offerId, res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, requester, attempt);
         } else {
-            updateStorageLogbookParameters(parameters, offerId, res != null ? res.getStatus() : Status
-                .INTERNAL_SERVER_ERROR, attempt);
+            updateStorageLogbookParameters(parameters, offerId,
+                res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, attempt);
         }
         return parameters;
     }
@@ -436,7 +435,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             parameters.getMapParameters().put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.KO.name());
             offers += ", " + offerId + " attempt " + attempt + " : KO";
         } else {
-            offers += ", " + offerId + " attempt " + attempt +  " : OK";
+            offers += ", " + offerId + " attempt " + attempt + " : OK";
         }
         parameters.getMapParameters().put(StorageLogbookParameterName.agentIdentifiers, offers);
     }
@@ -449,9 +448,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private void checkStoreDataParams(ObjectDescription createObjectDescription, Integer tenantId,
+    private void checkStoreDataParams(ObjectDescription createObjectDescription,
         String strategyId, String dataId, DataCategory category) {
-        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", dataId);
         ParametersChecker.checkParameter("Category is mandatory", category);
@@ -482,8 +480,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public JsonNode getContainerInformation(String strategyId)
         throws StorageException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
@@ -574,10 +571,9 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public Response listContainerObjects(String strategyId, DataCategory category, String
-        cursorId) throws StorageException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+    public Response listContainerObjects(String strategyId, DataCategory category, String cursorId)
+        throws StorageException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
@@ -606,8 +602,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     public Response getContainerByCategory(String strategyId, String objectId,
         DataCategory category, AsyncResponse asyncResponse) throws StorageException {
         // Check input params
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", objectId);
 
@@ -665,7 +660,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             final Driver driver = retrieveDriverInternal(offerId);
             // TODO: review if digest value is really good ?
             StorageRemoveRequest request = new StorageRemoveRequest(tenantId, category.getFolder(), objectId,
-            digestType, digest.digestHex());
+                digestType, digest.digestHex());
             executor.submit(new DeleteThread(driver, request, offerId));
         }
 
@@ -682,8 +677,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throws StorageException {
 
         // Check input params
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter("Object id is mandatory", objectId);
         ParametersChecker.checkParameter("Digest is mandatory", digest);

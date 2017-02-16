@@ -46,13 +46,12 @@ public interface AccessExternalClient extends BasicClient {
      * selectUnits /units
      *
      * @param selectQuery
-     * @param tenantId 
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId)
+    RequestResponse selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -61,13 +60,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param selectQuery
      * @param unitId
-     * @param tenantId 
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId)
+    RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -76,13 +74,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param updateQuery
      * @param unitId
-     * @param tenantId 
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId)
+    RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -93,13 +90,12 @@ public interface AccessExternalClient extends BasicClient {
      * @param objectId
      * @param usage
      * @param version
-     * @param tenantId 
      * @return Response including InputStream
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId)
+    Response getObject(JsonNode selectQuery, String objectId, String usage, int version)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -107,14 +103,13 @@ public interface AccessExternalClient extends BasicClient {
      * selectObjectById
      *
      * @param selectQuery
-     * @param unitId
-     * @param tenantId 
+     * @param unitId 
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
+    RequestResponse selectObjectById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
     /**
@@ -122,13 +117,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param selectObjectQuery
      * @param unitId
-     * @param tenantId
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version, Integer tenantId)
+    Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -136,34 +130,31 @@ public interface AccessExternalClient extends BasicClient {
      * selectOperation
      *
      * @param select
-     * @param tenantId 
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse selectOperation(JsonNode select, Integer tenantId) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectOperationbyId
      *
      * @param processId
-     * @param tenantId
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse selectOperationbyId(String processId, Integer tenantId) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectOperationbyId(String processId) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectUnitLifeCycleById
      *
      * @param idUnit
-     * @param tenantId
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId)
+    RequestResponse selectUnitLifeCycleById(String idUnit)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
@@ -174,19 +165,18 @@ public interface AccessExternalClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId)
+    RequestResponse selectUnitLifeCycle(JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectObjectGroupLifeCycleById
      *
      * @param idObject
-     * @param tenantId
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId)
+    RequestResponse selectObjectGroupLifeCycleById(String idObject)
         throws LogbookClientException, InvalidParseOperationException;
 
 
@@ -195,13 +185,12 @@ public interface AccessExternalClient extends BasicClient {
      * Get the accession register summary matching the given query
      *
      * @param query The DSL Query as Json Node
-     * @param tenantId
      * @return The AccessionregisterSummary list as a response JsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId)
+    RequestResponse getAccessionRegisterSummary(JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -210,13 +199,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param id
      * @param query The DSL Query as a JSON Node
-     * @param tenantId
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId)
+    RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 

@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -90,7 +91,7 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -131,7 +132,7 @@ public class LogbookExternalResourceImpl {
    @Produces(MediaType.APPLICATION_JSON)
    public Response selectOperationByPost(JsonNode queryDSL, @PathParam("id_op") String operationId,
        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-   	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+   	Integer tenantId = ParameterHelper.getTenantParameter();
        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
        Status status;
@@ -155,7 +156,7 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperation(JsonNode query) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -184,7 +185,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperationWithPostOverride(JsonNode query,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -208,7 +209,7 @@ public class LogbookExternalResourceImpl {
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -248,7 +249,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleWithPostOverride(@PathParam("id_lc") String unitLifeCycleId,
         JsonNode query, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -272,7 +273,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId,
         JsonNode queryDsl) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
@@ -311,7 +312,7 @@ public class LogbookExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleWithPostOverride(@PathParam("id_lc") String objectGroupLifeCycleId,
         JsonNode query, @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;

@@ -32,27 +32,27 @@ public class AdminExternalClientMockTest {
     public void testMockClient()
         throws Exception {
         assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID).getStatus(),
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())).getStatus(),
             Status.OK.getStatusCode());
 
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID).getStatus(),
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())).getStatus(),
             Status.OK.getStatusCode());
 
         assertEquals(
-            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getFormatList().toString());
 
         assertEquals(
-            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getRuleList().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID, TENANT_ID).toString(),
+            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID).toString(),
             ClientMockResultHelper.getFormat().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID, TENANT_ID).toString(),
+            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID).toString(),
             ClientMockResultHelper.getRule().toString());
     }
 

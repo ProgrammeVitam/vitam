@@ -58,7 +58,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
  *
  */
 
-// TODO P1 : tenantId should be determined otherwise with a config or so
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientRest.class);
 

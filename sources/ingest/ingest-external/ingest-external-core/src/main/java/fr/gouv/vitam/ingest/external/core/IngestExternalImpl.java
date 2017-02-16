@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
@@ -132,7 +133,7 @@ public class IngestExternalImpl implements IngestExternal {
     @Override
     public Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
-        final GUID guid = GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId());
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
         final GUID containerName = guid;

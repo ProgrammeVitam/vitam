@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -93,7 +94,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     // TODO P2 : add file name
     public void upload(InputStream uploadedInputStream, @Suspended final AsyncResponse asyncResponse) {
-    	Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+    	Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> uploadAsync(asyncResponse, uploadedInputStream, tenantId));
     }
 

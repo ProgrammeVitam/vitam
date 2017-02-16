@@ -32,7 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 
 /**
@@ -58,7 +58,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail() {
         // Empty
-        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -68,7 +68,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
-        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -76,7 +76,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(JsonNode content) {
         super(content);
-        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -84,7 +84,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(String content) {
         super(content);
-        append(TENANT, VitamThreadUtils.getVitamSession().getTenantId());
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
     
     /**

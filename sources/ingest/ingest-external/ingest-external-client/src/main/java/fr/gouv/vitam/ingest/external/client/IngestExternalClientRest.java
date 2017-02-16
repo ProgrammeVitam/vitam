@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
@@ -60,7 +61,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     @Override
     public Response upload(InputStream stream, Integer tenantId) throws IngestExternalException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
-        Response response = null;
+        Response response = null;        
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
     	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
@@ -95,10 +96,11 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
+        Integer tenantId = ParameterHelper.getTenantParameter();
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();

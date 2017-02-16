@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -203,7 +204,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_RULES, eip,
@@ -242,7 +243,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAccessionRegister() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_ACCESSION_REGISTER_SUMMARY, eip,
@@ -309,7 +310,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookOperation() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_OPERATION, eip,
@@ -358,7 +359,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleOG() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_OG, eip,
@@ -395,7 +396,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleUnit() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, eip,
@@ -432,7 +433,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataObjectGroup() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_OG, eip,
@@ -469,7 +470,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataUnit() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_METADATA_UNIT, eip,
@@ -505,7 +506,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAll() {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final List<String> collectionKO = new ArrayList<>();
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(

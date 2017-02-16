@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -68,7 +69,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
         "Type of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
-    private static final String TENANT_ID_MUST_HAVE_A_VALID_VALUE = "Tenant id must have a valid value";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
 
     StorageClientRest(StorageClientFactory factory) {
@@ -78,8 +78,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
@@ -102,8 +101,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         String guid,
         ObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
@@ -132,8 +130,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public boolean existsContainer(String strategyId) throws StorageServerClientException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
@@ -153,8 +150,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public boolean exists(String strategyId, StorageCollectionType type, String guid)
         throws StorageServerClientException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
@@ -179,8 +175,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public boolean deleteContainer(String strategyId) throws StorageServerClientException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
@@ -201,8 +196,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
         DigestType digestAlgorithm)
         throws StorageServerClientException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
@@ -347,8 +341,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     @Override
     public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        ParametersChecker.checkParameter(TENANT_ID_MUST_HAVE_A_VALID_VALUE, tenantId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
         Response response = null;

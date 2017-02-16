@@ -82,6 +82,7 @@ import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -343,9 +344,9 @@ public class DbRequest {
         throws MetaDataExecutionException, InstantiationException,
         IllegalAccessException, InvalidParseOperationException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         if (requestToMongodb instanceof SelectToMongodb) {
-            tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            tenantId = ParameterHelper.getTenantParameter();
         }
 
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -778,7 +779,7 @@ public class DbRequest {
      */
     protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last)
         throws InvalidParseOperationException, MetaDataExecutionException {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
+        Integer tenantId = ParameterHelper.getTenantParameter();        
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson update = requestToMongodb.getFinalUpdate();
         final FILTERARGS model = requestToMongodb.model();
@@ -844,7 +845,7 @@ public class DbRequest {
      * @return void
      */
     private void indexFieldsOGUpdated(Result last) throws Exception {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();                
+        Integer tenantId = ParameterHelper.getTenantParameter();                
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES update in error since no results to update");
@@ -877,7 +878,7 @@ public class DbRequest {
      * @return void
      */
     private void removeOGIndexFields(Result last) throws Exception {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
@@ -909,7 +910,7 @@ public class DbRequest {
      * @return boolean
      */
     private void removeUnitIndexFields(Result last) throws Exception {
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
+        Integer tenantId = ParameterHelper.getTenantParameter();        
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
@@ -1032,7 +1033,7 @@ public class DbRequest {
      */
     private void insertBulk(InsertToMongodb requestToMongodb, Result result) throws MetaDataExecutionException {
         // index Metadata
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
+        Integer tenantId = ParameterHelper.getTenantParameter();        
         final Set<String> ids = result.getCurrentIds();
         final FILTERARGS model = requestToMongodb.model();
         // index Unit

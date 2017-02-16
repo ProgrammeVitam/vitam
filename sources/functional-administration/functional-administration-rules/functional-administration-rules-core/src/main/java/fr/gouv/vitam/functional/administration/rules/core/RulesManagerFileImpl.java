@@ -62,8 +62,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
@@ -250,7 +250,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     }
 
     private Integer getTenant() {
-        return VitamThreadUtils.getVitamSession().getTenantId();
+        return ParameterHelper.getTenantParameter();
     }
 
     /**

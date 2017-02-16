@@ -29,8 +29,6 @@ package fr.gouv.vitam.logbook.administration.main;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -38,11 +36,11 @@ import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.elasticsearch.search.aggregations.metrics.geobounds.InternalGeoBounds;
 
 /**
  * Utility to launch the Traceability through command line and external scheduler
@@ -84,7 +82,7 @@ public class CallTraceability {
                 client.traceability();
             }
         } catch (InvalidParseOperationException | LogbookClientServerException e) {
-            throw new IllegalStateException(" Error when securing Tenant  :  " + VitamThreadUtils.getVitamSession().getTenantId(), e);
+            throw new IllegalStateException(" Error when securing Tenant  :  " + ParameterHelper.getTenantParameter(), e);
         }
 
     }
