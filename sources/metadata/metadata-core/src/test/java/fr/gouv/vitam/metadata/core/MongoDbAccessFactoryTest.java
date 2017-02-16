@@ -76,6 +76,8 @@ public class MongoDbAccessFactoryTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static ElasticsearchTestConfiguration config = null;
+    static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(tenantId);}};
 
     @BeforeClass
     public static void setup() throws IOException {
@@ -119,8 +121,12 @@ public class MongoDbAccessFactoryTest {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
         new MongoDbAccessMetadataFactory();
+        final MetaDataConfiguration config =
+            new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
+        config.setTenants(tenantList);
+        
         mongoDbAccess = MongoDbAccessMetadataFactory
-            .create(new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes));
+            .create(config);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
         mongoDbAccess.close();

@@ -79,7 +79,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 
 public class MetaDataResourceTest {
     private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data1\" }";
+        "{ \"#id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
     private static final String DATA3 =
@@ -97,7 +97,7 @@ public class MetaDataResourceTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
 
-    private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\"]  }";
+    private static final String QUERY_PATH = "{ $path :  [\"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\"]  }";
     private static final String QUERY_EXISTS = "{ $exists :  \"#id\"  }";
     private static final String QUERY_TEST =
         "{ $or : " + "[ " + "   {$exists : '#id'}, " + "   {$missing : 'mavar2'}, " + "   {$isNull : 'mavar3'}, " +
@@ -112,6 +112,10 @@ public class MetaDataResourceTest {
     private static File newMetadataConf;
     private static MetaDataApplication application;
     private static ElasticsearchTestConfiguration config = null;
+    static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+    private static final Integer TENANT_ID = 0;
+    
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -143,6 +147,7 @@ public class MetaDataResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
+        configuration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
         application = new MetaDataApplication(configuration);
@@ -226,12 +231,14 @@ public class MetaDataResourceTest {
     public void shouldReturnErrorConflictIfIdDuplicated() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT)))
@@ -242,12 +249,14 @@ public class MetaDataResourceTest {
     public void givenInsertUnitWithQueryPathWhenParentFoundThenReturnCreated() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -257,12 +266,14 @@ public class MetaDataResourceTest {
     public void givenInsertUnitWithQueryExistsWhenParentFoundThenReturnCreated() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)            
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -272,12 +283,14 @@ public class MetaDataResourceTest {
     public void givenInsertUnitWithQueryWhenParentFoundThenReturnCreated() throws Exception {
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)            
+            .body(buildDSLWithOptions("", DATA)).when()            
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)            
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -320,6 +333,7 @@ public class MetaDataResourceTest {
     public void shouldReturnResponseOKIfDocumentCreated() throws Exception {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .body(equalTo(
@@ -342,17 +356,20 @@ public class MetaDataResourceTest {
     public void givenInsertObjectGroupWithIdDuplicatedThenReturnErrorConflict() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/objectgroups").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/objectgroups").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT)))

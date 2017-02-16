@@ -62,6 +62,9 @@ public class MetaDataApplicationTest {
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
+    static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+    
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -99,7 +102,9 @@ public class MetaDataApplicationTest {
         mongo_nodes.add(new MongoDbNode("localhost", port));
         // TODO: using configuration file ? Why not ?
         config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
+        config.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
+        
     }
 
     @AfterClass

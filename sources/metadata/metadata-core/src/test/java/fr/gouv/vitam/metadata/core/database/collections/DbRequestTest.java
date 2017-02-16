@@ -124,6 +124,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 
 
 public class DbRequestTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
 
     @Rule
@@ -133,6 +134,8 @@ public class DbRequestTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
+    private static final Integer TENANT_ID_0 = new Integer(0);
+    private static final Integer TENANT_ID_1 = new Integer(1);
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration config = null;
@@ -155,6 +158,7 @@ public class DbRequestTest {
     private static final String ARRAY2_VAR = "Array2Var";
     private static final String EMPTY_VAR = "EmptyVar";
     static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(TENANT_ID_0);}};
     static final int platformId = 10;
     static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongodExecutable mongodExecutable;
@@ -167,6 +171,8 @@ public class DbRequestTest {
     private static final String REQUEST_UPDATE_TEST = "{$query: {$eq: {\"id\" : \"id\" }}}";
     private static final String REQUEST_INSERT_TEST =
         "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", \"id\": \"id\" }";
+    private static final String REQUEST_INSERT_TEST_1 =
+        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryabbaq\", \"id\": \"id\" }";
     private static final String REQUEST_INSERT_TEST_2 =
         "{ \"#id\": \"aeaqaaaaaaaaaaababid6akzxqwg6qqaaaaq\", \"id\": \"id\" }";
     private static final String REQUEST_SELECT_TEST_ES_1 =
@@ -227,7 +233,7 @@ public class DbRequestTest {
         final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
 
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE, esClient, tenantList);
         mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
 
 
@@ -853,7 +859,6 @@ public class DbRequestTest {
     }
 
 
-
     /**
      * @param uuid child
      * @param uuid2 parent
@@ -963,7 +968,9 @@ public class DbRequestTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testResult() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);        
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -996,7 +1003,7 @@ public class DbRequestTest {
         final MongoDatabase db = mongoDbAccess.getMongoDatabase();
         assertEquals(0, db.getCollection("Unit").count());
         assertEquals(0, db.getCollection("Objectgroup").count());
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", CREATE, esClient, tenantList);
         assertNotNull(mongoDbAccess.toString());
     }
 
@@ -1166,7 +1173,7 @@ public class DbRequestTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         final DbRequest dbRequest = new DbRequest();
-        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST);
+        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_1);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -1203,10 +1210,13 @@ public class DbRequestTest {
     @Test
     @RunWithCustomExecutor
     public void shouldSelectUnitResultWithES() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        esClient.deleteIndex(MetadataCollections.C_UNIT);
-        esClient.addIndex(MetadataCollections.C_UNIT);
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        esClient.deleteIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+
+        //OG ???
+        
         final DbRequest dbRequest = new DbRequest();
         final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES);
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1217,7 +1227,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple();
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelect1.nbResult);
 
@@ -1247,7 +1257,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         Select select = new Select();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
@@ -1284,7 +1294,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         final Result resultSelectRel4 = dbRequest.execRequest(selectParser1, null);
         assertEquals(2, resultSelectRel4.nbResult);
@@ -1298,7 +1308,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         select = new Select();
         select.addQueries(match("Title", "othervalue").setDepthLimit(1))
@@ -1341,25 +1351,35 @@ public class DbRequestTest {
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaas",
             resultSelectRel8.getCurrentIds().iterator().next().toString());
     }
-
-    public void shouldUpdateUnitResult() throws Exception {
-
+    
+    @Test
+    @RunWithCustomExecutor
+    public void shouldSelectUnitResultWithESTenant1() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
+        esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+        
         final DbRequest dbRequest = new DbRequest();
-        final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_TEST);
-        final UpdateParserMultiple updateParser = new UpdateParserMultiple();
-        updateParser.parse(updateRequest);
-        LOGGER.debug("UpdateParser: {}", updateRequest);
-        final Result result2 = dbRequest.execRequest(updateParser, null);
-        LOGGER.debug("result2", result2.getNbResult());
-        assertEquals(1, result2.nbResult);
+        final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_ES);
+        final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+        insertParser.parse(insertRequest);
+        LOGGER.debug("InsertParser: {}", insertParser);
+        dbRequest.execRequest(insertParser, null);
+        final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_1);
+        final SelectParserMultiple selectParser1 = new SelectParserMultiple();
+        selectParser1.parse(selectRequest1);
+        LOGGER.debug("SelectParser: {}", selectRequest1);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+        final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
+        assertEquals(1, resultSelect1.nbResult);
 
+        esClient.deleteIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
     }
 
 
     @Test
     @RunWithCustomExecutor
     public void testUpdateUnitResult() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
         // insert title ARchive 3
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
@@ -1368,17 +1388,17 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         // update title Archive 3 to Archive 2
         final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST);
         final UpdateParserMultiple updateParser = new UpdateParserMultiple();
         updateParser.parse(updateRequest);
-        LOGGER.debug("UpdateParser: {}", updateRequest);
+        LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
         final Result result2 = dbRequest.execRequest(updateParser, null);
         LOGGER.debug("result2", result2.getNbResult());
         assertEquals(1, result2.nbResult);
-        esClient.refreshIndex(MetadataCollections.C_UNIT);
+        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
         // check old value should not exist in the collection
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
@@ -1412,4 +1432,80 @@ public class DbRequestTest {
             .append("$data : " + data + " }")
             .toString());
     }
+    
+    
+  @Test
+  @RunWithCustomExecutor
+  public void testInsertUnitWithTenant() throws Exception {
+      VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+      esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+      esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+      final DbRequest dbRequest = new DbRequest();
+      final JsonNode insertRequest = buildQueryJsonWithOptions("", REQUEST_INSERT_TEST_1);
+      final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+      insertParser.parse(insertRequest);
+      LOGGER.debug("InsertParser: {}", insertParser);
+      dbRequest.execRequest(insertParser, null);
+
+      final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
+      final SelectParserMultiple selectParser = new SelectParserMultiple();
+      selectParser.parse(selectRequest);
+      LOGGER.debug("SelectParser: {}", selectRequest);
+      VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
+      final Result result3 = dbRequest.execRequest(selectParser, null);
+      assertEquals(0, result3.nbResult);
+  }    
+
+  private JsonNode createInsertRequestGOTenant(GUID uuid) throws InvalidParseOperationException {
+      // INSERT
+      final List<String> list = Arrays.asList("val1", "val2");
+      final ObjectNode data = JsonHandler.createObjectNode().put(id(), uuid.toString())
+          .put(TITLE, VALUE_MY_TITLE).put(DESCRIPTION, "Ma description est bien détaillée")
+          .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 20)
+          .put(tenant(), tenantId)
+          .put(MY_BOOLEAN, false).putNull(EMPTY_VAR).put(MY_FLOAT, 2.0);
+      try {
+          data.putArray(ARRAY_VAR).addAll((ArrayNode) JsonHandler.toJsonNode(list));
+      } catch (final InvalidParseOperationException e) {
+          e.printStackTrace();
+          fail(e.getMessage());
+      }
+    try {
+        data.putArray("_up").addAll((ArrayNode) JsonHandler.toJsonNode(list));
+       } catch (final InvalidParseOperationException e) {
+           e.printStackTrace();
+           fail(e.getMessage());
+       }
+    final Insert insert = new Insert();
+    insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+      insert.addData(data);
+      LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
+      return insert.getFinalInsert();
+  }
+  
+    @Test
+    @RunWithCustomExecutor
+    public void testInsertGOWithTenant() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0);
+        esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_1);
+    
+        final GUID uuid = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
+        final DbRequest dbRequest = new DbRequest();
+        RequestParserMultiple requestParser = null;
+        requestParser = RequestParserHelper.getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
+        executeRequest(dbRequest, requestParser);
+        
+        final Select select = new Select();
+        select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
+        select.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+        final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
+        selectParser.parse(select.getFinalSelect());
+        final Result result = dbRequest.execRequest(selectParser, null);        
+        assertEquals(1, result.nbResult);
+        
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_1);
+        final Result result2 = dbRequest.execRequest(selectParser, null);
+        assertEquals(0, result2.nbResult);
+    }    
 }

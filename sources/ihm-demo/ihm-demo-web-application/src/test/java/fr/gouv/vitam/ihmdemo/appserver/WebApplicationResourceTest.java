@@ -125,7 +125,7 @@ public class WebApplicationResourceTest {
     private static ServerApplication application;
     private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
-    private static final List<String> tenants = new ArrayList<>();
+    private static final List<Integer> tenants = new ArrayList<>();
 
     private final int TENANT_ID = 0;
 
@@ -133,8 +133,8 @@ public class WebApplicationResourceTest {
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        tenants.add("0");
-        tenants.add("1");
+        tenants.add(new Integer(0));
+        tenants.add(new Integer(1));
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final WebApplicationConfig webApplicationConfig =
@@ -184,7 +184,7 @@ public class WebApplicationResourceTest {
                 .get("/tenants").getBody();
         final JsonNode jsonNode = JsonHandler.getFromInputStream(response.asInputStream());
         assertTrue(jsonNode.isArray());
-        assertEquals("0", jsonNode.get(0).textValue());
+        assertEquals(0, jsonNode.get(0).asInt());
     }
 
 

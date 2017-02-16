@@ -45,8 +45,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -128,6 +126,9 @@ public class WebApplicationResourceDelete {
                 webApplicationConfig.getMetadataDbName(), webApplicationConfig.getClusterName(), webApplicationConfig
                     .getElasticsearchNodes());
         }
+        adminConfiguration.setTenants(webApplicationConfig.getTenants());
+        logbookConfiguration.setTenants(webApplicationConfig.getTenants());
+        metaDataConfiguration.setTenants(webApplicationConfig.getTenants());
         mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes());
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
@@ -428,7 +429,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessMetadata.deleteObjectGroup();
+            mongoDbAccessMetadata.deleteObjectGroupByTenant(tenantId);
             parameters.setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK));
             helper.updateDelegate(parameters);
@@ -465,7 +466,7 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessMetadata.deleteUnit();
+            mongoDbAccessMetadata.deleteUnitByTenant(tenantId);
             parameters.setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK));
             helper.updateDelegate(parameters);
@@ -508,7 +509,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK));
         try {
-            mongoDbAccessMetadata.deleteObjectGroup();
+            mongoDbAccessMetadata.deleteObjectGroupByTenant(tenantId);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
@@ -525,7 +526,7 @@ public class WebApplicationResourceDelete {
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK));
         try {
-            mongoDbAccessMetadata.deleteUnit();
+            mongoDbAccessMetadata.deleteUnitByTenant(tenantId);
             helper.updateDelegate(parameters);
         } catch (final Exception e) {
             parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,

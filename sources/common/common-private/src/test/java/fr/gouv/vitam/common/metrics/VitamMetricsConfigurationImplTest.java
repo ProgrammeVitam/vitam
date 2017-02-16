@@ -91,7 +91,7 @@ public class VitamMetricsConfigurationImplTest {
     private static final PrintStream out = System.out; // NOSONAR since Logger test
     private static final StringBuilder buf = new StringBuilder();
     
-    private static final List<String> tenants = Arrays.asList("0", "1", "2");
+    private static final List<Integer> tenants = Arrays.asList(0, 1, 2);
 
     /**
      * The test application that will load a test resource.

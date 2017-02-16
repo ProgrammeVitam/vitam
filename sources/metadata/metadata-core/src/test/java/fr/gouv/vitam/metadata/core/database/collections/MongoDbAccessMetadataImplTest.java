@@ -31,6 +31,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -77,6 +78,8 @@ public class MongoDbAccessMetadataImplTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
 
+    static final int tenantId = 0;
+    static final List<Integer> tenantList = Arrays.asList(0);
     private static ElasticsearchAccessMetadata esClient;
 
     static MongodExecutable mongodExecutable;
@@ -117,8 +120,11 @@ public class MongoDbAccessMetadataImplTest {
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess = MongoDbAccessMetadataFactory
-            .create(new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes));
+        final MetaDataConfiguration config =
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        config.setTenants(tenantList);
+
+        mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
 
         final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
@@ -149,7 +155,7 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient, tenantList);
         assertEquals(DEFAULT_MONGO, mongoDbAccess.toString());
         assertEquals("Unit", MetadataCollections.C_UNIT.getName());
         assertEquals("ObjectGroup", MetadataCollections.C_OBJECTGROUP.getName());
@@ -159,19 +165,19 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
         assertEquals("", mongoDbAccess.toString());
     }
 
     @Test
     public void givenMongoDbAccessWhenFlushOnDisKThenDoNothing() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
         mongoDbAccess.flushOnDisk();
     }
 
     @Test
     public void givenMongoDbAccessWhenNoDocumentAndRemoveIndexThenThrowError() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
         MongoDbAccessMetadataImpl.resetIndexAfterImport();
         MongoDbAccessMetadataImpl.removeIndexBeforeImport();
     }

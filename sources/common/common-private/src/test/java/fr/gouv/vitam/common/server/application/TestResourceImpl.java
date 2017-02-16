@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 @javax.ws.rs.ApplicationPath("webresources")
 public class TestResourceImpl extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestResourceImpl.class);
-    private static final List<String> tenants = Arrays.asList("0", "1", "2");
+    private static final List<Integer> tenants = Arrays.asList(0, 1, 2);
 
     /**
      *

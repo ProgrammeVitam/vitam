@@ -94,6 +94,9 @@ public class SelectUnitResourceTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -146,6 +149,7 @@ public class SelectUnitResourceTest {
         // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        configuration.setTenants(tenantList);
         configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
 
@@ -200,18 +204,21 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnits_thenReturn_Found() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(DATA2)).when()
             .post("/units").then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -273,12 +280,14 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnitsByID_thenReturn_Found() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
