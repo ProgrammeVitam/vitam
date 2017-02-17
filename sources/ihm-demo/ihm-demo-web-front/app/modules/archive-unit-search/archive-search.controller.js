@@ -53,137 +53,20 @@ angular
     function ($scope, ihmDemoFactory, $window, $mdToast, $mdDialog, ITEM_PER_PAGE,
               ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult, processSearchService) {
 
-      // ******************************* Alert diplayed
-      // ******************************* //
-      $scope.showAlert = function ($event, dialogTitle, message) {
-        $mdDialog.show($mdDialog.alert().parent(
-          angular.element(document.querySelector('#popupContainer')))
-          .clickOutsideToClose(true).title(dialogTitle).textContent(message)
-          .ariaLabel('Alert Dialog Demo').ok('OK').targetEvent($event));
-      };
-
-      // ************************************Pagination
-      // **************************** //
-      $scope.viewby = ITEM_PER_PAGE;
-      $scope.currentPage = 0;
-      $scope.itemsPerPage = $scope.viewby;
-      $scope.maxSize = 5;
-      $scope.resultPages = 0;
-
-      $scope.setPage = function (pageNo) {
-        $scope.currentPage = pageNo;
-      };
-
-      $scope.pageChanged = function () {
-        console.log('Page changed to: ' + $scope.currentPage);
-      };
-
-      $scope.setItemsPerPage = function (num) {
-        $scope.itemsPerPage = num;
-        $scope.currentPage = 1; // reset to first page
-      }
-
-      // ****************************************************************************
-      // //
-      // ***************** Archive Units Search Result
-      // ********************** //
-      $scope.archiveUnitsSearchResult;
-      var criteriaSearch = {};
-
-      // Display Selected Archive unit form
-      $scope.openedArchiveId = [];
-      $scope.openedArchiveWindowRef = [];
-      $scope.archiveDetailsConfig = null;
-      $scope.displayArchiveUnitForm = function displayArchiveUnitForm($event,
-                                                                      archiveId) {
-        $window.open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH + archiveId);
-      };
-
-      $scope.isObjectExist = function isObjectExist(object) {
-        return object !== null && object !== undefined && !angular.equals(object, "");
-      };
-
-      // ***************************************************************************
-      // //
-
-      $scope.startFormat = function () {
-        var start = "";
-        if ($scope.currentPage > 0 && $scope.currentPage <= $scope.resultPages) {
-          start = ($scope.currentPage - 1) * $scope.itemsPerPage;
-        }
-        if ($scope.currentPage > $scope.resultPages) {
-          start = ($scope.resultPages - 1) * $scope.itemsPerPage;
-        }
-        return start;
-      };
-      $scope.reinitTab = function () {
-        $scope.idCriteria2 = '';
-        $scope.titleCriteria2 = '';
-        $scope.descriptionCriteria2 = '';
-        $scope.startDate = '';
-        $scope.endDate = '';
-
-        $scope.showResult = false;
-        $scope.totalResult = 0;
-        $scope.currentPage = 0;
-        $scope.totalItems = 0;
-        $scope.resultPages = 0;
-      };
-
-      var preSearch = function (titleCriteria) {
-        if (!!titleCriteria) {
-          // Build title criteria and default
-          // selection
-          criteriaSearch.titleAndDescription = titleCriteria;
-          criteriaSearch.projection_transactdate = "TransactedDate";
-          criteriaSearch.projection_id = "#id";
-          criteriaSearch.projection_title = "Title";
-          criteriaSearch.projection_object = "#object";
-          criteriaSearch.orderby = "TransactedDate";
-          criteriaSearch.isAdvancedSearchFlag = "No";
-          return criteriaSearch;
-        } else {
-          $scope.showResult = false;
-          $scope.totalResult = 0;
-          return {searchProcessError: true, message: ARCHIVE_SEARCH_MODULE_CONST.NO_CRITERIA_SET};
-        }
-      };
-
-      var successCallback = function (response) {
-        if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined || response.data.$hits.total === 0) {
-          return false;
-        } else {
-          $scope.archiveUnitsSearchResult = transferToIhmResult.transferUnit(response.data.$results);
-          $scope.showResult = true;
-
-          // Set Total result
-          $scope.totalResult = response.data.$hits.total;
-
-          // Pagination
-          $scope.currentPage = 1;
-          $scope.totalItems = $scope.archiveUnitsSearchResult.length;
-          $scope.resultPages = Math.ceil($scope.totalResult / $scope.itemsPerPage);
-
-          return true;
-        }
-      };
-
-      var computeErrorMessage = function () {
-        return 'Il n\'y a aucun résultat pour votre recherche';
-      };
-
-      var clearResults = function () {
-        $scope.archiveUnitsSearchResult = [];
-        $scope.currentPage = "";
-        $scope.resultPages = "";
-        $scope.totalItems = 0;
-      };
-
       $scope.search = {
         form: {
+          // Simple search option
+          titleCriteria: '',
+          // Advanced search options
+          id: '',
+          title: '',
+          description: '',
+          startDate: '',
+          endDate: ''
         }, pagination: {
           currentPage: 0,
-          resultPages: 0
+          resultPages: 0,
+          itemsPerPage: ITEM_PER_PAGE
         }, error: {
           message: '',
           displayMessage: false
@@ -194,14 +77,91 @@ angular
         }
       };
 
-      $scope.getSearchResult = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, false);
+      // ***************** Archive Units Details
 
-      var preSearchElastic = function (parameters) {
-        $scope.criteriaSearch = {};
+      // Display Selected Archive unit form
+      $scope.displayArchiveUnitForm = function displayArchiveUnitForm($event, archiveId) {
+        $window.open(ARCHIVE_SEARCH_MODULE_CONST.ARCHIVE_DETAILS_PATH + archiveId);
+      };
 
-        var id = parameters.id, title = parameters.title, description = parameters.description,
-          startDate = parameters.startDate, endDate = parameters.endDate;
+      $scope.isObjectExist = function isObjectExist(object) {
+        return object !== null && object !== undefined && !angular.equals(object, "");
+      };
 
+      // ***************************************************************************
+
+      // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
+      $scope.startFormat = function () {
+        var start = "";
+        if ($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages) {
+          start = ($scope.search.pagination.currentPage - 1) * $scope.search.pagination.itemsPerPage;
+        }
+        if ($scope.search.pagination.currentPage > $scope.search.pagination.resultPages) {
+          start = ($scope.search.pagination.resultPages - 1) * $scope.search.pagination.itemsPerPage;
+        }
+        return start;
+      };
+
+      var preSearch = function () {
+        var criteriaSearch = {};
+
+        if (!!$scope.search.form.titleCriteria) {
+          // Build title criteria and default
+          // selection
+          criteriaSearch.titleAndDescription = $scope.search.form.titleCriteria;
+          criteriaSearch.projection_transactdate = "TransactedDate";
+          criteriaSearch.projection_id = "#id";
+          criteriaSearch.projection_title = "Title";
+          criteriaSearch.projection_object = "#object";
+          criteriaSearch.orderby = "TransactedDate";
+          criteriaSearch.isAdvancedSearchFlag = "No";
+          return criteriaSearch;
+        } else {
+          $scope.search.response.totalResult = 0;
+          return {searchProcessError: true, message: ARCHIVE_SEARCH_MODULE_CONST.NO_CRITERIA_SET};
+        }
+      };
+
+      var successCallback = function (response) {
+        if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined || response.data.$hits.total === 0) {
+          return false;
+        } else {
+          $scope.search.response.data = transferToIhmResult.transferUnit(response.data.$results);
+
+          // Set Total result
+          $scope.search.response.totalResult = response.data.$hits.total;
+
+          // Pagination
+          $scope.search.pagination.currentPage = 1;
+          $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
+
+          return true;
+        }
+      };
+
+      var computeErrorMessage = function () {
+        return 'Il n\'y a aucun résultat pour votre recherche';
+      };
+
+      var clearResults = function () {
+        $scope.search.response.data = [];
+        $scope.search.pagination.currentPage = "";
+        $scope.search.pagination.resultPages = "";
+        $scope.search.response.totalResult = 0;
+      };
+
+      var searchService = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, false);
+      $scope.getSearchResult = searchService.processSearch;
+      $scope.reinitForm = searchService.processReinit;
+
+      var preSearchElastic = function () {
+        var criteriaSearch = {};
+
+        var id = $scope.search.form.id;
+        var title = $scope.search.form.title;
+        var description = $scope.search.form.description;
+        var startDate = $scope.search.form.startDate;
+        var endDate = $scope.search.form.endDate;
 
         var atLeastOneValidCriteriaExists = false;
         var atLeastOneCriteriaExists = false;
@@ -210,20 +170,20 @@ angular
           // Add title to criteria
           atLeastOneValidCriteriaExists = true;
           atLeastOneCriteriaExists = true;
-          $scope.criteriaSearch.id = id;
+          criteriaSearch.id = id;
         } else {
           if (title !== '' && title !== null && title !== undefined) {
             // Add title to criteria
             atLeastOneValidCriteriaExists = true;
             atLeastOneCriteriaExists = true;
-            $scope.criteriaSearch.Title = title;
+            criteriaSearch.Title = title;
           }
 
           if (description !== '' && description !== null && description !== undefined) {
             // Add description to criteria
             atLeastOneValidCriteriaExists = true;
             atLeastOneCriteriaExists = true;
-            $scope.criteriaSearch.Description = description;
+            criteriaSearch.Description = description;
           }
 
           // Control dates
@@ -240,20 +200,20 @@ angular
               return {searchProcessError: true, message: ARCHIVE_SEARCH_MODULE_CONST.ONLY_ONE_DATE_SET};
             } else if (isValidStartDate && isValidEndDate) {
               // Check if startDate <= endDate
-              var startDateParts = $scope.startDate.split('/');
+              var startDateParts = startDate.split('/');
 
               // new Date(year, month [, day [,
               // hours[, minutes[,
               // seconds[, ms]]]]])
               var startDateAsDate = new Date(startDateParts[2], startDateParts[1] - 1, startDateParts[0], "00", "00", "00");
-              var endDateParts = $scope.endDate.split('/');
+              var endDateParts = endDate.split('/');
               var endDateAsDate = new Date(endDateParts[2], endDateParts[1] - 1,
                 endDateParts[0], "23", "59", "59");
 
               if (startDateAsDate <= endDateAsDate) {
                 atLeastOneValidCriteriaExists = true;
-                $scope.criteriaSearch.StartDate = startDateAsDate;
-                $scope.criteriaSearch.EndDate = endDateAsDate;
+                criteriaSearch.StartDate = startDateAsDate;
+                criteriaSearch.EndDate = endDateAsDate;
               } else {
                 atLeastOneValidCriteriaExists = false;
                 return {searchProcessError: true, message: ARCHIVE_SEARCH_MODULE_CONST.STARTDATE_GREATER_THAN_ENDDATE};
@@ -269,21 +229,22 @@ angular
         }
 
         if (atLeastOneValidCriteriaExists) {
-          $scope.criteriaSearch.projection_transactdate = "TransactedDate";
-          $scope.criteriaSearch.projection_id = "#id";
-          $scope.criteriaSearch.projection_title = "Title";
-          $scope.criteriaSearch.projection_object = "#object";
-          $scope.criteriaSearch.orderby = "TransactedDate";
-          $scope.criteriaSearch.isAdvancedSearchFlag = "Yes";
+          criteriaSearch.projection_transactdate = "TransactedDate";
+          criteriaSearch.projection_id = "#id";
+          criteriaSearch.projection_title = "Title";
+          criteriaSearch.projection_object = "#object";
+          criteriaSearch.orderby = "TransactedDate";
+          criteriaSearch.isAdvancedSearchFlag = "Yes";
 
-          return $scope.criteriaSearch;
+          return criteriaSearch;
         } else if (!atLeastOneCriteriaExists) {
-          $scope.showResult = false;
           return {searchProcessError: true, message: ARCHIVE_SEARCH_MODULE_CONST.NO_CRITERIA_SET};
         }
         return {searchProcessSkip: true};
       };
 
-      $scope.getElasticSearchUnitsResult = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearchElastic, successCallback, computeErrorMessage, $scope.search, clearResults, false);
+      var elasticSearchService = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearchElastic, successCallback, computeErrorMessage, $scope.search, clearResults, false);
+      $scope.getElasticSearchUnitsResult = elasticSearchService.processSearch;
+      $scope.reinitElasticForm = elasticSearchService.processReinit;
 
     });

@@ -35,33 +35,40 @@ angular.module('ihm.demo')
     }
   })
   .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService) {
-    var ctrl = this;
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 0;
-    ctrl.searchOptions = {};
-    ctrl.fileRulesList = [];
-    ctrl.client = ihmDemoCLient.getClient('admin');
-    ctrl.fileNotFoundError = false;
 
-    ctrl.deleteRuleValue = function () {
-      delete ctrl.searchOptions.RuleValue;
-      ctrl.getFileRules();
+    $scope.search = {
+      form: {
+        RuleValue: '',
+        RuleType: ''
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
     };
 
-    ctrl.startFormat = function(){
+    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
+    $scope.startFormat = function(){
       var start="";
 
-      if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-        start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
       }
 
-      if(ctrl.currentPage>ctrl.resultPages){
-        start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
       }
       return start;
     };
 
-    ctrl.openDialog = function($event, id) {
+    $scope.openDialog = function($event, id) {
       $mdDialog.show({
         controller: 'filerulesEntryController as entryRulesCtrl',
         templateUrl: 'views/file-rules-entry.html',
@@ -75,33 +82,44 @@ angular.module('ihm.demo')
       })
     };
 
+    $scope.clearSearchOptions = function() {
+      $scope.search.form = {
+        RuleValue: '',
+        RuleType: ''
+      };
+      $scope.getFileRules();
+    };
+
     var clearResults = function() {
-      ctrl.fileRulesList = [];
-      ctrl.currentPage = "";
-      ctrl.resultPages = "";
-      ctrl.results = 0;
+      $scope.search.response.data = [];
+      $scope.search.pagination.currentPage = "";
+      $scope.search.pagination.resultPages = "";
+      $scope.search.response.totalResult = 0;
     };
 
     var preSearch = function() {
-      ctrl.searchOptions.RULES = "all";
-      ctrl.searchOptions.orderby = "RuleValue";
-      if( ctrl.RuleType)
+      var requestOptions = angular.copy($scope.search.form);
+      clearResults();
+
+      requestOptions.RULES = "all";
+      requestOptions.orderby = "RuleValue";
+      if( requestOptions.RuleType)
       {
-        ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
+        requestOptions.RuleType = requestOptions.RuleType.toString();
       }
-      return ctrl.searchOptions;
+      return requestOptions;
     };
 
     var successCallback = function(response) {
       if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
         return false;
       }
-      ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
+      $scope.search.response.data = response.data.$results.sort(function (a, b) {
         return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
       });
-      ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
-      ctrl.currentPage = 1;
-      ctrl.results = response.data.$hits.total;
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/ITEM_PER_PAGE);
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.response.totalResult = response.data.$hits.total;
       return true;
     };
 
@@ -109,27 +127,10 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    $scope.search = {
-      form: {
-      }, pagination: {
-        currentPage: 0,
-        resultPages: 0
-      }, error: {
-        message: '',
-        displayMessage: false
-      }, response: {
-        data: [],
-        hints: {},
-        totalResult: 0
-      }
-    };
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    $scope.getFileRules = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
 
-    ctrl.getFileRules = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.searchOptions = {};
-      ctrl.getFileRules();
-    };
   })
   .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService, $filter) {
     var self = this;

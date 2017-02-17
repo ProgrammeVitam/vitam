@@ -30,6 +30,7 @@
 angular.module('ihm.demo')
   .constant('ITEM_PER_PAGE', 25)
   .constant('MAX_REQUEST_ITEM_NUMBER', 125)
+  // FIXME : Same filter than logbook-operation-controller. Do a generic filter in core/filters!
   .filter('startFrom', function() {
     return function (input, start) {
       start = +start; //parse to int
@@ -45,32 +46,40 @@ angular.module('ihm.demo')
       }
     })
   .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER, processSearchService) {
-    var ctrl = this;
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 1;
-    ctrl.startDate = new Date();
-    ctrl.endDate = new Date();
-    ctrl.searchOptions = {};
-    ctrl.resultPages = '';
-    ctrl.logbookEntryList = [];
-    ctrl.pageActive = [true, false, false, false, false];
     var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
-    ctrl.noResult = false;
 
-    ctrl.startFormat = function(){
+    $scope.search = {
+      form: {
+        obIdIn: ''
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
+    };
+
+    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
+    $scope.startFormat = function(){
       var start="";
 
-      if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-        start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
       }
 
-      if(ctrl.currentPage>ctrl.resultPages){
-        start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
       }
       return start;
     };
 
-    ctrl.downloadObject = function(objectId, type) {
+    $scope.downloadObject = function(objectId, type) {
       ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
         var a = document.createElement("a");
         document.body.appendChild(a);
@@ -82,88 +91,50 @@ angular.module('ihm.demo')
           a.download = response.headers('content-disposition').split('filename=')[1];
           a.click();
         }
-      }, function(response) {
-      $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-              .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
-              .ariaLabel('Alert Dialog Demo').ok('OK'));
+      }, function() {
+        $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
+          .ariaLabel('Alert Dialog Demo').ok('OK'));
       });
     };
 
-    ctrl.diplayFromCurrentPage = function(id) {
-      ctrl.diplayPage = id + 1;
-      changePageDIsplayNumber(id);
-    };
-
-    ctrl.getPreviousResults = function() {
-      if (ctrl.currentPage > 1 ) {
-        ctrl.diplayPage -= 1;
-        if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
-          ctrl.logbookEntryList = [];
-          ctrl.currentPage -=5;
-          ctrl.diplayPage = 5;
-          header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
-          ctrl.getLogbooks();
-        }
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
-      } else if (ctrl.diplayPage > ctrl.currentPage) {
-        ctrl.diplayPage -= 1;
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
-      }
-    };
-
-    function changePageDIsplayNumber(id) {
-      ctrl.pageActive = [false, false, false, false, false];
-      ctrl.pageActive[id] = true;
-    }
-
-    ctrl.getNextResults = function() {
-      if (ctrl.currentPage+4 < ctrl.resultPages) {
-        ctrl.diplayPage +=1;
-        if (ctrl.diplayPage > 5) {
-          ctrl.logbookEntryList = [];
-          ctrl.currentPage += 5;
-          ctrl.diplayPage = 1;
-          header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
-          ctrl.getLogbooks();
-        }
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
-      } else if (ctrl.diplayPage < ctrl.resultPages && (ctrl.diplayPage + ctrl.currentPage) < ctrl.resultPages) {
-        ctrl.diplayPage +=1;
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
-      }
-    };
-
-    ctrl.goToDetails = function(id) {
+    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services
+    $scope.goToDetails = function(id) {
       $window.open('#!/admin/logbookOperations/' + id);
     };
 
+    $scope.clearSearchOptions = function() {
+      $scope.search.form = {
+        obIdIn: ''
+      };
+      $scope.getLogbooks();
+    };
 
     var preSearch = function() {
-      ctrl.logbookEntryList = [];
-      ctrl.results = 0;
-      ctrl.noResult = false;
-      ctrl.searchOptions.INGEST = "all";
-      ctrl.searchOptions.orderby = "evDateTime";
-      if(ctrl.searchOptions.obIdIn === ""){
-        delete ctrl.searchOptions.obIdIn;
+      var requestOptions = angular.copy($scope.search.form);
+      clearResults();
+
+      requestOptions.INGEST = "all";
+      requestOptions.orderby = "evDateTime";
+      if(requestOptions.obIdIn === ""){
+        delete requestOptions.obIdIn;
       }
-      return [ctrl.searchOptions, header];
+      return [requestOptions, header];
     };
 
     var successCallback = function(response) {
       if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
         return false;
       }
-      ctrl.logbookEntryList = response.data.$results;
-      ctrl.logbookEntryList.map(function(item) {
-        item.obIdIn = ctrl.searchOptions.obIdIn;
+      $scope.search.response.data = response.data.$results;
+      $scope.search.response.data.map(function(item) {
+        item.obIdIn = $scope.search.form.obIdIn;
       });
-      ctrl.currentPage = 1;
-      ctrl.results = response.data.$hits.total;
-      // ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.response.totalResult = response.data.$hits.total;
       // FIXME What about X-REQUEST-ID in header ?
       // header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
-      ctrl.resultPages = Math.ceil(ctrl.results/ctrl.itemsPerPage);
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
       return true;
     };
 
@@ -172,36 +143,18 @@ angular.module('ihm.demo')
     };
 
     var clearResults = function() {
-      ctrl.logbookEntryList = [];
-      ctrl.currentPage = "";
-      ctrl.resultPages = "";
-      ctrl.results = 0;
-    };
-
-    $scope.search = {
-      form: {
-      }, pagination: {
-        currentPage: 0,
-        resultPages: 0
-      }, error: {
-        message: '',
-        displayMessage: false
-      }, response: {
-        data: [],
-        hints: {},
-        totalResult: 0
-      }
+      $scope.search.response.data = [];
+      $scope.search.pagination.currentPage = 0;
+      $scope.search.pagination.resultPages = 0;
+      $scope.search.response.totalResult = 0;
     };
 
     var searchFunction = function(result) {
       return ihmDemoCLient.getClient('logbook').all('operations').customPOST(result[0], null, null, result[1]);
     };
 
-    ctrl.getLogbooks = processSearchService.initAndServe(searchFunction, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.searchOptions = {};
-      ctrl.getLogbooks();
-    };
+    var searchService = processSearchService.initAndServe(searchFunction, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    $scope.getLogbooks = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
 
   });

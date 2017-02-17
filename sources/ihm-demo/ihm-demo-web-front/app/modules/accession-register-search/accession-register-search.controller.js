@@ -31,90 +31,14 @@ angular.module('accession.register.search')
     'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
   })
   .controller('accessionRegisterSearchController', function($scope, $window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE, processSearchService) {
-    var self = this;
-
-    // ************************************Pagination  **************************** //
-    self.currentPage = 1;
-    self.itemsPerPage = ITEM_PER_PAGE;
-    self.maxSize = 5;
-    self.resultPages ="";
-
-    // FIXME Useless function ?
-    self.setPage = function(pageNo) {
-      selfcurrentPage = pageNo;
-    };
-
-    // FIXME Useless function ?
-    self.setItemsPerPage = function(num) {
-      self.itemsPerPage = num;
-      self.currentPage = 1; // reset to first page
-    };
-    // **************************************************************************** //
-
-    self.startFormat = function(){
-      var start="";
-
-      if(self.currentPage > 0 && self.currentPage <= self.resultPages){
-        start= (self.currentPage-1)*self.itemsPerPage;
-      }
-
-      if(self.currentPage>self.resultPages){
-        start= (self.resultPages-1)*self.itemsPerPage;
-      }
-      return start;
-    };
-
-    self.goToDetails = function(id) {
-      $window.open('#!/accessionRegister/detail/' + id)
-    };
-
-    var preSearch = function(serviceProducerCriteria) {
-      self.searchCriteria = {};
-      self.searchCriteria.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
-
-      if(serviceProducerCriteria === null || serviceProducerCriteria === undefined
-        || serviceProducerCriteria === ''){
-        // Return all registers
-        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
-      } else {
-        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = serviceProducerCriteria;
-      }
-      return self.searchCriteria;
-    };
-
-    var successCallback = function(response) {
-      var isReponseValid = responseValidator.validateReceivedResponse(response);
-      if (!isReponseValid) {
-        return false;
-      }
-      // Get total results
-      self.totalResult = response.data.$hits.total;
-      self.showResult = true;
-      self.resultPages = Math.ceil(self.totalResult/self.itemsPerPage);
-
-      if (self.totalResult > 0) {
-        // Display found registers
-        self.registers = response.data.$results;
-      }
-      return true;
-    };
-
-    var computeErrorMessage = function() {
-      return 'Il n\'y a aucun résultat pour votre recherche';
-    };
-
-    var clearResults = function() {
-      self.registers = [];
-      self.currentPage = "";
-      self.resultPages = "";
-      self.totalResult = 0;
-    };
 
     $scope.search = {
       form: {
+        serviceProducerCriteria: ''
       }, pagination: {
         currentPage: 0,
-        resultPages: 0
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
       }, error: {
         message: '',
         displayMessage: false
@@ -125,7 +49,67 @@ angular.module('accession.register.search')
       }
     };
 
-    self.searchRegistersByCriteria =  processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true, null);
+    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
+    $scope.startFormat = function(){
+      var start="";
+
+      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
+      }
+
+      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
+      }
+      return start;
+    };
+
+    $scope.goToDetails = function(id) {
+      $window.open('#!/accessionRegister/detail/' + id)
+    };
+
+    var preSearch = function() {
+      var requestOptions = {};
+      requestOptions.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
+
+      if(!$scope.search.form.serviceProducerCriteria){
+        requestOptions[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
+      } else {
+        requestOptions[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = $scope.search.form.serviceProducerCriteria;
+      }
+      return requestOptions;
+    };
+
+    var successCallback = function(response) {
+      var isReponseValid = responseValidator.validateReceivedResponse(response);
+      if (!isReponseValid) {
+        return false;
+      }
+      // Get total results
+      $scope.search.response.totalResult = response.data.$hits.total;
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
+
+      if ($scope.search.response.totalResult > 0) {
+        // Display found registers
+        $scope.search.response.data = response.data.$results;
+      }
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    var clearResults = function() {
+      $scope.search.response.data = [];
+      $scope.search.pagination.currentPage = 0;
+      $scope.search.pagination.resultPages = 0;
+      $scope.search.response.totalResult = 0;
+    };
+
+    var searchService = processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true, null);
+    $scope.searchRegistersByCriteria = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
 
   });
 
