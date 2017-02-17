@@ -46,6 +46,8 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -53,6 +55,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -70,6 +73,7 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
@@ -108,6 +112,8 @@ public class LogbookResource extends ApplicationStatusResource {
     private final LogbookConfiguration logbookConfiguration;
     private final LogbookDbAccess mongoDbAccess;
     private final LogbookAdministration logbookAdministration;
+    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
+        "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     /**
      * Constructor
@@ -295,10 +301,15 @@ public class LogbookResource extends ApplicationStatusResource {
     @POST
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceability() {
+    public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         try {
+            Integer tenantId = Integer.parseInt(xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID guid = logbookAdministration.generateSecureLogbook();
-
             final List<String> resultAsJson = new ArrayList<>();
 
             resultAsJson.add(guid.toString());

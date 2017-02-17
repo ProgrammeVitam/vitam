@@ -43,7 +43,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -73,7 +77,9 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
-    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     
     public LogbookOperationsClientRestTest() {
         super(LogbookOperationsClientFactory.getInstance());
@@ -231,7 +237,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         final LogbookOperationParameters log = getComplete();
         client.create(log);
     }
-
+    @RunWithCustomExecutor
     @Test
     public void traceability() throws Exception {
         when(mock.post())

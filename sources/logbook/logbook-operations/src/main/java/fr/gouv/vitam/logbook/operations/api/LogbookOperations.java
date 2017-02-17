@@ -158,6 +158,7 @@ public interface LogbookOperations {
 
 
     /**
+
      * @return the last valid traceability operation
      * @throws InvalidCreateOperationException
      * @throws LogbookNotFoundException

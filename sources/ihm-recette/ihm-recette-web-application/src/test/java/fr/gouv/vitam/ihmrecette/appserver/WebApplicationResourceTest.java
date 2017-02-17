@@ -39,6 +39,7 @@ import java.io.IOException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -399,6 +400,7 @@ public class WebApplicationResourceTest {
     @Test
     public final void testTraceabilityEndpointIsWorking() {
         given()
+            .header(GlobalDataRest.X_TENANT_ID, "0")
             .body("")
             .post(TRACEABILITY_URI)
             .then()

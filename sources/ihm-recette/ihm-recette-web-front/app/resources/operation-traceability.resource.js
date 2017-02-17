@@ -36,11 +36,16 @@
 // traceability
 angular.module('core').factory(
     'operationTraceabilityResource',
-    function ($http, IHM_URLS) {
-
+    function ($http, IHM_URLS, tenantService) {
         var Operation_traceability_ROOT = '/operations/traceability';
         var OperationTraceabilityResource = {};
-
+        /** get tenant of session and set to header
+         *
+         * @returns set tenant to header
+         */
+        var getTenantHeader = function() {
+            return {headers : {'X-Tenant-Id' : tenantService.getTenant()}}
+        };
         /**
          * launch SOAP-UI tests (GET method)
          *
@@ -48,7 +53,7 @@ angular.module('core').factory(
          */
         OperationTraceabilityResource.result = function () {
             return $http.post(IHM_URLS.IHM_BASE_URL
-                + Operation_traceability_ROOT);
+                + Operation_traceability_ROOT,null,getTenantHeader());
         };
         return OperationTraceabilityResource;
 
