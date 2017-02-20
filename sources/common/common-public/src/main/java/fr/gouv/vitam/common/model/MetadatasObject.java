@@ -24,11 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.storage.utils;
+package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MetadatasObjectResult {
+public abstract class MetadatasObject {
 
     @JsonProperty("objectName")
     private String objectName;
@@ -48,7 +48,7 @@ public class MetadatasObjectResult {
     /**
      * empty constructor
      */
-    public MetadatasObjectResult(){
+    public MetadatasObject(){
         this.objectName = null;
         this.type = null;
         this.digest = null;
@@ -69,9 +69,8 @@ public class MetadatasObjectResult {
      * @param lastAccessDate
      * @param lastModifiedDate
      */
-    public MetadatasObjectResult(String object_name, String type, String digest, long file_size, String file_owner,
+    public MetadatasObject(String object_name, String type, String digest, long file_size, String file_owner,
         String last_access_date, String last_modified_date) {
-        super();
         this.objectName = object_name;
         this.type = type;
         this.digest = digest;
@@ -80,6 +79,7 @@ public class MetadatasObjectResult {
         this.lastAccessDate = last_access_date;
         this.lastModifiedDate = last_modified_date;
     }
+    
     
     /**
      * @return object name
@@ -92,7 +92,7 @@ public class MetadatasObjectResult {
      * @param objectName
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setObjectName(String objectName) {
+    public MetadatasObject setObjectName(String objectName) {
         this.objectName = objectName;
         return this;
     }
@@ -108,7 +108,7 @@ public class MetadatasObjectResult {
      * @param type
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setType(String type) {
+    public MetadatasObject setType(String type) {
         this.type = type;
         return this;
     }
@@ -124,7 +124,7 @@ public class MetadatasObjectResult {
      * @param digest
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setDigest(String digest) {
+    public MetadatasObject setDigest(String digest) {
         this.digest = digest;
         return this;
     }
@@ -140,7 +140,7 @@ public class MetadatasObjectResult {
      * @param fileSize
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setFileSize(long fileSize) {
+    public MetadatasObject setFileSize(long fileSize) {
         this.fileSize = fileSize;
         return this;
     }
@@ -156,7 +156,7 @@ public class MetadatasObjectResult {
      * @param fileOwner
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setFileOwner(String fileOwner) {
+    public MetadatasObject setFileOwner(String fileOwner) {
         this.fileOwner = fileOwner;
         return this;
     }
@@ -172,7 +172,7 @@ public class MetadatasObjectResult {
      * @param lastAccessDate
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setLastAccessDate(String lastAccessDate) {
+    public MetadatasObject setLastAccessDate(String lastAccessDate) {
         this.lastAccessDate = lastAccessDate;
         return this;
     }
@@ -188,7 +188,7 @@ public class MetadatasObjectResult {
      * @param lastModifiedDate
      * @return MetadatasObjectResult
      */
-    public MetadatasObjectResult setLastModifiedDate(String lastModifiedDate) {
+    public MetadatasObject setLastModifiedDate(String lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
         return this;
     }

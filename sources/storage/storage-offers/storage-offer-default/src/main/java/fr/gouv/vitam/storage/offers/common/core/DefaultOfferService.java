@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.common.core;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
@@ -37,8 +36,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -186,19 +184,6 @@ public interface DefaultOfferService {
     void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
     
-    /**
-     * @param tenantId
-     * @param type
-     * @param objectId
-     * @return
-     * @throws InvalidParseOperationException 
-     * @throws ContentAddressableStorageException 
-     * @throws IOException 
-     * @throws ContentAddressableStorageServerException 
-     * @throws ContentAddressableStorageNotFoundException 
-     */
-    MetadatasObjectResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
-
 	/**
      * Check digest (UNIMPLEMENTED)
      * 
@@ -220,4 +205,16 @@ public interface DefaultOfferService {
      * @return true if the digest algorithm is correct
 	 */
 	boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
+	
+    /**
+     * Get Metadata
+     * 
+     * @param tenantId
+     * @param type
+     * @param objectId
+     * @return StorageMetadatasResult
+     * @throws ContentAddressableStorageException
+     * @throws IOException
+     */
+    StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
 }

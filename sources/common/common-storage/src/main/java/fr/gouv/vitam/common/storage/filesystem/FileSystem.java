@@ -33,8 +33,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileOwnerAttributeView;
-import java.nio.file.attribute.UserPrincipal;
 import java.util.Properties;
 
 import org.jclouds.ContextBuilder;
@@ -42,12 +40,14 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.filesystem.reference.FilesystemConstants;
 import org.jclouds.providers.ProviderMetadata;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
+import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
@@ -80,12 +80,13 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         return containerInformation;
     }
 
+    // TODO： manage the cycle in filesystem (ex: symlink)
     private long getFolderUsedSize(File directory) {
         long usedSpace = 0;
         for (final File file : directory.listFiles()) {
             if (file.isFile()) {
                 usedSpace += file.length();
-            } else {
+            } else if (file.isDirectory()){
                 usedSpace += getFolderUsedSize(file);
             }
         }
@@ -138,13 +139,6 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         return file;
     }
     
-    private String getFileOwner(File file) throws IOException{
-        Path path = Paths.get(file.getPath());        
-        FileOwnerAttributeView ownerAttributeView = Files.getFileAttributeView(path, FileOwnerAttributeView.class);
-        UserPrincipal owner = ownerAttributeView.getOwner();
-        return owner.getName();
-    }
-    
     private BasicFileAttributes getFileAttributes(File file) throws IOException{
         Path path = Paths.get(file.getPath());
         BasicFileAttributeView basicView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
@@ -153,9 +147,9 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     }
     
     @Override
-    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId) 
+    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId) 
         throws IOException, ContentAddressableStorageException {
-        MetadatasObjectResult result = new MetadatasObjectResult();
+        MetadatasStorageObject result = new MetadatasStorageObject();
         try {
             String containerName = type + "_" + tenantId;
             
@@ -166,18 +160,17 @@ public class FileSystem extends ContentAddressableStorageAbstract {
             if (null != file) { 
                 if (objectId != null) {
                     result.setObjectName(objectId);
+                    //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+                    result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+                    result.setFileSize(size);
                 } else {
                     result.setObjectName(containerName);
-                }                
-                result.setType(type.toString());
-                if (objectId != null) {
-                    result.setDigest(computeObjectDigest(containerName, objectId, DigestType.MD5));
-                } else {
                     //TODO calculer l'empreint de répertoire
                     result.setDigest(null);
-                }
-                result.setFileSize(size);
-                result.setFileOwner(getFileOwner(file));
+                    result.setFileSize(getFolderUsedSize(file));
+                }                
+                result.setType(type.toString());
+                result.setFileOwner("Vitam_" + tenantId);
                 result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
                 result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());                
             }

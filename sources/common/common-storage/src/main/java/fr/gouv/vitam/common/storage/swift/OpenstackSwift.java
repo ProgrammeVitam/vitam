@@ -33,16 +33,21 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties;
 import org.jclouds.openstack.swift.v1.SwiftApi;
 import org.jclouds.openstack.swift.v1.domain.Account;
+import org.jclouds.openstack.swift.v1.domain.Container;
+import org.jclouds.openstack.swift.v1.domain.SwiftObject;
 import org.jclouds.openstack.swift.v1.features.AccountApi;
 import org.jclouds.openstack.swift.v1.features.ContainerApi;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -171,8 +176,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         }
         return accountApi;
     }
-
-
+    
     /**
      * @return swiftApi
      */
@@ -202,12 +206,36 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         return maxResults;
     }
 
-
     @Override
-    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId)
+    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId)
         throws ContentAddressableStorageException {
-        // TODO just next in use story 1850
-        throw new UnsupportedOperationException();
+        MetadatasStorageObject result = new MetadatasStorageObject();
+        
+        String containerName = type + "_" + tenantId;
+        if (objectId != null) {
+            SwiftObject swiftobject = getSwiftAPi()
+                .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
+            
+            result.setObjectName(objectId);
+            result.setType(type.toString());
+            //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+            result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());            
+            result.setFileOwner("Vitam_" + tenantId);
+            result.setLastAccessDate(null);
+            result.setLastModifiedDate(swiftobject.getLastModified().toString());
+        } else {
+            Container container = getContainerApi().get(containerName);
+            result.setObjectName(containerName);
+            result.setType(type.toString());
+            result.setDigest(null);
+            result.setFileOwner("Vitam_" + tenantId);            
+            result.setFileSize(container.getBytesUsed());
+            result.setLastAccessDate(null);
+            result.setLastModifiedDate(null);
+        }
+         
+        return result;
     }
 
 }
