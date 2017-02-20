@@ -37,7 +37,11 @@
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
 		</dependency>
-
+	<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-plugin</artifactId>
+			<version>${project.version}</version>
+		</dependency>	
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>

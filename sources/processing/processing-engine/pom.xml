@@ -24,6 +24,13 @@
 			<artifactId>processing-monitoring</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+			<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-plugin</artifactId>
+			<version>${project.version}</version>
+		    </dependency>	
+		
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
@@ -38,7 +45,11 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-
+         	<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-plugin</artifactId>
+			<version>${project.version}</version>
+		</dependency>	
 	</dependencies>
 
 </project>

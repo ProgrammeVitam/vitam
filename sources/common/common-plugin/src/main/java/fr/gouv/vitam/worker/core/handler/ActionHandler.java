@@ -1,3 +1,4 @@
+package fr.gouv.vitam.worker.core.handler;
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -24,7 +25,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.handler;
+
+
 
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
