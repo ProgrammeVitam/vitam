@@ -37,7 +37,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -322,6 +322,6 @@ public interface ContentAddressableStorage {
      * @throws ContentAddressableStorageException 
      * @throws IOException 
      */
-    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
+    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
     
 }

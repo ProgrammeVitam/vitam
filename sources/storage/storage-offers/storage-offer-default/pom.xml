@@ -55,7 +55,6 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>storage-default-driver</artifactId>
 			<version>${project.version}</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
 

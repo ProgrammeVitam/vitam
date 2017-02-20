@@ -84,6 +84,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -102,6 +103,9 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private static JunitHelper junitHelper;
     private static int tenant;
     private static ConnectionImpl connection;
+    
+    private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
+    private static final String TYPE = "object";
 
 
     public ConnectionImplTest() {
@@ -214,6 +218,14 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response putObject(@PathParam("id") String objectId, InputStream input) {
             return expectedResponse.put();
+        }
+        
+        @GET
+        @Path("/objects/{type}/{id:.+}/metadatas")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId){
+            return expectedResponse.get();
         }
 
         @GET
@@ -895,6 +907,21 @@ public class ConnectionImplTest extends VitamJerseyTest {
         result.put("id", DEFAULT_GUID);
         result.put("status", Response.Status.NOT_FOUND.toString());
         return result;
+    }
+    
+    @Test
+    public void getObjectMetadataTestOK() throws StorageDriverException{
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(mockMetadatasObjectResult()).build());
+        final StorageObjectRequest request =
+            new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        final StorageMetadatasResult result = connection.getMetadatas(request);
+        assertNotNull(result);
+        
+    }
+    
+    private StorageMetadatasResult mockMetadatasObjectResult(){
+        return new StorageMetadatasResult(OBJECT_ID, TYPE, "abcdef", 6096, 
+            "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
     }
 
 }

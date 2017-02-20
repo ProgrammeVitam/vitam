@@ -23,9 +23,9 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -552,26 +552,26 @@ public class FileSystemTest {
         String containerName = TYPE + "_" + TENANT_ID;
         storage.createContainer(containerName);
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
-        //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         
         //get metadata of file
-        MetadatasObjectResult result = storage.getObjectMetadatas(TENANT_ID, TYPE, OBJECT_ID);
+        MetadatasObject result = storage.getObjectMetadatas(TENANT_ID, TYPE, OBJECT_ID);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
-        assertEquals("bd0a33cdbcc69c64a3424a64765963f0", result.getDigest());
+        assertEquals("9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418", 
+            result.getDigest());
+        assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
         assertEquals(6906, result.getFileSize());
-        assertNotNull(result.getFileOwner());
         assertNotNull(result.getLastAccessDate());
         assertNotNull(result.getLastModifiedDate());
         
+        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         //get metadata of directory
         result = storage.getObjectMetadatas(TENANT_ID, TYPE, null);
         assertEquals("object_0", result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(null, result.getDigest());
-        //size of the folder may be different for different system
-        assertNotNull(result.getFileSize());
-        assertNotNull(result.getFileOwner());
+        assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
+        assertEquals(13843, result.getFileSize());
         assertNotNull(result.getLastAccessDate());
         assertNotNull(result.getLastModifiedDate());
     }

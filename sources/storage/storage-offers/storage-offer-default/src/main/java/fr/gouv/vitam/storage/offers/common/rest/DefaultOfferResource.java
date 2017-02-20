@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.offers.common.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -58,17 +57,16 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -410,7 +408,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
         
         try {
-            MetadatasObjectResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(xTenantId, type.getFolder(), idObject);
+            StorageMetadatasResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(xTenantId, type.getFolder(), idObject);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);

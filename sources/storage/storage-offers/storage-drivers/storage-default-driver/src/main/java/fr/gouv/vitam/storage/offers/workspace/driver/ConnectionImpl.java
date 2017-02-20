@@ -51,6 +51,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -72,6 +73,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     private static final String OBJECTS_PATH = "/objects";
     private static final String COUNT_PATH = "/count";
+    private static final String METADATAS = "/metadatas";
 
     private static final String REQUEST_IS_A_MANDATORY_PARAMETER = "Request is a mandatory parameter";
     private static final String GUID_IS_A_MANDATORY_PARAMETER = "GUID is a mandatory parameter";
@@ -461,5 +463,39 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             }
         }
     }
+
+    @Override
+    public StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+      ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+      ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+      ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+      ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+      Response response = null;
+
+      try {
+          response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() 
+                  + METADATAS, getDefaultHeaders(request.getTenantId(), null, null, null),
+                  MediaType.APPLICATION_JSON_TYPE, false);
+          final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+          switch (status) {
+              case OK:
+                  return handleResponseStatus(response, StorageMetadatasResult.class);
+              case NOT_FOUND:
+                  throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                      "not found");
+              default:
+                  LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                  throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+                      INTERNAL_SERVER_ERROR);                                  
+          }
+      } catch (VitamClientInternalException e) {
+          LOGGER.error(e);
+          throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
+              e.getMessage());
+      } finally {
+          consumeAnyEntityAndClose(response);
+      }      
+    }
+
 
 }

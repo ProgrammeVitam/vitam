@@ -27,6 +27,7 @@
 package fr.gouv.vitam.workspace.client;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
@@ -51,10 +52,11 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.storage.utils.MetadatasObjectResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -587,9 +589,10 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
 
 
     @Override
-    public MetadatasObjectResult getObjectMetadatas(String tenantId, String type, String objectId) {
+    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId)
+        throws ContentAddressableStorageException, IOException {
         // FIXME implémente dans workspace 
-        return new MetadatasObjectResult();
+        return new MetadatasStorageObject();
     }
 
 }
