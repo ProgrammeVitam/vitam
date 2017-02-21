@@ -34,6 +34,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -53,6 +54,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -137,7 +140,8 @@ public class StorageResource extends ApplicationStatusResource {
      * @param headers http headers
      * @return Response containing the storage information as json, or an error (404, 500)
      */
-    @GET
+    @HEAD
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStorageInformation(@Context HttpHeaders headers) {
         final Response response = checkTenantStrategyHeader(headers);
@@ -234,35 +238,32 @@ public class StorageResource extends ApplicationStatusResource {
     }
 
     /**
-     * Check the existence of a container
+     * Get list of object type
      *
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
+     * @param xcursor the X-Cursor
+     * @param xcursorId the X-Cursor-Id if exists
+     * @param strategyId the strategy to get offers
+     * @param type the object type to list
+     * @return a response with listing elements
      */
-    @HEAD
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkContainer(@Context HttpHeaders headers) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-
-    /**
-     * Get a list of objects Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/objects")
+    @Path("/{type}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getObjects(@Context HttpHeaders headers) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+    public Response listObjects(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String
+        strategyId, @PathParam("type") DataCategory type) {
+        try {
+            ParametersChecker.checkParameter("X-Cursor is required", xcursor);
+            ParametersChecker.checkParameter("Strategy ID is required", strategyId);
+            return distribution.listContainerObjects(strategyId, type, xcursorId);
+        } catch(IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        } catch (Exception exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
     }
 
     /**
@@ -380,7 +381,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        String tenantId, strategyId, digestAlgorithm, digest;
+        String strategyId, digestAlgorithm, digest;
         final Response response = checkDigestAlgorithmHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
@@ -409,7 +410,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        String tenantId, strategyId;
+        String strategyId;
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);

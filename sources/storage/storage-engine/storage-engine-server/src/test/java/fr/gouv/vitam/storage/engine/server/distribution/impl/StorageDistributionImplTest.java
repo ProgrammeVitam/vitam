@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -51,6 +52,7 @@ import org.mockito.Mockito;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
@@ -488,11 +490,6 @@ public class StorageDistributionImplTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerByCategorys() throws Exception {
-        simpleDistribution.getContainerObjects(null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
     public void testGetContainerByCategoryInformations() throws Exception {
         simpleDistribution.getContainerObjectInformations(null, null);
     }
@@ -546,6 +543,52 @@ public class StorageDistributionImplTest {
     @Test(expected = UnsupportedOperationException.class)
     public void testStatus() throws Exception {
         simpleDistribution.status();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void listContainerObjectsTests() throws Exception {
+        try {
+            simpleDistribution.listContainerObjects(null, null, null);
+            fail("Waiting for an illegal argument exception");
+        } catch (IllegalArgumentException exc) {
+            // nothing
+        }
+        try {
+            simpleDistribution.listContainerObjects(STRATEGY_ID, null, null);
+            fail("Waiting for an illegal argument exception");
+        } catch (IllegalArgumentException exc) {
+            // nothing
+        }
+        try {
+            simpleDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
+            fail("Waiting for an illegal argument exception");
+        } catch (IllegalArgumentException exc) {
+            // nothing
+        }
+        try {
+            simpleDistribution.listContainerObjects(STRATEGY_ID, null, "cursorId");
+            fail("Waiting for an illegal argument exception");
+        } catch (IllegalArgumentException exc) {
+            // nothing
+        }
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(0);
+            simpleDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT,null);
+        } catch (IllegalArgumentException exc) {
+            fail("Waiting for an illegal argument exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void listContainerObjectsCustomTest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        Response result = customDistribution.listContainerObjects(STRATEGY_ID, DataCategory
+            .OBJECT, null);
+        assertNotNull(result);
+        assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));
+        assertNotNull(result.getEntity());
     }
 
     private JsonNode getCheckObjectResult() throws IOException {

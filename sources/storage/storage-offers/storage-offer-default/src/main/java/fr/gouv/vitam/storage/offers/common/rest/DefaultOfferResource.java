@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.common.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -53,6 +54,7 @@ import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -60,6 +62,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.SizedInputStream;
@@ -107,9 +110,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      * @return information on the offer objects collection
      *
      */
-    // TODO P1 : review path and java method name
+    // TODO P1 : review java method name
     // FIXME P1 il manque le /container/id/
-    @GET
+    @HEAD
     @Path("/objects/{type}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCapacity(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
@@ -121,9 +124,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
         try {
             ObjectNode result = (ObjectNode) DefaultOfferServiceImpl.getInstance().getCapacity(containerName);
-            // TODO: fix this, why tenantID in response (have to be a header, so why ?)
-            result.put("tenantId", xTenantId);
-            return Response.status(Response.Status.OK).entity(result).build();
+            Response.ResponseBuilder response = Response.status(Status.OK);
+            response.header("X-Usable-Space", result.get("usableSpace"));
+            response.header("X-Used-Space", result.get("usedSpace"));
+            response.header(GlobalDataRest.X_TENANT_ID, xTenantId);
+            return response.build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
@@ -133,12 +138,80 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Get container object list
+     *
+     * @param xcursor if true means new query, if false means end of query from client side
+     * @param xcursorId if present, means continue on cursor
+     * @param type object type
+     * @return an iterator with each object metadata (actually only the id)
+     */
+    @GET
+    @Path("/objects/{type}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getContainerList(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, @HeaderParam(GlobalDataRest.X_TENANT_ID) String
+        xTenantId, @PathParam("type") DataCategory type) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            final Response.ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+        }
+        Status status;
+        String cursorId = xcursorId;
+        if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
+            DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
+            final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+        }
+
+        if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
+            try {
+                cursorId = DefaultOfferServiceImpl.getInstance().createCursor(buildContainerName(type, xTenantId));
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException exc) {
+                LOGGER.error(exc);
+                status = Status.INTERNAL_SERVER_ERROR;
+                final Response.ResponseBuilder builder = Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                        .setContext("default-offer").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setDescription(exc.getMessage()));
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+            }
+        }
+
+        final RequestResponseOK responseOK = new RequestResponseOK();
+        if (DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)) {
+            try {
+                List<JsonNode> list = DefaultOfferServiceImpl.getInstance().next(buildContainerName(type, xTenantId),
+                    cursorId);
+                responseOK.addAllResults(list);
+                final Response.ResponseBuilder builder = Response.status(DefaultOfferServiceImpl.getInstance().hasNext
+                    (buildContainerName(type, xTenantId), cursorId) ? Status.PARTIAL_CONTENT : Status.OK).entity
+                    (responseOK.setHits(list.size(), 0, list.size()));
+                return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
+            } catch (ContentAddressableStorageNotFoundException exc) {
+                LOGGER.error(exc);
+                status = Status.INTERNAL_SERVER_ERROR;
+                final Response.ResponseBuilder builder = Response.status(status)
+                    .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                        .setContext("default-offer").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setDescription(exc.getMessage()));
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+            }
+        }
+        else {
+            DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
+            final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+        }
+    }
 
     /**
      * Count the number of objects on the offer objects defined container (exlude directories)
      *
      * @param xTenantId
-     * @param xContainerName
+     * @param type
      * @return number of binary objects in the container
      *
      */
@@ -297,7 +370,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     /**
      * Delete an Object
      * 
-     * @param headers http header
+     * @param xTenantId the tenantId
+     * @param xDigest the digest of the object to delete
+     * @param xDigestAlgorithm the digest algorithm
      * @param type Object type to delete
      * @param idObject the id of the object to be tested
      * @return the response with a specific HTTP status
@@ -379,11 +454,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 objectIsOK = DefaultOfferServiceImpl.getInstance().checkObject(containerName, idObject, xDigest,
                     DigestType.fromValue(xDigestAlgorithm));
             } else {
-	            if (DefaultOfferServiceImpl.getInstance().isObjectExist(containerName, idObject)) {
-	                return Response.status(Response.Status.NO_CONTENT).build();
-	            } else {
-	                return Response.status(Response.Status.NOT_FOUND).build();
-	            }
+                if (DefaultOfferServiceImpl.getInstance().isObjectExist(containerName, idObject)) {
+                    return Response.status(Response.Status.NO_CONTENT).build();
+                } else {
+                    return Response.status(Response.Status.NOT_FOUND).build();
+                }
             }
             if (objectIsOK) {
                 return Response.status(Status.OK).build();

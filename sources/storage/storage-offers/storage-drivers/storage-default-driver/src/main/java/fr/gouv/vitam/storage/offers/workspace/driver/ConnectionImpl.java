@@ -51,6 +51,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
@@ -102,19 +103,18 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         this.parameters = parameters;
     }
 
-    /**
-     * return account capacity for swift offer
-     */
     @Override
     public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.OBJECT,
+            response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
                 getDefaultHeaders(tenantId, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return handleResponseStatus(response, StorageCapacityResult.class);
+                StorageCapacityResult result = new StorageCapacityResult(tenantId, Long.valueOf(response.getHeaderString
+                    ("X-Usable-Space")), Long.valueOf(response.getHeaderString("X-Used-Space")));
+                return result;
             }
             throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 response.getStatusInfo().getReasonPhrase());
@@ -352,8 +352,6 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         }
     }
 
-
-
     /**
      * Generate the default header map
      *
@@ -498,4 +496,25 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
 
+    @Override
+    public Response listObjects(StorageListRequest request) throws
+        StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter("X-Cursor is mandatory", request.isxCursor());
+        try {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
+            headers.add(GlobalDataRest.X_CURSOR, request.isxCursor());
+            if (request.getCursorId() != null) {
+                headers.add(GlobalDataRest.X_CURSOR_ID, request.getCursorId());
+            }
+            return performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()),
+                headers, MediaType.APPLICATION_JSON_TYPE);
+        } catch (Exception exc) {
+            LOGGER.error(exc);
+            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc);
+        }
+    }
 }

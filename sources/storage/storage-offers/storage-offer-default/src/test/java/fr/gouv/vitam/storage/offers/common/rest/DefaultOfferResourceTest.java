@@ -52,6 +52,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -66,10 +67,15 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -161,7 +167,7 @@ public class DefaultOfferResourceTest {
 
     @Test
     public void getCapacityTestBadRequest() {
-        given().get(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(400);
+        given().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(400);
     }
 
     @Test
@@ -175,7 +181,7 @@ public class DefaultOfferResourceTest {
             .content(objectInit).when().post(OBJECTS_URI + "/" + UNIT_CODE + "/" + "id1").then().statusCode(201);
         // test
         given().header(GlobalDataRest.X_TENANT_ID, 1)
-            .when().get(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(200);
+            .when().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(200);
     }
 
     @Test
@@ -727,4 +733,36 @@ public class DefaultOfferResourceTest {
             .when().get(OBJECTS_URI + "/" + UNIT_CODE  + "/" + "id1" + METADATA).then().statusCode(200);
     }
 
+    @Test
+    public void listObjectsTest() throws Exception {
+        given().when().get(OBJECTS_URI + "/" + DataCategory.OBJECT.name())
+            .then().statusCode(400);
+
+        given().header(GlobalDataRest.X_TENANT_ID, "1").when().get(OBJECTS_URI + "/" + DataCategory.OBJECT
+            .name()).then().statusCode(204);
+
+        final ObjectInit objectInit = new ObjectInit();
+        objectInit.setType(DataCategory.OBJECT);
+
+        for (int i = 0; i < 10; i++) {
+            given().header(GlobalDataRest.X_TENANT_ID, "1")
+                .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_INIT)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectInit).when().post(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + "/id" + i);
+
+            try (FakeInputStream fin = new FakeInputStream(50, false)) {
+                assertNotNull(fin);
+                given().header(GlobalDataRest.X_TENANT_ID, "1")
+                    .header(GlobalDataRest.X_COMMAND, StorageConstants.COMMAND_END)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM).content(fin).when()
+                    .put(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + OBJECT_ID_URI, "id" + i);
+            }
+        }
+
+        given().header(GlobalDataRest.X_CURSOR, true).header(GlobalDataRest.X_TENANT_ID, "1").when().get(OBJECTS_URI
+            + "/" + DataCategory.OBJECT.name()).then().header(GlobalDataRest.X_CURSOR_ID, Matchers.notNullValue())
+            .statusCode(200);
+
+        // TODO: more ?
+    }
 }

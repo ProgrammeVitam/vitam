@@ -38,19 +38,25 @@ import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 
+import javax.ws.rs.core.Response;
+
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -60,9 +66,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
@@ -142,8 +150,12 @@ public class DriverToOfferTest {
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER);
-        final File object = new File(container.getAbsolutePath(), guid);
+        File object = new File(container.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
+        for (int i = 0; i < 150; i++) {
+            object = new File(container.getAbsolutePath(), "f" + i);
+            Files.deleteIfExists(object.toPath());
+        }
         Files.deleteIfExists(container.toPath());
     }
 
@@ -192,5 +204,26 @@ public class DriverToOfferTest {
             new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
         connection.getObject(getRequest);
 
+        // Add some objects
+        for (int i = 0; i < 150; i++) {
+            try (FakeInputStream fis = new FakeInputStream(50, false)) {
+                request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), "f" + i,
+                    VitamConfiguration.getDefaultDigestType().name(), fis);
+                connection.putObject(request);
+            }
+        }
+
+        StorageListRequest listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(),
+            null, true);
+        Response response = connection.listObjects(listRequest);
+        assertNotNull(response);
+        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), response.getStatus());
+        assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
+
+        listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(), response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
+        response = connection.listObjects(listRequest);
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
     }
 }

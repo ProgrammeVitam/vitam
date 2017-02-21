@@ -42,6 +42,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -587,12 +590,25 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         return offerDigest.equals(digest);
     }
 
-
     @Override
     public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId)
         throws ContentAddressableStorageException, IOException {
         // FIXME implémente dans workspace 
         return new MetadatasStorageObject();
+    }
+
+    // FIXME design : is it normal that the workspaceClient implements ContentAddressableStorage ?
+    @Override
+    public PageSet<? extends StorageMetadata> listContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException {
+        throw new UnsupportedOperationException();
+    }
+
+    // FIXME design : is it normal that the workspaceClient implements ContentAddressableStorage ?
+    @Override
+    public PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
+        throws ContentAddressableStorageNotFoundException {
+        throw new UnsupportedOperationException();
     }
 
 }

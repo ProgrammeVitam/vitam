@@ -20,6 +20,11 @@
 			<artifactId>common-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- Remove private when AbstractMockClient.FakeInboundResponse is in public  -->
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>

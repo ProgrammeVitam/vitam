@@ -28,7 +28,9 @@ package fr.gouv.vitam.storage.engine.client;
 
 import java.time.LocalDateTime;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -36,8 +38,10 @@ import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,6 +49,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -127,5 +132,14 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
+
+    @Override
+    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) throws
+        StorageServerClientException {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_CURSOR, true);
+        return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);
+    }
+
 
 }

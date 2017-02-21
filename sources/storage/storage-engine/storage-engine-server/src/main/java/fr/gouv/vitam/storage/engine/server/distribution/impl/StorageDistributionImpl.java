@@ -53,6 +53,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -71,11 +72,13 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -112,6 +115,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
     private static final String TENANT_ID_IS_MANDATORY = "Tenant id is mandatory";
+    public static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
     private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory
         .getDefaultProvider();
@@ -558,8 +563,32 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerObjects(String strategyId) throws StorageNotFoundException {
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    public Response listContainerObjects(String strategyId, DataCategory category, String
+        cursorId) throws StorageException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
+        ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
+        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy != null) {
+            final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+            if (offerReferences.isEmpty()) {
+                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            }
+            // TODO: make priority -> Use the first one here but don't take into account errors !
+            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReferences.get(0).getId());
+            final Driver driver = retrieveDriverInternal(offerReferences.get(0).getId());
+            final Properties parameters = new Properties();
+            parameters.putAll(offer.getParameters());
+            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                StorageListRequest request = new StorageListRequest(tenantId, category.getFolder(), cursorId, true);
+                return connection.listObjects(request);
+            } catch (final StorageDriverException exc) {
+                throw new StorageTechnicalException(exc);
+            }
+        }
+        throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
     @Override
