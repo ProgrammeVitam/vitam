@@ -144,6 +144,18 @@ public class GlobalDataRest {
      */
     public static final String TENANT_LIST = "tenantList";
 
+    
+    /**
+     * Timeout for finish worker task in millisecond
+     */
+    public static final long TIMEOUT_END_WORKER_MILLISECOND = 600;
+
+    /**
+     * number of check status retry call 
+     */
+    public static final int STATUS_CHECK_RETRY = 3;
+    
+    
     private GlobalDataRest() {
         // empty
     }

@@ -54,6 +54,7 @@ import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -65,15 +66,11 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
-import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.Callbackable;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.processing.distributor.core.WorkerManager;
 
 /**
  *
@@ -101,6 +98,7 @@ public class ProcessDistributorResourceTest {
         "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
     private static JunitHelper junitHelper;
+    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -109,6 +107,9 @@ public class ProcessDistributorResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
+        WorkerManager.initialize();
+        
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
@@ -130,6 +131,7 @@ public class ProcessDistributorResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        VitamConfiguration.getConfiguration().setData(defautDataFolder);        
         vitamServer.stop();
         junitHelper.releasePort(serverPort);
     }

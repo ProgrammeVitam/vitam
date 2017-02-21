@@ -1,0 +1,16 @@
+---
+# tasks file for storage-engine
+- name: Copy worker.db file
+  copy:
+    src: "worker.db"
+    dest: "{{vitam_folder_data}}/worker.db"
+    owner: "{{vitam_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_conf_permission}}"
+  notify:
+    - restart service
+
+- name: Ensure service is started
+  service:
+    name: "vitam-{{ vitam_component }}"
+    state: started

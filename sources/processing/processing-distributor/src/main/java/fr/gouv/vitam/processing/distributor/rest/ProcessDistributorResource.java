@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.processing.distributor.rest;
 
+import java.io.File;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -43,15 +45,14 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -69,6 +70,7 @@ public class ProcessDistributorResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
     private static final String PROCESSING_MODULE = "PROCESSING";
     private static final String CODE_VITAM = "code_vitam";
+
 
     private final ProcessDistributor distributor;
 
@@ -88,6 +90,7 @@ public class ProcessDistributorResource {
      */
     public ProcessDistributorResource(ServerConfiguration configuration) {
         distributor = ProcessDistributorImplFactory.getDefaultDistributor();
+        WorkerManager.initialize();
         LOGGER.info("init Process Distributor Resource server");
     }
 
@@ -306,7 +309,7 @@ public class ProcessDistributorResource {
         @PathParam("id_worker") String idWorker) {
         try {
             WorkerManager.unregisterWorker(idFamily, idWorker);
-        } catch (WorkerFamilyNotFoundException | WorkerNotFoundException exc) {
+        } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException exc) {
             LOGGER.error(exc);
             return Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")
                 .build();
