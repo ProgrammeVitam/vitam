@@ -175,10 +175,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // define eventDetailData
             eventDetailData =
                 "{" +
-                    "\"MessageDigest\":\"" + atrFile.getName() +
-                    "\",\"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() +
-                    "\", \"SystemMessageDigest\": \"" + vitamDigestString +
-                    "\", \"SystemAlgorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"} ";
+                    "\"FileName\":\"" + "ATR_" + params.getContainerName() +
+                    "\", \"MessageDigest\": \"" + vitamDigestString +
+                    "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
 
             itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
             // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
@@ -640,7 +639,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
             try (VitamRequestIterator<JsonNode> iterator =
-                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
+                client.objectGroupLifeCyclesByOperationIterator(containerName,
+                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();

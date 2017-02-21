@@ -281,9 +281,9 @@ public class ProcessEngineImpl implements ProcessEngine {
                             itemStatus.getGlobalStatus(),
                             null, " Detail= " + itemStatus.computeStatusMeterMessage(),
                             GUIDReader.getGUID(workParams.getContainerName()));
-                    if (stepResponse.getData().get(LogbookParameterName.eventDetailData.name()) != null) {
+                    if (itemStatus.getData().get(LogbookParameterName.eventDetailData.name()) != null) {
                         eventDetailData =
-                            stepResponse.getData().get(LogbookParameterName.eventDetailData.name()).toString();
+                            itemStatus.getData().get(LogbookParameterName.eventDetailData.name()).toString();
                         sublogbook.putParameterValue(LogbookParameterName.eventDetailData, eventDetailData);
                     }
                     helper.updateDelegate(sublogbook);
