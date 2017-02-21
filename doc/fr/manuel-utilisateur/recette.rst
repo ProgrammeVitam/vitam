@@ -102,7 +102,7 @@ Tous les journaux du cycle de vie des objets sont supprimés de VITAM. L'IHM de 
 
 Tous les journaux des opérations sont supprimés de VITAM. Les IHM "Journal des Opérations" et "Journal des Opérations d'entrées" sont vides de contenu.
 
-Purge des Groupes d'Objets et Unités Archivistiques
+Purge des Unités Archivistiques et Groupes d'Objets
 ---------------------------------------------------
 
 **Purge des Unités Archivistiques**
@@ -125,7 +125,7 @@ L'équipe d'exploitation réalise le fichier json avec les archivistes, puis le 
 
 L'exécution des tests est ensuite lancée par les archivistes via l'IHM.
 
-Cette partie présente à la fois l'IHM et les différentes configuration à réaliser par les archivistes.
+Cette partie présente à la fois l'IHM et les différentes configurations à réaliser par les archivistes.
 
 .. image:: images/RECETTE_accueil_SOAPUI.png
 
@@ -179,7 +179,7 @@ On a donc par défaut l'arborescence suivante (le schéma suivant ne tient pas c
     |------- data.json
     \------- test.zip
 
-Pour un fichier *test.zip* placé dans le dossier racine, on entrera alors :
+Pour un fichier *test.zip* placé dans le dossier Racine, on entrera alors :
 
 ::
 
@@ -202,9 +202,9 @@ on entrera alors :
 
 **"expected"**
 
-La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le statut attendu à l'issue de l'opération d'entrée du SIP. La valeur de ce champs n'est utilisée que si les valeurs du tableau action détaillé plus bas n'est pas renseigné. Ceci permet de garder une compatibilité avec les anciens tests de non régression qui ne contenaient pas de tableau action.
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le statut attendu à l'issue de l'opération d'entrée du SIP. La valeur de ce champ n'est utilisée que si les valeurs du tableau "Action" (détaillé plus bas) ne sont pas renseignées. Ceci permet de garder une compatibilité avec les anciens tests de non régression qui ne contenaient pas de tableau "Action".
 
-Les valeurs contenus dans ces champs sont en revanche ignorées si le tableau action contient des valeurs.
+Les valeurs contenus dans ces champs sont en revanche ignorées si le tableau "Action" contient des valeurs.
 
 Par exemple :
 
@@ -240,11 +240,11 @@ Par exemple :
 
   "category":"Tests sur les arborescences"
 
-**Action** : ce champs contient un tableau de n objets ayant pour but de tester des actions précises du workflow. Cet objet est structuré de la façon suivantes :
+**action** : ce champ contient un tableau de n objets ayant pour but de tester des actions précises du workflow. Un objet est structuré de la façon suivante :
 
       **name** : contient le nom de l'action à tester
 
-      **expected** : contient l'état de
+      **expected** : contient l'état attendu
 
 voici l'exemple d'une configuration pour *un jeu de test*
 
@@ -358,7 +358,7 @@ On a donc par défaut l'arborescence suivante: (le schéma suivant ne tient pas 
     \------- rules
               \------- regles_CSV.csv
 
-Pour un fichier SIP *OK_SIP.zip* et un fichier de règle de gestion *regles_CSV.csv* placé dans le dossier racine, on entrera alors :
+Pour un fichier SIP *OK_SIP.zip* et un fichier de règles de gestion *regles_CSV.csv* placés dans le dossier Racine, on entrera alors :
 
 ::
 
@@ -376,7 +376,7 @@ La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’a
  "testName": "SRC1 : chercher des unités d’archives contenant des objets dans un intervalle de dates extrêmes",
 
 **"category"**
-La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external” 
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external”
 
 **"tenant"**
 La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’agit de tenant qui a téléchargé le fichier SIP/règle/format. Par exemple:
@@ -386,8 +386,7 @@ La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’a
  "tenant" : "0"
 
 **action**
-ce champs contient un tableau de n objets ayant pour but de contrôler les réponses de l'api external. Cet objet
-est structuré de la façon suivantes :
+ce champs contient un tableau de n objets ayant pour but de contrôler les réponses de l'api external. Un objet est structuré de la façon suivante :
 
     **name** : contient le nom de l'action à tester
 
@@ -401,7 +400,7 @@ est structuré de la façon suivantes :
 
     **expected** : est un tableau qui contient le code retour HTTP attendu (httpStatusCode) est les champs attendu dans la réponse
 
-Par example:
+Par exemple:
 
 ::
 
@@ -437,8 +436,8 @@ Le tableau de rapport apparait alors en bas de l'écran.
 
 Il contient les informations suivantes :
 
-  * Nombre de tests réalisé
-  * Nombre de test en succès
+  * Nombre de tests réalisés
+  * Nombre de tests en succès
   * Nombre de tests en échec
   * Un taleau contenant la liste des tests
 
@@ -501,7 +500,7 @@ Il contient les fichiers suivants :
 Rechercher des journaux sécurisés
 ---------------------------------
 
-L'interface de consultation des journaux est accessible par le menu : Menu > Rechercher un journal sécurisé
+L'interface de consultation des journaux sécurisés est accessible par le menu : Menu > Rechercher un journal sécurisé
 
 .. image:: images/RECETTE_consulation_journal_secu.png
 
@@ -512,7 +511,7 @@ L'interface est consituée de quatre éléments :
   * Un paginateur
   * Une zone d'affichage des résultats
 
-**Utilisation du champs date**
+**Utilisation du champ date**
 
 Le champ date permet d'afficher les journaux de type sécurisation créés après cette date. Par exemple, si on sélectionne la date 24/11/2016, seuls les journaux de type sécurisation générés le ou après le 24/11/2016 seront affichées.
 

@@ -5,7 +5,7 @@ Cette partie décrit l'entrée manuelle d'archives dans Vitam, c'est-à-dire, le
 
 Dans l’univers numérique, peuvent être transférés à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier, mais aussi des références à des archives physiques, chacune d’elles accompagnées de leurs métadonnées.
 
-Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (se référer au livrable "Design SIP" : 20161011 Design SIP v1.1)
+Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (se référer au livrable "Design SIP").
 
 NB : Cette partie est disponible via l'IHM de démonstration.
 
@@ -14,9 +14,9 @@ Transfert d'un SIP dans Vitam
 
 Le transfert d'un SIP dans Vitam s'effectue depuis l'écran "Transfert", accessible depuis le menu "Entrée" puis en cliquant sur le sous-menu "Transfert" (Entrée/Transfert).
 
-.. image:: images/menu_entree.jpg
+.. image:: images/menu_entree.png
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans Vitam. Pour cela, il clique sur le bouton « Choisissez un fichier », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
+Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
 
 Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP". Une fois le SIP sélectionné, le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparait en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
@@ -28,7 +28,7 @@ Les informations visibles à l'écran sont :
 
   - Nom du fichier,
   - Taille : Affiche la taille du SIP en Ko, Mo ou Go en fonction de la taille arrondie au dixième près,
-  - Statut representé sous forme d'une icône, une croix si le transfert est en erreur, une coche si le transfert est en succès et un triangle d'avertissement si le transfert est en avertissement.
+  - Statut (succès, erreur ou avertissement)
 
 - Une barre de progression affiche l’avancement du téléchargement du SIP dans Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
@@ -43,7 +43,7 @@ Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
 
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére une notification qui est proposée en téléchargement à l'utilisateur.
 
-Cette notification ou ArchiveTrasnferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
+Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
 Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
@@ -76,7 +76,7 @@ Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-d
 
 Pour consulter le journal des opérations d'entrée, l'utilisateur clique sur le menu "Entrée" dans la barre de menu, puis clique sur le sous-menu "Suivi des opérations d'entrée" (Entrée/Suivi des opérations d'entrée).
 
-.. image:: images/menu_op_entree.jpg
+.. image:: images/menu_op_entree.png
 
 Formulaire de recherche d'une entrée
 ------------------------------------
@@ -101,6 +101,8 @@ Le résultat de la recherche est affiché sous forme de tableau, comprenant les 
 - Date de début d'opération d'entrée
 - Date de fin d'opération d'entrée
 - Statut : Succès, Erreur, En cours, Alerte (Warning)
+- Bordereau : permet le téléchargement du manifest.xml
+- AR : permet le téléchargement de l'accusé de réception (ATR)
 
 Par défaut, les colonnes sont triées par dates de versement, du plus récent au plus ancien.
 
