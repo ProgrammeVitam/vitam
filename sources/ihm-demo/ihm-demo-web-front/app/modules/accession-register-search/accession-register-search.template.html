@@ -10,31 +10,35 @@
     </a>
 
     <div id="boxSearch" class="panel-body panel-collapse collapse in">
-        <form role="tabpanel" class="tab-pane active" id="simpleSearch"  ng-submit="$ctrl.searchRegistersByCriteria(serviceProducerCriteria)">
-          <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
-            <div class="input-group">
-              <input ng-model="serviceProducerCriteria" type="text" class="form-control input-lg" placeholder="Rechercher" onfocus="this.placeholder = ''"/>
-              <div class="input-group-addon" style="position:relative">
-                <span id="iconSpan"><i class="material-icons pull-left" ng-click="serviceProducerCriteria=''">clear</i></span>
-                <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i></button></div>
+        <form class="col-md-12" id="simpleSearch" ng-submit="searchRegistersByCriteria()">
+          <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-25">
+            <label for="entryName">Service producteur</label>
+            <div class="input-group m-b-25">
+              <input ng-model="search.form.serviceProducerCriteria" type="text" class="form-control input-lg"/>
+              <div class="input-group-addon">
+                <button class="btn btn-primary center-block" type="reset" ng-click="reinitForm()">
+                  <i class="material-icons pull-left">clear</i>
+                </button>
               </div>
             </div>
-          <div class="clearfix"></div>
-          <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
-            {{search.error.message}}
-          </button>
+            <div class="clearfix"></div>
+            <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+          </div>
         </form>
+      <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+        {{search.error.message}}
+      </button>
     </div>
   </div>
 
 
   <!--Pagination -->
   <div style="text-align: center">
-    <button class="btn btn-default btn-s" ng-disabled="$ctrl.currentPage <= 1" ng-click="$ctrl.currentPage=+$ctrl.currentPage-1">
+    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
       Précédent
     </button>
-    <input ng-model="$ctrl.currentPage" style="max-width: 40px">/{{$ctrl.resultPages}}
-    <button class="btn btn-default btn-s" ng-disabled="$ctrl.currentPage >= $ctrl.resultPages" ng-click="$ctrl.currentPage=+$ctrl.currentPage+1">
+    <input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
       Suivant
     </button>
   </div>
@@ -44,13 +48,9 @@
   *    RESULTATS
   *
   -->
-  <!-- <pre>{{ $ctrl.searchCriteria }}</pre> -->
-
   <div class="panel panel-default col-md-12">
     <a class="panel-header"  data-target="#boxSearchResults" data-toggle="collapse">
-        <h2> Résultats <span ng-if="$ctrl.totalResult == 0 || $ctrl.totalResult > 0">({{$ctrl.totalResult}})</span>
-            <!-- TODO Replace '$ctrl.totalResult == 0' by '$ctrl.showResult &&' in ng-if condition in order to not display 0 when no search / no results asked ? -->
-        </h2>
+        <h2> Résultats <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span></h2>
     </a>
     <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
       <div class="table-responsive ">
@@ -60,9 +60,9 @@
             <th>Date d'entrée</th>
           </tr>
 
-          <tbody ng-if="$ctrl.showResult && $ctrl.totalResult > 0">
-            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="$ctrl.goToDetails(result.OriginatingAgency)"
-                ng-repeat="result in $ctrl.registers | startFormat : $ctrl.startFormat() |limitTo : $ctrl.itemsPerPage">
+          <tbody>
+            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="goToDetails(result.OriginatingAgency)"
+                ng-repeat="result in search.response.data | startFormat : startFormat() |limitTo : search.pagination.itemsPerPage">
               <td>{{ result.OriginatingAgency }}</td>
               <td>{{ result.creationDate | vitamFormatDate }}</td>
             </tr>

@@ -9,50 +9,30 @@
       		<h2>Référentiel des formats</h2>
     	</a>
 
-    	<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="fileCtrl.getFileFormats()">
-    		<div class="col-md-12">
+    	<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="getFileFormats()">
         <div class="row">
-          <div class="boxSimpleSearchInput form-group col-md-6  m-b-50 "
-            style="width: 40%; margin-left: 0px">
+          <div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
             <label for="entryName">Nom de format</label>
-            <div class="input-group">
-              <input ng-model="fileCtrl.searchOptions.FormatName" id="entryName"
-                name="entryName" type="text"
-                class="form-control input-lg" />
-              <div class="input-group-addon">
-                <button class="btn btn-primary center-block"
-                  ng-click="fileCtrl.clearInput('FormatName')" type="button">
-                  <i class="material-icons pull-left">clear</i>
-                </button>
-              </div>
-            </div>
-
+              <input ng-model="search.form.FormatName" id="entryName" name="entryName" type="text" class="form-control" />
           </div>
 
-          <div class="boxSimpleSearchInput form-group col-md-4  m-b-50 "
-            style="width: 20%; margin-left: 0px">
+          <div class="boxSimpleSearchInput form-group col-md-12 m-b-50 " style="width: 20%; margin-left: 0px">
             <label for="entrypuid">PUID</label>
-            <div class="input-group">
-              <input ng-model="fileCtrl.searchOptions.PUID" id="entrypuid"
-                name="entrypuid" type="text"
-                class="form-control input-lg" />
-              <div class="input-group-addon">
-                <button class="btn btn-primary center-block"
-                  ng-click="fileCtrl.clearInput('PUID')" type="button">
-                  <i class="material-icons pull-left">clear</i>
-                </button>
-              </div>
-            </div>
-
+              <input ng-model="search.form.PUID" id="entrypuid" name="entrypuid" type="text" class="form-control" />
           </div>
         </div>
-        <button type="submit" class="btn btn-primary center-block">
-          <i class="material-icons pull-left">search</i> <span>Rechercher</span>
-        </button>
+          <div>
+            <div class="col-md-2"><!-- Blank zone --></div>
+            <div class="col-md-3">
+              <button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+            </div>
+            <div class="col-md-4">
+              <button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+            </div>
+          </div>
         <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
             {{search.error.message}}
         </button>
-      </div>
     </form>
     
   </div>
@@ -60,11 +40,11 @@
 
   <!--Pagination -->
   <div style="text-align: center">
-    <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage <= 1" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage-1">
+    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
       Précédent
     </button>
-    <input ng-model="fileCtrl.currentPage" style="max-width: 40px" >/{{fileCtrl.resultPages}}
-    <button class="btn btn-default btn-s" ng-disabled="fileCtrl.currentPage >= fileCtrl.resultPages" ng-click="fileCtrl.currentPage=+fileCtrl.currentPage+1">
+    <input ng-model="search.pagination.currentPage" style="max-width: 40px" >/{{search.pagination.resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
       Suivant
     </button>
   </div>
@@ -73,7 +53,7 @@
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
       <h2>
         Résultats
-        <span ng-if="fileCtrl.results == 0 || fileCtrl.results > 0">({{fileCtrl.results}})</span>
+        <span ng-if="search.response.totalResult === 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span>
       </h2>
     </a>
 
@@ -89,8 +69,8 @@
               <th>MIME</th>
               <th>Extension</th>
             </tr>
-            <tbody ng-repeat="file in fileCtrl.fileFormatList | startFormat:fileCtrl.startFormat() | limitTo:fileCtrl.itemsPerPage">
-              <tr ng-click="fileCtrl.openDialog($event, file._id)">
+            <tbody ng-repeat="file in search.response.data | startFormat:startFormat() | limitTo: search.pagination.itemsPerPage">
+              <tr ng-click="openDialog($event, file._id)">
                 <td style="text-overflow: ellipsis;max-width:20%" scope="row" >{{file.PUID}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Name}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Version}}</td>

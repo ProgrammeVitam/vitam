@@ -28,124 +28,23 @@
 'use strict';
 
 angular.module('ihm.demo')
-    .filter('startFrom', function() {
-        return function (input, start) {
-            start = +start; //parse to int
-            return input.slice(start);
-        }
-    })
+  .filter('startFrom', function() {
+    return function (input, start) {
+      start = +start; //parse to int
+      return input.slice(start);
+    }
+  })
   .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService){
     var defaultSearchType = "--";
-    var ctrl = this;
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 0;
-    ctrl.searchOptions = {};
-    ctrl.operationList = [];
-    ctrl.resultPages = 0;
-    ctrl.searchType = defaultSearchType;
-    ctrl.startFormat = function(){
-        var start="";
-
-        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-            start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
-        }
-
-        if(ctrl.currentPage>ctrl.resultPages){
-            start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
-        }
-        return start;
-      };
-		function initFields(fields) {
-			var result = [];
-			for (var i = 0, len = fields.length; i<len; i++) {
-				var fieldId = fields[i];
-				result.push({
-				 id: fieldId, label: 'operation.logbook.displayField.' + fieldId
-				 });
-				}
-			return result;
-		}
-
-		loadStaticValues.loadFromFile().then(
-			function onSuccess(response) {
-				var config = response.data;
-				ctrl.customFields = initFields(config.logbookOperationCustomFields);
-			}, function onError(error) {
-
-			});
-
-		ctrl.selectedObjects = [];
-
-		ctrl.goToDetails = function(id) {
-			$window.open('#!/admin/detailOperation/' + id)
-		};
-
-    // FIXME P0: Useless Function ? When and why is it created ?
-    ctrl.openDialog = function($event, id) {
-      $mdDialog.show({
-        controller: 'logbookEntryController as entryCtrl',
-        templateUrl: 'views/logbookEntry.html',
-        parent: angular.element(document.body),
-        clickOutsideToClose:true,
-        targetEvent: $event,
-        locals : {
-          operationId : id
-        }
-      })
-    };
-
-    var clearResults = function() {
-      ctrl.searchOptions = {};
-      ctrl.resultPages = 0;
-      ctrl.currentPage = 0;
-      ctrl.results = 0;
-      ctrl.operationList = [];
-    };
-
-    var preSearch = function() {
-      clearResults();
-      ctrl.fileNotFoundError = false;
-
-      ctrl.searchOptions.EventType = ctrl.searchType;
-
-      if (ctrl.searchOptions.EventType === defaultSearchType || ctrl.searchOptions.EventType == undefined) {
-        ctrl.searchOptions.EventType = "all";
-      }
-
-      ctrl.searchOptions.EventID = ctrl.searchID;
-
-      if (ctrl.searchOptions.EventID == "" || ctrl.searchOptions.EventID == undefined) {
-        ctrl.searchOptions.EventID = "all";
-      }
-
-      ctrl.searchOptions.orderby = "evDateTime";
-      return ctrl.searchOptions;
-    };
-
-    var successCallback = function(response) {
-      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-        return false;
-      }
-      ctrl.operationList = response.data.$results;
-      ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
-      ctrl.results = response.data.$hits.total;
-      ctrl.currentPage = 1;
-      return true;
-    };
-
-    var computeErrorMessage = function() {
-      if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
-        return 'Veuillez ne remplir qu\'un seul champ';
-      } else {
-        return 'Il n\'y a aucun résultat pour votre recherche';
-      }
-    };
 
     $scope.search = {
       form: {
+        EventID: '',
+        EventType: defaultSearchType
       }, pagination: {
         currentPage: 0,
-        resultPages: 0
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
       }, error: {
         message: '',
         displayMessage: false
@@ -156,7 +55,93 @@ angular.module('ihm.demo')
       }
     };
 
-    ctrl.getList = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    $scope.dynamicTable = {
+      customFields: [],
+      selectedObjects: []
+    };
+
+    $scope.startFormat = function(){
+      var start="";
+
+      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
+      }
+
+      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
+        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
+      }
+      return start;
+    };
+
+    $scope.goToDetails = function(id) {
+      $window.open('#!/admin/detailOperation/' + id)
+    };
+
+    function initFields(fields) {
+      var result = [];
+      for (var i = 0, len = fields.length; i<len; i++) {
+        var fieldId = fields[i];
+        result.push({
+          id: fieldId, label: 'operation.logbook.displayField.' + fieldId
+        });
+      }
+      return result;
+    }
+
+    loadStaticValues.loadFromFile().then(
+      function onSuccess(response) {
+        var config = response.data;
+        $scope.dynamicTable.customFields = initFields(config.logbookOperationCustomFields);
+      }, function onError(error) {
+
+      });
+
+    var clearResults = function() {
+      $scope.search.pagination.resultPages = 0;
+      $scope.search.pagination.currentPage = 0;
+      $scope.search.response.totalResults = 0;
+      $scope.search.response.data = [];
+    };
+
+    var preSearch = function() {
+      var requestOptions = angular.copy($scope.search.form);
+      clearResults();
+
+      if (requestOptions.EventType === defaultSearchType || requestOptions.EventType == undefined) {
+        requestOptions.EventType = "all";
+      }
+
+      if (requestOptions.EventID == "" || requestOptions.EventID == undefined) {
+        requestOptions.EventID = "all";
+      }
+
+      requestOptions.orderby = "evDateTime";
+      return requestOptions;
+    };
+
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      $scope.search.response.data = response.data.$results;
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/$scope.search.pagination.itemsPerPage);
+      $scope.search.response.totalResults = response.data.$hits.total;
+      $scope.search.pagination.currentPage = 1;
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      if ($scope.search.form.EventType !== defaultSearchType && $scope.search.form.EventID) {
+        return 'Veuillez ne remplir qu\'un seul champ';
+      } else {
+        return 'Il n\'y a aucun résultat pour votre recherche';
+      }
+    };
+
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    $scope.getList = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
+
   });
 
 

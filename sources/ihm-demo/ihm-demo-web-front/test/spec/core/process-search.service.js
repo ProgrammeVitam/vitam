@@ -42,6 +42,7 @@ describe('processSearchService', function() {
 
     scope.search = {
       form: {
+        test: ''
       }, pagination: {
         currentPage: 0,
         resultPages: 0
@@ -297,4 +298,42 @@ describe('processSearchService', function() {
 
     scope.$digest();
   });
+
+  it('should reset form if reset function is call', function() {
+    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR);
+    scope.search.form.test = 'Value';
+    expect(scope.search.form.test).toBe('Value');
+
+    searchService.processReinit();
+    expect(scope.search.form.test).toBe('');
+  });
+
+  it('should recall search on reset if autoSeatch is true', function(done) {
+    var count = 0;
+
+    // setup
+    spyOn(mock, 'sC').and.callThrough();
+    spyOn(mock, 'cR').and.callThrough();
+
+    function doneAfterSuccessCallback(params) {
+      var result = mock.sC(params);
+
+      // assert
+      if (count === 0) {
+        expect(mock.sC).toHaveBeenCalledTimes(1);
+        expect(mock.cR).toHaveBeenCalledTimes(1);
+      } else {
+        expect(mock.sC).toHaveBeenCalledTimes(2);
+        expect(mock.cR).toHaveBeenCalledTimes(2);
+        done();
+      }
+      count++;
+      return result;
+    }
+
+    // act
+    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, mock.cR, true);
+    searchService.processReinit();
+  });
+
 });

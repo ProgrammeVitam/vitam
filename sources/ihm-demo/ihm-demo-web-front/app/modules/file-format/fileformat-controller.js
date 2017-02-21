@@ -35,27 +35,39 @@ angular.module('ihm.demo')
     }
   })
   .controller('fileformatController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService) {
-    var ctrl = this;
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 1;
-    ctrl.maxSize = 5;
-    ctrl.searchOptions = {};
-    ctrl.fileFormatList = [];
-    ctrl.fileNotFoundError = false;
 
-    ctrl.startFormat = function(){
+    $scope.search = {
+      form: {
+        FormatName: '',
+        PUID: ''
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
+    };
+
+    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
+    $scope.startFormat = function(){
       var start="";
 
-      if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-       start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
+      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
+       start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
       }
-        if(ctrl.currentPage>ctrl.resultPages){
-            start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
+        if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
+            start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
         }
         return start;
     };
 
-    ctrl.openDialog = function($event, id) {
+    $scope.openDialog = function($event, id) {
       $mdDialog.show({
         controller: 'fileformatEntryController as entryCtrl',
         templateUrl: 'views/file-format-Entry.html',
@@ -70,22 +82,23 @@ angular.module('ihm.demo')
     };
 
     var preSearch = function() {
-      ctrl.searchOptions.FORMAT = "all";
-      ctrl.searchOptions.orderby = "Name";
-      return ctrl.searchOptions;
+      var requestOptions = angular.copy($scope.search.form);
+      requestOptions.FORMAT = "all";
+      requestOptions.orderby = "Name";
+      return requestOptions;
     };
 
     var successCallback = function(response) {
       if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
         return false;
       }
-      ctrl.fileFormatList = response.data.$results.sort(function (a, b) {
+      $scope.search.response.data = response.data.$results.sort(function (a, b) {
         return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
       });
-      ctrl.resultPages = Math.ceil(ctrl.fileFormatList.length/ITEM_PER_PAGE);
-      ctrl.currentPage = 1;
-      ctrl.results = response.data.$hits.total;
-      $scope.totalItems = ctrl.results;
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/ITEM_PER_PAGE);
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.response.totalResult = response.data.$hits.total;
+      $scope.totalItems = $scope.search.response.totalResult;
       return true;
     };
 
@@ -93,45 +106,16 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    $scope.search = {
-      form: {
-      }, pagination: {
-        currentPage: 0,
-        resultPages: 0
-      }, error: {
-        message: '',
-        displayMessage: false
-      }, response: {
-        data: [],
-        hints: {},
-        totalResult: 0
-      }
-    };
-
     function clearResults() {
-      ctrl.fileFormatList = [];
-      ctrl.currentPage = "";
-      ctrl.resultPages = "";
-      ctrl.results = 0;
+      $scope.search.response.data = [];
+      $scope.search.pagination.currentPage = "";
+      $scope.search.pagination.resultPages = "";
+      $scope.search.response.totalResult = 0;
     }
 
-    ctrl.getFileFormats = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
-
-    ctrl.clearInput = function (object){
-      if(object == 'FormatName'){
-        delete ctrl.searchOptions.FormatName;
-      }
-      if(object == 'PUID'){
-        ctrl.searchOptions.PUID ='';
-      }
-      ctrl.getFileFormats();
-    };
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.searchOptions = {};
-      ctrl.getFileFormats();
-    };
-
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    $scope.getFileFormats = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
   })
   .controller('fileformatEntryController', function($scope, $mdDialog, formatId, ihmDemoCLient, idOperationService) {
     var self = this;
