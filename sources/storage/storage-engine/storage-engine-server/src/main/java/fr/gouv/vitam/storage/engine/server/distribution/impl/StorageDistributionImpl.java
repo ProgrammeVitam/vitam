@@ -84,7 +84,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
@@ -181,7 +181,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     // TODO P1 : refactor me !
     @Override
     public StoredInfoResult storeData(String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category, String requester)
+        ObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageException, StorageObjectAlreadyExistsException {
         // Check input params
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -210,7 +210,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
-    private StorageLogbookParameters tryAndRetry(String objectId, CreateObjectDescription createObjectDescription,
+    private StorageLogbookParameters tryAndRetry(String objectId, ObjectDescription createObjectDescription,
         DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt, StorageLogbookParameters parameters)
         throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
 
@@ -297,7 +297,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private Map<String, Object> getInputStreamFromWorkspace(CreateObjectDescription createObjectDescription)
+    private Map<String, Object> getInputStreamFromWorkspace(ObjectDescription createObjectDescription)
         throws StorageTechnicalException, StorageNotFoundException {
         try (WorkspaceClient workspaceClient =
             mockedWorkspaceClient == null ? WorkspaceClientFactory.getInstance().getClient() : mockedWorkspaceClient) {
@@ -438,7 +438,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private void checkStoreDataParams(CreateObjectDescription createObjectDescription, Integer tenantId,
+    private void checkStoreDataParams(ObjectDescription createObjectDescription, Integer tenantId,
         String strategyId, String dataId, DataCategory category) {
         ParametersChecker.checkParameter(TENANT_ID_IS_MANDATORY, tenantId);
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);

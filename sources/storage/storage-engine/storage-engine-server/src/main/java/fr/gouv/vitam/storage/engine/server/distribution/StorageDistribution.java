@@ -40,7 +40,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -64,7 +64,7 @@ public interface StorageDistribution {
     // TODO P1 : maybe the logbook object should be an inputstream as well.
     // This would be an other US responsibility (not #72)
     StoredInfoResult storeData(String strategyId, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category, String requester)
+        ObjectDescription createObjectDescription, DataCategory category, String requester)
         throws StorageObjectAlreadyExistsException, StorageException;
 
     /**

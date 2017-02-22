@@ -105,7 +105,7 @@ import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -120,7 +120,7 @@ public class IngestInternalIT {
     static MongodProcess mongod;
     private static LogbookElasticsearchAccess esClient;
     private static final Integer tenantId = 0;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -352,7 +352,7 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
-        try {            
+        try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);

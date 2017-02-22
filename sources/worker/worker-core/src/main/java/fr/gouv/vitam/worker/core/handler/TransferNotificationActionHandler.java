@@ -82,9 +82,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -188,7 +188,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
             handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
             // store binary data object
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
             description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
@@ -640,7 +640,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
             try (VitamRequestIterator<JsonNode> iterator =
-                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
+                client.objectGroupLifeCyclesByOperationIterator(containerName,
+                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();

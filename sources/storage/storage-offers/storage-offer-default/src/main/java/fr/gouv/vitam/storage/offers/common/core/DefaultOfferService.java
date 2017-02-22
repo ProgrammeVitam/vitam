@@ -182,8 +182,8 @@ public interface DefaultOfferService {
      */
     void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
-    
-	/**
+
+    /**
      * Check digest (UNIMPLEMENTED)
      * 
      * @param containerName the container name
@@ -191,10 +191,10 @@ public interface DefaultOfferService {
      * @param digest the digest to be compared with
      * @throws UnsupportedOperationException (UNIMPLEMENTED)
      * @return true if the digest is correct
-	 */
-	boolean checkDigest(String containerName, String idObject, String digest);
+     */
+    boolean checkDigest(String containerName, String idObject, String digest);
 
-	/**
+    /**
      * Check digest algorithm (UNIMPLEMENTED)
      * 
      * @param containerName the container name
@@ -202,9 +202,9 @@ public interface DefaultOfferService {
      * @param digestAlgorithm the digest Algorithm
      * @throws UnsupportedOperationException (UNIMPLEMENTED)
      * @return true if the digest algorithm is correct
-	 */
-	boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
-	
+     */
+    boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
+
     /**
      * Get Metadata
      * 
@@ -215,7 +215,8 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
+    StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId)
+        throws ContentAddressableStorageException, IOException;
 
     /**
      * Create a new cursor for listing container operation
@@ -254,4 +255,5 @@ public interface DefaultOfferService {
      * @param cursorId the cursor ID
      */
     void finalizeCursor(String containerName, String cursorId);
+
 }

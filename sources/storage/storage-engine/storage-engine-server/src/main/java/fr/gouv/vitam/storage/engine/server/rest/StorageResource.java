@@ -55,7 +55,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -71,7 +70,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
@@ -251,13 +250,13 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response listObjects(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String
-        strategyId, @PathParam("type") DataCategory type) {
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
+        @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId, @PathParam("type") DataCategory type) {
         try {
             ParametersChecker.checkParameter("X-Cursor is required", xcursor);
             ParametersChecker.checkParameter("Strategy ID is required", strategyId);
             return distribution.listContainerObjects(strategyId, type, xcursorId);
-        } catch(IllegalArgumentException exc) {
+        } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         } catch (Exception exc) {
@@ -347,7 +346,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectOrGetInformation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        CreateObjectDescription createObjectDescription) {
+        ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1 : actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
@@ -500,7 +499,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLogbook(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_logbook") String logbookId, CreateObjectDescription createObjectDescription) {
+        @PathParam("id_logbook") String logbookId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
         } else {
@@ -594,7 +593,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUnitMetadata(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
+        @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
         } else {
@@ -710,7 +709,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectGroup(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
+        @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
         } else {
@@ -809,7 +808,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createReportOrGetInformation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers, @PathParam("id_report") String reportId,
-        CreateObjectDescription createObjectDescription) {
+        ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest
@@ -847,7 +846,7 @@ public class StorageResource extends ApplicationStatusResource {
     // getRemoteAdr from HttpServletRequest passed as parameter (requester)
     // Change it when the good header is sent
     private Response createObjectByType(HttpHeaders headers, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category, String requester) {
+        ObjectDescription createObjectDescription, DataCategory category, String requester) {
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
@@ -889,7 +888,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createManifestOrGetInformation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers, @PathParam("id_manifest") String manifestId,
-        CreateObjectDescription createObjectDescription) {
+        ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest

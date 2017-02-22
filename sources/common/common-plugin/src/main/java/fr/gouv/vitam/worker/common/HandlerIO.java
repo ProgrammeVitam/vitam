@@ -246,4 +246,18 @@ public interface HandlerIO extends VitamAutoCloseable {
      */
     LogbookLifeCyclesClientHelper getHelper();
 
+    /**
+     * 
+     * 
+     * Helper to convert and write a file to Workspace<br/>
+     * <br/>
+     * 
+     * @param collectionName : collection type
+     * @param workspacePath path within the workspacepath, without the container (implicit)
+     * @param jsonNode the json file to write
+     * @param toDelete if True, will delete the local file
+     * @throws ProcessingException
+     */
+    void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete)
+        throws ProcessingException;
 }

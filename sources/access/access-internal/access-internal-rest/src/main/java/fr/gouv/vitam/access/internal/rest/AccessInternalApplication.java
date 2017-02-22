@@ -45,6 +45,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
@@ -118,7 +119,9 @@ public class AccessInternalApplication
             // Metadata dependency
             .register(MetaDataClientFactory.getInstance())
             // Storage dependency
-            .register(StorageClientFactory.getInstance());
+            .register(StorageClientFactory.getInstance())
+            // Workspace dependency
+            .register(WorkspaceClientFactory.getInstance());
         if (mock != null) {
             resourceConfig.register(new AccessInternalResourceImpl(mock))
                 .register(new AdminStatusResource());

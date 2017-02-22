@@ -80,11 +80,11 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -252,9 +252,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
             workspaceClient.createContainer(guid);
             workspaceClient.putObject(guid, FOLDERNAME + guid + XML, atr);
 
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(guid);
-            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);   
+            description.setWorkspaceObjectURI(FOLDERNAME + guid + XML);
             storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY,
                 StorageCollectionType.REPORTS, guid + XML, description);
             return Response.status(Status.OK).build();

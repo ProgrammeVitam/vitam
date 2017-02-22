@@ -36,7 +36,6 @@ import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -171,7 +170,8 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnitById(JsonNode queryDsl, @PathParam("id_unit") String id_unit) {
+        public Response updateUnitById(JsonNode queryDsl, @PathParam("id_unit") String id_unit,
+            @HeaderParam(GlobalDataRest.X_REQUEST_ID) String requestId) {
             return expectedResponse.put();
         }
 
@@ -201,6 +201,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             JsonNode query, @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.get());
         }
+
     }
 
     @RunWithCustomExecutor

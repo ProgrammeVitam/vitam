@@ -50,7 +50,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -89,7 +90,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     @Override
     public StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type,
         String guid,
-        CreateObjectDescription description)
+        ObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
     }
@@ -100,7 +101,8 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest, DigestType digestAlgorithm)
+    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
+        DigestType digestAlgorithm)
         throws StorageServerClientException {
         return true;
     }
@@ -134,8 +136,8 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) throws
-        StorageServerClientException {
+    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
+        throws StorageServerClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CURSOR, true);
         return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);

@@ -38,7 +38,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -70,7 +71,7 @@ public interface StorageClient extends BasicClient {
      * @return the result status of object creation
      */
     StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
-        CreateObjectDescription description)
+        ObjectDescription description)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
@@ -141,7 +142,7 @@ public interface StorageClient extends BasicClient {
      * @return an iterator with object list
      * @throws StorageServerClientException thrown if the server got an internal error
      */
-    VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) throws
-        StorageServerClientException;
+    VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
+        throws StorageServerClientException;
 
 }

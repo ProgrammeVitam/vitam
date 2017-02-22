@@ -37,7 +37,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -47,7 +55,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.base.Strings;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -55,6 +62,7 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -70,7 +78,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -96,9 +103,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 
 /**
  * Web Application Resource class
@@ -130,7 +137,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         WebApplicationResource.soapUiRunning = soapUiRunning;
     }
 
-    // TODO FIX_TENANT_ID (LFET  FOR ONLY stat API)
+    // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
     private static final Integer TENANT_ID = 0;
 
     /**
@@ -397,7 +404,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) throws LogbookClientServerException {
+    public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
+        throws LogbookClientServerException {
 
         try (final LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -535,7 +543,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId, @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         try {
             Integer tenantId = null;
             if (Strings.isNullOrEmpty(xTenantId)) {
@@ -588,7 +597,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/logbooks/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadObjectAsStreamForBrowser(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse,  @QueryParam(GlobalDataRest.X_TENANT_ID) Integer tenantId ){
+        @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) Integer tenantId) {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
     }
@@ -601,7 +610,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            int tenantId =  VitamThreadUtils.getVitamSession().getTenantId();
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final RequestResponse<JsonNode> result =
                 UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
 

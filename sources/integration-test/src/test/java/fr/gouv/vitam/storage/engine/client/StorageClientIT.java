@@ -55,7 +55,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageApplication;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -204,14 +205,14 @@ public class StorageClientIT {
     @Test
     public final void testStorage() throws VitamClientException, FileNotFoundException {
         try {
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(CONTAINER_1);
             description.setWorkspaceObjectURI(OBJECT_ID);
-            final CreateObjectDescription description1 = new CreateObjectDescription();
+            final ObjectDescription description1 = new ObjectDescription();
             description1.setWorkspaceContainerGUID(CONTAINER_2);
             description1.setWorkspaceObjectURI(REPORT);
 
-            final CreateObjectDescription description2 = new CreateObjectDescription();
+            final ObjectDescription description2 = new ObjectDescription();
             description2.setWorkspaceContainerGUID(CONTAINER_3);
             description2.setWorkspaceObjectURI(MANIFEST);
             // status
