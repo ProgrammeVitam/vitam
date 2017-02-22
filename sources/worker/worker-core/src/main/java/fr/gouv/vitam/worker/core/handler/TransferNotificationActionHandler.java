@@ -175,10 +175,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // define eventDetailData
             eventDetailData =
                 "{" +
-                    "\"MessageDigest\":\"" + atrFile.getName() +
-                    "\",\"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() +
-                    "\", \"SystemMessageDigest\": \"" + vitamDigestString +
-                    "\", \"SystemAlgorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"} ";
+                    "\"FileName\":\"" + "ATR_" + params.getContainerName() +
+                    "\", \"MessageDigest\": \"" + vitamDigestString +
+                    "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
 
             itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
             // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
