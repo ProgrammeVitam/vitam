@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -81,7 +82,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
  */
 @Path("/storage/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class StorageResource extends ApplicationStatusResource {
+public class StorageResource extends ApplicationStatusResource implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
     private static final String CODE_VITAM = "code_vitam";
@@ -956,6 +957,11 @@ public class StorageResource extends ApplicationStatusResource {
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+    }
+
+    @Override
+    public void close() {
+        distribution.close();
     }
 
 }

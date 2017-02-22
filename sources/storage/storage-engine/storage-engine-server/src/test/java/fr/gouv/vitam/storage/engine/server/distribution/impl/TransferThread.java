@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -57,6 +57,9 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
  * Thread Future used to send stream to one offer
+ * "Package override" for testing timeout
+ *
+ * The else on the call have to be the same as main implementation.
  */
 public class TransferThread implements Callable<ThreadResponseData> {
 
@@ -87,43 +90,48 @@ public class TransferThread implements Callable<ThreadResponseData> {
     // TODO: Manage interruption (if possible)
     @Override
     public ThreadResponseData call() throws Exception {
-        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-        final Properties parameters = new Properties();
-        parameters.putAll(offer.getParameters());
-        ThreadResponseData response;
-        try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-            if (isRewritableObject(request, connection)) {
+        if (request.getGuid().equals("timeoutTest") && request.getTenantId() == 0) {
+            Thread.sleep(2000);
+            return null;
+        } else {
+            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
+            final Properties parameters = new Properties();
+            parameters.putAll(offer.getParameters());
+            ThreadResponseData response;
+            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                if (!isObjectExistsInOffer(request, connection)) {
 
-                // ugly way to get digest from stream
-                // TODO: How to do the cleaner ?
-                // TODO: remove this, check is offer size (#1851) !
-                Digest digest = new Digest(DigestType.valueOf(request.getDigestAlgorithm()));
-                InputStream stream = digest.getDigestInputStream(request.getDataStream());
-                StoragePutRequest putObjectRequest = new StoragePutRequest(request.getTenantId(), request.getType(),
-                    request.getGuid(), request.getDigestAlgorithm(), stream);
+                    // ugly way to get digest from stream
+                    // TODO: How to do the cleaner ?
+                    // TODO: remove this, check is offer size (#1851) !
+                    Digest digest = new Digest(DigestType.valueOf(request.getDigestAlgorithm()));
+                    InputStream stream = digest.getDigestInputStream(request.getDataStream());
+                    StoragePutRequest putObjectRequest = new StoragePutRequest(request.getTenantId(), request.getType(),
+                        request.getGuid(), request.getDigestAlgorithm(), stream);
 
-                StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
+                    StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
 
-                // Check digest against offer
-                StorageCheckRequest storageCheckRequest =
-                    new StorageCheckRequest(request.getTenantId(), request.getType(),
-                        request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()),
-                        digest.digestHex());
-                if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
-                    throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content " +
-                        "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
+                    // Check digest against offer
+                    StorageCheckRequest storageCheckRequest =
+                        new StorageCheckRequest(request.getTenantId(), request.getType(),
+                            request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()),
+                            digest.digestHex());
+                    if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
+                        throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content " +
+                            "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
+                    }
+                    response = new ThreadResponseData(putObjectResult, Response.Status.CREATED, request.getGuid());
+                } else {
+                    // TODO: if already exist then cancel and replace. Need rollback feature (which need remove feature)
+                    // TODO with US #1997
+                    response = new ThreadResponseData(null, Response.Status.OK, request.getGuid());
                 }
-                response = new ThreadResponseData(putObjectResult, Response.Status.CREATED, request.getGuid());
-            } else {
-                // TODO: if already exist then cancel and replace. Need rollback feature (which need remove feature)
-                // TODO with US #1997
-                response = new ThreadResponseData(null, Response.Status.OK, request.getGuid());
             }
+            return response;
         }
-        return response;
     }
 
-    private boolean isRewritableObject(StoragePutRequest request, Connection connection)
+    private boolean isObjectExistsInOffer(StoragePutRequest request, Connection connection)
         throws StorageDriverException, StorageObjectAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
@@ -143,7 +151,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                     throw new UnsupportedOperationException("Not implemented");
             }
         }
-        return true;
+        return false;
     }
 
 
