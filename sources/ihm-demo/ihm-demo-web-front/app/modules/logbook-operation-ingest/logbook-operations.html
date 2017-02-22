@@ -13,7 +13,7 @@
       <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-25">
         <label for="entryName">Lot d'archive</label>
         <div class="input-group m-b-25">
-          <input ng-model="search.form.obIdIn" type="text" name="entryName" class="form-control input-lg" />
+          <input ng-model="search.form.obIdIn" type="text" name="entryName" class="form-control input-lg" ng-change="onInputChange()"/>
           <div class="input-group-addon">
               <button class="btn btn-primary center-block" type="reset" ng-click="reinitForm()">
                   <i class="material-icons pull-left">clear</i>
@@ -60,7 +60,7 @@
           <th>Bordereau</th>
         </tr>
 
-        <tbody ng-repeat="log in search.response.data | startFormat:startFormat() | limitTo:search.pagination.itemsPerPage">
+        <tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo:search.pagination.itemsPerPage">
           <tr>
             <td ng-click="goToDetails(log.evIdProc)" >{{log.events[0].obIdIn}}</td>
             <td ng-click="goToDetails(log.evIdProc)" >{{log.evIdProc}}</td>

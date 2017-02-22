@@ -103,9 +103,6 @@ describe('processSearchService', function() {
         return 'error in searchFunction';
       }
       return 'Error Message';
-    },
-    cR: function clearResults() {
-      // Should reset fields
     }
   };
 
@@ -118,32 +115,31 @@ describe('processSearchService', function() {
 
   it('should raise error if mandatory parameter is missing', function() {
     // Check missing mandatory parameters
-    expect(callInitWithArgs(null, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR)).toThrow(new Error('Params not initialized -searchFunction'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, null, mock.cEM, scope.search, mock.cR)).toThrow(new Error('Params not initialized -successCallback'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, null, scope.search, mock.cR)).toThrow(new Error('Params not initialized -computeErrorMessage'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, null, mock.cR)).toThrow(new Error('Params not initialized -searchScope'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, null)).toThrow(new Error('Params not initialized -clearResults'));
+    expect(callInitWithArgs(null, mock.cPP, mock.sC, mock.cEM, scope.search)).toThrow(new Error('Params not initialized -searchFunction'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, null, mock.cEM, scope.search)).toThrow(new Error('Params not initialized -successCallback'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, null, scope.search)).toThrow(new Error('Params not initialized -computeErrorMessage'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, null)).toThrow(new Error('Params not initialized -searchScope'));
 
     // Check all missing mandatory parameters
-    expect(callInitWithArgs()).toThrow(new Error('Params not initialized -successCallback-computeErrorMessage-clearResults-searchScope-searchFunction'));
-    expect(callInitWithArgs(null, mock.cPP, null, null, null, null)).toThrow(new Error('Params not initialized -successCallback-computeErrorMessage-clearResults-searchScope-searchFunction'));
+    expect(callInitWithArgs()).toThrow(new Error('Params not initialized -successCallback-computeErrorMessage-searchScope-searchFunction'));
+    expect(callInitWithArgs(null, mock.cPP, null, null, null)).toThrow(new Error('Params not initialized -successCallback-computeErrorMessage-searchScope-searchFunction'));
 
     // Should not raise exception when mandatory parameters are there
-    ProcessSearchService.initAndServe(mock.sF, null, mock.sC, mock.cEM, scope.search, mock.cR);
-    ProcessSearchService.initAndServe(mock.sF, null, mock.sC, mock.cEM, scope.search, mock.cR, null, null, null);
+    ProcessSearchService.initAndServe(mock.sF, null, mock.sC, mock.cEM, scope.search);
+    ProcessSearchService.initAndServe(mock.sF, null, mock.sC, mock.cEM, scope.search, null, null, null, null);
   });
 
   it('should raise error if parameters are wrong', function() {
     var wrongParam = 'SomeString';
-    expect(callInitWithArgs(wrongParam, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR)).toThrow(new Error('Params not initialized -searchFunctionType'));
-    expect(callInitWithArgs(mock.sF, wrongParam, mock.sC, mock.cEM, scope.search, mock.cR)).toThrow(new Error('Params not initialized -callbackPreProcessType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, wrongParam, mock.cEM, scope.search, mock.cR)).toThrow(new Error('Params not initialized -successCallbackType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, wrongParam, scope.search, mock.cR)).toThrow(new Error('Params not initialized -computeErrorMessageType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, wrongParam, mock.cR)).toThrow(new Error('Params not initialized -searchScopeType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, wrongParam)).toThrow(new Error('Params not initialized -clearResultsType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, wrongParam)).toThrow(new Error('Params not initialized -isAutoSearchType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, false, wrongParam)).toThrow(new Error('Params not initialized -preProcessParamsType'));
-    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, false, {}, wrongParam)).toThrow(new Error('Params not initialized -displayMessageTimeType'));
+    expect(callInitWithArgs(wrongParam, mock.cPP, mock.sC, mock.cEM, scope.search)).toThrow(new Error('Params not initialized -searchFunctionType'));
+    expect(callInitWithArgs(mock.sF, wrongParam, mock.sC, mock.cEM, scope.search)).toThrow(new Error('Params not initialized -callbackPreProcessType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, wrongParam, mock.cEM, scope.search)).toThrow(new Error('Params not initialized -successCallbackType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, wrongParam, scope.search)).toThrow(new Error('Params not initialized -computeErrorMessageType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, wrongParam)).toThrow(new Error('Params not initialized -searchScopeType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, wrongParam)).toThrow(new Error('Params not initialized -isAutoSearchType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, false, wrongParam)).toThrow(new Error('Params not initialized -preProcessParamsType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, false, {}, wrongParam)).toThrow(new Error('Params not initialized -clearResultsType'));
+    expect(callInitWithArgs(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, false, {}, function() {}, wrongParam)).toThrow(new Error('Params not initialized -displayMessageTimeType'));
   });
 
   it('should do a first call if isAutoSearch is true, else shouldn\'t', function() {
@@ -153,13 +149,13 @@ describe('processSearchService', function() {
     };
 
     // act 1st case
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, false, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, false, preProcessParams);
     // assert
     expect(scope.search.error.displayMessage).toBeFalsy();
     expect(scope.search.error.message).toBe('');
 
     // act 2nd case
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
     // assert
     expect(scope.search.error.displayMessage).toBeTruthy();
     expect(scope.search.error.message).toBe('Error thrown by cPP');
@@ -171,7 +167,7 @@ describe('processSearchService', function() {
     spyOn(mock, 'sF').and.callThrough();
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
 
     // assert
     expect(mock.sF).toHaveBeenCalledWith(preProcessParams);
@@ -186,7 +182,7 @@ describe('processSearchService', function() {
     spyOn(mock, 'cEM').and.callThrough();
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
 
     // assert
     expect(mock.sF).toHaveBeenCalledTimes(0);
@@ -203,7 +199,7 @@ describe('processSearchService', function() {
     spyOn(mock, 'sF').and.callThrough();
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
 
     // assert
     expect(mock.sF).toHaveBeenCalledTimes(0);
@@ -212,20 +208,18 @@ describe('processSearchService', function() {
   it('should call the success callback on success', function(done) {
     // setup
     spyOn(mock, 'sC').and.callThrough();
-    spyOn(mock, 'cR').and.callThrough();
 
     function doneAfterSuccessCallback(params) {
       var result = mock.sC(params);
 
       // assert
       expect(mock.sC).toHaveBeenCalledTimes(1);
-      expect(mock.cR).toHaveBeenCalledTimes(1);
       done();
       return result;
     }
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, mock.cR, true);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, true);
   });
 
   it('should update error scope and call compute error message on error', function(done) {
@@ -236,7 +230,7 @@ describe('processSearchService', function() {
     spyOn(mock, 'cEM').and.callThrough();
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
 
     // assert
     scope.$watch('search.error', function(newValue) {
@@ -256,7 +250,7 @@ describe('processSearchService', function() {
     };
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams, 3000);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams, null, 1000);
 
     // assert
     scope.$watch('search.error', function() {
@@ -268,7 +262,7 @@ describe('processSearchService', function() {
         expect(scope.search.error.message).toBe('');
         expect(scope.search.error.displayMessage).toBe(false);
         done();
-      }, 4000);
+      }, 2000);
     });
 
     scope.$digest();
@@ -281,7 +275,7 @@ describe('processSearchService', function() {
     };
 
     // act
-    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR, true, preProcessParams);
+    ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
 
     // assert
     scope.$watch('search.error', function() {
@@ -293,14 +287,14 @@ describe('processSearchService', function() {
         expect(scope.search.error.message).toBe('Error thrown by cPP');
         expect(scope.search.error.displayMessage).toBe(true);
         done();
-      }, 9000);
+      }, 6000);
     });
 
     scope.$digest();
   });
 
   it('should reset form if reset function is call', function() {
-    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, mock.cR);
+    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search);
     scope.search.form.test = 'Value';
     expect(scope.search.form.test).toBe('Value');
 
@@ -313,7 +307,6 @@ describe('processSearchService', function() {
 
     // setup
     spyOn(mock, 'sC').and.callThrough();
-    spyOn(mock, 'cR').and.callThrough();
 
     function doneAfterSuccessCallback(params) {
       var result = mock.sC(params);
@@ -321,10 +314,8 @@ describe('processSearchService', function() {
       // assert
       if (count === 0) {
         expect(mock.sC).toHaveBeenCalledTimes(1);
-        expect(mock.cR).toHaveBeenCalledTimes(1);
       } else {
         expect(mock.sC).toHaveBeenCalledTimes(2);
-        expect(mock.cR).toHaveBeenCalledTimes(2);
         done();
       }
       count++;
@@ -332,8 +323,66 @@ describe('processSearchService', function() {
     }
 
     // act
-    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, mock.cR, true);
+    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, true);
     searchService.processReinit();
+  });
+
+  it('should not do anything if autoSearch = false on onInputChange call', function(done) {
+    var count = 0;
+
+    function doneAfterSuccessCallback(params) {
+      var result = mock.sC(params);
+
+      // assert
+      if (count === 0) {
+        // Should be called only once
+        expect(mock.sC).toHaveBeenCalledTimes(1);
+        setTimeout(function() {
+          done();
+        }, 2000);
+      } else {
+        // Should fail if called more that once
+        fail();
+      }
+      count++;
+      return result;
+    }
+
+    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, false);
+    scope.search.form.test = 'updated';
+    searchService.onInputChange();
+    searchService.processSearch();
+  });
+
+  it('should recall search onInputChange call', function(done) {
+    var count = 0;
+
+    function doneAfterSuccessCallback(params) {
+      var result = mock.sC(params);
+
+      // assert
+      if (count === 0) {
+        // First call, nothing to check
+      } else if (count === 1) {
+        // Should be called only once
+        expect(mock.sC).toHaveBeenCalledTimes(1);
+        setTimeout(function() {
+          done();
+        }, 2000);
+      } else {
+        // Should fail if called more that twice
+        fail();
+      }
+      count++;
+      return result;
+    }
+
+    var searchService = ProcessSearchService.initAndServe(mock.sF, mock.cPP, doneAfterSuccessCallback, mock.cEM, scope.search, true);
+    scope.search.form.test = 'updated';
+    // search should not be called there
+    searchService.onInputChange();
+    scope.search.form.test = '';
+    searchService.onInputChange();
   });
 
 });

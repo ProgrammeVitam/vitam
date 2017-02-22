@@ -51,7 +51,7 @@
             </th>
           </tr>
           <tbody>
-            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-repeat="result in $ctrl.lifeCycleDetails | startFormat : $ctrl.startFormat() | limitTo : $ctrl.itemsPerPage">
+            <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-repeat="result in $ctrl.lifeCycleDetails | startFrom : $ctrl.startFormat($ctrl.currentPage, $ctrl.resultPages, $ctrl.itemsPerPage) | limitTo : $ctrl.itemsPerPage">
               <td ng-repeat = "column in $ctrl.columnsToDisplay" class="{{selectStyleByStatus(result.outcomeValue)}} {{selectStyleByStepLevel(result.isStepLevelEvent)}}">
                 <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>

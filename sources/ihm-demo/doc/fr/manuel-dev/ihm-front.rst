@@ -91,17 +91,19 @@ où :
  
  
  Pour utiliser une traduction, utilisez dans une instruction angular de votre HTML le filtre translate:
+
 .. code-block:: html
 
 	<div>{{'archiveSearch.searchForm.id' | translate}}</div>
- 
+
  Si votre key est dynamique et présente dans une variable, il est possible d'inserer du js en plus de la chaine:
- .. code-block:: html
- 
+
+.. code-block:: html
+
  	<div>{{'archive.archiveUnitDetails.technicalMetadata.' + metadata[$index] | translate}}</div>
- 
- Enfin il est également possible de faire le traitement de traduction en js en appliquant le filtre:
- NB: $filter doit avoir été injecté
+
+Enfin il est également possible de faire le traitement de traduction en js en appliquant le filtre:
+NB: $filter doit avoir été injecté
  
 .. code-block:: javascript
 	

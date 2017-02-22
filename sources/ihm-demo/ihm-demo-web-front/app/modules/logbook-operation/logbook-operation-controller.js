@@ -28,14 +28,10 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .filter('startFrom', function() {
-    return function (input, start) {
-      start = +start; //parse to int
-      return input.slice(start);
-    }
-  })
-  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService){
+  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService, resultStartService) {
     var defaultSearchType = "--";
+
+    $scope.startFormat = resultStartService.startFormat;
 
     $scope.search = {
       form: {
@@ -58,19 +54,6 @@ angular.module('ihm.demo')
     $scope.dynamicTable = {
       customFields: [],
       selectedObjects: []
-    };
-
-    $scope.startFormat = function(){
-      var start="";
-
-      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
-        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
-      }
-
-      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
-        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
-      }
-      return start;
     };
 
     $scope.goToDetails = function(id) {
@@ -96,16 +79,8 @@ angular.module('ihm.demo')
 
       });
 
-    var clearResults = function() {
-      $scope.search.pagination.resultPages = 0;
-      $scope.search.pagination.currentPage = 0;
-      $scope.search.response.totalResults = 0;
-      $scope.search.response.data = [];
-    };
-
     var preSearch = function() {
       var requestOptions = angular.copy($scope.search.form);
-      clearResults();
 
       if (requestOptions.EventType === defaultSearchType || requestOptions.EventType == undefined) {
         requestOptions.EventType = "all";
@@ -138,10 +113,10 @@ angular.module('ihm.demo')
       }
     };
 
-    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getList = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
-
+    $scope.onInputChange = searchService.onInputChange;
   });
 
 

@@ -30,7 +30,9 @@ angular.module('accession.register.search')
     'GET_ALL_REGISTERS': 'ACCESSIONREGISTER',
     'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
   })
-  .controller('accessionRegisterSearchController', function($scope, $window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE, processSearchService) {
+  .controller('accessionRegisterSearchController', function($scope, $window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE, processSearchService, resultStartService) {
+
+    $scope.startFormat = resultStartService.startFormat;
 
     $scope.search = {
       form: {
@@ -47,20 +49,6 @@ angular.module('accession.register.search')
         hints: {},
         totalResult: 0
       }
-    };
-
-    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
-    $scope.startFormat = function(){
-      var start="";
-
-      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
-        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
-      }
-
-      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
-        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
-      }
-      return start;
     };
 
     $scope.goToDetails = function(id) {
@@ -100,16 +88,10 @@ angular.module('accession.register.search')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var clearResults = function() {
-      $scope.search.response.data = [];
-      $scope.search.pagination.currentPage = 0;
-      $scope.search.pagination.resultPages = 0;
-      $scope.search.response.totalResult = 0;
-    };
-
-    var searchService = processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true, null);
+    var searchService = processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.searchRegistersByCriteria = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
 
   });
 

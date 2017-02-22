@@ -17,6 +17,7 @@
     "angular-ui-bootstrap-bower": "0.13.4",
     "angular-material": "^1.1.0",
     "angular-file-upload": "^2.3.4",
+    "lodash": "~4.17.0",
     "restangular": "^1.5.2",
     "angular-cookies": "1.5.7",
     "angular-shiro": "^0.1.3",
