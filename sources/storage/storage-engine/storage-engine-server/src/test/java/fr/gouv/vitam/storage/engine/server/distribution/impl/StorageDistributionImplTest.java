@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -33,15 +33,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -70,9 +66,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
-import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -80,9 +74,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -117,7 +109,7 @@ public class StorageDistributionImplTest {
         simpleDistribution.close();
         // custom not necessary since static only
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void testStoreData_IllegalArguments()
@@ -274,9 +266,12 @@ public class StorageDistributionImplTest {
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build()).thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-            (long) 6349).build()).thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-            (long) 6349).build()).thenReturn(Response.status(Status.OK).entity(stream2).build());
+                (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                (long) 6349).build())
+            .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             // Store object
             customDistribution
@@ -450,7 +445,7 @@ public class StorageDistributionImplTest {
         simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT,
             new AsyncResponseJunitTest());
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void deleteObjectOK() throws Exception {
@@ -493,7 +488,7 @@ public class StorageDistributionImplTest {
     @Test(expected = StorageTechnicalException.class)
     public void timeoutInterruptedTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final CreateObjectDescription createObjectDescription = new CreateObjectDescription();
+        final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
@@ -507,7 +502,7 @@ public class StorageDistributionImplTest {
         try {
             // Store object
             customDistribution
-                .storeData(STRATEGY_ID, "timeoutTest", createObjectDescription, DataCategory.OBJECT,
+                .storeData(STRATEGY_ID, "timeoutTest", createObjectDescription, DataCategory.OBJECT_GROUP,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -615,7 +610,7 @@ public class StorageDistributionImplTest {
         }
         try {
             VitamThreadUtils.getVitamSession().setTenantId(0);
-            simpleDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT,null);
+            simpleDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
         } catch (IllegalArgumentException exc) {
             fail("Waiting for an illegal argument exception");
         }
@@ -625,8 +620,7 @@ public class StorageDistributionImplTest {
     @Test
     public void listContainerObjectsCustomTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        Response result = customDistribution.listContainerObjects(STRATEGY_ID, DataCategory
-            .OBJECT, null);
+        Response result = customDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
         assertNotNull(result);
         assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));
         assertNotNull(result.getEntity());

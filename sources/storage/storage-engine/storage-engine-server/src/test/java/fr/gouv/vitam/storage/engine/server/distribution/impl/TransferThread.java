@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -56,8 +56,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
- * Thread Future used to send stream to one offer
- * "Package override" for testing timeout
+ * Thread Future used to send stream to one offer "Package override" for testing timeout
  *
  * The else on the call have to be the same as main implementation.
  */
@@ -99,7 +98,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
             parameters.putAll(offer.getParameters());
             ThreadResponseData response;
             try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-                if (!isObjectExistsInOffer(request, connection)) {
+                if (isRewritableObject(request, connection)) {
 
                     // ugly way to get digest from stream
                     // TODO: How to do the cleaner ?
@@ -131,7 +130,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         }
     }
 
-    private boolean isObjectExistsInOffer(StoragePutRequest request, Connection connection)
+    private boolean isRewritableObject(StoragePutRequest request, Connection connection)
         throws StorageDriverException, StorageObjectAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
@@ -151,7 +150,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                     throw new UnsupportedOperationException("Not implemented");
             }
         }
-        return false;
+        return true;
     }
 
 
