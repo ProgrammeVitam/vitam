@@ -3,14 +3,20 @@
     "id" : "default",
     "baseUrl" : "http://localhost:8757",
     "parameters" : {
-      "user" : "bob"
+      "keyStore-keyPath": "src/test/resources/storage-test/tls/client/client.p12",
+      "keyStore-keyPassword": "vitam2016",
+      "trustStore-keyPath": "src/test/resources/storage-test/tls/server/truststore.jks",
+      "trustStore-keyPassword": "tazerty"
     }
   },
   {
     "id" : "default2",
     "baseUrl" : "http://localhost:8758",
     "parameters" : {
-      "user" : "bob"
+      "keyStore-keyPath": "src/test/resources/storage-test/tls/client/client.p12",
+      "keyStore-keyPassword": "vitam2016",
+      "trustStore-keyPath": "src/test/resources/storage-test/tls/server/truststore.jks",
+      "trustStore-keyPassword": "tazerty"
     }
   }
 ]

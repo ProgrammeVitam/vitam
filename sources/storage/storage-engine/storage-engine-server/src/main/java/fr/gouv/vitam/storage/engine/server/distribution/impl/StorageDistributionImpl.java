@@ -507,7 +507,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         final Properties parameters = new Properties();
         parameters.putAll(offer.getParameters());
-        try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+        try (Connection connection = driver.connect(offer, parameters)) {
             final ObjectNode ret = JsonHandler.createObjectNode();
             ret.put("offerId", offer.getId());
             ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
@@ -588,7 +588,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             final Driver driver = retrieveDriverInternal(offerReferences.get(0).getId());
             final Properties parameters = new Properties();
             parameters.putAll(offer.getParameters());
-            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+            try (Connection connection = driver.connect(offer, parameters)) {
                 StorageListRequest request = new StorageListRequest(tenantId, category.getFolder(), cursorId, true);
                 return connection.listObjects(request);
             } catch (final StorageDriverException exc) {
@@ -631,7 +631,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             final Properties parameters = new Properties();
             parameters.putAll(offer.getParameters());
-            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+            try (Connection connection = driver.connect(offer, parameters)) {
                 final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
@@ -699,7 +699,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
                 final Properties parameters = new Properties();
                 parameters.putAll(offer.getParameters());
-                try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+                try (Connection connection = driver.connect(offer, parameters)) {
                     StorageRemoveRequest request = new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(),
                         objectId, digestType, digest);
                     StorageRemoveResult result = connection.removeObject(request);

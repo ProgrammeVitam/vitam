@@ -48,11 +48,13 @@ import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class FakeDriverImplTest {
 
     private static FakeDriverImpl driver;
     private static int tenant;
+    private static StorageOffer offer = new StorageOffer();
 
     private static final String DRIVER_NAME = "Fake driver";
 
@@ -66,14 +68,14 @@ public class FakeDriverImplTest {
     public void givenIncorrectPropertiesThenRaiseAnException() throws Exception {
         final Properties props = new Properties();
         props.setProperty("fail", "fail");
-        driver.connect("props", props);
+        driver.connect(offer, props);
     }
 
 
     @Test
     public void givenCorrectPropertiesThenConnect() throws Exception {
         final Properties props = new Properties();
-        final Connection connect = driver.connect("props", props);
+        final Connection connect = driver.connect(offer, props);
         assertNotNull(connect);
         StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
