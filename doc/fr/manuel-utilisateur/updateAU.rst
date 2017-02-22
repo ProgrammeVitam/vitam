@@ -1,7 +1,7 @@
 Mise à jour d'un SIP
 ####################
 
-Cette partie décrit la mise à jour d'un ArchiveUnit dans Vitam.
+Cette partie décrit la mise à jour d'une Unité Archivistique dans Vitam.
 
 
 Principe de fonctionnement
@@ -10,15 +10,15 @@ Principe de fonctionnement
 Update
 ******
 
-Pour le moment, seule le cas de l'ajout d'un nouvel Archive Unit à un Archive Unit existant est en place.
+Pour le moment, seul le cas de l'ajout d'une nouvelle Unité Archivistique à une AUnité Archivistique existant est en place.
 
-1. Lors de l'extraction SEDA, si un Archive Unit déclare un identifiant Vitam dans un Archive Unit (*<SystemId>GUID</SystemId>*), alors les données de l'Archive Unit existant sont récupérées et un flag *<existing>true</existing>* est ajouté pour indiquer qu'il s'agit d'un mise à jour.
+1. Lors de l'extraction SEDA, si un Archive Unit déclare un identifiant Vitam dans une Unité Archivistique (*<SystemId>GUID</SystemId>*), alors les données de l'Archive Unit existant sont récupérées et un flag *<existing>true</existing>* est ajouté pour indiquer qu'il s'agit d'un mise à jour.
 
-2. Les règles de gestion sont recalculées pour les Archive Unit dont les métadonnées on été modifiées
+2. Les règles de gestion sont recalculées pour les Unité Archivistique dont les métadonnées on été modifiées
 
-3. Lors de l'indexation des metadonnées, si l'Archive Unit est indiquée comme existante, alors on opère une mise à jour des données et on ajoute l'identifiant de l'opération en cours. Ajourd'hui l'implémentation de l'algorithme prends également en compte la mise à jour des métadonnées : toutes les métadonnées déclarées dans le manifest.xml s'ajoutent ou remplacent les métadonnées existantes.
+3. Lors de l'indexation des metadonnées, si l'Unité Archivistique est indiquée comme existante, alors on opère une mise à jour des données et on ajoute l'identifiant de l'opération en cours. Ajourd'hui l'implémentation de l'algorithme prends également en compte la mise à jour des métadonnées : toutes les métadonnées déclarées dans le manifest.xml s'ajoutent ou remplacent les métadonnées existantes.
 
-4. Alimentation des registres de fond : TODO (se comporte comme pour un ajout d'Archive Unit pour les existants)
+4. Alimentation des registres de fond : TODO (se comporte comme pour un ajout d'Unité Archivistique pour les existants)
 
 Evolutions futures
 ******************
