@@ -42,7 +42,7 @@ public class OpenstackSwiftTest {
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenReturnMetadatasObjectResult() 
         throws ContentAddressableStorageException, IOException{
-        String containerName = TYPE + "_" + TENANT_ID;
+        String containerName = TENANT_ID+ "_" + TYPE;
 //        if (storage.isExistingContainer(containerName)){
 //            storage.deleteContainer(containerName, true);
 //        }
@@ -51,7 +51,7 @@ public class OpenstackSwiftTest {
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
         
         //get metadata of file
-        MetadatasObject result = storage.getObjectMetadatas(TENANT_ID, TYPE, OBJECT_ID);
+        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
         assertNotNull(result);
         
         assertEquals(OBJECT_ID, result.getObjectName());
@@ -64,7 +64,7 @@ public class OpenstackSwiftTest {
         
         storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         //get metadata of directory
-        result = storage.getObjectMetadatas(TENANT_ID, TYPE, null);
+        result = storage.getObjectMetadatas(containerName, null);
         assertEquals("object_1", result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(null, result.getDigest());

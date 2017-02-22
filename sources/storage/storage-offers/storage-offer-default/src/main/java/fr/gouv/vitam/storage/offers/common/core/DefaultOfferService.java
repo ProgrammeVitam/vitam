@@ -208,15 +208,13 @@ public interface DefaultOfferService {
     /**
      * Get Metadata
      * 
-     * @param tenantId
-     * @param type
+     * @param containerName
      * @param objectId
      * @return StorageMetadatasResult
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId)
-        throws ContentAddressableStorageException, IOException;
+    StorageMetadatasResult getMetadatas(String containerName, String objectId) throws ContentAddressableStorageException, IOException;
 
     /**
      * Create a new cursor for listing container operation

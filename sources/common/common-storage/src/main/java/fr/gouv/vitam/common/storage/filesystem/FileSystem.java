@@ -147,12 +147,11 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     }
     
     @Override
-    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId) 
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws IOException, ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
         try {
-            String containerName = type + "_" + tenantId;
-            
+
             File file = getFileFromJClouds(containerName, objectId);
             BasicFileAttributes basicAttribs = getFileAttributes(file);
             long size = Files.size(Paths.get(file.getPath()));
@@ -168,9 +167,10 @@ public class FileSystem extends ContentAddressableStorageAbstract {
                     //TODO calculer l'empreint de répertoire
                     result.setDigest(null);
                     result.setFileSize(getFolderUsedSize(file));
-                }                
-                result.setType(type.toString());
-                result.setFileOwner("Vitam_" + tenantId);
+                }
+                // TODO store vitam metadatas
+                result.setType(containerName.split("_")[1]);
+                result.setFileOwner("Vitam_" + containerName.split("_")[0]);
                 result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
                 result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());                
             }

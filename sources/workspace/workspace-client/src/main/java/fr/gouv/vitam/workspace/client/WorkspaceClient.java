@@ -591,7 +591,7 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId)
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
         // FIXME implémente dans workspace 
         return new MetadatasStorageObject();

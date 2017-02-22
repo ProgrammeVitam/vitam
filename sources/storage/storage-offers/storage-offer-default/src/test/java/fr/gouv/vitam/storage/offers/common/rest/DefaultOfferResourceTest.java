@@ -157,10 +157,10 @@ public class DefaultOfferResourceTest {
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
         // delete directories recursively
-        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/unit_1")));
-        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/unit_2")));
-        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/object_0")));
-        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/object_1")));
+        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/1_unit")));
+        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/2_unit")));
+        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/0_object")));
+        FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/1_object")));
         // for skipped test (putObjectChunkTest)
         // FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/1")));
     }
@@ -313,7 +313,7 @@ public class DefaultOfferResourceTest {
 
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/unit_2");
+        final File container = new File(conf.getStoragePath() + "/2_unit");
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
     }
@@ -371,7 +371,7 @@ public class DefaultOfferResourceTest {
         // check
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/unit_2");
+        final File container = new File(conf.getStoragePath() + "/2_unit");
         assertNotNull(container);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -492,7 +492,7 @@ public class DefaultOfferResourceTest {
         // object
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
             StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + "/unit_1");
+        final File container = new File(conf.getStoragePath() + "/1_unit");
 
         container.mkdir();
         final File object = new File(container.getAbsolutePath(), "/id1");

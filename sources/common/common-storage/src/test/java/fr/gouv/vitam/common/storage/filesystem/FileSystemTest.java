@@ -553,12 +553,12 @@ public class FileSystemTest {
     
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
-        String containerName = TYPE + "_" + TENANT_ID;
+        String containerName = TENANT_ID + "_"+ TYPE;
         storage.createContainer(containerName);
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
         //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         //get metadata of file
-        MetadatasObject result = storage.getObjectMetadatas(TENANT_ID, TYPE, OBJECT_ID);
+        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals("9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418", 
@@ -570,8 +570,8 @@ public class FileSystemTest {
         
         storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         //get metadata of directory
-        result = storage.getObjectMetadatas(TENANT_ID, TYPE, null);
-        assertEquals("object_0", result.getObjectName());
+        result = storage.getObjectMetadatas(containerName, null);
+        assertEquals("0_object", result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(null, result.getDigest());
         assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());

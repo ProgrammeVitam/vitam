@@ -117,11 +117,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getCapacity(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("type") DataCategory type) {
-        final String containerName = buildContainerName(type, xTenantId);
-        if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+        final String containerName = buildContainerName(type, xTenantId);
         try {
             ObjectNode result = (ObjectNode) DefaultOfferServiceImpl.getInstance().getCapacity(containerName);
             Response.ResponseBuilder response = Response.status(Status.OK);
@@ -195,7 +195,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 status = Status.INTERNAL_SERVER_ERROR;
                 final Response.ResponseBuilder builder = Response.status(status)
                     .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setContext("default-offer").setState("code_vitam").setMessage(status.getReasonPhrase())
+                        .setContext(DEFAULT_OFFER_MODULE).setState(CODE_VITAM).setMessage(status.getReasonPhrase())
                         .setDescription(exc.getMessage()));
                 return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
             }
@@ -222,11 +222,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("type") DataCategory type) {
-        final String containerName = buildContainerName(type, xTenantId);
-        if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+        final String containerName = buildContainerName(type, xTenantId);
         try {
             final JsonNode result = DefaultOfferServiceImpl.getInstance().countObjects(containerName);
             return Response.status(Response.Status.OK).entity(result).build();
@@ -296,11 +296,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        final String containerName = buildContainerName(type, xTenantId);
-        if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+        final String containerName = buildContainerName(type, xTenantId);
         if (!objectInit.getType().equals(type)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -343,11 +343,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public Response putObject(@PathParam("type") DataCategory type, @PathParam("id") String objectId,
         @Context HttpHeaders headers, InputStream input) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        final String containerName = buildContainerName(type, xTenantId);
-        if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+        final String containerName = buildContainerName(type, xTenantId);
         final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
         if (xCommandHeader == null || !xCommandHeader.equals(StorageConstants.COMMAND_WRITE) && !xCommandHeader
             .equals(StorageConstants.COMMAND_END)) {
@@ -437,12 +437,11 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
         @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
-        String containerName = buildContainerName(type, xTenantId);
-        if (Strings.isNullOrEmpty(xTenantId) || Strings.isNullOrEmpty(containerName)) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-
+        String containerName = buildContainerName(type, xTenantId);
         Boolean checkDigest = !Strings.isNullOrEmpty(xDigest);
         Boolean checkAlgo = !Strings.isNullOrEmpty(xDigestAlgorithm);
 
@@ -478,16 +477,14 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}/{id:.+}/metadatas")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId){
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-
         try {
-            StorageMetadatasResult result =
-                DefaultOfferServiceImpl.getInstance().getMetadatas(xTenantId, type.getFolder(), idObject);
+            StorageMetadatasResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(
+                buildContainerName(type, xTenantId), idObject);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);
@@ -501,13 +498,13 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     private void getObjectAsync(DataCategory type, String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
         try {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            final String containerName = buildContainerName(type, xTenantId);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED).build());
                 return;
             }
+            final String containerName = buildContainerName(type, xTenantId);
             DefaultOfferServiceImpl.getInstance().getObject(containerName, objectId, asyncResponse);
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e);
@@ -545,6 +542,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         if (type == null || Strings.isNullOrEmpty(type.getFolder()) || Strings.isNullOrEmpty(tenantId)) {
             return null;
         }
-        return new StringBuilder(type.getFolder()).append('_').append(tenantId).toString();
+        return tenantId + "_" + type.getFolder();
     }
 }

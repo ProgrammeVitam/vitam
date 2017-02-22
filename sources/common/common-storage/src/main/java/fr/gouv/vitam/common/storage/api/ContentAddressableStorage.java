@@ -319,12 +319,14 @@ public interface ContentAddressableStorage {
         throws ContentAddressableStorageException;
     
     /**
-     * @param objectId
+     * @param containerName the container name
+     * @param objectId the objectId to check
      * @return MetadatasObjectResult
      * @throws ContentAddressableStorageException 
      * @throws IOException 
      */
-    MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId) throws ContentAddressableStorageException, IOException;
+    MetadatasObject getObjectMetadatas(String containerName, String objectId) throws
+        ContentAddressableStorageException, IOException;
 
     /**
      * List container (create cursor)
