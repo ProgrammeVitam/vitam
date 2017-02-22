@@ -19,12 +19,29 @@ L'IHM de recette est développée à des fins de tests uniquement.
 
 **Elle n'a aucunement vocation à être utilisée en production**
 
-Elle contient des interfaces utilisateurs permettant de :
+Elle contient des interfaces utilisateurs permettant, par tenant, de :
 
-  * administrer les collections MongoDB (référentiels, journaux, objets...)
-  * lancer des tests automatisés via SOAP UI
-  * sécuriser manuellement les journaux des opérations
-  * consulter les journaux de sécurisation
+  * Administrer les collections MongoDB (référentiels, journaux, objets...)
+  * Lancer des tests automatisés via SOAP UI
+  * Sécuriser manuellement les journaux des opérations
+  * Consulter les journaux de sécurisation
+
+Sélection d'un tenant
+----------------------------------
+Lors de la connexion, l'utilisateur n'est positionné sur aucun tenant.
+De ce fait, ses actions d'administrations sont restreintes car celles-ci sont pour la plupart liées à un tenant. Pour refléter cela, un certains nombres de boutons sont grisés et inactifs.
+
+Pour sélectionner un tenant, il suffit de choisir celui désiré dans le menu déroulant en haut à droite de l'écran et de valider sa sélection.
+
+.. image:: images/selection_tenant.png
+
+Une fois le tenant sélectionné, les boutons s'activent et l'intégralité de l'interface de recette est disponible.
+
+Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant dans lequel il veut effectuer ses opérations.
+L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
+
+
+NB : le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiels des formats est toujours disponible, même si aucun tenant n'est sélectionné.
 
 Navigation
 ----------
@@ -52,7 +69,7 @@ Actions de suppression
 ----------------------
 
 Chaque bouton "supprimer" est situé sous le titre de son action.
-Lors du clic sur un des boutons "supprimer", une fenêtre modale (popin) apparait et demande de confirmer l'action de suppression.
+Lors du clic sur un des boutons "supprimer", une fenêtre modale (popin) apparaît et demande de confirmer l'action de suppression.
 Deux choix sont proposés:
 
 - Un clic sur "Annuler", annule la demande de suppression, la fenêtre modale se ferme et rien ne se passe
@@ -64,7 +81,7 @@ Une fois la suppression effectuée, une message de confirmation s'affiche dans u
 Purge de toutes les collections VITAM
 --------------------------------------
 
-Tous les référentiels, tous les journaux ainsi que tous les objets et unités archivitiques sont supprimés de VITAM.
+Tous les référentiels, tous les journaux ainsi que tous les objets et unités archivistiques sont supprimés de VITAM.
 Suite à cette opération, chaque IHM correspondante est vide de contenu et plus aucune archive n'est présente dans VITAM.
 
 Purge des référentiels
@@ -72,7 +89,7 @@ Purge des référentiels
 
 **Référentiel des formats**
 
-Le référentiel des formats VITAM est supprimé. L'IHM du référentiel de formats est vide de contenu. Sans référentiel de formats, aucun SIP ne pourra être importé dans le SAE.
+Le référentiel des formats VITAM est supprimé **pour tous les tenants**. L'IHM du référentiel de formats est vide de contenu. Sans référentiel de formats, aucun SIP ne pourra être importé dans le SAE.
 
 
 **Référentiel des règles de gestion**
@@ -376,7 +393,7 @@ La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’a
  "testName": "SRC1 : chercher des unités d’archives contenant des objets dans un intervalle de dates extrêmes",
 
 **"category"**
-La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external” 
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external”
 
 **"tenant"**
 La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’agit de tenant qui a téléchargé le fichier SIP/règle/format. Par exemple:
