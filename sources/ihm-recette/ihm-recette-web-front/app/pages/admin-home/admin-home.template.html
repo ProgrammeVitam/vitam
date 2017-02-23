@@ -6,7 +6,7 @@
 
   <div class="panel panel-default col-md-12" style="padding-bottom: 15px;">
     <span class="panel-header no-toggle">
-      <h2>Purge de toutes les collections VITAM</h2>
+      <h2>Purge de toutes les collections VITAM (hors référentiels formats)</h2>
     </span>
 
     <div class="text-justify">
@@ -24,7 +24,7 @@
 
     <div class="panel-body">
       <a class="panel-header" data-target="#boxFormats" data-toggle="collapse">
-        <i>Purge des Formats</i>
+        <i>Purge des Formats (impacte tous les tenants)</i>
       </a>
       <div class="row archive-desc panel-collapse collapse in" id="boxFormats">
 
@@ -140,7 +140,7 @@
       </a>
       <div class="row archive-desc panel-collapse collapse in" id="boxOG">
         <div class="text-justify">
-          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-disabled="checkTenant()" ng-click="deleteConfirm(deleteObjectGroups, 'object')">
+          <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-disabled="checkTenant()" ng-click="deleteConfirm(deleteObjectGroups, 'objectGroup')">
             <i class="material-icons pull-left">delete_choix</i>
             <span>Supprimer</span>
           </button>
