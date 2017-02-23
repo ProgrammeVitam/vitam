@@ -17,6 +17,7 @@ var minifyJS = require("gulp-uglify");
 var ngAnnotate = require('gulp-ng-annotate');
 var Server = require('karma').Server;
 var karma = require('karma');
+var angularProtractor = require('gulp-angular-protractor');
 
 var pomVersion = process.env.pomVersion;
 
@@ -97,19 +98,30 @@ gulp.task('build', gulpsync.sync(['build:css', 'build:assets', 'build:vendor-ass
 gulp.task('default', ['serve']);
 
 function serve() {
-    connect.server({
-        root: ['dist/'],
-        port: 9000,
-        livereload: true,
-        middleware: function (connect, opt) {
-            return [
-                proxy('/ihm-recette', {
-                    target: 'http://localhost:8082',
-                    changeOrigin: true
-                })
-            ]
-        }
-    });
+  var target = 'http://localhost:8082';
+
+  try {
+    var customConf = require('./local.json');
+    if(!!customConf && !!customConf.target) {
+      target = customConf.target;
+    }
+  } catch (e) {
+    // File not present / Just dont override conf
+  }
+
+  connect.server({
+    root: ['dist/'],
+    port: 9000,
+    livereload: true,
+    middleware: function (connect, opt) {
+      return [
+        proxy('/ihm-recette', {
+          target: target,
+          changeOrigin: true
+        })
+      ]
+    }
+  });
 }
 
 gulp.task('serve', ['watch'], function () {
@@ -147,11 +159,30 @@ gulp.task('lint', function () {
         .pipe(jshint.reporter('fail'));
 });
 
-gulp.task('test', ['build'], function (cb) {
-    new Server.start({
-        configFile: __dirname + '/karma.conf.js',
-        singleRun: true
-    }, function () {
-        cb()
+// TODO: add build on next step. If needed only launch karma for integration
+// TODO: Launch a server for e2e tests via serve task
+gulp.task('tests', gulpsync.sync(['serve', 'testKarma', 'testProtractor']));
+
+gulp.task('testKarma', function (cb) {
+  new Server.start({
+    configFile: __dirname + '/karma.conf.js',
+    singleRun: true
+  }, function () {
+    cb()
+  });
+});
+
+gulp.task('testProtractor', function () {
+  var conf = {
+    'configFile': 'protractor.conf.js',
+    'autoStartStopServer': true,
+    'debug': true
+  };
+
+  gulp.src(['./test/e2e/**/*.js'])
+    .pipe(angularProtractor(conf))
+    .on('error', function(e) {
+      console.log('Erorr: ', e);
+      throw e
     });
 });

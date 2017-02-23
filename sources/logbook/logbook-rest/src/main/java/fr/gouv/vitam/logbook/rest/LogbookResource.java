@@ -132,6 +132,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 new LogbookConfiguration(configuration.getMongoDbNodes(), configuration.getDbName(),
                     configuration.getClusterName(), configuration.getElasticsearchNodes());
         }
+        logbookConfiguration.setTenants(configuration.getTenants());
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
 

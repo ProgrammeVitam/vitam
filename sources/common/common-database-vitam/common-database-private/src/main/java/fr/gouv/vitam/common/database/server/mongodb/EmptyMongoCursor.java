@@ -24,34 +24,51 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.database.server.mongodb;
 
-package fr.gouv.vitam.logbook.common.server.exception;
+import com.mongodb.ServerAddress;
+import com.mongodb.ServerCursor;
+import com.mongodb.client.MongoCursor;
 
 /**
- * Exception indicating an error while executing a request on database index.
+ * Empty mongo cursor implementation to use in place of a real MongoCursor
+ * 
+ * @param <TResult> The type of documents the cursor is supposed to contains
  */
-public class LogbookExecutionException extends LogbookException {
-    private static final long serialVersionUID = -8199144049313837512L;
+public class EmptyMongoCursor<TResult> implements MongoCursor<TResult> {
 
-    /**
-     * @param message associated message
-     */
-    public LogbookExecutionException(String message) {
-        super(message);
+    public EmptyMongoCursor() {
+        super();
     }
 
-    /**
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(Throwable cause) {
-        super(cause);
+    @Override
+    public void close() {
+        // nothing to do
     }
 
-    /**
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(String messsage, Throwable cause) {
-        super(messsage, cause);
+    @Override
+    public boolean hasNext() {
+        return false;
     }
+
+    @Override
+    public TResult next() {
+        return null;
+    }
+
+    @Override
+    public TResult tryNext() {
+        return null;
+    }
+
+    @Override
+    public ServerCursor getServerCursor() {
+        return null;
+    }
+
+    @Override
+    public ServerAddress getServerAddress() {
+        return null;
+    }
+
 }

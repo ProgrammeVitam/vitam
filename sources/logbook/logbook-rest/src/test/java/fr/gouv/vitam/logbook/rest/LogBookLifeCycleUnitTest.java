@@ -28,9 +28,9 @@ package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
@@ -43,7 +43,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -67,7 +66,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -80,8 +78,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
@@ -136,6 +134,7 @@ public class LogBookLifeCycleUnitTest {
     private static JunitHelper junitHelper;
 
     private static final Integer TENANT_ID = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -177,6 +176,7 @@ public class LogBookLifeCycleUnitTest {
             logbookConf.setWorkspaceUrl("http://localhost:8001");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
+            logbookConf.setTenants(tenantList);
 
             application = new LogbookApplication(logbookConf);
             application.start();
@@ -572,7 +572,8 @@ public class LogBookLifeCycleUnitTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
-        given().contentType(ContentType.JSON).body(new Select().getFinalSelect()).param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().contentType(ContentType.JSON).body(new Select().getFinalSelect()).param("id_lc", FAKE_OBG_LF_ID)
+            .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }
 }

@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
@@ -88,6 +89,9 @@ public class LogBookLifeCycleObjectGroupTest {
     private static final String DATABASE_NAME = "vitam-test";
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
+
+    private static final Integer tenantId = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
 
     // ES
     @ClassRule
@@ -149,6 +153,7 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setWorkspaceUrl("http://localhost:8001");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
+            logbookConf.setTenants(tenantList);
 
             application = new LogbookApplication(logbookConf);
             application.start();

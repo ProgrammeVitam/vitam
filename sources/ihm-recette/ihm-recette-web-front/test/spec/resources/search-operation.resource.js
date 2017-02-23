@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,35 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.logbook.common.server.exception;
-
-/**
- * Exception indicating an error while executing a request on database index.
  */
-public class LogbookExecutionException extends LogbookException {
-    private static final long serialVersionUID = -8199144049313837512L;
 
-    /**
-     * @param message associated message
-     */
-    public LogbookExecutionException(String message) {
-        super(message);
-    }
+'use strict';
 
-    /**
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(Throwable cause) {
-        super(cause);
-    }
+describe('searchOperationResource', function() {
+  beforeEach(module('ihm.demo'));
 
-    /**
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(String messsage, Throwable cause) {
-        super(messsage, cause);
-    }
-}
+  var SearchOperationResource, $httpBackend;
+  beforeEach(inject(function (_searchOperationResource_, _$httpBackend_) {
+    SearchOperationResource = _searchOperationResource_;
+    $httpBackend = _$httpBackend_;
+  }));
+
+  it('should call the good API point for search operation', function() {
+    var criteria = {
+      EventType: "traceability",
+      TraceabilityEndDate:"2017-02-09",
+      TraceabilityLogType:"OPERATION",
+      TraceabilityStartDate:"2017-02-01",
+      orderby:"evDateTime"
+    };
+    $httpBackend
+      .when('POST', '/ihm-recette/v1/api/logbooks/', criteria)
+      .respond({$hints: [], $results: [{'_id': 0}]});
+
+    var promise = SearchOperationResource.result(criteria);
+
+    promise.then(function(response) {
+      expect(response.data.$results.length).toEqual(1);
+      expect(response.data.$results[0]._id).toEqual(0);
+    }, function() {
+      fail('Should not return error');
+    });
+  });
+});

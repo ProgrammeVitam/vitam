@@ -67,13 +67,14 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * Delete an index
      *
      * @param collection collection of index
+     * @param tenantId tenant Id
      * @return True if deleted
      */
-    public final boolean deleteIndex(final LogbookCollections collection) {
-        LOGGER.debug("deleteIndex: " + collection.getName().toLowerCase());
+    public final boolean deleteIndex(final LogbookCollections collection, final Integer tenantId) {
+        LOGGER.debug("deleteIndex: " + getIndexName(collection, tenantId));
         try {
-            if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(collection.getName().toLowerCase()).get()
+            if (client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
+                if (!client.admin().indices().prepareDelete(getIndexName(collection, tenantId)).get()
                     .isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                     return false;
@@ -90,18 +91,19 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * Add a type to an index
      *
      * @param collection collection of index
+     * @param tenantId tenant Id
      * @return True if added
      */
-    public final boolean addIndex(final LogbookCollections collection) {
-        LOGGER.debug("addIndex: " + collection.getName().toLowerCase());
-        if (!client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
+    public final boolean addIndex(final LogbookCollections collection, final Integer tenantId) {
+        LOGGER.debug("addIndex: " + getIndexName(collection, tenantId));
+        if (!client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
                 final String mapping = LogbookOperation.MAPPING;
                 final String type = LogbookOperation.TYPEUNIQUE;
-                LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
+                LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response =
-                    client.admin().indices().prepareCreate(collection.getName().toLowerCase())
+                    client.admin().indices().prepareCreate(getIndexName(collection, tenantId))
                         .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
                         .addMapping(type, mapping)
                         .get();
@@ -121,10 +123,11 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * Refresh an index
      *
      * @param collection collection of index
+     * @param tenantId tenant Id
      */
-    public final void refreshIndex(final LogbookCollections collection) {
-        LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase());
-        client.admin().indices().prepareRefresh(collection.getName().toLowerCase())
+    public final void refreshIndex(final LogbookCollections collection, final Integer tenantId) {
+        LOGGER.debug("refreshIndex: " + getIndexName(collection, tenantId));
+        client.admin().indices().prepareRefresh(getIndexName(collection, tenantId))
             .execute().actionGet();
 
     }
@@ -134,17 +137,18 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * Used in reload from scratch.
      *
      * @param collection collection of index
+     * @param tenantId tenant Id
      * @param mapIdJson map of documents as json by id
      * @return the listener on bulk insert
      */
-    final BulkResponse addEntryIndexes(final LogbookCollections collection,
+    final BulkResponse addEntryIndexes(final LogbookCollections collection, final Integer tenantId,
         final Map<String, String> mapIdJson) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
 
         // either use client#prepare, or use Requests# to directly build index/delete requests
         final String type = getTypeUnique(collection);
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefresh(true).add(client.prepareIndex(collection.getName().toLowerCase(), type,
+            bulkRequest.setRefresh(true).add(client.prepareIndex(getIndexName(collection, tenantId), type,
                 val.getKey()).setSource(val.getValue()));
         }
         return bulkRequest.execute().actionGet();
@@ -154,34 +158,41 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * Update an entry in the ElasticSearch index
      *
      * @param collection collection of index
+     * @param tenantId tenant Id
      * @param id the id of the entry
      * @param json the entry document as a json
      * @return True if updated
      */
-    final boolean updateEntryIndex(final LogbookCollections collection,
+    final boolean updateEntryIndex(final LogbookCollections collection, final Integer tenantId,
         final String id, final String json) {
         final String type = LogbookOperation.TYPEUNIQUE;
-        return client.prepareUpdate(collection.getName().toLowerCase(), type, id)
+        return client.prepareUpdate(getIndexName(collection, tenantId), type, id)
             .setDoc(json).setRefresh(true).execute()
             .actionGet().getVersion() > 1;
     }
 
     /**
-     * FIXME : adapt in #1598 pour real search
+     * Search entries in the ElasticSearch index.
      * 
-     * @param collection
+     * @param collection collection of index
+     * @param tenantId tenant Id
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter the filter
+     * @param from the offset
+     * @param size the limit
      * @return a structure as SearchResponse
      * @throws LogbookException thrown of an error occured while executing the request
      */
-    public final SearchResponse search(final LogbookCollections collection, final QueryBuilder query,
-        final QueryBuilder filter) throws LogbookException {
+    public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
+        final QueryBuilder query,
+        final QueryBuilder filter, final int offset, final int limit) throws LogbookException {
         final String type = getTypeUnique(collection);
+
         final SearchRequestBuilder request =
-            client.prepareSearch(collection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
-                .setTypes(type).setExplain(false).setSize(GlobalDatas.LIMIT_LOAD);
+            client.prepareSearch(getIndexName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
+                .setTypes(type).setExplain(false).setFrom(offset)
+                .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
         if (filter != null) {
             request.setQuery(query).setPostFilter(filter);
         } else {
@@ -207,5 +218,10 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             default:
                 return "";
         }
+    }
+
+
+    private String getIndexName(final LogbookCollections collection, Integer tenantId) {
+        return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
 }

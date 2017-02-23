@@ -30,10 +30,12 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +46,11 @@ import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -63,12 +70,18 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
+import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
+import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -76,6 +89,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -152,7 +166,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
-        LogbookElasticsearchAccess esClient) {
+        LogbookElasticsearchAccess esClient, List<Integer> tenants) {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
 
@@ -165,7 +179,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         // init Logbook Operation Mapping for ES
         LogbookCollections.OPERATION.initialize(this.esClient);
-        LogbookCollections.OPERATION.getEsClient().addIndex(LogbookCollections.OPERATION);
+        for (Integer tenant : tenants) {
+            LogbookCollections.OPERATION.getEsClient().addIndex(LogbookCollections.OPERATION, tenant);
+        }
     }
 
     /**
@@ -554,9 +570,17 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             } else {
                 parser.addProjection(slice, DEFAULT_ALLKEYS);
             }
-            // FIXME select in elastic for operations in #1598
-            return selectExecute(collection, parser);
-        } catch (final InvalidParseOperationException e) {
+            // FIXME filter on traceability to adapt
+            if (LogbookCollections.OPERATION.equals(collection) &&
+                parser.getRequest().getFinalSelect().toString()
+                    .contains(QueryHelper
+                        .eq(LogbookMongoDbName.eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name())
+                        .toString())) {
+                return findDocumentsElasticsearch(collection, parser);
+            } else {
+                return selectExecute(collection, parser);
+            }
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException | LogbookException e) {
             throw new LogbookDatabaseException(e);
         }
     }
@@ -654,7 +678,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                             ")",
                         e);
             }
-        } catch (final LogbookException e) {
+        } catch (final LogbookExecutionException e) {
             throw new LogbookDatabaseException(e);
         }
     }
@@ -975,6 +999,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     // Not check, test feature !
     @Override
     public void deleteCollection(LogbookCollections collection) throws DatabaseException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final long count = collection.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
@@ -985,7 +1010,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
             if (LogbookCollections.OPERATION.equals(collection)) {
-                esClient.deleteIndex(LogbookCollections.OPERATION);
+                esClient.deleteIndex(LogbookCollections.OPERATION, tenantId);
+                esClient.addIndex(LogbookCollections.OPERATION, tenantId);
             }
             if (result.getDeletedCount() != count) {
                 throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
@@ -1263,6 +1289,52 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, objectGroupId);
     }
 
+
+    /**
+     * Search in elastic search then get object detail in MongoDb.
+     * 
+     * @param collection the collection
+     * @param parser the parser containing the query
+     * @return the cursor on the result datas
+     * @throws InvalidParseOperationException if the MongoDb query can't be translated to ES a valid query
+     * @throws InvalidCreateOperationException if a MongoDb query can't be created from ES results
+     * @throws LogbookException if an exception occured while executing the ES query
+     */
+    private MongoCursor<?> findDocumentsElasticsearch(LogbookCollections collection,
+        SelectParserSingle parser)
+        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
+        QueryBuilder query = QueryToElasticsearch.getCommand(requestToMongodb.getNthQuery(0));
+        SearchResponse elasticSearchResponse =
+            collection.getEsClient().search(collection, tenantId, query, null, requestToMongodb.getFinalOffset(),
+                requestToMongodb.getFinalLimit());
+        if (elasticSearchResponse.status() != RestStatus.OK) {
+            return new EmptyMongoCursor();
+        }
+        final SearchHits hits = elasticSearchResponse.getHits();
+        if (hits.getTotalHits() == 0) {
+            return new EmptyMongoCursor();
+        }
+        final Iterator<SearchHit> iterator = hits.iterator();
+        final BooleanQuery newQuery = or();
+        // get document with Elasticsearch then create a new request to mongodb with unique object's attribute
+        while (iterator.hasNext()) {
+            final SearchHit hit = iterator.next();
+            final Map<String, Object> src = hit.getSource();
+            LOGGER.debug("findDocumentsElasticsearch result" + src.toString());
+            if (src.get(LogbookMongoDbName.eventIdentifierProcess.getDbname()) != null) {
+                newQuery.add(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(),
+                    src.get(LogbookMongoDbName.eventIdentifierProcess.getDbname()).toString()));
+            }
+        }
+        Select newSelectRequest = new Select();
+        newSelectRequest.setQuery(newQuery);
+        parser.parse(newSelectRequest.getFinalSelect());
+        return selectExecute(collection, parser);
+    }
+
+
     /**
      * Insert a new document in ES.
      * 
@@ -1272,15 +1344,17 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     private void insertIntoElasticsearch(LogbookCollections collection, VitamDocument vitamDocument)
         throws LogbookExecutionException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         LOGGER.debug("insertToElasticsearch");
         Map<String, String> mapIdJson = new HashMap<>();
         String id = vitamDocument.getId();
         vitamDocument.remove(LogbookCollections.ID);
+        tranformEvDetDataForElastic(vitamDocument);
         final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         vitamDocument.clear();
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
         mapIdJson.put(id, esJson);
-        final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, mapIdJson);
+        final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, tenantId, mapIdJson);
         if (bulkResponse.hasFailures()) {
             throw new LogbookExecutionException("Index Elasticsearch has errors");
         }
@@ -1296,6 +1370,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      */
     private void updateIntoElasticsearch(LogbookCollections collection, String id)
         throws LogbookExecutionException, LogbookNotFoundException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         LOGGER.debug("updateIntoElasticsearch");
         VitamDocument existingDocument =
             (VitamDocument) collection.getCollection().find(eq(VitamDocument.ID, id)).first();
@@ -1303,13 +1378,48 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             throw new LogbookNotFoundException("Logbook item not found");
         }
         existingDocument.remove(LogbookCollections.ID);
+        tranformEvDetDataForElastic(existingDocument);
         final String mongoJson = existingDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         existingDocument.clear();
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
-        final boolean response = collection.getEsClient().updateEntryIndex(collection, id, esJson);
+        final boolean response = collection.getEsClient().updateEntryIndex(collection, tenantId, id, esJson);
         if (response == false) {
             throw new LogbookExecutionException("Update Elasticsearch has errors");
         }
+    }
+
+    /**
+     * Replace the "evDetData" value in the document and the sub-events from a string by a json object
+     * 
+     * @param vitamDocument logbook vitam document
+     */
+    private void tranformEvDetDataForElastic(VitamDocument vitamDocument) {
+        if (vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
+            String evDetDataString = (String) vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname());
+            LOGGER.error(evDetDataString);
+            try {
+                JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
+                vitamDocument.remove(LogbookMongoDbName.eventDetailData.getDbname());
+                vitamDocument.put(LogbookMongoDbName.eventDetailData.getDbname(), evDetData);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("EvDetData is not a json compatible field");
+            }
+        }
+        List<Document> eventDocuments = (List<Document>) vitamDocument.get(LogbookDocument.EVENTS);
+        if (eventDocuments != null) {
+            for (Document eventDocument : eventDocuments) {
+                if (eventDocument.getString(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
+                    String eventEvDetDataString =
+                        eventDocument.getString(LogbookMongoDbName.eventDetailData.getDbname());
+                    Document eventEvDetDataDocument = Document.parse(eventEvDetDataString);
+                    eventDocument.remove(LogbookMongoDbName.eventDetailData.getDbname());
+                    eventDocument.put(LogbookMongoDbName.eventDetailData.getDbname(), eventEvDetDataDocument);
+                }
+            }
+        }
+        vitamDocument.remove(LogbookDocument.EVENTS);
+        vitamDocument.put(LogbookDocument.EVENTS, eventDocuments);
+
     }
 
 }

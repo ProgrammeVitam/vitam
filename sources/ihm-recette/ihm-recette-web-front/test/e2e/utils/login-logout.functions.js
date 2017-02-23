@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,35 +23,37 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.logbook.common.server.exception;
-
-/**
- * Exception indicating an error while executing a request on database index.
  */
-public class LogbookExecutionException extends LogbookException {
-    private static final long serialVersionUID = -8199144049313837512L;
 
-    /**
-     * @param message associated message
-     */
-    public LogbookExecutionException(String message) {
-        super(message);
-    }
+var loginLogoutUtils = function(){
+  var loginLogoutUtilsService = {};
 
-    /**
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(Throwable cause) {
-        super(cause);
-    }
+  /**
+   * Process the login steps
+   *
+   * @param browser provide browser information and tools, from protractor test
+   * @param element the given function that select an html element, from protractor test
+   * @param by the given function that specify the kind of selector, from protractor test
+   */
+  loginLogoutUtilsService.doLogin = function(browser, element, by) {
+    browser.get(browser.baseUrl + '/login');
+    element(by.model('credentials.username')).sendKeys(browser.params.userName);
+    element(by.model('credentials.password')).sendKeys(browser.params.password);
+    element(by.css('[type="submit"]')).click();
+  };
 
-    /**
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public LogbookExecutionException(String messsage, Throwable cause) {
-        super(messsage, cause);
-    }
-}
+  /**
+   * Process logout steps
+   *
+   * @param element the given function that select an html element, from protractor test
+   * @param by the given function that specify the kind of selector, from protractor test
+   */
+  loginLogoutUtilsService.doLogout = function(element, by) {
+    var rightDiv = element(by.id('navbar')).element(by.css('[class="nav navbar-nav navbar-right"]'));
+    rightDiv.element(by.css('[class="block dropdown-toggle"]')).click();
+    rightDiv.element(by.css('[ng-click="logoutUser()"]')).click();
+  };
+
+  return loginLogoutUtilsService;
+};
+module.exports = new loginLogoutUtils();

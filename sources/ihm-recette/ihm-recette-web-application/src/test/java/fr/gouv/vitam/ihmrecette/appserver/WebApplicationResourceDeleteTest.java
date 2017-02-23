@@ -187,6 +187,8 @@ public class WebApplicationResourceDeleteTest {
             new LogbookConfiguration(realAdminConfig.getMongoDbNodes(), realAdminConfig.getLogbookDbName(),
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
+        logbookConfiguration.setTenants(realAdminConfig.getTenants());
+        
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
         final MetaDataConfiguration metaDataConfiguration =
@@ -245,11 +247,12 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testDeleteFormatOK() {
         try {
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-            given().expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/formats");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
         } catch (final Exception e) {
             fail("Exception using mongoDbAccess");

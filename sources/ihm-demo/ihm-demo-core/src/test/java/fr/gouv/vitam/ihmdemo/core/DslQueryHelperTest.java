@@ -39,6 +39,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
@@ -57,6 +58,7 @@ public class DslQueryHelperTest {
     public static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String RULES = "RULES";
     private static final String RULETYPE = "RuleType";
+    private static final String EVENT_TYPE_PROCESS = "evTypeProc";
 
     private static final String result =
         "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
@@ -354,7 +356,7 @@ public class DslQueryHelperTest {
 
 
     /**
-     * Tests testFundsRegisterDSLQuery: method : main scenario
+     * Tests testRulesDSLQuery: method : main scenario
      *
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
@@ -397,6 +399,53 @@ public class DslQueryHelperTest {
         assertTrue(selectParser3.getRequest().getNbQueries() == 1);
         assertTrue(selectParser3.getRequest().getRoots().size() == 0);
         assertTrue(selectParser3.getRequest().getFilter().get("$orderby") == null);
+    }
+    
+    /**
+     * Tests testTraceabilityDSLQuery: method : main scenario
+     *
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    @Test
+    public void testTraceabilityDSLQuery()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final Map<String, String> queryMap = new HashMap();
+        queryMap.put(EVENT_TYPE_PROCESS, "traceability");
+
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
+        assertNotNull(selectRequest);
+
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
+
+        final Map<String, String> queryMap2 = new HashMap();
+        queryMap2.put(EVENT_TYPE_PROCESS, "traceability");
+        queryMap2.put("orderby", "evDateTime");
+        queryMap2.put("TraceabilityStartDate", "2017-01-01");
+        queryMap2.put("TraceabilityEndDate", "2017-02-09");
+        queryMap2.put("TraceabilityLogType", "OPERATION");
+
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
+        assertNotNull(selectRequest2);
+
+        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
+        assertTrue(selectParser2 instanceof SelectParserMultiple);
+        assertTrue(selectParser2.getRequest().getNbQueries() == 1);
+        JsonNode query = selectParser2.getRequest().getQueries().get(0).getCurrentQuery();
+        ArrayNode criterias = (ArrayNode)query.get("$and");
+        assertEquals("2017-02-09", criterias.get(0).get("$lte").get("events.evDetData.EndDate").asText());
+        assertEquals("traceability", criterias.get(1).get("$eq").get("evTypeProc").asText());
+        assertEquals("2017-01-01", criterias.get(2).get("$gte").get("events.evDetData.StartDate").asText());
+        assertEquals("OPERATION", criterias.get(3).get("$eq").get("events.evDetData.LogType").asText());
+        
+        assertTrue(selectParser2.getRequest().getRoots().size() == 0);
+        JsonNode orderBy = selectParser2.getRequest().getFilter().get("$orderby");
+        assertTrue(orderBy != null);
+        assertTrue(orderBy.get("evDateTime").asInt() == -1);
     }
 
 }

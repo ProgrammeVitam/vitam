@@ -68,7 +68,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 
 
-// TODO : appliquer le filtre sur le check de tenantId , US#1993 
+// TODO : appliquer le filtre sur le check de tenantId , US#1993
 
 /**
  * Web Application Resource class for delete features
@@ -134,7 +134,8 @@ public class WebApplicationResourceDelete {
         adminConfiguration.setTenants(webApplicationConfig.getTenants());
         logbookConfiguration.setTenants(webApplicationConfig.getTenants());
         metaDataConfiguration.setTenants(webApplicationConfig.getTenants());
-        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(), webApplicationConfig.getElasticsearchNodes());
+        mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(adminConfiguration, webApplicationConfig.getClusterName(),
+            webApplicationConfig.getElasticsearchNodes());
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         LOGGER.debug("init Admin Management Resource server");
@@ -158,7 +159,13 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteFormat() {
-        final GUID eip = GUIDFactory.newGUID();
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        // FIXME tenantDefault for operation to replace with one from config
+        if (tenantId == null) {
+            VitamThreadUtils.getVitamSession().setTenantId(0);
+            tenantId = 0;
+        }
+        final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_FORMAT, eip,
             LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,

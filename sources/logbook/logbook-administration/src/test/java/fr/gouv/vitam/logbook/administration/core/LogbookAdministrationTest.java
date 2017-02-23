@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -94,6 +95,7 @@ public class LogbookAdministrationTest {
     private static ElasticsearchTestConfiguration config = null;
 
     private static final Integer tenantId = 0;
+    static final List<Integer> tenantList = Arrays.asList(0);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -120,10 +122,10 @@ public class LogbookAdministrationTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory
-                .create(new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes));
-
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
     }
 
 
@@ -250,6 +252,8 @@ public class LogbookAdministrationTest {
         // assertNotNull(traceabilityEvent.getPreviousLogbookTraceabilityDate());
         assertNotNull(traceabilityEvent.getSize());
         assertEquals(TraceabilityType.OPERATION, traceabilityEvent.getLogType());
+
+        logbookAdministration.generateSecureLogbook();
     }
 
     private TraceabilityEvent extractTraceabilityEvent(LogbookOperationsImpl logbookOperations, Select select)

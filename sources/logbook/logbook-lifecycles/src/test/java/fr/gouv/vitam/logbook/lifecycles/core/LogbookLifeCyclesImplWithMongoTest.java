@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -59,7 +60,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -105,8 +105,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
     private LogbookLifeCyclesImpl logbookLifeCyclesImpl;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersBAD;
+    private static final int tenantId = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+    
     // ObjectGroup
-    private static int tenantId = 0;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
 
@@ -137,9 +139,11 @@ public class LogbookLifeCyclesImplWithMongoTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
 
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory
-                .create(new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes));
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);

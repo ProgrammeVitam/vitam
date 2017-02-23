@@ -34,12 +34,12 @@ import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventIdentifier;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.TRACEABILITY;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -112,6 +112,7 @@ public class LogbookAdministration {
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
 
     private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
+    private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
 
     private static final String STRATEGY_ID = "default";
@@ -178,7 +179,7 @@ public class LogbookAdministration {
         } else {
             final Date date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
             startDate = LocalDateUtil.fromDate(date);
-            expectedLogbookId.add(lastTraceabilityOperation.getString(eventIdentifier));
+            expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
 
         final LocalDateTime currentDate = now();
@@ -192,7 +193,7 @@ public class LogbookAdministration {
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
 
-            final MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
+            MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
             final TraceabilityIterator traceabilityIterator = new TraceabilityIterator(mongoCursor);
 
             final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
@@ -205,6 +206,11 @@ public class LogbookAdministration {
                 final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
                 traceabilityFile.storeOperationLog(logbookOperation);
                 merkleTreeAlgo.addLeaf(logbookOperationStr);
+
+                if (LocalDateTime.MIN.equals(startDate) &&
+                    logbookOperation.getString(EVENT_DATE_TIME) != null) {
+                    startDate = LocalDateTime.parse(logbookOperation.getString(EVENT_DATE_TIME));
+                }
             }
 
             traceabilityFile.closeStoreOperationLog();
@@ -329,10 +335,10 @@ public class LogbookAdministration {
 
         final LogbookOperation logbookOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
 
-        if (logbookOperation == null || expectIds.contains(logbookOperation.getString(eventIdentifier))) {
+        if (logbookOperation == null || expectIds.contains(logbookOperation.getString(EVENT_ID))) {
             return null;
         }
-        expectIds.add(logbookOperation.getString(eventIdentifier));
+        expectIds.add(logbookOperation.getString(EVENT_ID));
         return extractTimestampToken(logbookOperation);
     }
 

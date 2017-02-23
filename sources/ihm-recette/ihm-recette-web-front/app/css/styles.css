@@ -104,6 +104,15 @@ md-dialog {
   background-color: #D23641;
   border-color: #D23641;
 }
+.btn-default,
+.btn-default:hover,
+.btn-default:active,
+.btn-default:visited,
+.btn-default:focus {
+  background-color: #FF6E7E;
+  border-color: #FF6E7E;
+}
+
 
 .progress-bar {
   color: #D23641;
@@ -445,7 +454,7 @@ table {
 }
 
 .table > tbody > tr:hover > td {
-  background-color: #AD9FFF;
+  background-color: #FF6E7E;
   color: white;
   cursor: pointer;
 }

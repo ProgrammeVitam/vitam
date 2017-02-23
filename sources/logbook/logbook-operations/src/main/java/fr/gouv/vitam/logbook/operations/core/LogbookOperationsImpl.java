@@ -118,18 +118,21 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public MongoCursor<LogbookOperation> selectAfterDate(final LocalDateTime date)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException {
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidCreateOperationException,
+        InvalidParseOperationException {
         final Select select = logbookOperationsAfterDateQuery(date);
         return mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false);
 
     }
 
-    private Select logbookOperationsAfterDateQuery(final LocalDateTime date) throws InvalidCreateOperationException {
+    private Select logbookOperationsAfterDateQuery(final LocalDateTime date)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
 
         final Query parentQuery = QueryHelper.gte("evDateTime", date.toString());
         final Query sonQuery = QueryHelper.gte(LogbookDocument.EVENTS + ".evDateTime", date.toString());
         final Select select = new Select();
         select.setQuery(QueryHelper.or().add(parentQuery, sonQuery));
+        select.addOrderByAscFilter("evDateTime");
         return select;
     }
 

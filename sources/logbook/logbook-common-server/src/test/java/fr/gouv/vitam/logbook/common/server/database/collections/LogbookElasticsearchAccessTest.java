@@ -59,8 +59,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -70,8 +68,6 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 
 public class LogbookElasticsearchAccessTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccessTest.class);
-
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -80,6 +76,9 @@ public class LogbookElasticsearchAccessTest {
     private static LogbookElasticsearchAccess esClient;
 
     private static ElasticsearchTestConfiguration config = null;
+
+
+    private static final int tenantId = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -107,7 +106,7 @@ public class LogbookElasticsearchAccessTest {
     @Test
     public void testElasticsearchAccessOperation() throws InvalidParseOperationException, LogbookException {
         // add index
-        assertEquals(true, esClient.addIndex(LogbookCollections.OPERATION));
+        assertEquals(true, esClient.addIndex(LogbookCollections.OPERATION, tenantId));
 
         // data
         GUID eventIdentifier = GUIDFactory.newEventGUID(0);
@@ -124,24 +123,28 @@ public class LogbookElasticsearchAccessTest {
                 eventType, eventIdentifierProcess, eventTypeProcess,
                 outcome, outcomeDetailMessage, eventIdentifierRequest);
         for (final LogbookParameterName name : LogbookParameterName.values()) {
-            if (parametersForCreation.getParameterValue(name) == null) {
-                parametersForCreation.putParameterValue(name, GUIDFactory.newEventGUID(0).getId());
-            }
+            parametersForCreation.putParameterValue(name,
+                GUIDFactory.newEventGUID(0).getId());
+
         }
+
         LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation, false);
         Map<String, String> mapIdJson = new HashMap<>();
         String id = operationForCreation.getId();
         operationForCreation.remove(LogbookCollections.ID);
-        final String mongoJson = operationForCreation.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        final String mongoJson =
+            operationForCreation.toJson(new JsonWriterSettings(JsonMode.STRICT));
         operationForCreation.clear();
-        final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
+        final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson))
+            .toString();
         mapIdJson.put(id, esJson);
-        esClient.addEntryIndexes(LogbookCollections.OPERATION, mapIdJson);
+        esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);
 
         // check entry
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse elasticSearchResponse =
-            esClient.search(LogbookCollections.OPERATION, query, null);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 10);
+
         assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
         assertNotNull(elasticSearchResponse.getHits().getAt(0));
 
@@ -164,12 +167,12 @@ public class LogbookElasticsearchAccessTest {
             String idUpdate = id;
             String mongoJsonUpdate = JsonHandler.unprettyPrint(created);
             final String esJsonUpdate = ((DBObject) com.mongodb.util.JSON.parse(mongoJsonUpdate)).toString();
-            esClient.updateEntryIndex(LogbookCollections.OPERATION, idUpdate, esJsonUpdate);
+            esClient.updateEntryIndex(LogbookCollections.OPERATION, tenantId, idUpdate, esJsonUpdate);
 
         }
         // check entry
         SearchResponse elasticSearchResponse2 =
-            esClient.search(LogbookCollections.OPERATION, query, null);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 10);
         assertEquals(1, elasticSearchResponse2.getHits().getTotalHits());
         assertNotNull(elasticSearchResponse2.getHits().getAt(0));
         SearchHit hit = elasticSearchResponse2.getHits().iterator().next();
@@ -177,24 +180,23 @@ public class LogbookElasticsearchAccessTest {
         System.out.println(hit.getSourceAsString());
 
         // check search
+        // QueryBuilder searchQuery = QueryBuilders.matchQuery("events."+LogbookMongoDbName.outcome.getDbname(), "OK");
         QueryBuilder filter = null;
-        filter = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("_index", "logbookoperation"));
+        filter = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("_index", "logbookoperation_0"));
         SearchResponse elasticSearchResponse3 =
-            esClient.search(LogbookCollections.OPERATION, query, filter);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, filter, 0, 01);
         assertEquals(1, elasticSearchResponse3.getHits().getTotalHits());
 
         // refresh index
-        esClient.refreshIndex(LogbookCollections.OPERATION);
+        esClient.refreshIndex(LogbookCollections.OPERATION, tenantId);
 
         // delete index
-        assertEquals(true, esClient.deleteIndex(LogbookCollections.OPERATION));
+        assertEquals(true, esClient.deleteIndex(LogbookCollections.OPERATION, tenantId));
 
         // check post delete
         try {
-            esClient.search(LogbookCollections.OPERATION, query, null);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 10);
             fail("Should have failed : IndexNotFoundException");
-        } catch (LogbookException e) {
-
-        }
+        } catch (LogbookException e) {}
     }
 }

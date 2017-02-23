@@ -50,6 +50,10 @@ public abstract class LogbookDocument<E> extends Document {
      * Contains the series of entries within the very same Logbook operation (1 operation) / Lyfecycle (all)
      */
     public static final String EVENTS = "events";
+    /**
+     * Contains the specific data as a json string
+     */
+    public static final String EVENT_DETAILS = "evDetData";
 
     /**
      * Empty constructor

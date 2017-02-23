@@ -36,9 +36,11 @@ import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -49,16 +51,27 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -67,12 +80,18 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 
 public class LogbookResourceIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceIT.class);
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
@@ -93,6 +112,12 @@ public class LogbookResourceIT {
     private static int serverPort;
     private static LogbookApplication application;
     private static final int NB_TEST = 100;
+    private static final Integer tenantId = 0;
+    private static final List<Integer> tenantList = new ArrayList() {
+        {
+            add(tenantId);
+        }
+    };
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -142,6 +167,7 @@ public class LogbookResourceIT {
             logbookConf.setWorkspaceUrl("http://localhost:8082");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
+            logbookConf.setTenants(tenantList);
             application = new LogbookApplication(logbookConf);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
@@ -180,9 +206,112 @@ public class LogbookResourceIT {
         junitHelper.releasePort(serverPort);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public final void testOperationSearchTraceability() throws LogbookClientException, VitamApplicationServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final GUID eip1 = GUIDFactory.newEventGUID(0);
+        final GUID eip2 = GUIDFactory.newEventGUID(0);
+        String evDetData =
+            "{\"LogType\":\"OPERATION\",\"StartDate\":\"2017-02-16T23:01:03.49\",\"EndDate\":\"2017-02-20T09:46:25.816\"," +
+                "\"Hash\":\"6o0DS5ukbVsPHtynv2dW48tT/D65xUMs3orIkwsYU/Ron3RjEo3nzdiO4LliyNRNT3Eg/vhbitXsT+L2MWi4BA==\"," +
+                "\"TimeStampToken\":\"MIIEezAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEYAYJKoZIhvcNAQcCoIIEUTCCBE0CAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRv" +
+                "MG0CAQEGASkwUTANBglghkgBZQMEAgMFAARA8RT79mPtXGJf5kadV2fyLnlAgZBVr7s7ZxMFRp4qr1GGPhU7Cu6+XXVBowT1moq8BRLm6U0VphGb51g8Idlh/wIBARgPMjAxNzAyMjAwO" +
+                "TQ2MjZaMYIDsjCCA64CAQEwYzBdMQswCQYDVQQGEwJGUjEMMAoGA1UECBMDaWRmMQ4wDAYDVQQHEwVwYXJpczEPMA0GA1UEChMGVml0YW0uMR8wHQYDVQQDFBZDQV9zZXJ2ZXJfaW50ZX" +
+                "JtZWRpYXRlAgIAsDANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzAyMjAwOTQ2MjZaMC0GCSqGSIb3DQEJNDEgMB4" +
+                "wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQKxHofJ/92kGaE6GNB1cJSshBcAOimapOlA3Vdphd7E9eahvILjI26Y/gHrCuLuzwkRQVsrRoKELp57y" +
+                "OKpDRSowZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQDiZ3/2zK5pV1xaSWoSwn4yrbEItdSp6xal0vz8sz1DODD0cb8B+ZOeFx0kaN/a5YwBjMe7TJx0eVZYpebtTp" +
+                "DYwDQYJKoZIhvcNAQENBQAEggIATm+Gj6piHPhj3w211QRuvfhYVBynQ7Wb4UR/sUE8hYV8H/lFr9UDj9tu4Js9PxH4UyOsYZcIwx1aSWG4xKlVovsS/jMk/HXLdMUvXHKIc4Givopw2j" +
+                "q4WM4PbXI1jCep2qNLEFj/RgHX23SuXnqsCQvZwh9ROx42hwwuzFmkV8PjdJtVn2NdSLO20tkPTZdb86ztt2qpU1A7lkEfCPryNluYfPhPaBfyxUbmeiMM0sPsDM/dQouu3BJnqSrenxC" +
+                "VfkFxAbREWJFlKrC94caG3dWuIvVlabcP2uSnd23uAZmTSabJyHUMn2w0KD+chGseMnwF6xq8/6/RlKG6kPc5n1unl/R4q8DdeLLmSb0MBU+03buk4tmRaIdtAgXzG3InCopiJLT9fvL3" +
+                "6o8M2da67rvizzBMoV/Zjtm4u1S3SVCKrf10go7vGOvF0IIAzFE+Un255jsGVrvWdYQcueS7s9GJIPEMN/9huIMM6WUyPkPcj4I6Way+iOoNBZT7aGx9tQEXsZYXiQ6/VDLmiBiWJKwCs" +
+                "HNuIckMGV5KQcKAbJYPgqjBNHFgVD9hf9AX0R763soZy8BMW6UOZGNlY08QXsm2eNc70D0+6kRMCAu/iARyq04Cz+L5tKwtIBzbOOqD+6h9ok8ahXQCQZKBc3SRHbc3rm9SnnUdQUsb53OOkRE=\"," +
+                "\"MinusOneMonthLogbookTraceabilityDate\":\"2017-01-16T23:01:03.49\",\"MinusOneYearLogbookTraceabilityDate\":\"2016-02-16T23:01:03.49\"," +
+                "\"NumberOfElement\":112,\"FileName\":\"0_LogbookOperation_20170220_094625.zip\",\"Size\":3089204}";
+        LogbookOperationParameters traceabilityParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
+            eip1, "LOGBOOK_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+            StatusCode.STARTED, "Début de la sécurisation des journaux", eip1);
+        LogbookOperationParameters traceabilityParametersStpStart =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip1);
+        LogbookOperationParameters traceabilityParametersStpAct1Start =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED, "Début de la création du tampon d'horodatage de l'ensemble des journaux", eip1);
+        LogbookOperationParameters traceabilityParametersStpAct1End =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.OK, "Succès de création du tampon d'horodatage de l'ensemble des journaux", eip1);
+        LogbookOperationParameters traceabilityParametersStpAct2Start =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED, "Début du stockage des journaux", eip1);
+        LogbookOperationParameters traceabilityParametersStpAct2End =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.OK, "Succès du stockage des journaux", eip1);
+        LogbookOperationParameters traceabilityParametersStpEnd =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.OK, "Succès du processus de sécurisation des journaux", eip1);
+        traceabilityParametersStpEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
 
+        LogbookOperationParameters traceabilityParameters2Start =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                eip2, "LOGBOOK_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED, "Début de la sécurisation des journaux", eip2);
+        LogbookOperationParameters traceabilityParameters2StpStart =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip2);
+        LogbookOperationParameters traceabilityParameters2StpEndFatal =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip2, LogbookTypeProcess.TRACEABILITY,
+                StatusCode.FATAL, "Succès du processus de sécurisation des journaux", eip2);
+
+        try (final LogbookOperationsClient client =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
+            client.checkStatus();
+            client.create(traceabilityParametersStart);
+            client.update(traceabilityParametersStpStart);
+            client.update(traceabilityParametersStpAct1Start);
+            client.update(traceabilityParametersStpAct1End);
+            client.update(traceabilityParametersStpAct2Start);
+            client.update(traceabilityParametersStpAct2End);
+            client.update(traceabilityParametersStpEnd);
+            client.create(traceabilityParameters2Start);
+            client.update(traceabilityParameters2StpStart);
+            client.update(traceabilityParameters2StpEndFatal);
+            try {
+
+                final Select select = new Select();
+                final Query eventProcType = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
+                final Query logType = QueryHelper
+                    .eq(String.format("%s.%s.%s", LogbookDocument.EVENTS,
+                        LogbookMongoDbName.eventDetailData.getDbname(), "LogType"),
+                        "OPERATION");
+                final Query eventType = QueryHelper.eq(
+                    String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
+                    "STP_OP_SECURISATION");
+                final Query outcome = QueryHelper
+                    .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.getDbname()),
+                        "OK");
+                select.setLimitFilter(0, 1);
+                select.setQuery(QueryHelper.and().add(eventProcType, logType, eventType, outcome));
+                select.addOrderByDescFilter("evDateTime");
+                JsonNode json = client.selectOperation(select.getFinalSelect());
+                RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
+            } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+                fail("Should not have raized an exception");
+            }
+        }
+    }
+
+    @RunWithCustomExecutor
     @Test
     public final void testOperation() throws LogbookClientException, VitamApplicationServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
@@ -245,8 +374,11 @@ public class LogbookResourceIT {
         }
     }
 
+
+    @RunWithCustomExecutor
     @Test
     public final void testOperationMultiple() throws LogbookClientException, VitamApplicationServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookParametersStart = LogbookParametersFactory.newLogbookOperationParameters(
@@ -301,8 +433,10 @@ public class LogbookResourceIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public final void testLifeCycle() throws LogbookClientException, VitamApplicationServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
@@ -366,8 +500,10 @@ public class LogbookResourceIT {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public final void testLifeCycleMultiple() throws LogbookClientException, VitamApplicationServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // Creation OK
         final GUID eip = GUIDFactory.newEventGUID(0);
         logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(

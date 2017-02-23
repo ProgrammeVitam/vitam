@@ -218,7 +218,7 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get("/unitlifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -227,7 +227,7 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get("/unitlifecycles/" + bad_id)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -250,23 +250,23 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get("/objectgrouplifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .param("id_lc", bad_id)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get("/objectgrouplifecycles/" + bad_id)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/objectgrouplifecycles/" + bad_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .param("id_lc", bad_id)
-        .when()
-        .get("/objectgrouplifecycles/" + bad_id)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .when()
+            .get("/objectgrouplifecycles/" + bad_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -281,23 +281,23 @@ public class LogbookExternalResourceImplTest {
             .get(OPERATIONS_URI)
             .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .body(JsonHandler.getFromString(bad_request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then()
-        .statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(bad_request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .body(JsonHandler.getFromString(bad_request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(bad_request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -313,23 +313,23 @@ public class LogbookExternalResourceImplTest {
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .pathParam("id_op", bad_id)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then()
-        .statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .pathParam("id_op", bad_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .pathParam("id_op", bad_id)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then()
-        .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .pathParam("id_op", bad_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -342,23 +342,23 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(request))
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get(OPERATIONS_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -369,25 +369,25 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -402,22 +402,22 @@ public class LogbookExternalResourceImplTest {
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .get(OPERATIONS_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -427,25 +427,25 @@ public class LogbookExternalResourceImplTest {
             .when()
             .post(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .post(OPERATIONS_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .post(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .header(X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(JsonHandler.getFromString(request))
-        .when()
-        .post(OPERATIONS_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .post(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -460,22 +460,22 @@ public class LogbookExternalResourceImplTest {
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -485,25 +485,25 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -518,22 +518,22 @@ public class LogbookExternalResourceImplTest {
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
-        .contentType(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .when()
-        .get(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
@@ -543,25 +543,25 @@ public class LogbookExternalResourceImplTest {
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-        .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .when()
-        .post(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .pathParam("id_op", good_id)
-        .when()
-        .post(OPERATIONS_URI + OPERATION_ID_URI)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -576,26 +576,26 @@ public class LogbookExternalResourceImplTest {
             .get("/unitlifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
 
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .param("id_lc", good_id)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get("/unitlifecycles/" + good_id)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/unitlifecycles/" + good_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .param("id_lc", good_id)
-        .when()
-        .get("/unitlifecycles/" + good_id)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .when()
+            .get("/unitlifecycles/" + good_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -605,25 +605,25 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get("/objectgrouplifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .param("id_lc", good_id)
-        .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-        .when()
-        .get("/objectgrouplifecycles/" + good_id)
-        .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-        
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/objectgrouplifecycles/" + good_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
         given()
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
-        .param("id_lc", good_id)
-        .when()
-        .get("/objectgrouplifecycles/" + good_id)
-        .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .when()
+            .get("/objectgrouplifecycles/" + good_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
 
