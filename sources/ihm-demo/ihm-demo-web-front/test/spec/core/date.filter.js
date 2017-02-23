@@ -26,25 +26,30 @@
  */
 'use strict';
 
-describe('Filter : vitamFormatDate', function() {
-    beforeEach(module('ihm.demo'));
-    var $filter;
-    // on sauvegarge la timeZONE
-    var timezoneProto = Date.prototype.getTimezoneOffset;
-    beforeEach(inject(function( _$filter_) {
-        $filter = _$filter_;
-        // on surcharge la timeZone
-        Date.prototype.getTimezoneOffset = function () {
-            // GMT - 3
-            return -180;
-        };
-    }));
-    afterEach(function () {
-        // on restaure la timeZone
-        Date.prototype.getTimezoneOffset = timezoneProto;
-    });
-    it('should be able to tranform utc to local date', function() {
-        var a = "2017-02-01T10:19:22.160";
-        expect($filter('vitamFormatDate')(a)).not.toBe('01-02-2017 10:19');
-    });
+describe('Filter : vitamFormatDate', function () {
+  beforeEach(module('ihm.demo'));
+  var $filter;
+  // on sauvegarge la timeZONE
+  var timezoneProto = Date.prototype.getTimezoneOffset;
+  beforeEach(inject(function (_$filter_) {
+    $filter = _$filter_;
+    // on surcharge la timeZone
+    Date.prototype.getTimezoneOffset = function () {
+      // GMT - 3
+      return -180;
+    };
+  }));
+  afterEach(function () {
+    // on restaure la timeZone
+    Date.prototype.getTimezoneOffset = timezoneProto;
+  });
+  it('should be able to tranform utc to local date', function () {
+    var a = "2017-02-01T10:19:22.160";
+    expect($filter('vitamFormatDate')(a)).not.toBe('01-02-2017 10:19');
+    expect($filter('vitamFormatDate')("notAdate")).toBe('notAdate');
+    expect($filter('vitamFormatDate')("01-02-2017 10:19")).not.toBe('01-02-2017 10:19');
+    expect($filter('vitamFormatDate')("")).toBe("");
+    expect($filter('vitamFormatDate')(undefined)).toBe(undefined);
+    expect($filter('vitamFormatDate')(null)).toBe(null);
+  });
 });
