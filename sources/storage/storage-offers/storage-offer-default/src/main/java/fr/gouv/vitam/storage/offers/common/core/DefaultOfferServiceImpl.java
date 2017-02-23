@@ -232,9 +232,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageMetadatasResult getMetadatas(String tenantId, String type, String objectId)
-        throws ContentAddressableStorageException, IOException {
-        return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(tenantId, type, objectId));
+    public StorageMetadatasResult getMetadatas(String containerName, String objectId) throws
+        ContentAddressableStorageException, IOException {
+        return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(containerName, objectId));
     }
 
     public String createCursor(String containerName)

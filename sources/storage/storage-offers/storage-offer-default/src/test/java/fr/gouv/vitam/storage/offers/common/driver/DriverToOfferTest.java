@@ -134,7 +134,7 @@ public class DriverToOfferTest {
         driver = new DriverImpl();
         // for parallel test
         TENANT_ID = serverPort;
-        CONTAINER = DataCategory.UNIT.getFolder() + "_" + TENANT_ID;
+        CONTAINER = TENANT_ID + "_" + DataCategory.UNIT.getFolder();
     }
 
     @AfterClass

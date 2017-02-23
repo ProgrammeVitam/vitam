@@ -197,7 +197,7 @@ public class StorageTestMultiIT {
 
     private static void cleanOffers() {
         // ugly style but we don't have the digest here
-        File directory = new File(OFFER_FOLDER + "/" + CONTAINER + "_0");
+        File directory = new File(OFFER_FOLDER + "/" + "0_" + CONTAINER);
         try {
             FileUtils.cleanDirectory(directory);
             FileUtils.deleteDirectory(directory);

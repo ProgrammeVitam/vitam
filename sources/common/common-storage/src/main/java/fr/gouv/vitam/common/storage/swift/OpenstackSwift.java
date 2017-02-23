@@ -207,31 +207,27 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String tenantId, String type, String objectId)
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
-        
-        String containerName = type + "_" + tenantId;
+        // TODO store vitam metadatas
+        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+        result.setType(containerName.split("_")[1]);
+        result.setLastAccessDate(null);
         if (objectId != null) {
             SwiftObject swiftobject = getSwiftAPi()
                 .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
             
             result.setObjectName(objectId);
-            result.setType(type.toString());
             //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
             result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());            
-            result.setFileOwner("Vitam_" + tenantId);
-            result.setLastAccessDate(null);
+            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
             result.setLastModifiedDate(swiftobject.getLastModified().toString());
         } else {
             Container container = getContainerApi().get(containerName);
             result.setObjectName(containerName);
-            result.setType(type.toString());
             result.setDigest(null);
-            result.setFileOwner("Vitam_" + tenantId);            
             result.setFileSize(container.getBytesUsed());
-            result.setLastAccessDate(null);
             result.setLastModifiedDate(null);
         }
          
