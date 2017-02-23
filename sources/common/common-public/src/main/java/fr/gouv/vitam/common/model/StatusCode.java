@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
+import javax.ws.rs.core.Response.Status;
+
 /**
  * Enum StatusCode
  *
@@ -89,4 +91,20 @@ public enum StatusCode {
         return compareTo(FATAL) >= 0;
     }
 
+    /**
+     *
+     * @return the HTTP Status equivalent to this StatusCode for OK, KO and WARNING status
+     */
+    public Status getEquivalentHttpStatus() {
+        Status status = Status.OK;
+        if (!StatusCode.OK.equals(this)) {
+            if (StatusCode.WARNING.equals(this)) {
+                status = Status.PARTIAL_CONTENT;
+            } else {
+                status = Status.BAD_REQUEST;
+            }
+        }
+
+        return status;
+    }
 }

@@ -63,6 +63,8 @@ public class ItemStatus {
     protected List<Integer> statusMeter;
     @JsonProperty("data")
     protected Map<String, Object> data;
+    @JsonProperty("globalExecutionStatus")
+    protected ProcessExecutionStatus globalExecutionStatus;
 
 
     /**
@@ -85,11 +87,12 @@ public class ItemStatus {
      * @param globalStatus
      * @param data
      * @param itemsStatus
+     * @param globalExecutionStatus 
      */
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
         @JsonProperty("statusMeter") List<Integer> statusMeter, @JsonProperty("data") Map<String, Object> data,
-        @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus, @JsonProperty("evDetailData") String evDetailData) {
+        @JsonProperty("itemsStatus") LinkedHashMap<String, ItemStatus> itemsStatus, @JsonProperty("evDetailData") String evDetailData, @JsonProperty("globalExecutionStatus")ProcessExecutionStatus globalExecutionStatus) {
         this.itemsStatus = itemsStatus;
         this.itemId = itemId;
         this.message = message;
@@ -97,6 +100,7 @@ public class ItemStatus {
         this.statusMeter = statusMeter;
         this.data = data;
         this.evDetailData = evDetailData;
+        this.globalExecutionStatus = globalExecutionStatus;
     }
 
     /**
@@ -323,6 +327,24 @@ public class ItemStatus {
                 data.putAll(compositeItemStatus.getData());
             }
         }
+        return this;
+    }
+    
+    /**
+     * @return the globalExecutionStatus
+     */
+    public ProcessExecutionStatus getGlobalExecutionStatus() {
+        return globalExecutionStatus;
+    }
+
+    /**
+     * @param cancled the globalExecutionStatus to set
+     *
+     * @return this
+     */
+    public ItemStatus setGlobalExecutionStatus(ProcessExecutionStatus cancled) {
+        ParametersChecker.checkParameter(MANDATORY_PARAMETER, cancled);
+        this.globalExecutionStatus = cancled;
         return this;
     }
 

@@ -53,7 +53,8 @@ documentation:
 /operations:
   # root endpoint request
   displayName: Operations
-  description: Administration des Workflows Asynchrones (opérations).
+  description: | 
+    Administration des Workflows Asynchrones (opérations).
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
@@ -63,7 +64,7 @@ documentation:
     StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
     StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     get:
-      description:  |
+      description: | 
         Permet de récupérer le statut du workflow en cours
       responses:
         202:
@@ -101,7 +102,7 @@ documentation:
               example: !include libraries/samples/workflow.sample
     put:
       description: |
-       Permet d'interagir avec une opération (pause, reprise, repriorisation par exemple)
+        Permet d'interagir avec une opération (pause, reprise, repriorisation par exemple)
       headers:
        X-Action:
         required: true

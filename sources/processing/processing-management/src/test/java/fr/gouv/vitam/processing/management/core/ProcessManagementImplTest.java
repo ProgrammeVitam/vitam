@@ -29,18 +29,21 @@ package fr.gouv.vitam.processing.management.core;
 import org.junit.Rule;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 
 public class ProcessManagementImplTest {
     private ProcessManagementImpl processManagementImpl;
     private static final Integer TENANT_ID = 0;
+    private static final String CONTAINER_NAME = "container1";
+    private static final String ID = "id1";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -50,26 +53,22 @@ public class ProcessManagementImplTest {
     public void givenProcessingManagementWhenWorkflowIsNullThenThrowIllegalArgumentException()
         throws ProcessingException {
         processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
-        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), null);
+        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), CONTAINER_NAME,
+            ProcessAction.RESUME, null, TENANT_ID);
     }
 
     @Test(expected = WorkflowNotFoundException.class)
     @RunWithCustomExecutor
-    public void test2() throws ProcessingException {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+    public void testSubmitWorkFlow() throws ProcessingException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration().setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083"));
-        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), "XXX");
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenProcessingManagementWhenExcuteThenReturnReponse() throws ProcessingException {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration().setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083"));
-        processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), "DefaultIngestWorkflow");
+        processManagementImpl.submitWorkflow(
+            WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, ID,
+                "http://localhost:8083",
+                "http://localhost:8083"),
+            "XXX",
+            ProcessAction.RESUME, null, TENANT_ID);
     }
 }

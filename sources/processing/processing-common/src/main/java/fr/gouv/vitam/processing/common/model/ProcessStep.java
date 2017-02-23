@@ -43,9 +43,8 @@ public class ProcessStep extends Step {
     private long elementToProcess;
     private StatusCode stepStatusCode = StatusCode.UNKNOWN;
 
-
     /**
-     * Constructor to initalize a Process Step with a Step object
+     * Constructor to initialize a Process Step with a Step object
      *
      * @param step the Step object
      * @param containerName the container name concerned by the process
@@ -77,13 +76,14 @@ public class ProcessStep extends Step {
      * @param elementProcessed number of element processed
      * @throws IllegalArgumentException if the step is null
      */
-    public ProcessStep(Step step, String containerName, String workflowId, int position, long elementToProcess,
+    public ProcessStep(Step step, String stepId, String containerName, String workflowId, int position,
+        long elementToProcess,
         long elementProcessed) {
         ParametersChecker.checkParameter("containerName could not be null", containerName);
         ParametersChecker.checkParameter("workflowId could not be null", workflowId);
         ParametersChecker.checkParameter("position could not be null", position);
         ParametersChecker.checkParameter("Step could not be null", step);
-        id = containerName + "_" + workflowId + "_" + position + "_" + step.getStepName();
+        this.id = stepId;
         setActions(step.getActions());
         setDistribution(step.getDistribution());
         setStepName(step.getStepName());

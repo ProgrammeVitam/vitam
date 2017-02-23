@@ -24,30 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.processing.common.exception;
-
 /**
- * Workflow not found exception throws by engine
+ * Provides core interface and implementation for the Processing Data module.
  *
  */
-public class WorkflowNotFoundException extends ProcessingException {
-    private static final long serialVersionUID = -5651787421624064080L;
-
-    /**
-     *
-     * @param message to be set
-     * @param cause to be set
-     */
-    public WorkflowNotFoundException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     *
-     * @param message to be set
-     */
-    public WorkflowNotFoundException(String message) {
-        super(message);
-    }
-
-}
+package fr.gouv.vitam.processing.data.core;

@@ -33,6 +33,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -45,27 +47,41 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.jayway.restassured.RestAssured;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.BasicVitamServer;
+import fr.gouv.vitam.common.server.TenantIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
+//@Ignore
 public class ProcessManagementResourceMockedTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResourceMockedTest.class);
     private static final String PORCESSING_URI = "/processing/v1";
@@ -73,7 +89,14 @@ public class ProcessManagementResourceMockedTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static ProcessManagement mock;
+    private static final Integer TENANT_ID = 0;
+    private static final String CONTEXT_ID = "contextId";
+    final GUID processId = GUIDFactory.newGUID();
 
+  @Rule
+  public RunWithCustomExecutorRule runInThread =
+      new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -105,6 +128,7 @@ public class ProcessManagementResourceMockedTest {
         serverConfiguration.setUrlWorkspace("http://localhost:8083");
         serverConfiguration.setUrlMetadata("http://localhost:8083");
         resourceConfig.register(new ProcessManagementResource(mock, serverConfiguration));
+        resourceConfig.register(new TenantIdContainerFilter());
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -132,25 +156,34 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessNotFound() throws Exception {
         reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new WorkflowNotFoundException(""));
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
+            .thenThrow(new WorkflowNotFoundException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
             .statusCode(Response.Status.NOT_FOUND
                 .getStatusCode());
 
         reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new HandlerNotFoundException(""));
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
+            .thenThrow(new HandlerNotFoundException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
-            .statusCode(Response.Status.NOT_FOUND
+            .statusCode(Response.Status.UNAUTHORIZED
                 .getStatusCode());
     }
 
     @Test
     public void executeVitamProcessPreconditionFailed() throws Exception {
         reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new IllegalArgumentException());
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
+            .thenThrow(new IllegalArgumentException());
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
             .statusCode(Response.Status.PRECONDITION_FAILED
                 .getStatusCode());
@@ -160,8 +193,11 @@ public class ProcessManagementResourceMockedTest {
     @Test
     public void executeVitamProcessUnauthorize() throws Exception {
         reset(mock);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenThrow(new ProcessingException(""));
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject()))
+            .thenThrow(new ProcessingException(""));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
             .statusCode(Response.Status.UNAUTHORIZED
                 .getStatusCode());
@@ -172,8 +208,10 @@ public class ProcessManagementResourceMockedTest {
         reset(mock);
         final ItemStatus response = new ItemStatus("WokflowID");
         response.increment(StatusCode.FATAL);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
             .statusCode(Response.Status.INTERNAL_SERVER_ERROR
                 .getStatusCode());
@@ -185,8 +223,10 @@ public class ProcessManagementResourceMockedTest {
         final ItemStatus response = new ItemStatus("WokflowID");
         response.increment(StatusCode.KO);
 
-        when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then()
             .statusCode(Response.Status.BAD_REQUEST
                 .getStatusCode());
@@ -197,8 +237,10 @@ public class ProcessManagementResourceMockedTest {
         reset(mock);
         final ItemStatus response = new ItemStatus("WokflowID");
         response.increment(StatusCode.OK);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
                 .getStatusCode());
     }
@@ -208,8 +250,10 @@ public class ProcessManagementResourceMockedTest {
         reset(mock);
         final ItemStatus response = new ItemStatus("WokflowID");
         response.increment(StatusCode.WARNING);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
                 .getStatusCode());
     }
@@ -219,10 +263,29 @@ public class ProcessManagementResourceMockedTest {
         reset(mock);
         final ItemStatus response = new ItemStatus("WokflowID");
         response.increment(StatusCode.STARTED);
-        when(mock.submitWorkflow(anyObject(), anyString())).thenReturn(response);
+        when(mock.submitWorkflow(anyObject(), anyString(), anyObject(), anyObject(), anyObject())).thenReturn(response);
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(new ProcessingEntry("fake", "fake")).when().post("operations").then().statusCode(Response.Status.OK
                 .getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void listAllProcessTest() throws Exception {
+
+        reset(mock);
+        ProcessWorkflow processWorkflow1 = new ProcessWorkflow();
+        processWorkflow1.setExecutionMode(ProcessAction.INIT);
+        processWorkflow1.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
+        ProcessWorkflow processWorkflow2 = new ProcessWorkflow();
+        processWorkflow2.setExecutionMode(ProcessAction.PAUSE);
+        processWorkflow2.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
+        when(mock.getAllWorkflowProcess(anyObject())).thenReturn(Arrays.asList(processWorkflow1, processWorkflow2));
+        given().accept(MediaType.APPLICATION_JSON).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).when().get("operations").then().statusCode(Response.Status.OK
+            .getStatusCode());
+
     }
 
 }

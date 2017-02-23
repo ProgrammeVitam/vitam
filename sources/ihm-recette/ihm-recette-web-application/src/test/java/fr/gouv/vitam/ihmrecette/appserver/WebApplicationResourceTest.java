@@ -187,7 +187,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject(), anyObject());
+            .build()).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         given().param("file_name", "SIP.zip").expect().statusCode(Status.OK.getStatusCode())
             .when().get("/upload/SIP.zip");
@@ -203,7 +203,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject(), anyObject());
+            .build()).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         given().param("file_name", "incorrect_file.txt").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().get("/upload/incorrect_file.txt");
@@ -219,7 +219,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject(), anyObject());
+            .build()).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         given().param("file_name", "SIP_NOT_FOUND.zip").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
@@ -234,7 +234,8 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
-        Mockito.doThrow(VitamException.class).when(ingestClient).upload(anyObject(), anyObject());
+        Mockito.doThrow(VitamException.class).when(ingestClient).upload(anyObject(), anyObject(), anyObject(),
+            anyObject());
 
         given().param("file_name", "SIP.zip").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())

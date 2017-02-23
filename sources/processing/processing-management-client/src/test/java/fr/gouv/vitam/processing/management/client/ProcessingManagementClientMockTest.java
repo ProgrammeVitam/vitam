@@ -28,11 +28,12 @@ package fr.gouv.vitam.processing.management.client;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 
 /**
  *
@@ -42,11 +43,11 @@ public class ProcessingManagementClientMockTest {
     @Test
     public void fakeTest()
         throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
-        ProcessingException, VitamApplicationServerException {
+        ProcessingException, VitamApplicationServerException, BadRequestException {
         ProcessingManagementClientFactory.changeMode(null);
         final ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient();
         client.checkStatus();
-        client.executeVitamProcess(null, null);
+        client.executeVitamProcess(null, null, null);
         client.registerWorker(null, null, null);
         client.unregisterWorker(null, null);
     }

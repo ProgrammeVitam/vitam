@@ -35,12 +35,20 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
@@ -51,9 +59,11 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
     final int TENANT_ID = 0;
+    public static final String ID = "identifier1";
+    protected StatusCode globalStatus;
 
     @Override
-    public Response upload(InputStream stream, Integer tenantId)
+    public Response upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
@@ -82,4 +92,66 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     public Response downloadObjectAsync(String objectId, IngestCollection type) throws IngestExternalException {
         return ClientMockResultHelper.getObjectStream();
     }
+
+    @Override
+    public ItemStatus getOperationProcessStatus(String id)
+        throws VitamClientException, InternalServerException, BadRequestException {
+        ItemStatus pwork = null;
+        try {
+            pwork = ClientMockResultHelper.getItemStatus(id);
+        } catch (InvalidParseOperationException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return pwork;
+    }
+
+    @Override
+    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
+        throws VitamClientException, InternalServerException, BadRequestException {
+        return new ItemStatus(ID);
+    }
+
+    @Override
+    public Response cancelOperationProcessExecution(String id)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        // return new ItemStatus(ID);
+        return Response.status(Status.OK).build();
+    }
+
+    @Override
+    public Response updateOperationActionProcess(String actionId, String id)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        return Response.status(Status.OK).build();
+    }
+
+    @Override
+    public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        return Response.status(Status.OK).build();
+    }
+
+    @Override
+    public Response initWorkFlow(String contextId) throws VitamException {
+        return Response.status(Status.OK).build();
+    }
+
+    @Override
+    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        return new ItemStatus(ID);
+    }
+
+    @Override
+    public Response initVitamProcess(String contextId, String container, String workflow)
+        throws InternalServerException, VitamClientException, BadRequestException {
+        return Response.status(Status.OK).build();
+    }
+
+    @Override
+    public Response listOperationsDetails() throws VitamClientException {
+        return Response.status(Status.OK).build();
+    }
+
+
 }

@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -173,7 +174,8 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
+            anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -183,8 +185,10 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
+        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
-            .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name()), action);
+            .execute(parameters, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -201,7 +205,8 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
+            anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -211,8 +216,10 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
+        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
-            .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
+            .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -228,7 +235,8 @@ public class TransferNotificationActionHandlerIteratorTest {
         final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(false);
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
+            anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -238,8 +246,10 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
+        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
-            .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
+            .execute(parameters, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
@@ -249,14 +259,17 @@ public class TransferNotificationActionHandlerIteratorTest {
         throws Exception {
         final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
 
-        Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationById(anyObject(),
+            anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
+        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
-            .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
+            .execute(parameters, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -273,7 +286,8 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
+            anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
@@ -283,8 +297,10 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
+        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
-            .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
+            .execute(parameters, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -301,7 +317,8 @@ public class TransferNotificationActionHandlerIteratorTest {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
+            anyObject());
         Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
             .objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -311,8 +328,10 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
+        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
-            .execute(params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
+            .execute(parameters, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 

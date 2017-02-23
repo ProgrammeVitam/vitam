@@ -33,13 +33,17 @@ angular.module('ihm.demo')
     "ACCEPTED_STATUS": 206,
     "NO_CONTENT_STATUS": 204,
     "KO_STATUS": 400,
-    "FATAL_STATUS": 500
+    "FATAL_STATUS": 500,
+    "BLANK_TEST": "BLANK_TEST",
+    "BLANK_TEST_ALERT": "Vous avez selectionné une entrée à blanc."
   })
   .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS,
     $interval, ihmDemoFactory, authVitamService) {
 
     $scope.tenantId = authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID);
     $scope.tenantKey = 'X-Tenant-Id';
+    $scope.contextIdKey = 'X-Context-Id';
+    $scope.actionKey = 'X-Action';
 
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {
@@ -57,8 +61,6 @@ angular.module('ihm.demo')
     function downloadATR(response, headers){
       var a = document.createElement("a");
       document.body.appendChild(a);
-
-      // item_715
       var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
       a.href = url;
 
@@ -160,7 +162,6 @@ angular.module('ihm.demo')
     $scope.fileItem.isWarning = false;
 
     $scope.startUpload = function(params){
-      // item_715
       // Start pooling after receiving the first operationId
       var operationIdServerAppLevel = params['x-request-id'];
       $scope.fileItem.isProcessing = true;
@@ -186,5 +187,11 @@ angular.module('ihm.demo')
       console.log(message);
       $location.path('/login');
     }
+
+    $scope.checkBlankTestChoice = function($event){
+      if($scope.contextId === UPLOAD_CONSTANTS.BLANK_TEST){
+        $scope.showAlert($event, "Attention", UPLOAD_CONSTANTS.BLANK_TEST_ALERT);
+      }
+    };
 
   });

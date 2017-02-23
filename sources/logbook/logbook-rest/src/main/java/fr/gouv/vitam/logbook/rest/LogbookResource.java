@@ -179,15 +179,26 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response getOperation(@PathParam("id_op") String id, JsonNode queryDsl) {
         Status status;
         try {
-            final List<LogbookOperation> result = logbookOperation.select(queryDsl, false);
-            if (result.size() != 1) {
-                throw new LogbookDatabaseException("Result size different than 1.");
+            if (queryDsl == null) {
+                final LogbookOperation result = logbookOperation.getById(id);
+                return Response.status(Status.OK)
+                    .entity(
+                        new RequestResponseOK().setHits(1, 0, 1).addResult(JsonHandler.getFromString(result.toJson())))
+                    .build();
+
+            } else {
+                final List<LogbookOperation> result = logbookOperation.select(queryDsl, false);
+                if (result.size() != 1) {
+                    throw new LogbookDatabaseException("Result size different than 1.");
+                }
+                return Response.status(Status.OK)
+                    .entity(new RequestResponseOK()
+                        .setHits(1, 0, 1)
+                        .addResult(JsonHandler.getFromString(result.get(0).toJson())))
+                    .build();
             }
-            return Response.status(Status.OK)
-                .entity(new RequestResponseOK()
-                    .setHits(1, 0, 1)
-                    .addResult(JsonHandler.getFromString(result.get(0).toJson())))
-                .build();
+
+
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);
             status = Status.NOT_FOUND;

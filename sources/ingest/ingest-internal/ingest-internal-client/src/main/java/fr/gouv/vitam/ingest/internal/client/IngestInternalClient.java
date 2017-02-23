@@ -33,7 +33,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.client.OperationManagementClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -43,7 +43,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
  * Ingest Internal client interface
  */
 
-public interface IngestInternalClient extends MockOrRestClient {
+public interface IngestInternalClient extends OperationManagementClient {
 
     /**
      *
@@ -51,11 +51,12 @@ public interface IngestInternalClient extends MockOrRestClient {
      *
      * @param archiveType is a format (mime type) of SIP (should be zip ,tar, tar.gz or tar.bz2)
      * @param inputStream SIP
+     * @param contextId context Identifier
      * @throws VitamException if stream is null
      * @return Response {@link Response}
      *
      */
-    Response upload(InputStream inputStream, MediaType archiveType) throws VitamException;
+    Response upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException;
 
     /**
      * Create only Logbook
@@ -98,4 +99,6 @@ public interface IngestInternalClient extends MockOrRestClient {
      */
     Response storeATR(GUID guid, InputStream input)
         throws VitamClientException;
+
+
 }

@@ -26,7 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
+import javax.ws.rs.container.AsyncResponse;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 
 /**
@@ -37,8 +40,8 @@ public class ProcessEngineImplFactory {
     /**
      * @return ProcessEngineImpl object created
      */
-    public ProcessEngineImpl create() {
-        return new ProcessEngineImpl();
+    public ProcessEngineImpl create(WorkerParameters workParams, Object monitor, AsyncResponse asyncResponse) {
+        return new ProcessEngineImpl(workParams, monitor, asyncResponse);
     }
 
     /**

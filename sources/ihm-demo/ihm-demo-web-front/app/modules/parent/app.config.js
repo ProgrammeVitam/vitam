@@ -110,10 +110,14 @@ config(['$locationProvider' ,'$routeProvider',
       template: '<accession-register-details></accession-register-details>',
       title: 'Détail du Fonds'
     }).
-        when('/admin/logbookOperations/:entryId', {
+    when('/admin/logbookOperations/:entryId', {
           templateUrl: 'views/logbookEntry.html',
           controller: 'logbookEntryController as entryCtrl',
           title: 'Détail d\'une opération d\'entrée'
+        }).
+        when('/admin/workflows', {
+        	template: '<workflows></workflows>',
+            title: 'Gestion des versements'
         }).
     otherwise('/uploadSIP');
   }

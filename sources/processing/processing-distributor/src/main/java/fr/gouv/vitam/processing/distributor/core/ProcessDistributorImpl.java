@@ -57,6 +57,8 @@ import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.Callbackable;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -102,31 +104,47 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
     private static final String ELEMENT_UNITS = "Units";
 
 
+    private final ProcessDataAccess processDataAccess;
+
+    /**
+     * Empty constructor
+     */
+    public ProcessDistributorImpl() {
+        processDataAccess = ProcessDataAccessImpl.getInstance();
+    }
+
     /**
      * Temporary method for distribution supporting multi-list
      * 
      * @param workParams
      * @param step
-     * @param workflowId
+     * @param operationId
      * @return the final step status
      */
     @Override
-    public ItemStatus distribute(WorkerParameters workParams, Step step, String workflowId) {
+    public ItemStatus distribute(WorkerParameters workParams, Step step, String operationId) {
+
         ParametersChecker.checkParameter("WorkParams is a mandatory parameter", workParams);
         ParametersChecker.checkParameter("Step is a mandatory parameter", step);
-        ParametersChecker.checkParameter("workflowId is a mandatory parameter", workflowId);
-        final String processId = workParams.getProcessId();
+        ParametersChecker.checkParameter("workflowId is a mandatory parameter", operationId);
+
+        final String processId = workParams.getContainerName();
         final String uniqueStepId = workParams.getStepUniqId();
+        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
         final Set<WorkerAsyncRequest> currentRunningObjectsInStep = ConcurrentHashMap.newKeySet();
         step.setStepResponses(new ItemStatus(step.getStepName()));
         Semaphore waitingStepAllAsyncRequest = new Semaphore(1);
+
         try {
             // update workParams
             workParams.putParameterValue(WorkerParameterName.workflowStatusKo,
-                ProcessMonitoringImpl.getInstance().getFinalWorkflowStatus(processId).name());
+                ProcessMonitoringImpl.getInstance().getProcessWorkflowStatus(operationId, tenantId).name());
+
             List<String> objectsList = new ArrayList<>();
             if (step.getDistribution().getKind().equals(DistributionKind.LIST)) {
                 try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+
                     // Test regarding Unit to be indexed
                     if (ELEMENT_UNITS.equalsIgnoreCase(step.getDistribution().getElement())) {
                         // get the file to retrieve the GUID
@@ -135,6 +153,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                                 UNITS_LEVEL + "/" + INGEST_LEVEL_STACK).getEntity();
                         final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
+
                         while (iteratorlLevelFile.hasNext()) {
                             final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
                             final JsonNode guid = guidFieldList.getValue();
@@ -144,10 +163,11 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                                     objectsList.add(_idGuid.asText() + XML_EXTENSION);
                                 }
                                 distributeOnList(workParams, step, processId, uniqueStepId,
-                                    currentRunningObjectsInStep, objectsList,waitingStepAllAsyncRequest);
+                                    currentRunningObjectsInStep, objectsList, waitingStepAllAsyncRequest, tenantId);
                                 objectsList.clear();
                             }
                         }
+
                     } else {
                         // List from Storage
                         List<URI> objectsListUri = workspaceClient
@@ -158,14 +178,14 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                         }
                         // Iterate over Objects List
                         distributeOnList(workParams, step, processId, uniqueStepId, currentRunningObjectsInStep,
-                            objectsList,waitingStepAllAsyncRequest);
+                            objectsList, waitingStepAllAsyncRequest, tenantId);
                     }
                 }
             } else {
                 // update the number of element to process
                 objectsList.add(step.getDistribution().getElement());
                 distributeOnList(workParams, step, processId, uniqueStepId, currentRunningObjectsInStep,
-                    objectsList,waitingStepAllAsyncRequest);
+                    objectsList, waitingStepAllAsyncRequest, tenantId);
             }
         } catch (final IllegalArgumentException e) {
             step.getStepResponses().increment(StatusCode.FATAL);
@@ -194,7 +214,8 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
      * @throws InterruptedException
      */
     private void distributeOnList(WorkerParameters workParams, Step step, final String processId,
-        final String uniqueStepId, final Set<WorkerAsyncRequest> currentRunningObjectsInStep, List<String> objectsList,Semaphore waitingStepAllAsyncRequest)
+        final String uniqueStepId, final Set<WorkerAsyncRequest> currentRunningObjectsInStep, List<String> objectsList,
+        Semaphore waitingStepAllAsyncRequest, Integer tenantId)
         throws ProcessingException {
         if (objectsList == null || objectsList.isEmpty()) {
             step.getStepResponses().setItemsStatus(OBJECTS_LIST_EMPTY,
@@ -202,14 +223,15 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
             return;
         }
         // update the number of element to process
-        ProcessMonitoringImpl.getInstance().updateStep(processId, uniqueStepId, objectsList.size(), false);
+        processDataAccess.updateStep(processId, uniqueStepId, objectsList.size(), false, tenantId);
+
         // Initial acquire
         try {
             waitingStepAllAsyncRequest.acquire();
             for (final String objectUri : objectsList) {
                 workParams.setObjectName(objectUri);
                 // blocking call to submit a new Job
-                if (!submitNewJob(workParams, step, currentRunningObjectsInStep,waitingStepAllAsyncRequest)) {
+                if (!submitNewJob(workParams, step, currentRunningObjectsInStep, waitingStepAllAsyncRequest)) {
                     break;
                 }
             }
@@ -217,7 +239,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         } finally {
             // Now waiting for all submitted jobs to finish
-            waitEndOfStep(currentRunningObjectsInStep,waitingStepAllAsyncRequest);
+            waitEndOfStep(currentRunningObjectsInStep, waitingStepAllAsyncRequest);
         }
     }
 
@@ -231,7 +253,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
      * @throws ProcessingBadRequestException
      */
     private final boolean submitNewJob(WorkerParameters workParams, Step step,
-        Set<WorkerAsyncRequest> currentRunningObjectsInStep,Semaphore waitingStepAllAsyncRequest)
+        Set<WorkerAsyncRequest> currentRunningObjectsInStep, Semaphore waitingStepAllAsyncRequest)
         throws ProcessingBadRequestException {
         // Need to do a new INstance of WorkParams as its contains the ObjectName which is
         // different for each instance
@@ -239,9 +261,10 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         // State (ex: aggregate compositeStatus)
         WorkerAsyncRequest workerAsyncRequest = new WorkerAsyncRequest(
             new DescriptionStep(step, ((DefaultWorkerParameters) workParams).newInstance()),
-            this, currentRunningObjectsInStep, step.getWorkerGroupId(), waitingStepAllAsyncRequest,VitamThreadUtils.getVitamSession());
+            this, currentRunningObjectsInStep, step.getWorkerGroupId(), waitingStepAllAsyncRequest,
+            VitamThreadUtils.getVitamSession());
         currentRunningObjectsInStep.add(workerAsyncRequest);
-        
+
         try {
             // This call is blocking on queue if full
             WorkerManager.submitJob(workerAsyncRequest);
@@ -293,9 +316,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         // Now notify the Distributor if it is waiting on the Running Job set to be empty
         if (workerAsyncResponse.getWorkerAsyncRequest().getCurrentRunningObjectsInStep().isEmpty()) {
             try {
-                ProcessMonitoringImpl.getInstance().updateStep(workParams.getProcessId(), workParams.getStepUniqId(), 0,
-                    true);
-            } catch (ProcessingException |RuntimeException e ) {
+                processDataAccess.updateStep(workParams.getContainerName(), workParams.getStepUniqId(), 0,
+                    true, VitamThreadUtils.getVitamSession().getTenantId());
+            } catch (ProcessingException | RuntimeException e) {
                 if (step.getStepResponses() != null) {
                     step.getStepResponses().increment(StatusCode.FATAL);
                 }
@@ -317,7 +340,8 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
      * 
      * @param currentRunningObjectsInStep
      */
-    private void waitEndOfStep(Set<WorkerAsyncRequest> currentRunningObjectsInStep,Semaphore waitingStepAllAsyncRequest) {
+    private void waitEndOfStep(Set<WorkerAsyncRequest> currentRunningObjectsInStep,
+        Semaphore waitingStepAllAsyncRequest) {
         // Note: While is necessary since it can be interrupted by following unachieved tasks
         while (!currentRunningObjectsInStep.isEmpty()) {
             Thread.yield();
@@ -331,7 +355,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         // For next step in list of list
         waitingStepAllAsyncRequest.release();
     }
-    
+
     @Override
     public void close() {
         // Nothing

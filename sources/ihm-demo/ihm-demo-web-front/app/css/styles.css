@@ -455,7 +455,7 @@ table {
 
 .table > tbody > tr:hover > td {
   background-color: #AD9FFF;
-  color: white;
+  color: black;
   cursor: pointer;
 }
 

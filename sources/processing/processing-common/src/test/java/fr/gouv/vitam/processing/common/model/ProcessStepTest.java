@@ -42,23 +42,23 @@ public class ProcessStepTest {
         assertEquals(1, new ProcessStep().setElementProcessed(1).getElementProcessed());
         assertEquals(StatusCode.OK, new ProcessStep().setStepStatusCode(StatusCode.OK).getStepStatusCode());
         final Step step = new Step();
-        assertEquals(1, new ProcessStep(step, "containerName", "workflowId", 0, 1, 0).getElementToProcess());
-        assertEquals(1, new ProcessStep(step, "containerName", "workflowId", 0, 1, 1).getElementProcessed());
+        assertEquals(1, new ProcessStep(step, "1", "containerName", "workflowId", 0, 1, 0).getElementToProcess());
+        assertEquals(1, new ProcessStep(step, "2", "containerName", "workflowId", 0, 1, 1).getElementProcessed());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorException() {
-        new ProcessStep(null, "containerName", "workflowId", 0, 1, 0);
+        new ProcessStep(null, "2", "containerName", "workflowId", 0, 1, 0);
     }
 
     @Test
     public void equalsTest() {
         final Step step = new Step();
         step.setStepName("1");
-        final ProcessStep processStep = new ProcessStep(step, "containerName", "workflowId", 0, 1, 0);
-        assertEquals(processStep, new ProcessStep(step, "containerName", "workflowId", 0, 1, 0));
+        final ProcessStep processStep = new ProcessStep(step, "25", "containerName", "workflowId", 0, 1, 0);
+        assertEquals(processStep, new ProcessStep(step, "25", "containerName", "workflowId", 0, 1, 0));
 
         assertNotEquals(processStep, new Object());
-        assertNotEquals(processStep, new ProcessStep(step, "containerName", "workflowId", 2, 1, 0));
+        assertNotEquals(processStep, new ProcessStep(step, "24", "containerName", "workflowId", 2, 1, 0));
     }
 }

@@ -31,6 +31,7 @@ import java.io.InputStream;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -202,4 +203,29 @@ public class AsyncInputStreamHelper {
             .build();
     }
 
+    /**
+     * Once constructed, call this to finalize your operation.</br>
+     * </br>
+     * Note that receivedResponse if any is closed for you there.
+     *
+     * @param responseBuilder the ResponseBuilder initialize with your own parameters and status
+     */
+    public void writeAsyncResponse(ResponseBuilder responseBuilder, Status status) {
+        try {
+            ParametersChecker.checkParameter("ResponseBuilder should not be null", responseBuilder);
+            if (receivedResponse != null) {
+                try {
+                    inputStream = receivedResponse.readEntity(InputStream.class);
+                } catch (final IllegalStateException e) {
+                    // Even if there is no inputStream in body, build the response
+                    LOGGER.info(e);
+                    asyncResponse.resume(responseBuilder.status(status).build());
+                    return;
+                }
+            }
+            asyncResponse.resume(responseBuilder.status(status).entity(new VitamStreamingOutput(inputStream)).build());
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
+        }
+    }
 }

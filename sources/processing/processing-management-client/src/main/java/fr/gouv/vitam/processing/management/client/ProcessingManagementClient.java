@@ -26,38 +26,37 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.model.ItemStatus;
+
+import javax.ws.rs.core.Response;
+
+import fr.gouv.vitam.common.client.OperationManagementClient;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
  * Processing Management Client
  */
-public interface ProcessingManagementClient extends MockOrRestClient {
+public interface ProcessingManagementClient extends OperationManagementClient {
 
     /**
      * executeVitamProcess : processing operation of a workflow
      *
+     * @param actionId : name of action
      * @param container : name of the container
      * @param workflow : id of the workflow
      * @return Engine response containing message and status
+     * @throws BadRequestException
      * @throws IllegalArgumentException thrown in case of illegal argument in request server error
      * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
-     * @throws ProcessingUnauthorizeException thrown in case of unauthorized request server error
-     * @throws ProcessingBadRequestException thrown in case of bad request server error
      * @throws ProcessingException
-     * @throws ProcessingInternalServerException thrown in case of internal server error or technical error between
-     *         client and server
      */
-    ItemStatus executeVitamProcess(String container, String workflow)
-        throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
-        ProcessingException;
+    @Deprecated
+    Response executeVitamProcess(String container, String workflow, String actionId)
+        throws BadRequestException, WorkflowNotFoundException, ProcessingException;
 
     /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is

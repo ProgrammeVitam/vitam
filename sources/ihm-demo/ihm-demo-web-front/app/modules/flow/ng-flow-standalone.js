@@ -1601,6 +1601,14 @@
         this.xhr.setRequestHeader(this.flowObj.opts.tenantKey, this.flowObj.opts.tenantId);
       }
 
+      if (!!this.flowObj.opts.actionKey && !!this.flowObj.opts.ctrlScope.action) {
+        this.xhr.setRequestHeader(this.flowObj.opts.actionKey, this.flowObj.opts.ctrlScope.action);
+      }
+
+      if (!!this.flowObj.opts.contextIdKey && !!this.flowObj.opts.ctrlScope.contextId) {
+        this.xhr.setRequestHeader(this.flowObj.opts.contextIdKey, this.flowObj.opts.ctrlScope.contextId);
+      }
+
       // Add data from header options
       each(query, function (v, k) {
         console.log('Add header (k=v)', k, v);

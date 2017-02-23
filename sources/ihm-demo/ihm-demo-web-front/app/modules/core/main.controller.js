@@ -44,7 +44,7 @@ angular.module('core')
 
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
-      if (!angular.isUndefined(next.$$route.title)) {
+      if (!angular.isUndefined(next.$$route) && !angular.isUndefined(next.$$route.title)) {
         $rootScope.title = next.$$route.title;
         //Checks lifecycle type (unit or GOT) to set right page title
         if (!angular.isUndefined(next.params.type) && next.$$route.template.indexOf('lifecycle') > -1) {

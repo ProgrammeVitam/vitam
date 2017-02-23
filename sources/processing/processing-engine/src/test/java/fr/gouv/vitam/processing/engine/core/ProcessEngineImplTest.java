@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.anyObject;
 
 import java.util.Map;
 
@@ -36,17 +38,23 @@ import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 
@@ -60,13 +68,17 @@ public class ProcessEngineImplTest {
     private ProcessMonitoringImpl processMonitoring;
     private ProcessDistributor processDistributor;
     private static final Integer TENANT_ID = 0;
+    private static final String WORKFLOW_ID = "workflowJSONv1";
+    private static final String WORKFLOW_WITH_FINALLY_STEP = "workflowJSONFinallyStep";
+
+    private ProcessDataAccess processData;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
-    public void init() throws WorkflowNotFoundException {
+    public void init() throws WorkflowNotFoundException, ProcessingException {
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlMetadata("http://localhost:8083")
             .setUrlWorkspace("http://localhost:8083")
@@ -74,43 +86,61 @@ public class ProcessEngineImplTest {
 
         processDistributor = Mockito.mock(ProcessDistributor.class);
         processEngine = new ProcessEngineImplFactory().create(processDistributor);
-        processEngine.setWorkflow("workflowJSONv1");
-        processEngine.setWorkflow("workflowJSONFinallyStep");
         processMonitoring = ProcessMonitoringImpl.getInstance();
+
+        processData = ProcessDataAccessImpl.getInstance();
     }
 
     @Test
     @RunWithCustomExecutor
     public void processEngineTest() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        response = processEngine.startWorkflow(workParams, "workflowJSONv1");
+
+        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_ID), workParams.getContainerName(),
+            ProcessAction.INIT, LogbookTypeProcess.INGEST, TENANT_ID);
+
+        processData.prepareToRelaunch(workParams.getContainerName(), ProcessAction.RESUME, TENANT_ID);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        
+        Mockito.when(processDistributor.distribute(anyObject(), anyObject(), anyObject()))
+            .thenReturn(new ItemStatus().increment(StatusCode.OK));
+
+        response = processEngine.startWorkflow(workParams);
+
         assertNotNull(response);
-        final String processId = workParams.getProcessId();
-        final Map<String, ProcessStep> list = processMonitoring.getWorkflowStatus(processId);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        final Map<String, ProcessStep> list =
+            processMonitoring.getProcessSteps(workParams.getContainerName(), TENANT_ID);
         assertNotNull(list);
+        assertEquals(1, list.size());
     }
 
     @Test
     @RunWithCustomExecutor
     public void processEngineTestWithFinallyStep() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_WITH_FINALLY_STEP),
+            workParams.getContainerName(),
+            ProcessAction.INIT, LogbookTypeProcess.INGEST, TENANT_ID);
+
+        processData.prepareToRelaunch(workParams.getContainerName(), ProcessAction.RESUME, TENANT_ID);
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
         final ItemStatus responses = new ItemStatus("stepName");
-        responses.increment(StatusCode.KO);
-        Mockito.when(processDistributor.distribute(Matchers.anyObject(), Matchers.anyObject(),
-            Matchers.eq("workflowJSONFinallyStep"))).thenReturn(responses);
+        responses.increment(StatusCode.OK);
 
-        response = processEngine.startWorkflow(workParams, "workflowJSONFinallyStep");
+        Mockito.when(processDistributor.distribute(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject()))
+            .thenReturn(responses);
+
+        response = processEngine.startWorkflow(workParams);
         assertNotNull(response);
-        final String processId = workParams.getProcessId();
-        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+
+        final Map<String, ProcessStep> map =
+            processMonitoring.getProcessSteps(workParams.getContainerName(), TENANT_ID);
         assertNotNull(map);
+        assertEquals(2, map.size());
     }
-
-    @Test(expected = WorkflowNotFoundException.class)
-    @RunWithCustomExecutor
-    public void givenWorkFlowIdasNullThenReturnNotFoundException() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        processEngine.startWorkflow(workParams, "notExist");
-    }
-
 }
