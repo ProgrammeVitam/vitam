@@ -44,6 +44,20 @@ angular.module('core')
 
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
+      if (!angular.isUndefined(next.$$route.title)) {
+        $rootScope.title = next.$$route.title;
+        //Checks lifecycle type (unit or GOT) to set right page title
+        if (!angular.isUndefined(next.params.type) && next.$$route.template.indexOf('lifecycle') > -1) {
+          if (next.params.type === 'unit') {
+            $rootScope.title += 'de l\'unité archivistique';
+          }
+          if (next.params.type === 'objectgroup') {
+            $rootScope.title += 'du groupe d\'objet';
+          }
+        }
+      } else {
+        $rootScope.title = 'VITAM';
+      }
       if ($scope.session.status != 'logged') {
         $location.path('/login');
       } else if ($location.path() == '/login') {
