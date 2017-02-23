@@ -61,5 +61,25 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 done
 echo "Fin de generation logbook avec timestamping"
 echo "-------------------------------------------"
+
+
+echo "Génération du certificat pour storage-engine"
+generateclientcertificate storage ihmrecetteclientkeypassword caintermediatekeypassword
+echo "	Conversion en p12..."
+crtkey2p12 ${REPERTOIRE_CERTIFICAT}/client/storage/storage ihmrecetteclientkeypassword storage ${p12_storage_engine_password}
+echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/client/storage/ !"
+echo "Fin de génération du certificat client de ihm-recette"
+
+echo "Generation du certificat server de default-offer"
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-offer-default ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+	echo "	Génération pour ${i}..."
+	generatehostcertificate storage-offer-default storageofferdefaultkeypassword caintermediatekeypassword ${i} server ${i}
+	echo "	Conversion en p12..."
+	crtkey2p12 ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/storage-offer-default storageofferdefaultkeypassword ${i} ${p12_storage_offer_default}
+	echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/ !"
+done
+echo "Fin de génération du certificat server de default-offer"
+echo "---------------------------------------------------------"
+
 echo "============================================================================================="
 echo "Fin de script."
