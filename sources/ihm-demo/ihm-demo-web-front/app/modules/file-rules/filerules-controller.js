@@ -28,18 +28,13 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .filter('startFileRules', function() {
-    return function (input, start) {
-      start = +start; //parse to int
-      return input.slice(start);
-    }
-  })
-  .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService) {
+  .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService, resultStartService) {
+    $scope.startFormat = resultStartService.startFormat;
 
     $scope.search = {
       form: {
         RuleValue: '',
-        RuleType: ''
+        RuleType: ['All']
       }, pagination: {
         currentPage: 0,
         resultPages: 0,
@@ -52,20 +47,6 @@ angular.module('ihm.demo')
         hints: {},
         totalResult: 0
       }
-    };
-
-    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
-    $scope.startFormat = function(){
-      var start="";
-
-      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
-        start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
-      }
-
-      if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
-        start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
-      }
-      return start;
     };
 
     $scope.openDialog = function($event, id) {
@@ -82,24 +63,8 @@ angular.module('ihm.demo')
       })
     };
 
-    $scope.clearSearchOptions = function() {
-      $scope.search.form = {
-        RuleValue: '',
-        RuleType: ''
-      };
-      $scope.getFileRules();
-    };
-
-    var clearResults = function() {
-      $scope.search.response.data = [];
-      $scope.search.pagination.currentPage = "";
-      $scope.search.pagination.resultPages = "";
-      $scope.search.response.totalResult = 0;
-    };
-
     var preSearch = function() {
       var requestOptions = angular.copy($scope.search.form);
-      clearResults();
 
       requestOptions.RULES = "all";
       requestOptions.orderby = "RuleValue";
@@ -127,9 +92,10 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getFileRules = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
 
   })
   .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService, $filter) {

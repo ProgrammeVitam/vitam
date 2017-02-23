@@ -13,12 +13,12 @@
         <div class="row">
           <div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
             <label for="entryName">Nom de format</label>
-              <input ng-model="search.form.FormatName" id="entryName" name="entryName" type="text" class="form-control" />
+              <input ng-model="search.form.FormatName" id="entryName" name="entryName" type="text" class="form-control"  ng-change="onInputChange()"/>
           </div>
 
           <div class="boxSimpleSearchInput form-group col-md-12 m-b-50 " style="width: 20%; margin-left: 0px">
             <label for="entrypuid">PUID</label>
-              <input ng-model="search.form.PUID" id="entrypuid" name="entrypuid" type="text" class="form-control" />
+              <input ng-model="search.form.PUID" id="entrypuid" name="entrypuid" type="text" class="form-control"  ng-change="onInputChange()"/>
           </div>
         </div>
           <div>
@@ -69,7 +69,7 @@
               <th>MIME</th>
               <th>Extension</th>
             </tr>
-            <tbody ng-repeat="file in search.response.data | startFormat:startFormat() | limitTo: search.pagination.itemsPerPage">
+            <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo: search.pagination.itemsPerPage">
               <tr ng-click="openDialog($event, file._id)">
                 <td style="text-overflow: ellipsis;max-width:20%" scope="row" >{{file.PUID}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Name}}</td>

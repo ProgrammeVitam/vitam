@@ -26,8 +26,10 @@
  */
 
 angular.module('lifecycle')
-  .controller('lifeCycleController', function($scope, $routeParams, $filter, ihmDemoFactory, loadStaticValues, logbookEntryFullService) {
+  .controller('lifeCycleController', function($scope, $routeParams, $filter, ihmDemoFactory, loadStaticValues, logbookEntryFullService, resultStartService) {
     var self = this;
+
+    self.startForma = resultStartService.startFormat;
 
     function initFields(fields) {
       var result = [];
@@ -161,20 +163,6 @@ angular.module('lifecycle')
     $scope.selectStyleByStatus = function(status){
       return logbookEntryFullService.selectClassByStatus(status);
     };
-
-
-      self.startFormat = function(){
-        var start="";
-
-        if(self.currentPage > 0 && self.currentPage <= self.resultPages){
-          start= (self.currentPage-1)*self.itemsPerPage;
-        }
-
-        if(self.currentPage>self.resultPages){
-          start= (self.resultPages-1)*self.itemsPerPage;
-        }
-        return start;
-      };
 
     // Display life cycle
     buildLifeCycle();

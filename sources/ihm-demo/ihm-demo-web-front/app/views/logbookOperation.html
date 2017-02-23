@@ -13,12 +13,12 @@
 			<div class="row">
 				<div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
 					<label for="entryName">ID</label>
-					<input ng-model="search.form.EventID" type="text" name="entryName" class="form-control" />
+					<input ng-model="search.form.EventID" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
 				</div>
 
 				<div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
 					<label for="entryType">Type d'opération</label>
-					<select ng-model="search.form.EventType" class="form-control" name="entryType">
+					<select ng-model="search.form.EventType" class="form-control" name="entryType" ng-change="onInputChange()">
 						<option value="--" >--</option>
 						<option value="audit">Audit</option>
 						<option value="elimination">Elimination</option>
@@ -80,7 +80,7 @@
 						<th ng-repeat="column in dynamicTable.selectedObjects">{{column.label | translate}}</th>
 					</tr>
 
-					<tbody ng-repeat='log in search.response.data | startFrom:startFormat() | limitTo:search.pagination.itemsPerPage'>
+					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo:search.pagination.itemsPerPage">
 					<tr ng-click="goToDetails(log.evIdProc)">
 						<td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>

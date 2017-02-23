@@ -51,7 +51,8 @@ angular
   .controller(
     'ArchiveUnitSearchController',
     function ($scope, ihmDemoFactory, $window, $mdToast, $mdDialog, ITEM_PER_PAGE,
-              ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult, processSearchService) {
+              ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult, processSearchService, resultStartService) {
+      $scope.startFormat = resultStartService.startFormat;
 
       $scope.search = {
         form: {
@@ -89,18 +90,6 @@ angular
       };
 
       // ***************************************************************************
-
-      // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
-      $scope.startFormat = function () {
-        var start = "";
-        if ($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages) {
-          start = ($scope.search.pagination.currentPage - 1) * $scope.search.pagination.itemsPerPage;
-        }
-        if ($scope.search.pagination.currentPage > $scope.search.pagination.resultPages) {
-          start = ($scope.search.pagination.resultPages - 1) * $scope.search.pagination.itemsPerPage;
-        }
-        return start;
-      };
 
       var preSearch = function () {
         var criteriaSearch = {};
@@ -143,16 +132,10 @@ angular
         return 'Il n\'y a aucun résultat pour votre recherche';
       };
 
-      var clearResults = function () {
-        $scope.search.response.data = [];
-        $scope.search.pagination.currentPage = "";
-        $scope.search.pagination.resultPages = "";
-        $scope.search.response.totalResult = 0;
-      };
-
-      var searchService = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, false);
+      var searchService = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearch, successCallback, computeErrorMessage, $scope.search);
       $scope.getSearchResult = searchService.processSearch;
       $scope.reinitForm = searchService.processReinit;
+      $scope.onInputChange = searchService.onInputChange;
 
       var preSearchElastic = function () {
         var criteriaSearch = {};
@@ -243,8 +226,8 @@ angular
         return {searchProcessSkip: true};
       };
 
-      var elasticSearchService = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearchElastic, successCallback, computeErrorMessage, $scope.search, clearResults, false);
+      var elasticSearchService = processSearchService.initAndServe(ihmDemoFactory.searchArchiveUnits, preSearchElastic, successCallback, computeErrorMessage, $scope.search);
       $scope.getElasticSearchUnitsResult = elasticSearchService.processSearch;
       $scope.reinitElasticForm = elasticSearchService.processReinit;
-
+      $scope.onElasticInputChange = elasticSearchService.onInputChange;
     });

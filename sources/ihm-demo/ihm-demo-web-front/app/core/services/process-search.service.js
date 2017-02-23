@@ -30,13 +30,43 @@
  * The getParams initialization function should be call before all using of this service.
  * The parametters returned by getParams should be given to all function call of this service.
  */
+
+angular.module("core").constant("_", window._);
+
 angular.module('core')
-  .service('processSearchService', function() {
+  .service('processSearchService', function(_) {
     // TODO Remove the given searchScope as argument and create an inner scope for directive (Where form should be paste)
     // TODO Change me in a directive that handle display of error by an unique way
     // TODO Change me in a directive that handle display of pagination by an unique way
     // TODO Change me in a directive that handle display of result array by an unique way
     var ProcessSearchService = {};
+
+    function checkParam(params, param, type, varName, mandatory, defaultValue) {
+      if (!!param) {
+        if (typeof param === type) {
+          return param;
+        } else {
+          params.initError += '-' + varName + 'Type';
+          return null;
+        }
+      } else if (mandatory) {
+        params.initError += '-' + varName;
+        return null;
+      } else {
+        return defaultValue;
+      }
+    }
+
+    function clearResults(searchParams) {
+      if (!!searchParams.clearResults) {
+        searchParams.clearResults();
+      } else {
+        searchParams.searchScope.response.data = [];
+        searchParams.searchScope.response.totalResult = 0;
+        searchParams.searchScope.pagination.currentPage = 0;
+        searchParams.searchScope.pagination.resultPages = 0;
+      }
+    }
 
     var isInError = function(searchParams) {
       if (!searchParams.isInitalized) {
@@ -48,7 +78,7 @@ angular.module('core')
       isInError(searchParams);
 
       var handleSuccessCallback = function(response) {
-        searchParams.clearResults();
+        clearResults(searchParams);
         searchParams.searchScope.error.displayMessage = false;
         if (!searchParams.successCallback(response)) {
           errorCallback();
@@ -56,7 +86,7 @@ angular.module('core')
       };
       var errorCallback = function(errorStructure) {
         // reinit scope values ?
-        searchParams.clearResults();
+        clearResults(searchParams);
         searchParams.searchScope.error.displayMessage = false;
 
         // TODO Do some general job before compute (Like check no connection / 404 or else for other problems ?)
@@ -95,25 +125,15 @@ angular.module('core')
       if (searchParams.autoSearch) {
         processSearch(searchParams);
       } else {
-        searchParams.clearResults();
+        clearResults(searchParams);
       }
     };
 
-    function checkParam(params, param, type, varName, mandatory, defaultValue) {
-      if (!!param) {
-        if (typeof param === type) {
-          return param;
-        } else {
-          params.initError += '-' + varName + 'Type';
-          return null;
-        }
-      } else if (mandatory) {
-        params.initError += '-' + varName;
-        return null;
-      } else {
-        return defaultValue;
+    var checkForm = function(searchParams) {
+      if (_.isEqual(searchParams.searchScope.form, searchParams.initialForm)) {
+        reinitForm(searchParams);
       }
-    }
+    };
 
     /**
      * Initialize the service by checking and prepare the parameters. Do the first call if 'isAutoSearch' is true and return a function to trigger another search.
@@ -139,18 +159,19 @@ angular.module('core')
      * @param {Array} searchScope.response.data [LATER]Will contains the list of items returned by the searchFunction
      * @param {Object} searchScope.response.hints [LATER]Will contains response structure for ES / number of results / ...
      * @param {Number} searchScope.response.totalResult [LATER]Will contains the total number of result of the search
-     * @param {Function} clearResults a callback function call any times the searchFunction is called.
      * @param {Boolean} [isAutoSearch] true if the searchFunction must be call at the initialization of the service (ie: end of this function).
      *  Default: false
      * @param {Object} [preProcessParams] Some custom values for callbackPreProcess parameters.
+     * @param {Function} [clearResults] a callback function to override the clear which is call any times the result may change.
      * @param {Integer} [displayMessageTime] Override the timer of message display (in ms).
      *  Default: 0 (infinite)
      * @returns {Object} A set of function to use service.
      *  processSearch: The function that call the processSearch with initialized parameters
-     *  reinitForm: The function that reinit forms and recall (if needed) the initial search
+     *  reinitForm: The function that reinit forms (initial value of searchScope.form) and recall (if needed) the initial search
+     *  onInputChange: Should be called by the controller when an input is updated. this function check if the form is empty and refresh the initial search if needed.
      * If any preProcessParams update is needed, it can be given as first parameter of that function
      */
-    ProcessSearchService.initAndServe = function(searchFunction, callbackPreProcess, successCallback, computeErrorMessage, searchScope, clearResults, isAutoSearch, preProcessParams, displayMessageTime) {
+    ProcessSearchService.initAndServe = function(searchFunction, callbackPreProcess, successCallback, computeErrorMessage, searchScope, isAutoSearch, preProcessParams, clearResults, displayMessageTime) {
       var params = {};
       params.displayMessageTime = 0;
       params.isInitalized = true;
@@ -160,13 +181,13 @@ angular.module('core')
       params.successCallback = angular.noop;
       params.autoSearch = false;
 
-      params.displayMessageTime = checkParam(params, displayMessageTime, 'number', 'displayMessageTime', false, params.displayMessageTime);
       params.autoSearch = checkParam(params, isAutoSearch, 'boolean', 'isAutoSearch', false, params.autoSearch);
       params.callbackPreProcess = checkParam(params, callbackPreProcess, 'function', 'callbackPreProcess', false, params.callbackPreProcess);
+      params.clearResults = checkParam(params, clearResults, 'function', 'clearResults', false, null);
+      params.displayMessageTime = checkParam(params, displayMessageTime, 'number', 'displayMessageTime', false, params.displayMessageTime);
       params.preProcessParams = checkParam(params, preProcessParams, 'object', 'preProcessParams', false, params.preProcessParams);
       params.successCallback = checkParam(params, successCallback, 'function', 'successCallback', true);
       params.computeErrorMessage = checkParam(params, computeErrorMessage, 'function', 'computeErrorMessage', true);
-      params.clearResults = checkParam(params, clearResults, 'function', 'clearResults', true);
       params.searchScope = checkParam(params, searchScope, 'object', 'searchScope', true);
       params.searchFunction = checkParam(params, searchFunction, 'function', 'searchFunction', true);
       if (params.initError.indexOf('searchScope') === -1) {
@@ -190,6 +211,9 @@ angular.module('core')
         },
         processReinit: function() {
           reinitForm(params);
+        },
+        onInputChange: function() {
+          checkForm(params);
         }
       };
     };

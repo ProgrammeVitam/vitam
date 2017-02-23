@@ -110,7 +110,29 @@ Service de recherche
 ********************
 
 Le service ProcessSearchService (process-search.service.js) permet de factoriser les actions de recherche et de globaliser son fonctionnement. Tout écran de recherche doit l'utiliser.
-Il met à disposition une fonction d'initialisation (initAndServe) du service de recherche.
 
-Ce service pourra être complété pour proposer également l'affichage de certaines informations gérées par lui-même (Messages d'erreur, affichage des résultats, ...).
+Il met à disposition une fonction d'initialisation (initAndServe) du service de recherche qui renvoie 3 functions possibles:
+* processSearch - Lance la requête HTTP et traite le comportement d'erreur si besoin (Affichage du message / vider les résultats / ...)
+* reinitForm - Efface tout les champs de recherche pour reprendre les valeurs initiales des champs et relance une recherche (si besoin).
+* onInputChange - Fonction qui peut être appelée par le contrôleur lors d'une modification d'un champ pour déclancher une réinitialisation de la recherche si le formulaire est revenu à son état initial.
 
+Aussi, en plus des autres paramètres (voir JS doc de la fonction initAndServe), l'initialisation prends en paramètre un objet 'searchScope' qui doit être lié au scope et doit être de la forme suivante:
+.. code-block:: javascript
+
+   searchScope = {
+      form: {/* Valeurs initiales des champs de recherche (seront donc mises à jour par la vue et par le service) */},
+      pagination: { /* Valeurs des variables de pagination */ },
+      error: { /* Mise à jour des message d'erreur */ },
+      response: { /*  */ }
+   }
+
+Ce service permet d'effectuer les actions suivantes de manière uniforme quelque soit le controller qui l'appelle:
+* Obliger d'utiliser la chaîne de fonctions fournies (Evite d'avoir une implem differente sur chaque controller)
+* Gérer la réinitialisation des messages d'erreur lors du lancement d'une nouvelle recherche (searchScope.error)
+* Gérer la réinitialisation du nombre de résultats lors de chaque recherches (searchscope.response)
+* Gestion de la recherche automatique à l'initialisation de la page (Ou à la réinitialisation du formulaire)
+
+Par la suite, ce service pourra être complété par des directives (liste non exaustive) pour automatiser l'affichage des informations similaires:
+* Messages d'erreur (On peut imaginer une directive à assossier à un formulaire qui affiche les boutons d'effactement multi-champs, le bouton de résultat et le message d'erreur en se basant sur le searchScope.form et searchScope.error)
+* Affichage des résultats (On peut imaginer une directive se basant sur searchScope.response déffinissant un pattern pour le tableau de résultat et le titre + Nb résultats).
+* Gestion de la pagination (On peut imaginer une directive se basant sur le searchScope.pagination et searchScope.response pour calculer les éléments de pagination).

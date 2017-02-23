@@ -12,11 +12,11 @@
             <div class="col-md-12">
                 <div class="form-group col-md-4">
                     <label for="entryName">Intitulé</label>
-                    <input ng-model="search.form.RuleValue" id="entryName" name="entryName" type="text" class="form-control" />
+                    <input ng-model="search.form.RuleValue" id="entryName" name="entryName" type="text" class="form-control" ng-change="onInputChange()"/>
                 </div>
                 <div class="form-group col-md-4">
                     <label for="entryType">Type</label>
-                    <select multiple="" class="form-control" name="entryType" ng-model="search.form.RuleType" >
+                    <select multiple="" class="form-control" name="entryType" ng-model="search.form.RuleType" ng-change="onInputChange()">
                         <option value="All">Tous</option>
                         <option value="AppraisalRule">Durée d'utilité Administrative</option>
                         <option value="AccessRule">Délai de communicabilité</option>
@@ -73,7 +73,7 @@
                             <th>Description</th>
 							<th>Identifiant</th>
                         </tr>
-                	    <tbody ng-repeat="file in search.response.data | startFormat:startFormat()| limitTo:search.pagination.itemsPerPage">
+                	    <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage)| limitTo:search.pagination.itemsPerPage">
                 		    <tr ng-click="openDialog($event, file.RuleId)">
                                 <td  style="text-overflow: ellipsis;max-width:20%" >{{file.RuleValue}}</td>
                                 <td style="text-overflow: ellipsis;max-width:20%">{{file.RuleType}}</td>

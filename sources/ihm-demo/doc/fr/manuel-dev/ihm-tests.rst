@@ -79,9 +79,9 @@ Il est également possible de le lancer via gulp via la commande:
    gulp testProtractor
 
 Il est possible de surcharger divers arguments grâce aux arguments suivants (donnés à titre d'exemple:
-* --baseUrl='http://localhost:8082/ihm-demo/#!' (Permet de modifier l'URL de base utilisée. Peut par exemple servir a lancer les tests e2e sur le serveur de recette.
-* --params.<paramName>='<paramValue>' (Permet de modifier un paramètre de la configuration protractor (params)
-* --suite=<maSuite>  (Permet d'utiliser seulement une ou plusieurs suites de tests plutôt que de lancer toute la baterie.
+ - --baseUrl='http://localhost:8082/ihm-demo/#!' (Permet de modifier l'URL de base utilisée. Peut par exemple servir a lancer les tests e2e sur le serveur de recette.
+ - --params.<paramName>='<paramValue>' (Permet de modifier un paramètre de la configuration protractor (params)
+ - --suite=<maSuite>  (Permet d'utiliser seulement une ou plusieurs suites de tests plutôt que de lancer toute la baterie.
 
 Ces paramètres sont aussi settables dans le json de configuration gulp de la tache testProtractor.
 
@@ -94,8 +94,6 @@ La configuration permet aussi de:
  - Définir un login/password (Via la surcharge des params userName/password)
  - Utiliser ou non le mode mock http (Via la surcharge du param mock)
  
- Exemple de fonction utilisable dans les tests e2e.
- 
 Exemple d'utilisation des outils e2e
 ====================================
 
@@ -104,30 +102,30 @@ Création de fonctions réutilisables dans chaque tests:
  - Création d'une fonction éxportée via module.exports
  - Import des fonctions dans le test via require('./path/to/file');
  
- Sélection des éléments
-- Sélection d'une balise a laquelle le modèle associé est variable.name (<input ng-model="variable.name" />)
--> element(by.model('variable.name'))
-- Sélection d'une balise grâce à son identifiant (<div id="navbar"></div>)
--> element(by.id('navbar'));
-- Sélection d'une balise contenant un attribut 'type' et une valeur 'submit' (<button type="submit" />)
--> element(by.css('[type="submit"]'))
-- Sélection d'une balise grâce à son tag (<ul></ul>)
--> element(by.css('ul'));
-- Sélection multiple d'éléments (<li></li><li></li>)
--> element.all(by.css('li'));
-- Sélection d'un sous élément (<div> <p>xxx</p><p>yyy</p> <button/> </div>)
--> var div = element(by.css('div'));
--> div.element(by.css('button')); / div.all(by.css('p'));
-- Sélection d'une partie d'un ensemble d'éléments (<p>xxx</p> <p>yyy</p> <p>zzz</p>)
--> var ps = element.all(by.css('p'));
--> var firstP = ps.first(); // xxx
--> var pNumber1 = ps.get(1); // yyy
--> var lastP = ps.last(); // zzz
+Sélection des éléments
+ - Sélection d'une balise a laquelle le modèle associé est variable.name (<input ng-model="variable.name" />)
+ -- element(by.model('variable.name'))
+ - Sélection d'une balise grâce à son identifiant (<div id="navbar"></div>)
+ -- element(by.id('navbar'));
+ - Sélection d'une balise contenant un attribut 'type' et une valeur 'submit' (<button type="submit" />)
+ -- element(by.css('[type="submit"]'))
+ - Sélection d'une balise grâce à son tag (<ul></ul>)
+ -- element(by.css('ul'));
+ - Sélection multiple d'éléments (<li></li><li></li>)
+ -- element.all(by.css('li'));
+ - Sélection d'un sous élément (<div> <p>xxx</p><p>yyy</p> <button/> </div>)
+ -- var div = element(by.css('div'));
+ -- div.element(by.css('button')); / div.all(by.css('p'));
+ - Sélection d'une partie d'un ensemble d'éléments (<p>xxx</p> <p>yyy</p> <p>zzz</p>)
+ -- var ps = element.all(by.css('p'));
+ -- var firstP = ps.first(); // xxx
+ -- var pNumber1 = ps.get(1); // yyy
+ -- var lastP = ps.last(); // zzz
 
---> Conclusion: 
--> Selection classique: element(by.xxx());
--> Sélection multiple: element.all(by.yyy());
--> Sélections Chaînées: element(by.xxx()).all(by.yyy()).get(2).element(by.zzz());
+Conclusion: 
+ - Selection classique: element(by.xxx());
+ - Sélection multiple: element.all(by.yyy());
+ - Sélections Chaînées: element(by.xxx()).all(by.yyy()).get(2).element(by.zzz());
 
 Récupérations des propriétés configurés dans protractor.conf.js:
  - browser.baseUrl (L'url configurée)

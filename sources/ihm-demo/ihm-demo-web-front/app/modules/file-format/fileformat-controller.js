@@ -28,13 +28,8 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .filter('startFormat', function() {
-    return function (input, start) {
-      start = +start; //parse to int
-      return input.slice(start);
-    }
-  })
-  .controller('fileformatController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService) {
+  .controller('fileformatController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService, resultStartService) {
+    $scope.startFormat = resultStartService.startFormat;
 
     $scope.search = {
       form: {
@@ -52,19 +47,6 @@ angular.module('ihm.demo')
         hints: {},
         totalResult: 0
       }
-    };
-
-    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services with 3 params.
-    $scope.startFormat = function(){
-      var start="";
-
-      if($scope.search.pagination.currentPage > 0 && $scope.search.pagination.currentPage <= $scope.search.pagination.resultPages){
-       start= ($scope.search.pagination.currentPage-1)*$scope.search.pagination.itemsPerPage;
-      }
-        if($scope.search.pagination.currentPage>$scope.search.pagination.resultPages){
-            start= ($scope.search.pagination.resultPages-1)*$scope.search.pagination.itemsPerPage;
-        }
-        return start;
     };
 
     $scope.openDialog = function($event, id) {
@@ -106,16 +88,10 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    function clearResults() {
-      $scope.search.response.data = [];
-      $scope.search.pagination.currentPage = "";
-      $scope.search.pagination.resultPages = "";
-      $scope.search.response.totalResult = 0;
-    }
-
-    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.search, clearResults, true);
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getFileFormats = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
   })
   .controller('fileformatEntryController', function($scope, $mdDialog, formatId, ihmDemoCLient, idOperationService) {
     var self = this;

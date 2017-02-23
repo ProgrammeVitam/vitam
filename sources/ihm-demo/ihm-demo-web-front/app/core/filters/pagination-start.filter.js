@@ -24,12 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
-angular.module('core', ['restangular',  'angularShiro'])
-  .config(function(angularShiroConfigProvider, $httpProvider) {
-    angularShiroConfigProvider.setAuthenticateUrl('/ihm-demo/v1/api/login');
-    angularShiroConfigProvider.setLoginPath ('/#!/login');
-    $httpProvider.interceptors.push('redirectInterceptor');
-  });
 
-angular.module("core").constant("_", window._);
+angular.module('core')
+  .filter('startFrom', function() {
+    return function (input, start) {
+      start = +start; //parse to int
+      return input.slice(start);
+    }
+  })
+  .service('resultStartService', function() {
+    var VitamStartFormat = {};
+
+    VitamStartFormat.startFormat = function(currentPage, resultPages, itemsPerPage) {
+      var start = 0;
+
+      if(currentPage > 0 && currentPage <= resultPages){
+        start= (currentPage - 1) * itemsPerPage;
+      }
+
+      if(currentPage > resultPages){
+        start= (resultPages - 1) * itemsPerPage;
+      }
+
+      return start;
+    };
+
+    return VitamStartFormat;
+  });
