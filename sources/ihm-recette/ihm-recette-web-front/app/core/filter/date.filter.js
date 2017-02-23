@@ -31,6 +31,13 @@ angular.module('ihm.demo')
   .filter('vitamFormatDate', function($filter) {
     var angularDateFilter = $filter('date');
     return function(theDate) {
-       return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+      var date ;
+      if (theDate.endsWith( "Z")) {
+        date = new Date(theDate);
+      }
+      else {
+        date = new Date(theDate + "Z");
+      }
+      return angularDateFilter(date , 'dd-MM-yyyy HH:mm');
     }
   });
