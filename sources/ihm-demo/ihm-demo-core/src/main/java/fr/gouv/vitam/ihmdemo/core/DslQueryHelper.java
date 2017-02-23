@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class DslQueryHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
+    public static final String PROJECTION_DSL = "projection_";
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String ALL = "All";
     private static final String EVENT_ID_PROCESS = "evIdProc";

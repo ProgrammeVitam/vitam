@@ -79,6 +79,24 @@ public final class ParametersChecker {
             }
         }
     }
+    
+    /**
+     * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
+     *
+     * @param errorMessage
+     * @param parameters
+     * @throws IllegalArgumentException if null or empty
+     */
+    public static final void checkParameterDefault(String item, Object... parameters) {
+        if (parameters == null) {
+            throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+        }
+        for (final Object parameter : parameters) {
+            if (parameter == null) {
+                throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+            }
+        }
+    }
 
     /**
      * Check if any parameter are null and if so, throw an IllegalArgumentException

@@ -138,15 +138,32 @@
         </a>
 
         <div class="row archive-desc panel-collapse collapse in" id="boxManage">
-          <div class="col-xs-12">
-            <div ng-if="fieldSet.typeF === 'P'" class="clearfix visible-xs" ng-repeat-start="fieldSet in $ctrl.managmentItems"></div>
-            <div class="{{fieldSet.typeF !=='P'?' form-group col-md-6': 'col-xs-12'}}"
-                 ng-repeat-end>
-              <display-fieldtree intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                                 field-object="fieldSet" edit-mode="$ctrl.isEditMode">
-              </display-fieldtree>
+            <div class="form-group col-md-6" ng-repeat="(categoryId, ruleCategory) in $ctrl.ruleDisplay">
+                <div class="panel panel-default">
+                    <div class="panel-heading"><b>{{categoryId}}</b></div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <tr>
+                                    <th>Identifiant</th>
+                                    <th>Date de Début</th>
+                                    <th>Date de Fin</th>
+                                    <th>Sort Final</th>
+                                    <th>Héritée</th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                <tr class="table-row" ng-repeat="rule in ruleCategory.displayArray">
+                                    <td class="whitetd">{{rule.ruleId}}</td>
+                                    <td class="whitetd">{{rule.StartDate}}</td>
+                                    <td class="whitetd">{{rule.EndDate}}</td>
+                                    <td class="whitetd">{{rule.FinalAction}}</td>
+                                    <td class="whitetd">{{checkHerited(rule.originId)}}</td>
+                                    <td class="whitetd"><i class="material-icons md-18">keyboard_arrow_down</i></td>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
       </div>
 

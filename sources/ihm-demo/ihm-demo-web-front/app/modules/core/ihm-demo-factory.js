@@ -234,30 +234,44 @@ angular.module('core')
   })
   .factory('transferToIhmResult', function(){
     return {
-        transferUnit : function(Result){
-         Result.forEach(function(unit) {
-            unit._id = unit["#id"];
-            delete unit["#id"];
-            unit._og = unit["#object"];
-            delete unit["#object"];
-            unit._ops = unit["#operations"];
-            delete unit["#operations"];
-            unit._tenant = unit["#tenant"];
-            delete unit["#tenant"];
-            unit._nbc = unit["#nbunits"];
-            delete unit["#nbunits"];
-            unit._up = unit["#unitups"];
-            delete unit["#unitups"];
-            unit._us = unit["#allunitups"];
-            delete unit["#allunitups"];
-            unit._min = unit["#min"];
-            delete unit["#min"];
-            unit._max = unit["#max"];
-            delete unit["#max"];
-	    unit._mgt = unit["#management"];
-            delete unit["#management"];
+      transferUnit : function(Result){
+        Result.forEach(function(unit) {
+          unit._id = unit["#id"];
+          delete unit["#id"];
+          unit._og = unit["#object"];
+          delete unit["#object"];
+          unit._ops = unit["#operations"];
+          delete unit["#operations"];
+          unit._tenant = unit["#tenant"];
+          delete unit["#tenant"];
+          unit._nbc = unit["#nbunits"];
+          delete unit["#nbunits"];
+          unit._up = unit["#unitups"];
+          delete unit["#unitups"];
+          unit._us = unit["#allunitups"];
+          delete unit["#allunitups"];
+          unit._min = unit["#min"];
+          delete unit["#min"];
+          unit._max = unit["#max"];
+          delete unit["#max"];
+          unit._mgt = unit["#management"];
+          delete unit["#management"];
         });
         return Result;
+      }
+    }
+  })
+  .factory('RuleUtils', function(){
+    return {
+      translate : function(rule){
+        var newRule = '';
+        newRule = (rule == 'AppraisalRule') ? 'Durée d\'utilité Administrative' : newRule;
+        newRule = (rule == 'AccessRule') ? 'Délai de communicabilité' : newRule;
+        newRule = (rule == 'StorageRule') ? 'Durée d\'utilité courante' : newRule;
+        newRule = (rule == 'DisseminationRule') ? 'Délai de diffusion' : newRule;
+        newRule = (rule == 'ReuseRule') ? 'Durée de réutilisation' : newRule;
+        newRule = (rule == 'ClassificationRule') ? 'Durée de classification' : newRule;
+        return newRule;
       }
     }
   });

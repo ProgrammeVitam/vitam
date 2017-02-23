@@ -78,6 +78,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -212,6 +214,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // Prepare required map
             final Map<String, String> selectUnitIdMap = new HashMap<>();
             selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+            selectUnitIdMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
             final RequestResponse archiveDetails = UserInterfaceTransactionManager
                 .getArchiveUnitDetails(preparedQueryDsl, unitId, getTenantId(headers));

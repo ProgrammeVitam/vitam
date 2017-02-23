@@ -79,6 +79,8 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -341,7 +343,7 @@ public class WebApplicationResourceTest {
 
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap))
@@ -357,7 +359,7 @@ public class WebApplicationResourceTest {
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
@@ -378,7 +380,7 @@ public class WebApplicationResourceTest {
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
@@ -398,7 +400,7 @@ public class WebApplicationResourceTest {
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
