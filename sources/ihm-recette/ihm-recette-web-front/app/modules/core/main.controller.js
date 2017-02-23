@@ -82,6 +82,7 @@ angular.module('core')
     });
 
     $scope.connectUser = function() {
+        $scope.tenantId = $scope.tenantChosen = "-";
       subject.login($scope.credentials)
         .then(
         function(res) {
@@ -104,7 +105,6 @@ angular.module('core')
     };
 
     $scope.logoutUser = function() {
-        $scope.tenantId = $scope.tenantChosen = "-";
         tenantService.deleteTenant();
       subject.logout();
       $scope.session.status = 'notlogged';
