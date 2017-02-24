@@ -84,11 +84,13 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         ", evType : { type : \"string\", index : \"not_analyzed\" } " +
         ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
         ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
+        ", evDateTime : { type : \"date\", index : \"not_analyzed\" } " +
         " } } " + // end events
         ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
         ", evType : { type : \"string\", index : \"not_analyzed\" } " +
         ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
         ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
+        ", evDateTime : { type : \"date\", index : \"not_analyzed\" } " +
         " } } }";
 
 
