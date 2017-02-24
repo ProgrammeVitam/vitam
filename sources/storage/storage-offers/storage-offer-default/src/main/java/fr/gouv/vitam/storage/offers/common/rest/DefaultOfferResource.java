@@ -143,6 +143,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *
      * @param xcursor if true means new query, if false means end of query from client side
      * @param xcursorId if present, means continue on cursor
+     * @param xTenantId the tenant id
      * @param type object type
      * @return an iterator with each object metadata (actually only the id)
      */

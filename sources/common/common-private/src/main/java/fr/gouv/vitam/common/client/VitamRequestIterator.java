@@ -76,6 +76,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
      * @param client the client to use
      * @param method the method to use
      * @param path the path to use
+     * @param responseType the type of the response to be returned
      * @param headers the headers to use, could be null
      * @param request the request to use, could be null
      * @throws IllegalArgumentException if one of mandatory arguments is null or empty

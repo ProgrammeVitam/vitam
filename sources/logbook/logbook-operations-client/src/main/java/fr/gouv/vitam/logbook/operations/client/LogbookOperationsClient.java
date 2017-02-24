@@ -82,6 +82,7 @@ public interface LogbookOperationsClient extends BasicClient {
 
     /**
      * @param id
+     * @param queryDsl
      * @return logbook operation as String
      * @throws LogbookClientException
      * @throws InvalidParseOperationException

@@ -164,6 +164,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
+     * @param esClient elastic search client 
+     * @param tenants the tenants list
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,

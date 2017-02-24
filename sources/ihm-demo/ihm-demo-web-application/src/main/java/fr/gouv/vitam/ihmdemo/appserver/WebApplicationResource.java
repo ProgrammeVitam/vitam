@@ -796,6 +796,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param usage additional mandatory parameters usage
      * @param version additional mandatory parameters version
      * @param filename additional mandatory parameters filename
+     * @param tenantId the tenant id
      * @param asyncResponse will return the inputstream
      *
      */

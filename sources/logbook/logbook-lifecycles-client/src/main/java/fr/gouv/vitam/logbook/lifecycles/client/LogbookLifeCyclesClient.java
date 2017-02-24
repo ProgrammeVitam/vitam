@@ -154,6 +154,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * </pre>
      *
      * @param operationId the operation id from which this ObjectGroup Lifecycles will be retrieved
+     * @param lifeCycleStatus the lifecycle status
      * @return the VitamRequestIterator on ObjectGroupLifecycles as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -182,6 +183,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * </pre>
      *
      * @param operationId the operation id from which this UnitLife Lifecycles will be retrieved
+     * @param lifeCycleStatus the lifecycle status
      * @return the VitamRequestIterator on UnitLifeCycles as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -256,7 +258,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * Commit unit lifeCycle <br>
      * To be used everywhere except very first time (when eventIdentifierProcess already used once)
      *
-     * @param parameters the entry parameters
+     * @param operationId the operation id
+     * @param unitId the unit id
      * @throws LogbookClientBadRequestException if the argument is incorrect
      * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientServerException if the Server got an internal error
@@ -269,7 +272,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * Commit objectGroup lifeCycle <br>
      * To be used everywhere except very first time (when eventIdentifierProcess already used once)
      *
-     * @param parameters the entry parameters
+     * @param operationId the operation id
+     * @param objectGroupId the object group id
      * @throws LogbookClientBadRequestException if the argument is incorrect
      * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientServerException if the Server got an internal error
@@ -305,6 +309,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * 
      * @param unitId the unit id
      * @return the unit lifeCycle status (COMMITTED or IN_PROCESS)
+     * @throws LogbookClientNotFoundException
+     * @throws LogbookClientServerException
      */
     public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
         throws LogbookClientNotFoundException, LogbookClientServerException;
@@ -314,6 +320,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * 
      * @param objectGroupId the object group id
      * @return the object group lifeCycle status (COMMITTED or IN_PROCESS)
+     * @throws LogbookClientNotFoundException
+     * @throws LogbookClientServerException
      */
     public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
         throws LogbookClientNotFoundException, LogbookClientServerException;

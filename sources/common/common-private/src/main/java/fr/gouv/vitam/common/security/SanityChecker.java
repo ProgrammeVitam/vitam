@@ -257,7 +257,7 @@ public class SanityChecker {
     /**
      * Checks sanity of Headers: no javascript/xml tag, neither html tag
      * 
-     * @param requestHeaders
+     * @param uriParameters
      * @throws InvalidParseOperationException
      */
     public static final void checkUriParametersMap(MultivaluedMap<String, String> uriParameters)

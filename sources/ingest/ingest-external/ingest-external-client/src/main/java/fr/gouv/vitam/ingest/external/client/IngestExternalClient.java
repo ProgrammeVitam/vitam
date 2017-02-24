@@ -32,8 +32,6 @@ import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.OperationManagementClient;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
@@ -46,6 +44,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @param stream
      * @param tenantId
      * @param contextId
+     * @param action
      * @return response
      *
      * @throws IngestExternalException
