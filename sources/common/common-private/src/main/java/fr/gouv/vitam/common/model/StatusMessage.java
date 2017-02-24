@@ -54,7 +54,7 @@ public class StatusMessage {
     public StatusMessage(ServerIdentityInterface serverIdentity) {
         setName(serverIdentity.getName());
         setRole(serverIdentity.getRole());
-        setPid(serverIdentity.getPlatformId());
+        setPid(serverIdentity.getGlobalPlatformId());
     }
 
     /**

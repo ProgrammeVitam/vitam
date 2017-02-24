@@ -98,7 +98,7 @@ public class WorkerRegister implements Runnable {
                 configuration.getCapacity(), 1, "active", remoteConfiguration);
         try {
             processingClient.registerWorker(configuration.getWorkerFamily(),
-                String.valueOf(ServerIdentity.getInstance().getPlatformId()), workerBean);
+                String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()), workerBean);
             return true;
         } catch (final Exception e) {
             LOGGER.error("WorkerRegister run : register call failed on " + configuration.getProcessingUrl(), e);

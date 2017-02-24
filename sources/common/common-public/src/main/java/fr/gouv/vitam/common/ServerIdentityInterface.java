@@ -43,9 +43,21 @@ public interface ServerIdentityInterface {
     String getRole();
 
     /**
-     * @return the platformId of the Vitam Platform
+     * 
+     * @return the uniq Id of the Server
      */
-    int getPlatformId();
+    int getServerId();
+    
+    /**
+     * 
+     * @return the SideId
+     */
+    int getSiteId();
+    
+    /**
+     * @return the global uniq Id of the server (global along all sites)
+     */
+    int getGlobalPlatformId();
 
     /**
      *

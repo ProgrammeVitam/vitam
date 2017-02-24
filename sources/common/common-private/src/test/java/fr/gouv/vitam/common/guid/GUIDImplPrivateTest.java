@@ -250,7 +250,7 @@ public class GUIDImplPrivateTest {
     @Test
     public void testPlatformIdField() {
         GUIDImplPrivate id = new GUIDImplPrivate();
-        assertEquals(ServerIdentity.getInstance().getPlatformId(), id.getPlatformId());
+        assertEquals(ServerIdentity.getInstance().getGlobalPlatformId(), id.getPlatformId());
         for (int i = 0; i < 65535; i++) {
             id = new GUIDImplPrivate(0, 0, i);
             assertEquals(i, id.getPlatformId());

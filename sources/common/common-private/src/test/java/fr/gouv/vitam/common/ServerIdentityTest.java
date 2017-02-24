@@ -55,12 +55,12 @@ public class ServerIdentityTest {
             final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
             assertNotNull("Should not be null", serverIdentity);
             assertEquals("Role should be set to default", "role1", serverIdentity.getRole());
-            assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
+            assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getServerId());
             assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
             first = false;
             ((ServerIdentity) serverIdentity).defaultServerIdentity();
             assertEquals("Role should be set to default", "UnknownRole", serverIdentity.getRole());
-            assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getPlatformId());
+            assertNotEquals("Mac Address should not be 0", 0, serverIdentity.getServerId());
             assertFalse("Server Name should not be empty", serverIdentity.getName().isEmpty());
             assertNotNull(((ServerIdentity) serverIdentity).getJsonIdentity());
         }
@@ -71,11 +71,11 @@ public class ServerIdentityTest {
         testGetInstance();
         final ServerIdentity serverIdentity = ServerIdentity.getInstance();
         final String role = serverIdentity.getRole();
-        final int pid = serverIdentity.getPlatformId();
+        final int pid = serverIdentity.getGlobalPlatformId();
         serverIdentity.setName("name1");
         assertEquals("Server Name test", "name1", serverIdentity.getName());
         assertEquals("Role still the same", role, serverIdentity.getRole());
-        assertEquals("Pid still the same", pid, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", pid, serverIdentity.getGlobalPlatformId());
     }
 
     @Test
@@ -83,11 +83,11 @@ public class ServerIdentityTest {
         testGetInstance();
         final ServerIdentity serverIdentity = ServerIdentity.getInstance();
         final String name = serverIdentity.getName();
-        final int pid = serverIdentity.getPlatformId();
+        final int pid = serverIdentity.getGlobalPlatformId();
         serverIdentity.setRole("name2");
         assertEquals("Server Role test", "name2", serverIdentity.getRole());
         assertEquals("Name still the same", name, serverIdentity.getName());
-        assertEquals("Pid still the same", pid, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", pid, serverIdentity.getGlobalPlatformId());
     }
 
     @Test
@@ -96,8 +96,8 @@ public class ServerIdentityTest {
         final ServerIdentity serverIdentity = ServerIdentity.getInstance();
         final String name = serverIdentity.getName();
         final String role = serverIdentity.getRole();
-        serverIdentity.setPlatformId(2);
-        assertEquals("Platform Id test", 2, serverIdentity.getPlatformId());
+        serverIdentity.setServerId(2);
+        assertEquals("Platform Id test", 2, serverIdentity.getServerId());
         assertEquals("Name still the same", name, serverIdentity.getName());
         assertEquals("Role still the same", role, serverIdentity.getRole());
     }
@@ -109,42 +109,42 @@ public class ServerIdentityTest {
         final Map<String, Object> map = new HashMap<>();
         map.put(MAP_KEYNAME.NAME.name(), "valuemap1");
         map.put(MAP_KEYNAME.ROLE.name(), "valuemap2");
-        map.put(MAP_KEYNAME.PLATFORMID.name(), Long.valueOf(4));
+        map.put(MAP_KEYNAME.SITEID.name(), Long.valueOf(4));
         serverIdentity.setFromMap(map);
         assertEquals("Name still the same", "valuemap1", serverIdentity.getName());
         assertEquals("Role still the same", "valuemap2", serverIdentity.getRole());
-        assertEquals("Pid still the same", 4, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 4, serverIdentity.getSiteId());
         // by piece
         map.clear();
         map.put(MAP_KEYNAME.NAME.name(), "valuemap3");
         serverIdentity.setFromMap(map);
         assertEquals("Name still the same", "valuemap3", serverIdentity.getName());
         assertEquals("Role still the same", "valuemap2", serverIdentity.getRole());
-        assertEquals("Pid still the same", 4, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 4, serverIdentity.getSiteId());
         map.clear();
         map.put(MAP_KEYNAME.ROLE.name(), "valuemap4");
         serverIdentity.setFromMap(map);
         assertEquals("Name still the same", "valuemap3", serverIdentity.getName());
         assertEquals("Role still the same", "valuemap4", serverIdentity.getRole());
-        assertEquals("Pid still the same", 4, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 4, serverIdentity.getSiteId());
         map.clear();
-        map.put(MAP_KEYNAME.PLATFORMID.name(), Long.valueOf(6));
+        map.put(MAP_KEYNAME.SITEID.name(), Long.valueOf(6));
         serverIdentity.setFromMap(map);
         assertEquals("Name still the same", "valuemap3", serverIdentity.getName());
         assertEquals("Role still the same", "valuemap4", serverIdentity.getRole());
-        assertEquals("Pid still the same", 6, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 6, serverIdentity.getSiteId());
         map.clear();
-        map.put(MAP_KEYNAME.PLATFORMID.name(), "7");
+        map.put(MAP_KEYNAME.SITEID.name(), "7");
         serverIdentity.setFromMap(map);
         assertEquals("Name still the same", "valuemap3", serverIdentity.getName());
         assertEquals("Role still the same", "valuemap4", serverIdentity.getRole());
-        assertEquals("Pid still the same", 7, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 7, serverIdentity.getSiteId());
         map.clear();
-        map.put(MAP_KEYNAME.PLATFORMID.name(), "7a");
+        map.put(MAP_KEYNAME.SITEID.name(), "7a");
         serverIdentity.setFromMap(map);
         assertEquals("Name still the same", "valuemap3", serverIdentity.getName());
         assertEquals("Role still the same", "valuemap4", serverIdentity.getRole());
-        assertEquals("Pid still the same", 7, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 7, serverIdentity.getSiteId());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class ServerIdentityTest {
         }
         assertEquals("Name still the same", "test1", serverIdentity.getName());
         assertEquals("Role still the same", "test2", serverIdentity.getRole());
-        assertEquals("Pid still the same", 1000, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 1000, serverIdentity.getSiteId());
     }
 
     @Test
@@ -186,7 +186,7 @@ public class ServerIdentityTest {
         }
         assertEquals("Name still the same", "name1", serverIdentity.getName());
         assertEquals("Role still the same", "role1", serverIdentity.getRole());
-        assertEquals("Pid still the same", 1, serverIdentity.getPlatformId());
+        assertEquals("Pid still the same", 1, serverIdentity.getSiteId());
     }
 
 }

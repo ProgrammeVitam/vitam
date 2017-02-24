@@ -44,12 +44,19 @@ public interface ServerIdentityConfiguration {
     String getIdentityName();
 
     /**
-     * Must return the value of a 'IdentityPlatformId' attribute
+     * Must return the value of a 'IdentityServerId' attribute
      *
      * @return the identity platform id value
      */
-    int getIdentityPlatformId();
+    int getIdentityServerId();
 
+    /**
+     * Must return the value of a 'IdentitySiteId' attribute
+     *
+     * @return the identity platform id value
+     */
+    int getIdentitySiteId();
+    
     /**
      * Must return the value of a 'identityRole' attribute
      *

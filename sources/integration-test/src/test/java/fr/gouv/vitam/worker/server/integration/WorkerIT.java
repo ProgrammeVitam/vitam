@@ -60,6 +60,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -503,18 +504,19 @@ public class WorkerIT {
     @Test
     public void testRegistration() throws Exception {
         try {
+            String workerId = String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId());
             final WorkerRemoteConfiguration remoteConfiguration =
                 new WorkerRemoteConfiguration("localhost", PORT_SERVICE_WORKER);
             final WorkerBean workerBean =
                 new WorkerBean("name", WorkerRegister.DEFAULT_FAMILY, 1, 1L, "active", remoteConfiguration);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             try {
-                processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
+                processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY,workerId , workerBean);
                 fail("Should have raized an exception");
             } catch (final WorkerAlreadyExistsException e) {
-                processingClient.unregisterWorker(WorkerRegister.DEFAULT_FAMILY, "1");
+                processingClient.unregisterWorker(WorkerRegister.DEFAULT_FAMILY, workerId);
             }
-            processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, "1", workerBean);
+            processingClient.registerWorker(WorkerRegister.DEFAULT_FAMILY, workerId, workerBean);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
