@@ -61,6 +61,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
@@ -78,9 +79,15 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -106,7 +113,9 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
@@ -190,7 +199,8 @@ public class ProcessingIT {
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
     private static String SIP_FILE_TAR_OK_NAME = "integration-processing/SIP.tar";
-
+    private static String SIP_INHERITED_RULE_CA1_OK = "integration-processing/1069_CA1.zip";
+    private static String SIP_INHERITED_RULE_CA4_OK = "integration-processing/1069_CA4.zip";
     private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration-processing/OK-registre-fonds.zip";
     private static String SIP_FUND_REGISTER_OK = "integration-processing/OK-registre-fonds.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration-processing/SIP_no_manifest.zip";
@@ -356,7 +366,7 @@ public class ProcessingIT {
 
                 // Import Rules
                 client.importRulesFile(
-                    PropertiesUtils.getResourceAsStream("integration-processing/MGT_RULES_REF.csv"));
+                    PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"));
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -546,7 +556,104 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflow_with_herited_ruleCA1() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
 
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA1_OK);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME_2);
+            assertNotNull(ret);
+            // File format warning state
+            assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+
+            MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            Select query = new Select();
+            query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
+            query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(), 
+                JsonHandler.createObjectNode()
+                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
+                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+            JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+            assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflow_with_herited_ruleCA4() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA4_OK);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            final ItemStatus ret = processingClient.executeVitamProcess(containerName, WORFKLOW_NAME_2);
+            assertNotNull(ret);
+            // File format warning state
+            assertEquals(StatusCode.WARNING, ret.getGlobalStatus());
+
+            MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            Select query = new Select();
+            query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
+            query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(), 
+                JsonHandler.createObjectNode()
+                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
+                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+            JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
+            // checkMonitoring - meaning something has been added in the monitoring tool
+            final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(ret.getItemId());
+            assertNotNull(map);
+            assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule").get("R1"));
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
     @RunWithCustomExecutor
     @Test
     public void testWorkflow_with_accession_register() throws Exception {

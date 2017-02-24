@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.utils;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 
@@ -55,8 +55,8 @@ public class MetadataJsonResponseUtilsTest {
         assertNotNull(jsonNode);
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test
     public void given_resultwith_nbreresult_2_thenthrow_InvalidParseOperationException() throws Exception {
-        MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple());
+        assertEquals(MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple()).size(), 0);
     }
 }
