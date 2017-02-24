@@ -33,7 +33,6 @@ documentation:
   displayName: Operations Logbooks
   description: |
     API d'accès aux Journaux d'opérations (Logbooks Operations). Ce point d'entrée permet de chercher une opération (entrée, audit, élimination, préservation, ...).
-
     La recherche sur cette API retourne pour chaque opération, la première entrée (la création à la date de démarrage de l'opération) et la dernière entrée (dans l'état connu par le journal à la date de la dernière étape de cette opération).
   get:
     description: |
@@ -48,18 +47,21 @@ documentation:
     displayName: Operation Logbook
     description: Accès à une opération.
     get:
-      description: Response model for one Logbook operation item.
+      description: |
+       Response model for one Logbook operation item.
       is: [LogbookTraits.OperationItemResponse]
     post:
       description: |
         Response model for one Logbook operation item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.LogbookSingleBulkQueryCreateAppend, StandardTraits.OverrideGet]
     put:
-      description: Add one item or item bundle to an existing operation
+      description: |
+       Add one item or item bundle to an existing operation
       is: [LogbookTraits.OperationBulkCreateAppend, LogbookTraits.OperationSingleCreateAppend]
 
     head:
-      description: Allow to know if an operation exists
+      description: |
+       Allow to know if an operation exists
       is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
 
     /unitlifecycles:
@@ -70,7 +72,8 @@ documentation:
 
         La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie en rapport avec l'opération concernée.
       get:
-        description: Response model for the listing of Logbook unit life cycles
+        description: |
+         Response model for the listing of Logbook unit life cycles
         is: [LogbookTraits.UnitLifeCycleListingResponse ]
       post:
         description: |
@@ -79,8 +82,8 @@ documentation:
 
       delete:
          description: |
-          rollback Unit LifeCycles By Operation 
-          
+          rollback Unit LifeCycles By Operation
+
       /{id_lfc}:
         displayName: Unit Life Cycle Logbook For Operation
         description: |
@@ -88,30 +91,26 @@ documentation:
 
           Le cycle de vie concerné est retourné complet ou tronqué aux seuls événements liés à l'opération en référence selon l'argument X-Full.
         get:
-          description: Response model for one Logbook unit life cycle item.
+          description: |
+           Response model for one Logbook unit life cycle item.
           is: [LogbookTraits.UnitLifeCycleItemResponse]
         post:
           description: |
             Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
           is: [LogbookTraits.LogbookSingleBulkQueryCreateAppend, StandardTraits.OverrideGet]
         put:
-          description: Add one item or item bundle to an existing operation
+          description: |
+           Add one item or item bundle to an existing operation
           is: [LogbookTraits.OperationBulkCreateAppend, LogbookTraits.OperationSingleCreateAppend]
         delete:
-          description: Purge one Lifecycle during one operation
+          description:  |
+           Purge one Lifecycle during one operation
           is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
         head:
-          description: Allow to know if a life cycle exists
-          is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
-          
-        /commit:
-          displayName: commit Unit Life Cycle Logbook By operation 
           description:  |
-              commit Unit Life Cycle Logbook By operation.
-          put:
-            description: |
-              commit one item or item bundle to an existing operation
-          
+           Allow to know if a life cycle exists
+          is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
+
     /objectlifecycles:
       displayName: Object Life Cycles Logbooks For Operation
       description: |
@@ -120,7 +119,8 @@ documentation:
 
         La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie en rapport avec l'opération concernée.
       get:
-        description : Response model for the listing of Logbook object life cycles
+        description :  |
+         Response model for the listing of Logbook object life cycles
         is: [LogbookTraits.ObjectLifeCycleListingResponse ]
       post:
         description : |
@@ -128,8 +128,8 @@ documentation:
         is: [LogbookTraits.ObjectLifeCycleListingResponse, StandardTraits.OverrideGet]
       delete:
          description: |
-          rollback object group LifeCycles By Operation  
-       
+          rollback object group LifeCycles By Operation
+
       /{id_lfc}:
         displayName: Object Life Cycle Logbook For Operation
         description: |
@@ -137,31 +137,27 @@ documentation:
 
           Le cycle de vie concerné est retourné complet ou tronqué aux seuls événements liés à l'opération en référence selon l'argument X-Full.
         get:
-          description : Response model for one Logbook object life cycle item
+          description :  |
+           Response model for one Logbook object life cycle item
           is: [LogbookTraits.ObjectLifeCycleItemResponse]
         post:
           description : |
             Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
           is: [LogbookTraits.LogbookSingleBulkQueryCreateAppend, StandardTraits.OverrideGet]
         put:
-          description: Add one item or item bundle to an existing operation
+          description:  |
+           Add one item or item bundle to an existing operation
           is: [LogbookTraits.OperationBulkCreateAppend, LogbookTraits.OperationSingleCreateAppend]
         delete:
-          description: Purge one Lifecycle during one operation
+          description:  |
+           Purge one Lifecycle during one operation
           is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
 
         head:
-          description: Allow to know if a life cycle exists
-          is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
-      
-        /commit:
-          displayName: commit object group life Cycle Logbook For Operation  
           description:  |
-              commit one Logbook object group cycle item.
-          put:
-            description: |
-              commit one item or item bundle to an existing operation
-            
+           Allow to know if a life cycle exists
+          is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
+
 /unitlifecycles:
   displayName: Unit Life Cycle Logbook
   description: |
@@ -169,7 +165,8 @@ documentation:
 
     La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie.
   get:
-    description : Response model for the listing of Logbook unit life cycles
+    description :  |
+     Response model for the listing of Logbook unit life cycles
     is: [LogbookTraits.UnitLifeCycleListingResponse ]
   post:
     description : |
@@ -178,18 +175,21 @@ documentation:
 
   /{id_lfc}:
     displayName: Unit Life Cycle
-    description: Accès à un cycle de vie (Unit).
+    description:  |
+     Accès à un cycle de vie (Unit).
 
       Le cycle de vie concerné est retourné complet.
     get:
-      description : Response model for one Logbook unit life cycle item
+      description :  |
+       Response model for one Logbook unit life cycle item
       is: [LogbookTraits.UnitLifeCycleItemResponse]
     post:
       description : |
         Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.UnitLifeCycleItemResponse, StandardTraits.OverrideGet]
     head:
-      description: Allow to know if a life cycle exists
+      description: |
+         Allow to know the life cycle status
       is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
 
 /objectlifecycles:
@@ -199,7 +199,8 @@ documentation:
 
     La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie.
   get:
-    description : Response model for the listing of Logbook object life cycles
+    description :  |
+     Response model for the listing of Logbook object life cycles
     is: [LogbookTraits.ObjectLifeCycleListingResponse ]
   post:
     description : |
@@ -208,18 +209,21 @@ documentation:
 
   /{id_lfc}:
     displayName: Object Life Cycle
-    description: Accès à un cycle de vie (Object).
+    description:  |
+     Accès à un cycle de vie (Object).
 
       Le cycle de vie concerné est retourné complet.
     get:
-      description : Response model for one Logbook object life cycle item
+      description :  |
+       Response model for one Logbook object life cycle item
       is: [LogbookTraits.ObjectLifeCycleItemResponse]
     post:
       description : |
         Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
     head:
-      description: Allow to know if a life cycle exists
+      description: |
+       Allow to know the life cycle status
       is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader204, StandardTraits.StandardHeader404]
 
 /status:
