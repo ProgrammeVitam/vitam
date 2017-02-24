@@ -260,7 +260,7 @@ public class WorkerManager {
                 // Stop giving new tasks to this job
                 workerThreadManager.stopWorkerThreadManager();
                 // Waiting for the
-                workerThreadManager.waitingRunningJobsDone(GlobalDataRest.TIMEOUT_END_WORKER);
+                workerThreadManager.waitingRunningJobsDone(GlobalDataRest.TIMEOUT_END_WORKER_MILLISECOND);
                 familyWorkers.remove(workerId);
                 // delete from database
                 marshallToDB();
