@@ -78,6 +78,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
@@ -219,9 +220,11 @@ public class ProcessingIT {
 
     private final static String DUMMY_REQUEST_ID = "reqId";
     private static boolean imported = false;
+    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-processing/metadata.conf").toString();
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/worker.conf").toString();
         CONFIG_BIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
@@ -309,6 +312,7 @@ public class ProcessingIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        VitamConfiguration.getConfiguration().setData(defautDataFolder);
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
@@ -1306,6 +1310,11 @@ public class ProcessingIT {
             e.printStackTrace();
             fail("should not raized an exception");
         }
+        
+        wkrapplication.stop();
+        SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+        wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+        wkrapplication.start();        
     }
 
     @RunWithCustomExecutor
@@ -1348,5 +1357,20 @@ public class ProcessingIT {
         }
     }
 
+  @RunWithCustomExecutor
+  @Test
+  public void testWorkerUnregister() throws Exception {
+      try {
+          VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
+          wkrapplication.stop();
+          SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
+          wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
+          wkrapplication.start();
+      } catch (final Exception e) {
+          e.printStackTrace();
+          fail("should not raized an exception");
+      }
+  }
 
 }

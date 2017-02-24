@@ -38,6 +38,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -75,6 +78,9 @@ public class ProcessDistributorImplTest {
 
     @Before
     public void setUp() throws Exception {
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
+        WorkerManager.initialize();
+        
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         urlWorkspace = "http://localhost:" + Integer.toString(port);
@@ -111,7 +117,7 @@ public class ProcessDistributorImplTest {
 
 
     @Test
-    public void givenProcessDistributorWhendistributeThenProcessRefDistribution() {
+    public void givenProcessDistributorWhendistributeThenProcessRefDistribution() throws InvalidParseOperationException {
         final Step step = new Step();
         step.setStepName("Traiter_archives");
         step.setBehavior(ProcessBehavior.BLOCKING);

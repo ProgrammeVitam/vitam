@@ -26,8 +26,11 @@
  */
 package fr.gouv.vitam.processing.distributor.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,8 +39,15 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import javax.validation.constraints.NotNull;
 
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.VitamSession;
@@ -68,7 +78,21 @@ public class WorkerManagerTest {
     private static final String BIG_WORKER_DESCRIPTION =
         "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
+
+    private static String registeredWorkerFile = "worker.db";    
+    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();    
     
+    @Before
+    public void setup() throws InvalidParseOperationException, FileNotFoundException
+    {
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());        
+        WorkerManager.initialize();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        VitamConfiguration.getConfiguration().setData(defautDataFolder);        
+    }    
     @Test
     public void givenBigWorkerFamilyAndStepOfBigWorkflowRunningOn() throws Exception {
         final String familyId = "BigWorker";
@@ -200,6 +224,31 @@ public class WorkerManagerTest {
         assertTrue(WorkerManager.getWorkersList().size() > 0);
     }
     
+    @Test
+    public void loadWorkerList () throws JsonProcessingException, IOException, InvalidParseOperationException{        
+        WorkerManager.initialize();
+        assertTrue(WorkerManager.getWorkersList().size() > 0);
+    }
+    
+    @Test
+    public void removeWorkerFromList () throws JsonProcessingException, WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException, WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException{
+        final String familyId = "BigWorker";
+        final String workerId = "NewWorkerId2"+ GUIDFactory.newGUID().getId();
+        final int  workerNumber = WorkerManager.getWorkersList().size(); 
+        WorkerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);        
+        WorkerManager.unregisterWorker(familyId, workerId);
+        assertEquals(WorkerManager.getWorkersList().size(), workerNumber);
+    }
+    
+
+    @Test
+    public void addWorkerToList () throws JsonProcessingException, IOException, WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException, InvalidParseOperationException, WorkerAlreadyExistsException, ProcessingBadRequestException{        
+        final String familyId = "DefaultWorker";
+        final String workerId = "NewWorkerId2" + GUIDFactory.newGUID().getId();
+        WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        assertTrue(WorkerManager.getWorkersList().size() > 0);
+    }
+
     private class RunnableMock implements Runnable{
         public RunnableMock(){
             
@@ -249,8 +298,6 @@ public class WorkerManagerTest {
         public String toString() {
             return "";
         }
-
-
     }
 
 }
