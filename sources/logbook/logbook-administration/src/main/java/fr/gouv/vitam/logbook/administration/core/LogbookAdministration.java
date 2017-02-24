@@ -74,9 +74,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -167,7 +167,7 @@ public class LogbookAdministration {
         LogbookDatabaseException, InvalidCreateOperationException {
 
         final LogbookOperation lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
 
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
 

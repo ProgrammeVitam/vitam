@@ -30,10 +30,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
@@ -46,8 +42,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -93,7 +89,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 		ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
 		final ArrayNode pronomList = this.checkFile(xmlPronom);
 		try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-			final GUID eip = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
+			final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 			final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
 					.newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
 							LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
@@ -106,7 +102,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 				throw new ReferentialException(e);
 			}
 
-			final GUID eip1 = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
+			final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 			try {
 				if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
 					mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);

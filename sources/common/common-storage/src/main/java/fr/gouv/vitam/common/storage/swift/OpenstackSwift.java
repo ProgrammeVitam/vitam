@@ -40,7 +40,6 @@ import org.jclouds.openstack.swift.v1.features.ContainerApi;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
@@ -176,7 +175,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         }
         return accountApi;
     }
-    
+
     /**
      * @return swiftApi
      */
@@ -217,7 +216,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         if (objectId != null) {
             SwiftObject swiftobject = getSwiftAPi()
                 .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
-            
+
             result.setObjectName(objectId);
             //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
             result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
@@ -230,7 +229,7 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
             result.setFileSize(container.getBytesUsed());
             result.setLastModifiedDate(null);
         }
-         
+
         return result;
     }
 

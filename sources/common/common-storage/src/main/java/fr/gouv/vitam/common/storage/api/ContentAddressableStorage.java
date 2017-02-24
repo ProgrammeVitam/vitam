@@ -317,13 +317,13 @@ public interface ContentAddressableStorage {
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
-    
+
     /**
      * @param containerName the container name
      * @param objectId the objectId to check
      * @return MetadatasObjectResult
-     * @throws ContentAddressableStorageException 
-     * @throws IOException 
+     * @throws ContentAddressableStorageException
+     * @throws IOException
      */
     MetadatasObject getObjectMetadatas(String containerName, String objectId) throws
         ContentAddressableStorageException, IOException;
@@ -335,8 +335,8 @@ public interface ContentAddressableStorage {
      * @return container listing
      * @throws ContentAddressableStorageNotFoundException
      */
-    PageSet<? extends StorageMetadata> listContainer(String containerName) throws
-        ContentAddressableStorageNotFoundException;
+    PageSet<? extends StorageMetadata> listContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException;
 
     /**
      * List container (next on cursor)
@@ -346,6 +346,7 @@ public interface ContentAddressableStorage {
      * @return container listing
      * @throws ContentAddressableStorageNotFoundException
      */
-    PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker) throws
-        ContentAddressableStorageNotFoundException;
+    PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
+        throws ContentAddressableStorageNotFoundException;
+
 }

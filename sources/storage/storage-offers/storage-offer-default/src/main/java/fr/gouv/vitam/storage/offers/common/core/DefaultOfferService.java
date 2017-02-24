@@ -159,8 +159,8 @@ public interface DefaultOfferService {
 
     /**
      * Count the number of objects in a container defined by the tenant and the type
-     *
-     * @param containerName
+     * 
+     * @param containerName the container name
      * @return Json with number of objects (objectNumber)
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
      * @throws ContentAddressableStorageServerException
@@ -214,7 +214,8 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    StorageMetadatasResult getMetadatas(String containerName, String objectId) throws ContentAddressableStorageException, IOException;
+    StorageMetadatasResult getMetadatas(String containerName, String objectId)
+        throws ContentAddressableStorageException, IOException;
 
     /**
      * Create a new cursor for listing container operation

@@ -65,13 +65,13 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.TenantIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -911,7 +911,7 @@ public class StorageResourceTest {
         public StoredInfoResult storeData(String strategyId, String objectId,
             ObjectDescription createObjectDescription, DataCategory category, String requester)
             throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             } else if (TENANT_ID_A_E.equals(tenantId)) {
@@ -925,7 +925,7 @@ public class StorageResourceTest {
         @Override
         public JsonNode getContainerInformation(String strategyId)
             throws StorageNotFoundException, StorageTechnicalException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             } else if (TENANT_ID_A_E.equals(tenantId)) {
@@ -946,7 +946,7 @@ public class StorageResourceTest {
 
         @Override
         public void deleteContainer(String strategyId) throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -955,7 +955,7 @@ public class StorageResourceTest {
         @Override
         public Response listContainerObjects(String strategyId, DataCategory category,
             String cursorId) throws StorageException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -966,7 +966,7 @@ public class StorageResourceTest {
         public Response getContainerByCategory(String strategyId, String objectId,
             DataCategory category, AsyncResponse asyncResponse)
             throws StorageNotFoundException, StorageTechnicalException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Object not found");
             }
@@ -987,7 +987,7 @@ public class StorageResourceTest {
         @Override
         public JsonNode getContainerObjectInformations(String strategyId, String objectId)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -997,7 +997,7 @@ public class StorageResourceTest {
         @Override
         public void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1005,7 +1005,7 @@ public class StorageResourceTest {
 
         @Override
         public JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1015,7 +1015,7 @@ public class StorageResourceTest {
         @Override
         public JsonNode getContainerLogbook(String strategyId, String logbookId)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1025,7 +1025,7 @@ public class StorageResourceTest {
         @Override
         public void deleteLogbook(String strategyId, String logbookId)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1033,7 +1033,7 @@ public class StorageResourceTest {
 
         @Override
         public JsonNode getContainerUnits(String strategyId) throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1043,7 +1043,7 @@ public class StorageResourceTest {
         @Override
         public JsonNode getContainerUnit(String strategyId, String unitId)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1052,7 +1052,7 @@ public class StorageResourceTest {
 
         @Override
         public void deleteUnit(String strategyId, String unitId) throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1060,7 +1060,7 @@ public class StorageResourceTest {
 
         @Override
         public JsonNode getContainerObjectGroups(String strategyId) throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1070,7 +1070,7 @@ public class StorageResourceTest {
         @Override
         public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }
@@ -1080,7 +1080,7 @@ public class StorageResourceTest {
         @Override
         public void deleteObjectGroup(String strategyId, String objectGroupId)
             throws StorageNotFoundException {
-            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             }

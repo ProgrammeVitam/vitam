@@ -372,6 +372,7 @@ public class AdminManagementResourceTest {
     public void givenAWellFormedCSVInputstreamCheckThenReturnOK() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(CHECK_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
@@ -380,6 +381,7 @@ public class AdminManagementResourceTest {
     public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(CHECK_RULES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }

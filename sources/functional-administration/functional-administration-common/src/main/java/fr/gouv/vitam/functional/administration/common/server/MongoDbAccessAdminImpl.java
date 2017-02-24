@@ -77,7 +77,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -246,7 +246,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
     private MongoCursor<?> selectMongoDbExecute(final FunctionalAdminCollections collection, SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();        
+        int tenantId = ParameterHelper.getTenantParameter();        
         Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
         // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
         // if the collection should not be filtered, then the method should be overridden

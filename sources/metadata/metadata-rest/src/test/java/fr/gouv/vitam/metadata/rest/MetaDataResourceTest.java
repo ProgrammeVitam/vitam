@@ -309,7 +309,7 @@ public class MetaDataResourceTest {
     public void shouldReturnErrorNotFoundIfParentNotFound() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA)).when()
             .post("/units").then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND)))

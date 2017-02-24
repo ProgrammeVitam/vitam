@@ -46,6 +46,8 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
@@ -237,9 +239,11 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         final LogbookOperationParameters log = getComplete();
         client.create(log);
     }
+    
     @RunWithCustomExecutor
     @Test
     public void traceability() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(

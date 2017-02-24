@@ -261,8 +261,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
+
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId, TENANT_ID);
+                .selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD))
                     .get(0);
@@ -310,6 +313,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // Read the selected file into an InputStream
         try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
             IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             final Response response = client.upload(sipInputStream, TENANT_ID);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -477,7 +481,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String requestId = null;
         RequestResponse result = null;
         OffsetBasedPagination pagination = null;
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
             tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -510,7 +514,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
+                result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -546,14 +550,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookResultById(@PathParam("idOperation") String operationId,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         try {
-            Integer tenantId = null;
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
-            tenantId = Integer.parseInt(xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -610,9 +613,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId);
 
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
             List<JsonNode> results = responseOK.getResults();

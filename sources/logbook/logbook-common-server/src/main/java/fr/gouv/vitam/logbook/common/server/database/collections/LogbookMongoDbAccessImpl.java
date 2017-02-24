@@ -88,6 +88,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -597,7 +598,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
         // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
         // if the collection should not be filtered, then the method should be overridden
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson condition = and(QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery()),
             eq(VitamDocument.TENANT_ID, tenantId));
         final Bson projection = selectToMongoDb.getFinalProjection();

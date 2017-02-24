@@ -32,12 +32,15 @@ import java.util.Set;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Parameters helper use to check required parameters
  */
 public class ParameterHelper {
 
+    private static final String NO_TENANT_ID = "Tenant id should be filled";
+    
     private ParameterHelper() {
         // Do nothing
     }
@@ -86,4 +89,18 @@ public class ParameterHelper {
         ParametersChecker.checkParameter("Check Or null parameter", parameters);
         checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
     }
+
+    
+    // FIXME : only one ParameterHelper class -> #2119
+    /**
+     * Get the tenant parameter from the Vitam Session
+     *  
+     * @return the tenantId
+     * @throws IllegalArgumentException if the tenant Id is not found in the session
+     */
+    public static Integer getTenantParameter() {
+        ParametersChecker.checkParameter(NO_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+        return VitamThreadUtils.getVitamSession().getTenantId();
+    }
+    
 }

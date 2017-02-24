@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -287,7 +288,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        
         ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
         ParametersChecker.checkValue("version", version, 0);
 
@@ -377,8 +379,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
-        int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         JsonNode jsonNode = JsonHandler.createObjectNode();
+        Integer tenant = ParameterHelper.getTenantParameter();
         final GUID idGUID;
         try {
             idGUID = GUIDReader.getGUID(idUnit);
@@ -635,7 +637,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private LogbookLifeCycleUnitParameters getLogbookLifeCycleUpdateUnitParameters(GUID eventIdentifierProcess,
         StatusCode logbookOutcome, GUID objectIdentifier, String stp) {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
-        final GUID updateGuid = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()); // eventidentifier
+        final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
 
 
         LogbookLifeCycleUnitParameters logbookLifeCycleUnitParameters =

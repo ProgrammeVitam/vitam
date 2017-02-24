@@ -56,10 +56,9 @@ public interface IngestExternalClient extends MockOrRestClient {
      * 
      * @param objectId
      * @param type
-     * @param tenantId 
      * @return object as stream
-     * @throws VitamClientException
+     * @throws IngestExternalException
      */
-    Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+    Response downloadObjectAsync(String objectId, IngestCollection type)
         throws IngestExternalException;
 }

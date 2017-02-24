@@ -20,6 +20,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -37,9 +38,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Response checkDocuments(AdminCollections documentType, InputStream stream)
         throws AccessExternalClientException {
         Response response = null;
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
@@ -57,9 +59,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Response createDocuments(AdminCollections documentType, InputStream stream)
         throws AccessExternalClientException {
         Response response = null;
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
@@ -77,9 +80,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -103,9 +107,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);

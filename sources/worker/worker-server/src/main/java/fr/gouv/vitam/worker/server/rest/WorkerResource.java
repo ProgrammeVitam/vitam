@@ -70,7 +70,6 @@ public class WorkerResource extends ApplicationStatusResource {
 
     public final WorkerFactory WORKER_FACTORY;
 
-    private final int tenantId = 0;
     private final Worker workerMocked;
 
     /**

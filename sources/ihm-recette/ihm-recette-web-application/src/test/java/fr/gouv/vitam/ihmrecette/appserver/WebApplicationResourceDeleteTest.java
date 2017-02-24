@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
@@ -263,6 +264,7 @@ public class WebApplicationResourceDeleteTest {
     @RunWithCustomExecutor
     public void testDeleteRulesFileOK() {
         try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -277,6 +279,7 @@ public class WebApplicationResourceDeleteTest {
     @RunWithCustomExecutor
     public void testAccessionRegisterOK() {
         try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
@@ -359,6 +362,7 @@ public class WebApplicationResourceDeleteTest {
     @RunWithCustomExecutor
     public void testDeleteAllOk() {
         try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             // insert and check data
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));

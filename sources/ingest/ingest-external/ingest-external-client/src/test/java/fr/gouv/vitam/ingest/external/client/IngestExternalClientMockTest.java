@@ -88,7 +88,7 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream("test");
-        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
 
         assertNotNull(responseStream);
         try {
