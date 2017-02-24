@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileVisitResult;
@@ -167,7 +170,7 @@ public class PerformanceService {
             StandardOpenOption.READ);
             IngestExternalClient client = ingestClientFactory.getClient()) {
 
-            final Response response = client.upload(sipInputStream, tenantId);
+            final Response response = client.upload(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             LOGGER.debug("finish unitary test");
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);

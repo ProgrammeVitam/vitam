@@ -50,12 +50,13 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param stream
+     * @param tenantId
      * @return the status
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      * @throws AccessExternalClientServerException
      */
-    Response checkDocuments(AdminCollections documentType, InputStream stream)
+    Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException,
         AccessExternalClientException, AccessExternalClientServerException;
 
@@ -65,11 +66,12 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param stream
+     * @param tenantId
      * @return the status
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Response createDocuments(AdminCollections documentType, InputStream stream)
+    Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**
@@ -77,12 +79,13 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param select
+     * @param tenantId
      * @return the JsonNode results
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+    RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
 
     /**
@@ -90,10 +93,11 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param documentId
+     * @param tenantId
      * @return the JsonNode results
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+    RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException;
 }
