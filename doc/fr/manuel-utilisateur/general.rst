@@ -41,3 +41,14 @@ Pour les cas KO ou FATAL, les ligne s'affichent en rouge et le texte et affiché
 Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affiché en orange. Ci-après, une capture d'écran montrant l'exemple d'une tâche et d'une étape dont le statut est WARNING :
 
 .. image:: images/op_entree_detail_WARNING.png
+
+Affichage des dates et heures
+-----------------------------
+
+Les dates et heures sont affichées au format JJ-MM-AAAA HH:mm. 
+
+Ci-après un exemple
+
+.. image:: images/date_heure.png
+
+L'heure affichée s'adapte au fuseau horaire définit sur le poste de consultation.
