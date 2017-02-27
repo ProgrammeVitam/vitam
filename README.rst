@@ -88,17 +88,19 @@ Cette méthode permet de construire et déployer un système VITAM de manière p
 Pré-requis
 **********
 
-* Docker 1.12 minimum
 * OS récent (des problèmes ont été rencontrés avec Ubuntu 12.04)
+* Docker 1.12 minimum avec driver "devicemapper" (en overlay, des comportements non-attendus ont été observés)
 * Répertoire contenant un clone du dépôt git vitam/vitam
+* utilisateur autre que root, soit appartenant au group  docker, soit ayant des capacités de sudo
+* les ports "classiques" MongoDB (27017), Elasticsearch (9200, 9201), apache (80), SSL (8443) ne sont pas déjà attribués sur l'hôte
 
 Procédure
 *********
 
-- Lancer le script : ``/vitam/dev-deployment/run.sh`` ;
+- Lancer le script : ``/vitam/dev-deployment/run.sh <environnement>`` , où <environnement> peut être rpm ou deb ;
 - Le script demande "Please enter the location of your vitam git repository" (par exemple : ``/$HOME/git/vitam``) ;
 - Le script construit (si besoin) le conteneur docker ``vitam/dev-rpm-base`` et le lance (détaché), puis ouvre un terminal à l'intérieur ;
-- Une fois le shell ouvert dans le conteneur, executer ``vitam-build-repo`` pour construire l'intégralité des rpm  (dans le dossier ``/code``) ;
+- Une fois le shell ouvert dans le conteneur, executer ``vitam-build-repo`` pour construire l'intégralité des packages (dans le dossier ``/code``) ;
 - A l'issue de l'étape suivante, se positionner dans ``/code/deployment`` ;
 - Suivre les indications du ``README.rst`` présent dans ce répertoire, en utilisant l'inventaire ``hosts.local``. Les composants sont déployés dans le conteneur ; les ports d'écoute des composants sont mappés à l'extérieur du conteneur, sur les mêmes ports.
 
@@ -106,7 +108,7 @@ Procédure
 Alternative 2 : manuelle (virtualisation)
 -----------------------------------------
 
-.. caution:: L'installation manuelle de VITAM est plus complexe, et n'est conseillée que lorsque la méthode utilisant le conteneur docker ne fonctionne pas.
+.. caution:: L'installation manuelle de VITAM est plus complexe et n'est conseillée que lorsque la méthode utilisant le conteneur docker ne fonctionne pas.
 
 Pré-requis
 **********
@@ -114,6 +116,7 @@ Pré-requis
 * Virtualbox ou équivalent, avec une machine virtuelle Centos 7 installée et configurée (SELinux en mode 'disabled')
 * Pouvoir builder VITAM sur le poste local (notamment avec ``rpm-build``)
 * Répertoire contenant un clone du dépôt git ``vitam/vitam``
+* utilisateur autre que root, soit appartenant au group  docker, soit ayant des capacités de sudo
 
 Configuration initiale de la VM
 *******************************
