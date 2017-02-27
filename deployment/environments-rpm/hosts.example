@@ -237,20 +237,19 @@ installation_clamav=true
 # cas de l'appel au webDAV pour récupérer les jeux de tests
 http_proxy_environnement=
 
-# Adresse des offres de stockage (sans le port)
-vitam_storageofferdefault_host_1=
-# vitam_storageofferdefault_host_2=
-
 vitam_tenant_ids=[0,1,2]
 
 # ces paramètres peuvent être soit globaux, ici, soit ajoutés après chaque partition hébergeant une offre de stockage
 
-#Valeur possibles : openstack-swift ou chaîne vide
-vitam_provider_offer=openstack-swift
+# useless now as it is declared in [hosts-storage-offer-default]
+# vitam_provider_offer=openstack-swift
 # URL d'authentification si openstack-swift
-vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
+# vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
 # subUser pour swift
-vitam_swift_subuser=
+# vitam_swift_subuser=
 # Nom du tenant associé (concaténation tenant$user ; le mot de passe est renseigné dans vault.yml sous la directive vitam_keystone_passwd )
-vitam_swift_uid=
+# vitam_swift_uid=
 
+# Pour les Tests de Non-Regression (en git LFS), si URL et branche définies, récupération des jeux de tests
+vitam_tests_gitrepo_url=https://github.com/ProgrammeVitam/vitam.git
+vitam_tests_branch=master
