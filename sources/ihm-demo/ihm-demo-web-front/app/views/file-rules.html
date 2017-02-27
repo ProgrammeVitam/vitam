@@ -1,90 +1,111 @@
-<div id="global" class="container-fluid" >
+<div id="global" class="container-fluid">
 	<ol class="breadcrumb">
 		<li>Administration</li>
-        <li><a href="#!/admin/rules">Référentiel des Règles de gestion</a></li>
-    </ol>
+		<li><a href="#!/admin/rules">Référentiel des Règles de
+				gestion</a></li>
+	</ol>
 
-    <div class="boxSearchWrapper panel panel-default col-md-12">
-        <a class="panel-header" data-toggle="collapse" href="#boxSearch">
-            <h2>Référentiel des règles de gestion</h2>
-        </a>
-        <form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="getFileRules()">
-            <div class="col-md-12">
-                <div class="form-group col-md-4">
-                    <label for="entryName">Intitulé</label>
-                    <input ng-model="search.form.RuleValue" id="entryName" name="entryName" type="text" class="form-control" ng-change="onInputChange()"/>
-                </div>
-                <div class="form-group col-md-4">
-                    <label for="entryType">Type</label>
-                    <select multiple="" class="form-control" name="entryType" ng-model="search.form.RuleType" ng-change="onInputChange()">
-                        <option value="All">Tous</option>
-                        <option value="AppraisalRule">Durée d'utilité Administrative</option>
-                        <option value="AccessRule">Délai de communicabilité</option>
-                        <option value="StorageRule">Durée d'utilité courante</option>
-                        <option value="DisseminationRule">Délai de diffusion</option>
-                        <option value="ReuseRule">Durée de réutilisation</option>
-                        <option value="ClassificationRule">Durée de classification</option>
-                    </select>
-                </div>
-            </div>
-            <div>
-                <div class="col-md-2"><!-- Blank zone --></div>
-                <div class="col-md-3">
-                    <button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
-                </div>
-                <div class="col-md-4">
-                    <button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
-                </div>
-            </div>
-            <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
-                {{search.error.message}}
-            </button>
-        </form>
+	<div class="boxSearchWrapper panel panel-default col-md-12">
+		<a class="panel-header" data-toggle="collapse" href="#boxSearch">
+			<h2>Référentiel des règles de gestion</h2>
+		</a>
+		<form id="boxEntriesSearchForm"
+			class="panel-body panel-collapse collapse in"
+			ng-submit="getFileRules()">
+			<div class="col-md-12">
+				<div class="form-group col-md-4">
+					<label for="entryName">Intitulé</label> <input
+						ng-model="search.form.RuleValue" id="entryName" name="entryName"
+						type="text" class="form-control" ng-change="onInputChange()" />
+				</div>
+				<div class="form-group col-md-4">
+					<label for="entryType">Type</label> <select multiple=""
+						class="form-control" name="entryType"
+						ng-model="search.form.RuleType" ng-change="onInputChange()">
+						<option value="All">Tous</option>
+						<option value="AppraisalRule">Durée d'utilité
+							Administrative</option>
+						<option value="AccessRule">Délai de communicabilité</option>
+						<option value="StorageRule">Durée d'utilité courante</option>
+						<option value="DisseminationRule">Délai de diffusion</option>
+						<option value="ReuseRule">Durée de réutilisation</option>
+						<option value="ClassificationRule">Durée de
+							classification</option>
+					</select>
+				</div>
+			</div>
+			<div>
+				<div class="col-md-2">
+					<!-- Blank zone -->
+				</div>
+				<div class="col-md-3">
+					<button class="btn btn-default" type="reset"
+						ng-click="reinitForm()">
+						<i class="material-icons pull-left">clear</i><span>Effacer</span>
+					</button>
+				</div>
+				<div class="col-md-4">
+					<button class="btn btn-primary" type="submit">
+						<i class="material-icons pull-left">search</i><span>Rechercher</span>
+					</button>
+				</div>
+			</div>
+			<button ng-if="search.error.displayMessage"
+				class="btn btn-danger center-block" type="button"
+				style="margin-top: 20px">{{search.error.message}}</button>
+		</form>
 
-    </div>
+	</div>
 
 
-    <!--Pagination -->
-    <div style="text-align: center">
-        <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
-            Précédent
-        </button>
-        <input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
-        <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
-            Suivant
-        </button>
-    </div>
+	<!--Pagination -->
+	<div style="text-align: center">
+		<button class="btn btn-default btn-s"
+			ng-disabled="search.pagination.currentPage <= 1"
+			ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
+			Précédent</button>
+		<input ng-model="search.pagination.currentPage"
+			style="max-width: 40px">/{{search.pagination.resultPages}}
+		<button class="btn btn-default btn-s"
+			ng-disabled="search.pagination.currentPage >= search.pagination.resultPages"
+			ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
+			Suivant</button>
+	</div>
 
-    <div class="panel panel-default col-md-12">
-    	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
-            <h2>
-                Résultats
-                <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span>
-            </h2>
-        </a>
-        <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
-        	<div class="table-responsive">
-        		<div style="padding-top: 40px">
-            		<table class="table ">
-					    <tr data-original-title="" title="">
-						    <th>Intitulé</th>
-                            <th>Type</th>
-                            <th>Durée</th>
-                            <th>Description</th>
-							<th>Identifiant</th>
-                        </tr>
-                	    <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage)| limitTo:search.pagination.itemsPerPage">
-                		    <tr ng-click="openDialog($event, file.RuleId)">
-                                <td  style="text-overflow: ellipsis;max-width:20%" >{{file.RuleValue}}</td>
-                                <td style="text-overflow: ellipsis;max-width:20%">{{file.RuleType}}</td>
-                                <td style="text-overflow: ellipsis;max-width:20%">{{file.RuleDuration.toString()+" "+file.RuleMeasurement.toString()}}</td>
-                                <td style="text-overflow: ellipsis;max-width:20%">{{file.RuleDescription.toString()}}</td>
-                                <td style="text-overflow: ellipsis;max-width:20%"> {{file.RuleId.toString()}}</td>
-                		    </tr>
-                		</tbody>
-            		</table>
-        		</div>
-        	</div>
-        </div>
-    </div>
+	<div class="panel panel-default col-md-12">
+		<a class="panel-header" data-target="#boxSearchResults"
+			data-toggle="collapse">
+			<h2>
+				Résultats <span
+					ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span>
+			</h2>
+		</a>
+		<div id="boxSearchResults"
+			class="panel-body panel-collapse collapse in">
+			<div class="table-responsive">
+				<div style="padding-top: 40px">
+					<table class="table ">
+						<th><button ng-click="propertyName='RuleValue'; reverse=!reverse">Intitulé</button></th>
+						<th><button ng-click="propertyName='RuleType'; reverse=!reverse">Type</button></th>
+						<th><button ng-click="propertyName='RuleDuration'; reverse=!reverse">Durée</button></th>
+						<th><button ng-click="propertyName='RuleDescription'; reverse=!reverse">Description</button></th>
+						<th><button ng-click="propertyName='RuleId'; reverse=!reverse">Identifiant</button></th>
+						</tr>
+						<tbody
+							ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage)| limitTo:search.pagination.itemsPerPage| orderBy:propertyName:reverse">
+							<tr ng-click="openDialog($event, file.RuleId)">
+								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleValue}}</td>
+								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleType}}</td>
+								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleDuration.toString()+"
+									"+file.RuleMeasurement.toString()}}</td>
+								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleDescription.toString()}}</td>
+								<td style="text-overflow: ellipsis; max-width: 20%">
+									{{file.RuleId.toString()}}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
