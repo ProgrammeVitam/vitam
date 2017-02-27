@@ -79,7 +79,7 @@ angular.module('ihm.demo')
       }, function(error) {
         console.log("clean failed");
       });
-    };
+    }
 
     $scope.stopPromise = undefined;
     $scope.check = function(fileItem, operationIdServerAppLevel) {
@@ -89,13 +89,16 @@ angular.module('ihm.demo')
          // Every 100ms check if the operation is finished
          ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel)
          .then(function (response) {
+           fileItem.isProcessing = false;
+           fileItem.isSuccess = false;
+           fileItem.isWarning = false;
+           fileItem.isError = false;
+           fileItem.isFatalError = false;
+
            if(response.status === UPLOAD_CONSTANTS.FATAL_STATUS) {
              // stop check
              $scope.stopCheck();
-             fileItem.isProcessing = false;
-             fileItem.isSuccess = false;
-             fileItem.isWarning = false;
-             fileItem.isError = true;
+             fileItem.isFatalError = true;
 
              clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
@@ -113,31 +116,39 @@ angular.module('ihm.demo')
              if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
                fileItem.isWarning = true;
              } else {
-               fileItem.isWarning = false;
+               fileItem.isSuccess = true;
              }
-             fileItem.isSuccess = !fileItem.isWarning;
+
              downloadATR(response, response.headers);
              clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
          }, function (error) {
-             console.log('Upload failed with error : ' + error.status);
+          console.log('Upload failed with error : ' + error.status);
+           fileItem.isProcessing = false;
+           fileItem.isSuccess = false;
+           fileItem.isWarning = false;
+           fileItem.isError = false;
+           fileItem.isFatalError = false;
 
-             if(error.status !== -1){
-               $scope.stopCheck();
-               $scope.uploadFinished = true;
-               $scope.uploadLaunched = false;
-               $scope.uploadFailed = true;
+           if(error.status !== -1){
 
-               // Refresh upload status icon
-               fileItem.isProcessing = false;
-               fileItem.isSuccess = false;
-               fileItem.isWarning = false;
+             $scope.stopCheck();
+             $scope.uploadFinished = true;
+             $scope.uploadLaunched = false;
+             $scope.uploadFailed = true;
+
+             // Refresh upload status icon
+             if (500 <= error.status && error.status < 600) {
+               fileItem.isFatalError = true;
+             } else {
                fileItem.isError = true;
-               downloadATR(error, error.headers);
-               clearHistoryAfterUpload(operationIdServerAppLevel);
-               $scope.disableSelect = false;
              }
+
+             downloadATR(error, error.headers);
+             clearHistoryAfterUpload(operationIdServerAppLevel);
+             $scope.disableSelect = false;
+           }
          });
        }, 5000); // 5000 ms
     };
@@ -160,6 +171,7 @@ angular.module('ihm.demo')
     $scope.fileItem.isSuccess = false;
     $scope.fileItem.isError = false;
     $scope.fileItem.isWarning = false;
+    $scope.fileItem.isFatalError = false;
 
     $scope.startUpload = function(params){
       // Start pooling after receiving the first operationId
@@ -168,9 +180,10 @@ angular.module('ihm.demo')
       $scope.fileItem.isSuccess = false;
       $scope.fileItem.isError = false;
       $scope.fileItem.isWarning = false;
+      $scope.fileItem.isFatalError = false;
 
       $scope.check($scope.fileItem, operationIdServerAppLevel);
-    }
+    };
 
     $scope.getSize = function(bytes, precision) {
       if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
