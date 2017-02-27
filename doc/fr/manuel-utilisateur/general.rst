@@ -52,3 +52,23 @@ Ci-après un exemple
 .. image:: images/date_heure.png
 
 L'heure affichée s'adapte au fuseau horaire définit sur le poste de consultation.
+
+Titre des pages
+---------------
+
+Les titre des pages, visibles sur les onglets des navigateurs, sont composés différement sur IHM démo et IHM recette. 
+
+Sur IHM démo, le titre des pages est celui du dernier noeud du fil d'Ariane. Par exemple :
+
+- Transfert
+- Recherche Référentiel des formats
+- Recherche Référentiel des règles de gestion
+
+.. image:: images/titre_IHM_demo.png
+
+Sur IHM recette, le titre des pages est celui du dernier noeud du fil d'Ariane, précédé du mot "Recette -". Par exemple :
+
+- Recette - Test SOAP-UI
+- Recette - Administration des collections
+
+.. image:: images/titre_IHM_recette.png
