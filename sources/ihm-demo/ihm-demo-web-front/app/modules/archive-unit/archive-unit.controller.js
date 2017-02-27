@@ -47,6 +47,7 @@ angular.module('archive.unit')
     'MGT_LABEL': 'Management',
     'INHERITED_RULE_LABEL': 'inheritedRule',
     'LIST_ITEM_LABEL': 'Valeur',
+    'UNIT_PRENT_LIST': '_up',
     'MGT_WITH_CSHARP_KEY': '#mgt'
   })
   .filter('filterSize', function() {
@@ -370,7 +371,7 @@ angular.module('archive.unit')
 
         var inheritedRule = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.INHERITED_RULE_LABEL];
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.INHERITED_RULE_LABEL];
-        delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+
         self.ruleDisplay = {};
         for (var key in inheritedRule) {
           var translateKey = RuleUtils.translate(key);
@@ -395,6 +396,26 @@ angular.module('archive.unit')
             }
           }
         }
+        if (self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.UNIT_PRENT_LIST].length == 0) {
+          var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+          for (var key in selfManagement) {
+            var translateKey = RuleUtils.translate(key);
+            var rule = selfManagement[key];
+            var displayArray = [];
+            var displayObject = {};
+            displayObject.ruleId = rule.Rule;
+            delete rule.Rule;
+            for (var detail in rule) {
+              displayObject[detail] = rule[detail];
+            }
+            displayObject.originId = idField;
+            displayArray.push(displayObject);
+            displayObject = {};
+            self.ruleDisplay[translateKey] = {};
+            self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+          }
+        }
+        delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
 
         if(idField !== self.archiveId){
           self.refreshArchiveDetails();
