@@ -59,7 +59,57 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
 { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
  "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
  
-            
+ 
+ 2.5. Persistence des workers
+------------------------------
+ 
+ La lise de workers est persistée dans une base de données. Pour le moment, la base est un fichier de données qui contient une tableau de 
+ workers en format ArrayNode et chaque worker est une élément JsonNode. Exemple ci-dessous est des données d'une liste de workers 
+
+.. code-block:: json
+
+[
+  {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+ "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 }}}, 
+     
+ {"workerId": "workerId2", "workerinfo": { "name" : "workername2", "family" : "BigWorker", "capacity" : 10, "storage" : 100,
+ "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 54321 } }} 
+] 
+
+Le fichier nommé "worker.db" qui sera créé dans le /vitam/data/processing   
+ 
+Chaque worker est identifié par workerId et l'information générale du champs workerInfo. L'ensemble des actions suivantes sont traitées : 
+  
+* Lors du redémarrage du distributor, il recharge la liste des workers enregistrés. Ensuite, il vérifie le status de chaque worker de la liste, 
+(serverPort:serverHost) en utilisant le WorkerClient. Si le worker qui n'est pas disponible, il sera supprimé de la liste des workers enregistrés 
+et la base sera mise à jour. 
+
+* Lors de l'enregistrement/désenregistrement, la liste des workers enregistrés sera mis à jour (ajout/supression d'un worker).        
+
+.. code-block:: java
+
+	checkStatusWorker(String serverHost, int serverPort) // vérifier le statut d'un worker	
+	marshallToDB()   // mise à jour la base de la liste des workers enregistrés
+	
+	
+2.6. Désenregistrement d'un worker 
+-----------------------------------
+
+Lorsque le worker s'arrête ou se plante, ce worker doit être désenregistré. 
+
+* Si le worker s'arrête, la demande de désenregistrement sera lancé pour le contexte "contextDestroyed" de la WorkerRegistrationListener  
+(implémenté de ServletContextListener) en utilisant le ProcessingManagementClient pour appeler le service de desenregistrement de distributeur.   
+
+* Si le worker se plante, il ne réponse plus aux requêtes de WorkerClient dans la "run()" WorkerThread et dans le catch() des exceptions de de traitement, 
+une demande de désenregistrement doit être appelé dans cette boucle.
+
+ - le distributeur essaie de faire une vérification de status de workers en appelant checkStatusWorker() en plusieurs fois 
+ (définit dans GlobalDataRest.STATUS_CHECK_RETRY). 
+ - si après l'étape 1 le statut de worker est toujours indisponible, le distributeur va appeler la procédure de désenregistrement de ce worker de la liste 
+ de worker enregistrés. 
+    
+    
+                
 3. Worker-core
 **************
 Dans la partie Core, sont présents les différents Handlers nécessaires pour exécuter les différentes actions.
