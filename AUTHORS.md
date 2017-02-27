@@ -58,7 +58,7 @@
 * Bilel Ben Mustapha
 * Pierre Pavy
 
-### Thalès integration team
+### Thales integration team
 
 * Joachim Gonthier
 * Olivier Marsol

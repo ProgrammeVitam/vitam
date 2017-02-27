@@ -1,0 +1,283 @@
+#%RAML 1.0
+
+title: API-Vitam Version Alpha - Access interne
+version: v1
+baseUri: http://access.internal.vitam.gouv.fr/{version}
+protocols: [ HTTP ]
+
+uses:
+  StandardTypes: libraries/StandardTypes.raml
+  StandardTraits: libraries/StandardTraits.raml
+  AccessTypes: libraries/AccessTypes.raml
+  AccessTraits: libraries/AccessTraits.raml
+  LogbookTypes: libraries/LogbookTypes.raml
+  LogbookTraits: libraries/LogbookTraits.raml
+  DslTypes: libraries/DslTypes.raml
+
+securitySchemes:
+  VitamPlatform: !include securitySchemes/SecuritySchemeVitamInternal.raml
+
+securedBy: [ VitamPlatform ]
+
+mediaType: application/json
+
+types:
+  _reserved:
+    type: string
+
+documentation:
+  - title: Avertissements
+    content: !include docs-fr/avertissement.md
+
+  - title: Licence
+    content: !include docs-fr/license.md
+
+  - title: API Access
+    content: TODO
+
+/units:
+  displayName: ArchiveUnits
+  description: |
+   API qui définit les requêtes pour accéder aux Unités d'archives.
+   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+  get:
+    description: Request that will return results composed of Units
+    is: [AccessTraits.AccessUnitResponse]
+  post:
+    description: |
+      Request that will return results composed of Units. The request is using POST with X-Http-Method-Override: GET
+    is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
+  put:
+    description: Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request.
+    is: [AccessTraits.AccessUpdateUnitResponse]
+
+  /{idu}:
+    displayName: ArchiveUnit
+    description: |
+     API qui définit les requêtes pour accéder aux Unités d'archives à partir d'une Unité donnée (racine).
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+    get:
+      description: Request that will return results composed of Units
+      is: [AccessTraits.AccessUnitResponse]
+    post:
+      description: |
+        Request that will return results composed of Units. The request is using POST with X-Http-Method-Override: GET
+      is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+    head:
+      description: Test the existence of this Unit
+      is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeadHeader,
+        StandardTraits.StandardHeader204, StandardTraits.StandardHeader404,
+        StandardTraits.StandardHeader417]
+    put:
+      description: Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request. In this case this update is to be applied for only one Unit (the one specified in the URI).
+      is: [AccessTraits.AccessUpdateUnitResponse]
+
+    /object:
+      displayName: Object of 1 ArchiveUnit
+      description: |
+       API qui définit les requêtes pour accéder à l'Objet d'archives associé à l'Unité  d'archives s'il existe.
+       La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne l'objet d'archives selon le DSL Vitam en cas de succès.
+      get:
+        description: Request that will return results composed of Objects (generally 1)
+        is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
+      post:
+        description: |
+          Request that will return results composed of Objects (generally 1). The request is using POST with X-Http-Method-Override: GET
+        is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse, StandardTraits.OverrideGet]
+        headers:
+          X-Http-Method-Override:
+            required: true
+      head:
+        description: Test the existence of this Object
+        is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
+        StandardTraits.StandardHeader204,
+        StandardTraits.StandardHeader417]
+
+/objects:
+  displayName: Objects
+  description: |
+   API qui définit les requêtes pour accéder aux Objets d'archives.
+   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
+  get:
+    description: Request that will return results composed of Objects
+    is: [AccessTraits.AccessObjectResponse]
+  post:
+    description: |
+      Request that will return results composed of Objects. The request is using POST with X-Http-Method-Override: GET
+    is: [AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
+
+  /{ido}:
+    displayName: Object
+    description: |
+     API qui définit les requêtes pour accéder aux Objets d'archives à partir d'un Objet d'archives donné (racine).
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
+    get:
+      description: Request that will return results composed of Objects (generally 1)
+      is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse]
+    post:
+      description: |
+        Request that will return results composed of Objects (generally 1). The request is using POST with X-Http-Method-Override: GET
+      is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+    head:
+      description: Test the existence of this Object
+      is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
+      StandardTraits.StandardHeader204,
+      StandardTraits.StandardHeader417]
+
+
+
+/operations:
+  displayName: Operations Logbooks
+  description: |
+    API d'accès aux Journaux d'opérations (Logbooks Operations). Ce point d'entrée permet de chercher une opération (entrée, audit, élimination, préservation, ...).
+
+    La recherche sur cette API retourne pour chaque opération, la première entrée (la création à la date de démarrage de l'opération) et la dernière entrée (dans l'état connu par le journal à la date de la dernière étape de cette opération).
+  get:
+    description: |
+      Response model for the listing of Logbook operations.
+    is: [LogbookTraits.OperationListingResponse ]
+  post:
+    description: |
+      Response model for the listing of Logbook operations. The request is using POST with X-Http-Method-Override: GET
+    is: [LogbookTraits.OperationListingResponse, StandardTraits.OverrideGet]
+
+  /{idop}:
+    displayName: Operation Logbook
+    description: Accès à une opération.
+    get:
+      description: Response model for one Logbook operation item.
+      is: [LogbookTraits.OperationItemResponse]
+    post:
+      description: |
+        Response model for one Logbook operation item. The request is using POST with X-Http-Method-Override: GET
+      is: [LogbookTraits.OperationItemResponse, StandardTraits.OverrideGet]
+
+    /unitlifecycles:
+      displayName: Unit Life Cycles Logbooks For Operation
+      description: |
+        API d'accès aux Journaux de cycle de vie des Units. Ce point d'entrée permet de chercher un cycle de vie
+        ayant été impacté par cette opération (pour une entrée les archives ayant été intégrées, pour une élimination les archives ayant été éliminées, ...).
+
+        La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie en rapport avec l'opération concernée.
+      get:
+        description: Response model for the listing of Logbook unit life cycles
+        is: [LogbookTraits.UnitLifeCycleListingResponse ]
+      post:
+        description: |
+          Response model for the listing of Logbook unit life cycles. The request is using POST with X-Http-Method-Override: GET
+        is: [LogbookTraits.UnitLifeCycleListingResponse, StandardTraits.OverrideGet]
+
+      /{id_lfc}:
+        displayName: Unit Life Cycle Logbook For Operation
+        description: |
+          Accès à un cycle de vie lié à l'opération en référence (Unit).
+
+          Le cycle de vie concerné est retourné complet ou tronqué aux seuls événements liés à l'opération en référence selon l'argument X-Full.
+        get:
+          description: Response model for one Logbook unit life cycle item.
+          is: [LogbookTraits.UnitLifeCycleItemResponse]
+        post:
+          description: |
+            Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
+          is: [LogbookTraits.UnitLifeCycleItemResponse, StandardTraits.OverrideGet]
+
+    /objectlifecycles:
+      displayName: Object Life Cycles Logbooks For Operation
+      description: |
+        API d'accès aux Journaux de cycle de vie des Objects. Ce point d'entrée permet de chercher un cycle de
+        vie ayant été impacté par cette opération (pour une entrée les archives ayant été intégrées, pour une élimination les archives ayant été éliminées, ...).
+
+        La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie en rapport avec l'opération concernée.
+      get:
+        description : Response model for the listing of Logbook object life cycles
+        is: [LogbookTraits.ObjectLifeCycleListingResponse ]
+      post:
+        description : |
+          Response model for the listing of Logbook object life cycles. The request is using POST with X-Http-Method-Override: GET
+        is: [LogbookTraits.ObjectLifeCycleListingResponse, StandardTraits.OverrideGet]
+
+      /{id_lfc}:
+        displayName: Object Life Cycle Logbook For Operation
+        description: |
+          Accès à un cycle de vie lié à l'opération en référence (Object).
+
+          Le cycle de vie concerné est retourné complet ou tronqué aux seuls événements liés à l'opération en référence selon l'argument X-Full.
+        get:
+          description : Response model for one Logbook object life cycle item
+          is: [LogbookTraits.ObjectLifeCycleItemResponse]
+        post:
+          description : |
+            Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
+          is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
+
+/unitlifecycles:
+  displayName: Unit Life Cycle Logbook
+  description: |
+    API d'accès aux Journaux de cycle de vie des Units.
+
+    La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie.
+  get:
+    description : Response model for the listing of Logbook unit life cycles
+    is: [LogbookTraits.UnitLifeCycleListingResponse ]
+  post:
+    description : |
+      Response model for the listing of Logbook unit life cycles. The request is using POST with X-Http-Method-Override: GET
+    is: [LogbookTraits.UnitLifeCycleListingResponse, StandardTraits.OverrideGet]
+
+  /{id_lfc}:
+    displayName: Unit Life Cycle
+    description: Accès à un cycle de vie (Unit).
+
+      Le cycle de vie concerné est retourné complet.
+    get:
+      description : Response model for one Logbook unit life cycle item
+      is: [LogbookTraits.UnitLifeCycleItemResponse]
+    post:
+      description : |
+        Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
+      is: [LogbookTraits.UnitLifeCycleItemResponse, StandardTraits.OverrideGet]
+
+/objectlifecycles:
+  displayName: Object Life Cycle Logbook
+  description: |
+    API d'accès aux Journaux du Cycle de Vie des archives (Object).
+
+    La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie.
+  get:
+    description : Response model for the listing of Logbook object life cycles
+    is: [LogbookTraits.ObjectLifeCycleListingResponse ]
+  post:
+    description : |
+      Response model for the listing of Logbook object life cycles. The request is using POST with X-Http-Method-Override: GET
+    is: [LogbookTraits.ObjectLifeCycleListingResponse, StandardTraits.OverrideGet]
+
+  /{id_lfc}:
+    displayName: Object Life Cycle
+    description: Accès à un cycle de vie (Object).
+
+      Le cycle de vie concerné est retourné complet.
+    get:
+      description : Response model for one Logbook object life cycle item
+      is: [LogbookTraits.ObjectLifeCycleItemResponse]
+    post:
+      description : |
+        Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
+      is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
+
+
+/status:
+  get:
+    is: [ StandardTraits.Status, StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]

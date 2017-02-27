@@ -1,0 +1,196 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global types
+
+types:
+  Context:
+    description: Type of the task.
+    type: string
+    enum:
+      - ingest
+      - access
+      - query
+      - freeze
+      - destruction
+      - audit
+      - platform
+      - internal
+
+  Filter:
+    description: Filter for a Request
+    type: object
+    properties:
+      $offset:
+        type: integer
+        required: false
+        minimum: 1
+        maximum: 100000
+      $limit:
+        type: integer
+        minimum: 1
+        maximum: 100000
+        required: false
+      $per_page:
+        type: integer
+        minimum: 1
+        maximum: 100
+        required: false
+      $orderby:
+        type: object
+        required: false
+      $hint:
+        type: string
+        required: false
+        enum:
+          - null
+          - cache
+          - nocache
+
+  Projection:
+    description: Projection for a Request
+    type: object
+    properties:
+      $fields:
+        type: object
+        required: false
+      $usage:
+        type: string
+        required: false
+
+  FacetQuery:
+    description: Facet for a Request
+    type: object
+
+  FacetResponse:
+    description: Facet for a Response
+    type: object
+
+  Error:
+    description: A simple error (unique) in Vitam DSL
+    type: object
+    properties:
+      httpCode:
+        description: Short code as in RFC 7231 (Http Status Codes).
+        type: integer
+      code:
+          description: Vitam standard numerical code.
+          type: integer
+      context: Context
+      state:
+        description: Vitam standard litteral code.
+        type: string
+      message:
+        type: string
+        description: Vitam standard description message.
+      description:
+        type: string
+        description: Vitam detailed description of status.
+    example: {
+        "httpCode" : 401,
+        "code" : 123456,
+        "context": "ingest",
+        "state": "unauthorized",
+        "message": "The application is not authorized to use this functionality",
+        "description": "The application 'Xxxx' is not authorized to use the 'administration' service, the role 'ADMIN_ROLE' is mandatory."
+      }
+
+  ErrorMultiple:
+    description: An error message in Vitam DSL
+    type: object
+    properties:
+      httpCode:
+        description: Short code as in RFC 7231 (Http Status Codes).
+        type: integer
+      code:
+          description: Vitam standard numerical code.
+          type: integer
+      context: Context
+      state:
+        description: Vitam standard litteral code.
+        type: string
+      message:
+        type: string
+        description: Vitam standard description message.
+      description:
+        type: string
+        description: Vitam detailed description of status.
+      errors?:
+        description: Sub error descriptions.
+        type: Error[]
+
+    example: {
+        "httpCode": 404,
+        "code" : 123456,
+        "context": "ingest",
+        "state": "Item_Not_Found",
+        "message": "Item is not found",
+        "description": "Operation on item xxx cannot be done since item is not found in <<resourcePathName>>",
+        "errors": [
+          { "httpCode": 415,
+            "code" : 123457,
+            "context": "ingest",
+            "state": "Unsupported_Media_Type",
+            "message": "Unsupported media type detected",
+            "description": "File xxx has an unsupported media type yyy" },
+          { "httpCode": 412,
+            "code": 123458,
+            "context": "ingest",
+            "state": "Precondition_Failed",
+            "message": "Precondition in error",
+            "description": "Operation on file xxx cannot continue since precondition is in error" }
+        ]
+      }
+
+  Status:
+    description: Status of the service
+    type: string
+    enum:
+      - Active
+      - Inactive
+      - ShutdownInProgress
+      - Unreachable
+
+  ServiceStatus:
+      description: External module status
+      type: object
+      properties:
+        id:
+          description: Id of the instance
+          type: string
+        service:
+          description: Service Name for this instance
+          type: string
+        startDate:
+          description: Date time for the start of this instance
+          type: datetime
+        status:
+          description: Status of this instance
+          type: Status
+      example: {
+        "id": "abcdef",
+        "service": "serviceName",
+        "startDate": "2015-07-14T17:07:14Z",
+        "status": "Active"
+      }
+
+  AsyncStatus:
+    description: Asynchronous Status
+    type: ErrorMultiple
+    properties:
+      "#id":
+        description: Id of the Operation accessible through the corresponding collection specified in "context"
+        type: string
+      start_date:
+        description: Start date of the operation
+        type: datetime
+    example: {
+      "#id": "idIngests",
+      "httpCode" : 200,
+      "code" : 123456,
+      "context": "ingest",
+      "state": "Done",
+      "message": "The ingest is done, the report can be downloaded",
+      "description": "The application 'Xxxx' requested an ingest operation and this operation is done.",
+      "start_date": "2014-01-10T03:06:17.396Z"
+    }

@@ -128,39 +128,7 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<configuration>
-					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild> 
-					<skipDockerTag>false</skipDockerTag>
-					<!-- Images specification -->
-					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
-					<imageName>${vitam.docker.registry.push}/vitam/workspace</imageName>
-					<!-- copy the service's jar file from target into the root directory 
-					of the image -->
-					<resources>
-						<resource>
-							<targetPath>/vitam/lib</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
-						</resource>
-						<resource>
-							<targetPath>/vitam/conf</targetPath>
-							<directory>${basedir}/src/main/config</directory>
-						</resource>
-						<resource>
-							<targetPath>/vitam/bin</targetPath>
-							<directory>${project.build.directory}/bin</directory>
-						</resource>
-						<resource>
-							<targetPath>/vitam/lib</targetPath>
-							<directory>${project.build.directory}/dependencies</directory>
-						</resource>
-					</resources>
-				</configuration>
-			</plugin>
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>rpm-maven-plugin</artifactId>

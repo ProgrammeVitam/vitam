@@ -17,11 +17,6 @@
     </properties>
 
     <build>
-      <pluginManagement>
-         <plugins>
-          
-      </plugins>		
-  </pluginManagement>
   <plugins>
     <plugin>
         <!-- Dependency manipulation (copy, unpack) and analysis. -->

@@ -1,0 +1,179 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global headers for Storage
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+  CollectionTraits: CollectionTraits.raml
+  StorageTypes: StorageTypes.raml
+  StorageTraits: StorageTraits.raml
+
+resourceTypes:
+
+  StoreWormItem:
+    displayName: <<resourcePathName | !singularize>> operations
+    get:
+      description: Permet d'accéder aux informations d'un <<resourcePathName | !singularize>>
+      is: [CollectionTraits.collection-get, StorageTraits.StrategyStorage, StandardTraits.AllowsHeader]
+      responses:
+        200:
+          body:
+            binary/octet-stream:
+              example: !include samples/binaryObject.sample
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample
+    post:
+      description: Permet de créer un nouveau <<resourcePathName | !singularize>>.
+      is: [CollectionTraits.collection-post, StorageTraits.StrategyStorage]
+      body:
+        multipart/form-data:
+          properties:
+            objectGroupId:
+              description: Id of the parent ObjectGroup
+              type: string
+            unitIds:
+              description: Ids of the parent Units, comma separated
+              type: string
+            fileUri:
+              description: The file URI to be uploaded
+              required: true
+              type: string
+      responses:
+        201:
+          body:
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample
+    head:
+      description: Permet d'obtenir des informations sur un <<resourcePathName | !singularize>>
+      is: [CollectionTraits.collection-head, StorageTraits.StrategyStorage]
+      headers:
+        X-digest-algorithm:
+          description: Digest Algorithm
+          type: string
+      responses:
+        200:
+          headers:
+            X-digest:
+              description: Digests value in order of Strategy, comma separated
+              type: string
+            X-digest-algorithm:
+              description: Digest Algorithm
+              type: string
+            X-Strategy:
+              description: Strategie pour Offres de stockage et Copies (conservation)
+              type: string
+    delete:
+      description: Permet de détruire un <<resourcePathName | !singularize>>
+      is: [CollectionTraits.collection-delete, StorageTraits.StrategyStorage]
+      headers:
+        X-digest:
+          description: Digests value in order of Strategy, comma separated
+          type: string
+        X-digest-algorithm:
+          description: Digest Algorithm
+          type: string
+      responses:
+        200:
+          headers:
+            X-Strategy:
+              description: Strategie pour Offres de stockage et Copies (conservation)
+              type: string
+          body:
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample
+
+
+  StoreWmrmItem:
+    displayName: <<resourcePathName | !singularize>> operations
+    get:
+      description: Permet d'accéder aux informations d'un <<resourcePathName | !singularize>>
+      is: [CollectionTraits.collection-get, StorageTraits.StrategyStorage, StandardTraits.AllowsHeader]
+      responses:
+        200:
+          body:
+            binary/octet-stream:
+              example: !include samples/binaryObject.sample
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample
+    post:
+      description: Permet de créer un nouveau <<resourcePathName | !singularize>>.
+      is: [CollectionTraits.collection-post, StorageTraits.StrategyStorage]
+      body:
+        multipart/form-data:
+          properties:
+            objectGroupId:
+              description: Id of the parent ObjectGroup
+              type: string
+            unitIds:
+              description: Ids of the parent Units, comma separated
+              type: string
+            fileUri:
+              description: The file URI to be uploaded
+              required: true
+              type: string
+      responses:
+        201:
+          body:
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample
+    put:
+      description: Permet de mettre à jour un <<resourcePathName | !singularize>>.
+      is: [CollectionTraits.collection-post, StorageTraits.StrategyStorage]
+      body:
+        multipart/form-data:
+          properties:
+            fileUri:
+              description: The file URI to be uploaded
+              required: true
+              type: string
+      responses:
+        201:
+          body:
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample
+    head:
+      description: Permet d'obtenir des informations sur un <<resourcePathName | !singularize>>
+      is: [CollectionTraits.collection-head, StorageTraits.StrategyStorage]
+      headers:
+        X-digest-algorithm:
+          description: Digest Algorithm
+          type: string
+      responses:
+        200:
+          headers:
+            X-digest:
+              description: Digests value in order of Strategy, comma separated
+              type: string
+            X-digest-algorithm:
+              description: Digest Algorithm
+              type: string
+            X-Strategy:
+              description: Strategie pour Offres de stockage et Copies (conservation)
+              type: string
+    delete:
+      description: Permet de détruire un <<resourcePathName | !singularize>>
+      is: [CollectionTraits.collection-delete, StorageTraits.StrategyStorage]
+      headers:
+        X-digest:
+          description: Digests value in order of Strategy, comma separated
+          type: string
+        X-digest-algorithm:
+          description: Digest Algorithm
+          type: string
+      responses:
+        200:
+          headers:
+            X-Strategy:
+              description: Strategie pour Offres de stockage et Copies (conservation)
+              type: string
+          body:
+            application/json:
+              type: StorageTypes.StoredInfo
+              example: !include samples/storedInfo.sample

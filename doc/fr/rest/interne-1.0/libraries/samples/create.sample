@@ -1,7 +1,0 @@
-{
-  "queries": [
-    { "$path": "aaaaa" }
-  ],
-  "filter": { },
-  "data": { "_id": "value" }
-}

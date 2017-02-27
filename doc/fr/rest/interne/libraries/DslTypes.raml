@@ -1,0 +1,87 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global types for Vitam's DSL
+
+uses:
+    StandardTypes: StandardTypes.raml
+
+types:
+  DslQuery:
+      displayName: DSL Query
+      description: External Vitam DSL query
+      type: object
+      properties:
+        $query:
+          description: Contains one query
+          type: object
+        $filter?:
+          description: Contains filter to apply (for GET only)
+          type: StandardTypes.Filter
+        $projection?:
+          description: Contains projection to apply (for GET only)
+          type: StandardTypes.Projection
+        $data?:
+          description: Contains data to insert (for POST only)
+          type: object
+        $facetQuery?:
+          description: Contains facet to apply (for GET only)
+          type: StandardTypes.FacetQuery
+        $action?:
+          description: Contains actions to apply as update (for PUT only)
+          type: object[]
+      example: {
+        "$query": { "$path": "aaaaa" }
+      }
+
+  DslResponse:
+    type: object
+    displayName: DSL Response
+    description: External Vitam DSL response list
+    properties:
+      $hits:
+        description: Contains the hits for the response
+        required: true
+        type: object
+        properties:
+          total:
+            description: Total estimated possible answears
+            type: integer
+          offset:
+            description: Offset on possible answears
+            type: integer
+          limit:
+            description: Limit specified in the request (or implicit) from Offset
+            type: integer
+          size:
+            description: Number of currently returned answears
+            type: integer
+          time_out?:
+            description: True means the request was too long and so only partial result could be retrieved
+            type: boolean
+      $context:
+        required: true
+        description: Contains Request related to this to reply
+        type: DslQuery
+
+      $results:
+        required: true
+        description: Contains list of items
+        type: object[]
+      $facet?:
+          description: Contains facet if requested
+          type: StandardTypes.FacetResponse
+
+    example: {
+        "$hits": {
+          "total": 10,
+          "size": 3,
+          "offset": 0,
+          "limit": 100,
+          "time_out": false
+        },
+        "$context": {
+          "$query": { "$path": "aaaaa" }
+        },
+        "$results": [ { "#id": "id1"}, {"#id": "id2"}, {"#id": "id3"} ]
+      }

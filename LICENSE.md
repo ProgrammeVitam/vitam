@@ -10,4 +10,4 @@ Le contenu de ce dépôt est publiés avec les licenses suivantes :
 
 - Le code source est publié sous licence [CeCILL 2.1](http://www.cecill.info/licences/Licence_CeCILL_V2.1-en.txt) ; le texte de la license est disponible dans le fichier [Licence\_CeCILL\_V2.1-fr.txt](./Licence_CeCILL_V2.1-fr.txt) ;
 
-- La documentation (en particulier le contenu des dossiers `**/doc`) est publiée sous license [Creative Commons CC-By-SA 3.0 license](https://creativecommons.org/licenses/by-sa/3.0/) ; le texte de la license est disponible dans le fichier [Licence\_CC-By-SA\_3.0-en.txt](./Licence_CC-By-SA_3.0-en.txt).
+- La documentation (en particulier le contenu des dossiers `**/doc`) est publiée sous license [Creative Commons CC-By-SA 3.0 FR license](https://creativecommons.org/licenses/by-sa/3.0/fr/) ; le texte de la license est disponible dans le fichier [Licence\_CC-By-SA\_3.0-fr.txt](./Licence_CC-By-SA_3.0-fr.txt).
