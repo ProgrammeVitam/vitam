@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides constants, enums and other kind of constants that may be used globally by the drivers for the Storage driver module
+ * Provides constants, enums and other kind of constants that may be used
+ * globally by the drivers for the Storage driver module
  */
 package fr.gouv.vitam.storage.driver.constants;

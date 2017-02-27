@@ -80,7 +80,8 @@ public class FakeDriverImpl implements Driver {
     @Override
     public Connection connect(StorageOffer offer, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
-            throw new StorageDriverException(getName(), "Intentionaly thrown");
+            throw new StorageDriverException(getName(), 
+                    "Intentionaly thrown");
         }
         return new ConnectionImpl();
     }
@@ -88,7 +89,8 @@ public class FakeDriverImpl implements Driver {
     @Override
     public boolean isStorageOfferAvailable(String s, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
-            throw new StorageDriverException(getName(), "Intentionaly thrown");
+            throw new StorageDriverException(getName(), 
+                    "Intentionaly thrown");
         }
         return true;
     }
@@ -115,11 +117,11 @@ public class FakeDriverImpl implements Driver {
         }
 
         @Override
-        public StorageCapacityResult getStorageCapacity(Integer tenantId)
-            throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException {
+        public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
             Integer fakeTenant = -1;
             if (fakeTenant.equals(tenantId)) {
-                throw new StorageDriverException("driverInfo", "ExceptionTest");
+                throw new StorageDriverException("driverInfo", 
+                        "ExceptionTest");
             }
 
             final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
@@ -135,26 +137,26 @@ public class FakeDriverImpl implements Driver {
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
 
             return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
-                new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
+                    new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                            MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
 
         @Override
         public StoragePutResult putObject(StoragePutRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
-                    objectRequest.getGuid(), objectRequest.getGuid(), "different_digest_hash", 0);
-            } if ("retry_test".equals(objectRequest.getGuid())) {
+                return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
+                        objectRequest.getGuid(), "different_digest_hash", 0);
+            }
+            if ("retry_test".equals(objectRequest.getGuid())) {
                 throw new StorageDriverException(getName(), "retry_test");
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
-                    return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
-                        objectRequest.getGuid(), objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
-                        bytes.length);
+                    return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
+                            objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)), bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
-                    throw new StorageDriverException(getName(), e);
+                    throw new StorageDriverException(getName(), "Digest or Storage Put in error", e);
                 }
             }
         }
@@ -162,12 +164,12 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                throw new StorageDriverException("removeObject", "ExceptionTest");
+                throw new StorageDriverException("removeObject", 
+                        "ExceptionTest");
 
             } else {
-                return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
-                    objectRequest.getGuid(), objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(),
-                    true);
+                return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
+                        objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(), true);
             }
         }
 
@@ -179,10 +181,11 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
             if ("digest_bad_test".equals(request.getGuid())) {
-                throw new StorageDriverException("checkObject", "ExceptionTest");
+                throw new StorageDriverException("checkObject", 
+                        "ExceptionTest");
             }
             return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
-                request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
+                    request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
         }
 
         @Override
@@ -194,8 +197,8 @@ public class FakeDriverImpl implements Driver {
         public Response listObjects(StorageListRequest request) throws StorageDriverException {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
-            try (VitamRequestIterator<ObjectNode> iterator =
-                new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+            try (VitamRequestIterator<ObjectNode> iterator = new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator",
+                    ObjectNode.class, null, null)) {
                 final RequestResponseOK response = new RequestResponseOK();
                 final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
                 final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);

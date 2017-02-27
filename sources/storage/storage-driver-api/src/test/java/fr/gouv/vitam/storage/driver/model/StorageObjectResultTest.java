@@ -59,5 +59,4 @@ public class StorageObjectResultTest {
         assertEquals("guid", storageObjectResult.getGuid());
     }
 
-
 }

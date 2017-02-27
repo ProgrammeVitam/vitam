@@ -74,7 +74,6 @@ public class DriverImpl implements Driver {
             return new ConnectionImpl(this, parameters);
         }
 
-
         @Override
         public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
             return true;
@@ -120,22 +119,25 @@ public class DriverImpl implements Driver {
 
     @Override
     public ConnectionImpl connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-        final InternalDriverFactory factory =
-            new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
+        final InternalDriverFactory factory = new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH,
+                parameters);
         try {
             final ConnectionImpl connection = factory.getClient();
             connection.checkStatus();
+            LOGGER.debug("Check status ok");
             return connection;
         } catch (final VitamApplicationServerException exception) {
-            throw new StorageDriverException(DRIVER_NAME, exception.getMessage(), exception);
+            LOGGER.error("Service unavailable", exception);
+            throw new StorageDriverException(DRIVER_NAME, 
+                    exception.getMessage(), exception);
         }
     }
 
-    
     /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath the path to the configuration file
+     * @param configurationPath
+     *            the path to the configuration file
      * @return ClientConfiguration
      */
     static final ClientConfiguration changeConfigurationFile(StorageOffer offer) {
@@ -143,21 +145,21 @@ public class DriverImpl implements Driver {
         ParametersChecker.checkParameter("StorageOffer cannot be null", offer);
         try {
             final URI url = new URI(offer.getBaseUrl());
-            
+
             Map<String, String> param = offer.getParameters();
-            
-            if (param != null){
+
+            if (param != null) {
                 List<SSLKey> keystoreList = new ArrayList<>();
                 List<SSLKey> truststoreList = new ArrayList<>();
                 keystoreList.add(new SSLKey(param.get("keyStore-keyPath"), param.get("keyStore-keyPassword")));
                 truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
-                
-                configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(),
-                    true, new SSLConfiguration(keystoreList, truststoreList));
+
+                configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
+                        new SSLConfiguration(keystoreList, truststoreList));
             } else {
                 configuration = new ClientConfigurationImpl(url.getHost(), url.getPort());
             }
-            
+
         } catch (final URISyntaxException e) {
             throw new IllegalStateException("Cannot parse the URI: ", e);
         }

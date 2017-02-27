@@ -44,8 +44,8 @@ import fr.gouv.vitam.common.ParametersChecker;
  *
  *     // set properties
  *     parameters.putParameterValue(StorageLogbookParameterName.objectGroupIdentifier,
- *         StorageLogbookParameterName.objectGroupIdentifier.name()).putParameterValue(
- *             StorageLogbookParameterName.objectIdentifier, StorageLogbookParameterName.objectIdentifier.name());
+ *             StorageLogbookParameterName.objectGroupIdentifier.name()).putParameterValue(
+ *                     StorageLogbookParameterName.objectIdentifier, StorageLogbookParameterName.objectIdentifier.name());
  *
  *     storageLogbook.add(parameters);
  * }
@@ -59,7 +59,6 @@ public final class StorageLogbookFactory {
      */
     private static StorageLogbookType defaultStorageLogbookType;
     private static final StorageLogbookFactory STORAGE_LOGBOOK_FACTORY = new StorageLogbookFactory();
-
 
     private StorageLogbookFactory() {
         changeDefaultStorageLogbookType(StorageLogbookType.MOCK);
@@ -94,8 +93,10 @@ public final class StorageLogbookFactory {
     /**
      * Modify the default storage logbook type
      *
-     * @param type the storage logbook type to set
-     * @throws IllegalArgumentException if type null
+     * @param type
+     *            the storage logbook type to set
+     * @throws IllegalArgumentException
+     *             if type null
      */
     static void changeDefaultStorageLogbookType(StorageLogbookType type) {
         ParametersChecker.checkParameter("Storage Logbook Type cannot be null", type);

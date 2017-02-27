@@ -68,7 +68,8 @@ public class DriverImplTest extends VitamJerseyTest {
         junitHelper = JunitHelper.getInstance();
     }
 
-    // Define the getApplication to return your Application using the correct Configuration
+    // Define the getApplication to return your Application using the correct
+    // Configuration
     @Override
     public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
         final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
@@ -79,14 +80,13 @@ public class DriverImplTest extends VitamJerseyTest {
         } catch (final VitamApplicationServerException e) {
             throw new IllegalStateException("Cannot start the application", e);
         }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
+        return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
+                .setApplication(application);
     }
 
     // Define your Application class if necessary
     public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
         protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
             super(TestVitamApplicationConfiguration.class, configuration);
         }
@@ -102,6 +102,7 @@ public class DriverImplTest extends VitamJerseyTest {
         }
 
     }
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
     }
@@ -131,7 +132,7 @@ public class DriverImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-        
+
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         DriverImpl.getInstance().connect(offer, null);
     }
@@ -139,10 +140,9 @@ public class DriverImplTest extends VitamJerseyTest {
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-  
+
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        final ConnectionImpl connection =
-            DriverImpl.getInstance().connect(offer, null);
+        final ConnectionImpl connection = DriverImpl.getInstance().connect(offer, null);
         assertNotNull(connection);
     }
 

@@ -28,8 +28,8 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Holds minimal needed parameters that may be needed to send a request on the distant storage offer : container
- * informations.
+ * Holds minimal needed parameters that may be needed to send a request on the
+ * distant storage offer : container informations.
  */
 public class StorageRequest {
 
@@ -38,12 +38,13 @@ public class StorageRequest {
     private final Integer tenantId;
     private final String type;
 
-
     /**
      * Initialize the needed parameters for request.
      * 
-     * @param tenantId The request tenantId
-     * @param type the type The request type
+     * @param tenantId
+     *            The request tenantId
+     * @param type
+     *            the type The request type
      */
     public StorageRequest(Integer tenantId, String type) {
         this.tenantId = tenantId;
@@ -68,5 +69,8 @@ public class StorageRequest {
         return type;
     }
 
-
+    @Override
+    public String toString() {
+        return "TenantId: " + tenantId + " Type: " + type;
+    }
 }

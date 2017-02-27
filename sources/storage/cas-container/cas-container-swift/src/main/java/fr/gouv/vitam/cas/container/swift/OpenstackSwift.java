@@ -53,8 +53,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.common.storage.ContainerInformation;
 
 /**
- * Creates {@link BlobStoreContext} configured on {@link StorageConfiguration} storage.conf file . This can be used to
- * make an information about container.
+ * Creates {@link BlobStoreContext} configured on {@link StorageConfiguration}
+ * storage.conf file . This can be used to make an information about container.
  * 
  * @see SwiftApi
  * @see BlobStoreContext
@@ -70,7 +70,8 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     private static final String CONTAINER_API_IS_NULL = "container api is null";
     private static final String ACCOUNT_API_IS_NULL = "Account api is null";
     private static final String SWIFT_IS_NULL = "swift is null";
-    // maximum list size of the blob store. In S3, Azure, and Swift, this is 1000, 5000, and 10000
+    // maximum list size of the blob store. In S3, Azure, and Swift, this is
+    // 1000, 5000, and 10000
     // respectively
     private int maxResults = 10000;
 
@@ -86,7 +87,6 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
 
     }
 
-
     @Override
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException {
@@ -100,19 +100,26 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
         return containerInformation;
     }
 
-
     @Override
     public BlobStoreContext getContext(StorageConfiguration configuration) {
         ContextBuilder contextBuilder = getContextBuilder(configuration);
         return (BlobStoreContext) contextBuilder.buildApi(BlobStoreContext.class);
     }
 
+    @Override
+    public void closeContext() {
+        // Nothing to do, keeping http client opened
+    }
+
+    @Override
+    public void close() {
+        context.close();
+    }
 
     private ContextBuilder getContextBuilder(StorageConfiguration configuration) {
         ContextBuilder contextBuilder = ContextBuilder.newBuilder(configuration.getProvider())
-            .endpoint(configuration.getKeystoneEndPoint())
-            .credentials(configuration.getSwiftUid() + ":" + configuration.getSwiftSubUser(),
-                configuration.getCredential());
+                .endpoint(configuration.getKeystoneEndPoint())
+                .credentials(configuration.getSwiftUid() + ":" + configuration.getSwiftSubUser(), configuration.getCredential());
         // ceph swift
         if (configuration.isCephMode()) {
             Properties overrides = new Properties();
@@ -125,18 +132,15 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
         return contextBuilder;
     }
 
-
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {
-        LOGGER.info(
-            "- create container CEPH : " + containerName);
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+        LOGGER.info("- create container CEPH : " + containerName);
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         try {
             // create container in region default region
             getContainerApi().create(containerName);
         } finally {
-            context.close();
+            closeContext();
         }
 
     }
@@ -157,8 +161,6 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
         }
         return containerApi;
     }
-
-
 
     /**
      * Provides ContainerApi <br>
@@ -217,11 +219,11 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
         result.setType(containerName.split("_")[1]);
         result.setLastAccessDate(null);
         if (objectId != null) {
-            SwiftObject swiftobject = getSwiftAPi()
-                .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
+            SwiftObject swiftobject = getSwiftAPi().getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName)
+                    .get(objectId);
 
             result.setObjectName(objectId);
-            //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+            // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
             result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
             result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
             result.setLastModifiedDate(swiftobject.getLastModified().toString());

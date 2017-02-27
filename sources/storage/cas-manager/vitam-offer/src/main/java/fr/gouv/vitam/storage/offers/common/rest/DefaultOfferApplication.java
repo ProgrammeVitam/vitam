@@ -53,8 +53,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 /**
  * Workspace offer web application
  */
-public final class DefaultOfferApplication
-    extends AbstractVitamApplication<DefaultOfferApplication, StorageConfiguration> {
+public final class DefaultOfferApplication extends AbstractVitamApplication<DefaultOfferApplication, StorageConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferApplication.class);
     private static final String WORKSPACE_CONF_FILE_NAME = "default-offer.conf";
     private static final String SHIRO_FILE = "shiro.ini";
@@ -81,15 +80,17 @@ public final class DefaultOfferApplication
     /**
      * Main method to run the application (doing start and join)
      *
-     * @param args command line parameters
-     * @throws IllegalStateException if the Vitam server cannot be launched
+     * @param args
+     *            command line parameters
+     * @throws IllegalStateException
+     *             if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, WORKSPACE_CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    WORKSPACE_CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                        String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, WORKSPACE_CONF_FILE_NAME));
             }
 
             final DefaultOfferApplication application = new DefaultOfferApplication(args[0]);
@@ -101,14 +102,13 @@ public final class DefaultOfferApplication
         }
     }
 
-
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new DefaultOfferResource());
         resourceConfig.register(new AdminStatusResource());
     }
-    
-    //FIXME Duplication of code with other components in TLS
+
+    // FIXME Duplication of code with other components in TLS
     @Override
     protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
         if (getConfiguration().isAuthentication()) {
@@ -121,9 +121,8 @@ public final class DefaultOfferApplication
             }
             context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
             context.addEventListener(new EnvironmentLoaderListener());
-            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                    DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
     }
 }

@@ -52,7 +52,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     * @param urlWorkspace the urlWorkspace to set
+     * @param urlWorkspace
+     *            the urlWorkspace to set
      *
      * @return this
      */
@@ -69,7 +70,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     }
 
     /**
-     * @param timeoutMsPerKB the timeout for on kB transfered in milliseconds
+     * @param timeoutMsPerKB
+     *            the timeout for on kB transfered in milliseconds
      *
      * @return this
      */

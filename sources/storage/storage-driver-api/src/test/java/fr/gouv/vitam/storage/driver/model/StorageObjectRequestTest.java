@@ -59,5 +59,4 @@ public class StorageObjectRequestTest {
         assertEquals("guid", storageObjectRequest.getGuid());
     }
 
-
 }

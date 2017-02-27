@@ -33,29 +33,32 @@ import fr.gouv.vitam.common.exception.VitamClientException;
  */
 public class StorageClientException extends VitamClientException {
 
-
     /**
      *
      */
     private static final long serialVersionUID = 7625894473864118681L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageClientException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageClientException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageClientException(String messsage, Throwable cause) {
         super(messsage, cause);

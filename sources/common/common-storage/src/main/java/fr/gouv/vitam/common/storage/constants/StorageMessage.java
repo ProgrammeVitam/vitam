@@ -59,8 +59,6 @@ public enum StorageMessage {
      */
     URI_LIST_OF_DIGITAL_OBJECT_EMPTY("Uri list of digital objects empty");
 
-
-
     private final String message;
 
     private StorageMessage(String message) {

@@ -47,8 +47,7 @@ public class StorageClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        StorageClientFactory.changeMode(
-            StorageClientFactory.changeConfigurationFile("storage-client-test.conf"));
+        StorageClientFactory.changeMode(StorageClientFactory.changeConfigurationFile("storage-client-test.conf"));
     }
 
     @Test
@@ -62,8 +61,7 @@ public class StorageClientFactoryTest {
 
     @Test
     public void testInitWithConfigurationFile() {
-        final StorageClient client =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertTrue(client instanceof StorageClientRest);
         assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
     }
@@ -90,34 +88,28 @@ public class StorageClientFactoryTest {
         }
         StorageClientFactory.changeMode((ClientConfiguration) null);
 
-        final StorageClient client =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final StorageClient client2 =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client2 = StorageClientFactory.getInstance().getClient();
         assertNotNull(client2);
 
         assertNotSame(client, client2);
     }
 
-
     @Test
     public void changeDefaultClientTypeTest() {
-        final StorageClient client =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertTrue(client instanceof StorageClientRest);
         assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
 
         StorageClientFactory.changeMode((ClientConfiguration) null);
-        final StorageClient client2 =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client2 = StorageClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof StorageClientMock);
         assertEquals(VitamClientType.MOCK, StorageClientFactory.getInstance().getVitamClientType());
 
         StorageClientFactory.changeMode(new ClientConfigurationImpl("server", 1025));
-        final StorageClient client3 =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client3 = StorageClientFactory.getInstance().getClient();
         assertTrue(client3 instanceof StorageClientRest);
         assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
     }

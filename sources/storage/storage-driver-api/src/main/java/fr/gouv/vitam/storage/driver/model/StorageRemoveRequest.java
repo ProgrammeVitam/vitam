@@ -30,31 +30,34 @@ package fr.gouv.vitam.storage.driver.model;
 import fr.gouv.vitam.common.digest.DigestType;
 
 /**
- * Holds every needed parameters that may be needed to remove an object on the distant storage offer.
+ * Holds every needed parameters that may be needed to remove an object on the
+ * distant storage offer.
  */
 public class StorageRemoveRequest extends StorageObjectRequest {
 
     private final DigestType digestAlgorithm;
     private final String digestHashBase16;
 
-
     /**
      * Initialize the needed parameters for delete requests of an object.
      *
-     * @param tenantId request tenantId
-     * @param type the type
-     * @param guid the object guid
-     * @param digestAlgorithm the digest algorithm
-     * @param digestHashBase16 the digest
+     * @param tenantId
+     *            request tenantId
+     * @param type
+     *            the type
+     * @param guid
+     *            the object guid
+     * @param digestAlgorithm
+     *            the digest algorithm
+     * @param digestHashBase16
+     *            the digest
      * 
      */
-    public StorageRemoveRequest(Integer tenantId, String type, String guid, DigestType digestAlgorithm,
-        String digestHashBase16) {
+    public StorageRemoveRequest(Integer tenantId, String type, String guid, DigestType digestAlgorithm, String digestHashBase16) {
         super(tenantId, type, guid);
         this.digestAlgorithm = digestAlgorithm;
         this.digestHashBase16 = digestHashBase16;
     }
-
 
     /**
      * @return the digestAlgorithm
@@ -63,14 +66,11 @@ public class StorageRemoveRequest extends StorageObjectRequest {
         return digestAlgorithm;
     }
 
-
     /**
      * @return the digestHashBase16
      */
     public String getDigestHashBase16() {
         return digestHashBase16;
     }
-
-
 
 }

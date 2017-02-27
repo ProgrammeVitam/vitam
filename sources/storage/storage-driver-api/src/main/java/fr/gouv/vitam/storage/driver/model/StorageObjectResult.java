@@ -28,8 +28,8 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Holds minimal data that should be received a result from an object on the distant storage offer : object
- * informations.
+ * Holds minimal data that should be received a result from an object on the
+ * distant storage offer : object informations.
  */
 public class StorageObjectResult extends StorageResult {
 
@@ -38,9 +38,12 @@ public class StorageObjectResult extends StorageResult {
     /**
      * Initialize the needed data for result on an object.
      * 
-     * @param tenantId The request tenantId
-     * @param type the type The request type
-     * @param guid the object guid
+     * @param tenantId
+     *            The request tenantId
+     * @param type
+     *            the type The request type
+     * @param guid
+     *            the object guid
      */
     public StorageObjectResult(Integer tenantId, String type, String guid) {
         super(tenantId, type);
@@ -56,6 +59,4 @@ public class StorageObjectResult extends StorageResult {
         return guid;
     }
 
-
 }
-

@@ -37,22 +37,26 @@ public class StorageAlreadyExistsClientException extends StorageClientException 
     private static final long serialVersionUID = 6574240025512780668L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageAlreadyExistsClientException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageAlreadyExistsClientException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageAlreadyExistsClientException(String messsage, Throwable cause) {
         super(messsage, cause);

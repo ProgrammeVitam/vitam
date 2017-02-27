@@ -73,8 +73,7 @@ public class OfferDriverInfoTest {
         }
 
         @Override
-        public boolean isStorageOfferAvailable(String url, Properties parameters)
-            throws StorageDriverException {
+        public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
             return false;
         }
 

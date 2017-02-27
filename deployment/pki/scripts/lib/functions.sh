@@ -35,7 +35,7 @@ function generatePassphrase {
 }
 
 function normalize_key {
-    local KEY="${1}"
+/bin/bash: q : commande introuvable
 
     echo ${KEY} | sed 's/[\\/\.-]/_/g'
 }

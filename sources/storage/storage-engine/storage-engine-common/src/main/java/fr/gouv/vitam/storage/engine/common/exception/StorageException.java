@@ -39,22 +39,26 @@ public class StorageException extends VitamException {
     private static final long serialVersionUID = -1245399254763660871L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageException(String messsage, Throwable cause) {
         super(messsage, cause);

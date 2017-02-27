@@ -43,10 +43,9 @@ public class StorageCheckResultTest {
 
     @BeforeClass
     public static void init() {
-        storageCheckResult = new StorageCheckResult(TENANT_ID, "object", "guid",
-            VitamConfiguration.getDefaultDigestType(), "digest", true);
+        storageCheckResult = new StorageCheckResult(TENANT_ID, "object", "guid", VitamConfiguration.getDefaultDigestType(),
+                "digest", true);
     }
-
 
     @Test
     public void testGetTenantId() throws Exception {
@@ -76,5 +75,5 @@ public class StorageCheckResultTest {
     @Test
     public void testIsDigestMatch() {
         assertEquals(true, storageCheckResult.isDigestMatch());
-    }    
+    }
 }

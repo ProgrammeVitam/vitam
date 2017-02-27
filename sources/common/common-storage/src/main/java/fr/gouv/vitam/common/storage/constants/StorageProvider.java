@@ -52,6 +52,4 @@ public enum StorageProvider {
         return value;
     }
 
-
-
 }

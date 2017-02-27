@@ -31,16 +31,19 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
- * This interface aims at providing a set of method that are common with no concerns of the strategy configuration
- * implementation (ie: implementation could be Filesystem, Database...)
+ * This interface aims at providing a set of method that are common with no
+ * concerns of the strategy configuration implementation (ie: implementation
+ * could be Filesystem, Database...)
  */
 public interface StorageStrategyProvider {
     /**
      * Retrieve a storage strategy by its id
      *
-     * @param idStrategy the id of the storage strategy to retrieve
+     * @param idStrategy
+     *            the id of the storage strategy to retrieve
      * @return an object representation of a storage strategy
-     * @throws StorageTechnicalException if any unwanted technical issue happens
+     * @throws StorageTechnicalException
+     *             if any unwanted technical issue happens
      */
     StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException;
 }

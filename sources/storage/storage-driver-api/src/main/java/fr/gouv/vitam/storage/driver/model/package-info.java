@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides Model classes such as Requests and Results classes for the Storage driver module
+ * Provides Model classes such as Requests and Results classes for the Storage
+ * driver module
  */
 package fr.gouv.vitam.storage.driver.model;

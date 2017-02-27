@@ -42,6 +42,7 @@ import org.glassfish.jersey.server.ManagedAsyncExecutor;
 import org.glassfish.jersey.spi.ExecutorServiceProvider;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
@@ -80,7 +81,16 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     @Inject
     @Named("threadpool")
     public VitamThreadPoolExecutor() {
-        this(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+        this(VitamConfiguration.MINIMUM_THREAD_POOL_SIZE, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
+    }
+
+    /**
+     * Create a Cached Thread Pool
+     */
+    @Inject
+    @Named("threadpool")
+    public VitamThreadPoolExecutor(int minimumAvailableThreads) {
+        this(minimumAvailableThreads, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
     }
 
 

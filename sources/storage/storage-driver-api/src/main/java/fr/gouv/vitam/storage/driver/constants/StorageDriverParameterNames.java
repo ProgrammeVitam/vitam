@@ -28,8 +28,9 @@
 package fr.gouv.vitam.storage.driver.constants;
 
 /**
- * Contains all Vitam common driver parameters name. Drivers implementations must consider the use of those constants
- * which will be property keys in their connection parameters for instance.
+ * Contains all Vitam common driver parameters name. Drivers implementations
+ * must consider the use of those constants which will be property keys in their
+ * connection parameters for instance.
  */
 public enum StorageDriverParameterNames {
     /**

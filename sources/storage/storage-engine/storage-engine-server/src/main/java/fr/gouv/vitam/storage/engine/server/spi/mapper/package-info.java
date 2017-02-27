@@ -26,7 +26,8 @@
  *******************************************************************************/
 
 /**
- * Provides the SPI mapper implementation and configuration for the Storage Engine Server module, allowing 
- * the persistence of association between drivers and offers
+ * Provides the SPI mapper implementation and configuration for the Storage
+ * Engine Server module, allowing the persistence of association between drivers
+ * and offers
  */
 package fr.gouv.vitam.storage.engine.server.spi.mapper;

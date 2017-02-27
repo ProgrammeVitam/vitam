@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.logbook;
 
-
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -39,8 +38,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
-
-
 
 public class StorageLogbookMockTest {
 

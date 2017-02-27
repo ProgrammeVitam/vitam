@@ -37,22 +37,26 @@ public class StorageNotFoundClientException extends StorageClientException {
     private static final long serialVersionUID = -580542273100315062L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageNotFoundClientException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageNotFoundClientException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageNotFoundClientException(String messsage, Throwable cause) {
         super(messsage, cause);
