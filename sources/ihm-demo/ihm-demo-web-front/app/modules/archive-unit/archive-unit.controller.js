@@ -381,20 +381,20 @@ angular.module('archive.unit')
           for (var ruleId in rule) {
             if (ruleId != 'displayArray') {
               var origin = rule[ruleId];
-              displayObject.ruleId = ruleId;
               for (var originId in origin) {
+                displayObject.ruleId = ruleId;
                 displayObject.originId = originId;
                 var originDetail = origin[originId];
                 for (var detail in originDetail) {
                   displayObject[detail] = originDetail[detail];
                 }
+                displayArray.push(displayObject);
+                displayObject = {};
               }
-              displayArray.push(displayObject);
-              displayObject = {};
-              self.ruleDisplay[translateKey] = {};
-              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
             }
           }
+          self.ruleDisplay[translateKey] = self.ruleDisplay[translateKey] ? self.ruleDisplay[translateKey] : {};
+          self.ruleDisplay[translateKey]['displayArray'] = displayArray;
         }
         if (self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.UNIT_PRENT_LIST].length == 0) {
           var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];

@@ -13,12 +13,10 @@ public class UnitInheritedRuleTest {
     private final static String EXPECTED_RESULT = "{\"inheritedRule\":" +
         "{\"StorageRule\":" +
             "{\"R1\":" +
-                "{\"AU1\":{" +
+                "{\"AU2\":{" +
                 "\"FinalAction\":\"NoAccess\"," +
-                "\"EndDate\":\"01/01/2019\"," +
-                "\"path\":[[\"AU1\",\"AU2\"]]," +
                 "\"StartDate\":\"01/01/2017\"," +
-                "\"OverridedBy\":[\"AU2\"]}}}," +
+                "\"path\":[[\"AU2\"]]}}}," +
         "\"AccessRule\":" +
             "{\"R2\":" +
                 "{\"AU1\":{" +
@@ -66,7 +64,7 @@ public class UnitInheritedRuleTest {
         "      \"FinalAction\" : \"Access\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
-        "    }" +
+        "    }, \"NeedAuthentication\" : false" +
         "  }";
     
     private final static String AU2_MGT = "{" +
