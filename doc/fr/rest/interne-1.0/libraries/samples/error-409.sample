@@ -1,8 +1,0 @@
-{
-  "code": 409,
-  "vitamCode": 123456,
-  "context": "ingest",
-  "state": "Conflict",
-  "message": "Conflict on ingest operation",
-  "description": "Operation on item xxx cannot be done since item is already present in <<resourcePathName>>"
-}

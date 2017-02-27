@@ -1,0 +1,15 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global types for Ingest
+
+uses:
+    StandardTypes: StandardTypes.raml
+
+types:
+  ArchiveTransferReply:
+    description: Ingest Seda Response
+    type: !include xsd/seda-2.0-main.xsd
+    #Later, with RAML 1.0, this include should be working
+    #type: !include xsd/seda-2.0-main.xsd#ArchiveTransferReply
+    example: !include examples/sedaArchiveTransferReply.xml

@@ -4,17 +4,17 @@
     <title>{{ title }} API documentation</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="generator" content="https://github.com/kevinrenskers/raml2html {{ config.raml2HtmlVersion }}">
+    <meta name="generator" content="https://github.com/raml2html/raml2html {{ config.raml2HtmlVersion }}">
 
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
     <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
 
     <script type="text/javascript">
       $(document).ready(function() {
-        $('.page-header pre code, .top-resource-description pre code').each(function(i, block) {
+        $('.page-header pre code, .top-resource-description pre code, .modal-body pre code').each(function(i, block) {
           hljs.highlightBlock(block);
         });
 
@@ -41,9 +41,11 @@
 
         // remove url fragment on modal hide
         $('.modal').on('hidden.bs.modal', function() {
-          if(history && history.replaceState) {
-            history.replaceState({}, '', '#');
-          }
+          try {
+            if (history && history.replaceState) {
+                history.replaceState({}, '', '#');
+            }
+          } catch(e) {}
         });
       });
     </script>
@@ -53,7 +55,7 @@
         background: transparent;
       }
       .parent {
-        color: #999  !important;
+        color: #999;
       }
       .list-group-item > .badge {
         float: none;
@@ -67,23 +69,23 @@
         text-transform: uppercase;
         width: 70px;
         font-weight: normal;
-        color: #f3f3f6  !important;
+        color: #f3f3f6;
         line-height: normal;
       }
       .badge_get {
-        background-color: #63a8e2  !important;
+        background-color: #63a8e2;
       }
       .badge_post {
-        background-color: #6cbd7d  !important;
+        background-color: #6cbd7d;
       }
       .badge_put {
-        background-color: #22bac4  !important;
+        background-color: #22bac4;
       }
       .badge_delete {
-        background-color: #d26460  !important;
+        background-color: #d26460;
       }
       .badge_patch {
-        background-color: #ccc444  !important;
+        background-color: #ccc444;
       }
       .list-group, .panel-group {
         margin-bottom: 0;
@@ -92,7 +94,7 @@
         margin-top: 0;
       }
       .panel-group .panel-white {
-        border-bottom: 1px solid #F5F5F5  !important;
+        border-bottom: 1px solid #F5F5F5;
         border-radius: 0;
       }
       .panel-white:last-child {
@@ -106,10 +108,13 @@
       .tab-pane ul {
         padding-left: 2em;
       }
+      .tab-pane h1 {
+        font-size: 1.3em;
+      }
       .tab-pane h2 {
         font-size: 1.2em;
         padding-bottom: 4px;
-        border-bottom: 1px solid #ddd  !important;
+        border-bottom: 1px solid #ddd;
       }
       .tab-pane h3 {
         font-size: 1.1em;
@@ -156,20 +161,36 @@
       .list-group-item:hover {
         background-color: #f5f5f5;
       }
+
+      pre code {
+        overflow: auto;
+        word-wrap: normal;
+        white-space: pre;
+      }
     </style>
   </head>
 
   <body data-spy="scroll" data-target="#sidebar">
-    <div class="container">
+    <div class="container-fluid">
       <div class="row">
         <div class="col-md-9" role="main">
           <div class="page-header">
             <h1>{{ title }} API documentation{% if version %} <small>version {{ version }}</small>{% endif %}</h1>
             <p>{{ baseUri }}</p>
 
+            {% if baseUriParameters %}
+              <ul>
+                {% for item in baseUriParameters %}
+                  {% include "./item.nunjucks" %}
+                {% endfor %}
+              </ul>
+            {% endif %}
+
             {% for chapter in documentation %}
               <h3 id="{{ chapter.uniqueId }}"><a href="#{{ chapter.uniqueId }}">{{ chapter.title }}</a></h3>
-              {% markdown %}{{ chapter.content }}{% endmarkdown %}
+{% markdown %}
+{{ chapter.content }}
+{% endmarkdown %}
             {% endfor %}
           </div>
 
@@ -182,7 +203,9 @@
               <div class="panel-body">
                 {% if resource.description %}
                   <div class="top-resource-description">
-                    {% markdown %}{{ resource.description }}{% endmarkdown %}
+{% markdown %}
+{{ resource.description }}
+{% endmarkdown %}
                   </div>
                 {% endif %}
 
