@@ -181,9 +181,13 @@ reqEntity.setChunked(true);
 if (context.inputJSON.params[i].tenant != null){
 	if (!context.inputJSON.params[i].tenant.equals("empty")){
 		httppost.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
+		httppost.addHeader("X-Action", "RESUME");
+		httppost.addHeader("X-Context-Id", "DEFAULT_WORKFLOW");
 	}
 } else {
 	httppost.addHeader("X-Tenant-Id", "0");
+	httppost.addHeader("X-Action", "RESUME");
+	httppost.addHeader("X-Context-Id", "DEFAULT_WORKFLOW");
 }
 	
 httppost.setEntity(reqEntity);
