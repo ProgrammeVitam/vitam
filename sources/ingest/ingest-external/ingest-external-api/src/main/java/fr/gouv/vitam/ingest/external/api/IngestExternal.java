@@ -43,9 +43,11 @@ public interface IngestExternal {
      *
      * @param input the file
      * @param asyncResponse the async Response
+     * @param contextId String
      * @return Response containing as InputStream the ArchiveTransferReply in XML format
      * @throws IngestExternalException thrown if an error occurred in workflow
      */
     // TODO P0 add the file name as param from a header
-    Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException;
+    Response upload(InputStream input, AsyncResponse asyncResponse, String contextId, String action)
+        throws IngestExternalException;
 }

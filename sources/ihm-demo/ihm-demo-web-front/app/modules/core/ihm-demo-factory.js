@@ -47,7 +47,8 @@ angular.module('core')
   'UNIT_LIFECYCLE_TYPE': 'unit',
   'OG_LIFECYCLE_TYPE': 'objectgroup',
   'CHECK_OPERATION_STATUS': 'check',
-  'CLEAR_OPERATION_STATUS_HISTORY': 'clear'
+  'CLEAR_OPERATION_STATUS_HISTORY': 'clear',
+  'WORKFLOWS_LIST': '/operations'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -124,6 +125,21 @@ angular.module('core')
   // Check operation status
   dataFactory.cleanOperationStatus = function(operationId){
     return ihmDemoCLient.getClient(IHM_URLS.CLEAR_OPERATION_STATUS_HISTORY).all('').get(operationId);
+  };
+
+  // Get Workflows List
+  dataFactory.getWorkflows = function(){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one('').get();
+  };
+
+  // Execute an action
+  dataFactory.executeAction = function(operationId, action){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one(operationId).put({},{'X-Action':action});
+  };
+
+  // Stop a process
+  dataFactory.stopProcess = function(operationId){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one(operationId).remove();
   };
 
   return dataFactory;

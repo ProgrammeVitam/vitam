@@ -149,7 +149,7 @@ public class WorkerIT {
     private WorkspaceClient workspaceClient;
     private static LogbookApplication lgbapplication;
     private WorkerClient workerClient;
-    private  WorkerClientConfiguration workerClientConfiguration;
+    private WorkerClientConfiguration workerClientConfiguration;
 
     private ProcessingManagementClient processingClient;
     private static ElasticsearchTestConfiguration config = null;
@@ -228,7 +228,7 @@ public class WorkerIT {
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
-        
+
         if (mongod == null) {
             return;
         }
@@ -319,7 +319,7 @@ public class WorkerIT {
     @Test
     public void testWorkflow() throws Exception {
         try {
-        	Integer tenantId = 0;
+            Integer tenantId = 0;
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
@@ -373,7 +373,7 @@ public class WorkerIT {
     @Test
     public void testWorkflow_with_complexe_unit_seda() throws Exception {
         try {
-        	Integer tenantId = 0;
+            Integer tenantId = 0;
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
@@ -429,45 +429,40 @@ public class WorkerIT {
     @Test
     public void testWorkflowWithSipNoManifest() throws Exception {
 
-        try {
-        	Integer tenantId = 0;
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
-            VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
+        Integer tenantId = 0;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);
 
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
 
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(CONTAINER_NAME);
-            workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(CONTAINER_NAME);
+        workspaceClient.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
-            // call processing
-            RestAssured.port = PORT_SERVICE_WORKER;
-            RestAssured.basePath = WORKER_PATH;
-            workerClientConfiguration = WorkerClientFactory.changeConfigurationFile( CONFIG_WORKER_CLIENT_PATH);
+        // call processing
+        RestAssured.port = PORT_SERVICE_WORKER;
+        RestAssured.basePath = WORKER_PATH;
+        workerClientConfiguration = WorkerClientFactory.changeConfigurationFile(CONFIG_WORKER_CLIENT_PATH);
 
-            workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
-            final ItemStatus retStepControl =
-                workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
-            assertNotNull(retStepControl);
-            assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
+        workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
+        final ItemStatus retStepControl =
+            workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
+        assertNotNull(retStepControl);
+        assertEquals(StatusCode.KO, retStepControl.getGlobalStatus());
 
-            workspaceClient.deleteContainer(CONTAINER_NAME, true);
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
+        workspaceClient.deleteContainer(CONTAINER_NAME, true);
     }
 
     @RunWithCustomExecutor
     @Test
     public void testWorkflowWithManifestConformityKO() throws Exception {
         try {
-        	Integer tenantId = 0;
+            Integer tenantId = 0;
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             CONTAINER_NAME = GUIDFactory.newManifestGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(CONTAINER_NAME);

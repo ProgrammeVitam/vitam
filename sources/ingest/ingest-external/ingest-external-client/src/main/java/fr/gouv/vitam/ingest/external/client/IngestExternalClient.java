@@ -31,28 +31,31 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.client.OperationManagementClient;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
  * Ingest external interface
  */
-public interface IngestExternalClient extends MockOrRestClient {
+public interface IngestExternalClient extends OperationManagementClient {
     /**
      * ingest upload file in local
      *
      * @param stream
      * @param tenantId
+     * @param contextId
      * @return response
      *
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-    Response upload(InputStream stream, Integer tenantId) throws IngestExternalException;
-    
+
+    Response upload(InputStream stream, Integer tenantId, String contextId, String action)
+        throws IngestExternalException;
     /**
-     * Download object stored by ingest operation 
+     * Download object stored by ingest operation
      * 
      * @param objectId
      * @param type
@@ -61,4 +64,5 @@ public interface IngestExternalClient extends MockOrRestClient {
      */
     Response downloadObjectAsync(String objectId, IngestCollection type)
         throws IngestExternalException;
+    
 }

@@ -116,6 +116,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String FILENAME_REGEX = "^[a-z0-9_-]*(\\.)(zip|tar|tar.gz|tar.bz2)$";
     private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_REGEX, Pattern.CASE_INSENSITIVE);
     private static final String RESULTS_FIELD = "$results";
+    private static final String DEFAULT_CONTEXT = "defaultContext";
+    private static final String DEFAULT_EXECUTION_MODE = "defaultExecutionMode";
     private static final String FILE_NAME_KEY = "fileName";
     private static final String FILE_SIZE_KEY = "fileSize";
     private static final String ZIP_EXTENSION = ".ZIP";
@@ -314,7 +316,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
             IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-            final Response response = client.upload(sipInputStream, TENANT_ID);
+            final Response response = client.upload(sipInputStream, TENANT_ID, DEFAULT_CONTEXT, DEFAULT_EXECUTION_MODE);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             return Response.status(response.getStatus()).entity(ingestOperationId).build();

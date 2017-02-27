@@ -29,15 +29,23 @@ package fr.gouv.vitam.processing.management.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
 /**
@@ -49,10 +57,19 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         // Empty
     }
 
+
+
     @Override
-    public ItemStatus executeVitamProcess(String container, String workflow)
-        throws ProcessingUnauthorizeException, ProcessingBadRequestException, WorkflowNotFoundException,
-        ProcessingException {
+    public Response executeVitamProcess(String container, String workflow, String actionId)
+        throws BadRequestException, WorkflowNotFoundException, ProcessingException {
+        return Response.status(Status.OK).build();
+    }
+
+
+
+    @Override
+    public ItemStatus getOperationProcessStatus(String id)
+        throws VitamClientException, InternalServerException, BadRequestException {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
         status.add(0);
@@ -60,18 +77,139 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null, "");
+        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+            null, null);
     }
+
+
+
+    @Override
+    public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
+        throws VitamClientException, InternalServerException, BadRequestException {
+        final List<Integer> status = new ArrayList<>();
+        status.add(0);
+        status.add(0);
+        status.add(1);
+        status.add(0);
+        status.add(0);
+        status.add(0);
+        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+            null, null);
+    }
+
+
+
+    @Override
+    public Response cancelOperationProcessExecution(String id)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        final List<Integer> status = new ArrayList<>();
+        status.add(0);
+        status.add(0);
+        status.add(1);
+        status.add(0);
+        status.add(0);
+        status.add(0);
+        return Response.ok().build();
+    }
+
+
+
+    @Override
+    public Response updateOperationActionProcess(String actionId, String operationId)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        final List<Integer> status = new ArrayList<>();
+        status.add(0);
+        status.add(0);
+        status.add(1);
+        status.add(0);
+        status.add(0);
+        status.add(0);
+        return Response.ok().build();
+    }
+
+
+
+    @Override
+    public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        return Response.status(Status.OK).build();
+    }
+
+
+
+    @Override
+    public Response initWorkFlow(String contextId) throws VitamException {
+        final List<Integer> status = new ArrayList<>();
+        status.add(0);
+        status.add(0);
+        status.add(1);
+        status.add(0);
+        status.add(0);
+        status.add(0);
+        return Response.status(Status.OK)
+            .entity(new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+                null, null))
+            .build();
+    }
+
+
+
+    @Override
+    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
+        throws InternalServerException, BadRequestException, VitamClientException {
+        final List<Integer> status = new ArrayList<>();
+        status.add(0);
+        status.add(0);
+        status.add(1);
+        status.add(0);
+        status.add(0);
+        status.add(0);
+        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+            null, null);
+    }
+
+
 
     @Override
     public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
         throws ProcessingBadRequestException, WorkerAlreadyExistsException {
-        // Nothing to do
+        // TODO Auto-generated method stub
+
     }
+
+
 
     @Override
     public void unregisterWorker(String familyId, String workerId) throws ProcessingBadRequestException {
-        // Nothing to do
+        // TODO Auto-generated method stub
+
     }
+
+
+
+    @Override
+    public Response initVitamProcess(String contextId, String container, String workflow)
+        throws InternalServerException, VitamClientException, BadRequestException {
+        final List<Integer> status = new ArrayList<>();
+        status.add(0);
+        status.add(0);
+        status.add(1);
+        status.add(0);
+        status.add(0);
+        status.add(0);
+        return Response.status(Status.OK)
+            .entity(new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+                null, null))
+            .build();
+    }
+
+
+
+    @Override
+    public Response listOperationsDetails() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 
 }

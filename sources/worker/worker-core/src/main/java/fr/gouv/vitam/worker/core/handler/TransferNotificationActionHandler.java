@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
@@ -128,6 +129,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     private StatusCode workflowStatus = StatusCode.UNKNOWN;
 
+    private boolean isBlankTestWorkflow = false;
+    private static final String TEST_STATUS_PREFIX = "Test ";
+    private String statusPrefix = "";
+
     /**
      * Constructor TransferNotificationActionHandler
      *
@@ -158,6 +163,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
         try {
             workflowStatus =
                 StatusCode.valueOf(params.getMapParameters().get(WorkerParameterName.workflowStatusKo));
+
+            LogbookTypeProcess logbookTypeProcess = params.getLogbookTypeProcess();
+            if (logbookTypeProcess != null && LogbookTypeProcess.INGEST_TEST.equals(logbookTypeProcess)) {
+                isBlankTestWorkflow = true;
+                statusPrefix = TEST_STATUS_PREFIX;
+            }
+
             File atrFile;
             if (workflowStatus.isGreaterOrEqualToKo()) {
                 atrFile = createATRKO(params, handlerIO);
@@ -372,9 +384,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
+            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
+
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
-            writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+
+            if (!isBlankTestWorkflow) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+            }
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVAL_AGENCY);
             if (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY) != null) {
@@ -502,11 +518,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
+            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+            if (!isBlankTestWorkflow) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+            }
 
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVAL_AGENCY);
@@ -534,7 +552,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.flush();
             xmlsw.close();
 
-        } catch (XMLStreamException | IOException e) {
+        } catch (XMLStreamException | IOException | InvalidCreateOperationException e) {
             LOGGER.error("Error of response generation");
             throw new ProcessingException(e);
         }
@@ -551,15 +569,18 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws XMLStreamException
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
      */
     private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName)
-        throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException {
+        throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException,
+        InvalidCreateOperationException {
 
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, containerName));
             final JsonNode node = client.selectOperationById(containerName, select.getFinalSelect());
+
             // FIXME P1 hack since Jackson cannot parse it correctly
             // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);

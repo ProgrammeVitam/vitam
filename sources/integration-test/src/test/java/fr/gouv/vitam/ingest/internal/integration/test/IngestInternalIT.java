@@ -150,6 +150,7 @@ public class IngestInternalIT {
     private static final String LOGBOOK_PATH = "/logbook/v1";
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
+    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
@@ -179,6 +180,7 @@ public class IngestInternalIT {
         "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
     private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS =
         "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
+    private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
 
 
     private static ElasticsearchTestConfiguration config = null;
@@ -356,6 +358,9 @@ public class IngestInternalIT {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            //ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
+            //processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
+            //    ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -378,7 +383,11 @@ public class IngestInternalIT {
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
             final Response response2 = client.uploadInitialLogbook(params);
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             assertEquals(200, response.getStatus());
 
             // Try to check AU
@@ -478,7 +487,7 @@ public class IngestInternalIT {
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         final Response response2 = client.uploadInitialLogbook(params);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+        final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
         assertNotNull(response);
         // FIXME in error but not for good reason (Logbook issue)
         assertEquals(500, response.getStatus());
@@ -492,6 +501,9 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            //ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
+            //processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
+            //    ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -515,7 +527,10 @@ public class IngestInternalIT {
             final Response response2 = client.uploadInitialLogbook(params);
 
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Warning during format identification (SIP with MD5)
             assertEquals(206, response.getStatus());
@@ -549,7 +564,9 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
             tryImportFile();
+
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -571,8 +588,12 @@ public class IngestInternalIT {
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
             final Response response2 = client.uploadInitialLogbook(params);
 
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Warning during format identification (SIP with MD5)
             assertEquals(206, response.getStatus());
@@ -609,6 +630,7 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -630,9 +652,12 @@ public class IngestInternalIT {
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
             final Response response2 = client.uploadInitialLogbook(params);
-
+            
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Warning during format identification (SIP with MD5)
             assertEquals(206, response.getStatus());

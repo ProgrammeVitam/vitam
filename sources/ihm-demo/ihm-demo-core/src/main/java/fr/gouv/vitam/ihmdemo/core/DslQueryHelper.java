@@ -69,6 +69,7 @@ public final class DslQueryHelper {
     private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
     private static final String EVENT_OUT_DETAIL = "events.outDetail";
+    private static final String DEFAULT_EVENT_TYPE_PROCESS_TEST = "INGEST_TEST";
     private static final String PUID = "PUID";
     private static final String RULEVALUE = "RuleValue";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
@@ -139,7 +140,8 @@ public final class DslQueryHelper {
                     break;
 
                 case DEFAULT_EVENT_TYPE_PROCESS:
-                    query.add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS));
+                    query.add(or().add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS),
+                        eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS_TEST)));
                     break;
 
                 case OBJECT_IDENTIFIER_INCOME:

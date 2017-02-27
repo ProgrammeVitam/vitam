@@ -63,7 +63,7 @@ public class DslQueryHelperTest {
     private static final String result =
         "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
             "{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
-            "{\"$exists\":\"PUID\"},{\"$eq\":{\"evTypeProc\":\"INGEST\"}}," +
+            "{\"$exists\":\"PUID\"},{\"$or\":[{\"$eq\":{\"evTypeProc\":\"INGEST\"}},{\"$eq\":{\"evTypeProc\":\"INGEST_TEST\"}}]}," +
             "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" +
             "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
             "\tProjection: {}";

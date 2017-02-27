@@ -26,27 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.api;
 
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
  * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
  */
 
-public interface ProcessEngine {
+public interface ProcessEngine extends Runnable {
+
+
 
     /**
-     * Starts a new process instance in the exactly specified process definition with the given id.
+     * Starts, replay a process instance in the exactly specified process with the given id.
      *
      * @param workParams used to encapsulate a parameters
-     * @param workflowId used to identify workflow id
-     * @return the reponse of EngineResponse type that contains message and status code
+     * @return the response of EngineResponse type that contains message and status code
      * @throws IllegalArgumentException throws when arguments workParams or workflowId are null
      * @throws WorkflowNotFoundException throws when workflow not found
      * @throws ProcessingException throws when error in execution
      */
-    public ItemStatus startWorkflow(WorkerParameters workParams, String workflowId)
+    public ItemStatus startWorkflow(WorkerParameters workParams)
         throws WorkflowNotFoundException, ProcessingException;
 }

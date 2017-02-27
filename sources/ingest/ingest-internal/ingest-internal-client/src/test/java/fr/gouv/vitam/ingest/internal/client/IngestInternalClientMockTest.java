@@ -56,6 +56,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 public class IngestInternalClientMockTest {
+    private static final String CONTEXTID = "contextId";
 
     @Test
     public void givenMockExistsWhenPostSipThenReturnOK()
@@ -99,7 +100,7 @@ public class IngestInternalClientMockTest {
 
         final Response response = client.uploadInitialLogbook(operationList);
         assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
-        final Response response2 = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
+        final Response response2 = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(response2.getStatus(), Status.OK.getStatusCode());
 
         try {
@@ -109,7 +110,7 @@ public class IngestInternalClientMockTest {
             fail();
         }
     }
-    
+
     @Test
     public void givenNonEmptyStreamWhenDownloadSuccess() throws Exception {
         IngestInternalClientFactory.changeMode(null);
@@ -119,7 +120,8 @@ public class IngestInternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream("test");
-        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        final InputStream responseStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
 
         assertNotNull(responseStream);
         try {

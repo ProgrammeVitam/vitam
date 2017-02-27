@@ -44,10 +44,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
@@ -79,6 +82,8 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -87,6 +92,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -133,6 +139,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int GUID_INDEX = 0;
     private static final int RESPONSE_STATUS_INDEX = 1;
     private static final int ATR_CONTENT_INDEX = 2;
+    private static final String DEFAULT_CONTEXT = "defaultContext";
 
     private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
@@ -371,7 +378,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // Total number of chunks
             final int totalChunks = Integer.parseInt(headers.getHeaderString(FLOW_TOTAL_CHUNKS_HEADER));
-
+            
+            String contextId = headers.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
+            String action = headers.getHeaderString(GlobalDataRest.X_ACTION);
+            
             if (currentChunkIndex == 1) {
                 // GUID operation (Server Application level)
                 operationGuidFirstLevel = GUIDFactory.newGUID().getId();
@@ -381,12 +391,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 try (FileOutputStream outputStream = new FileOutputStream(temporarySipFile)) {
                     StreamUtils.copy(stream, outputStream);
                 }
-
-                // if it is the last chunk => start INGEST upload
-                if (currentChunkIndex == totalChunks) {
-                    startUpload(operationGuidFirstLevel, tenantId);
-                }
-
             } else {
                 operationGuidFirstLevel = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
@@ -395,11 +399,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 try (final FileOutputStream outputStream = new FileOutputStream(temporarySipFile, true)) {
                     StreamUtils.copy(stream, outputStream);
                 }
+            }
 
-                // if it is the last chunk => start INGEST upload
-                if (currentChunkIndex == totalChunks) {
-                    startUpload(operationGuidFirstLevel, tenantId);
-                }
+            // if it is the last chunk => start INGEST upload
+            if (currentChunkIndex == totalChunks) {
+                startUpload(operationGuidFirstLevel, tenantId, contextId, action);
             }
         } catch (final IOException e) {
             LOGGER.error("Upload failed", e);
@@ -420,18 +424,23 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private void startUpload(String operationGUID, Integer tenantId) {
-        final IngestThread ingestThread = new IngestThread(operationGUID, tenantId);
+
+    private void startUpload(String operationGUID, Integer tenantId, String contextId, String action) {
+        final IngestThread ingestThread = new IngestThread(operationGUID, tenantId, contextId, action);
         ingestThread.start();
     }
 
     class IngestThread extends Thread {
         String operationGuidFirstLevel;
         Integer tenantId;
+        String contextId;
+        String action;
 
-        IngestThread(String operationGuidFirstLevel, Integer tenantId) {
+        IngestThread(String operationGuidFirstLevel, Integer tenantId, String contextId, String action) {
             this.operationGuidFirstLevel = operationGuidFirstLevel;
             this.tenantId = tenantId;
+            this.contextId = contextId;
+            this.action = action;
         }
 
         @Override
@@ -442,23 +451,38 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 try {
-                    finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId);
-
+                    finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
                     final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                    final InputStream inputStream = (InputStream) finalResponse.getEntity();
-                    if (inputStream != null) {
-                        file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
-                        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                            StreamUtils.copy(inputStream, fileOutputStream);
+                    final String globalExecutionStatus =
+                        finalResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
+
+                    final boolean isCompletedProcess =
+                        globalExecutionStatus != null && (ProcessExecutionStatus.COMPLETED
+                            .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)) ||
+                            ProcessExecutionStatus.FAILED
+                                .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)));
+
+                    if (isCompletedProcess) {
+                        final InputStream inputStream = (InputStream) finalResponse.getEntity();
+                        if (inputStream != null) {
+                            file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
+                            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                                StreamUtils.copy(inputStream, fileOutputStream);
+                            }
+                            final List<Object> finalResponseDetails = new ArrayList<>();
+                            finalResponseDetails.add(guid);
+                            finalResponseDetails.add(finalResponse.getStatus());
+                            finalResponseDetails.add(file);
+                            LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                            uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                        } else {
+                            throw new VitamClientException("No ArchiveTransferReply found in response from Server");
                         }
+                    } else {
                         final List<Object> finalResponseDetails = new ArrayList<>();
                         finalResponseDetails.add(guid);
-                        finalResponseDetails.add(finalResponse.getStatus());
-                        finalResponseDetails.add(file);
-                        LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                        finalResponseDetails.add(Status.fromStatusCode(finalResponse.getStatus()));
                         uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
-                    } else {
-                        throw new VitamClientException("No ArchiveTransferReply found in response from Server");
                     }
                 } finally {
                     DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
@@ -1196,6 +1220,116 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
         return Response.status(Status.OK).entity(result).build();
+    }
+    
+    @GET
+    @Path("/operations")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listOperationsDetails(@Context HttpHeaders headers) {
+        Response response = null;
+        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
+            response = client.listOperationsDetails();
+            return Response.fromResponse(response).build();
+        } catch (VitamClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Update the status of an operation.
+     *
+     * @param headers contain X-Action and X-Context-ID
+     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
+     * @param id operation identifier
+     * @param asyncResponse asyncResponse
+     * @return http response
+     */
+    @Path("operations/{id}")
+    @PUT
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
+        Response response = null;
+        ParametersChecker.checkParameter("ACTION Request must not be null",
+            headers.getRequestHeader(GlobalDataRest.X_ACTION));
+
+        final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
+        String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
+
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+            response = ingestExternalClient.updateOperationActionProcess(xAction, id);
+            final String globalExecutionStatus =
+                response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
+
+            final boolean isCompletedProcess =
+                globalExecutionStatus != null && (ProcessExecutionStatus.COMPLETED
+                    .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)) ||
+                    ProcessExecutionStatus.FAILED
+                        .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)));
+
+            if (isCompletedProcess) {
+                final InputStream inputStream = (InputStream) response.getEntity();
+                if (inputStream != null) {
+                    File file = PropertiesUtils.fileFromTmpFolder("ATR_" + id + ".xml");
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        StreamUtils.copy(inputStream, fileOutputStream);
+                    } catch (IOException e) {
+                        throw new VitamClientException("Error during ATR generation");
+                    }
+                    LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                    return Response.status((int) response.getStatus())
+                        .entity(new VitamStreamingOutput(file, false))
+                        .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                        .header("Content-Disposition",
+                            "attachment; filename=ATR_" + id + ".xml")
+                        .header(GlobalDataRest.X_REQUEST_ID, id)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, globalExecutionStatus)
+                        .build();
+                } else {
+                    throw new VitamClientException("No ArchiveTransferReply found in response from Server");
+                }
+            }
+        } catch (final ProcessingException e) {
+            // if there is an unauthorized action
+            LOGGER.error(e);
+            return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        } catch (InternalServerException | VitamClientException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        } catch (BadRequestException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+        return response;
+    }
+
+
+    @DELETE
+    @Path("/operations/{id}")
+    public Response cancelProcess(@Context HttpHeaders headers, @PathParam("id") String id) {
+        String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
+
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+
+            return ingestExternalClient.cancelOperationProcessExecution(id);
+            // ItemStatus itemStatus =
+            // ingestExternalClient.cancelOperationProcessExecution(id);
+            //
+            // // TODO check null value
+            // return Response.status(Status.OK)
+            // .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalExecutionStatus().toString())
+            // .build();
+        } catch (InternalServerException | VitamClientException | ProcessingException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        } catch (BadRequestException e) {
+            LOGGER.error(e);
+            return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        }
     }
 
     private Integer setTenantIdInSession(HttpHeaders headers) {

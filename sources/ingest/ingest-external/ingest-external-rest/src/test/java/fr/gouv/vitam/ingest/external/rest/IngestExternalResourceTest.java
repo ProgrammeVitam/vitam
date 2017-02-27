@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.ingest.external.core.Contexts;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
@@ -173,6 +174,7 @@ public class IngestExternalResourceTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
@@ -186,6 +188,7 @@ public class IngestExternalResourceTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -199,6 +202,7 @@ public class IngestExternalResourceTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -213,13 +217,14 @@ public class IngestExternalResourceTest {
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
         final IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
         final IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
-        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject()))
+        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject(), anyObject()))
             .thenThrow(VitamException.class);
         PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -246,16 +251,19 @@ public class IngestExternalResourceTest {
         throws Exception {
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().get(INGEST_URI + "/1/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }

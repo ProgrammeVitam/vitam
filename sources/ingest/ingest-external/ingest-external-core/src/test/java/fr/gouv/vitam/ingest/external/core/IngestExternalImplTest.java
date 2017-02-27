@@ -72,6 +72,8 @@ import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 public class IngestExternalImplTest {
     private static final String PATH = "/tmp";
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
+    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
+    private static final String EXECUTION_MODE = "continu";
     IngestExternalImpl ingestExternalImpl;
     private InputStream stream;
     private static final Integer TENANT_ID = 0;
@@ -103,7 +105,7 @@ public class IngestExternalImplTest {
             .thenThrow(new FormatIdentifierNotFoundException(""));
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
     @RunWithCustomExecutor
@@ -115,7 +117,7 @@ public class IngestExternalImplTest {
         when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
     @RunWithCustomExecutor
@@ -128,7 +130,7 @@ public class IngestExternalImplTest {
             .thenThrow(new FormatIdentifierTechnicalException(""));
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
     @RunWithCustomExecutor
@@ -144,7 +146,7 @@ public class IngestExternalImplTest {
 
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
     @RunWithCustomExecutor
@@ -160,7 +162,7 @@ public class IngestExternalImplTest {
 
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
 
@@ -173,7 +175,7 @@ public class IngestExternalImplTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getNotSupprtedFormatIdentifierResponseList());
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
 
@@ -185,7 +187,7 @@ public class IngestExternalImplTest {
             getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        ingestExternalImpl.upload(stream, new AsyncResponseJunitTest());
+        ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE);
     }
 
     @RunWithCustomExecutor
@@ -198,7 +200,7 @@ public class IngestExternalImplTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
     @RunWithCustomExecutor
@@ -211,7 +213,7 @@ public class IngestExternalImplTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         assertEquals(Status.BAD_REQUEST.getStatusCode(),
-            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest()).getStatus());
+            ingestExternalImpl.upload(stream, new AsyncResponseJunitTest(), CONTEXT_ID, EXECUTION_MODE).getStatus());
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
@@ -230,7 +232,7 @@ public class IngestExternalImplTest {
         when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        final Response xmlResponse = ingestExternalImpl.upload(stream, responseAsync);
+        final Response xmlResponse = ingestExternalImpl.upload(stream, responseAsync, CONTEXT_ID, EXECUTION_MODE);
         assertNotNull(xmlResponse);
         assertEquals(200, xmlResponse.getStatus());
     }
