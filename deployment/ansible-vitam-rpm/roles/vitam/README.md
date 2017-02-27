@@ -24,7 +24,19 @@ Les variables attendues pour ce rôle sont :
   + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" ) 
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")
   + {{ java_args }} : arguments à passer à la JVM (valeur par défaut : "")
-  + {{ port }} : port d'écoute du service vitam (valeur par défaut : 8082)
+  + {{ port_http }} : port d'écoute du service vitam (valeur par défaut : 8082)
+  + {{ tls_active }} : activation du https
+  + {{ days_to_delete_local }} : nombre de jours par défaut pour le job Curator de purge des vieux index
+  + {{ days_to_delete_access_local }} :
+  + {{ vitam_worker_capacity }} : nombre de parallélisme des threads du composant vitam-worker
+  + {{ vitam_provider_offer }}: type de fournisseur pour l'offre de stockage par défaut (filesystem/openstack-swift)
+  + {{ vitam_keystone_auth_url }} : URL de connexion à la gateway CEPH si {{ vitam_provider_offer }} est openstack-swift
+  + {{ vitam_swift_uid }} : utilisateur swift
+  + {{ vitam_swift_subuser }} : sous-utilisateur swift
+  + {{ vitam_keystone_passwd }} : mot de passe associé
+  + {{ vitam_ceph_mode }} : booléen
+  + {{ vitam_site_id }} : identifiant du site associé à l'installation
+
 
 Dependencies
 ------------

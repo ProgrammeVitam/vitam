@@ -112,6 +112,7 @@ hosts-storage-engine
 
 [hosts-worker]
 # TODO: Put here servers where this service will be deployed : worker
+# Optional parameter after each host : vitam_worker_capacity=<integer> ; please refer to your infrastructure for defining this number ; default is 1
 
 
 ##### Zone storage
