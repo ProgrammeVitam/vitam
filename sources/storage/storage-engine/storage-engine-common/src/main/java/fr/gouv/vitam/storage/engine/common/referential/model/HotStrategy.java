@@ -34,7 +34,8 @@ import java.util.List;
  * Model representing a Hot strategy
  */
 
-// TODO P1 : maybe rename this to Strategy if we later find that Hot and Cold strategies
+// TODO P1 : maybe rename this to Strategy if we later find that Hot and Cold
+// strategies
 // share the same attributes
 
 public class HotStrategy {

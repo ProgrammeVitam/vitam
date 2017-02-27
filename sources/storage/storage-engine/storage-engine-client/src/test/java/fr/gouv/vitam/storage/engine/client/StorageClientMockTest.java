@@ -64,8 +64,7 @@ public class StorageClientMockTest {
     @Test
     public void storageInfos() throws Exception {
         final JsonNode expectedResult = JsonHandler.getFromString(StorageClientMock.MOCK_INFOS_RESULT_ARRAY);
-        final StorageClient client =
-            StorageClientFactory.getInstance().getClient();
+        final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
         final JsonNode result = client.getStorageInformation("idStrategy");
         assertEquals(result, expectedResult);
@@ -76,14 +75,14 @@ public class StorageClientMockTest {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
-            "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
+                "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
         final StoredInfoResult expectedResult = generateStoredInfoResult("guid");
 
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final StoredInfoResult result =
-            client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "guid", description);
+        final StoredInfoResult result = client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "guid",
+                description);
         assertEquals(result.getId(), expectedResult.getId());
     }
 
@@ -107,8 +106,7 @@ public class StorageClientMockTest {
     public void getContainerObjectTest() throws StorageNotFoundException, StorageServerClientException, IOException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final InputStream stream =
-            client.getContainerAsync("strategyId", "guid", StorageCollectionType.OBJECTS)
+        final InputStream stream = client.getContainerAsync("strategyId", "guid", StorageCollectionType.OBJECTS)
                 .readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);

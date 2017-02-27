@@ -47,8 +47,10 @@ class FileDriverMapperConfiguration {
     /**
      * constructor
      *
-     * @param path the directory to save driver / offer association
-     * @param delimiter the file delimiter to isolate offer
+     * @param path
+     *            the directory to save driver / offer association
+     * @param delimiter
+     *            the file delimiter to isolate offer
      */
     FileDriverMapperConfiguration(String path, String delimiter) {
         ParametersChecker.checkParameter("Driver Mapping directory and delimiter configuration", path, delimiter);
@@ -68,7 +70,8 @@ class FileDriverMapperConfiguration {
     /**
      * Set the directory path to find persisted file
      *
-     * @param driverMappingPath the directory path
+     * @param driverMappingPath
+     *            the directory path
      */
     public void setDriverMappingPath(String driverMappingPath) {
         this.driverMappingPath = driverMappingPath;
@@ -86,7 +89,8 @@ class FileDriverMapperConfiguration {
     /**
      * Set the file delimiter to isolate offer
      *
-     * @param delimiter the delimiter
+     * @param delimiter
+     *            the delimiter
      */
     public void setDelimiter(String delimiter) {
         this.delimiter = delimiter;

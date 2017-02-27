@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -28,8 +28,8 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Holds minimal needed parameters that may be needed to send a request on an object on the distant storage offer :
- * list objects.
+ * Holds minimal needed parameters that may be needed to send a request on an
+ * object on the distant storage offer : list objects.
  */
 public class StorageListRequest extends StorageRequest {
 
@@ -39,10 +39,15 @@ public class StorageListRequest extends StorageRequest {
     /**
      * Initialize the needed parameters for request.
      *
-     * @param tenantId the request tenantId
-     * @param type the type The request type
-     * @param cursorId the cursor ID
-     * @param xCursor the x-cursor, true for new cursor (new query), false for ending
+     * @param tenantId
+     *            the request tenantId
+     * @param type
+     *            the type The request type
+     * @param cursorId
+     *            the cursor ID
+     * @param xCursor
+     *            the x-cursor, true for new cursor (new query), false for
+     *            ending
      */
     public StorageListRequest(Integer tenantId, String type, String cursorId, boolean xCursor) {
         super(tenantId, type);

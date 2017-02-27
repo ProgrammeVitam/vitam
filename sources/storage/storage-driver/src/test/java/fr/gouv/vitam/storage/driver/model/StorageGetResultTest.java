@@ -69,5 +69,4 @@ public class StorageGetResultTest {
         assertEquals(BYTES, storageGetResult.getObject().getEntity());
     }
 
-
 }

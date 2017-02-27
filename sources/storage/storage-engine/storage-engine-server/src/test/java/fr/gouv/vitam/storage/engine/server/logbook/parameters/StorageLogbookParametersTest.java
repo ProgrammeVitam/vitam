@@ -86,7 +86,6 @@ public class StorageLogbookParametersTest {
         parameters.checkMandatoryParameters();
     }
 
-
     private StorageLogbookParameters getEmptyParameters() {
         return new StorageLogbookParameters(new HashMap<>());
     }

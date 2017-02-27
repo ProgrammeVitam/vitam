@@ -30,7 +30,8 @@ package fr.gouv.vitam.storage.driver.model;
 import javax.ws.rs.core.Response;
 
 /**
- * Holds result data that come as a result of a request to retrieve an object on the distant storage offer
+ * Holds result data that come as a result of a request to retrieve an object on
+ * the distant storage offer
  */
 public class StorageGetResult extends StorageObjectResult {
 
@@ -39,10 +40,14 @@ public class StorageGetResult extends StorageObjectResult {
     /**
      * Initialize the needed parameters for get results
      *
-     * @param tenantId The request tenantId
-     * @param type the type The request type
-     * @param guid the object guid
-     * @param object Response of the object in the offer
+     * @param tenantId
+     *            The request tenantId
+     * @param type
+     *            the type The request type
+     * @param guid
+     *            the object guid
+     * @param object
+     *            Response of the object in the offer
      */
     public StorageGetResult(Integer tenantId, String type, String guid, Response object) {
         super(tenantId, type, guid);

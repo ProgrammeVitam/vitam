@@ -48,13 +48,17 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 /**
  * WARNING:
  *
- * This tests are using two drivers implementations. These drivers are implemented in two externals projects, with maven
- * packaging to jar. They only implements the driver interface (and they absolutely do nothing, as fake driver
- * {@link fr.gouv.vitam.storage.engine.server.spi.OfferDriverInfoTest.TheDriver} in {@link OfferDriverInfoTest}). Also
- * don't forget to make the file to declare the implementation to the {@link java.util.ServiceLoader} in the
+ * This tests are using two drivers implementations. These drivers are
+ * implemented in two externals projects, with maven packaging to jar. They only
+ * implements the driver interface (and they absolutely do nothing, as fake
+ * driver
+ * {@link fr.gouv.vitam.storage.engine.server.spi.OfferDriverInfoTest.TheDriver}
+ * in {@link OfferDriverInfoTest}). Also don't forget to make the file to
+ * declare the implementation to the {@link java.util.ServiceLoader} in the
  * META-INF/services directory.
  *
- * So, if the driver implementation change, do not forget to change the jars for the two implementations in this way.
+ * So, if the driver implementation change, do not forget to change the jars for
+ * the two implementations in this way.
  *
  */
 public class DriverManagerTest {
@@ -141,8 +145,7 @@ public class DriverManagerTest {
         }
 
         @Override
-        public void addOffersTo(List<String> offersIdsToAdd, String driverName)
-            throws StorageDriverMapperException {
+        public void addOffersTo(List<String> offersIdsToAdd, String driverName) throws StorageDriverMapperException {
             // Nothing
         }
 
@@ -152,11 +155,9 @@ public class DriverManagerTest {
         }
 
         @Override
-        public void removeOffersTo(List<String> offersIdsToRemove, String driverName)
-            throws StorageDriverMapperException {
+        public void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageDriverMapperException {
             // Nothing
         }
     }
-
 
 }

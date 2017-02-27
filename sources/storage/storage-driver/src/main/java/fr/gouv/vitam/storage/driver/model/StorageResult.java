@@ -28,21 +28,23 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Holds minimal data that should be received a result from the distant storage offer : container informations.
+ * Holds minimal data that should be received a result from the distant storage
+ * offer : container informations.
  */
 public class StorageResult {
 
     // TODO add offer id
-    
+
     private final Integer tenantId;
     private final String type;
-
 
     /**
      * Initialize the needed data for result.
      * 
-     * @param tenantId The request tenantId
-     * @param type the type The request type
+     * @param tenantId
+     *            The request tenantId
+     * @param type
+     *            the type The request type
      */
     public StorageResult(Integer tenantId, String type) {
         this.tenantId = tenantId;
@@ -66,6 +68,5 @@ public class StorageResult {
     public String getType() {
         return type;
     }
-
 
 }

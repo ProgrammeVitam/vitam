@@ -37,7 +37,6 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 
-
 /**
  *
  */

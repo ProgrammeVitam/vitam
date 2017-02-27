@@ -27,7 +27,8 @@
 package fr.gouv.vitam.storage.driver.exception;
 
 /**
- * Define a Storage Exception to be thrown when the storing object is already present in the offer
+ * Define a Storage Exception to be thrown when the storing object is already
+ * present in the offer
  */
 public class StorageObjectAlreadyExistsException extends Exception {
 
@@ -37,35 +38,43 @@ public class StorageObjectAlreadyExistsException extends Exception {
     private static final long serialVersionUID = -3017427500292680375L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageObjectAlreadyExistsException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageObjectAlreadyExistsException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageObjectAlreadyExistsException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
 
     /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
+     * @param message
+     *            associated message
+     * @param cause
+     *            associated cause
+     * @param enableSuppression
+     *            allow suppression or not
+     * @param writableStackTrace
+     *            allow writable stack trace or not
      */
     public StorageObjectAlreadyExistsException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+            boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

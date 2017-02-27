@@ -38,7 +38,6 @@ import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
 public class FileSystemTest {
 
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -62,7 +61,6 @@ public class FileSystemTest {
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     private static final String OBJECT_ID2 = "aeaaaaaaaaaam7mxaa2pkak2bnhxy4aaaaaq";
 
-
     @Before
     public void setup() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
@@ -79,41 +77,39 @@ public class FileSystemTest {
 
     @Test
     public void givenContainerAlreadyExistsWhenCheckContainerExistenceThenRetunFalse()
-        throws ContentAddressableStorageAlreadyExistException {
+            throws ContentAddressableStorageAlreadyExistException {
         storage.createContainer(CONTAINER_NAME);
         assertTrue(storage.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
     public void givenContainerAlreadyExistsWhenCreateContainerThenRaiseAnException()
-        throws ContentAddressableStorageAlreadyExistException {
+            throws ContentAddressableStorageAlreadyExistException {
         storage.createContainer(CONTAINER_NAME);
         storage.createContainer(CONTAINER_NAME);
         assertFalse(storage.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenPurgeContainerThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenPurgeContainerThenRaiseAnException() throws ContentAddressableStorageNotFoundException {
         storage.purgeContainer(CONTAINER_NAME);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageNotFoundException {
         storage.deleteContainer(CONTAINER_NAME, false);
     }
 
     @Test
-    public void givenContainerNotFoundWhenCreateContainerThenOK()
-        throws ContentAddressableStorageAlreadyExistException {
+    public void givenContainerNotFoundWhenCreateContainerThenOK() throws ContentAddressableStorageAlreadyExistException {
         storage.createContainer(CONTAINER_NAME);
         assertTrue(storage.isExistingContainer(CONTAINER_NAME));
     }
 
     @Test
     public void givenContainerAlreadyExistsWhenDeleteContainerThenOK()
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
         storage.createContainer(CONTAINER_NAME);
 
         storage.deleteContainer(CONTAINER_NAME, true);
@@ -122,7 +118,7 @@ public class FileSystemTest {
 
     @Test
     public void givenContainerAlreadyExistsAndEmptyWhenPurgeContainerThenOK()
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
         storage.createContainer(CONTAINER_NAME);
 
         storage.purgeContainer(CONTAINER_NAME);
@@ -131,7 +127,7 @@ public class FileSystemTest {
 
     @Test
     public void givenContainerAlreadyExistsAndNotEmptyWhenPurgeContainerThenOK()
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
@@ -147,8 +143,7 @@ public class FileSystemTest {
     }
 
     @Test
-    public void givenFolderAlreadyExistsWhenCheckContainerExistenceThenRetunTrue()
-        throws ContentAddressableStorageException {
+    public void givenFolderAlreadyExistsWhenCheckContainerExistenceThenRetunTrue() throws ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.createFolder(CONTAINER_NAME, FOLDER_NAME);
 
@@ -156,8 +151,7 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageException.class)
-    public void givenFolderAlreadyExistsWhenCreateFolderThenRaiseAnException()
-        throws ContentAddressableStorageException {
+    public void givenFolderAlreadyExistsWhenCreateFolderThenRaiseAnException() throws ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.createFolder(CONTAINER_NAME, FOLDER_NAME);
 
@@ -166,7 +160,7 @@ public class FileSystemTest {
 
     @Test(expected = ContentAddressableStorageException.class)
     public void givenContainerNotFoundWhenCreateFolderThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException {
         storage.createFolder(CONTAINER_NAME, FOLDER_NAME);
     }
 
@@ -180,8 +174,7 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenDeleteFolderThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenDeleteFolderThenRaiseAnException() throws ContentAddressableStorageNotFoundException {
         storage.deleteFolder(CONTAINER_NAME, FOLDER_NAME);
     }
 
@@ -195,7 +188,7 @@ public class FileSystemTest {
 
     @Test
     public void givenFolderAlreadyExistsWhenDeleteFolderThenOK()
-        throws ContentAddressableStorageException, ContentAddressableStorageAlreadyExistException {
+            throws ContentAddressableStorageException, ContentAddressableStorageAlreadyExistException {
         storage.createContainer(CONTAINER_NAME);
         storage.createFolder(CONTAINER_NAME, FOLDER_NAME);
 
@@ -211,7 +204,7 @@ public class FileSystemTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenCheckObjectExistenceThenRetunFalse()
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
@@ -220,19 +213,19 @@ public class FileSystemTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenPutObjectThenNotRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file2.pdf"));
         assertEquals(getInputStream("file2.pdf").available(),
-            ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
+                ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
 
     }
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectInformationThenNotRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         final JsonNode jsonNode = storage.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
@@ -244,28 +237,26 @@ public class FileSystemTest {
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenGetObjectInformationThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         assertNotNull(storage.getObjectInformation("FAKE" + CONTAINER_NAME, OBJECT_NAME));
 
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenObjectNotFoundWhenGetObjectInformationThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         assertNotNull(storage.getObjectInformation(CONTAINER_NAME, OBJECT_NAME));
 
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenDeleteObjectThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenDeleteObjectThenRaiseAnException() throws ContentAddressableStorageNotFoundException {
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
 
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotFoundWhenDeleteObjectThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+    public void givenObjectNotFoundWhenDeleteObjectThenRaiseAnException() throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         storage.deleteObject(CONTAINER_NAME, OBJECT_NAME);
@@ -274,8 +265,7 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenGetObjectThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+    public void givenContainerNotFoundWhenGetObjectThenRaiseAnException() throws IOException, ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         storage.deleteContainer(CONTAINER_NAME, true);
@@ -285,8 +275,7 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenPutObjectThenRaiseAnException()
-        throws IOException, ContentAddressableStorageException {
+    public void givenContainerNotFoundWhenPutObjectThenRaiseAnException() throws IOException, ContentAddressableStorageException {
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
     }
 
@@ -296,7 +285,7 @@ public class FileSystemTest {
 
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         assertEquals(getInputStream("file1.pdf").available(),
-            ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
+                ((InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME).getEntity()).available());
     }
 
     @Test
@@ -308,16 +297,13 @@ public class FileSystemTest {
         assertFalse(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
-
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenComputeObjectDigestThenRaiseAnException()
-        throws ContentAddressableStorageException {
+    public void givenContainerNotFoundWhenComputeObjectDigestThenRaiseAnException() throws ContentAddressableStorageException {
         storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotFoundWhenComputeObjectDigestThenRaiseAnException()
-        throws ContentAddressableStorageException {
+    public void givenObjectNotFoundWhenComputeObjectDigestThenRaiseAnException() throws ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
 
         storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
@@ -325,7 +311,7 @@ public class FileSystemTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenWhenComputeObjectDigestThenOK()
-        throws ContentAddressableStorageException, IOException {
+            throws ContentAddressableStorageException, IOException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
@@ -365,49 +351,45 @@ public class FileSystemTest {
 
     @Test
     public void givenContainerAlreadyExistAndFolderAlreadyExistAndSubFolderAlreadyExistWhenCheckListUriNotEmptyThenReturnTrue()
-        throws IOException, Exception {
+            throws IOException, Exception {
 
         // Given container exists
         storage.createContainer(SIP_CONTAINER);
 
-        // Given a root folder "SIP_FOLDER", add manifest.xml to this root folder
-        final String manifestName =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
+        // Given a root folder "SIP_FOLDER", add manifest.xml to this root
+        // folder
+        final String manifestName = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(MANIFEST).toString();
         storage.putObject(SIP_CONTAINER, manifestName, getInputStream(MANIFEST));
 
         // Given a sub folder "CONTENT_FOLDER" add digital objects
-        final String contentSubFolder =
-            new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
+        final String contentSubFolder = new StringBuilder().append(SIP_FOLDER).append(SLASH).append(CONTENT_FOLDER).toString();
         // workspace.createFolder(SIP_CONTAINER, contentSubFolder);
-        final String fileName1 =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append("file1.pdf").toString();
+        final String fileName1 = new StringBuilder().append(contentSubFolder).append(SLASH).append("file1.pdf").toString();
         storage.putObject(SIP_CONTAINER, fileName1, getInputStream("file1.pdf"));
-        final String fileName2 =
-            new StringBuilder().append(contentSubFolder).append(SLASH).append("file2.pdf").toString();
+        final String fileName2 = new StringBuilder().append(contentSubFolder).append(SLASH).append("file2.pdf").toString();
         storage.putObject(SIP_CONTAINER, fileName2, getInputStream("file2.pdf"));
 
-        // Then check that there is 2 URIs found recursively from the content folder
-        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).isNotNull()
-            .isNotEmpty();
+        // Then check that there is 2 URIs found recursively from the content
+        // folder
+        assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).isNotNull().isNotEmpty();
         assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, contentSubFolder)).hasSize(2);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotExistWhenCheckListUriNotEmptyThenRaiseAnException() throws IOException, Exception {
-        // Then check that there is 3 URIs found recursively from the root folder
+        // Then check that there is 3 URIs found recursively from the root
+        // folder
         assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER)).isNotNull().isNotEmpty();
         assertThat(storage.getListUriDigitalObjectFromFolder(SIP_CONTAINER, SIP_FOLDER)).hasSize(3);
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException()
-        throws IOException, Exception {
+    public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException() throws IOException, Exception {
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, getInputStream("sip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
-    public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException()
-        throws IOException, Exception {
+    public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.createFolder(CONTAINER_NAME, SIP_FOLDER);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, getInputStream("sip.zip"));
@@ -415,34 +397,28 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageException.class)
-    public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException()
-        throws IOException, Exception {
+    public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, null);
     }
 
     @Test
-    public void givenContainerAlreadyExisitsWhenUnzipObjectThenOk()
-        throws IOException, Exception {
+    public void givenContainerAlreadyExisitsWhenUnzipObjectThenOk() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
 
     }
 
     @Test(expected = ContentAddressableStorageCompressedFileException.class)
-    public void givenContainerAlreadyExisitsWhenUnzipObjectEmptyThenZipException()
-        throws IOException, Exception {
+    public void givenContainerAlreadyExisitsWhenUnzipObjectEmptyThenZipException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("empty_zip.zip"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("empty_zip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageCompressedFileException.class)
-    public void givenContainerAlreadyExisitsWhenUnzipObjectNotZipThenZipException()
-        throws IOException, Exception {
+    public void givenContainerAlreadyExisitsWhenUnzipObjectNotZipThenZipException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP,
-            getInputStream("SIP_mauvais_format.pdf"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("SIP_mauvais_format.pdf"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -451,23 +427,20 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageCompressedFileException.class)
-    public void givenTarGzSIPAndBadArchiveTypeWhenUncompressObjectThenRaiseAnException()
-        throws IOException, Exception {
+    public void givenTarGzSIPAndBadArchiveTypeWhenUncompressObjectThenRaiseAnException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream(SIP_TAR_GZ));
     }
 
     @Test
-    public void givenTarGzSIPAndArchiveTypeWhenUncompressObjectThenExtractOK()
-        throws IOException, Exception {
+    public void givenTarGzSIPAndArchiveTypeWhenUncompressObjectThenExtractOK() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.GZIP, getInputStream(SIP_TAR_GZ));
         assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenTarGzSIPAndUnsupportedArchiveTypeWhenUncompressObjectThenRaiseException()
-        throws IOException, Exception {
+    public void givenTarGzSIPAndUnsupportedArchiveTypeWhenUncompressObjectThenRaiseException() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, "unsupported", getInputStream(SIP_TAR_GZ));
     }
@@ -491,8 +464,7 @@ public class FileSystemTest {
     }
 
     @Test
-    public void givenTarGzSIPArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
-        throws IOException, Exception {
+    public void givenTarGzSIPArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.GZIP, getInputStream(SIP_TAR_GZ));
         assertTrue(storage.isExistingContainer(CONTAINER_NAME));
@@ -500,8 +472,7 @@ public class FileSystemTest {
     }
 
     @Test
-    public void givenTarArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
-        throws IOException, Exception {
+    public void givenTarArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist() throws IOException, Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.TAR, getInputStream(SIP_TAR));
         assertTrue(storage.isExistingContainer(CONTAINER_NAME));
@@ -518,20 +489,17 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenCountObjectsThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenCountObjectsThenRaiseAnException() throws ContentAddressableStorageNotFoundException {
         storage.countObjects(WRONG_CONTAINER_NAME);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenNullContainerNameWhenCountObjectsThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenNullContainerNameWhenCountObjectsThenRaiseAnException() throws ContentAddressableStorageNotFoundException {
         storage.countObjects(null);
     }
 
     @Test
-    public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {
+    public void givenObjectAlreadyExistsWhenCheckObjectThenOK() throws ContentAddressableStorageException, IOException {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         final Digest digest = new Digest(ALGO);
@@ -540,36 +508,37 @@ public class FileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenObjectNotExistingWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {        
+    public void givenObjectNotExistingWhenCheckObjectThenOK() throws ContentAddressableStorageException, IOException {
         storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", DigestType.MD5);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCheckObjectThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
     }
-    
+
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
-        String containerName = TENANT_ID + "_"+ TYPE;
+        String containerName = TENANT_ID + "_" + TYPE;
         storage.createContainer(containerName);
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
-        //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
-        //get metadata of file
+        // storage.putObject(containerName, OBJECT_ID2,
+        // getInputStream("file2.pdf"));
+        // get metadata of file
         MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
-        assertEquals("9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418", 
-            result.getDigest());
+        assertEquals(
+                "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
+                result.getDigest());
         assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
         assertEquals(6906, result.getFileSize());
         assertNotNull(result.getLastAccessDate());
         assertNotNull(result.getLastModifiedDate());
-        
+
         storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
-        //get metadata of directory
+        // get metadata of directory
         result = storage.getObjectMetadatas(containerName, null);
         assertEquals("0_object", result.getObjectName());
         assertEquals(TYPE, result.getType());

@@ -46,9 +46,7 @@ class StorageLogbookParametersSerializer extends JsonSerializer<StorageLogbookPa
     }
 
     @Override
-    public void serialize(StorageLogbookParameters value, JsonGenerator gen,
-        SerializerProvider serializers)
-        throws IOException {
+    public void serialize(StorageLogbookParameters value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
         gen.writeStartObject();
         for (final Entry<StorageLogbookParameterName, String> item : value.getMapParameters().entrySet()) {
             gen.writeStringField(item.getKey().name(), item.getValue());

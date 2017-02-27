@@ -31,7 +31,7 @@ function purge_directory {
 }
 
 function generatePassphrase {
-    cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 48 | head -n 1
+    cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head -c48
 }
 
 function normalize_key {

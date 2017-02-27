@@ -95,7 +95,15 @@ public class VitamConfiguration {
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
-    private static final int DELAY_VALIDATION_AFTER_INACTIVITY = 10000;
+    public static final int DELAY_VALIDATION_AFTER_INACTIVITY = 10000;
+    /**
+     * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
+     */
+    public static int DELAY_MULTIPLE_INPUTSTREAM = 60000;
+    /**
+     * Default minimum thread pool size
+     */
+    public static final int MINIMUM_THREAD_POOL_SIZE = 10;
     /**
      * No check of unused client within pool (Apache Only)
      */

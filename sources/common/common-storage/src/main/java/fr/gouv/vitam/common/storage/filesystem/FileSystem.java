@@ -42,7 +42,6 @@ import org.jclouds.providers.ProviderMetadata;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
@@ -54,25 +53,29 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
-
 /**
- * FileSystemMock implements a Content Addressable Storage that stores objects on the file system.
+ * FileSystemMock implements a Content Addressable Storage that stores objects
+ * on the file system.
  */
 public class FileSystem extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileSystem.class);
 
-
     /**
-     * @param configuration to associate with the FileSystem
+     * @param configuration
+     *            to associate with the FileSystem
      */
     public FileSystem(StorageConfiguration configuration) {
         super(configuration);
     }
 
     @Override
-    public ContainerInformation getContainerInformation(String containerName)
-        throws ContentAddressableStorageNotFoundException {
+    public void closeContext() {
+        context.close();
+    }
+
+    @Override
+    public ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException {
         final File baseDirFile = getBaseDir(containerName);
         final long usableSpace = baseDirFile.getUsableSpace();
         final long usedSpace = getFolderUsedSize(baseDirFile);
@@ -88,7 +91,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         for (final File file : directory.listFiles()) {
             if (file.isFile()) {
                 usedSpace += file.length();
-            } else if (file.isDirectory()){
+            } else if (file.isDirectory()) {
                 usedSpace += getFolderUsedSize(file);
             }
         }
@@ -96,20 +99,24 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     }
 
     private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {
-        final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
-        final Properties properties = providerMetadata.getDefaultProperties();
-        final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
-        File baseDirFile;
-        if (containerName != null) {
-            baseDirFile = new File(baseDir, containerName);
-        } else {
-            baseDirFile = new File(baseDir);
+        try {
+            final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
+            final Properties properties = providerMetadata.getDefaultProperties();
+            final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
+            File baseDirFile;
+            if (containerName != null) {
+                baseDirFile = new File(baseDir, containerName);
+            } else {
+                baseDirFile = new File(baseDir);
+            }
+            if (!baseDirFile.exists()) {
+                LOGGER.error("container not found: " + containerName + "(BaseDir File: " + baseDirFile + ")");
+                throw new ContentAddressableStorageNotFoundException("Storage not found");
+            }
+            return baseDirFile;
+        } finally {
+            closeContext();
         }
-        if (!baseDirFile.exists()) {
-        	LOGGER.error("container not found: " + containerName + "(BaseDir File: " + baseDirFile + ")");
-            throw new ContentAddressableStorageNotFoundException("Storage not found");
-        }
-        return baseDirFile;
     }
 
     @Override
@@ -120,7 +127,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
     }
 
-    private File getFileFromJClouds(String containerName, String objectId) throws ContentAddressableStorageNotFoundException{
+    private File getFileFromJClouds(String containerName, String objectId) throws ContentAddressableStorageNotFoundException {
         final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
         final Properties properties = providerMetadata.getDefaultProperties();
         final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
@@ -130,7 +137,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
                 file = new File(baseDir, containerName + "/" + objectId);
             } else {
                 file = new File(baseDir, containerName);
-            }            
+            }
         } else {
             file = new File(baseDir);
         }
@@ -140,33 +147,32 @@ public class FileSystem extends ContentAddressableStorageAbstract {
         }
         return file;
     }
-    
-    private BasicFileAttributes getFileAttributes(File file) throws IOException{
+
+    private BasicFileAttributes getFileAttributes(File file) throws IOException {
         Path path = Paths.get(file.getPath());
         BasicFileAttributeView basicView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
         BasicFileAttributes basicAttribs = basicView.readAttributes();
         return basicAttribs;
     }
-    
+
     @Override
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         try {
             File file = getFileFromJClouds(containerName, objectId);
             BasicFileAttributes basicAttribs = getFileAttributes(file);
             long size = Files.size(Paths.get(file.getPath()));
-            if (null != file) { 
+            if (null != file) {
                 if (objectId != null) {
                     result.setObjectName(objectId);
-                    //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+                    // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
                     result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
                     result.setFileSize(size);
                 } else {
                     result.setObjectName(containerName);
-                    //TODO calculer l'empreint de répertoire
+                    // TODO calculer l'empreint de répertoire
                     result.setDigest(null);
                     result.setFileSize(getFolderUsedSize(file));
                 }
@@ -174,20 +180,25 @@ public class FileSystem extends ContentAddressableStorageAbstract {
                 result.setType(containerName.split("_")[1]);
                 result.setFileOwner("Vitam_" + containerName.split("_")[0]);
                 result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
-                result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());                
+                result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
             }
         } catch (final IOException e) {
             LOGGER.error(e.getMessage());
             throw e;
-        } catch (final ContentAddressableStorageNotFoundException e){
+        } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(e.getMessage());
             throw e;
         } catch (ContentAddressableStorageException e) {
             LOGGER.error(e.getMessage());
             throw e;
         } finally {
-            context.close();
+            closeContext();
         }
         return result;
+    }
+
+    @Override
+    public void close() {
+        // Nothing to do
     }
 }
