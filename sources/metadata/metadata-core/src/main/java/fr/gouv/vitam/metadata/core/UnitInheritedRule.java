@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class UnitInheritedRule {
 
+	private static final String SEPERATOR = "-";
 	private static final String OVERRIDE_BY = "OverridedBy";
 	private static final String PATH = "path";
 	public static final String RULE = "Rule";
@@ -103,14 +104,12 @@ public class UnitInheritedRule {
 		Iterator<String> fieldNames = unitManagement.fieldNames(); 
 		while(fieldNames.hasNext()){
 			String fieldName = fieldNames.next();
-			if (unitManagement.get(fieldName).isArray()) {
-				LOGGER.error("Management is not valid");
-				throw new IllegalArgumentException("Management is not valid");
+			
+			if (unitManagement.get(fieldName).isObject()) {
+				ObjectNode fieldValue = (ObjectNode) unitManagement.get(fieldName);
+				ObjectNode ruleCategories = createRuleCategories(fieldValue, unitId);
+				inheritedRule.put(fieldName, ruleCategories);
 			}
-			ObjectNode fieldValue = (ObjectNode) unitManagement.get(fieldName);
-
-			ObjectNode ruleCategories = createRuleCategories(fieldValue, unitId);
-			inheritedRule.put(fieldName, ruleCategories);
 		}
 	}
 
@@ -199,6 +198,7 @@ public class UnitInheritedRule {
 	public UnitInheritedRule createNewInheritedRule(ObjectNode unitManagement, String unitId) {
 		UnitInheritedRule newRule = deepCopy(this);
 		Map<String, ObjectNode> ruleCategoryFromUnit = new HashMap<>();
+		Map<String, String> ruleIdTodReplace = new HashMap<>();
 		List<String> parentCategoryList = new ArrayList<>();
 
 		for (Entry<String, ObjectNode> entry : newRule.inheritedRule.entrySet()) {
@@ -243,9 +243,9 @@ public class UnitInheritedRule {
 						while(originIterator.hasNext()){
 							String originId = originIterator.next();
 							ObjectNode originNode = (ObjectNode) ruleNode.get(originId);
-							ArrayNode pathNode = (ArrayNode) originNode.get(PATH);
-							updateOriginPath(pathNode, unitId);
-							originNode.setAll(createNewOrigin(unitRuleNode, pathNode));
+							ruleNode.set(originId, createNewOrigin(unitRuleNode, 
+									JsonHandler.createArrayNode().add(JsonHandler.createArrayNode().add(unitId))));
+							ruleIdTodReplace.put(originId + SEPERATOR + ruleId, unitId);
 							if (originNode.get(OVERRIDE_BY) != null) {
 								((ArrayNode) originNode.get(OVERRIDE_BY)).add(unitId);
 							} else {
@@ -254,6 +254,14 @@ public class UnitInheritedRule {
 						}
 					}
 				}
+				for (Entry<String, String> ruleIdEntry : ruleIdTodReplace.entrySet()) {
+					String originId = ruleIdEntry.getKey().split(SEPERATOR, 2)[0];
+					String ruleId = ruleIdEntry.getKey().split(SEPERATOR, 2)[1];
+					JsonNode ruleNode = categoryNode.get(ruleId).get(originId);
+					((ObjectNode) categoryNode.get(ruleId)).remove(originId);
+					((ObjectNode) categoryNode.get(ruleId)).set(ruleIdEntry.getValue(), ruleNode);
+				}
+				ruleIdTodReplace.clear();
 			}
 		}
 
