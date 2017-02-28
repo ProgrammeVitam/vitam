@@ -149,22 +149,28 @@ public class UnitInheritedRule {
 			String parentCategoryName = entry.getKey();
 			ObjectNode parentCategoryNode = entry.getValue();
 			if (inheritedRule.containsKey(parentCategoryName)) {
+				// 2 Rules have the same rule category 
 				Iterator<String> parentRuleIds = parentCategoryNode.fieldNames(); 
 				while(parentRuleIds.hasNext()){
 					String ruleId = parentRuleIds.next();
 					ObjectNode selfCategoryNode = inheritedRule.get(parentCategoryName);
 					ObjectNode selfOriginNode = (ObjectNode) selfCategoryNode.get(ruleId);
 					if (selfOriginNode != null) {
+						// 2 Rules have the same rule category, same ruleId
 						Iterator<String> parentOriginIds = parentCategoryNode.get(ruleId).fieldNames();
 						while(parentOriginIds.hasNext()){
 							String parentOriginId = parentOriginIds.next();
 							ObjectNode selfOriginDetailNode = (ObjectNode) selfOriginNode.get(parentOriginId);
 							ObjectNode parentOriginDetailNode = (ObjectNode) parentCategoryNode.get(ruleId).get(parentOriginId);
 							if (selfOriginDetailNode != null) {
-								((ArrayNode) selfOriginDetailNode.get(PATH)).add(parentOriginDetailNode.get(PATH));
+								// 2 Rules have the same rule category, same ruleId, same rule Origin
+								if (!selfOriginDetailNode.get(PATH).equals(parentOriginDetailNode.get(PATH))) {
+									((ArrayNode) selfOriginDetailNode.get(PATH)).add(parentOriginDetailNode.get(PATH));
+								}
 							} else {
 								selfOriginNode.set(parentOriginId, parentOriginDetailNode);
 							}
+							// Remove duplicated rules 
 							if (parentOriginDetailNode.get(OVERRIDE_BY) != null) {
 								for (JsonNode reference: (ArrayNode) parentOriginDetailNode.get(OVERRIDE_BY)) {
 									String referenceId = reference.asText();
