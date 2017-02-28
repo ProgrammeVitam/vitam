@@ -45,6 +45,7 @@ module.exports = function(config) {
       'app/services/*.js',
       'app/pages/**/*.js',
       'app/core/directives/*.js',
+      'app/core/filters/date.filters.js',
       'test/spec/**/*.js'
     ],
 

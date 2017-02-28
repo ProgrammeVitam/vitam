@@ -24,20 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
 'use strict';
 
-angular.module('ihm.demo')
-  .filter('vitamFormatDate', function($filter) {
-    var angularDateFilter = $filter('date');
-      return function(theDate) {
-          var date ;
-          if (theDate.endsWith( "Z") ){
-              date  = new Date(theDate);
-          }
-          else {
-              date  = new Date(theDate + "Z");
-          }
-          return angularDateFilter(date , 'dd-MM-yyyy HH:mm');
-      }
-  });
+describe('Filter : vitamFormatDate', function() {
+    beforeEach(module('ihm.demo'));
+    var $filter;
+    // on sauvegarge la timeZONE
+    var timezoneProto = Date.prototype.getTimezoneOffset;
+    beforeEach(inject(function( _$filter_) {
+        $filter = _$filter_;
+        // on surcharge la timeZone
+        Date.prototype.getTimezoneOffset = function () {
+            // GMT - 3
+            return -180;
+        };
+    }));
+    afterEach(function () {
+        // on restaure la timeZone
+        Date.prototype.getTimezoneOffset = timezoneProto;
+    });
+    it('should be able to tranform utc to local date', function() {
+        var a = "2017-02-01T10:19:22.160";
+        expect($filter('vitamFormatDate')(a)).not.toBe('01-02-2017 10:19');
+    });
+});
