@@ -47,14 +47,16 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,6 +67,8 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
@@ -79,9 +83,9 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -125,6 +129,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private final MarshallerObjectCache marshallerObjectCache = new MarshallerObjectCache();
     private StatusCode workflowStatus = StatusCode.UNKNOWN;
 
+    private boolean isBlankTestWorkflow = false;
+    private static final String TEST_STATUS_PREFIX = "Test ";
+    private String statusPrefix = "";
+
     /**
      * Constructor TransferNotificationActionHandler
      *
@@ -148,14 +156,20 @@ public class TransferNotificationActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
         final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
+        String eventDetailData;
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
         handlerIO = handler;
-
         try {
             workflowStatus =
                 StatusCode.valueOf(params.getMapParameters().get(WorkerParameterName.workflowStatusKo));
+
+            LogbookTypeProcess logbookTypeProcess = params.getLogbookTypeProcess();
+            if (logbookTypeProcess != null && LogbookTypeProcess.INGEST_TEST.equals(logbookTypeProcess)) {
+                isBlankTestWorkflow = true;
+                statusPrefix = TEST_STATUS_PREFIX;
+            }
+
             File atrFile;
             if (workflowStatus.isGreaterOrEqualToKo()) {
                 atrFile = createATRKO(params, handlerIO);
@@ -164,6 +178,20 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 checkMandatoryIOParameter(handler);
                 atrFile = createATROK(params, handlerIO);
             }
+            // calculate digest by vitam alog
+            final Digest vitamDigest = new Digest(VitamConfiguration.getDefaultDigestType());
+            final String vitamDigestString = vitamDigest.update(atrFile).digestHex();
+
+            LOGGER.debug(
+                "DEBUG: \n\t" + vitamDigestString);
+            // define eventDetailData
+            eventDetailData =
+                "{" +
+                    "\"FileName\":\"" + "ATR_" + params.getContainerName() +
+                    "\", \"MessageDigest\": \"" + vitamDigestString +
+                    "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
+
+            itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
             // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
             // 'xml:id' to a(n) 'attribute declaration' component.
             // Actually cannot reproduce but get another SAX exception on the seda-vitam-2.0-main.xsd file (and its
@@ -171,7 +199,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
             handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
             // store binary data object
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
             description.setWorkspaceObjectURI(handler.getOutput(ATR_RESULT_OUT_RANK).getPath());
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
@@ -356,9 +384,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
+            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
+
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
-            writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+
+            if (!isBlankTestWorkflow) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+            }
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVAL_AGENCY);
             if (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGENCY) != null) {
@@ -486,11 +518,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, workflowStatus.name());
+            writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
 
-            writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+            if (!isBlankTestWorkflow) {
+                writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
+            }
 
 
             xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVAL_AGENCY);
@@ -518,7 +552,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.flush();
             xmlsw.close();
 
-        } catch (XMLStreamException | IOException e) {
+        } catch (XMLStreamException | IOException | InvalidCreateOperationException e) {
             LOGGER.error("Error of response generation");
             throw new ProcessingException(e);
         }
@@ -535,15 +569,18 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws XMLStreamException
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
      */
     private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName)
-        throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException {
+        throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException,
+        InvalidCreateOperationException {
 
         final LogbookOperation logbookOperation;
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, containerName));
             final JsonNode node = client.selectOperationById(containerName, select.getFinalSelect());
+
             // FIXME P1 hack since Jackson cannot parse it correctly
             // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
             // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
@@ -571,7 +608,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             try (VitamRequestIterator<JsonNode> iterator =
-                client.unitLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
+                client.unitLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
                 Map<String, Object> archiveUnitSystemGuid = null;
                 InputStream archiveUnitMapTmpFile = null;
                 final File file = (File) handlerIO.getInput(ARCHIVE_UNIT_MAP_RANK);
@@ -623,7 +660,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
             try (VitamRequestIterator<JsonNode> iterator =
-                client.objectGroupLifeCyclesByOperationIterator(containerName, LifeCycleStatusCode.NOT_COMMITTED)) {
+                client.objectGroupLifeCyclesByOperationIterator(containerName,
+                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
                 Map<String, Object> binaryDataObjectSystemGuid = new HashMap<>();
                 Map<String, Object> bdoObjectGroupSystemGuid = new HashMap<>();
                 final Map<String, String> objectGroupGuid = new HashMap<>();

@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class DslQueryHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
+    public static final String PROJECTION_DSL = "projection_";
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String ALL = "All";
     private static final String EVENT_ID_PROCESS = "evIdProc";
@@ -67,6 +68,8 @@ public final class DslQueryHelper {
     private static final String TITLE = "Title";
     private static final String EVENT_DATE_TIME = "evDateTime";
     private static final String DEFAULT_EVENT_TYPE_PROCESS = "INGEST";
+    private static final String EVENT_OUT_DETAIL = "events.outDetail";
+    private static final String DEFAULT_EVENT_TYPE_PROCESS_TEST = "INGEST_TEST";
     private static final String PUID = "PUID";
     private static final String RULEVALUE = "RuleValue";
     private static final String OBJECT_IDENTIFIER_INCOME = "obIdIn";
@@ -91,6 +94,15 @@ public final class DslQueryHelper {
     private static final String YES = "yes";
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String DATEOPERATION = "EvDateTime";
+    private static final String TRACEABILITY_OK = "TraceabilityOk";
+    private static final String TRACEABILITY_ID = "TraceabilityId";
+    private static final String TRACEABILITY_LOG_TYPE = "TraceabilityLogType";
+    private static final String TRACEABILITY_START_DATE = "TraceabilityStartDate";
+    private static final String TRACEABILITY_END_DATE = "TraceabilityEndDate";
+    private static final String TRACEABILITY_EV_DET_DATA = "events.evDetData";
+    // FIXME when id will be implemented on traceability, change me
+    private static final String TRACEABILITY_FIELD_ID = "FileName";
+    private static final String TRACEABILITY_FIELD_LOG_TYPE = "LogType";
 
 
     // empty constructor
@@ -128,7 +140,8 @@ public final class DslQueryHelper {
                     break;
 
                 case DEFAULT_EVENT_TYPE_PROCESS:
-                    query.add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS));
+                    query.add(or().add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS),
+                        eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS_TEST)));
                     break;
 
                 case OBJECT_IDENTIFIER_INCOME:
@@ -138,18 +151,18 @@ public final class DslQueryHelper {
                 case FORMAT:
                     query.add(exists(PUID));
                     break;
-                    
+
                 case FORMAT_NAME:
                     if (!searchValue.trim().isEmpty()) {
                         query.add(match("Name", searchValue));
                     }
                     break;
-                    
+
                 case RULE_VALUE:
                     if (!searchValue.trim().isEmpty()) {
                         query.add(match(RULE_VALUE, searchValue));
                     }
-                    break;    
+                    break;
 
                 case ACCESSION_REGISTER:
                     query.add(exists(ORIGINATING_AGENCY));
@@ -202,7 +215,33 @@ public final class DslQueryHelper {
                         query.add(gte(EVENT_DATE_TIME, searchValue));
                     }
                     break;
-
+                case TRACEABILITY_OK:
+                    // FIXME : check if it is normal that the end event is a step event for a traceability
+                    if ("true".equals(searchValue)) {
+                        query.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
+                    }
+                    break;
+                case TRACEABILITY_ID:
+                    // FIXME : No real ID for now, search on fileName
+                    if (!searchValue.isEmpty()) {
+                        query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_ID, searchValue));
+                    }
+                    break;
+                case TRACEABILITY_LOG_TYPE:
+                    if (!searchValue.isEmpty()) {
+                        query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_LOG_TYPE, searchValue));
+                    }
+                    break;
+                case TRACEABILITY_START_DATE:
+                    if (!searchValue.isEmpty()) {
+                        query.add(gte(TRACEABILITY_EV_DET_DATA + '.' + START_DATE, searchValue));
+                    }
+                    break;
+                case TRACEABILITY_END_DATE:
+                    if (!searchValue.isEmpty()) {
+                        query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
+                    }
+                    break;
                 default:
                     if (!searchValue.isEmpty()) {
                         query.add(eq(searchKeys, searchValue));
@@ -377,7 +416,7 @@ public final class DslQueryHelper {
             final String searchKeys = entry.getKey();
             final String searchValue = entry.getValue();
 
-            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+            if (searchKeys.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
             }
             // Add root

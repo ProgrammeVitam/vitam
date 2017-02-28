@@ -277,5 +277,12 @@ public abstract class Result {
                 .append(finalResult).append('}').toString();
         }
     }
+    
+    public boolean hasFinalResult() {
+        if (finalResult == null) {
+            return false;
+        }
+        return true;
+    }
 
 }

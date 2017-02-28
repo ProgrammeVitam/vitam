@@ -45,6 +45,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -61,6 +62,7 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -76,7 +78,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -102,9 +103,9 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 
 /**
  * Web Application Resource class
@@ -115,6 +116,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String FILENAME_REGEX = "^[a-z0-9_-]*(\\.)(zip|tar|tar.gz|tar.bz2)$";
     private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_REGEX, Pattern.CASE_INSENSITIVE);
     private static final String RESULTS_FIELD = "$results";
+    private static final String DEFAULT_CONTEXT = "defaultContext";
+    private static final String DEFAULT_EXECUTION_MODE = "defaultExecutionMode";
     private static final String FILE_NAME_KEY = "fileName";
     private static final String FILE_SIZE_KEY = "fileSize";
     private static final String ZIP_EXTENSION = ".ZIP";
@@ -122,7 +125,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     public static final String IHM_RECETTE = "IHM_RECETTE";
     private final WebApplicationConfig webApplicationConfig;
-
+    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
+        "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
     // FIXME : replace the boolean by a static timestamp updated by the soap ui
     // thread
     private static volatile boolean soapUiRunning = false;
@@ -135,7 +139,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         WebApplicationResource.soapUiRunning = soapUiRunning;
     }
 
-    // TODO FIX_TENANT_ID
+    // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
     private static final Integer TENANT_ID = 0;
 
     /**
@@ -144,7 +148,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param webApplicationConfig
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
-        super(new BasicVitamStatusServiceImpl());
+        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
 
         LOGGER.debug("init Admin Management Resource server");
         this.webApplicationConfig = webApplicationConfig;
@@ -259,8 +263,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
+
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId, TENANT_ID);
+                .selectOperationbyId(operationId);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD))
                     .get(0);
@@ -308,7 +315,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // Read the selected file into an InputStream
         try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
             IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            final Response response = client.upload(sipInputStream, TENANT_ID);
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            final Response response = client.upload(sipInputStream, TENANT_ID, DEFAULT_CONTEXT, DEFAULT_EXECUTION_MODE);
             final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             return Response.status(response.getStatus()).entity(ingestOperationId).build();
@@ -402,11 +410,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/operations/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceability() throws LogbookClientServerException {
+    public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId)
+        throws LogbookClientServerException {
+
         try (final LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
             RequestResponseOK result;
             try {
+                VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
                 result = logbookOperationsClient.traceability();
             } catch (final InvalidParseOperationException e) {
                 LOGGER.error("The reporting json can't be created", e);
@@ -416,6 +427,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(result).build();
         }
     }
+
 
     /**
      *
@@ -462,11 +474,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private Response findLogbookBy(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        Integer tenantId = null;
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
         String requestId = null;
         RequestResponse result = null;
         OffsetBasedPagination pagination = null;
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
+            tenantId = Integer.parseInt(xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             pagination = new OffsetBasedPagination(headers);
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -487,7 +507,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             }
         } else {
-            requestId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
 
             try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
@@ -496,7 +516,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query, TENANT_ID);
+                result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -529,10 +549,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultById(@PathParam("idOperation") String operationId) {
+    public Response getLogbookResultById(@PathParam("idOperation") String operationId,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         try {
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, TENANT_ID);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -556,7 +582,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/logbooks/{idOperation}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadObjectAsStream(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse) {
+        @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                Response.status(Status.BAD_REQUEST).build());
+        }
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
     }
 
@@ -570,7 +602,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/logbooks/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void downloadObjectAsStreamForBrowser(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse) {
+        @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) Integer tenantId) {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
     }
 
@@ -583,15 +616,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, TENANT_ID);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId);
 
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
             List<JsonNode> results = responseOK.getResults();
             JsonNode operation = results.get(0);
-
-            int tenantId = operation.get("_tenant").intValue();
-
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
             ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
             JsonNode lastEvent = Iterables.getLast(events);

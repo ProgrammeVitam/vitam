@@ -57,6 +57,8 @@
   "search.accessionRegister.fields.Status.STORED_AND_COMPLETED": "En stock et complète",
   "search.accessionRegister.fields.Status.STORED_AND_UPDATED": "En stock et mise à jour",
   "search.accessionRegister.fields.Status.UNSTORED": "Sortie du stock",
-  "search.accessionRegister.fields.Status.DEFAULT": "En stock"
+  "search.accessionRegister.fields.Status.DEFAULT": "En stock",
 
+  "operations.operation.executionMode.RESUME": "Continu",
+  "operations.operation.executionMode.NEXT": "Pas à pas"
 }

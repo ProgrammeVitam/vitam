@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.Before;
@@ -31,27 +32,27 @@ public class AdminExternalClientMockTest {
     public void testMockClient()
         throws Exception {
         assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())).getStatus(),
+            Status.OK.getStatusCode());
 
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())).getStatus(),
+            Status.OK.getStatusCode());
 
         assertEquals(
-            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getFormatList().toString());
 
         assertEquals(
-            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getRuleList().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID, TENANT_ID).toString(),
+            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID).toString(),
             ClientMockResultHelper.getFormat().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID, TENANT_ID).toString(),
+            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID).toString(),
             ClientMockResultHelper.getRule().toString());
     }
 

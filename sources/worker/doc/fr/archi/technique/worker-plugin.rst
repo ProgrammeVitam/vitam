@@ -41,6 +41,11 @@ Les référentiels de plugin sont déclaré dans un fichier de configuration :
   }
 }
 
+Au démarrage de chaque worker, la liste des plugins va être analysé. Puis le serveur va tenter d'instancier chaque plugin de la liste.
+Si un des plugins ne se lance pas pour une raison quelconque (nom de classe incorrect, impossible d'instancier la classe, ...), alors le serveur ne démarrera pas.
+
+Les plugins ne sont pas pour l'instant thread safe dans Vitam, ce qui signifie que un plugin est réinstancié pour chaque appel au serveur worker.
+
 3. Résultat du plugin
 
 Après ses traitements, Plugin doit retourner au Worker un ItemStatus. Quand le Worker reçoit le résultat : 
@@ -56,7 +61,7 @@ du plug-in puis envoit à Engine pour écrire dans les journaux des opération.
 
 4.1. Worker 
 - getActionHandler: pour chaque action, le worker vérifie si l’action est dans la liste des plugins, il va le charger, si non on utilise les handlers prédéfinis dans Vitam
-- writeLogbookLifeCycle : traduire le code d’action d’un ItemStatus du Plugin en LogbookLifeCycleParameters puis en fonction du type d’élément dans la distribution (Unit ou ObjectGroup), il écrit dans la base de donnée correspondante 
+- writeLogbookLifeCycle : traduire le code d’action d’un ItemStatus du Plugin en LogbookLifeCycleParameters puis en fonction du type d’élément dans la distribution (Unit ou ObjectGroup), il écrit dans la base de données correspondante
 
 Exemple: Le plugin CHECK_DIGEST fait un traitement CALC_CHECK qui donne un status OK. 
 
@@ -90,14 +95,14 @@ Alors le Worker va écrire ces événements ci-dessous dans LFC :
         }
 }
 
-L’écriture des journaux de opération garde son implémentation.
+L’écriture des journaux des opérations garde son implémentation.
 
 4.2. PluginPropertiesLoader 
-c'est  un service pour charger les définition du code dans le  fichier de properties du plugin
+c'est un service pour charger les définitions du code dans le fichier de properties du plugin
 
 4.3 Intégration 
 
-Cela dééfinit comment Worker appelle les plugins. 
+Cela définit comment Worker appelle les plugins.
 
 java -cp "/vitam/lib/${unix.name}/*" fr.gouv.vitam.worker.server.rest.WorkerApplication
 au lieu de 

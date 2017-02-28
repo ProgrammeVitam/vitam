@@ -30,89 +30,68 @@ angular.module('accession.register.search')
     'GET_ALL_REGISTERS': 'ACCESSIONREGISTER',
     'ORIGINATING_AGENCY_FIELD': 'OriginatingAgency'
   })
-  .controller('accessionRegisterSearchController', function($window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE) {
-    var self = this;
+  .controller('accessionRegisterSearchController', function($scope, $window, ACCESSIONREGISTER_CONSTANTS, ihmDemoFactory, responseValidator,ITEM_PER_PAGE, processSearchService, resultStartService) {
 
-    // ************************************Pagination  **************************** //
-    self.currentPage = 1;
-    self.itemsPerPage = ITEM_PER_PAGE;
-    self.maxSize = 5;
-    self.resultPages ="";
+    $scope.startFormat = resultStartService.startFormat;
 
-    // FIXME Useless function ?
-    self.setPage = function(pageNo) {
-     selfcurrentPage = pageNo;
-    };
-
-    // FIXME Useless function ?
-    self.setItemsPerPage = function(num) {
-      self.itemsPerPage = num;
-      self.currentPage = 1; // reset to first page
-    };
-    // **************************************************************************** //
-
-    // Search criteria
-    // Default criteria
-    // Search for accession register
-    self.searchRegistersByCriteria = function(serviceProducerCriteria) {
-      self.searchCriteria = {};
-      self.searchCriteria.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
-
-      if(serviceProducerCriteria === null || serviceProducerCriteria === undefined
-        || serviceProducerCriteria === ''){
-        // Return all registers
-        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
-      } else {
-        self.searchCriteria[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = serviceProducerCriteria;
+    $scope.search = {
+      form: {
+        serviceProducerCriteria: ''
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
       }
-
-      ihmDemoFactory.getAccessionRegisters(self.searchCriteria)
-      .then(
-        // Succeeded search request
-        function(response) {
-          var isReponseValid = responseValidator.validateReceivedResponse(response);
-          if (isReponseValid) {
-            // Get total results
-            self.totalResult = response.data.$hits.total;
-            self.showResult = true;
-            self.resultPages = Math.ceil(self.totalResult/self.itemsPerPage);
-
-            if (self.totalResult > 0) {
-              // Display found registers
-              self.registers = response.data.$results;
-            }
-          } else {
-            // Invalid response
-            self.showResult = false;
-            self.totalResult = 0;
-          }
-        },
-        // Failed search request
-        function(error) {
-          self.showResult = false;
-          self.totalResult = 0;
-        }
-      );
     };
 
-      self.startFormat = function(){
-        var start="";
-
-        if(self.currentPage > 0 && self.currentPage <= self.resultPages){
-          start= (self.currentPage-1)*self.itemsPerPage;
-        }
-
-        if(self.currentPage>self.resultPages){
-          start= (self.resultPages-1)*self.itemsPerPage;
-        }
-        return start;
-      };
-
-    self.goToDetails = function(id) {
+    $scope.goToDetails = function(id) {
       $window.open('#!/accessionRegister/detail/' + id)
     };
 
-    // Default Search
-    self.searchRegistersByCriteria(null);
+    var preSearch = function() {
+      var requestOptions = {};
+      requestOptions.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
+
+      if(!$scope.search.form.serviceProducerCriteria){
+        requestOptions[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
+      } else {
+        requestOptions[ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD] = $scope.search.form.serviceProducerCriteria;
+      }
+      return requestOptions;
+    };
+
+    var successCallback = function(response) {
+      var isReponseValid = responseValidator.validateReceivedResponse(response);
+      if (!isReponseValid) {
+        return false;
+      }
+      // Get total results
+      $scope.search.response.totalResult = response.data.$hits.total;
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
+
+      if ($scope.search.response.totalResult > 0) {
+        // Display found registers
+        $scope.search.response.data = response.data.$results;
+      }
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    var searchService = processSearchService.initAndServe(ihmDemoFactory.getAccessionRegisters, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    $scope.searchRegistersByCriteria = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
+
   });
 

@@ -22,5 +22,13 @@
 	"UNITS_RULES_COMPUTE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin",
 		"propertiesFile": "units_rules_compute_plugin.properties"
-	}
+	},
+	"OG_METADATA_STORAGE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin",
+		"propertiesFile": "store_metadata_objectGroup_plugin.properties"
+	},
+	"UNIT_METADATA_STORAGE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.StoreMetaDataUnitActionPlugin",
+		"propertiesFile": "store_metadata_unit_plugin.properties"
+	}	
 }

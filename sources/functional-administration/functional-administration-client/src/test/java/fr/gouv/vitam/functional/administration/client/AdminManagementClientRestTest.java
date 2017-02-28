@@ -248,15 +248,15 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        assertEquals(Status.OK, client.checkFormat(stream));
+        assertEquals(Status.OK.getStatusCode(), client.checkFormat(stream).getStatus());
     }
 
     @Test(expected = ReferentialException.class)
     public void givenInputstreamKOWhenCheckThenReturnKO() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
-        assertEquals(Status.PRECONDITION_FAILED, client.checkFormat(stream));
+        assertEquals(Status.BAD_REQUEST, client.checkFormat(stream));
     }
 
 
@@ -297,34 +297,38 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        assertEquals(Status.OK, client.checkRulesFile(stream));
+        assertEquals(Status.OK.getStatusCode(), client.checkRulesFile(stream).getStatus());
     }
 
 
     @Test(expected = ReferentialException.class)
     public void givenInputstreamKORulesFileWhenCheckThenReturnKO() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
-        assertEquals(Status.PRECONDITION_FAILED, client.checkRulesFile(stream));
+        assertEquals(Status.BAD_REQUEST, client.checkRulesFile(stream));
 
     }
 
 
     @Test
+    @RunWithCustomExecutor
     public void givenInputstreamOKRulesFileWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_StringToNumber.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
     }
 
 
     @Test(expected = FileRulesException.class)
+    @RunWithCustomExecutor
     public void givenAnInvalidFileThenKO() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
 
     }
@@ -338,15 +342,21 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
      * @throws AdminManagementClientServerException
      */
     @Test(expected = FileRulesException.class)
+    @RunWithCustomExecutor
     public void givenIllegalArgumentThenthrowFilesRuleException()
         throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
         AdminManagementClientServerException {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("Wrong format").build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        client.importRulesFile(stream);
-        final JsonNode result = client.getRuleByID("APP-00001");
-
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            client.importRulesFile(stream);
+            final JsonNode result = client.getRuleByID("APP-00001");
+        } catch (FileRulesException e) {
+            assertEquals("Wrong format", e.getMessage());
+            throw(e);
+        }
     }
 
     /**
@@ -358,6 +368,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
      * @throws AdminManagementClientServerException
      */
     @Test(expected = InvalidParseOperationException.class)
+    @RunWithCustomExecutor
     public void givenInvalidQuerythenReturnko()
         throws FileRulesException, InvalidParseOperationException, DatabaseConflictException, FileNotFoundException,
         AdminManagementClientServerException {
@@ -365,6 +376,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         final Select select = new Select();
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importRulesFile(stream);
         final JsonNode result = client.getRules(select.getFinalSelect());
     }

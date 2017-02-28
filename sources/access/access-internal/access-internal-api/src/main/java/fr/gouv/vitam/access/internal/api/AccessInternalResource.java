@@ -63,11 +63,13 @@ public interface AccessInternalResource extends VitamResource {
     /**
      * update archive units by Id with Json query
      *
+     * 
      * @param dslQuery DSK, null not allowed
      * @param unitId units identifier
+     * @param requestId request identifier
      * @return a archive unit result list
      */
-    public Response updateUnitById(JsonNode dslQuery, String unitId);
+    public Response updateUnitById(JsonNode dslQuery, String unitId, String requestId);
 
     /**
      * Retrieve an ObjectGroup by its id

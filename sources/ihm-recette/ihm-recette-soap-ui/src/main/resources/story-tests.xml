@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<con:soapui-project id="c8480034-0dce-4dac-a1f2-c088e879b614" activeEnvironment="Default" name="TestSIP" resourceRoot="" soapui-version="5.3.0" abortOnError="false" runType="SEQUENTIAL" defaultScriptLanguage="Groovy" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
+<con:soapui-project id="c8480034-0dce-4dac-a1f2-c088e879b614" activeEnvironment="Default" name="TestSIP" resourceRoot="" soapui-version="5.2.1" abortOnError="false" runType="SEQUENTIAL" defaultScriptLanguage="Groovy" xmlns:con="http://eviware.com/soapui/config"><con:settings><con:setting id="com.eviware.soapui.impl.wsdl.actions.iface.tools.soapui.TestRunnerAction@values-local"><![CDATA[<xml-fragment xmlns:con="http://eviware.com/soapui/config">
   <con:entry key="Environment" value="Default"/>
   <con:entry key="Global Properties" value=""/>
   <con:entry key="TestSuite" value="TestSuite ingest US 655/946"/>
@@ -117,7 +117,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-
+import groovy.json.JsonSlurper
 def i = context.iteration
 def url  = context.ingest+"ingest-external/v1/ingests/"
 
@@ -179,15 +179,59 @@ reqEntity.setContentType("application/octet-stream");
 reqEntity.setChunked(true);	
 
 if (context.inputJSON.params[i].tenant != null){
-	httppost.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
+	if (!context.inputJSON.params[i].tenant.equals("empty")){
+		httppost.addHeader("X-Tenant-Id", context.inputJSON.params[i].tenant);
+		httppost.addHeader("X-Action", "RESUME");
+		httppost.addHeader("X-Context-Id", "DEFAULT_WORKFLOW");
+	}
 } else {
 	httppost.addHeader("X-Tenant-Id", "0");
+	httppost.addHeader("X-Action", "RESUME");
+	httppost.addHeader("X-Context-Id", "DEFAULT_WORKFLOW");
 }
 	
 httppost.setEntity(reqEntity);
 log.info "executing request " + httppost.getRequestLine(); 	
 response = http.execute(httppost);
-context.ope_id =response.getFirstHeader('X-REQUEST-ID').getValue();
+
+if (response.getStatusLine().getStatusCode() == 401 ||
+		response.getStatusLine().getStatusCode() == 412){
+	context.ope_id = null;
+	context.outputJson.params[context.outIteration] = new JsonSlurper().parseText('{}')
+		if (context.inputJSON.params[i].sipName != null) {
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].sipName
+		} else if (context.inputJSON.params[i].ruleName != null) {
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].ruleName;
+		} else if (context.inputJSON.params[i].formatName != null) {
+			context.outputJson.params[context.outIteration].fileName = context.inputJSON.params[i].formatName;
+		}
+		
+		context.outputJson.params[context.outIteration].testName = context.inputJSON.params[i].testName
+		context.outputJson.params[context.outIteration].category = context.inputJSON.params[i].category
+		boolean tf = context.inputJSON.params[i].httpStatusCode == response.getStatusLine().getStatusCode();
+		if (tf){
+			if (context.inputJSON.params[i].httpStatusCode == 401) {
+				context.outputJson.params[context.outIteration].expected = "UNAUTHORIZED"
+				context.outputJson.params[context.outIteration].observed = "UNAUTHORIZED"
+			} else if (context.inputJSON.params[i].httpStatusCode == 412) {
+				context.outputJson.params[context.outIteration].expected = "PRECONDITION_FAILED"
+				context.outputJson.params[context.outIteration].observed = "PRECONDITION_FAILED"
+			}
+		} else {
+			if (context.inputJSON.params[i].httpStatusCode == 401){
+				context.outputJson.params[context.outIteration].expected = "UNAUTHORIZED"
+				context.outputJson.params[context.outIteration].observed = "KO"	
+			}
+			else if (context.inputJSON.params[i].httpStatusCode == 412){
+				context.outputJson.params[context.outIteration].expected = "PRECONDITION_FAILED"
+				context.outputJson.params[context.outIteration].observed = "KO"	
+			}
+		}
+		context.outputJson.params[context.outIteration].result = tf
+		context.outIteration = context.outIteration + 1
+} else if (response.getFirstHeader('X-REQUEST-ID') != null){
+	context.ope_id =response.getFirstHeader('X-REQUEST-ID').getValue();
+}
 
 </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script><![CDATA[import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
@@ -307,7 +351,14 @@ if (context.category == "Test API external"){
 			if (context.inputJSON.params[i].actions[n].expected[0].httpStatusCode == 200){
 				context.outputJson.params[context.outIteration].expected = "OK"
 				context.outputJson.params[context.outIteration].observed = "OK"	
-			} else {
+			} else if (context.inputJSON.params[i].actions[n].expected[0].httpStatusCode == 401) {
+				context.outputJson.params[context.outIteration].expected = "UNAUTHORIZED"
+				context.outputJson.params[context.outIteration].observed = "UNAUTHORIZED"
+			} else if (context.inputJSON.params[i].actions[n].expected[0].httpStatusCode == 412) {
+				context.outputJson.params[context.outIteration].expected = "PRECONDITION_FAILED"
+				context.outputJson.params[context.outIteration].observed = "PRECONDITION_FAILED"
+			}
+			else {
 				context.outputJson.params[context.outIteration].expected = "KO"
 				context.outputJson.params[context.outIteration].observed = "KO"
 			}
@@ -315,7 +366,16 @@ if (context.category == "Test API external"){
 			if (context.inputJSON.params[i].actions[n].expected[0].httpStatusCode == 200){
 				context.outputJson.params[context.outIteration].expected = "OK"
 				context.outputJson.params[context.outIteration].observed = "KO"	
-			} else {
+			} 
+			else if (context.inputJSON.params[i].actions[n].expected[0].httpStatusCode == 401){
+				context.outputJson.params[context.outIteration].expected = "UNAUTHORIZED"
+				context.outputJson.params[context.outIteration].observed = "KO"	
+			}
+			else if (context.inputJSON.params[i].actions[n].expected[0].httpStatusCode == 412){
+				context.outputJson.params[context.outIteration].expected = "PRECONDITION_FAILED"
+				context.outputJson.params[context.outIteration].observed = "KO"	
+			}
+			else {
 				context.outputJson.params[context.outIteration].expected = "KO"
 				context.outputJson.params[context.outIteration].observed = "OK"
 			}
@@ -323,7 +383,7 @@ if (context.category == "Test API external"){
 		context.outputJson.params[context.outIteration].result = tf
 		context.outIteration = context.outIteration + 1	
 	}	
-} else {
+} else if (context.ope_id != null) {
 	HttpPost httppost = new HttpPost(url); 
  	StringEntity reqEntity = new StringEntity('{}') ;
  		
@@ -410,8 +470,13 @@ if (context.category == "Test API external"){
 
 
 boolean resultControl(def response, def expected){
-	def result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity, "UTF-8"))
+	def result;
 	boolean res = false;
+	try {
+		result  = new JsonSlurper().parseText(EntityUtils.toString(response.entity, "UTF-8"))
+	} catch (IllegalArgumentException e){
+		log.error 'Entity is empty : '
+	}	
 	
 	if (response.getStatusLine().getStatusCode() == 200 ){
 		if (result.$results[0] != null){
@@ -510,7 +575,7 @@ def items = []
 context.items = items</con:setupScript>
 <con:tearDownScript>//context.inputFile.close()</con:tearDownScript><con:properties/></con:testCase><con:properties/></con:testSuite>
 <con:endpointStrategy xsi:type="con:DefaultEndpointStrategy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:endpoint mode="COMPLEMENT" username="ykouki" password="">https://int.env.programmevitam.fr</con:endpoint></con:endpointStrategy>
-<con:properties/><con:wssContainer>
+<con:properties><con:property><con:name>ingestHost</con:name><con:value>https://143.126.93.158:8443/</con:value></con:property><con:property><con:name>logbookHost</con:name><con:value>https://143.126.93.158:8444/</con:value></con:property><con:property><con:name>accessHost</con:name><con:value>https://143.126.93.158:8444/</con:value></con:property><con:property><con:name>certfile</con:name><con:value>/vitam/conf/keystore_ihm-demo.p12</con:value></con:property><con:property><con:name>certPass</con:name><con:value>vitam1234</con:value></con:property><con:property><con:name>truststore</con:name><con:value>/vitam/conf/truststore_ihm-demo.jks</con:value></con:property><con:property><con:name>trustPass</con:name><con:value>jksazerty</con:value></con:property><con:property><con:name>dataDir</con:name><con:value>/vitam/conf/soapui/data/</con:value></con:property><con:property><con:name>reportingDir</con:name><con:value>/vitam/conf/soapui/report/</con:value></con:property><con:property><con:name>configDir</con:name><con:value>/vitam/conf/soapui/config/</con:value></con:property><con:property><con:name>rulesCreatePath</con:name><con:value>/admin-external/v1/rules</con:value></con:property><con:property><con:name>tenant</con:name><con:value>0</con:value></con:property><con:property><con:name>fileRule</con:name><con:value>/vitam/conf/soapui/data/rules/regles_CSV.csv</con:value></con:property></con:properties><con:wssContainer>
 <con:crypto>
 	<con:source>/vitam/conf/tsa.p12</con:source>
 	<con:password>vitam1234</con:password>

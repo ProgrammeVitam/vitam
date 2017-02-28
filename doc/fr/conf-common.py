@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import datetime
-
-copyright = u'%s, French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>' % datetime.datetime.now().year
+copyright = u'Ce document est distribué sous les termes de la licence Creative Commons Attribution - Partage dans les Mêmes Conditions 3.0 France (CC BY-SA 3.0 FR)'
 author = u'VITAM'
 
 # The version info for the project you're documenting, acts as replacement for

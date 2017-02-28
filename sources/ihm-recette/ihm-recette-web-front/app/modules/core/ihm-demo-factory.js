@@ -28,9 +28,24 @@
 angular.module('core')
   .constant('IHM_URLS', {
     'IHM_DEFAULT_URL':'/adminHome',
+    'TENANTS': 'tenants',
     'IHM_BASE_URL':'/ihm-recette/v1/api'
   })
 
+  /*ihmDemoCLient create a configured http client*/
+  .factory('ihmDemoFactory', ['$http','IHM_URLS', 'ihmDemoCLient', 'authVitamService',
+  function($http, IHM_URLS, ihmDemoCLient, authVitamService) {
+
+  var dataFactory = {};
+
+  // Get the tenant lists Http Request (GET Method)
+  dataFactory.getTenants = function (){
+    return ihmDemoCLient.getClient(IHM_URLS.TENANTS).one('').get();
+  };
+  
+  return dataFactory;
+  }])
+  
   /*ihmDemoCLient create a configured restangular client*/
   .factory('ihmDemoCLient', function(Restangular, IHM_URLS) {
     var getClient = function(uri) {
@@ -39,7 +54,7 @@ angular.module('core')
         RestangularConfigurer.setFullResponse(true);
       });
     };
-
+    
     return {
       getClient: getClient
     };
@@ -103,5 +118,28 @@ angular.module('core')
       }
     }
 
-  });
+  })
+  
+.factory('tenantService', function ($cookies) {
+  var tenant = 'tenant';
+    
+    function setTenant(tenantId) {
+        $cookies.put(tenant, tenantId);
+    }
+    
+    function getTenant() {
+        return $cookies.get(tenant);
+    }
+
+    function deleteTenant() {
+        $cookies.remove(tenant);
+    }
+    
+    return {
+    	setTenant: setTenant,
+    	getTenant: getTenant,
+        deleteTenant: deleteTenant
+    };
+
+});
 

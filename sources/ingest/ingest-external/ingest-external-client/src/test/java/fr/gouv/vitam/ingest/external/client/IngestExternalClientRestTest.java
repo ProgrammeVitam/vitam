@@ -48,6 +48,7 @@ import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -59,6 +60,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 @SuppressWarnings("rawtypes")
@@ -71,7 +76,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     private static final String MOCK_RESPONSE_STREAM = "VITAM-Ingest External Client Rest Mock Response";
     final int TENANT_ID = 0;
+    private static final String CONTEXT_ID = "defaultContext";
+    private static final String EXECUTION_MODE = "defaultContext";
 
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
@@ -144,9 +156,10 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenInputstreamWhenUploadThenReturnOK()
         throws IngestExternalException, XMLStreamException, IOException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
@@ -159,7 +172,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
         final InputStream fakeUploadResponseInputStream =
-            client.upload(streamToUpload, TENANT_ID).readEntity(InputStream.class);
+            client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -172,7 +185,9 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenErrorWhenUploadThenReturnBadRequestErrorWithBody() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
@@ -185,7 +200,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
         final InputStream fakeUploadResponseInputStream =
-            client.upload(streamToUpload, TENANT_ID).readEntity(InputStream.class);
+            client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -198,13 +213,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenInputstreamWhenDownloadObjectThenReturnOK()
         throws IngestExternalException, XMLStreamException, IOException {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
         final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -215,4 +231,6 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             fail();
         }
     }
+    
+    // TODO : test when no tenant 
 }

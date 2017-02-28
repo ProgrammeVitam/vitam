@@ -1,0 +1,60 @@
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li>Administration</li>
+    <li><a href="#!/admin/workflows">Gestion des versements</a></li>
+  </ol>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+        <h2>Liste des Opérations</h2>
+    </span>
+
+    <!-- Get description metadata -->
+    <div class="panel-body" id="boxWorkflows">
+      <div class="table-responsive">
+        <div class="form-group col-md-12">
+          <div class="table-responsive">
+            <table class="table">
+              <tr>
+                <th>Identifiant de l'opération</th>
+                <th>Catégorie de l'opération</th>
+                <th>Date de l'entrée</th>
+                <th>Mode d'exécution</th>
+                <th>Etat global de l'opération d'entrée</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+
+              <tbody ng-repeat="operation in operations">
+                <tr class="workflow">
+                  <td>{{operation.operation_id}}</td>
+                  <td>{{operation.processType}}</td>
+                  <td>{{operation.processDate | vitamFormatDate}}</td>
+                  <td>{{getTranslatedText(operation.executionMode)!== undefined ? getTranslatedText(operation.executionMode) : operation.executionMode}}</td>
+                  <td>{{getTranslatedText(operation.globalStatus)!== undefined ? getTranslatedText(operation.globalStatus) : operation.globalStatus}}</td>
+                  <td ng-if="!operation.inProgress">{{getTranslatedText(operation.stepStatus)!== undefined ? getTranslatedText(operation.stepStatus) : operation.stepStatus}}</td>
+                  <td ng-if="operation.inProgress"><img src="images/loading_36.gif"/></td>
+                  <td>
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Suivant" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'NEXT', $index)">
+                      <i class="material-icons">skip_next</i>
+                    </button>
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Pause" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'PAUSE', $index)">
+                      <i class="material-icons">pause_circle_filled</i>
+                    </button>
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Reprise" class="btn btn-xs" ng-click="executeAction($event, operation.operation_id, 'RESUME', $index)">
+                      <i class="material-icons">play_arrow</i>
+                    </button>
+                    <button type="button" data-toggle="tooltip" data-placement="top" title="Annuler" class="btn btn-xs" ng-click="stopProcess($event, operation.operation_id, $index)">
+                      <i class="material-icons">stop</i>
+                    </button>
+
+                  </td>
+                </tr>
+             </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

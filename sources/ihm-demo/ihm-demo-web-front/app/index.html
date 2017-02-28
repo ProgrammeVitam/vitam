@@ -5,7 +5,7 @@
   <meta name=viewport content="width=device-width, initial-scale = 1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="format-detection" content="telephone=no">
 
-  <title>PROGRAMME VITAM</title>
+  <title ng-bind="$root.title"></title>
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="stylesheet" href="css/app.css" />
   <!-- <link rel="stylesheet" href="css/app.animations.css" /> -->
@@ -27,7 +27,7 @@
   <script src="vendor/angular-resource/angular-resource.min.js"></script>
   <script src="vendor/angular-route/angular-route.min.js"></script>
   <script src="vendor/angular-ui-bootstrap-bower/ui-bootstrap-tpls.min.js"></script>
-  <script src="vendor/lodash/dist/lodash.min.js"></script>
+  <script src="vendor/lodash/lodash.js"></script>
   <script src="vendor/restangular/dist/restangular.min.js"></script>
   <script src="vendor/angular-messages/angular-messages.min.js"></script>
   <script src="vendor/v-accordion/dist/v-accordion.min.js"></script>
@@ -65,6 +65,7 @@
   <script src="modules/core/ihm-demo-service.js"></script>
 
   <script src="core/directives/dynamic-table.directive.js"></script>
+  <script src="core/directives/logbook-entry-table.directive.js"></script>
   <script src="core/directives/datepicker.directive.js"></script>
 
   <script src="modules/archive-unit-search/archive-search.module.js"></script>
@@ -98,7 +99,29 @@
 
   <script src="services/accession-register.service.js"></script>
   <script src="resources/accession-register.resource.js"></script>
+
   <script src="core/services/process-response.service.js"></script>
+  <script src="core/services/process-search.service.js"></script>
+  <script src="core/filters/pagination-start.filter.js"></script>
+
+  <script src="services/logbook-entry-full.service.js"></script>
+
+
+  <script src="pages/workflows/workflows.module.js"></script>
+  <script src="pages/workflows/workflows.controller.js"></script>
+  <script src="pages/workflows/workflows.component.js"></script>
+
+  <script src="pages/workflows/workflows.module.js"></script>
+  <script src="pages/workflows/workflows.controller.js"></script>
+  <script src="pages/workflows/workflows.component.js"></script>
+
+  <script src="pages/workflows/workflows.module.js"></script>
+  <script src="pages/workflows/workflows.controller.js"></script>
+  <script src="pages/workflows/workflows.component.js"></script>
+
+  <script src="pages/workflows/workflows.module.js"></script>
+  <script src="pages/workflows/workflows.controller.js"></script>
+  <script src="pages/workflows/workflows.component.js"></script>
 
   <script src="core/filters/date.filter.js"></script>
 
@@ -163,7 +186,7 @@
               <li><a href="#!/admin/rules">Référentiel des règles de gestion</a></li>
               <li><a href="#!/admin/formats">Référentiel des formats</a></li>
               <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
-              <!-- <li><a href="#!/admin/logbookLifecycle">Journal de Cycles de vie</a></li> -->
+              <li><a href="#!/admin/workflows">Gestion des versements</a></li>
               <li class="divider"></li>
               <li><a href="#!/admin/importFileRules">Import du Référentiel des Règles de gestion</a></li>
               <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>

@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.jetty.server.Handler;
@@ -48,6 +49,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -57,7 +59,9 @@ import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,6 +69,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.RequestIdContainerFilter;
 import fr.gouv.vitam.common.server.TenantIdContainerFilter;
@@ -78,7 +84,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -90,6 +96,11 @@ public class IngestInternalResourceTest {
     private static final String STATUS_URI = "/status";
     private static final String LOGBOOK_URL = "/logbooks";
     private static final String INGEST_URL = "/ingests";
+    private static final String DEFAULT_CONTEXT = "defaultContext";
+    private static final String START_CONTEXT = "DEFAULT_WORKFLOW_RESUME";
+    private static final String INIT_CONTEXT = "initContext";
+    private static final String OPERATION_URL = "/operations/id1";
+
 
     private GUID ingestGuid;
     private static VitamServer vitamServer;
@@ -268,10 +279,21 @@ public class IngestInternalResourceTest {
             .when().post(LOGBOOK_URL);
 
         final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
-        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject());
+        itemStatus.setGlobalExecutionStatus(ProcessExecutionStatus.PAUSE);
+        Mockito.doReturn(Response.ok().entity(itemStatus).build()).when(processingClient).executeVitamProcess(
+            Matchers.anyObject(),
+            Matchers.anyObject(), Matchers.anyObject());
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        Mockito
+            .doReturn(Response.ok()
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.COMPLETED.name()).build())
+            .when(processingClient).executeOperationProcess(Matchers.anyObject(),
+                Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
+
+        // to launch mode non step by step :
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
+                GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .then().statusCode(Status.OK.getStatusCode())
             .when().post(INGEST_URL);
@@ -303,15 +325,37 @@ public class IngestInternalResourceTest {
         Mockito.doThrow(new ContentAddressableStorageCompressedFileException("Test")).when(workspaceClient)
             .uncompressObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
 
-        final GUID processId = GUIDFactory.newGUID();
-        final ItemStatus itemStatus = new ItemStatus(processId.toString()).increment(StatusCode.OK);
-        Mockito.doReturn(itemStatus).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject());
+        Mockito.doReturn(Response.ok().build()).when(processingClient).executeVitamProcess(Matchers.anyObject(),
+            Matchers.anyObject(), Matchers.anyObject());
 
         final InputStream inputStreamZip =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
+                GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
+            .body(inputStreamZip).contentType(CommonMediaType.ZIP)
+            .when().post(INGEST_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+    }
+
+    @Ignore
+    @Test
+    public void givenUnzipNonZipErrorWhenUploadSipAsStreaminInitPhaseThenReturnKO()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new BadRequestException("Test")).when(processingClient).initVitamProcess(
+            Matchers.anyObject(),
+            Matchers.anyObject(), Matchers.anyObject());
+
+        final InputStream inputStreamZip =
+            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.INIT,
+                GlobalDataRest.X_CONTEXT_ID, INIT_CONTEXT)
             .body(inputStreamZip).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -326,7 +370,9 @@ public class IngestInternalResourceTest {
             .uncompressObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
+                GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -340,7 +386,9 @@ public class IngestInternalResourceTest {
         reset(processingClient);
         Mockito.doReturn(true).when(workspaceClient).isExistingContainer(Matchers.anyObject());
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        RestAssured.given()
+            .header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -354,9 +402,11 @@ public class IngestInternalResourceTest {
         reset(processingClient);
         Mockito.doThrow(new ProcessingBadRequestException("Test")).when(processingClient).executeVitamProcess(
             Matchers.anyObject(),
-            Matchers.anyObject());
+            Matchers.anyObject(), Matchers.anyObject());
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -369,9 +419,11 @@ public class IngestInternalResourceTest {
         reset(processingClient);
         Mockito.doThrow(new ProcessingInternalServerException("Test1")).when(processingClient).executeVitamProcess(
             Matchers.anyObject(),
-            Matchers.anyObject());
+            Matchers.anyObject(), Matchers.anyObject());
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -383,9 +435,11 @@ public class IngestInternalResourceTest {
         reset(workspaceClient);
         reset(processingClient);
         Mockito.doThrow(new ProcessingException("")).when(processingClient).executeVitamProcess(Matchers.anyObject(),
-            Matchers.anyObject());
+            Matchers.anyObject(), Matchers.anyObject());
 
-        RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
             .when().post(INGEST_URL)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -411,6 +465,127 @@ public class IngestInternalResourceTest {
         RestAssured.given()
             .when().get(INGEST_URL + "/" + ingestGuid.getId() + "/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void givenOperationIdUnavailableWhenUploadSipAsStreamThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new ContentAddressableStorageServerException("Test")).when(workspaceClient)
+            .uncompressObject(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
+                GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
+            .body(inputStream).contentType(CommonMediaType.ZIP)
+            .when().post(OPERATION_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+
+
+    @Test
+    public void givenOperationIdUnavailableWhenupdateOperationProcessStatusThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new VitamClientException("")).when(processingClient).updateOperationActionProcess(
+            Matchers.anyObject(),
+            Matchers.anyObject());
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .when().put(OPERATION_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Ignore
+    @Test
+    public void givenOperationIdUnavailableWhengetStatusThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new VitamClientException("")).when(processingClient).getOperationProcessStatus(
+            Matchers.anyObject());
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .when().head(OPERATION_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void givenOperationIdWhengetDetailedStatusThenReturnOk()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .when().get(OPERATION_URL)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void givenOperationIdUnavailableWhenupdateVitamProcessBadRequestExceptionThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new BadRequestException("")).when(processingClient).updateOperationActionProcess(
+            Matchers.anyObject(),
+            Matchers.anyObject());
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .when().put(OPERATION_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+
+    @Test
+    public void givenOperationIdWhengetStatusBadRequestExceptionThenReturnOk()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .when().head(OPERATION_URL)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void givenOperationIdUnavailableWhenupdateOperationProcessStatusBadRequestExceptionThenRaiseAnExceptionProcessingException()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+        Mockito.doThrow(new BadRequestException("")).when(processingClient).updateOperationActionProcess(
+            Matchers.anyObject(),
+            Matchers.anyObject());
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.RESUME,
+                GlobalDataRest.X_CONTEXT_ID, DEFAULT_CONTEXT)
+            .when().put(OPERATION_URL)
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void givenOperationIdWhenDeleteOperationProcessThenOK()
+        throws Exception {
+        reset(workspaceClient);
+        reset(processingClient);
+
+        RestAssured.given()
+            .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())
+            .when().delete(OPERATION_URL)
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
 }

@@ -45,6 +45,8 @@ public class IngestExternalClientMockTest {
 
     private static final String MOCK_INPUT_STREAM = "VITAM-Ingest External Client Mock InputStream";
     final int TENANT_ID = 0;
+    private static final String CONTEXT_ID = "defaultContext";
+    private static final String EXECUTION_MODE = "defaultContext";
 
     @Test(expected = IngestExternalException.class)
     public void givenNullStreamThenThrowIngestExternalException() throws IngestExternalException, XMLStreamException {
@@ -53,7 +55,7 @@ public class IngestExternalClientMockTest {
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientMock);
-        client.upload(null, TENANT_ID);
+        client.upload(null, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
     }
 
 
@@ -66,7 +68,8 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM);
-        final InputStream responseStream = client.upload(firstStream, TENANT_ID).readEntity(InputStream.class);
+        final InputStream responseStream =
+            client.upload(firstStream, TENANT_ID, CONTEXT_ID, EXECUTION_MODE).readEntity(InputStream.class);
 
         final InputStream inputstreamMockATR =
             IOUtils.toInputStream(IngestExternalClientMock.MOCK_INGEST_EXTERNAL_RESPONSE_STREAM);
@@ -78,7 +81,7 @@ public class IngestExternalClientMockTest {
             fail();
         }
     }
-    
+
     @Test
     public void givenNonEmptyStreamWhenDownloadSuccess() throws IngestExternalException, XMLStreamException {
         IngestExternalClientFactory.changeMode(null);
@@ -88,8 +91,7 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream("test");
-        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
-
+        final InputStream responseStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         assertNotNull(responseStream);
         try {
             assertTrue(IOUtils.contentEquals(responseStream, firstStream));

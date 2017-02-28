@@ -30,6 +30,7 @@
 angular.module('ihm.demo')
   .constant('ITEM_PER_PAGE', 25)
   .constant('MAX_REQUEST_ITEM_NUMBER', 125)
+  // FIXME : Same filter than logbook-operation-controller. Do a generic filter in core/filters!
   .filter('startFrom', function() {
     return function (input, start) {
       start = +start; //parse to int
@@ -44,146 +45,89 @@ angular.module('ihm.demo')
         return input;
       }
     })
-  .controller('logbookController', function($scope, $window, $timeout, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER) {
-    var ctrl = this;
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 1;
-    ctrl.startDate = new Date();
-    ctrl.endDate = new Date();
-    ctrl.searchOptions = {};
-    ctrl.resultPages = '';
-    ctrl.logbookEntryList = [];
-    ctrl.pageActive = [true, false, false, false, false];
-    ctrl.client = ihmDemoCLient.getClient('logbook');
+  .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER, processSearchService, resultStartService) {
     var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
-    ctrl.noResult = false;
 
-    function displayError(message) {
-      ctrl.noResult = true;
-      ctrl.errorMessage = message;
-      $timeout(function() {
-        ctrl.noResult = false;
-      }, 5000);
-    }
-
-    ctrl.getLogbooks = function() {
-      ctrl.logbookEntryList = [];
-      ctrl.results = 0;
-      ctrl.noResult = false;
-      ctrl.searchOptions.INGEST = "all";
-      ctrl.searchOptions.orderby = "evDateTime";
-      if(ctrl.searchOptions.obIdIn === ""){
-    	  delete ctrl.searchOptions.obIdIn;
+    $scope.startFormat = resultStartService.startFormat;
+    $scope.search = {
+      form: {
+        obIdIn: ''
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
       }
-      ctrl.client.all('operations').customPOST(ctrl.searchOptions, null, null, header).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          ctrl.results = 0;
-          displayError("Il n'y a aucun résultat pour votre recherche");
-          return;
+    };
+
+    $scope.downloadObject = function(objectId, type) {
+      ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+        a.href = url;
+
+        if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null) {
+          a.download = response.headers('content-disposition').split('filename=')[1];
+          a.click();
         }
-        ctrl.logbookEntryList = response.data.$results;
-        ctrl.logbookEntryList.map(function(item) {
-          item.obIdIn = ctrl.searchOptions.obIdIn;
-        });
-        ctrl.currentPage = 1;
-        ctrl.results = response.data.$hits.total;
-     //   ctrl.diplayPage = ctrl.diplayPage || ctrl.currentPage;
-        header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
-        ctrl.resultPages = Math.ceil(ctrl.results/ctrl.itemsPerPage);
-      }, function(response) {
-        ctrl.searchOptions = {};
-        ctrl.results = 0;
+      }, function() {
+        $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
+          .ariaLabel('Alert Dialog Demo').ok('OK'));
       });
     };
 
-      ctrl.startFormat = function(){
-        var start="";
-
-        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-          start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
-        }
-
-        if(ctrl.currentPage>ctrl.resultPages){
-          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
-        }
-        return start;
-      };
-
-      ctrl.downloadObject = function(objectId, type) {
-          ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
-              var a = document.createElement("a");
-              document.body.appendChild(a);
-
-              var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
-              a.href = url;
-
-              if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
-                a.download = response.headers('content-disposition').split('filename=')[1];
-                a.click();
-              }
-          }, function(response) {
-            $mdDialog.show($mdDialog.alert().parent(
-              angular.element(document.querySelector('#popupContainer')))
-              .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
-              .ariaLabel('Alert Dialog Demo').ok('OK'));
-          });
-        };
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.noResult = false;
-      ctrl.searchOptions = {};
+    // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services
+    $scope.goToDetails = function(id) {
+      $window.open('#!/admin/logbookOperations/' + id);
     };
 
-    ctrl.diplayFromCurrentPage = function(id) {
-      ctrl.diplayPage = id + 1;
-      changePageDIsplayNumber(id);
-    };
+    var preSearch = function() {
+      var requestOptions = angular.copy($scope.search.form);
 
-    ctrl.getPreviousResults = function() {
-      if (ctrl.currentPage > 1 ) {
-        ctrl.diplayPage -= 1;
-        if (ctrl.diplayPage == 0 &&  ctrl.currentPage > 5) {
-          ctrl.logbookEntryList = [];
-          ctrl.currentPage -=5;
-          ctrl.diplayPage = 5;
-          header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
-          ctrl.getLogbooks();
-        }
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
-      } else if (ctrl.diplayPage > ctrl.currentPage) {
-        ctrl.diplayPage -= 1;
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
+      requestOptions.INGEST = "all";
+      requestOptions.orderby = "evDateTime";
+      if(requestOptions.obIdIn === ""){
+        delete requestOptions.obIdIn;
       }
+      return [requestOptions, header];
     };
 
-    function changePageDIsplayNumber(id) {
-      ctrl.pageActive = [false, false, false, false, false];
-      ctrl.pageActive[id] = true;
-    }
-
-    ctrl.getNextResults = function() {
-      if (ctrl.currentPage+4 < ctrl.resultPages) {
-        ctrl.diplayPage +=1;
-        if (ctrl.diplayPage > 5) {
-          ctrl.logbookEntryList = [];
-          ctrl.currentPage += 5;
-          ctrl.diplayPage = 1;
-          header['X-Offset'] = (ctrl.currentPage-1) * ITEM_PER_PAGE;
-          ctrl.getLogbooks();
-        }
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
-      } else if (ctrl.diplayPage < ctrl.resultPages && (ctrl.diplayPage + ctrl.currentPage) < ctrl.resultPages) {
-        ctrl.diplayPage +=1;
-        changePageDIsplayNumber((ctrl.diplayPage-1)%5);
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
       }
+      $scope.search.response.data = response.data.$results;
+      $scope.search.response.data.map(function(item) {
+        item.obIdIn = $scope.search.form.obIdIn;
+      });
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.response.totalResult = response.data.$hits.total;
+      // FIXME What about X-REQUEST-ID in header ?
+      // header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
+      return true;
     };
 
-      ctrl.goToDetails = function(id) {
-        $window
-            .open('#!/admin/logbookOperations/'
-            + id)
-      };
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
 
-    ctrl.getLogbooks();
+    var searchFunction = function(result) {
+      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(result[0], null, null, result[1]);
+    };
+
+    var searchService = processSearchService.initAndServe(searchFunction, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    $scope.getLogbooks = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
 
   });

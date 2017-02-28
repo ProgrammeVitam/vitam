@@ -31,3 +31,5 @@ angular.module('core', ['restangular',  'angularShiro'])
     angularShiroConfigProvider.setLoginPath ('/#!/login');
     $httpProvider.interceptors.push('redirectInterceptor');
   });
+
+angular.module("core").constant("_", window._);

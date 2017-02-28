@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>processing</artifactId>
-		<version>0.14.0-SNAPSHOT</version>
+		<version>0.15.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing-management</artifactId>
 	<name>Processing Management</name>
@@ -37,7 +37,11 @@
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
 		</dependency>
-
+	<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-plugin</artifactId>
+			<version>${project.version}</version>
+		</dependency>	
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
@@ -149,39 +153,7 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<configuration>
-					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild>
-					<skipDockerTag>false</skipDockerTag>
-					<!-- Images specification -->
-					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage}</baseImage>
-					<imageName>${vitam.docker.registry.push}/vitam/processing</imageName>
-					<!-- copy the service's jar file from target into the root directory 
-					of the image -->
-					<resources>
-						<resource>
-							<targetPath>/vitam/lib</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
-						</resource>
-						<resource>
-							<targetPath>/vitam/conf</targetPath>
-							<directory>${basedir}/src/main/config</directory>
-						</resource>
-						<resource>
-							<targetPath>/vitam/bin</targetPath>
-							<directory>${project.build.directory}/bin</directory>
-						</resource>
-						<resource>
-							<targetPath>/vitam/lib</targetPath>
-							<directory>${project.build.directory}/dependencies</directory>
-						</resource>
-					</resources>
-				</configuration>
-			</plugin>
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>rpm-maven-plugin</artifactId>

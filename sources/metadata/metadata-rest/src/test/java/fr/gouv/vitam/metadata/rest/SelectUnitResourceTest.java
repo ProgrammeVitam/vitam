@@ -28,6 +28,7 @@ package fr.gouv.vitam.metadata.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
@@ -58,10 +59,12 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -80,20 +83,46 @@ public class SelectUnitResourceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
+    private static final Integer TENANT_ID = 1;
+    
+    private static final String GUID_0 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+    private static final String GUID_1 = GUIDFactory.newUnitGUID(TENANT_ID).toString();
+    
+    private final static String AU0_MGT = "{" +
+        "    \"StorageRule\" : {" +
+        "      \"Rule\" : \"R1\"," +
+        "      \"FinalAction\" : \"RestrictedAccess\"," +
+        "      \"StartDate\" : \"01/01/2017\"," +
+        "      \"EndDate\" : \"01/01/2019\"" +
+        "    }," +
+        "    \"AccessRule\" : {" +
+        "      \"Rule\" : \"R2\"," +
+        "      \"FinalAction\" : \"RestrictedAccess\"," +
+        "      \"StartDate\" : \"01/01/2017\"," +
+        "      \"EndDate\" : \"01/01/2019\"" +
+        "    }" +
+        "  }";
+    
+    private final static String AU1_MGT = "{" +
+        "    \"DissiminationRule\" : {" +
+        "      \"Rule\" : \"R1\"" +
+        "    }" +
+        "  }";
+    
+    private static final String DATA_0 =
+        "{ \"#id\": \""+ GUID_0 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU0_MGT + " }";
+    
+    private static final String DATA_1 =
+        "{ \"#id\": \""+ GUID_1 + "\", " + "\"data\": \"data2\", \"_mgt\": " + AU1_MGT + " }";
 
-    private static final String DATA =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
-    private static final String DATA2 =
-        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
-    private static final Integer TENANT_ID = 0;
-
-
-    private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    static final List tenantList =  new ArrayList(){{add(TENANT_ID);}};
+
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -107,8 +136,11 @@ public class SelectUnitResourceTest {
 
     private static final String SERVER_HOST = "localhost";
 
-    private static final String BODY_TEST =
-        "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
+    private static final String SEARCH_QUERY =
+        "{\"$query\": [], \"$projection\": {}, \"$filter\": {}}";
+    private static final String SEARCH_QUERY_WITH_RULE =
+        "{\"$query\": [], \"$projection\": {\"$fields\" : {\"rules\" : 1}}, \"$filter\": {}}";
+    
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int dataBasePort;
@@ -146,6 +178,7 @@ public class SelectUnitResourceTest {
         // TODO: using configuration file ? Why not ?
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        configuration.setTenants(tenantList);
         configuration.setJettyConfig(JETTY_CONFIG);
         serverPort = junitHelper.findAvailablePort();
 
@@ -184,7 +217,7 @@ public class SelectUnitResourceTest {
         return JsonHandler
             .getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
     }
-
+    
 
     private static String createJsonStringWithDepth(int depth) {
         final StringBuilder obj = new StringBuilder();
@@ -200,19 +233,22 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnits_thenReturn_Found() throws Exception {
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA2)).when()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions("", DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions("", DATA_0)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(DATA2)).when()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -273,21 +309,49 @@ public class SelectUnitResourceTest {
     public void given_2units_insert_when_searchUnitsByID_thenReturn_Found() throws Exception {
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA2)).when()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions("", DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         with()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("", DATA)).when()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions("", DATA_0)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(BODY_TEST)).when()
-            .get("/units/" + ID_UNIT).then()
+            .body(JsonHandler.getFromString(SEARCH_QUERY)).when()
+            .get("/units/" + GUID_0).then()
+            .statusCode(Status.FOUND.getStatusCode());
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void given_2units_insert_when_searchUnitsByIDWithRule_thenReturn_Found() throws Exception {
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions("", DATA_0)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+        
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(buildDSLWithOptions(eq(VitamFieldsHelper.id(), GUID_0).getCurrentQuery().toString(), DATA_1)).when()
+            .post("/units").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_RULE)).when()
+            .get("/units/" + GUID_1).then()
             .statusCode(Status.FOUND.getStatusCode());
     }
 
@@ -299,7 +363,7 @@ public class SelectUnitResourceTest {
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(""))
             .when()
-            .get("/units/" + ID_UNIT)
+            .get("/units/" + GUID_0)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -309,9 +373,9 @@ public class SelectUnitResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST))
+            .body(JsonHandler.getFromString(SEARCH_QUERY))
             .when()
-            .post("/units/" + ID_UNIT)
+            .post("/units/" + GUID_0)
             .then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
@@ -323,7 +387,7 @@ public class SelectUnitResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101)).asText()).when()
-            .post("/units/" + ID_UNIT).then()
+            .post("/units/" + GUID_0).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -335,9 +399,9 @@ public class SelectUnitResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(BODY_TEST))
+            .body(JsonHandler.getFromString(SEARCH_QUERY))
             .when()
-            .get("/units/" + ID_UNIT)
+            .get("/units/" + GUID_0)
             .then()
             .statusCode(Status.FOUND.getStatusCode());
     }
@@ -350,7 +414,7 @@ public class SelectUnitResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .post("/units/" + ID_UNIT).then()
+            .post("/units/" + GUID_0).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -362,7 +426,7 @@ public class SelectUnitResourceTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions("", "lkvhvgvuyqvkvj")).when()
-            .get("/units/" + ID_UNIT).then()
+            .get("/units/" + GUID_0).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 

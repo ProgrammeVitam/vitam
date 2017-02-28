@@ -38,7 +38,8 @@ config(['$locationProvider' ,'$routeProvider',
       templateUrl: 'views/login.html'
     }).
     when('/archiveSearch', {
-      template: '<archive-search></archive-search>'
+      template: '<archive-search></archive-search>',
+      title: 'Recherche d\'archives'
     }).
     when('/admin', {
       templateUrl: "views/admin.html"
@@ -48,23 +49,28 @@ config(['$locationProvider' ,'$routeProvider',
     }).
     when('/uploadSIP', {
       templateUrl: "views/upload-sip.html",
-      controller: "uploadController"
+      controller: "uploadController",
+      title: 'Transfert'
     }).
     when('/uploadSIP2', {
       templateUrl: "views/upload-sip-2.html",
       controller: "uploadController"
     }).
     when('/archiveunit/:archiveId', {
-      template: '<archive-unit></archive-unit>'
+      template: '<archive-unit></archive-unit>',
+      title: 'Détail de l\'unité archivistique'
     }).
     when('/admin/logbookOperations', {
-      template: '<logbook-operations></logbook-operations>'
+      template: '<logbook-operations></logbook-operations>',
+      title: 'Suivi des opérations d\'entrées'
     }).
     when('/admin/formats', {
-      template: '<file-format></file-format>'
+      template: '<file-format></file-format>',
+      title: 'Référentiel des formats'
     }).
     when('/admin/rules', {
-      template: '<file-rules></file-rules>'
+      template: '<file-rules></file-rules>',
+      title: 'Référentiel des Règles de gestion'
     }).
     when('/admin/logbookLifecycle', {
       templateUrl:  "views/in-progress.html"
@@ -73,33 +79,45 @@ config(['$locationProvider' ,'$routeProvider',
       templateUrl:  "views/in-progress.html"
     }).
     when('/admin/importPronoun', {
-      templateUrl: "views/import-Pronoun.html"
+      templateUrl: "views/import-Pronoun.html",
+      title: 'Import du Référentiel des formats'
     }).
     when('/admin/importFileRules', {
-      templateUrl: "views/import-FileRules.html"
+      templateUrl: "views/import-FileRules.html",
+      title: 'Import du Référentiel des Règles de gestion'
     }).
     when('/admin/journalOperations', {
-      template: '<all-logbook-operation></all-logbook-operation>'
+      template: '<all-logbook-operation></all-logbook-operation>',
+      title: 'Journal des Opérations'
     }).
     when('/admin/detailOperation/:entryId', {
       templateUrl: 'views/logbookEntryFull.html',
-      controller: 'OperationLogbookEntryController'
+      controller: 'OperationLogbookEntryController',
+      title: 'Détail d\'une opération'
     }).
     when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
-      template: '<lifecycle></lifecycle>'
+      template: '<lifecycle></lifecycle>',
+      title: 'Journal du cycle de vie '
     }).
     when('/uploadperf', {
       template: '<upload-sip-perf></upload-sip-perf>'
     }).
     when('/accessionRegister/search', {
-      template: '<accession-register-search></accession-register-search>'
+      template: '<accession-register-search></accession-register-search>',
+      title: 'Recherche Registre des Fonds'
     }).
     when('/accessionRegister/detail/:accessionRegisterId', {
-      template: '<accession-register-details></accession-register-details>'
+      template: '<accession-register-details></accession-register-details>',
+      title: 'Détail du Fonds'
     }).
-        when('/admin/logbookOperations/:entryId', {
+    when('/admin/logbookOperations/:entryId', {
           templateUrl: 'views/logbookEntry.html',
-          controller: 'logbookEntryController as entryCtrl'
+          controller: 'logbookEntryController as entryCtrl',
+          title: 'Détail d\'une opération d\'entrée'
+        }).
+        when('/admin/workflows', {
+        	template: '<workflows></workflows>',
+            title: 'Gestion des versements'
         }).
     otherwise('/uploadSIP');
   }

@@ -30,7 +30,6 @@
 describe('AccessionRegister search and browse', function() {
   var logInlogOutUtilsService = require('./utils/login-logout.functions.js');
   var genericUtilsService = require('./utils/generic-utils.function');
-  var accessionRegisterId = null;
   var accessionRegisterId = 'ACCESSIONREGISTER';
   var fullBreadcrumb = [
     'Recherche',
@@ -48,6 +47,31 @@ describe('AccessionRegister search and browse', function() {
               "_id": "aefaaaaaaaaam7mxaabdqakyue3nlzaaaaaq",
               "_tenant": 0,
               "OriginatingAgency": "FRAN_NP_005568",
+              "TotalObjects": {
+                "Total": 30,
+                "Deleted": 0,
+                "Remained": 30
+              },
+              "TotalObjectGroups": {
+                "Total": 12,
+                "Deleted": 0,
+                "Remained": 12
+              },
+              "TotalUnits": {
+                "Total": 36,
+                "Deleted": 0,
+                "Remained": 36
+              },
+              "ObjectSize": {
+                "Total": 3427596,
+                "Deleted": 0,
+                "Remained": 3427596
+              },
+              "creationDate": "2016-11-26T15:17:55.300"
+            }, {
+              "_id": "aefaaaaaaaaam7mxaabdqakyue3nlzaaaase",
+              "_tenant": 0,
+              "OriginatingAgency": "FRAN_NP_005569",
               "TotalObjects": {
                 "Total": 30,
                 "Deleted": 0,
@@ -150,7 +174,7 @@ describe('AccessionRegister search and browse', function() {
                 } else {
                   // Mock third getSummary call with GOOD_ARG
                   response = responseEncapsulation;
-                  response.$results = accessionRegisterSummary;
+                  response.$results = [accessionRegisterSummary[0]];
                   response.$results[0].OriginatingAgency = json.OriginatingAgency;
                   console.log('Return ', response);
                 }
@@ -240,9 +264,8 @@ describe('AccessionRegister search and browse', function() {
   it('shouldn\'t throw result for wrong parameters', function() {
     browser.get(browser.baseUrl + '/accessionRegister/search');
     expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
-    // TODO Be sure that this keyword is not used for any Origating Agency (for non-mocking mode)
     var keyword = 'UNKNOW_ORIGATING_AGENCY_FOR_TEST';
-    element(by.model('serviceProducerCriteria')).sendKeys(keyword);
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys(keyword);
     element(by.css('[type="submit"]')).click();
 
     var table = element(by.css('[class="table"]'));
@@ -257,9 +280,8 @@ describe('AccessionRegister search and browse', function() {
   it('should search a specific result', function() {
     browser.get(browser.baseUrl + '/accessionRegister/search');
     expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
-    // FIXME Update (dynamic ?) keyword for a correspondance with an ingested SIP (for non-mocking mode) and with unique result
-    var keyword = 'OAIFERNANDES';
-    element(by.model('serviceProducerCriteria')).sendKeys(keyword);
+    var keyword = 'KNOWN_ORIGATING_AGENCY';
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys(keyword);
     element(by.css('[type="submit"]')).click();
 
     var table = element(by.css('[class="table"]'));
@@ -291,10 +313,9 @@ describe('AccessionRegister search and browse', function() {
   it('should update search when press ENTER key', function() {
     browser.get(browser.baseUrl + '/accessionRegister/search');
     expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
-    // FIXME Update (dynamic ?) keyword for a correspondance with an ingested SIP (for non-mocking mode) and with unique result
-    var keyword = 'OAIFERNANDES';
-    element(by.model('serviceProducerCriteria')).sendKeys(keyword);
-    element(by.model('serviceProducerCriteria')).sendKeys('\n');
+    var keyword = 'KNOWN_ORIGATING_AGENCY';
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys(keyword);
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys('\n');
 
     var table = element(by.css('[class="table"]'));
     var trs = table.all(by.css('[role="button"]'));
@@ -303,6 +324,52 @@ describe('AccessionRegister search and browse', function() {
     var searchResults = element(by.css('[data-target="#boxSearchResults"]'));
     var searchString = searchResults.element(by.css('h2')).element(by.css('span'));
     expect(searchString.getText()).toBe('(1)');
+  });
+
+  it('should reinit form + search on click on clear button', function() {
+    // First search
+    browser.get(browser.baseUrl + '/accessionRegister/search');
+    expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
+    var keyword = 'KNOWN_ORIGATING_AGENCY';
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys(keyword);
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys('\n');
+
+    var table = element(by.css('[class="table"]'));
+    var trs = table.all(by.css('[role="button"]'));
+    // Check only 1 result is present
+    expect(trs.count()).toBe(1);
+
+    // Click on reinit button
+    var inputBlock = element(by.id('inputBlock'));
+    var reinitFieldButton = inputBlock.element(by.css('[class="input-group-addon"]')).element(by.css('button'));
+    reinitFieldButton.click();
+
+    // Check input is empty
+    var inputField = element(by.model('search.form.serviceProducerCriteria'));
+    expect(inputField.getText()).toBe('');
+
+    // Check search results
+    trs = table.all(by.css('[role="button"]'));
+    // Check only 1 result is present
+    expect(trs.count()).toBe(2);
+  });
+
+  it('should reinit search when the form is empty (initial state)', function() {
+    // First search
+    browser.get(browser.baseUrl + '/accessionRegister/search');
+    expect(browser.getCurrentUrl()).toMatch(/.*\/accessionRegister\/search/);
+    var keyword = 'KNOWN_ORIGATING_AGENCY';
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys(keyword);
+    element(by.model('search.form.serviceProducerCriteria')).sendKeys('\n');
+
+    var table = element(by.css('[class="table"]'));
+    var trs = table.all(by.css('[role="button"]'));
+    // Check only 1 result is present
+    expect(trs.count()).toBe(1);
+
+    element(by.model('search.form.serviceProducerCriteria')).clear().then(function() {
+      expect(trs.count()).toBe(2);
+    });
   });
 
   it('should display the good information about result', function() {

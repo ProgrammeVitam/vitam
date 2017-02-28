@@ -30,28 +30,43 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
+import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 
 /**
@@ -92,7 +107,11 @@ public class FakeDriverImpl implements Driver {
         return 0;
     }
 
-    class ConnectionImpl implements Connection {
+    class ConnectionImpl extends DefaultClient implements Connection {
+
+        ConnectionImpl() {
+            super(new TestVitamClientFactory<DefaultClient>(1324, "/chemin/"));
+        }
 
         @Override
         public StorageCapacityResult getStorageCapacity(Integer tenantId)
@@ -161,11 +180,6 @@ public class FakeDriverImpl implements Driver {
         }
 
         @Override
-        public void close() throws StorageDriverException {
-            // Empty
-        }
-
-        @Override
         public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
             if ("digest_bad_test".equals(request.getGuid())) {
                 throw new StorageDriverException("checkObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
@@ -174,5 +188,34 @@ public class FakeDriverImpl implements Driver {
             return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
                 request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
         }
+
+        @Override
+        public StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
+            return new StorageMetadatasResult(null);
+        }
+
+        @Override
+        public Response listObjects(StorageListRequest request) throws StorageDriverException {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
+            try (VitamRequestIterator<ObjectNode> iterator =
+                new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator", ObjectNode.class, null, null)) {
+                final RequestResponseOK response = new RequestResponseOK();
+                final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
+                final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
+                final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
+                response.addResult(node1);
+                final List<ObjectNode> list = new ArrayList<>();
+                list.add(node2);
+                list.add(node3);
+                response.addAllResults(list);
+                response.setQuery(JsonHandler.createObjectNode());
+                response.setHits(response.getResults().size(), 0, response.getResults().size());
+                Response.ResponseBuilder builder = Response.status(Status.OK);
+
+                return VitamRequestIterator.setHeaders(builder, false, "newcursor").entity(response).build();
+            }
+        }
     }
+
 }

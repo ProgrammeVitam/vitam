@@ -37,6 +37,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
@@ -44,6 +45,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
  * Results for client mock
  */
 public class ClientMockResultHelper {
+
+    private static final String ID = "id0";
 
     private static final String RESULT =
         "{\"$query\":{}," +
@@ -332,7 +335,7 @@ public class ClientMockResultHelper {
     public static RequestResponse getArchiveUnitResult() throws InvalidParseOperationException {
         return createReponse(UNIT);
     }
-    
+
     /**
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
@@ -343,4 +346,13 @@ public class ClientMockResultHelper {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
     }
+
+    /**
+     * @return a default ArchiveUnit result
+     * @throws InvalidParseOperationException
+     */
+    public static ItemStatus getItemStatus(String id) throws InvalidParseOperationException {
+        return new ItemStatus(id);
+    }
+
 }

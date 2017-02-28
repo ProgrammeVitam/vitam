@@ -112,7 +112,7 @@
 
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", cluster_name: elasticsearch-data, secret_platform: "true" }
     - logbook_secure_operations
 
 - hosts: hosts-functional-administration
@@ -126,6 +126,7 @@
 - hosts: hosts-processing
   roles:
     - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}", secret_platform: "true" }
+    - processing
 
 - hosts: hosts-worker
   roles:

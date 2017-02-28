@@ -26,7 +26,7 @@ Ces opérations sont :
 
 Pour consulter le journal des opérations, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Journal des opérations".
 
-.. image:: images/menu_op.jpg
+.. image:: images/menu_op.png
 
 Formulaire de recherche
 -----------------------
@@ -80,8 +80,7 @@ Le détail est affiché sous forme de tableau comportant pour chaque événement
 Référentiel des formats
 =======================
 
-Cette partie décrit les fonctionnalités d'import du référentiel des formats, basé sur une version récente du référentiel PRONOM, pour
-ensuite le consulter et rechercher des formats spécifiques.
+Cette partie décrit les fonctionnalités d'import du référentiel des formats, basé sur une version récente du référentiel PRONOM, pour ensuite le consulter et rechercher des formats spécifiques.
 
 Import du référentiel des formats
 ---------------------------------
@@ -89,7 +88,7 @@ Import du référentiel des formats
 L'import du référentiel des formats s'effectue depuis l'écran "Import du référentiel des formats".
 Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Import du référentiel des formats". (Administration/Import du référentiel des formats)
 
-.. image:: images/menu_import_rf.jpg
+.. image:: images/menu_import_rf.png
 
 L'import du référentiel ne peut être effectué sans le fichier PRONOM.
 Pour cela, l'utilisateur peut récuperer le fichier PRONOM sur le site des Archives nationales britanniques :
@@ -104,13 +103,13 @@ Le processus d'import du référentiel se décrit comme ceci :
 - L'utilisateur valide son choix
 - Le système vérifie l'intégrité et la cohérence du fichier
 
-.. image:: images/import_rf_format.jpg
+.. image:: images/import_rf_format.png
 
 A l'issue du contrôle de cohérence et d'intégrité du fichier, deux cas sont possibles :
 
 - En cas d'erreur : Le système détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
 
-.. image:: images/import_rf_format_KO.jpg
+.. image:: images/import_rf_format_KO.png
 
 - En cas de succès : Le système indique à l'utilisateur que son fichier est admissibile et lui propose l'import définitif du fichier. L'utilisateur accepte l'import définitif, le référentiel des formats est créé à partir des informations contenues dans le fichier XML soumis.
 
@@ -122,19 +121,19 @@ Recherche d'un format
 La recherche d'un format dans le référentiel des formats s'effectue depuis l'écran "Référentiel des formats" (Administration/Référentiel des formats)
 Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Référentiel des formats".
 
-.. image:: images/menu_rf.jpg
+.. image:: images/menu_rf.png
 
 Par défaut, les formats sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique.
 
 Pour effectuer une recherche précise, on utilise le champ "Nom de format" ou le champ "PUID" (Le PUID étant l'ID unique du format dans PRONOM). L'utilisation des deux champs de façon simultanée fait un ET entre les 2 critères. La recherche alliera donc le nom du format avec le PUID et donnera ainsi un résultat plus précis.
 
-NB : la recherche est de type exacte.
+NB : La recherche n'a pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots aux singuliers comme aux pluriels, voir même avec une légère tolérance de faute : Vitam pourra trouver des résultats correspondants.
 
-Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher" ou appuie sur la touche "Entrée" si son curseur est encore positionné dans le champs de recherche.
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher" ou appuie sur la touche "Entrée" si son curseur est positionné dans le champ de recherche.
 
 .. image:: images/rf_format.png
 
-Il est possible de vider le contenu des champs "Nom du format" et "PUID" en cliquant sur la croix située à droite. 
+Il est possible de vider le contenu des champs "Nom du format" et "PUID" en cliquant sur la croix située à droite.
 
 .. image:: images/FORMATS_champs_recherche.png
 
@@ -162,7 +161,7 @@ Pour accéder au détail de chaque format, l'utilisateur clique sur la ligne du 
 
 Une fenêtre de type "modale" s'ouvre, pour présenter le détail du format, tout en conservant la liste des résultats.
 
-.. image:: images/rf_format_detail.jpg
+.. image:: images/rf_format_detail.png
 
 Le détail d'un format est composé des informations suivantes :
 
@@ -186,7 +185,8 @@ Import du référentiel des règles de gestion
 
 L'import du référentiel des règles de gestion s'effectue depuis le menu "Administration", puis en cliquant sur le sous-menu "Import du référentiel des règles de gestion" (Administration/Import du référentiel des règles de gestion)
 
-.. image:: images/menu_import_rg.jpg
+.. image:: images/menu_import_rg.png
+
 
 L'utilisateur doit au préalable créer le référentiel des règles de gestion au format CSV, puis l'importer dans Vitam.
 
@@ -239,13 +239,13 @@ Recherche d'une règle de gestion
 La recherche d'une règle de gestion dans le référentiel des règles de gestion s'effectue depuis l'écran "Référentiel des règles de gestion".
 Pour cela, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Référentiel des règles de gestion" (Administration/Référentiel des règles de gestion)
 
-.. image:: images/menu_rg.jpg
+.. image:: images/menu_rg.png
 
 Par défaut, les règles de gestion sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique.
 
 Pour effectuer une recherche précise, on utilise le champ "Intitulé" et/ou le champ "Type".
 
-NB : La recherche est de type exacte.
+NB : La recherche n'a pas besoin d'être exacte. L'utilisateur peut saisir une chaîne de caractères avec ou sans accent, des mots aux singuliers comme aux pluriels, voir même avec une légère tolérance de faute : Vitam pourra trouver des résultats correspondants.
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher".
 La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée.
@@ -287,4 +287,4 @@ Le détail d'une règle de gestion est composé des informations suivantes :
 - Date de création de la règle, correspond à la date d'import du référentiel de règle de gestion
 - Date de dernière modification
 
-Un clic sur le bouton "Close" ou hors de la fenêtre "modale" referme celle-ci.
+Un clic sur le bouton "Fermer" ou hors de la fenêtre "modale" referme celle-ci.

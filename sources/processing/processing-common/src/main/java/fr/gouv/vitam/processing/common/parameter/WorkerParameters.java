@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.parameter.VitamParameter;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 /**
  * Class use to manage parameters for and on worker
@@ -231,6 +232,23 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @throws IllegalArgumentException if urlWorspace is null or empty
      */
     WorkerParameters setUrlWorkspace(String urlWorkspace);
+
+
+    /**
+     * Get the url of workspace resource parameter
+     *
+     * @return the url of workspace resource value
+     */
+    LogbookTypeProcess getLogbookTypeProcess();
+
+    /**
+     * Set the url of workspace resource value
+     *
+     * @param urlWorkspace the url of workspace resource value
+     * @return the current instance of WorkerParameters
+     * @throws IllegalArgumentException if urlWorspace is null or empty
+     */
+    WorkerParameters setLogbookTypeProcess(LogbookTypeProcess logbookTypeProcess);
 
     /**
      * Set parameters from another WorkerParameters

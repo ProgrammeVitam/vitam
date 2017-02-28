@@ -24,60 +24,57 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
 
-describe('formArchive', function() {
+describe('ArchiveUnitController', function() {
 
   // Load the module that contains the `formArchive` component before each test
   beforeEach(module('archive.unit'));
 
-  // Test the controller
-  describe('ArchiveUnitController', function() {
-    var $httpBackend, ctrl;
+  var $httpBackend, ctrl;
 
-    beforeEach(inject(function($controller, _$httpBackend_) {
-      $httpBackend = _$httpBackend_;
-      $httpBackend.expectGET('archives/archiveUnit.json')
-          .respond({_id: 'GUID', description: 'Description test', language: 'fr-FR'});
+  beforeEach(inject(function($controller, _$httpBackend_) {
+    $httpBackend = _$httpBackend_;
+    $httpBackend.expectGET('archives/archiveUnit.json')
+      .respond({_id: 'GUID', description: 'Description test', language: 'fr-FR'});
 
-      // FIXME P0 Controller should have all required parametters.
-      // FIXME In this case some parameters ($http for exemple) should be provided by a service layer.
-      // TODO Fix this before fix test.
-      /*ctrl = $controller('ArchiveUnitController', {
-        $scope: scope,
-        $routeParams: {archiveId: '1'}
-      });*/
-    }));
+    // FIXME P0 Controller should have all required parametters.
+    // FIXME In this case some parameters ($http for exemple) should be provided by a service layer.
+    // TODO Fix this before fix test.
+    /*ctrl = $controller('ArchiveUnitController', {
+     $scope: scope,
+     $routeParams: {archiveId: '1'}
+     });*/
+  }));
 
-    it('[SKIPED] should create ID and description in mainFields with `$http`', function() {
-      /*jasmine.addCustomEqualityTester(angular.equals);
+  it('[SKIPED] should create ID and description in mainFields with `$http`', function() {
+    /*jasmine.addCustomEqualityTester(angular.equals);
 
-      expect(ctrl.archiveArray).toEqual([]);
+     expect(ctrl.archiveArray).toEqual([]);
 
-      $httpBackend.flush();
-      expect(ctrl.mainFields['ID']).toEqual({fieldName: 'ID', fieldValue:'GUID', isChild:false, typeF:'S'});
-      expect(ctrl.mainFields['description']).toEqual({fieldName: 'description', fieldValue:'Description test', isChild:false, typeF:'S'});*/
-    });
+     $httpBackend.flush();
+     expect(ctrl.mainFields['ID']).toEqual({fieldName: 'ID', fieldValue:'GUID', isChild:false, typeF:'S'});
+     expect(ctrl.mainFields['description']).toEqual({fieldName: 'description', fieldValue:'Description test', isChild:false, typeF:'S'});*/
+  });
 
-    it('[SKIPED] should init other feilds as EndDate in mainFields', function() {
-      /*jasmine.addCustomEqualityTester(angular.equals);
+  it('[SKIPED] should init other feilds as EndDate in mainFields', function() {
+    /*jasmine.addCustomEqualityTester(angular.equals);
 
-      expect(ctrl.archiveArray).toEqual([]);
+     expect(ctrl.archiveArray).toEqual([]);
 
-      $httpBackend.flush();
-      expect(ctrl.mainFields['EndDate']).toEqual({fieldName: 'EndDate', fieldValue:'', isChild:false, typeF:'S'});*/
-    });
+     $httpBackend.flush();
+     expect(ctrl.mainFields['EndDate']).toEqual({fieldName: 'EndDate', fieldValue:'', isChild:false, typeF:'S'});*/
+  });
 
 
-    it('[SKIPED] should create other fields in archiveArray with $http', function() {
-      /*jasmine.addCustomEqualityTester(angular.equals);
+  it('[SKIPED] should create other fields in archiveArray with $http', function() {
+    /*jasmine.addCustomEqualityTester(angular.equals);
 
-      expect(ctrl.archiveArray).toEqual([]);
+     expect(ctrl.archiveArray).toEqual([]);
 
-      $httpBackend.flush();
-      expect(ctrl.archiveArray).toEqual([{fieldName: 'language', fieldValue:'fr-FR', isChild:false, typeF:'S'}]);*/
-    });
+     $httpBackend.flush();
+     expect(ctrl.archiveArray).toEqual([{fieldName: 'language', fieldValue:'fr-FR', isChild:false, typeF:'S'}]);*/
   });
 
 });

@@ -35,12 +35,12 @@ package fr.gouv.vitam.common.model;
 public enum LifeCycleStatusCode {
 
     /**
-     * COMMITTED : indicates that the lifeCycle has been committed
+     * LIFE_CYCLE_COMMITTED : indicates that the lifeCycle has been committed
      */
-    COMMITTED,
+    LIFE_CYCLE_COMMITTED,
 
     /**
-     * NOT_COMMITTED : indicates that the lifeCycle hasn't been committed yet
+     * LIFE_CYCLE_IN_PROCESS : indicates that the lifeCycle hasn't been committed yet
      */
-    NOT_COMMITTED;
+    LIFE_CYCLE_IN_PROCESS;
 }

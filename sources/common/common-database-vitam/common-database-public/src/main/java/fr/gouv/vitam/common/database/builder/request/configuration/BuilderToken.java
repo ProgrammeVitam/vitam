@@ -93,6 +93,10 @@ public abstract class BuilderToken {
          */
         ACTION("action"),
         /**
+         * Action part (in case of update)
+         */
+        RULES("rules"),
+        /**
          * Data part (in case of insert)
          */
         DATA("data");

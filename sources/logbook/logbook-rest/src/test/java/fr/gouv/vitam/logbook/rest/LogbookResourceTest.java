@@ -29,21 +29,25 @@ package fr.gouv.vitam.logbook.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -59,20 +63,26 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
@@ -81,9 +91,17 @@ public class LogbookResourceTest {
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     private static LogbookDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
+
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
 
     private static final String REST_URI = "/logbook/v1";
     private static final String OPERATIONS_URI = "/operations";
@@ -107,7 +125,12 @@ public class LogbookResourceTest {
     private static JunitHelper junitHelper;
     private static LogbookConfiguration realLogbook;
 
-    private static int TENANT_ID = 0;
+    private static final int TENANT_ID = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -125,12 +148,22 @@ public class LogbookResourceTest {
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+        realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(nodes,
-                    "vitam-test"));
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         serverPort = junitHelper.findAvailablePort();
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
@@ -187,6 +220,9 @@ public class LogbookResourceTest {
             LOGGER.error(e);
         }
         mongoDbAccess.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         junitHelper.releasePort(serverPort);
         mongod.stop();
         mongodExecutable.stop();
@@ -201,6 +237,7 @@ public class LogbookResourceTest {
         logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
         given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersAppend)
             .post(TRACEABILITY_URI)
             .then()
@@ -208,6 +245,7 @@ public class LogbookResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public final void testOperation() {
         // Creation OK
         logbookParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
@@ -216,6 +254,7 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersStart.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
@@ -230,6 +269,7 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersAppend.toString())
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
@@ -244,6 +284,7 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersWrongStart.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
@@ -258,6 +299,7 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersWrongAppend.toString())
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
@@ -268,6 +310,7 @@ public class LogbookResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testBulk() {
         final GUID eip = GUIDFactory.newEventGUID(0);
         // Create
@@ -288,6 +331,7 @@ public class LogbookResourceTest {
         queue.add(append);
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.unprettyPrint(queue))
             .when()
             .post(OPERATIONS_URI)
@@ -313,6 +357,7 @@ public class LogbookResourceTest {
         queue.add(append);
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.unprettyPrint(queue))
             .when()
             .put(OPERATIONS_URI)
@@ -321,6 +366,7 @@ public class LogbookResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testError() {
         // Create KO since Bad Request
         final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
@@ -328,6 +374,7 @@ public class LogbookResourceTest {
         empty.putParameterValue(LogbookParameterName.eventIdentifierProcess, id);
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(empty.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI, id)
@@ -335,6 +382,7 @@ public class LogbookResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(empty.toString())
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI, id)
@@ -342,6 +390,7 @@ public class LogbookResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersWrongStart.toString())
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
@@ -350,6 +399,7 @@ public class LogbookResourceTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersWrongAppend.toString())
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
@@ -364,13 +414,16 @@ public class LogbookResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testOperationSelect() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersSelect.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersSelect.toString())
             .when()
@@ -383,6 +436,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_QUERY))
             .when()
             .get(OPERATIONS_URI)
@@ -391,7 +445,9 @@ public class LogbookResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testSelectOperationId() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         logbookParametersSelectId.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersSelectId.putParameterValue(LogbookParameterName.agentIdentifier,

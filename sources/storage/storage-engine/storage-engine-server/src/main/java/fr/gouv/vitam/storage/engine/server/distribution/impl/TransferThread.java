@@ -84,6 +84,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         this.request = request;
     }
 
+    // TODO: Manage interruption (if possible)
     @Override
     public ThreadResponseData call() throws Exception {
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
@@ -91,7 +92,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         parameters.putAll(offer.getParameters());
         ThreadResponseData response;
         try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-            if (!isObjectExistsInOffer(request, connection)) {
+            if (isRewritableObject(request, connection)) {
 
                 // ugly way to get digest from stream
                 // TODO: How to do the cleaner ?
@@ -103,11 +104,11 @@ public class TransferThread implements Callable<ThreadResponseData> {
 
                 StoragePutResult putObjectResult = connection.putObject(putObjectRequest);
 
-                // Check digest
+                // Check digest against offer
                 StorageCheckRequest storageCheckRequest =
                     new StorageCheckRequest(request.getTenantId(), request.getType(),
                         request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()),
-                        putObjectResult.getDigestHashBase16());
+                        digest.digestHex());
                 if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
                     throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content " +
                         "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
@@ -122,7 +123,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         return response;
     }
 
-    private boolean isObjectExistsInOffer(StoragePutRequest request, Connection connection)
+    private boolean isRewritableObject(StoragePutRequest request, Connection connection)
         throws StorageDriverException, StorageObjectAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
@@ -142,7 +143,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                     throw new UnsupportedOperationException("Not implemented");
             }
         }
-        return false;
+        return true;
     }
 
 

@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -18,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -31,6 +33,10 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class AdminExternalClientRestTest extends VitamJerseyTest {
 
@@ -38,6 +44,10 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected AdminExternalClientRest client;
     final int TENANT_ID = 0;
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";
@@ -134,95 +144,150 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testCheckDocument()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.put()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())).getStatus(),
+            Status.OK.getStatusCode());
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
+    @RunWithCustomExecutor
     public void testCheckDocumentAccessExternalClientNotFoundException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
-    }
-
-    @Test(expected = AccessExternalClientException.class)
-    public void testCheckDocumentAccessExternalClientException()
-        throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
     }
 
     @Test
+    @RunWithCustomExecutor
+    public void testCheckDocumentAccessExternalClientException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        Response resp = client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+        assertEquals(Status.BAD_REQUEST.getStatusCode() , resp.getStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testImportDocument()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
-            Status.OK);
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes())).getStatus(),
+            Status.OK.getStatusCode());
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
+    @RunWithCustomExecutor
     public void testImportDocumentAccessExternalClientNotFoundException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
-    }
-
-    @Test(expected = AccessExternalClientException.class)
-    public void testImportDocumentAccessExternalClientException()
-        throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
     }
 
     @Test
+    @RunWithCustomExecutor
+    public void testImportDocumentAccessExternalClientException()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("not well formated").build());
+        Response resp = client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+        assertEquals(Status.BAD_REQUEST.getStatusCode() , resp.getStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testFindDocuments()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
-        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+        assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getFormatList().toString());
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
+    @RunWithCustomExecutor
     public void testFindDocumentAccessExternalClientNotFoundException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
+        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
     }
 
     @Test(expected = AccessExternalClientException.class)
+    @RunWithCustomExecutor
     public void testFindDocumentAccessExternalClientException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
+        client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testFindDocumentById()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).toString(),
+            client.findDocumentById(AdminCollections.FORMATS, ID).toString(),
             ClientMockResultHelper.getFormat().toString());
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
+    @RunWithCustomExecutor
     public void testFindDocumentByIdAccessExternalClientNotFoundException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID);
+        client.findDocumentById(AdminCollections.FORMATS, ID);
     }
 
     @Test(expected = AccessExternalClientException.class)
+    @RunWithCustomExecutor
     public void testFindDocumentByIdAccessExternalClientException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID);
+        client.findDocumentById(AdminCollections.FORMATS, ID);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testAllRequestsWithoutTenantThenIllegalArgument()
+        throws Exception {
+        try {
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+            fail("should raized an exception");
+        } catch (IllegalArgumentException e) {
 
+        }
+        try {
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
+            fail("should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode());
+            fail("should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+        try {
+            client.findDocumentById(AdminCollections.FORMATS, ID);
+            fail("should raized an exception");
+        } catch (IllegalArgumentException e) {
+
+        }
+    }
+    
 }

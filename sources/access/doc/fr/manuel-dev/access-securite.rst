@@ -7,6 +7,7 @@ les contrôles de sécurité pour les flux d'accès à la plateforme.
 	-- Fournissant la terminaison TLS
 	-- Fournissant l'authentification par certificat
 	-- Un WAF applicatif permettant le filtrage d'entrée filtrant les entrées être une menace pour le système (ESAPI)
+   -- Un filtre permettant de vérifier l'existence et la cohérence du header X-Tenant-Id
 	
 .. code-block:: java
 
@@ -25,7 +26,22 @@ les contrôles de sécurité pour les flux d'accès à la plateforme.
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
-        context.addFilter(WafFilter.class, "/*", EnumSet.of(
+        // chargemenet de la liste des tenants de l'application
+        JsonNode node = JsonHandler.toJsonNode(getConfiguration().getTenants());
+        context.setInitParameter(GlobalDataRest.TENANT_LIST, JsonHandler.unprettyPrint(node));
+        context.addFilter(TenantFilter.class, "/*", EnumSet.of(
             DispatcherType.INCLUDE, DispatcherType.REQUEST,
-            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+            DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));                       
+    }
+
+    protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        setServiceRegistry(new VitamServiceRegistry());
+        serviceRegistry.register(AccessInternalClientFactory.getInstance())
+            .register(AdminManagementClientFactory.getInstance());
+        resourceConfig.register(new AccessExternalResourceImpl())
+            .register(new LogbookExternalResourceImpl())
+            .register(new AdminManagementExternalResourceImpl())
+            .register(new AdminStatusResource(serviceRegistry))
+            .register(SanityCheckerCommonFilter.class)
+            .register(SanityDynamicFeature.class);
     }

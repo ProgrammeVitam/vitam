@@ -36,11 +36,21 @@ import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
@@ -56,6 +66,9 @@ import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 
 public class ProcessDistributorImplTest {
@@ -63,18 +76,29 @@ public class ProcessDistributorImplTest {
     private static final ProcessDistributorImpl PROCESS_DISTRIBUTOR =
         ProcessDistributorImplFactory.getDefaultDistributor();
     private static final String WORKFLOW_ID = "workflowJSONv1";
+    private static final String CONTAINER_NAME = "containerName1";
     private ProcessMonitoringImpl processMonitoring;
     private WorkFlow worfklow;
     private static JunitHelper junitHelper;
     private String urlWorkspace;
     private static int port;
+    private ProcessDataAccess processData;
+    private static final int TENANT_ID = 0;
 
     private static final String WORKER_DESCRIPTION =
         "{ \"name\" : \"workername\", \"family\" : \"DefaultWorkflow\", \"capacity\" : 10, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
+    private static final Integer TENANT = 0;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() throws Exception {
+        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
+        WorkerManager.initialize();
+
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         urlWorkspace = "http://localhost:" + Integer.toString(port);
@@ -96,9 +120,20 @@ public class ProcessDistributorImplTest {
         worfklow = new WorkFlow().setSteps(steps).setId(WORKFLOW_ID);
         // set process_id and step_id (set in the engine)
         params.setProcessId("processId");
-        final Map<String, ProcessStep> processSteps =
-            processMonitoring.initOrderedWorkflow("processId", worfklow, "containerName");
-        for (final Map.Entry<String, ProcessStep> entry : processSteps.entrySet()) {
+        params.setContainerName(CONTAINER_NAME);
+        // processMonitoring.initProcessWorkflow(worfklow, "containerName");
+        processMonitoring = ProcessMonitoringImpl.getInstance();
+
+        processData = ProcessDataAccessImpl.getInstance();
+        // processData.nextStep(workParams.getContainerName());
+
+        processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_ID), params.getContainerName(),
+            ProcessAction.INIT, LogbookTypeProcess.INGEST, TENANT_ID);
+
+        processData.prepareToRelaunch(params.getContainerName(), ProcessAction.RESUME, TENANT_ID);
+        for (final Map.Entry<String, ProcessStep> entry : processMonitoring
+            .getProcessSteps(params.getContainerName(), TENANT_ID)
+            .entrySet()) {
             params.setStepUniqId(entry.getKey());
         }
     }
@@ -111,7 +146,10 @@ public class ProcessDistributorImplTest {
 
 
     @Test
-    public void givenProcessDistributorWhendistributeThenProcessRefDistribution() {
+    @RunWithCustomExecutor
+    public void givenProcessDistributorWhendistributeThenWorkflowNotFoundException()
+        throws InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         final Step step = new Step();
         step.setStepName("Traiter_archives");
         step.setBehavior(ProcessBehavior.BLOCKING);
@@ -124,8 +162,10 @@ public class ProcessDistributorImplTest {
         action.setActionDefinition(actionDefinition);
         actions.add(action);
         step.setActions(actions);
-        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
-        final String familyId = "DefaultWorkflow" ;
+
+        final ProcessStep processStep =
+            new ProcessStep(step, step.getStepName(), "containerName", WORKFLOW_ID, 0, 0, 0);
+        final String familyId = "DefaultWorkflow";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         try {
             WorkerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
@@ -134,14 +174,16 @@ public class ProcessDistributorImplTest {
         } catch (ProcessingBadRequestException e) {
             fail("Incorrect worker description");
         }
-        
+
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
-    
-    
 
-    @Test(expected = IllegalArgumentException.class)
-    public void givenProcessDistributorWhendistributeThenCatchIllegalArgumentException() {
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenProcessDistributorWhendistributeNoBlockingThenWorkflowNotFoundException() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         final Step step = new Step();
         final Action a = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
@@ -151,13 +193,14 @@ public class ProcessDistributorImplTest {
         final List<Action> actions = new ArrayList<>();
         actions.add(a);
         step.setActions(actions);
-        
-        
-        PROCESS_DISTRIBUTOR.distribute(params, null, WORKFLOW_ID);
+
+        PROCESS_DISTRIBUTOR.distribute(params, step, WORKFLOW_ID);
     }
 
     @Test
-    public void givenProcessDistributorWhenDistributeWithListKindThenCatchHandlerNotFoundException() {
+    @RunWithCustomExecutor
+    public void givenProcessDistributorWhenDistributeWithListKindThenWorkflowNotFoundException() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         final Step step = new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST));
         final Action a = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
@@ -168,13 +211,15 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
 
     @Test
-    public void givenProcessDistributorWhenDistributeWithRefThenCatchHandlerNotFoundException() {
+    @RunWithCustomExecutor
+    public void givenProcessDistributorWhenDistributeWithRefThenWorkflowNotFoundException() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         final Step step = new Step().setDistribution(new Distribution().setKind(DistributionKind.REF));
         final Action a = new Action();
         final ActionDefinition actionDefinition = new ActionDefinition();
@@ -185,32 +230,34 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenProcessDistributorWhenDistributeThenProcessStepsNotEmpty()
         throws IllegalArgumentException, ProcessingException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT);
         // final WorkerImpl worker = mock(WorkerImpl.class);
         final List<EngineResponse> response = new ArrayList<>();
         response.add(new ProcessResponse().setStatus(StatusCode.OK));
         // when(worker.run(anyObject(), anyObject())).thenReturn(response);
 
         final Step step = worfklow.getSteps().get(0);
-        final ProcessStep processStep = new ProcessStep(step, "containerName", WORKFLOW_ID, 0, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, 0, 0);
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
 
-        // checkMonitoring
-        // String processId = (String) params.getAdditionalProperties().get(WorkParams.PROCESS_ID);
-        final String processId = params.getProcessId();
-        final Map<String, ProcessStep> map = processMonitoring.getWorkflowStatus(processId);
-        assertNotNull(map);
+        final StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(params.getContainerName(), TENANT_ID);
+        assertNotNull(statusCode);
         // At least one element has been added to be processed
-        for (final Map.Entry<String, ProcessStep> entry : map.entrySet()) {
-            assertTrue(entry.getValue().getElementToProcess() > 0);
+
+        for (final Map.Entry<String, ProcessStep> entry : processData
+            .getWorkflowProcessSteps(params.getContainerName(), TENANT_ID).entrySet()) {
+            assertTrue(entry.getValue().getElementToProcess() >= 0);
         }
+
     }
 }

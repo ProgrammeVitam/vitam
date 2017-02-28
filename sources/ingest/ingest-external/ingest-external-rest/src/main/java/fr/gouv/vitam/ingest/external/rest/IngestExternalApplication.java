@@ -37,9 +37,14 @@ import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
@@ -48,6 +53,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.tenant.filter.TenantFilter;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
@@ -117,6 +123,18 @@ public final class IngestExternalApplication
             context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        }
+
+        // Tenant Filter
+        try {
+            JsonNode node = JsonHandler.toJsonNode(getConfiguration().getTenants());
+            context.setInitParameter(GlobalDataRest.TENANT_LIST, JsonHandler.unprettyPrint(node));
+            context.addFilter(TenantFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new VitamApplicationServerException(e.getMessage());
         }
     }
 

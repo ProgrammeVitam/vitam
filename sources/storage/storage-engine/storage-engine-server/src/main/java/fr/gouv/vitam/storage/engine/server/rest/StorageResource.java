@@ -34,6 +34,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -53,12 +54,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -68,7 +71,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
@@ -79,7 +82,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistribution
  */
 @Path("/storage/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class StorageResource extends ApplicationStatusResource {
+public class StorageResource extends ApplicationStatusResource implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
     private static final String CODE_VITAM = "code_vitam";
@@ -137,7 +140,8 @@ public class StorageResource extends ApplicationStatusResource {
      * @param headers http headers
      * @return Response containing the storage information as json, or an error (404, 500)
      */
-    @GET
+    @HEAD
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStorageInformation(@Context HttpHeaders headers) {
         final Response response = checkTenantStrategyHeader(headers);
@@ -182,24 +186,6 @@ public class StorageResource extends ApplicationStatusResource {
         }
     }
 
-    // TODO:Review api endpoint
-    // /**
-    // * Get a list of containers
-    // *
-    // * @param headers http headers
-    // * @return Response containing the storage information as an input stream, or an error (412 or 404)
-    // * @throws IOException throws an IO Exception
-    // */
-    // @GET
-    // @Consumes(MediaType.APPLICATION_JSON)
-    // @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, MediaType.APPLICATION_JSON})
-    // // TODO P1 si le résultat est une liste alors getContainers (s ajouté)
-    // public Response getContainer(@Context HttpHeaders headers) throws IOException {
-    // VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-    // Status status = Status.NOT_IMPLEMENTED;
-    // return Response.status(status).entity(getErrorEntity(status)).build();
-    // }
-
     /**
      * Create a container
      * <p>
@@ -234,35 +220,32 @@ public class StorageResource extends ApplicationStatusResource {
     }
 
     /**
-     * Check the existence of a container
+     * Get list of object type
      *
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
+     * @param xcursor the X-Cursor
+     * @param xcursorId the X-Cursor-Id if exists
+     * @param strategyId the strategy to get offers
+     * @param type the object type to list
+     * @return a response with listing elements
      */
-    @HEAD
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkContainer(@Context HttpHeaders headers) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-
-    /**
-     * Get a list of objects Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/objects")
+    @Path("/{type}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getObjects(@Context HttpHeaders headers) {
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
+    public Response listObjects(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
+        @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId, @PathParam("type") DataCategory type) {
+        try {
+            ParametersChecker.checkParameter("X-Cursor is required", xcursor);
+            ParametersChecker.checkParameter("Strategy ID is required", strategyId);
+            return distribution.listContainerObjects(strategyId, type, xcursorId);
+        } catch (IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        } catch (Exception exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
     }
 
     /**
@@ -346,7 +329,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectOrGetInformation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers, @PathParam("id_object") String objectId,
-        CreateObjectDescription createObjectDescription) {
+        ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1 : actually no X-Requester header, so send the getRemoteAdr from HttpServletRequest
@@ -380,7 +363,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        String tenantId, strategyId, digestAlgorithm, digest;
+        String strategyId, digestAlgorithm, digest;
         final Response response = checkDigestAlgorithmHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
@@ -409,7 +392,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        String tenantId, strategyId;
+        String strategyId;
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
@@ -499,7 +482,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLogbook(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_logbook") String logbookId, CreateObjectDescription createObjectDescription) {
+        @PathParam("id_logbook") String logbookId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
         } else {
@@ -593,7 +576,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUnitMetadata(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
+        @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
         } else {
@@ -709,7 +692,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectGroup(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_md") String metadataId, CreateObjectDescription createObjectDescription) {
+        @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
         } else {
@@ -808,7 +791,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createReportOrGetInformation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers, @PathParam("id_report") String reportId,
-        CreateObjectDescription createObjectDescription) {
+        ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest
@@ -846,7 +829,7 @@ public class StorageResource extends ApplicationStatusResource {
     // getRemoteAdr from HttpServletRequest passed as parameter (requester)
     // Change it when the good header is sent
     private Response createObjectByType(HttpHeaders headers, String objectId,
-        CreateObjectDescription createObjectDescription, DataCategory category, String requester) {
+        ObjectDescription createObjectDescription, DataCategory category, String requester) {
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
@@ -888,7 +871,7 @@ public class StorageResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createManifestOrGetInformation(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers, @PathParam("id_manifest") String manifestId,
-        CreateObjectDescription createObjectDescription) {
+        ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1: actually no X-Requester header, so send the getRemoteAddr from HttpServletRequest
@@ -956,6 +939,11 @@ public class StorageResource extends ApplicationStatusResource {
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+    }
+
+    @Override
+    public void close() {
+        distribution.close();
     }
 
 }

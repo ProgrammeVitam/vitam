@@ -39,48 +39,29 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 /**
  * StoreObjectGroupAction Plugin.<br>
  *
  */
-public class StoreObjectGroupActionPlugin extends ActionHandler{
+public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreObjectGroupActionPlugin.class);
 
     private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private static final String SIP = "SIP/";
-
-    private final StorageClientFactory storageClientFactory;
-
-    private static final String DEFAULT_STRATEGY = "default";
     private HandlerIO handlerIO;
 
 
     /**
      * Constructor
      */
-    public StoreObjectGroupActionPlugin() {
-        storageClientFactory = StorageClientFactory.getInstance();
-    }
-
-    /**
-     * Constructor with parameter storageClientFactory, for tests
-     *
-     * @param storageClientFactory the storage client factory
-     */
-    StoreObjectGroupActionPlugin(StorageClientFactory storageClientFactory) {
-        this.storageClientFactory = storageClientFactory;
-    }
+    public StoreObjectGroupActionPlugin() {}
 
 
     @Override
@@ -88,61 +69,40 @@ public class StoreObjectGroupActionPlugin extends ActionHandler{
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-            try {
-                checkMandatoryIOParameter(actionDefinition);
+        try {
+            checkMandatoryIOParameter(actionDefinition);
 
-                // get list of object group's objects
-                final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
-                // get list of object uris
-                for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
-                    // Execute action on the object
-                    storeObject(params, objectGuid.getKey(), objectGuid.getValue(), itemStatus);
-                }
-            } catch (final StorageClientException e) {
-                LOGGER.error(e);
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
+            // get list of object group's objects
+            final Map<String, String> objectGuids = getMapOfObjectsIdsAndUris(params);
+            // get list of object uris
+            for (final Map.Entry<String, String> objectGuid : objectGuids.entrySet()) {
+                // Execute action on the object
+
+                // store binary data object
+                final ObjectDescription description = new ObjectDescription();
+                // set container name and object URI
+                description.setWorkspaceContainerGUID(params.getContainerName())
+                    .setWorkspaceObjectURI(SIP + objectGuid.getValue());
+                // set type and object name
+                description.setType(StorageCollectionType.OBJECTS).setObjectName(objectGuid.getKey());
+
+                storeObject(description, itemStatus);
+                // subtask
+                itemStatus.setSubTaskStatus(objectGuid.getKey(), itemStatus);
+
             }
 
-            if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-                itemStatus.increment(StatusCode.OK);
-            }
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
+        }
+
+        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
+            itemStatus.increment(StatusCode.OK);
+        }
         return new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus);
     }
 
-    /**
-     * Store a binary data object with the storage engine.
-     *
-     * @param params worker parameters
-     * @param objectGUID the object guid
-     * @param objectUri the object uri
-     * @param itemStatus item status
-     * @param logbookLifeCycleClient logbook LifeCycle Client
-     * @throws StorageClientException throws when a storage error occurs
-     * @throws ProcessingException throws when unexpected error occurs
-     */
-    private void storeObject(WorkerParameters params, String objectGUID, String objectUri, ItemStatus itemStatus)
-        throws ProcessingException, StorageClientException {
-        LOGGER.debug("Storing object with guid: " + objectGUID);
-        ParametersChecker.checkParameter("objectUri id is a mandatory parameter", objectUri);
-        try {
-            // store binary data object
-            final CreateObjectDescription description = new CreateObjectDescription();
-            description.setWorkspaceContainerGUID(params.getContainerName());
-            description.setWorkspaceObjectURI(SIP + objectUri);
-
-            try (final StorageClient storageClient = storageClientFactory.getClient()) {
-                storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, StorageCollectionType.OBJECTS, objectGUID, description);
-            }
-            itemStatus.setSubTaskStatus(objectGUID, itemStatus);
-
-        } catch (final StorageClientException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-            throw e;
-        }
-    }
 
     /**
      * Get the list of objects linked to the current object group

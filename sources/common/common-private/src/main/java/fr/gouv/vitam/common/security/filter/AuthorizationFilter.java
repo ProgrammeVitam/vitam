@@ -55,7 +55,7 @@ public class AuthorizationFilter implements Filter {
         throws IOException, ServletException {
         final AuthorizationWrapper authorizationWrapper = new AuthorizationWrapper((HttpServletRequest) request);
         if (!authorizationWrapper.checkAutorizationHeaders()) {
-            final HttpServletResponse newResponse = (HttpServletResponse) response;
+            final HttpServletResponse newResponse = (HttpServletResponse) response;            
             newResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
             StreamUtils.closeSilently(request.getInputStream());
         } else {
@@ -66,7 +66,6 @@ public class AuthorizationFilter implements Filter {
     @Override
     public void destroy() {
         // Empty
-
     }
 
 }

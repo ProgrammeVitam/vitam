@@ -26,69 +26,73 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core.monitoring;
 
+import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
-import fr.gouv.vitam.processing.common.model.WorkFlow;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 
 /**
  * Process Monitoring Interface offers services in order to monitor workflows
  */
-// FIXME P1 : propose a method that could purge the workflows
 public interface ProcessMonitoring {
 
-    /**
-     * Allows a process to be initiated
-     *
-     * @param processId the id of the process to be initiated
-     * @param workflow the workflow to init
-     * @param containerName the name of the container to be processed
-     * @return a List of ProcessSteps with a generated unique Id
-     * @throws IllegalArgumentException if a step is null
-     */
-    Map<String, ProcessStep> initOrderedWorkflow(String processId, WorkFlow workflow, String containerName)
-        throws IllegalArgumentException;
 
     /**
-     * Update a step status in a workflow, knowing its unique id
-     *
-     * @param processId the id of the process to be updated
-     * @param uniqueId the step with unique Id
-     * @param status the Code of the status
-     * @throws ProcessingException if the step does not exist
+     * Gets Process Workflow by operation Id
+     * 
+     * @param id :null not allowed
+     * @param tenantId Tenant identifier
+     * @return ProcessWorkflow object
+     * @throws WorkflowNotFoundException thrown when process workflow not found
      */
-    void updateStepStatus(String processId, String uniqueId, StatusCode status) throws ProcessingException;
+    ProcessWorkflow getProcessWorkflow(String id, Integer tenantId) throws WorkflowNotFoundException;
 
     /**
-     * Update a step in a workflow, knowing its unique id
-     *
-     * @param processId the id of the process to be updated
-     * @param uniqueId the unique Id of the step
-     * @param elementToProcess the number of element to be processed
-     * @param elementProcessed if a new element has been processed
-     * @throws ProcessingException if the step does not exist
+     * Gets current Process Workflow execution status by operation Id
+     * 
+     * @param id :null not allowed : the operation identifier process to return
+     * @param tenantId Tenant identifier
+     * @return {@link ProcessExecutionStatus} :
+     * @throws WorkflowNotFoundException hrown when process workflow not found
      */
-    void updateStep(String processId, String uniqueId, long elementToProcess, boolean elementProcessed)
-        throws ProcessingException;
+    ProcessExecutionStatus getProcessExecutionStatus(String id, Integer tenantId) throws WorkflowNotFoundException;
 
     /**
-     * Get workflow status with its workflow id If the workflow id does not exist, an empty Map is returned
-     *
-     * @param processId the id of the process
-     * @return a map of steps
-     * @throws ProcessingException if the process does not exist
+     * Get process steps by processId
+     * 
+     * @param processId is operation id
+     * @param tenantId Tenant identifier
+     * @return map of process step
+     * @throws StepsNotFoundException will be thrown when steps not found
+     * @throws WorkflowNotFoundException
      */
-    Map<String, ProcessStep> getWorkflowStatus(String processId) throws ProcessingException;
+
+    public Map<String, ProcessStep> getProcessSteps(String processId, Integer tenantId)
+        throws StepsNotFoundException, WorkflowNotFoundException;
+
 
     /**
      * Return true if at least one of the step status is KO or FATAL.
-     *
-     * @param processId the id of the workflow
+     * @param processId The workflow identifier
+     * @param tenantId Tenant identifier
      * @return true if at least one of the step status is KO or FATAL, else false
      * @throws ProcessingException if the process does not exist
      */
-    StatusCode getFinalWorkflowStatus(String processId) throws ProcessingException;
+    StatusCode getProcessWorkflowStatus(String processId, Integer tenantId) throws ProcessingException;
+    
+    /**
+     * Get all proccess
+     * @param tenantId
+     * @return
+     */
+    public List<ProcessWorkflow> getAllProcessWorkflow(Integer tenantId);
+
+
 
 }

@@ -45,7 +45,9 @@ angular.module('archive.unit')
     'TECH_KEY': '_',
     'ID_LABEL': 'ID',
     'MGT_LABEL': 'Management',
+    'INHERITED_RULE_LABEL': 'inheritedRule',
     'LIST_ITEM_LABEL': 'Valeur',
+    'UNIT_PRENT_LIST': '_up',
     'MGT_WITH_CSHARP_KEY': '#mgt'
   })
   .filter('filterSize', function() {
@@ -59,7 +61,7 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog, transferToIhmResult){
+                                                $mdDialog, transferToIhmResult, RuleUtils){
 
     var self = this;
 
@@ -342,7 +344,7 @@ angular.module('archive.unit')
             });
 
           self.archiveArray = [];
-          self.managmentItems = {};
+          self.managementItems = {};
           self.isEditMode = false;
           self.displayArchiveDetails();
         }
@@ -354,7 +356,9 @@ angular.module('archive.unit')
       };
       archiveDetailsService.findArchiveUnitDetails(self.archiveId, displayUpdatedArchiveCallBack, failureUpdateDisplayCallback);
     };
-
+    $scope.checkHerited = function(originId) {
+      return (originId == self.archiveId) ? 'non' : 'oui';
+    };
     self.displayArchiveDetails = function(){
       self.mainFields={};
       if(self.archiveFields == null || self.archiveFields == undefined){
@@ -364,6 +368,54 @@ angular.module('archive.unit')
         // ID Field
         var fieldSet = {};
         var idField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.ID_KEY];
+
+        var inheritedRule = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.INHERITED_RULE_LABEL];
+        delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.INHERITED_RULE_LABEL];
+
+        self.ruleDisplay = {};
+        for (var key in inheritedRule) {
+          var translateKey = RuleUtils.translate(key);
+          var rule = inheritedRule[key];
+          var displayArray = [];
+          var displayObject = {};
+          for (var ruleId in rule) {
+            if (ruleId != 'displayArray') {
+              var origin = rule[ruleId];
+              for (var originId in origin) {
+                displayObject.ruleId = ruleId;
+                displayObject.originId = originId;
+                var originDetail = origin[originId];
+                for (var detail in originDetail) {
+                  displayObject[detail] = originDetail[detail];
+                }
+                displayArray.push(displayObject);
+                displayObject = {};
+              }
+            }
+          }
+          self.ruleDisplay[translateKey] = self.ruleDisplay[translateKey] ? self.ruleDisplay[translateKey] : {};
+          self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+        }
+        if (self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.UNIT_PRENT_LIST].length == 0) {
+          var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+          for (var key in selfManagement) {
+            var translateKey = RuleUtils.translate(key);
+            var rule = selfManagement[key];
+            var displayArray = [];
+            var displayObject = {};
+            displayObject.ruleId = rule.Rule;
+            delete rule.Rule;
+            for (var detail in rule) {
+              displayObject[detail] = rule[detail];
+            }
+            displayObject.originId = idField;
+            displayArray.push(displayObject);
+            displayObject = {};
+            self.ruleDisplay[translateKey] = {};
+            self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+          }
+        }
+        delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
 
         if(idField !== self.archiveId){
           self.refreshArchiveDetails();
@@ -456,8 +508,6 @@ angular.module('archive.unit')
               // Get Title archive
               if(key == ARCHIVE_UNIT_MODULE_CONST.TITLE_FIELD){
                 self.archiveTitle = value;
-                $window.document.title = ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_PREFIX +
-                  $routeParams.archiveId + ARCHIVE_UNIT_MODULE_CONST.ARCHIVE_UNIT_FORM_TITLE_SEPARATOR + self.archiveTitle;
               }
 
               self.fieldSet = buildSingleField(value, key, key, [], null, true);
@@ -533,14 +583,20 @@ angular.module('archive.unit')
             fieldSet.parents = [];
 
             var contentField = mgtField;
-            self.managmentItems = [];
+            self.managementItems = [];
 
             angular.forEach(contentField, function (value, key) {
               if (key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
                 key.toString().charAt(0) !== ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
                 var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents, null, false);
                 fieldSetSecond.isChild = false;
-                self.managmentItems.push(fieldSetSecond);
+                self.managementItems.push(fieldSetSecond);
+              }
+              if (key !== ARCHIVE_UNIT_MODULE_CONST.MGT_KEY && key !== ARCHIVE_UNIT_MODULE_CONST.ID_KEY &&
+                key.toString().charAt(0) !== ARCHIVE_UNIT_MODULE_CONST.TECH_KEY) {
+                var fieldSetSecond = buildSingleField(value, key, ARCHIVE_UNIT_MODULE_CONST.MGT_WITH_CSHARP_KEY, fieldSet.parents, null, false);
+                fieldSetSecond.isChild = false;
+                self.managementItems.push(fieldSetSecond);
               }
             });
           }

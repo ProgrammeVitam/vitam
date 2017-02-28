@@ -100,7 +100,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * and no tenant
      */
     GUIDImplPrivate() {
-        this(0, 0, ServerIdentity.getInstance().getPlatformId(), false);
+        this(0, 0, ServerIdentity.getInstance().getGlobalPlatformId(), false);
     }
 
     /**
@@ -110,7 +110,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     GUIDImplPrivate(final int objectTypeId) {
-        this(objectTypeId, 0, ServerIdentity.getInstance().getPlatformId(), false);
+        this(objectTypeId, 0, ServerIdentity.getInstance().getGlobalPlatformId(), false);
     }
 
     /**
@@ -121,7 +121,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     GUIDImplPrivate(final int objectTypeId, final int tenantId) {
-        this(objectTypeId, tenantId, ServerIdentity.getInstance().getPlatformId(), false);
+        this(objectTypeId, tenantId, ServerIdentity.getInstance().getGlobalPlatformId(), false);
     }
 
     /**
@@ -132,7 +132,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     GUIDImplPrivate(final boolean worm) {
-        this(0, 0, ServerIdentity.getInstance().getPlatformId(), worm);
+        this(0, 0, ServerIdentity.getInstance().getGlobalPlatformId(), worm);
     }
 
     /**
@@ -143,7 +143,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     GUIDImplPrivate(final int objectTypeId, final boolean worm) {
-        this(objectTypeId, 0, ServerIdentity.getInstance().getPlatformId(), worm);
+        this(objectTypeId, 0, ServerIdentity.getInstance().getGlobalPlatformId(), worm);
     }
 
     /**
@@ -155,7 +155,7 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     GUIDImplPrivate(final int objectTypeId, final int tenantId, final boolean worm) {
-        this(objectTypeId, tenantId, ServerIdentity.getInstance().getPlatformId(), worm);
+        this(objectTypeId, tenantId, ServerIdentity.getInstance().getGlobalPlatformId(), worm);
     }
 
     /**

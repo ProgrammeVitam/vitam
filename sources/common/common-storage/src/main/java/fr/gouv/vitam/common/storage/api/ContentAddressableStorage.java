@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.api;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.List;
@@ -33,9 +34,13 @@ import java.util.List;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -312,5 +317,36 @@ public interface ContentAddressableStorage {
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
-    
+
+    /**
+     * @param containerName the container name
+     * @param objectId the objectId to check
+     * @return MetadatasObjectResult
+     * @throws ContentAddressableStorageException
+     * @throws IOException
+     */
+    MetadatasObject getObjectMetadatas(String containerName, String objectId) throws
+        ContentAddressableStorageException, IOException;
+
+    /**
+     * List container (create cursor)
+     *
+     * @param containerName the container name
+     * @return container listing
+     * @throws ContentAddressableStorageNotFoundException
+     */
+    PageSet<? extends StorageMetadata> listContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException;
+
+    /**
+     * List container (next on cursor)
+     *
+     * @param containerName the container name
+     * @param nextMarker the last id of the list to get next
+     * @return container listing
+     * @throws ContentAddressableStorageNotFoundException
+     */
+    PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
+        throws ContentAddressableStorageNotFoundException;
+
 }

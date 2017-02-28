@@ -44,7 +44,7 @@ public class ServerIdentityConfigurationImplTest {
     public void testBadConfiguration() {
         ServerIdentityConfigurationImpl siConf0 = new ServerIdentityConfigurationImpl();
         try {
-            siConf0.setIdentityPlatformId(-16);
+            siConf0.setIdentityServerId(-16);
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
@@ -69,21 +69,21 @@ public class ServerIdentityConfigurationImplTest {
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            siConf0 = new ServerIdentityConfigurationImpl("", 265, "AAA");
+            siConf0 = new ServerIdentityConfigurationImpl("", 265, 1, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            siConf0 = new ServerIdentityConfigurationImpl("AAA", -265, "AAA");
+            siConf0 = new ServerIdentityConfigurationImpl("AAA", -265, 1, "AAA");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
         try {
-            siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, "");
+            siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, 1, "");
             fail(EXPECTING_EXCEPTION_ILLEGAL_ARGUMENT_EXCEPTION);
         } catch (final IllegalArgumentException e) {// NOSONAR ignore
         }
-        siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, "BBB");
+        siConf0 = new ServerIdentityConfigurationImpl("AAA", 265, 1, "BBB");
     }
 
     @Test
@@ -92,10 +92,10 @@ public class ServerIdentityConfigurationImplTest {
         final String string0 = siConf0.getIdentityName();
         assertNull(string0);
         assertNull(siConf0.getIdentityRole());
-        assertEquals(0, siConf0.getIdentityPlatformId());
-        siConf0.setIdentityName("id1").setIdentityPlatformId(1).setIdentityRole("role1");
+        assertEquals(0, siConf0.getIdentitySiteId());
+        siConf0.setIdentityName("id1").setIdentitySiteId(1).setIdentityRole("role1");
         assertEquals("id1", siConf0.getIdentityName());
-        assertEquals(1, siConf0.getIdentityPlatformId());
+        assertEquals(1, siConf0.getIdentitySiteId());
         assertEquals("role1", siConf0.getIdentityRole());
     }
 }

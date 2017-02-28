@@ -26,8 +26,10 @@
  */
 
 angular.module('lifecycle')
-  .controller('lifeCycleController', function($routeParams, $filter, ihmDemoFactory, loadStaticValues) {
+  .controller('lifeCycleController', function($scope, $routeParams, $filter, ihmDemoFactory, loadStaticValues, logbookEntryFullService, resultStartService) {
     var self = this;
+
+    self.startForma = resultStartService.startFormat;
 
     function initFields(fields) {
       var result = [];
@@ -129,6 +131,10 @@ angular.module('lifecycle')
               } else {
                 newEvent[uppercaseKey] = value;
               }
+
+              if (uppercaseKey === 'OUTCOME') {
+                newEvent.outcomeValue = value.toUpperCase();
+              }
             });
 
             // Add class type
@@ -145,18 +151,18 @@ angular.module('lifecycle')
       });
     };
 
-      self.startFormat = function(){
-        var start="";
+    $scope.selectStyleByStepLevel = function(isStepLevelEvent){
+      if (isStepLevelEvent) {
+        return "logbookProcess";
+      }
+      else {
+        return "logbookTask";
+      }
+    };
 
-        if(self.currentPage > 0 && self.currentPage <= self.resultPages){
-          start= (self.currentPage-1)*self.itemsPerPage;
-        }
-
-        if(self.currentPage>self.resultPages){
-          start= (self.resultPages-1)*self.itemsPerPage;
-        }
-        return start;
-      };
+    $scope.selectStyleByStatus = function(status){
+      return logbookEntryFullService.selectClassByStatus(status);
+    };
 
     // Display life cycle
     buildLifeCycle();

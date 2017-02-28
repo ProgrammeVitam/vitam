@@ -29,14 +29,18 @@ package fr.gouv.vitam.logbook.lifecycles.core;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -48,14 +52,15 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -66,7 +71,9 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
@@ -75,23 +82,33 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
 public class LogbookLifeCyclesImplWithMongoTest {
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static JunitHelper junitHelper;
     private static int port;
 
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
+
     private LogbookLifeCyclesImpl logbookLifeCyclesImpl;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
     private static LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersBAD;
+    private static final int tenantId = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+    
     // ObjectGroup
-    private static int tenantId = 0;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersBAD;
 
@@ -110,12 +127,23 @@ public class LogbookLifeCyclesImplWithMongoTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(nodes,
-                    "vitam-test"));
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
         logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
         logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
@@ -184,6 +212,9 @@ public class LogbookLifeCyclesImplWithMongoTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         mongoDbAccess.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(port);
@@ -298,7 +329,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectUnit(JsonHandler.getFromString(select.getFinalSelect().toString()));
+        logbookLifeCyclesImpl.selectUnit(JsonHandler.getFromString(select.getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -409,7 +441,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectObjectGroup(JsonHandler.getFromString(select.getFinalSelect().toString()));
+        logbookLifeCyclesImpl.selectObjectGroup(JsonHandler.getFromString(select.getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)
@@ -425,18 +458,19 @@ public class LogbookLifeCyclesImplWithMongoTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         String result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LogbookCollections.LIFECYCLE_UNIT);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorUnitNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP);
         assertNotNull(result);
         assertNotNull(logbookLifeCyclesImpl.getCursorObjectGroupNext(result));
         logbookLifeCyclesImpl.finalizeCursor(result);
 
         result = logbookLifeCyclesImpl.createCursorUnit(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LogbookCollections.LIFECYCLE_UNIT);
         assertNotNull(result);
         while (true) {
             try {
@@ -451,7 +485,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
         } catch (final LogbookDatabaseException e) {}
         logbookLifeCyclesImpl.finalizeCursor(result);
         result = logbookLifeCyclesImpl.createCursorObjectGroup(iop.getId(),
-            JsonHandler.getFromString(new Select().getFinalSelect().toString()), LifeCycleStatusCode.COMMITTED);
+            JsonHandler.getFromString(new Select().getFinalSelect().toString()),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP);
         assertNotNull(result);
         while (true) {
             try {

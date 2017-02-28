@@ -44,5 +44,6 @@ angular.module('ihm.demo', [
   'pascalprecht.translate',
   'accession.register.search',
   'accession.register.details',
-  'flow'
+  'flow',
+  'workflows'
 ]);

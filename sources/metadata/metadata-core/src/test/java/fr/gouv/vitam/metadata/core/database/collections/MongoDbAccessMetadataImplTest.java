@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -63,10 +65,10 @@ import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 public class MongoDbAccessMetadataImplTest {
 
     private static final String DEFAULT_MONGO =
-        "ObjectGroup\n" + "Unit\n" + "Unit Document{{v=1, key=Document{{_id=1}}, name=_id_, ns=vitam-test.Unit}}\n" +
-            "Unit Document{{v=1, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.Unit}}\n" +
-            "ObjectGroup Document{{v=1, key=Document{{_id=1}}, name=_id_, ns=vitam-test.ObjectGroup}}\n" +
-            "ObjectGroup Document{{v=1, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.ObjectGroup}}\n";
+        "ObjectGroup\n" + "Unit\n" + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=vitam-test.Unit}}\n" +
+            "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.Unit}}\n" +
+            "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=vitam-test.ObjectGroup}}\n" +
+            "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test.ObjectGroup}}\n";
 
     private static final String s1 = "{\"_id\":\"id1\", \"title\":\"title1\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String s2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
@@ -77,6 +79,7 @@ public class MongoDbAccessMetadataImplTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
 
+    static final List<Integer> tenantList = Arrays.asList(0);
     private static ElasticsearchAccessMetadata esClient;
 
     static MongodExecutable mongodExecutable;
@@ -85,7 +88,7 @@ public class MongoDbAccessMetadataImplTest {
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
-    static final String JETTY_CONFIG = "jetty-config-test.xml";
+
     static int port;
     static MongoDbAccessMetadataImpl mongoDbAccess;
     static MongoDbAccessMetadataFactory mongoDbAccessFactory;
@@ -117,8 +120,11 @@ public class MongoDbAccessMetadataImplTest {
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess = MongoDbAccessMetadataFactory
-            .create(new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes));
+        final MetaDataConfiguration config =
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+        config.setTenants(tenantList);
+
+        mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
 
         final MongoClientOptions options = MongoDbAccessMetadataImpl.getMongoClientOptions();
         mongoClient = new MongoClient(new ServerAddress(DATABASE_HOST, port), options);
@@ -149,29 +155,29 @@ public class MongoDbAccessMetadataImplTest {
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient);
-        assertEquals(DEFAULT_MONGO, mongoDbAccess.toString());
-        assertEquals("Unit", MetadataCollections.C_UNIT.getName());
-        assertEquals("ObjectGroup", MetadataCollections.C_OBJECTGROUP.getName());
-        assertEquals(0, MongoDbAccessMetadataImpl.getUnitSize());
-        assertEquals(0, MongoDbAccessMetadataImpl.getObjectGroupSize());
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient, tenantList);
+        assertThat(mongoDbAccess.toString()).isEqualTo(DEFAULT_MONGO);
+        assertThat(MetadataCollections.C_UNIT.getName()).isEqualTo("Unit");
+        assertThat(MetadataCollections.C_OBJECTGROUP.getName()).isEqualTo("ObjectGroup");
+        assertThat(MongoDbAccessMetadataImpl.getUnitSize()).isEqualTo(0);
+        assertThat(MongoDbAccessMetadataImpl.getObjectGroupSize()).isEqualTo(0);
     }
 
     @Test
     public void givenMongoDbAccessConstructorWhenCreateWithoutRecreateThenAddNothing() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
         assertEquals("", mongoDbAccess.toString());
     }
 
     @Test
     public void givenMongoDbAccessWhenFlushOnDisKThenDoNothing() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
         mongoDbAccess.flushOnDisk();
     }
 
     @Test
     public void givenMongoDbAccessWhenNoDocumentAndRemoveIndexThenThrowError() {
-        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", false, esClient, tenantList);
         MongoDbAccessMetadataImpl.resetIndexAfterImport();
         MongoDbAccessMetadataImpl.removeIndexBeforeImport();
     }

@@ -1,10 +1,13 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.eq;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 
@@ -15,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +29,10 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.utils.IOUtils;
 import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -44,19 +51,24 @@ import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
@@ -68,18 +80,27 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class LogbookAdministrationTest {
 
     private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     static LogbookDbAccess mongoDbAccess;
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static fr.gouv.vitam.common.junit.JunitHelper junitHelper;
     private static int port;
 
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
+
     private static final Integer tenantId = 0;
-    
+    static final List<Integer> tenantList = Arrays.asList(0);
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     @BeforeClass
     public static void init() throws IOException {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -90,13 +111,38 @@ public class LogbookAdministrationTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+
         List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(nodes,
-                    "vitam-test"));
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
+    }
 
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        mongoDbAccess.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
+        mongod.stop();
+        mongodExecutable.stop();
+        junitHelper.releasePort(port);
+    }
+
+    @After
+    public void tearDown() throws DatabaseException {
+        mongoDbAccess.deleteCollection(LogbookCollections.OPERATION);
     }
 
     @Rule
@@ -183,6 +229,7 @@ public class LogbookAdministrationTest {
 
         select.setQuery(findById);
         select.setLimitFilter(0, 1);
+        TraceabilityEvent firstTraceabilityOperation = extractTraceabilityEvent(logbookOperations, select);
 
         String lastTimestampToken = extractLastTimestampToken(logbookOperations, select);
         // When
@@ -191,9 +238,25 @@ public class LogbookAdministrationTest {
         // Then
         assertThat(archive).exists();
         validateFile(archive, 2, BaseXx.getBase64(lastTimestampToken.getBytes()));
+
+        select = new Select();
+        select.addOrderByDescFilter("evDateTime");
+        select.setLimitFilter(0, 1);
+        TraceabilityEvent traceabilityEvent = extractTraceabilityEvent(logbookOperations, select);
+        assertEquals(firstTraceabilityOperation.getStartDate(),
+            traceabilityEvent.getMinusOneMonthLogbookTraceabilityDate());
+        assertEquals(firstTraceabilityOperation.getStartDate(),
+            traceabilityEvent.getMinusOneYearLogbookTraceabilityDate());
+        // FIXME P0 - The previousLogbook cant be found yet. Pb with the findLastTraceabilityOperationOK Query. US/Bug
+        // will be created.
+        // assertNotNull(traceabilityEvent.getPreviousLogbookTraceabilityDate());
+        assertNotNull(traceabilityEvent.getSize());
+        assertEquals(TraceabilityType.OPERATION, traceabilityEvent.getLogType());
+
+        logbookAdministration.generateSecureLogbook();
     }
 
-    private String extractLastTimestampToken(LogbookOperationsImpl logbookOperations, Select select)
+    private TraceabilityEvent extractTraceabilityEvent(LogbookOperationsImpl logbookOperations, Select select)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         List<LogbookOperation> logbookOperationList = logbookOperations.select(select.getFinalSelect());
         LogbookOperation traceabilityOperation = Iterables.getOnlyElement(logbookOperationList);
@@ -202,9 +265,12 @@ public class LogbookAdministrationTest {
         String evDetData = (String) lastEvent.get("evDetData");
 
         // a recuperer du dernier event et non pas sur l'event parent
-        TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
-        return new String(traceabilityEvent.getTimeStampToken());
+        return JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+    }
 
+    private String extractLastTimestampToken(LogbookOperationsImpl logbookOperations, Select select)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        return new String(extractTraceabilityEvent(logbookOperations, select).getTimeStampToken());
     }
 
     private void validateFile(Path path, int numberOfElement, String previousHash)

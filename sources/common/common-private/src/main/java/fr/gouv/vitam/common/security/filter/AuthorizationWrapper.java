@@ -57,7 +57,7 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
     /**
      * @param request
      */
-    public AuthorizationWrapper(HttpServletRequest request) {
+    public AuthorizationWrapper(HttpServletRequest request) {        
         super(request);
     }
 

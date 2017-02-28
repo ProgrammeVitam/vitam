@@ -30,11 +30,13 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+
 public class WorkflowNotFoundExceptionTest {
 
 
     private static final String ERROR = "ERROR";
-    private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException";
+    private static final String EXCEPTION = "fr.gouv.vitam.common.exception.WorkflowNotFoundException";
 
     @Test
     public void testConstructor() {

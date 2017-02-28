@@ -19,12 +19,29 @@ L'IHM de recette est développée à des fins de tests uniquement.
 
 **Elle n'a aucunement vocation à être utilisée en production**
 
-Elle contient des interfaces utilisateurs permettant de :
+Elle contient des interfaces utilisateurs permettant, par tenant, de :
 
-  * administrer les collections MongoDB (référentiels, journaux, objets...)
-  * lancer des tests automatisés via SOAP UI
-  * sécuriser manuellement les journaux des opérations
-  * consulter les journaux de sécurisation
+  * Administrer les collections MongoDB (référentiels, journaux, objets...)
+  * Lancer des tests automatisés via SOAP UI
+  * Sécuriser manuellement les journaux des opérations
+  * Consulter les journaux de sécurisation
+
+Sélection d'un tenant
+----------------------------------
+Lors de la connexion, l'utilisateur n'est positionné sur aucun tenant.
+De ce fait, ses actions d'administrations sont restreintes car celles-ci sont pour la plupart liées à un tenant. Pour refléter cela, un certains nombres de boutons sont grisés et inactifs.
+
+Pour sélectionner un tenant, il suffit de choisir celui désiré dans le menu déroulant en haut à droite de l'écran et de valider sa sélection.
+
+.. image:: images/selection_tenant.png
+
+Une fois le tenant sélectionné, les boutons s'activent et l'intégralité de l'interface de recette est disponible.
+
+Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant dans lequel il veut effectuer ses opérations.
+L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
+
+
+NB : le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiels des formats est toujours disponible, même si aucun tenant n'est sélectionné.
 
 Navigation
 ----------
@@ -52,7 +69,7 @@ Actions de suppression
 ----------------------
 
 Chaque bouton "supprimer" est situé sous le titre de son action.
-Lors du clic sur un des boutons "supprimer", une fenêtre modale (popin) apparait et demande de confirmer l'action de suppression.
+Lors du clic sur un des boutons "supprimer", une fenêtre modale (popin) apparaît et demande de confirmer l'action de suppression.
 Deux choix sont proposés:
 
 - Un clic sur "Annuler", annule la demande de suppression, la fenêtre modale se ferme et rien ne se passe
@@ -64,7 +81,7 @@ Une fois la suppression effectuée, une message de confirmation s'affiche dans u
 Purge de toutes les collections VITAM
 --------------------------------------
 
-Tous les référentiels, tous les journaux ainsi que tous les objets et unités archivitiques sont supprimés de VITAM.
+Tous les référentiels, tous les journaux ainsi que tous les objets et unités archivistiques sont supprimés de VITAM.
 Suite à cette opération, chaque IHM correspondante est vide de contenu et plus aucune archive n'est présente dans VITAM.
 
 Purge des référentiels
@@ -72,7 +89,7 @@ Purge des référentiels
 
 **Référentiel des formats**
 
-Le référentiel des formats VITAM est supprimé. L'IHM du référentiel de formats est vide de contenu. Sans référentiel de formats, aucun SIP ne pourra être importé dans le SAE.
+Le référentiel des formats VITAM est supprimé **pour tous les tenants**. L'IHM du référentiel de formats est vide de contenu. Sans référentiel de formats, aucun SIP ne pourra être importé dans le SAE.
 
 
 **Référentiel des règles de gestion**
@@ -102,7 +119,7 @@ Tous les journaux du cycle de vie des objets sont supprimés de VITAM. L'IHM de 
 
 Tous les journaux des opérations sont supprimés de VITAM. Les IHM "Journal des Opérations" et "Journal des Opérations d'entrées" sont vides de contenu.
 
-Purge des Groupes d'Objets et Unités Archivistiques
+Purge des Unités Archivistiques et Groupes d'Objets
 ---------------------------------------------------
 
 **Purge des Unités Archivistiques**
@@ -125,7 +142,7 @@ L'équipe d'exploitation réalise le fichier json avec les archivistes, puis le 
 
 L'exécution des tests est ensuite lancée par les archivistes via l'IHM.
 
-Cette partie présente à la fois l'IHM et les différentes configuration à réaliser par les archivistes.
+Cette partie présente à la fois l'IHM et les différentes configurations à réaliser par les archivistes.
 
 .. image:: images/RECETTE_accueil_SOAPUI.png
 
@@ -179,7 +196,7 @@ On a donc par défaut l'arborescence suivante (le schéma suivant ne tient pas c
     |------- data.json
     \------- test.zip
 
-Pour un fichier *test.zip* placé dans le dossier racine, on entrera alors :
+Pour un fichier *test.zip* placé dans le dossier Racine, on entrera alors :
 
 ::
 
@@ -202,9 +219,9 @@ on entrera alors :
 
 **"expected"**
 
-La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le statut attendu à l'issue de l'opération d'entrée du SIP. La valeur de ce champs n'est utilisée que si les valeurs du tableau action détaillé plus bas n'est pas renseigné. Ceci permet de garder une compatibilité avec les anciens tests de non régression qui ne contenaient pas de tableau action.
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il contient le statut attendu à l'issue de l'opération d'entrée du SIP. La valeur de ce champ n'est utilisée que si les valeurs du tableau "Action" (détaillé plus bas) ne sont pas renseignées. Ceci permet de garder une compatibilité avec les anciens tests de non régression qui ne contenaient pas de tableau "Action".
 
-Les valeurs contenus dans ces champs sont en revanche ignorées si le tableau action contient des valeurs.
+Les valeurs contenus dans ces champs sont en revanche ignorées si le tableau "Action" contient des valeurs.
 
 Par exemple :
 
@@ -240,11 +257,11 @@ Par exemple :
 
   "category":"Tests sur les arborescences"
 
-**Action** : ce champs contient un tableau de n objets ayant pour but de tester des actions précises du workflow. Cet objet est structuré de la façon suivantes :
+**action** : ce champ contient un tableau de n objets ayant pour but de tester des actions précises du workflow. Un objet est structuré de la façon suivante :
 
       **name** : contient le nom de l'action à tester
 
-      **expected** : contient l'état de
+      **expected** : contient l'état attendu
 
 voici l'exemple d'une configuration pour *un jeu de test*
 
@@ -358,7 +375,7 @@ On a donc par défaut l'arborescence suivante: (le schéma suivant ne tient pas 
     \------- rules
               \------- regles_CSV.csv
 
-Pour un fichier SIP *OK_SIP.zip* et un fichier de règle de gestion *regles_CSV.csv* placé dans le dossier racine, on entrera alors :
+Pour un fichier SIP *OK_SIP.zip* et un fichier de règles de gestion *regles_CSV.csv* placés dans le dossier Racine, on entrera alors :
 
 ::
 
@@ -376,7 +393,7 @@ La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’a
  "testName": "SRC1 : chercher des unités d’archives contenant des objets dans un intervalle de dates extrêmes",
 
 **"category"**
-La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external” 
+La valeur contenue dans ce champ doit être une chaîne de caractères. Il doit être toujours “Test API external”
 
 **"tenant"**
 La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’agit de tenant qui a téléchargé le fichier SIP/règle/format. Par exemple:
@@ -386,8 +403,7 @@ La valeur contenue dans ce champ doit être une chaîne de caractères. Il s’a
  "tenant" : "0"
 
 **action**
-ce champs contient un tableau de n objets ayant pour but de contrôler les réponses de l'api external. Cet objet
-est structuré de la façon suivantes :
+ce champs contient un tableau de n objets ayant pour but de contrôler les réponses de l'api external. Un objet est structuré de la façon suivante :
 
     **name** : contient le nom de l'action à tester
 
@@ -401,7 +417,7 @@ est structuré de la façon suivantes :
 
     **expected** : est un tableau qui contient le code retour HTTP attendu (httpStatusCode) est les champs attendu dans la réponse
 
-Par example:
+Par exemple:
 
 ::
 
@@ -437,8 +453,8 @@ Le tableau de rapport apparait alors en bas de l'écran.
 
 Il contient les informations suivantes :
 
-  * Nombre de tests réalisé
-  * Nombre de test en succès
+  * Nombre de tests réalisés
+  * Nombre de tests en succès
   * Nombre de tests en échec
   * Un taleau contenant la liste des tests
 
@@ -501,7 +517,7 @@ Il contient les fichiers suivants :
 Rechercher des journaux sécurisés
 ---------------------------------
 
-L'interface de consultation des journaux est accessible par le menu : Menu > Rechercher un journal sécurisé
+L'interface de consultation des journaux sécurisés est accessible par le menu : Menu > Rechercher un journal sécurisé
 
 .. image:: images/RECETTE_consulation_journal_secu.png
 
@@ -512,7 +528,7 @@ L'interface est consituée de quatre éléments :
   * Un paginateur
   * Une zone d'affichage des résultats
 
-**Utilisation du champs date**
+**Utilisation du champ date**
 
 Le champ date permet d'afficher les journaux de type sécurisation créés après cette date. Par exemple, si on sélectionne la date 24/11/2016, seuls les journaux de type sécurisation générés le ou après le 24/11/2016 seront affichées.
 

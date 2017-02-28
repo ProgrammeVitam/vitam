@@ -179,7 +179,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     binaryObject.getAlgo() +
                     "\", \"ComputedMessageDigest\": \"" + manifestDigestString + "\"} ";
             }
-            itemStatus.setMessage(eventDetailData);
+            itemStatus.setEvDetailData(eventDetailData);
             itemStatus.setSubTaskStatus(binaryObject.getId(), itemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {

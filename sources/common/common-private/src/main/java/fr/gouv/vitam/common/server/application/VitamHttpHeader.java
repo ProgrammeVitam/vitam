@@ -76,7 +76,15 @@ public enum VitamHttpHeader {
     /**
      * The X_DIGEST_ALGORITHM used to have digest algrithm (for storage)
      */
-    X_DIGEST_ALGORITHM(GlobalDataRest.X_DIGEST_ALGORITHM, ".+");
+    X_DIGEST_ALGORITHM(GlobalDataRest.X_DIGEST_ALGORITHM, ".+"),
+
+    /**
+     * The CONTEXT_ID header, used in POST and PUT requests to ask for a particular workflow execution context
+     * stepBuStep or not </br>
+     */
+    // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
+    CONTEXT_ID(GlobalDataRest.X_CONTEXT_ID, ".+");
+
 
     private String name;
     private String regExp;

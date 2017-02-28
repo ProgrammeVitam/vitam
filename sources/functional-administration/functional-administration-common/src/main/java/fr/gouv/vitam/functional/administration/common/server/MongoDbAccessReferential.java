@@ -49,7 +49,7 @@ public interface MongoDbAccessReferential {
      * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
      */
-    public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException;
+    void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection) throws ReferentialException;
 
     /**
      * insert documents
@@ -58,7 +58,7 @@ public interface MongoDbAccessReferential {
      * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
      */
-    public void insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection) throws ReferentialException;
+    void insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection) throws ReferentialException;
 
     /**
      * Delete FileFormat collections
@@ -66,7 +66,7 @@ public interface MongoDbAccessReferential {
      * @param collection collection of Mongo for insert
      * @throws DatabaseException thrown when error on delete
      */
-    public void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException, ReferentialException;
+    void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException, ReferentialException;
 
     /**
      * @param id of vitam document
@@ -74,7 +74,7 @@ public interface MongoDbAccessReferential {
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
-    public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
+    VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException;
 
     /**
@@ -84,7 +84,7 @@ public interface MongoDbAccessReferential {
      * @param action
      * @throws ReferentialException when error occurs
      */
-    public void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
+    void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
         UPDATEACTION action)
         throws ReferentialException;
 
@@ -94,7 +94,6 @@ public interface MongoDbAccessReferential {
      * @return vitam document list
      * @throws ReferentialException when error occurs
      */
-    public MongoCursor<?> findDocuments(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;
-
+    MongoCursor<?> findDocuments(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;  
 
 }

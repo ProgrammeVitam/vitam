@@ -27,10 +27,19 @@
 package fr.gouv.vitam.processing.management.api;
 
 
+
+import java.util.List;
+
+import javax.ws.rs.container.AsyncResponse;
+
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.processing.common.exception.ProcessWorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
@@ -40,16 +49,70 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  *
  */
 public interface ProcessManagement extends VitamAutoCloseable {
+
+
     /**
-     * execute Vitam process by workflow id
+     * Initialize Workflow context
+     * 
+     * @param @NotNull workParams
+     * @param @NotNull workflowId
+     * @throws ProcessingException
+     */
+    ProcessWorkflow initWorkflow(WorkerParameters workParams, String workflowId, LogbookTypeProcess logbookTypeProcess,
+        AsyncResponse asyncResponse, Integer tenantId)
+        throws ProcessingException;
+
+
+    /**
+     * Starts Workflow process
      *
      * @param workParams null not allowed
      * @param workflowId null not allowed
+     * @param executionMode null not allowed
      * @return Response :global process response such as OK, KO, FATAL,WARNING
      * @throws WorkflowNotFoundException thrown if the workflow was not found
      * @throws ProcessingException thrown in case of a technical exception in the execution
      * @throws IllegalArgumentException thrown in case parameters workParams or workflowId are null
      *
      */
-    ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId) throws ProcessingException;
+    ItemStatus submitWorkflow(WorkerParameters workParams, String workflowId, ProcessAction executionMode,
+        AsyncResponse asyncResponse, Integer tenantId)
+        throws ProcessingException;
+
+    /**
+     * Cancels Process Workflow
+     * 
+     * @param operationId the operation identifier process to cancel
+     * @return Response :global process response such as OK, KO, FATAL,WARNING
+     * @throws ProcessingException
+     * @throws WorkflowNotFoundException
+     */
+
+    ItemStatus cancelProcessWorkflow(String operationId, Integer tenantId, AsyncResponse asyncResponse)
+        throws ProcessWorkflowNotFoundException, WorkflowNotFoundException, ProcessingException;
+
+    /**
+     * Pauses Process workflow
+     * 
+     * @param operationId the operation identifier process to pause
+     * @return Response :global process response such as OK, KO, FATAL,WARNING
+     */
+    ItemStatus pauseProcessWorkFlow(String operationId, Integer tenantId, AsyncResponse asyncResponse)
+        throws ProcessingException;
+
+    /**
+     * Retrieve All the workflow process for monitoring purpose The final business scope of this feature is likely to be
+     * redefined, to match the future need
+     * 
+     * @return All the workflow process details
+     */
+    List<ProcessWorkflow> getAllWorkflowProcess(Integer tenantId);
+
+    /**
+     * TODO add java doc
+     * 
+     * @return the workFlow process
+     */
+    ProcessWorkflow getWorkflowProcessById(String operationId, Integer tenantId);
+
 }

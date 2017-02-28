@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.14.0-SNAPSHOT</version>
+		<version>0.15.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>common</artifactId>
@@ -20,5 +20,6 @@
 		<module>common-format-identification</module>
 		<module>common-http-interface</module>
 		<module>common-storage</module>
+		<module>common-plugin</module>
 	</modules>
 </project>

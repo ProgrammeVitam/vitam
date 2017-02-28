@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.14.0-SNAPSHOT</version>
+		<version>0.15.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing</artifactId>
 	<packaging>pom</packaging>
@@ -18,5 +18,6 @@
 		<module>processing-distributor</module>
 		<module>processing-distributor-client</module>
 		<module>processing-monitoring</module>
+		<module>processing-data</module>
 	</modules>
 </project>

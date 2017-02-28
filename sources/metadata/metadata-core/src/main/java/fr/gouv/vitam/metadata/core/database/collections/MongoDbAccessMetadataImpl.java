@@ -28,6 +28,8 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import static com.mongodb.client.model.Indexes.hashed;
 
+import java.util.List;
+
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -66,7 +68,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      */
 
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
-        ElasticsearchAccessMetadata esClient) {
+        ElasticsearchAccessMetadata esClient, List<Integer> tenants) {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
 
@@ -85,11 +87,14 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
         // init Unit Mapping for ES
         MetadataCollections.C_UNIT.initialize(this.esClient);
-        MetadataCollections.C_UNIT.getEsClient().addIndex(MetadataCollections.C_UNIT);
 
         // init OG Mapping for ES
         MetadataCollections.C_OBJECTGROUP.initialize(this.esClient);
-        MetadataCollections.C_OBJECTGROUP.getEsClient().addIndex(MetadataCollections.C_OBJECTGROUP);
+
+        for (Integer tenant : tenants) {
+            MetadataCollections.C_UNIT.getEsClient().addIndex(MetadataCollections.C_UNIT, tenant);
+            MetadataCollections.C_OBJECTGROUP.getEsClient().addIndex(MetadataCollections.C_OBJECTGROUP, tenant);
+        }
     }
 
     /**
@@ -187,51 +192,52 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     }
 
     /**
-     * Delete Object Group metadata Not check, test feature !
+     * Delete Unit metadata by tenant Not check, test feature !
      *
      * @throws DatabaseException thrown when error on delete
      */
-    public void deleteObjectGroup() throws DatabaseException {
-        final long count = MetadataCollections.C_OBJECTGROUP.getCollection().count();
+    public void deleteUnitByTenant(Integer... tenantIds) throws DatabaseException {
+        final long count = MetadataCollections.C_UNIT.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(MetadataCollections.C_OBJECTGROUP.getName() + " count before: " + count);
+            LOGGER.debug(MetadataCollections.C_UNIT.getName() + " count before: " + count);
         }
-        if (count > 0) {
-            final DeleteResult result = MetadataCollections.C_OBJECTGROUP.getCollection().deleteMany(new Document());
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(MetadataCollections.C_OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
-                    .getDeletedCount());
-            }
-            esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP);
-            if (result.getDeletedCount() != count) {
-                throw new DatabaseException(
-                    String.format("%s: Delete %s from %s elements", MetadataCollections.C_OBJECTGROUP.getName(), result
-                        .getDeletedCount(), count));
+        for (Integer tenantId : tenantIds) {
+            if (count > 0) {
+                final DeleteResult result =
+                    MetadataCollections.C_UNIT.getCollection().deleteMany(new Document().append("_tenant", tenantId));
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(MetadataCollections.C_UNIT.getName() + " result.result.getDeletedCount(): " + result
+                        .getDeletedCount());
+                }
+
+                esClient.deleteIndex(MetadataCollections.C_UNIT, tenantId);
+                esClient.addIndex(MetadataCollections.C_UNIT, tenantId);
             }
         }
     }
 
     /**
-     * Delete Unit metadata Not check, test feature !
+     * Delete Object Group metadata by Tenant Not check, test feature !
      *
      * @throws DatabaseException thrown when error on delete
      */
-    public void deleteUnit() throws DatabaseException {
-        final long count = MetadataCollections.C_UNIT.getCollection().count();
+    public void deleteObjectGroupByTenant(Integer... tenantIds) throws DatabaseException {
+        final long count = MetadataCollections.C_OBJECTGROUP.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(MetadataCollections.C_UNIT.getName() + " count before: " + count);
+            LOGGER.debug(MetadataCollections.C_OBJECTGROUP.getName() + " count before: " + count);
         }
-        if (count > 0) {
-            final DeleteResult result = MetadataCollections.C_UNIT.getCollection().deleteMany(new Document());
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(MetadataCollections.C_UNIT.getName() + " result.result.getDeletedCount(): " + result
-                    .getDeletedCount());
-            }
-            esClient.deleteIndex(MetadataCollections.C_UNIT);
-            if (result.getDeletedCount() != count) {
-                throw new DatabaseException(
-                    String.format("%s: Delete %s from %s elements", MetadataCollections.C_UNIT.getName(), result
-                        .getDeletedCount(), count));
+        for (Integer tenantId : tenantIds) {
+            if (count > 0) {
+                final DeleteResult result =
+                    MetadataCollections.C_OBJECTGROUP.getCollection().deleteMany(new Document().append("_tenant", tenantId));
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(
+                        MetadataCollections.C_OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
+                            .getDeletedCount());
+                }
+                esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
+                esClient.addIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
             }
         }
     }

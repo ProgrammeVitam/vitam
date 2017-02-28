@@ -33,16 +33,22 @@ import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties;
 import org.jclouds.openstack.swift.v1.SwiftApi;
 import org.jclouds.openstack.swift.v1.domain.Account;
+import org.jclouds.openstack.swift.v1.domain.Container;
+import org.jclouds.openstack.swift.v1.domain.SwiftObject;
 import org.jclouds.openstack.swift.v1.features.AccountApi;
 import org.jclouds.openstack.swift.v1.features.ContainerApi;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.model.ContainerInformation;
 
@@ -170,7 +176,6 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         return accountApi;
     }
 
-
     /**
      * @return swiftApi
      */
@@ -200,5 +205,32 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
         return maxResults;
     }
 
+    @Override
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
+        throws ContentAddressableStorageException {
+        MetadatasStorageObject result = new MetadatasStorageObject();
+        // TODO store vitam metadatas
+        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+        result.setType(containerName.split("_")[1]);
+        result.setLastAccessDate(null);
+        if (objectId != null) {
+            SwiftObject swiftobject = getSwiftAPi()
+                .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
+
+            result.setObjectName(objectId);
+            //TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+            result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
+            result.setLastModifiedDate(swiftobject.getLastModified().toString());
+        } else {
+            Container container = getContainerApi().get(containerName);
+            result.setObjectName(containerName);
+            result.setDigest(null);
+            result.setFileSize(container.getBytesUsed());
+            result.setLastModifiedDate(null);
+        }
+
+        return result;
+    }
 
 }

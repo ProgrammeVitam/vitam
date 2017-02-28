@@ -209,7 +209,6 @@ public class LogbackLoggerTest {
         }
         AbstractVitamLogger.simpleClassName(LogbackLoggerTest.class);
         AbstractVitamLogger.simpleClassName(new Object());
-        AbstractVitamLogger.getMessagePrepend();
     }
 
 }

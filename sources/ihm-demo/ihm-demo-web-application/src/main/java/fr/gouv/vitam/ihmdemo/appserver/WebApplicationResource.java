@@ -44,11 +44,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
@@ -77,7 +79,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -86,6 +92,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -93,6 +100,7 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamStreamingOutput;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -131,6 +139,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final int GUID_INDEX = 0;
     private static final int RESPONSE_STATUS_INDEX = 1;
     private static final int ATR_CONTENT_INDEX = 2;
+    private static final String DEFAULT_CONTEXT = "defaultContext";
 
     private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
@@ -143,6 +152,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param webApplicationConfig
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
+        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
         this.webApplicationConfig = webApplicationConfig;
     }
 
@@ -155,22 +165,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/messages/logbook")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getLogbookMessages() {
-        // TODO P0 : If translation key could be the same in different .properties file, MUST add an unique prefix per
+        // TODO P0 : If translation key could be the same in different
+        // .properties file, MUST add an unique prefix per
         // file
         return Response.status(Status.OK).entity(VitamLogbookMessages.getAllMessages()).build();
-    }
-
-
-    /**
-     * Retrieve all the tenants defined on the plateform
-     *
-     * @return Response containing a list of tenants as string
-     */
-    @GET
-    @Path("/tenants")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getTenants() {
-        return Response.status(Status.OK).entity(webApplicationConfig.getTenants()).build();
     }
 
     /**
@@ -184,11 +182,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getArchiveSearchResult(@Context HttpHeaders headers, String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
+            setTenantIdInSession(headers);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
             final Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
-            final RequestResponse searchResult =
-                UserInterfaceTransactionManager.searchUnits(preparedQueryDsl, getTenantId(headers));
+            final RequestResponse searchResult = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl);
             return Response.status(Status.OK).entity(searchResult).build();
 
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -217,13 +215,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getArchiveUnitDetails(@Context HttpHeaders headers, @PathParam("id") String unitId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
         try {
+            setTenantIdInSession(headers);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
             // Prepare required map
             final Map<String, String> selectUnitIdMap = new HashMap<>();
             selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+            selectUnitIdMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-            final RequestResponse archiveDetails =
-                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedQueryDsl, unitId, getTenantId(headers));
+            final RequestResponse archiveDetails = UserInterfaceTransactionManager
+                .getArchiveUnitDetails(preparedQueryDsl, unitId);
 
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -265,22 +265,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).build();
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-        Integer tenantId = getTenantId(headers);
+        Integer tenantId = setTenantIdInSession(headers);
         if (requestIds != null) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
                 result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
 
-                return Response.status(Status.OK).entity(result)
-                    .header(GlobalDataRest.X_REQUEST_ID, requestId)
+                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit())
-                    .build();
+                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
             } catch (final VitamException e) {
                 LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .build();
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             }
         } else {
             requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
@@ -291,7 +288,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
+                result = UserInterfaceTransactionManager.selectOperation(query);
 
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -300,22 +297,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .build();
+                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             } catch (final LogbookClientException e) {
                 LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .build();
+                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .build();
             }
-            return Response.status(Status.OK).entity(result)
-                .header(GlobalDataRest.X_REQUEST_ID, requestId)
+            return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                 .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                .header(IhmDataRest.X_LIMIT, pagination.getLimit())
-                .build();
+                .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
         }
     }
 
@@ -334,7 +327,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.selectOperationbyId(operationId, getTenantId(headers));
+            setTenantIdInSession(headers);
+            result = UserInterfaceTransactionManager.selectOperationbyId(operationId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -347,7 +341,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         return Response.status(Status.OK).entity(result).build();
     }
-
 
     /**
      * upload : API Endpoint that can Handle chunk mode. Chunks information are given in header (Fast catch of these
@@ -378,13 +371,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Context HttpHeaders headers, InputStream stream) {
         String operationGuidFirstLevel = null;
         File temporarySipFile = null;
+        Integer tenantId = setTenantIdInSession(headers);
         try {
             // Received chunk index
             final int currentChunkIndex = Integer.parseInt(headers.getHeaderString(FLOW_CHUNK_NUMBER_HEADER));
 
             // Total number of chunks
             final int totalChunks = Integer.parseInt(headers.getHeaderString(FLOW_TOTAL_CHUNKS_HEADER));
-
+            
+            String contextId = headers.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
+            String action = headers.getHeaderString(GlobalDataRest.X_ACTION);
+            
             if (currentChunkIndex == 1) {
                 // GUID operation (Server Application level)
                 operationGuidFirstLevel = GUIDFactory.newGUID().getId();
@@ -394,12 +391,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 try (FileOutputStream outputStream = new FileOutputStream(temporarySipFile)) {
                     StreamUtils.copy(stream, outputStream);
                 }
-
-                // if it is the last chunk => start INGEST upload
-                if (currentChunkIndex == totalChunks) {
-                    startUpload(operationGuidFirstLevel, getTenantId(headers));
-                }
-
             } else {
                 operationGuidFirstLevel = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
@@ -408,11 +399,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 try (final FileOutputStream outputStream = new FileOutputStream(temporarySipFile, true)) {
                     StreamUtils.copy(stream, outputStream);
                 }
+            }
 
-                // if it is the last chunk => start INGEST upload
-                if (currentChunkIndex == totalChunks) {
-                    startUpload(operationGuidFirstLevel, getTenantId(headers));
-                }
+            // if it is the last chunk => start INGEST upload
+            if (currentChunkIndex == totalChunks) {
+                startUpload(operationGuidFirstLevel, tenantId, contextId, action);
             }
         } catch (final IOException e) {
             LOGGER.error("Upload failed", e);
@@ -423,8 +414,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try {
-            return Response.status(Status.OK)
-                .entity(JsonHandler.getFromString(
+            return Response
+                .status(Status.OK).entity(JsonHandler.getFromString(
                     "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuidFirstLevel + "\"}"))
                 .build();
         } catch (InvalidParseOperationException e) {
@@ -433,18 +424,23 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private void startUpload(String operationGUID, Integer tenantId) {
-        final IngestThread ingestThread = new IngestThread(operationGUID, tenantId);
+
+    private void startUpload(String operationGUID, Integer tenantId, String contextId, String action) {
+        final IngestThread ingestThread = new IngestThread(operationGUID, tenantId, contextId, action);
         ingestThread.start();
     }
 
     class IngestThread extends Thread {
         String operationGuidFirstLevel;
         Integer tenantId;
+        String contextId;
+        String action;
 
-        IngestThread(String operationGuidFirstLevel, Integer tenantId) {
+        IngestThread(String operationGuidFirstLevel, Integer tenantId, String contextId, String action) {
             this.operationGuidFirstLevel = operationGuidFirstLevel;
             this.tenantId = tenantId;
+            this.contextId = contextId;
+            this.action = action;
         }
 
         @Override
@@ -455,23 +451,38 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 try {
-                    finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId);
-
+                    finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
                     final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                    final InputStream inputStream = (InputStream) finalResponse.getEntity();
-                    if (inputStream != null) {
-                        file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
-                        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                            StreamUtils.copy(inputStream, fileOutputStream);
+                    final String globalExecutionStatus =
+                        finalResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
+
+                    final boolean isCompletedProcess =
+                        globalExecutionStatus != null && (ProcessExecutionStatus.COMPLETED
+                            .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)) ||
+                            ProcessExecutionStatus.FAILED
+                                .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)));
+
+                    if (isCompletedProcess) {
+                        final InputStream inputStream = (InputStream) finalResponse.getEntity();
+                        if (inputStream != null) {
+                            file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
+                            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                                StreamUtils.copy(inputStream, fileOutputStream);
+                            }
+                            final List<Object> finalResponseDetails = new ArrayList<>();
+                            finalResponseDetails.add(guid);
+                            finalResponseDetails.add(finalResponse.getStatus());
+                            finalResponseDetails.add(file);
+                            LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                            uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+                        } else {
+                            throw new VitamClientException("No ArchiveTransferReply found in response from Server");
                         }
+                    } else {
                         final List<Object> finalResponseDetails = new ArrayList<>();
                         finalResponseDetails.add(guid);
-                        finalResponseDetails.add(finalResponse.getStatus());
-                        finalResponseDetails.add(file);
-                        LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                        finalResponseDetails.add(Status.fromStatusCode(finalResponse.getStatus()));
                         uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
-                    } else {
-                        throw new VitamClientException("No ArchiveTransferReply found in response from Server");
                     }
                 } finally {
                     DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
@@ -503,7 +514,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response checkUploadOperation(@PathParam("id_op") String operationId) {
-        // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope, dont call VITAM backend) ?
+        // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
+        // dont call VITAM backend) ?
         // 1- Check if the requested operation is done
         final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
         if (responseDetails != null) {
@@ -511,23 +523,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
                 LOGGER.debug("DEBUG: " + file + ":" + file.length());
                 return Response.status((int) responseDetails.get(RESPONSE_STATUS_INDEX))
-                    .entity(new VitamStreamingOutput(file, false))
-                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .entity(new VitamStreamingOutput(file, false)).type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
                     .header("Content-Disposition",
                         "attachment; filename=ATR_" + responseDetails.get(GUID_INDEX) + ".xml")
-                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
-                    .build();
+                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX)).build();
             } else {
                 return Response.status((Status) responseDetails.get(RESPONSE_STATUS_INDEX))
-                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX))
-                    .build();
+                    .header(GlobalDataRest.X_REQUEST_ID, responseDetails.get(GUID_INDEX)).build();
             }
         }
 
         // 2- Return the created GUID
-        return Response.status(Status.NO_CONTENT)
-            .header(GlobalDataRest.X_REQUEST_ID, operationId)
-            .build();
+        return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
     }
 
     /**
@@ -539,7 +546,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("clear/{id_op}")
     @GET
     public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
-        // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope, dont call VITAM backend) ?
+        // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
+        // dont call VITAM backend) ?
         final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
         if (responseDetails != null) {
             // Clean up uploadRequestsStatus
@@ -549,14 +557,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 file.delete();
             }
             // Cleaning process succeeded
-            return Response.status(Status.OK)
-                .header(GlobalDataRest.X_REQUEST_ID, operationId)
-                .build();
+            return Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
         } else {
             // Cleaning process failed
-            return Response.status(Status.BAD_REQUEST)
-                .header(GlobalDataRest.X_REQUEST_ID, operationId)
-                .build();
+            return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
         }
     }
 
@@ -585,6 +589,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         try {
+            setTenantIdInSession(headers);
             // Parse updateSet
             final Map<String, String> updateUnitIdMap = new HashMap<>();
             final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
@@ -599,7 +604,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
             final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap);
             final RequestResponse archiveDetails =
-                UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId, getTenantId(headers));
+                UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId);
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -626,13 +631,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileFormats(@Context HttpHeaders headers, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            setTenantIdInSession(headers);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            final RequestResponse result =
-                adminClient.findDocuments(AdminCollections.FORMATS, query, getTenantId(headers));
+            final RequestResponse result = adminClient.findDocuments(AdminCollections.FORMATS, query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -659,13 +663,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String options) {
         RequestResponse result = null;
 
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            setTenantIdInSession(headers);
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-            result = adminClient.findDocumentById(AdminCollections.FORMATS, formatId, getTenantId(headers));
+            result = adminClient.findDocumentById(AdminCollections.FORMATS, formatId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -679,7 +683,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-
     /***
      * check the referential format
      *
@@ -692,10 +695,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
-            adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            return Response.status(Status.OK).build();
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            setTenantIdInSession(headers);
+            Response response = adminClient.checkDocuments(AdminCollections.FORMATS, input);
+            switch (response.getStatusInfo().getFamily()) {
+                case SUCCESSFUL:
+                    return Response.status(Status.OK).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
@@ -719,10 +727,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
-            Status status = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            return Response.status(status).build();
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            setTenantIdInSession(headers);
+            Response response = adminClient.createDocuments(AdminCollections.FORMATS, input);
+            switch (response.getStatusInfo().getFamily()) {
+                case SUCCESSFUL:
+                    return Response.status(Status.OK).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();
@@ -747,12 +760,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
-
+            setTenantIdInSession(headers);
             final HashMap<String, String> qualifierProjection = new HashMap<>();
             qualifierProjection.put("projection_qualifiers", "#qualifiers");
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
             final RequestResponse searchResult =
-                UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId, getTenantId(headers));
+                UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl, objectGroupId);
 
             return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult.toJsonNode()))
                 .build();
@@ -789,11 +802,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId,
         @QueryParam("usage") String usage, @QueryParam("version") String version,
-        @QueryParam("filename") String filename,
-        @QueryParam("tenantId") Integer tenantId, @Suspended final AsyncResponse asyncResponse) {
+        @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId,
+        @Suspended final AsyncResponse asyncResponse) {
+        setTenantIdInSession(headers);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId,
-            usage, version, filename, tenantId));
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, version, filename));
     }
 
     /**
@@ -808,24 +822,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/ingests/{idObject}/{type}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectFromStorageAsInputStreamAsync(@Context HttpHeaders headers,
-        @PathParam("idObject") String objectId,
-        @PathParam("type") String type, @Suspended final AsyncResponse asyncResponse) {
-        Integer tenantId = getTenantId(headers);
+        @PathParam("idObject") String objectId, @PathParam("type") String type,
+        @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = setTenantIdInSession(headers);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type, tenantId));
+            .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type));
     }
 
-    private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type,
-        Integer tenantId) {
+    private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type) {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
-            Response response = client.downloadObjectAsync(objectId, collection, tenantId);
+            Response response = client.downloadObjectAsync(objectId, collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                helper.writeResponse(Response
-                    .ok()
-                    .header("Content-Disposition", "filename=" + objectId + ".xml"));
+                helper.writeResponse(Response.ok().header("Content-Disposition", "filename=" + objectId + ".xml"));
             } else {
                 helper.writeResponse(Response.status(response.getStatus()));
             }
@@ -840,7 +851,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String version,
-        String filename, Integer tenantId) {
+        String filename) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(version));
@@ -862,7 +873,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final HashMap<String, String> emptyMap = new HashMap<>();
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, objectGroupId,
-                usage, Integer.parseInt(version), filename, tenantId);
+                usage, Integer.parseInt(version), filename);
         } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());
@@ -892,13 +903,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileRules(@Context HttpHeaders headers, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            final RequestResponse result =
-                adminClient.findDocuments(AdminCollections.RULES, query, getTenantId(headers));
+            setTenantIdInSession(headers);
+            final RequestResponse result = adminClient.findDocuments(AdminCollections.RULES, query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -921,17 +931,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/rules/{id_rule}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getRuleById(@Context HttpHeaders headers, @PathParam("id_rule") String ruleId,
-        String options) {
+    public Response getRuleById(@Context HttpHeaders headers, @PathParam("id_rule") String ruleId, String options) {
         RequestResponse result = null;
 
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
+            setTenantIdInSession(headers);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
-            result = adminClient.findDocumentById(AdminCollections.RULES, ruleId, getTenantId(headers));
+            result = adminClient.findDocumentById(AdminCollections.RULES, ruleId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -945,7 +954,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-
     /***
      * check the referential rules
      *
@@ -958,17 +966,20 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
-            adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            return Response.status(Status.OK).build();
+        setTenantIdInSession(headers);
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Response response = adminClient.checkDocuments(AdminCollections.RULES, input);
+            switch (response.getStatusInfo().getFamily()) {
+                case SUCCESSFUL:
+                    return Response.status(Status.OK).build();
+                default:
+                    return Response.status(Status.BAD_REQUEST).build();
+            }
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } finally {
-            StreamUtils.closeSilently(input);
         }
     }
 
@@ -984,19 +995,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
-        try (final AdminExternalClient adminClient =
-            AdminExternalClientFactory.getInstance().getClient()) {
-            adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            return Response.status(Status.OK).build();
+        setTenantIdInSession(headers);
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Response response = adminClient.createDocuments(AdminCollections.RULES, input);
+            switch (response.getStatusInfo().getFamily()) {
+                case SUCCESSFUL:
+                    return Response.status(Status.OK).build();
+                default:
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
         } catch (final AccessExternalClientException e) {
-            return Response.status(Status.FORBIDDEN).build();
+            return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } finally {
-            StreamUtils.closeSilently(input);
         }
-
     }
 
     /**
@@ -1012,9 +1025,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getAccessionRegister(@Context HttpHeaders headers, String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         RequestResponse result = null;
+        setTenantIdInSession(headers);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options, getTenantId(headers));
+            result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options);
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -1044,8 +1058,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
         RequestResponse result = null;
         try {
+            setTenantIdInSession(headers);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options, getTenantId(headers));
+            result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options);
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -1072,10 +1087,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveunit/tree/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitTree(@Context HttpHeaders headers, @PathParam("id") String unitId,
-        String allParents) {
+    public Response getUnitTree(@Context HttpHeaders headers, @PathParam("id") String unitId, String allParents) {
 
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+        setTenantIdInSession(headers);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(allParents));
@@ -1089,14 +1104,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // 1- Build DSL Query
             final ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
-            final List<String> allParentsList =
-                StreamSupport.stream(allParentsArray.spliterator(), false).map(p -> new String(p.asText()))
-                    .collect(Collectors.toList());
+            final List<String> allParentsList = StreamSupport.stream(allParentsArray.spliterator(), false)
+                .map(p -> new String(p.asText())).collect(Collectors.toList());
             final JsonNode preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
 
             // 2- Execute Select Query
-            final RequestResponse parentsDetails =
-                UserInterfaceTransactionManager.searchUnits(preparedDslQuery, getTenantId(headers));
+            final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery);
 
             // 3- Build Unit tree (all paths)
             final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
@@ -1163,8 +1176,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getUnitLifeCycleById(@Context HttpHeaders headers, @PathParam("id_lc") String unitLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         RequestResponse result = null;
+        setTenantIdInSession(headers);
         try {
-            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId, getTenantId(headers));
+            result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -1192,10 +1206,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @PathParam("id_lc") String objectGroupLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupLifeCycleId);
         RequestResponse result = null;
-
+        setTenantIdInSession(headers);
         try {
-            result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId,
-                getTenantId(headers));
+            result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -1208,8 +1221,118 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         return Response.status(Status.OK).entity(result).build();
     }
+    
+    @GET
+    @Path("/operations")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listOperationsDetails(@Context HttpHeaders headers) {
+        Response response = null;
+        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
+            response = client.listOperationsDetails();
+            return Response.fromResponse(response).build();
+        } catch (VitamClientException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    /**
+     * Update the status of an operation.
+     *
+     * @param headers contain X-Action and X-Context-ID
+     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
+     * @param id operation identifier
+     * @param asyncResponse asyncResponse
+     * @return http response
+     */
+    @Path("operations/{id}")
+    @PUT
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
+        Response response = null;
+        ParametersChecker.checkParameter("ACTION Request must not be null",
+            headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
-    private Integer getTenantId(HttpHeaders headers) {
+        final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
+        String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
+
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+            response = ingestExternalClient.updateOperationActionProcess(xAction, id);
+            final String globalExecutionStatus =
+                response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
+
+            final boolean isCompletedProcess =
+                globalExecutionStatus != null && (ProcessExecutionStatus.COMPLETED
+                    .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)) ||
+                    ProcessExecutionStatus.FAILED
+                        .equals(ProcessExecutionStatus.valueOf(globalExecutionStatus)));
+
+            if (isCompletedProcess) {
+                final InputStream inputStream = (InputStream) response.getEntity();
+                if (inputStream != null) {
+                    File file = PropertiesUtils.fileFromTmpFolder("ATR_" + id + ".xml");
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        StreamUtils.copy(inputStream, fileOutputStream);
+                    } catch (IOException e) {
+                        throw new VitamClientException("Error during ATR generation");
+                    }
+                    LOGGER.debug("DEBUG: " + file + ":" + file.length());
+                    return Response.status((int) response.getStatus())
+                        .entity(new VitamStreamingOutput(file, false))
+                        .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                        .header("Content-Disposition",
+                            "attachment; filename=ATR_" + id + ".xml")
+                        .header(GlobalDataRest.X_REQUEST_ID, id)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, globalExecutionStatus)
+                        .build();
+                } else {
+                    throw new VitamClientException("No ArchiveTransferReply found in response from Server");
+                }
+            }
+        } catch (final ProcessingException e) {
+            // if there is an unauthorized action
+            LOGGER.error(e);
+            return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        } catch (InternalServerException | VitamClientException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        } catch (BadRequestException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+        return response;
+    }
+
+
+    @DELETE
+    @Path("/operations/{id}")
+    public Response cancelProcess(@Context HttpHeaders headers, @PathParam("id") String id) {
+        String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
+
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+
+            return ingestExternalClient.cancelOperationProcessExecution(id);
+            // ItemStatus itemStatus =
+            // ingestExternalClient.cancelOperationProcessExecution(id);
+            //
+            // // TODO check null value
+            // return Response.status(Status.OK)
+            // .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalExecutionStatus().toString())
+            // .build();
+        } catch (InternalServerException | VitamClientException | ProcessingException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        } catch (BadRequestException e) {
+            LOGGER.error(e);
+            return Response.status(Status.UNAUTHORIZED).entity(e.getMessage()).build();
+        }
+    }
+
+    private Integer setTenantIdInSession(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0
         Integer tenantId = 0;
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);

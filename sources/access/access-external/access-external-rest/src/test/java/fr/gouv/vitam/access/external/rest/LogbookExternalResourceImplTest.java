@@ -51,6 +51,7 @@ public class LogbookExternalResourceImplTest {
     private static AccessInternalClient accessInternalClient;
 
     private static final String TENANT_ID = "0";
+    private static final String UNEXISTING_TENANT_ID = "25";
 
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
@@ -76,7 +77,8 @@ public class LogbookExternalResourceImplTest {
         "    \"events\": []}";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
-    private static final String BODY_TEST_WITH_ID = "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
+    private static final String BODY_TEST_WITH_ID =
+        "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
     static String request = "{ $query: {} , $projection: {}, $filter: {} }";
     static String bad_request = "{ $query: \"bad_request\" , $projection: {}, $filter: {} }";
     static String good_id = "goodId";
@@ -146,6 +148,25 @@ public class LogbookExternalResourceImplTest {
             .post(OPERATIONS_URI)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -155,6 +176,27 @@ public class LogbookExternalResourceImplTest {
             .body(JsonHandler.getFromString(request))
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .pathParam("id_op", 1)
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .pathParam("id_op", 1)
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
             .pathParam("id_op", 1)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -176,17 +218,52 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get("/unitlifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/unitlifecycles/" + bad_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .when()
+            .get("/unitlifecycles/" + bad_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
-        PowerMockito.when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request)))
+        PowerMockito
+            .when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .param("id_lc", bad_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get("/objectgrouplifecycles/" + bad_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/objectgrouplifecycles/" + bad_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
             .when()
             .get("/objectgrouplifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -198,17 +275,53 @@ public class LogbookExternalResourceImplTest {
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(bad_request))
             .when()
             .get(OPERATIONS_URI)
             .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(bad_request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(bad_request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void testSelectOperationById_InternalServerError() throws Exception {
         PowerMockito.when(accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .pathParam("id_op", bad_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .pathParam("id_op", bad_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -233,12 +346,48 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -255,12 +404,48 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .post(OPERATIONS_URI)
             .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .post(OPERATIONS_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .post(OPERATIONS_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -276,6 +461,23 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .pathParam("id_op", good_id)
@@ -283,6 +485,25 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -298,6 +519,23 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
@@ -305,8 +543,27 @@ public class LogbookExternalResourceImplTest {
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
             .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .pathParam("id_op", good_id)
+            .when()
+            .post(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-    
+
     @Test
     public void testLifeCycleSelect() throws Exception {
         given()
@@ -319,6 +576,26 @@ public class LogbookExternalResourceImplTest {
             .get("/unitlifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
 
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/unitlifecycles/" + good_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .when()
+            .get("/unitlifecycles/" + good_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -328,6 +605,26 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get("/objectgrouplifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when()
+            .get("/objectgrouplifecycles/" + good_id)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .param("id_lc", good_id)
+            .when()
+            .get("/objectgrouplifecycles/" + good_id)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
+
 
 }

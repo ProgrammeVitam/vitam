@@ -95,7 +95,7 @@ public class CompositeItemStatusTest {
 
         final List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
         final ItemStatus parentItem4 = new ItemStatus(STEP_ID_2, "message", StatusCode.OK, statusMeter,
-            new HashMap<>(), new LinkedHashMap<>());
+            new HashMap<>(), new LinkedHashMap<>(), "", ProcessExecutionStatus.COMPLETED);
         assertEquals(StatusCode.OK, parentItem4.getGlobalStatus());
 
     }

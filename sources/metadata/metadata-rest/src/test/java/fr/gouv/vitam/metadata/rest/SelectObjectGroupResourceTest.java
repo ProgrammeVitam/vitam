@@ -118,6 +118,9 @@ public class SelectObjectGroupResourceTest {
     private static int serverPort;
     private static int dataBasePort;
     private static ElasticsearchTestConfiguration config = null;
+    static final int tenantId = 0;
+    static final List tenantList =  new ArrayList(){{add(tenantId);}};
+    
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -149,6 +152,7 @@ public class SelectObjectGroupResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
+        configuration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
 
         application = new MetaDataApplication(configuration);
@@ -203,11 +207,13 @@ public class SelectObjectGroupResourceTest {
     public void getObjectGroupPostOK() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post(OBJECT_GROUPS_URI).then()
             .statusCode(Status.CREATED.getStatusCode());

@@ -28,113 +28,95 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient,
-																										 ITEM_PER_PAGE, $timeout, loadStaticValues,$translate){
+  .controller('logbookOperationController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService, resultStartService) {
     var defaultSearchType = "--";
-    var ctrl = this;
-    ctrl.client = ihmDemoCLient.getClient('logbook');
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 0;
-    ctrl.searchOptions = {};
-    ctrl.operationList = [];
-    ctrl.resultPages = 0;
-    ctrl.searchType = defaultSearchType;
 
-		function initFields(fields) {
-			var result = [];
-			for (var i = 0, len = fields.length; i<len; i++) {
-				var fieldId = fields[i];
-				result.push({
-				 id: fieldId, label: 'operation.logbook.displayField.' + fieldId
-				 });
-				}
-			return result;
-		}
+    $scope.startFormat = resultStartService.startFormat;
 
-		loadStaticValues.loadFromFile().then(
-			function onSuccess(response) {
-				var config = response.data;
-				ctrl.customFields = initFields(config.logbookOperationCustomFields);
-			}, function onError(error) {
-
-			});
-
-		ctrl.selectedObjects = [];
-
-    function clearResults() {
-      ctrl.operationList = [];
-    }
-
-    function displayError(message) {
-      ctrl.fileNotFoundError = true;
-      ctrl.errorMessage = message;
-      ctrl.timer = $timeout(function() {
-        ctrl.fileNotFoundError = false;
-      }, 5000);
-    }
-
-    ctrl.getList = function(){
-      clearResults();
-      ctrl.fileNotFoundError = false;
-
-      ctrl.searchOptions.EventType = ctrl.searchType;
-
-      if (ctrl.searchOptions.EventType === defaultSearchType || ctrl.searchOptions.EventType == undefined) {
-        ctrl.searchOptions.EventType = "all";
+    $scope.search = {
+      form: {
+        EventID: '',
+        EventType: defaultSearchType
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
       }
-
-      ctrl.searchOptions.EventID = ctrl.searchID;
-
-      if (ctrl.searchOptions.EventID == "" || ctrl.searchOptions.EventID == undefined) {
-        ctrl.searchOptions.EventID = "all";
-      }
-
-      ctrl.searchOptions.orderby = "evDateTime";
-
-      ctrl.client.all('operations').post(ctrl.searchOptions).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
-            displayError("Veuillez ne remplir qu'un seul champ");
-          } else {
-            displayError("Il n'y a aucun résultat pour votre recherche");
-          }
-          ctrl.results = 0;
-          return;
-        }
-        ctrl.operationList = response.data.$results;
-        ctrl.resultPages = Math.ceil(ctrl.operationList.length/ctrl.itemsPerPage);
-        ctrl.results = response.data.$hits.total;
-        ctrl.currentPage = 1;
-      }, function(response) {
-        ctrl.searchOptions = {};
-        ctrl.resultPages = 0;
-        ctrl.currentPage = 0;
-        ctrl.results = 0;
-        if (ctrl.searchType !== defaultSearchType && ctrl.searchID) {
-          displayError("Veuillez ne remplir qu'un seul champ");
-        } else {
-          displayError("Il n'y a aucun résultat pour votre recherche");
-        }
-
-      });
     };
 
-		ctrl.goToDetails = function(id) {
-			$window.open('#!/admin/detailOperation/' + id)
-		};
+    $scope.dynamicTable = {
+      customFields: [],
+      selectedObjects: []
+    };
 
-    ctrl.openDialog = function($event, id) {
-      $mdDialog.show({
-        controller: 'logbookEntryController as entryCtrl',
-        templateUrl: 'views/logbookEntry.html',
-        parent: angular.element(document.body),
-        clickOutsideToClose:true,
-        targetEvent: $event,
-        locals : {
-          operationId : id
-        }
-      })
+    $scope.goToDetails = function(id) {
+      $window.open('#!/admin/detailOperation/' + id)
+    };
+
+    function initFields(fields) {
+      var result = [];
+      for (var i = 0, len = fields.length; i<len; i++) {
+        var fieldId = fields[i];
+        result.push({
+          id: fieldId, label: 'operation.logbook.displayField.' + fieldId
+        });
+      }
+      return result;
     }
+
+    loadStaticValues.loadFromFile().then(
+      function onSuccess(response) {
+        var config = response.data;
+        $scope.dynamicTable.customFields = initFields(config.logbookOperationCustomFields);
+      }, function onError(error) {
+
+      });
+
+    var preSearch = function() {
+      var requestOptions = angular.copy($scope.search.form);
+
+      if (requestOptions.EventType === defaultSearchType || requestOptions.EventType == undefined) {
+        requestOptions.EventType = "all";
+      }
+
+      if (requestOptions.EventID == "" || requestOptions.EventID == undefined) {
+        requestOptions.EventID = "all";
+      }
+
+      requestOptions.orderby = "evDateTime";
+      return requestOptions;
+    };
+
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      $scope.search.response.data = response.data.$results;
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/$scope.search.pagination.itemsPerPage);
+      $scope.search.response.totalResults = response.data.$hits.total;
+      $scope.search.pagination.currentPage = 1;
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      if ($scope.search.form.EventType !== defaultSearchType && $scope.search.form.EventID) {
+        return 'Veuillez ne remplir qu\'un seul champ';
+      } else {
+        return 'Il n\'y a aucun résultat pour votre recherche';
+      }
+    };
+
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    $scope.getList = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
   });
 
 

@@ -29,7 +29,9 @@ package fr.gouv.vitam.storage.offers.common.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.container.AsyncResponse;
@@ -37,12 +39,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -51,6 +57,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -72,6 +79,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private final Map<String, DigestType> digestTypeFor;
     private final Map<String, String> objectTypeFor;
 
+    private final Map<String, String> mapXCusor;
+
     private DefaultOfferServiceImpl() {
         StorageConfiguration configuration;
         try {
@@ -84,6 +93,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
         digestTypeFor = new HashMap<>();
         objectTypeFor = new HashMap<>();
+        mapXCusor = new HashMap<>();
     }
 
     /**
@@ -198,6 +208,18 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
+    public boolean checkDigest(String containerName, String idObject,
+        String digest) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public boolean checkDigestAlgorithm(String containerName, String idObject,
+        DigestType digestAlgorithm) {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         // TODO G1 : replace with checkObject when merged
@@ -208,4 +230,68 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
         }
     }
+
+    @Override
+    public StorageMetadatasResult getMetadatas(String containerName, String objectId) throws
+        ContentAddressableStorageException, IOException {
+        return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(containerName, objectId));
+    }
+
+    public String createCursor(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        if (!defaultStorage.isExistingContainer(containerName)) {
+            throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
+        }
+        String cursorId = GUIDFactory.newGUID().toString();
+        mapXCusor.put(getKeyMap(containerName, cursorId), null);
+        return cursorId;
+    }
+
+    @Override
+    public boolean hasNext(String containerName, String cursorId) {
+        return mapXCusor.containsKey(getKeyMap(containerName, cursorId));
+    }
+
+    @Override
+    public List<JsonNode> next(String containerName, String cursorId)
+        throws ContentAddressableStorageNotFoundException {
+        String keyMap = getKeyMap(containerName, cursorId);
+        if (mapXCusor.containsKey(keyMap)) {
+            PageSet<? extends StorageMetadata> pageSet;
+            if (mapXCusor.get(keyMap) == null) {
+                pageSet = defaultStorage.listContainer(containerName);
+            } else {
+                pageSet = defaultStorage.listContainerNext(containerName, mapXCusor.get(keyMap));
+            }
+            if (pageSet.getNextMarker() != null) {
+                mapXCusor.put(keyMap, pageSet.getNextMarker());
+            } else {
+                mapXCusor.remove(keyMap);
+            }
+            return getListFromPageSet(pageSet);
+        } else {
+            // TODO: manage with exception cursor already close
+            return null;
+        }
+    }
+
+    @Override
+    public void finalizeCursor(String containerName, String cursorId) {
+        if (mapXCusor.containsKey(getKeyMap(containerName, cursorId))) {
+            mapXCusor.remove(getKeyMap(containerName, cursorId));
+        }
+    }
+
+    private List<JsonNode> getListFromPageSet(PageSet<? extends StorageMetadata> pageSet) {
+        List<JsonNode> list = new ArrayList<>();
+        for (StorageMetadata storageMetadata : pageSet) {
+            list.add(JsonHandler.createObjectNode().put("objectId", storageMetadata.getName()));
+        }
+        return list;
+    }
+
+    private String getKeyMap(String containerName, String cursorId) {
+        return cursorId + containerName;
+    }
+
 }

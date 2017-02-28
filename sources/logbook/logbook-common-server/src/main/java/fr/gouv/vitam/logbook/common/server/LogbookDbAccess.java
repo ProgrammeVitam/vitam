@@ -35,6 +35,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -147,14 +148,16 @@ public interface LogbookDbAccess {
     /**
      * Get one Lifecycle
      *
-     * @param queryDsl
+     * @param queryDsl the DSL query
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the corresponding LogbookLibeCycle if it exists
      *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    LogbookLifeCycleUnit getLogbookLifeCycleUnit(final JsonNode queryDsl)
+    LogbookLifeCycle getLogbookLifeCycleUnit(final JsonNode queryDsl, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
@@ -412,18 +415,23 @@ public interface LogbookDbAccess {
      *
      * @param select
      * @param sliced
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnits(JsonNode select, boolean sliced)
+    MongoCursor<LogbookLifeCycle> getLogbookLifeCycleUnits(JsonNode select, boolean sliced,
+        LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
      *
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @param select
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
@@ -438,19 +446,24 @@ public interface LogbookDbAccess {
      *
      * @param select
      * @param sliced
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced)
+    MongoCursor<LogbookLifeCycle> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced,
+        LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
-     *
+     * 
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @param select
      * @return the Closeable MongoCursor of LogbookLifeCycle
      *
@@ -472,7 +485,7 @@ public interface LogbookDbAccess {
     /**
      * Get Unit LifeCycle In process
      *
-     * @param objectIdentifier
+     * @param unitId the unit id
      * @return the corresponding LogbookLifeCycleUnitInProcess if it exists
      *
      * @throws LogbookDatabaseException
@@ -485,7 +498,7 @@ public interface LogbookDbAccess {
     /**
      * Gets ObjectGroup LifeCycle In process
      *
-     * @param objectIdentifier
+     * @param objectGroupId the object group id
      * @return the corresponding LogbookLifeCycleObjectGroupInProcess if it exists
      *
      * @throws LogbookDatabaseException
@@ -566,5 +579,31 @@ public interface LogbookDbAccess {
      * @throws LogbookNotFoundException
      */
     long getLogbookLifeCyleObjectGroupInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Check if one eventIdentifier for Lifecycle exists already
+     *
+     * @param lifecycleItem
+     * @return True if one LogbookLibeCycle exists with this id
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    boolean existsLogbookLifeCycleUnitInProcess(final String lifecycleItem)
+        throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Check if one eventIdentifier for Lifecycle exists already
+     *
+     * @param lifecycleItem
+     * @return True if one LogbookLibeCycle exists with this id
+     *
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    boolean existsLogbookLifeCycleObjectGroupInProcess(final String lifecycleItem)
+        throws LogbookDatabaseException, LogbookNotFoundException;
 
 }

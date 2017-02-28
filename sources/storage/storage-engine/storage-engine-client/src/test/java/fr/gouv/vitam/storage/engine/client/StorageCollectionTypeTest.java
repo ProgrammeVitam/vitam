@@ -30,6 +30,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+
 public class StorageCollectionTypeTest {
 
     @Test

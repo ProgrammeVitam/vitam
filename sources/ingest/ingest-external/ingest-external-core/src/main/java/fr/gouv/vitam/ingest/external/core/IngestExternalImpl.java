@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
@@ -111,11 +113,8 @@ public class IngestExternalImpl implements IngestExternal {
     private static final int STATUS_ANTIVIRUS_KO = 2;
     private static final int STATUS_ANTIVIRUS_WARNING = 1;
     private static final int STATUS_ANTIVIRUS_OK = 0;
-
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
-
     private static final String PRONOM_NAMESPACE = "pronom";
-
     private final IngestExternalConfiguration config;
 
 
@@ -130,9 +129,10 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     @Override
-    public Response upload(InputStream input, AsyncResponse asyncResponse) throws IngestExternalException {
+    public Response upload(InputStream input, AsyncResponse asyncResponse, String contextId, String action)
+        throws IngestExternalException {
         ParametersChecker.checkParameter("input is a mandatory parameter", input);
-        final GUID guid = GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId());
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         VitamThreadUtils.getVitamSession().setRequestId(guid);
         // Store in local
         final GUID containerName = guid;
@@ -142,11 +142,16 @@ public class IngestExternalImpl implements IngestExternal {
         FileSystem workspaceFileSystem = null;
         Response responseNoProcess = null;
 
+        
+        String contextWithExecutionMode = contextId + "_" + action;
+        // FIXME Correct logbookTypeProcess identification
+        LogbookTypeProcess logbookTypeProcess = Contexts.valueOf(contextId).getLogbookTypeProcess();
+
         try {
 
             final LogbookOperationParameters startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid, INGEST_WORKFLOW, containerName,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                logbookTypeProcess, StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.STARTED) + " : " + ingestGuid.toString(),
                 ingestGuid);
 
@@ -162,11 +167,22 @@ public class IngestExternalImpl implements IngestExternal {
                     ingestGuid,
                     INGEST_EXT,
                     containerName,
-                    LogbookTypeProcess.INGEST,
+                    logbookTypeProcess,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.STARTED),
                     containerName);
             helper.updateDelegate(sipSanityParameters);
+
+            // call ingest internal with init action (avec contextId)
+            try (IngestInternalClient ingestClient =
+                IngestInternalClientFactory.getInstance().getClient()) {
+                ingestClient.initWorkFlow(contextWithExecutionMode);
+            } catch (VitamClientException e) {
+                throw new IngestExternalException(e);
+            } catch (VitamException e) {
+                throw new IngestExternalException(e);
+            }
+
 
             workspaceFileSystem =
                 new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
@@ -204,7 +220,7 @@ public class IngestExternalImpl implements IngestExternal {
                     ingestGuid,
                     SANITY_CHECK_SIP,
                     containerName,
-                    LogbookTypeProcess.INGEST,
+                    logbookTypeProcess,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(SANITY_CHECK_SIP, StatusCode.STARTED),
                     containerName);
@@ -257,7 +273,7 @@ public class IngestExternalImpl implements IngestExternal {
                 ingestGuid,
                 INGEST_EXT,
                 containerName,
-                LogbookTypeProcess.INGEST,
+                LogbookTypeProcess.INGEST_TEST,
                 StatusCode.UNKNOWN,
                 VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.UNKNOWN),
                 containerName);
@@ -273,7 +289,7 @@ public class IngestExternalImpl implements IngestExternal {
                         ingestGuid,
                         CHECK_CONTAINER,
                         containerName,
-                        LogbookTypeProcess.INGEST,
+                        logbookTypeProcess,
                         StatusCode.STARTED,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.STARTED),
                         containerName);
@@ -283,21 +299,23 @@ public class IngestExternalImpl implements IngestExternal {
                 formatParameters.setStatus(StatusCode.OK)
                     .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK));
+
                 try {
                     LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
-                    // instantiate SiegFried
-                    final FormatIdentifier formatIdentifier =
+                    // instantiate SiegFried final
+                    FormatIdentifier formatIdentifier =
                         FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-                    // call siegFried
-                    final List<FormatIdentifierResponse> formats =
-                        formatIdentifier.analysePath(file.toPath());
+                    // call
+                    // siegFried
+                    final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
                     final FormatIdentifierResponse format = getFirstPronomFormat(formats);
                     if (format == null) {
                         formatParameters.setStatus(StatusCode.KO);
                         formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO));
                     } else {
-                        LOGGER.debug(SIP_FORMAT + format.getMimetype());
+                        LOGGER.debug(SIP_FORMAT +
+                            format.getMimetype());
                         mimeType = format.getMimetype();
                         if (CommonMediaType.isSupportedFormat(format.getMimetype())) {
                             isSupportedMedia = true;
@@ -308,20 +326,16 @@ public class IngestExternalImpl implements IngestExternal {
                                 VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.KO, format.getMimetype()));
                         }
                     }
-
-
                 } catch (final FormatIdentifierNotFoundException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
-
                 } catch (final FormatIdentifierFactoryException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
                     formatParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
-
                 } catch (final FormatIdentifierTechnicalException e) {
                     LOGGER.error(e);
                     formatParameters.setStatus(StatusCode.FATAL);
@@ -339,11 +353,10 @@ public class IngestExternalImpl implements IngestExternal {
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.FATAL));
                 }
                 helper.updateDelegate(formatParameters);
-                // update end step param
+                // update end step param if
                 if (formatParameters.getStatus().compareTo(endParameters.getStatus()) > 1) {
                     endParameters.setStatus(formatParameters.getStatus());
                 }
-
                 // finalize end step param
                 endParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
@@ -381,10 +394,15 @@ public class IngestExternalImpl implements IngestExternal {
                 // then call back ingestClient with updateFinalLogbook
                 ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(containerName.getId()));
                 if (!isFileInfected && isSupportedMedia) {
-                    final Response response = ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType));
+                    final Response response =
+                        ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), contextWithExecutionMode);
                     final AsyncInputStreamHelper asyncHelper = new AsyncInputStreamHelper(asyncResponse, response);
                     final ResponseBuilder responseBuilder =
                         Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+
+                    // Add global execution status header
+                    responseBuilder.header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS,
+                        response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
                     asyncHelper.writeResponse(responseBuilder);
                     return response;
                 }
@@ -446,6 +464,14 @@ public class IngestExternalImpl implements IngestExternal {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",
                 "SANITY_CHECK_SIP", null, StatusCode.KO);
+
+            try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
+                client.storeATR(ingestGuid, new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)));
+            } catch (VitamClientException e) {
+                LOGGER.error(e.getMessage());
+                throw new IngestExternalException(e);
+            }
+
         } else {
             atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
                 "TransferringAgencyToBeDefined",

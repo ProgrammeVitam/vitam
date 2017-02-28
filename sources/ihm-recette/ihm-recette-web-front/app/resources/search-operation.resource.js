@@ -35,7 +35,7 @@
 // Define resources in order to call WebApp http endpoints for search operation
 angular.module('core').factory(
 		'searchOperationResource',
-		function($http, IHM_URLS) {
+		function($http, IHM_URLS, tenantService) {
 
 			var Search_operation_ROOT = '/logbooks';
 			var searchOperationResource = {};
@@ -47,7 +47,7 @@ angular.module('core').factory(
 			 */
 			searchOperationResource.result = function(options) {
 				return $http.post(IHM_URLS.IHM_BASE_URL
-					+ Search_operation_ROOT, options, {'headers' : {'X-HTTP-Method-Override' : 'GET'}});
+					+ Search_operation_ROOT, options, {'headers' : {'X-HTTP-Method-Override' : 'GET','X-Tenant-Id' : tenantService.getTenant()}});
 			};
 			return searchOperationResource;
 

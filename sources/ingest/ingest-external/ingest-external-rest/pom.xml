@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ingest-external</artifactId>
-		<version>0.14.0-SNAPSHOT</version>
+		<version>0.15.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ingest-external-rest</artifactId>
 	<name>ingest-external-rest</name>
@@ -145,41 +145,7 @@
 				</configuration>
 			</plugin>
 
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<configuration>
-					<!-- Activate docker build -->
-					<skipDockerBuild>false</skipDockerBuild>
-					<skipDockerTag>false</skipDockerTag>
-					<!-- Images specification -->
-					<baseImage>${vitam.docker.registry.pull}/${vitam.docker.baseimage.antivirus}</baseImage>
-					<imageName>${vitam.docker.registry.push}/vitam/ingest-external</imageName>
-					<!-- copy the service's jar file from target into the root directory 
-					of the image -->
-					<resources>
-						<resource>
-							<targetPath>/vitam/lib</targetPath>
-							<directory>${project.build.directory}</directory>
-							<include>${project.build.finalName}.jar</include>
-						</resource>
-						<resource>
-							<targetPath>/vitam/conf</targetPath>
-							<directory>${basedir}/src/main/config</directory>
-						</resource>
-						<resource>
-							<targetPath>/vitam/bin</targetPath>
-							<directory>${project.build.directory}/bin</directory>
-						</resource>
-						<resource>
-							<targetPath>/vitam/lib</targetPath>
-							<directory>${project.build.directory}/dependencies</directory>
-							<!--<include>*</include> -->
-						</resource>
-						<!-- KWA : add external dependencies integration heer -->
-					</resources>
-				</configuration>
-			</plugin>
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>rpm-maven-plugin</artifactId>

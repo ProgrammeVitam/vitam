@@ -121,6 +121,10 @@ public class VitamConfiguration {
      */
     public static final String STATUS_URL = "/status";
     /**
+     * General tenants path
+     */
+    public static final String TENANTS_URL = "/tenants";
+    /**
      * Default Digest Type for SECURITY
      */
     private static final DigestType SECURITY_DIGEST_TYPE = DigestType.SHA256;
@@ -575,4 +579,5 @@ public class VitamConfiguration {
     public static int getWaitingDelay() {
         return WAITING_DELAY;
     }
+
 }

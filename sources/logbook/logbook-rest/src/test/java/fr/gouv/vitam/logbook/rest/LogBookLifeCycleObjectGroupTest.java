@@ -27,8 +27,10 @@
 package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
@@ -38,7 +40,9 @@ import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
@@ -54,10 +58,12 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -66,6 +72,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 
 /**
  *
@@ -79,8 +86,19 @@ public class LogBookLifeCycleObjectGroupTest {
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String SERVER_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
+
+    private static final Integer tenantId = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
+
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
     private static final String LIFE_OBJECT_GROUP_URI = "/operations/{id_op}/objectgrouplifecycles";
@@ -110,6 +128,12 @@ public class LogBookLifeCycleObjectGroupTest {
             .build());
 
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
         serverPort = junitHelper.findAvailablePort();
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
@@ -120,11 +144,16 @@ public class LogBookLifeCycleObjectGroupTest {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
-            logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
+            logbookConf.setDbName(DATABASE_NAME).setMongoDbNodes(nodes);
+            final List<ElasticsearchNode> esNodes = new ArrayList<>();
+            esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
             logbookConf.setWorkspaceUrl("http://localhost:8001");
+            logbookConf.setClusterName(ES_CLUSTER_NAME);
+            logbookConf.setElasticsearchNodes(esNodes);
+            logbookConf.setTenants(tenantList);
 
             application = new LogbookApplication(logbookConf);
             application.start();
@@ -204,6 +233,9 @@ public class LogBookLifeCycleObjectGroupTest {
             }
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
+        }
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
         }
         mongod.stop();
         mongodExecutable.stop();

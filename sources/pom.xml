@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>fr.gouv.vitam</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.14.0-SNAPSHOT</version>
+	<version>0.15.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>vitam-parent</name>
 	<description>${project.artifactId}</description>
@@ -12,6 +12,11 @@
 	<organization>
 		<name>Vitam</name>
 	</organization>
+
+	<prerequisites>
+		<maven>3.3.9</maven>
+	</prerequisites>
+
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 	<!-- Modules -->
@@ -32,10 +37,12 @@
 		<module>ihm-demo</module>
 		<module>integration-test</module>
 		<module>ihm-recette</module>
+		<module>storage-integration-test</module>
 	</modules>
 
+
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-	<!-- Définition des SCM, ciManagement et distributionMngt -->
+	<!-- Définition des SCM, ciManagement -->
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
 	<!-- Définition de l'url du gestionnaire de source à utiliser -->
@@ -52,42 +59,6 @@
 		<url>https://dev.programmevitam.fr/jenkins/</url>
 	</ciManagement>
 
-	<!-- Dépôts Maven privés -->
-	<distributionManagement>
-		<repository>
-			<id>releases</id>
-			<url>https://dev.programmevitam.fr/nexus/content/repositories/releases/</url>
-		</repository>
-		<snapshotRepository>
-			<id>snapshots</id>
-			<url>https://dev.programmevitam.fr/nexus/content/repositories/snapshots/</url>
-		</snapshotRepository>
-	</distributionManagement>
-
-	<repositories>
-		<repository>
-			<id>vitam</id>
-			<url>https://dev.programmevitam.fr/nexus/content/groups/public/</url>
-		</repository>
-	</repositories>
-
-	<prerequisites>
-		<maven>3.3.9</maven>
-	</prerequisites>
-
-	<!-- Maven plugins repositories -->
-	<pluginRepositories>
-		<pluginRepository>
-			<id>vitam</id>
-			<url>https://dev.programmevitam.fr/nexus/content/groups/public/</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 	<!-- Définition des properties -->
@@ -99,10 +70,6 @@
 
 		<!-- Build environment Properties -->
 		<project.scm.id>vitam-gitlab</project.scm.id>
-		<vitam.docker.registry.pull>docker.programmevitam.fr</vitam.docker.registry.pull>
-		<vitam.docker.registry.push>docker.programmevitam.fr</vitam.docker.registry.push>
-		<vitam.docker.baseimage>vitam/java:0.2.0</vitam.docker.baseimage>
-		<vitam.docker.baseimage.antivirus>vitam/vitam-virus-java</vitam.docker.baseimage.antivirus>
 
 		<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 		<!-- Sonar properties -->
@@ -124,8 +91,7 @@
 		<jersey.version>2.24</jersey.version>
 		<jclouds.version>2.0.0</jclouds.version>
 		<jclouds-ceph.version>2.0.0-ceph</jclouds-ceph.version>
-		<!-- Cannot pass to guava version 20.0 because jclouds use deprecated method 
-			removed in 20.0 release (isAssignableFrom) -->
+		<!-- Cannot pass to guava version 20.0 because jclouds use deprecated method removed in 20.0 release (isAssignableFrom) -->
 		<guava.version>19.0</guava.version>
 		<log4j.version>1.2.17</log4j.version>
 		<commons-logging.version>1.2</commons-logging.version>
@@ -140,7 +106,7 @@
 		<jackson.version>2.7.8</jackson.version>
 		<!-- Move to 2.4 / 5.0 will move too Jackson https://www.elastic.co/guide/en/elasticsearch/reference/2.4/release-notes-2.4.0.html -->
 		<elasticsearch.version>2.3.5</elasticsearch.version>
-		<mongo.version>3.3.0</mongo.version>
+		<mongo.version>3.4.2</mongo.version>
 		<apache-shiro.version>1.3.2</apache-shiro.version>
 		<jetty.version>9.3.13.v20161014</jetty.version>
 		<assertj.version>3.5.2</assertj.version>
@@ -148,7 +114,7 @@
 		<junit.version>4.12</junit.version>
 		<!-- TODO: after beta, see why 2.2.12 release does not work correctly -->
 		<mockito.version>1.10.19</mockito.version>
-		<flapdoodle.version>1.50.5</flapdoodle.version>
+		<flapdoodle.version>2.0.0</flapdoodle.version>
 		<yandex.version>1.19</yandex.version>
 		<staxon.version>1.3</staxon.version>
 		<!-- was 20160212 -->
@@ -182,17 +148,69 @@
 		<skipITs>false</skipITs>
 	</properties>
 
+
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-	<!-- Définition des profils -->
+	<!-- Définition des profils de build -->
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+
 	<profiles>
 		<profile>
-			<id>pic</id>
-			<properties>
-				<vitam.docker.registry.push>vitam-prod-app-6.internet.agri:8082</vitam.docker.registry.push>
-			</properties>
+			<!-- Profile to use for all Vitam internal developers -->
+			<id>vitam</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<!-- Dépôts Maven privés -->
+			<distributionManagement>
+				<repository>
+					<id>releases</id>
+					<url>https://dev.programmevitam.fr/nexus/content/repositories/releases/</url>
+				</repository>
+				<snapshotRepository>
+					<id>snapshots</id>
+					<url>https://dev.programmevitam.fr/nexus/content/repositories/snapshots/</url>
+				</snapshotRepository>
+			</distributionManagement>
+
+			<repositories>
+				<repository>
+					<id>vitam</id>
+					<url>https://dev.programmevitam.fr/nexus/content/groups/public/</url>
+				</repository>
+			</repositories>
+
+			<!-- Maven plugins repositories -->
+			<pluginRepositories>
+				<pluginRepository>
+					<id>vitam</id>
+					<url>https://dev.programmevitam.fr/nexus/content/groups/public/</url>
+					<releases>
+						<enabled>true</enabled>
+					</releases>
+					<snapshots>
+						<enabled>false</enabled>
+					</snapshots>
+				</pluginRepository>
+			</pluginRepositories>
+		</profile>
+
+		<profile>
+			<!-- Profile to use for upstream release -->
+			<id>bintray</id>
+			<distributionManagement>
+				<repository>
+					<id>bintray-releases</id>
+					<name>vitam-maven-release</name>
+					<url>https://api.bintray.com/maven/programmevitam/vitam-maven-release/vitam/</url>
+				</repository>
+			</distributionManagement>
 		</profile>
 	</profiles>
+
+
+	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
+	<!-- Définition des plugins -->
+	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
 	<build>
 		<pluginManagement>
@@ -245,8 +263,7 @@
 					<version>2.5.2</version>
 				</plugin>
 				<plugin>
-					<!-- Copy the resources to the output directory for including in the 
-						JAR. -->
+					<!-- Copy the resources to the output directory for including in the JAR. -->
 					<artifactId>maven-resources-plugin</artifactId>
 					<!-- 3.0 ? -->
 					<version>2.7</version>
@@ -260,6 +277,7 @@
 					<version>3.5.1</version>
 				</plugin>
 				<plugin>
+					<!-- Code coverage agent -->
 					<groupId>org.jacoco</groupId>
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<version>${jacoco-maven-plugin.version}</version>
@@ -288,7 +306,6 @@
 					<version>2.19.1</version>
 					<configuration>
 						<argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
-						<!-- obsolete <forkMode>always</forkMode> -->
 						<!-- Non Parallel mode -->
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
@@ -297,7 +314,7 @@
 						<reuseForks>false</reuseForks>
 						<trimStackTrace>false</trimStackTrace>
 						<!-- Non Parallel mode -->
-						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount> 
+						<!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount>
 							<forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
 					</configuration>
 					<executions>
@@ -320,38 +337,35 @@
 					</executions>
 				</plugin>
 				<plugin>
-					<!-- Useful for integration tests - verifies the existence of certain 
-						conditions. -->
+					<!-- Useful for integration tests - verifies the existence of certain conditions. -->
 					<artifactId>maven-verifier-plugin</artifactId>
 					<version>1.1</version>
 				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Packaging types / tools : These plugins relate to packaging respective 
-					artifact types. -->
+				<!-- Packaging types / tools : These plugins relate to packaging respective artifact types. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
 					<!-- Build a JAR from the current project. -->
 					<artifactId>maven-jar-plugin</artifactId>
-					<!-- 3.0 ? -->
 					<version>2.6</version>
 					<configuration>
 						<archive>
 							<manifestEntries>
-                                <Vitam-component>true</Vitam-component>
+                                                                <Vitam-component>true</Vitam-component>
 								<Maven-groupId>${project.groupId}</Maven-groupId>
 								<Maven-artefactId>${project.artifactId}</Maven-artefactId>
 								<Maven-version>${project.version}</Maven-version>
 								<Maven-build-timestamp>${maven.build.timestamp}</Maven-build-timestamp>
-                                <Scm-tags>${git.tags}</Scm-tags>
-                                <Scm-branch>${git.branch}</Scm-branch>
-                                <Scm-dirty>${git.dirty}</Scm-dirty>
-                                <Scm-commit-id>${git.commit.id}</Scm-commit-id>
-                                <Scm-commit-id-abbrev>${git.commit.id.abbrev}</Scm-commit-id-abbrev>
-                                <Scm-commit-time>${git.commit.time}</Scm-commit-time>
-                                <!--<Scm-commit-id-describe>${git.commit.id.describe}</Scm-commit-id-describe>
-                                <Scm-closest-tag-name>${git.closest.tag.name}</Scm-closest-tag-name>
-                                <Scm-closest-tag-commit-count>${git.closest.tag.commit.count}</Scm-closest-tag-commit-count>-->
+                                                                <Scm-tags>${git.tags}</Scm-tags>
+                                                                <Scm-branch>${git.branch}</Scm-branch>
+                                                                <Scm-dirty>${git.dirty}</Scm-dirty>
+                                                                <Scm-commit-id>${git.commit.id}</Scm-commit-id>
+                                                                <Scm-commit-id-abbrev>${git.commit.id.abbrev}</Scm-commit-id-abbrev>
+                                                                <Scm-commit-time>${git.commit.time}</Scm-commit-time>
+                                                                <!--<Scm-commit-id-describe>${git.commit.id.describe}</Scm-commit-id-describe>
+                                                                <Scm-closest-tag-name>${git.closest.tag.name}</Scm-closest-tag-name>
+                                                                <Scm-closest-tag-commit-count>${git.closest.tag.commit.count}</Scm-closest-tag-commit-count>-->
 								<!-- <Sealed>true</Sealed> -->
 							</manifestEntries>
 							<manifest>
@@ -361,30 +375,12 @@
 					</configuration>
 				</plugin>
 
-				<plugin>
-					<!-- Build Docker Container from Project -->
-					<groupId>com.spotify</groupId>
-					<artifactId>docker-maven-plugin</artifactId>
-					<!-- com.spotify 0.4.10 ? -->
-					<version>0.4.9</version>
-					<configuration>
-						<skipDockerBuild>true</skipDockerBuild> <!-- Skip build by default -->
-						<skipDockerTag>true</skipDockerTag> <!-- Skip tag by default -->
-						<imageTags>
-							<imageTag>${project.version}</imageTag>
-							<imageTag>latest</imageTag>
-						</imageTags>
-						<forceTags>true</forceTags> <!-- Allow to build the same docker name twice on the build machine -->
-						<useConfigFile>true</useConfigFile> <!-- Use credentials of ~/.docker/config.json -->
-					</configuration>
-				</plugin>
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Reporting plugins : Plugins which generate reports, are configured 
+				<!-- Reporting plugins : Plugins which generate reports, are configured
 					as reports in the POM and run under the site generation lifecycle. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
-					<!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for 
-						the specified project. -->
+					<!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for the specified project. -->
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<version>2.10.4</version>
 					<configuration>
@@ -395,26 +391,26 @@
 						<excludePackageNames>fr.gouv.culture.archivesdefrance.seda.v2:org.w3._1999.xlink:org.glassfish.jersey.apache.connector:org.owasp.esapi.reference.validation</excludePackageNames>
 						<overview>${basedir}/overview.html</overview>
 						<groups>
-							<group>
-								<title>Ihm Demo </title>
-								<packages>fr.gouv.vitam.ihmdemo.*</packages>
-							</group>
-							<group>
-								<title>Ihm Recette </title>
-								<packages>fr.gouv.vitam.ihmrecette.*</packages>
-							</group>
-							<group>
-								<title>Ingest External Client </title>
-								<packages>fr.gouv.vitam.ingest.external.client*</packages>
-							</group>
-							<group>
-								<title>Ingest </title>
-								<packages>fr.gouv.vitam.ingest.*</packages>
-							</group>
-							<group>
-								<title>Access External Client </title>
-								<packages>fr.gouv.vitam.access.external.client*</packages>
-							</group>
+                            <group>
+                                <title>Ihm Demo </title>
+                                <packages>fr.gouv.vitam.ihmdemo.*</packages>
+                            </group>
+                            <group>
+                                <title>Ihm Recette </title>
+                                <packages>fr.gouv.vitam.ihmrecette.*</packages>
+                            </group>
+                            <group>
+                                <title>Ingest External Client </title>
+                                <packages>fr.gouv.vitam.ingest.external.client*</packages>
+                            </group>
+                            <group>
+                                <title>Ingest </title>
+                                <packages>fr.gouv.vitam.ingest.*</packages>
+                            </group>
+                            <group>
+                                <title>Access External Client </title>
+                                <packages>fr.gouv.vitam.access.external.client*</packages>
+                            </group>
 							<group>
 								<title>Access </title>
 								<packages>fr.gouv.vitam.access.*</packages>
@@ -466,6 +462,7 @@
 					<version>2.19.1</version>
 				</plugin>
 				<plugin>
+					<!-- Security check for dependencies -->
 					<groupId>org.owasp</groupId>
 					<artifactId>dependency-check-maven</artifactId>
 					<version>1.4.0</version>
@@ -516,8 +513,7 @@
 					</dependencies>
 				</plugin>
 				<plugin>
-					<!-- Release the current project - updating the POM and tagging in the 
-						SCM. -->
+					<!-- Release the current project - updating the POM and tagging in the SCM. -->
 					<artifactId>maven-release-plugin</artifactId>
 					<version>2.5.3</version>
 					<configuration>
@@ -526,8 +522,7 @@
 						<!--<forceUniqueArtifactVersion>true</forceUniqueArtifactVersion> -->
 						<!-- Don't ask if you want to resolve snapshots, do it -->
 						<!-- <alwaysResolveSnapshots>true</alwaysResolveSnapshots> -->
-						<!-- Don't ask which dependencies to resolve ( 0:All 1:Project Dependencies 
-							2:Plugins 3:Reports 4:Extensions ) -->
+						<!-- Don't ask which dependencies to resolve ( 0:All 1:Project Dependencies 2:Plugins 3:Reports 4:Extensions ) -->
 						<!--<alwaysResolveDependencyType>1</alwaysResolveDependencyType> -->
 						<providerImplementations>
 							<git>jgit</git>
@@ -542,8 +537,7 @@
 					</dependencies>
 				</plugin>
 				<plugin>
-					<!-- Build a JAR of sources for use in IDEs and distribution to the 
-						repository. -->
+					<!-- Build a JAR of sources for use in IDEs and distribution to the repository. -->
 					<artifactId>maven-source-plugin</artifactId>
 					<version>3.0.0</version>
 				</plugin>
@@ -551,19 +545,20 @@
 					<!-- Maven/Sonarqube integration -->
 					<groupId>org.sonarsource.scanner.maven</groupId>
 					<artifactId>sonar-maven-plugin</artifactId>
-					<version>3.0.2</version>
+					<version>3.2</version>
 				</plugin>
-				<!-- debian -->
+				
 				<plugin>
-				<artifactId>jdeb</artifactId>
-				<groupId>org.vafer</groupId>
-				<version>1.5</version>
-				<configuration>
-					<deb>${project.build.directory}/vitam-${unix.name}-${project.version}.deb</deb>
-					<snapshotExpand>true</snapshotExpand>
-					<skip>true</skip>
-					<controlDir>${project.build.directory}/control</controlDir>
-					<dataSet>
+					<!-- Debian packaging -->
+					<artifactId>jdeb</artifactId>
+					<groupId>org.vafer</groupId>
+					<version>1.5</version>
+					<configuration>
+						<deb>${project.build.directory}/vitam-${unix.name}-${project.version}.deb</deb>
+						<snapshotExpand>true</snapshotExpand>
+						<skip>true</skip>
+						<controlDir>${project.build.directory}/control</controlDir>
+						<dataSet>
 
 						<!-- Artifacts -->
 						<data>
@@ -606,7 +601,7 @@
 						</data>
 
 						<!-- Conf & other -->
-						
+
 
 						<data>
 							<src>${project.build.directory}/systemd/vitam-${unix.name}.service</src>
@@ -634,11 +629,12 @@
 							</mapper>
 						</data>
 
-					</dataSet>
-				</configuration>
-			</plugin>
-				<!-- /debian -->
+						</dataSet>
+					</configuration>
+				</plugin>
+				
 				<plugin>
+					<!-- RPM packaging -->
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>rpm-maven-plugin</artifactId>
 					<version>2.1.5</version>
@@ -703,6 +699,7 @@
 					</configuration>
 				</plugin>
 				<plugin>
+					<!-- When everything else fails... -->
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-antrun-plugin</artifactId>
 					<version>1.6</version>
@@ -722,6 +719,7 @@
 					</executions>
 				</plugin>
 				<plugin>
+					<!-- Versions handling -->
 					<groupId>org.codehaus.mojo</groupId>
 					<artifactId>versions-maven-plugin</artifactId>
 					<version>2.3</version>
@@ -1267,7 +1265,6 @@
    					 </exclusion>
 				</exclusions>
 			</dependency>
-		
 		</dependencies>
 	</dependencyManagement>
 </project>

@@ -28,7 +28,7 @@ package fr.gouv.vitam.processing.common.utils;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.processing.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 
 public class ProcessPopulatorTest {
 

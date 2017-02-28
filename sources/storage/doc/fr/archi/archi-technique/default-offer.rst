@@ -67,7 +67,7 @@ Les réponses en erreur définies par l'API Vitam sont respéctées (400, 401, 4
 REST API
 --------
 
-**GET /**
+**HEAD /**
 
 - description : recupération des informations de l'offre
 

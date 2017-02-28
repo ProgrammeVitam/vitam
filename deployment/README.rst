@@ -37,6 +37,13 @@ Pour le déployer :
 ``./generate_stores.sh <environnement>``
 ``./copie_fichiers_vitam.sh <environnement>``
 
+
+Si gestion par VITAM des repositories :
+Editer le fichier ``environments-rpm/group_vars/all/example_repo.yml`` (sert de modèle)
+Puis lancer :
+``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
+
+
 2. Lancer le playbook d'ansbible :
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
 

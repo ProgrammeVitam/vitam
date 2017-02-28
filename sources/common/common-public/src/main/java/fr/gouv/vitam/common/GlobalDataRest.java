@@ -42,6 +42,10 @@ public class GlobalDataRest {
     public static final String X_APPLICATION_ID = "X-APPLICATION-ID";
 
     /**
+     * Header Parameter X_ACTION
+     */
+    public static final String X_ACTION = "X-ACTION";
+    /**
      * Header Parameter X_REQUEST_ID
      */
     public static final String X_REQUEST_ID = "X-REQUEST-ID";
@@ -114,10 +118,17 @@ public class GlobalDataRest {
      * Recursive deletion
      */
     public static final String X_RECURSIVE = "X-Recursive";
+
     /**
      * Header use to have the body (object) size even if Content-Type is chunkec
      */
     public static final String X_CONTENT_LENGTH = "X-Content-Length";
+
+    /**
+     * X_CONTEXT_ID : used in case of POST and PUT methods to transmit workFlow execution context(stepByStep or not)
+     */
+    public static final String X_CONTEXT_ID = "X-Context-Id";
+
     /**
      * Transfer Encoding Header
      */
@@ -138,6 +149,26 @@ public class GlobalDataRest {
      */
     public static final String X_EVENT_STATUS = "X-Event-Status";
 
+
+    /**
+     * Tenant List for Initialisation of Tenant Filter
+     */
+    public static final String TENANT_LIST = "tenantList";
+
+    /**
+     * Timeout for finish worker task in millisecond
+     */
+    public static final long TIMEOUT_END_WORKER_MILLISECOND = 600;
+
+    /**
+     * number of check status retry call
+     */
+    public static final int STATUS_CHECK_RETRY = 3;
+
+    /**
+     * Global execution status
+     */
+    public static final String X_GLOBAL_EXECUTION_STATUS = "X-Global-Execution-Status";
 
     private GlobalDataRest() {
         // empty

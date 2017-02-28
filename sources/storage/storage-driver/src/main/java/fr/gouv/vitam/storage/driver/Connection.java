@@ -27,18 +27,23 @@
 
 package fr.gouv.vitam.storage.driver;
 
+import javax.ws.rs.core.Response;
+
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
+import fr.gouv.vitam.storage.driver.model.StorageListRequest;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
+
 
 /**
  * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
@@ -119,6 +124,24 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException;
+    
+    /**
+     * Get metadata of object
+     * 
+     * @param request
+     * @return
+     * @throws StorageDriverException
+     */
+    StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException;
+
+    /**
+     * List object on a container type
+     *
+     * @param request the request contains data needed to list container type
+     * @return an iterator with each object metadata
+     * @throws StorageDriverException
+     */
+    Response listObjects(StorageListRequest request) throws StorageDriverException;
 
     /**
      * Override AutoCloseable implementation to specify the exception

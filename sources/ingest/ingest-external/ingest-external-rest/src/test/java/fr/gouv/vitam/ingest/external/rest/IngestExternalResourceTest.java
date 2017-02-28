@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.ingest.external.core.Contexts;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
@@ -77,6 +78,7 @@ public class IngestExternalResourceTest {
     private static final String INGEST_URI = "/ingests";
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";
     private static final Integer TENANT_ID = 0;
+    private static final String UNEXISTING_TENANT_ID = "25";
 
     // private static VitamServer vitamServer;
     private InputStream stream;
@@ -115,11 +117,52 @@ public class IngestExternalResourceTest {
 
     @Test
     public final void testGetStatus() {
+        // test with header on
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(STATUS_URI)
             .then().statusCode(Status.NO_CONTENT.getStatusCode());
+
+        // test without header - no content must be obtained
+        given()
+            .when()
+            .get(STATUS_URI)
+            .then().statusCode(Status.NO_CONTENT.getStatusCode());
+    }
+
+    @Test
+    public void givenRequestWithoutTenantIdThenReturnPreconditionFailed()
+        throws Exception {
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+
+        given().contentType(ContentType.BINARY).body(stream)
+            .when().post(INGEST_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        RestAssured.given()
+            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void givenRequestWithoutIncorrectTenantIdThenReturnUnauthorized()
+        throws Exception {
+        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(INGEST_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        RestAssured.given()
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
@@ -131,6 +174,7 @@ public class IngestExternalResourceTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
@@ -144,6 +188,7 @@ public class IngestExternalResourceTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -157,6 +202,7 @@ public class IngestExternalResourceTest {
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -171,13 +217,14 @@ public class IngestExternalResourceTest {
         PowerMockito.mockStatic(IngestInternalClientFactory.class);
         final IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
         final IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
-        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject()))
+        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject(), anyObject()))
             .thenThrow(VitamException.class);
         PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
         PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -203,19 +250,22 @@ public class IngestExternalResourceTest {
     public void downloadObjects()
         throws Exception {
         RestAssured.given()
-        .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-        .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
-        .then().statusCode(Status.OK.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+            .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
-        .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-        .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
-        .then().statusCode(Status.OK.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
+            .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
-        .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-        .when().get(INGEST_URI + "/1/unknown")
-        .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().get(INGEST_URI + "/1/unknown")
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

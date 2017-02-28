@@ -34,12 +34,12 @@ import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventIdentifier;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.TRACEABILITY;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENTS;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -74,9 +74,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -88,11 +88,11 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -112,6 +112,8 @@ public class LogbookAdministration {
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
 
     private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
+    private static final String EVENT_ID = eventIdentifier.getDbname();
+    private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
 
     private static final String STRATEGY_ID = "default";
 
@@ -165,11 +167,8 @@ public class LogbookAdministration {
         LogbookDatabaseException, InvalidCreateOperationException {
 
         final LogbookOperation lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
+        Integer tenantId = ParameterHelper.getTenantParameter();
 
-        //Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        // TODO P0: WIP sera fixé avec la story #1653, contournement pour la démo
-        int tenantId = 0;
-        VitamThreadUtils.getVitamSession().setTenantId(0);
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         final List<String> expectedLogbookId = newArrayList(eip.getId());
@@ -180,7 +179,7 @@ public class LogbookAdministration {
         } else {
             final Date date = LocalDateUtil.getDate(lastTraceabilityOperation.getString(EVENT_DATE_TIME));
             startDate = LocalDateUtil.fromDate(date);
-            expectedLogbookId.add(lastTraceabilityOperation.getString(eventIdentifier));
+            expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
 
         final LocalDateTime currentDate = now();
@@ -194,7 +193,7 @@ public class LogbookAdministration {
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
 
-            final MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
+            MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
             final TraceabilityIterator traceabilityIterator = new TraceabilityIterator(mongoCursor);
 
             final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
@@ -207,6 +206,11 @@ public class LogbookAdministration {
                 final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
                 traceabilityFile.storeOperationLog(logbookOperation);
                 merkleTreeAlgo.addLeaf(logbookOperationStr);
+
+                if (LocalDateTime.MIN.equals(startDate) &&
+                    logbookOperation.getString(EVENT_DATE_TIME) != null) {
+                    startDate = LocalDateTime.parse(logbookOperation.getString(EVENT_DATE_TIME));
+                }
             }
 
             traceabilityFile.closeStoreOperationLog();
@@ -230,8 +234,7 @@ public class LogbookAdministration {
                 (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
 
             final byte[] timeStampToken =
-                generateTimeStampToken(eip, tenantId, rootHash, timestampToken1, timestampToken2, timestampToken3
-                );
+                generateTimeStampToken(eip, tenantId, rootHash, timestampToken1, timestampToken2, timestampToken3);
             traceabilityFile.storeTimeStampToken(timeStampToken);
 
             final long numberOfLine = traceabilityIterator.getNumberOfLine();
@@ -242,8 +245,41 @@ public class LogbookAdministration {
             traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Base64, timestampToken2Base64,
                 timestampToken3Base64);
 
-            traceabilityEvent = new TraceabilityEvent(getString(startDate), endDate, rootHash, timeStampToken,
-                numberOfLine, fileName);
+            String previousDate = null;
+            String previousMonthDate = null;
+            String previousYearDate = null;
+            if (lastTraceabilityOperation != null) {
+                TraceabilityEvent lastTraceabilityEvent = extractEventDetData(lastTraceabilityOperation);
+                if (lastTraceabilityEvent != null) {
+                    previousDate = lastTraceabilityEvent.getStartDate();
+                }
+            }
+
+            final LogbookOperation oneMounthBeforeTraceabilityOperation =
+                logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusMonths(1));
+            if (oneMounthBeforeTraceabilityOperation != null) {
+                TraceabilityEvent oneMonthBeforeTraceabilityEvent =
+                    extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                if (oneMonthBeforeTraceabilityEvent != null) {
+                    previousMonthDate = oneMonthBeforeTraceabilityEvent.getStartDate();
+                }
+            }
+
+            final LogbookOperation oneYearBeforeTraceabilityOperation =
+                logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusYears(1));
+            if (oneYearBeforeTraceabilityOperation != null) {
+                TraceabilityEvent oneYearBeforeTraceabilityEvent =
+                    extractEventDetData(oneYearBeforeTraceabilityOperation);
+                if (oneYearBeforeTraceabilityEvent != null) {
+                    previousYearDate = oneYearBeforeTraceabilityEvent.getStartDate();
+                }
+            }
+
+            long size = zipFile.length();
+
+            traceabilityEvent = new TraceabilityEvent(TraceabilityType.OPERATION, getString(startDate), endDate,
+                rootHash, timeStampToken,
+                previousDate, previousMonthDate, previousYearDate, numberOfLine, fileName, size);
 
         } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException |
             ArchiveException | InvalidParseOperationException e) {
@@ -263,7 +299,7 @@ public class LogbookAdministration {
 
             final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
-            final CreateObjectDescription description = new CreateObjectDescription();
+            final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(fileName);
             description.setWorkspaceObjectURI(uri);
 
@@ -273,21 +309,18 @@ public class LogbookAdministration {
                     STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
                 workspaceClient.deleteObject(fileName, uri);
 
-                createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, OK, null
-                );
+                createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, OK, null);
 
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {
-                createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, StatusCode.FATAL, null
-                );
+                createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, StatusCode.FATAL, null);
                 LOGGER.error("unable to store zip file", e);
                 throw new TraceabilityException(e);
             }
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
             IOException e) {
             LOGGER.error("unable to create container", e);
-            createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, StatusCode.FATAL, null
-            );
+            createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, StatusCode.FATAL, null);
             throw new TraceabilityException(e);
         } finally {
             zipFile.delete();
@@ -302,14 +335,23 @@ public class LogbookAdministration {
 
         final LogbookOperation logbookOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
 
-        if (logbookOperation == null || expectIds.contains(logbookOperation.getString(eventIdentifier))) {
+        if (logbookOperation == null || expectIds.contains(logbookOperation.getString(EVENT_ID))) {
             return null;
         }
-        expectIds.add(logbookOperation.getString(eventIdentifier));
+        expectIds.add(logbookOperation.getString(EVENT_ID));
         return extractTimestampToken(logbookOperation);
     }
 
     private String extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
+        TraceabilityEvent traceabilityEvent = extractEventDetData(logbookOperation);
+        if (traceabilityEvent == null) {
+            return null;
+        }
+        return new String(traceabilityEvent.getTimeStampToken());
+    }
+
+    private TraceabilityEvent extractEventDetData(LogbookOperation logbookOperation)
+        throws InvalidParseOperationException {
         if (logbookOperation == null) {
             return null;
         }
@@ -317,10 +359,9 @@ public class LogbookAdministration {
         final List<Document> events = (List<Document>) logbookOperation.get(EVENTS);
         final Document lastEvent = Iterables.getLast(events);
 
-        final String evDetData = (String) lastEvent.get(eventDetailData.getDbname());
+        final String evDetData = (String) lastEvent.get(EVENT_DETAIL_DATA);
 
-        final TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
-        return new String(traceabilityEvent.getTimeStampToken());
+        return JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
     }
 
     @VisibleForTesting
@@ -343,8 +384,7 @@ public class LogbookAdministration {
             return timeStampToken;
         } catch (final TimeStampException e) {
             LOGGER.error("unable to generate timestamp", e);
-            createLogbookOperationEvent(eip, tenantId, TIMESTAMP, StatusCode.FATAL, null
-            );
+            createLogbookOperationEvent(eip, tenantId, TIMESTAMP, StatusCode.FATAL, null);
             throw new TraceabilityException(e);
         }
     }
@@ -356,8 +396,7 @@ public class LogbookAdministration {
 
             LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
             logbookOperations.create(logbookParameters);
-            createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION, STARTED, null
-            );
+            createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION, STARTED, null);
         } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
             LOGGER.error("unable to create traceability logbook", e);
             throw new TraceabilityException(e);

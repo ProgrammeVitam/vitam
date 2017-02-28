@@ -29,13 +29,11 @@
 
 angular.module('search.operation')
   .controller('DetailOperationController', function($scope, $mdDialog, ihmDemoCLient, idOperationService, $routeParams , detailOperationService) {
-    var operationId = $routeParams.entryId;
+    $scope.detailId = $routeParams.entryId;
 
-    detailOperationService.getOperation(operationId,
+    detailOperationService.getOperation($scope.detailId,
 			function(response) {
 			      $scope.detail = response.data.$results[0];
-			      $scope.detailId = operationId;
-
 			});
 
   })

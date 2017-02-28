@@ -144,9 +144,14 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
+
+        // Add X-EVENT-STATUS header
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString());
+
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, oid), null,
+            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, oid), headers,
                 parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -474,8 +479,12 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
         Response response = null;
         String commitPath = OPERATIONS_URL + "/" + operationId + uri + "/" + idLc;
+        // Add X-EVENT-STATUS header
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED.toString());
+
         try {
-            response = performRequest(HttpMethod.PUT, commitPath + COMMIT_URL, null,
+            response = performRequest(HttpMethod.PUT, commitPath, headers,
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
@@ -546,6 +555,78 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+        Response response = null;
+        String headPath = UNIT_LIFECYCLES_URL + "/" + unitId;
+        LifeCycleStatusCode lifeCycleStatusCode = null;
+        try {
+            response = performRequest(HttpMethod.HEAD, headPath, null, MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    LOGGER.debug(unitId + " " + Response.Status.OK.getReasonPhrase());
+                    if (response.getHeaderString(GlobalDataRest.X_EVENT_STATUS) != null) {
+                        lifeCycleStatusCode =
+                            LifeCycleStatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_EVENT_STATUS));
+                    }
+
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(unitId + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException | IllegalArgumentException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+        return lifeCycleStatusCode;
+    }
+
+    @Override
+    public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
+        throws LogbookClientNotFoundException, LogbookClientServerException {
+        Response response = null;
+        String headPath = OBJECT_GROUP_LIFECYCLES_URL + "/" + objectGroupId;
+        LifeCycleStatusCode lifeCycleStatusCode = null;
+        try {
+            response = performRequest(HttpMethod.HEAD, headPath, null, MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    LOGGER.debug(objectGroupId + " " + Response.Status.OK.getReasonPhrase());
+                    if (response.getHeaderString(GlobalDataRest.X_EVENT_STATUS) != null) {
+                        lifeCycleStatusCode =
+                            LifeCycleStatusCode.valueOf(response.getHeaderString(GlobalDataRest.X_EVENT_STATUS));
+                    }
+
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(objectGroupId + " " + ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                    throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException | IllegalArgumentException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+        return lifeCycleStatusCode;
     }
 
 

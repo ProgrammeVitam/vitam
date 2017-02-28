@@ -62,6 +62,10 @@ public enum LogbookTypeProcess {
     /**
      * traceabiliy type process
      */
-    TRACEABILITY
+    TRACEABILITY,
+    /**
+     * INGEST (Blank test)
+     */
+    INGEST_TEST;
 
 }

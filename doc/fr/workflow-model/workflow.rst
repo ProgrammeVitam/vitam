@@ -266,6 +266,19 @@ Rangement des objets (STP_OG_STORING)
 
       - FATAL : l'indexation des métadonnées des groupes d'objets n'a pas pu être réalisée suite à une erreur système (OG_METADATA_INDEXATION.FATAL=Erreur fatale lors de l'indexation des métadonnées des objets et groupes d'objets)
 
+  * Sécurisation des métadonnées des groupes d'objets (OG_METADATA_STORAGE)
+
+    + **Règle** : les métadonnées liées aux groupes d'objets sont stockées dans l'offre de stockage afin de les sécuriser
+
+    + **Type** : bloquant.
+
+    + **Statuts** :
+
+      - OK : les métadonnées des groupes d'objets ont été sécurisées avec succès (OG_METADATA_STORAGE.OK=Succès de l'enregistrement des métadonnées des groupes d''objets)
+
+      - KO : les métadonnées des groupes d'objets n'ont pas pu être sécurisées (OG_METADATA_STORAGE.KO=Échec de l'enregistrement des métadonnées des objets et groupes d'objets)
+
+
   * Sécurisation du journal des cycles de vie des groupes d'objets (COMMIT_LIFE_CYCLE_OBJECT_GROUP) (post Bêta)
 
     + **Règle** : Suite à l'indexation des métadonnées liées aux groupe d'objets, les journaux de cycle de vie des groupes d'objets sont sécurisés en base (Avant cette étape, les journaux de cycle de vie des groupes d'objets sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les JCV lors d'une entrée en succès ou en échec)
@@ -294,6 +307,18 @@ Rangement des unites archivistiques (STP_UNIT_STORING)
       - KO : les métadonnées des unités archivistiques n'ont pas pu être indexées (UNIT_METADATA_INDEXATION.KO=Échec de l'indexation des métadonnées des unités archivistiques)
 
       - FATAL : l'indexation des métadonnées des unités archivistiques n'a pas pu être réalisée suite à une erreur système (UNIT_METADATA_INDEXATION.FATAL=Erreur fatale lors de l'indexation des métadonnées des unités archivistiques)
+
+
+  * Sécurisation des métadonnées des unités archivistiques (UNIT_METADATA_STORAGE)
+
+    + **Type** : bloquant.
+
+    + **Statuts** :
+
+      - OK : les métadonnées des unités archivistiques ont été stockées avec succès (UNIT_METADATA_STORAGE.OK=Succès de l'enregistrement des métadonnées des unités archivistiques)
+
+      - KO : les métadonnées des unités archivistiques n'ont pas pu être stockées (UNIT_METADATA_STORAGE.KO=Échec de l'enregistrement des métadonnées des unités archivistiques)
+
 
   * Sécurisation du journal des cycles de vie des unités archivistiques (COMMIT_LIFE_CYCLE_UNIT) (post Bêta)
 
@@ -661,9 +686,9 @@ D'une façon synthétique, le workflow est décrit de cette façon :
   * CHECK_SEDA (CheckSedaActionHandler.java) :
 
     + Test de l'existence du manifest.xml,
-    
+
     + Test de l'existence d'un fichier unique à la racine du SIP
-    
+
     + Test de l'existence d'un dossier unique à la racine, nommé "Content" (insensible à la casse)
 
     + Validation XSD du manifeste,

@@ -29,15 +29,15 @@ package fr.gouv.vitam.functional.administration.client;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -51,17 +51,17 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param stream as InputStream;
-     * @return status
+     * @return Response
      * @throws ReferentialException when check exception occurs
      */
-    Status checkFormat(InputStream stream) throws ReferentialException;
+    Response checkFormat(InputStream stream) throws ReferentialException;
 
     /**
      * @param stream as InputStream
      * @throws ReferentialException      when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    void importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
+    Response importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
 
 
     /**
@@ -85,27 +85,27 @@ public interface AdminManagementClient extends MockOrRestClient {
         IOException;
 
     /**
-     *
+     * Check if rule file is well formated
      * @param stream
-     * @return status
+     * @return
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
      */
-
-    Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
+    Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
+     * Import a the set of rules for a given tenant
      * @param stream
      * @throws FileRulesException                   when file rules exception occurs
      * @throws DatabaseConflictException            when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
-    void importRulesFile(InputStream stream)
+    Response importRulesFile(InputStream stream)
         throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException;
 
     /**
      *
-     * @param id ide de rule
+     * @param  id The rule identifier
      * @return Rule in JsonNode format
      * @throws FileRulesException                   when file rules exception occurs
      * @throws InvalidParseOperationException       when a parse problem occurs
@@ -115,7 +115,7 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws FileRulesException, InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
-     *
+     * List the rules that match the query
      * @param query
      * @return Rules in JsonNode format
      * @throws FileRulesException                   when file rules exception occurs

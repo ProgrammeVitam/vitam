@@ -131,16 +131,17 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public List<LogbookLifeCycleUnit> selectUnit(JsonNode select)
+    public List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        return selectUnit(select, true);
+        return selectUnit(select, true, collection);
     }
 
     @Override
-    public List<LogbookLifeCycleUnit> selectUnit(JsonNode select, boolean sliced)
+    public List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        try (final MongoCursor<LogbookLifeCycleUnit> logbook = mongoDbAccess.getLogbookLifeCycleUnits(select, sliced)) {
-            final List<LogbookLifeCycleUnit> result = new ArrayList<>();
+        try (final MongoCursor<LogbookLifeCycle> logbook =
+            mongoDbAccess.getLogbookLifeCycleUnits(select, sliced, collection)) {
+            final List<LogbookLifeCycle> result = new ArrayList<>();
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
@@ -152,29 +153,22 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public String createCursorUnit(String operationId, JsonNode select, LifeCycleStatusCode lifeCycleStatusCode)
+    public String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
         throws LogbookDatabaseException {
         String newxcursorid;
         // First time call
         newxcursorid = GUIDFactory.newGUID().toString();
         MongoCursor<LogbookLifeCycleUnit> cursor;
-        LogbookCollections collection;
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
-
-            if (LifeCycleStatusCode.NOT_COMMITTED.equals(lifeCycleStatusCode)) {
-                collection = LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS;
-            } else {
-                collection = LogbookCollections.LIFECYCLE_UNIT;
-            }
             parser.addCondition(QueryHelper.or()
                 .add(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId))
                 .add(QueryHelper.eq(
                     LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
                     operationId)));
             final Select selectRequest = parser.getRequest();
-            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(collection, selectRequest);
+            cursor = mongoDbAccess.getLogbookLifeCycleUnitsFull(logbookCollection, selectRequest);
             mapXCursor.put(newxcursorid, cursor);
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new LogbookDatabaseException(e);
@@ -205,23 +199,16 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public String createCursorObjectGroup(String operationId, JsonNode select, LifeCycleStatusCode lifeCycleStatus)
+    public String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException {
         String newxcursorid;
         // First time call
         newxcursorid = GUIDFactory.newGUID().toString();
         MongoCursor<?> cursor;
-        LogbookCollections collection;
+
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(select);
-
-            if (LifeCycleStatusCode.NOT_COMMITTED.equals(lifeCycleStatus)) {
-                collection = LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
-            } else {
-                collection = LogbookCollections.LIFECYCLE_OBJECTGROUP;
-            }
-
             parser.addCondition(QueryHelper.or()
                 .add(QueryHelper.eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId))
                 .add(QueryHelper.eq(
@@ -272,17 +259,18 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
+    public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        return selectObjectGroup(select, true);
+        return selectObjectGroup(select, true, collection);
     }
 
     @Override
-    public List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select, boolean sliced)
+    public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced,
+        LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        try (final MongoCursor<LogbookLifeCycleObjectGroup> logbook =
-            mongoDbAccess.getLogbookLifeCycleObjectGroups(select, sliced)) {
-            final List<LogbookLifeCycleObjectGroup> result = new ArrayList<>();
+        try (final MongoCursor<LogbookLifeCycle> logbook =
+            mongoDbAccess.getLogbookLifeCycleObjectGroups(select, sliced, collection)) {
+            final List<LogbookLifeCycle> result = new ArrayList<>();
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
@@ -311,8 +299,9 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public LogbookLifeCycleUnit getUnitById(JsonNode queryDsl) throws LogbookDatabaseException, LogbookNotFoundException {
-        return mongoDbAccess.getLogbookLifeCycleUnit(queryDsl);
+    public LogbookLifeCycle getUnitById(JsonNode queryDsl, LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        return mongoDbAccess.getLogbookLifeCycleUnit(queryDsl, collection);
     }
 
     @Override
@@ -426,9 +415,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             mongoDbAccess.getLogbookLifeCycleObjectGroupInProcess(idLc);
 
         if (logbookLifeCycleObjectGroupInProcess == null) {
-            // TODO correct exception and logger messages
-            LOGGER.error("The temporary lifeCycle is not found");
-            throw new LogbookNotFoundException("The temporary lifeCycle is not found");
+            LOGGER.error("The temporary lifeCycle wasn't found");
+            throw new LogbookNotFoundException("The temporary lifeCycle wasn't found");
         }
 
         // 2- Check if it is a creation or an update commit
@@ -454,6 +442,46 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public void rollBackObjectGroupsByOperation(String idOperation)
         throws LogbookNotFoundException, LogbookDatabaseException {
         mongoDbAccess.rollBackObjectGroupLifeCyclesByOperation(idOperation);
+    }
+
+
+    @Override
+    public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        // 1- First, check if the lifeCycle exists in the working collection
+        boolean isInProcessLfc = mongoDbAccess.existsLogbookLifeCycleUnitInProcess(unitId);
+        if (isInProcessLfc) {
+            return LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS;
+        }
+        
+        // 2- If it doesn't exist, then check in the production collection
+        boolean isCommittedLfc = mongoDbAccess.existsLogbookLifeCycleUnit(unitId);
+        if (isCommittedLfc) {
+            return LifeCycleStatusCode.LIFE_CYCLE_COMMITTED;
+        }
+
+        // Else, lifeCycle wasn't found
+        return null;
+    }
+
+
+    @Override
+    public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        // 1- First, check if the lifeCycle exists in the working collection
+        boolean isInProcessLfc = mongoDbAccess.existsLogbookLifeCycleObjectGroupInProcess(objectGroupId);
+        if (isInProcessLfc) {
+            return LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS;
+        }
+
+        // 2- If it doesn't exist, then check in the production collection
+        boolean isCommittedLfc = mongoDbAccess.existsLogbookLifeCycleObjectGroup(objectGroupId);
+        if (isCommittedLfc) {
+            return LifeCycleStatusCode.LIFE_CYCLE_COMMITTED;
+        }
+
+        // Else, lifeCycle wasn't found
+        return null;
     }
 }
 

@@ -28,96 +28,28 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .filter('startFileRules', function() {
-    return function (input, start) {
-      start = +start; //parse to int
-      return input.slice(start);
-    }
-  })
-  .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, $timeout) {
-    var ctrl = this;
-    ctrl.itemsPerPage = ITEM_PER_PAGE;
-    ctrl.currentPage = 0;
-    ctrl.searchOptions = {};
-    ctrl.fileRulesList = [];
-    ctrl.client = ihmDemoCLient.getClient('admin');
-    ctrl.fileNotFoundError = false;
+  .controller('filerulesController',  function($scope, $mdDialog, ihmDemoCLient, ITEM_PER_PAGE, processSearchService, resultStartService) {
+    $scope.startFormat = resultStartService.startFormat;
 
-    function clearResults() {
-      ctrl.fileRulesList = [];
-      ctrl.currentPage = "";
-      ctrl.resultPages = "";
-      ctrl.fileNotFoundError = false;
-    }
-
-    function displayError(message) {
-
-      ctrl.fileNotFoundError = true;
-      ctrl.errorMessage = message;
-      $timeout(function() {
-        ctrl.fileNotFoundError = false;
-      }, 5000);
-    }
-
-    ctrl.getFileRules = function () {
-      clearResults();
-      ctrl.searchOptions.RULES = "all";
-      ctrl.searchOptions.orderby = "RuleValue";
-      if( ctrl.RuleType)
-      {
-      ctrl.searchOptions.RuleType = ctrl.RuleType.toString();
-    }
-      ctrl.client.all('rules').post(ctrl.searchOptions).then(function(response) {
-        if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-          ctrl.results = 0;
-          displayError("Il n'y a aucun résultat pour votre recherche");
-          return;
-        }
-        ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
-          return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
-        });
-        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
-        ctrl.currentPage = 1;
-        ctrl.results = response.data.$hits.total;
-      }, function(response) {
-        displayError("Il n'y a aucun résultat pour votre recherche");
-      });
+    $scope.search = {
+      form: {
+        RuleValue: '',
+        RuleType: ['All']
+      }, pagination: {
+        currentPage: 0,
+        resultPages: 0,
+        itemsPerPage: ITEM_PER_PAGE
+      }, error: {
+        message: '',
+        displayMessage: false
+      }, response: {
+        data: [],
+        hints: {},
+        totalResult: 0
+      }
     };
 
-    ctrl.deleteRuleValue = function () {
-      delete ctrl.searchOptions.RuleValue;
-      ctrl.getFileRules();
-    };
-
-      ctrl.startFormat = function(){
-        var start="";
-
-        if(ctrl.currentPage > 0 && ctrl.currentPage <= ctrl.resultPages){
-          start= (ctrl.currentPage-1)*ctrl.itemsPerPage;
-        }
-
-        if(ctrl.currentPage>ctrl.resultPages){
-          start= (ctrl.resultPages-1)*ctrl.itemsPerPage;
-        }
-        return start;
-      };
-
-    ctrl.clearSearchOptions = function() {
-      ctrl.searchOptions = {};
-      clearResults();
-      ctrl.client.all('rules').post({RULES: "all", orderby: "RuleValue"}).then(function(response) {
-        ctrl.fileRulesList = response.data.$results.sort(function (a, b) {
-          return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
-        });
-        ctrl.resultPages = Math.ceil(ctrl.fileRulesList.length/ITEM_PER_PAGE);
-        ctrl.currentPage = 1;
-        ctrl.results = response.data.$hits.total;
-      }, function(response) {
-        displayError("Il n'y a aucun résultat pour votre recherche");
-      });
-    };
-
-    ctrl.openDialog = function($event, id) {
+    $scope.openDialog = function($event, id) {
       $mdDialog.show({
         controller: 'filerulesEntryController as entryRulesCtrl',
         templateUrl: 'views/file-rules-entry.html',
@@ -131,7 +63,39 @@ angular.module('ihm.demo')
       })
     };
 
-    ctrl.clearSearchOptions();
+    var preSearch = function() {
+      var requestOptions = angular.copy($scope.search.form);
+
+      requestOptions.RULES = "all";
+      requestOptions.orderby = "RuleValue";
+      if( requestOptions.RuleType)
+      {
+        requestOptions.RuleType = requestOptions.RuleType.toString();
+      }
+      return requestOptions;
+    };
+
+    var successCallback = function(response) {
+      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
+        return false;
+      }
+      $scope.search.response.data = response.data.$results.sort(function (a, b) {
+        return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
+      });
+      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/ITEM_PER_PAGE);
+      $scope.search.pagination.currentPage = 1;
+      $scope.search.response.totalResult = response.data.$hits.total;
+      return true;
+    };
+
+    var computeErrorMessage = function() {
+      return 'Il n\'y a aucun résultat pour votre recherche';
+    };
+
+    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('rules').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    $scope.getFileRules = searchService.processSearch;
+    $scope.reinitForm = searchService.processReinit;
+    $scope.onInputChange = searchService.onInputChange;
 
   })
   .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService, $filter) {

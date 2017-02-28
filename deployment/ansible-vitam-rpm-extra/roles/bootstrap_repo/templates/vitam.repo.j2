@@ -1,0 +1,10 @@
+
+{% for item in vitam_repositories %}
+[{{item.key}}]
+name={{item.key}}
+baseurl={{item.value}}
+gpgcheck=0
+repo_gpgcheck=0
+enabled=1 
+
+{% endfor %}

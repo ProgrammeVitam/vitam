@@ -28,9 +28,22 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .filter('vitamFormatDate', function($filter) {
+  .filter('vitamFormatDate', function ($filter) {
     var angularDateFilter = $filter('date');
-    return function(theDate) {
-       return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+    return function (theDate) {
+      // test If theDate is not null or undefinied
+      if (!theDate) {
+        return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+      }
+      // test if the theDate has an acceptable format
+      var timestamp = Date.parse(theDate);
+      if (isNaN(timestamp) == true) {
+        return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+      }
+      // Test if thedate has an Standart format for  Google Chrome
+      if (!theDate.includes("+") && !theDate.endsWith("Z")) {
+        theDate = theDate + "Z";
+      }
+      return angularDateFilter(new Date(theDate), 'dd-MM-yyyy HH:mm');
     }
   });

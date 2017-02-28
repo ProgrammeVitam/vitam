@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
+
 /**
  * Abstract implementation of VitamApplication which handle common tasks for all sub-implementation
  *
@@ -173,6 +174,7 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
             throw new IllegalStateException(CANNOT_START_THE + role + APPLICATION_SERVER, e);
         }
     }
+
 
     /**
      * Used in Junit test

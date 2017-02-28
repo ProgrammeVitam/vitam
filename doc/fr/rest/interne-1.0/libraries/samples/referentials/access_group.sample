@@ -1,7 +1,0 @@
-{
-  "id": "id",
-  "group": [
-    { "ingest_id": "ingest_id_1", "roots": [ "unit_id_1", "unit_id_2" ] }, 
-    { "ingest_id": "ingest_id_2", "roots": [ "unit_id_2", "unit_id_4" ] }
-  ]
-}

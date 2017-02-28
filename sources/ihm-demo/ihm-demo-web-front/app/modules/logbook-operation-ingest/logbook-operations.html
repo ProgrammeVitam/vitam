@@ -3,47 +3,49 @@
     <li>Entrée</li>
     <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrées</a></li>
   </ol>
-  <form class="panel panel-default col-md-12" ng-submit="logctrl.getLogbooks()">
+
+    <div class="boxSearchWrapper panel panel-default col-md-12">
     <a class="panel-header" data-toggle="collapse">
       <h2>Rechercher</h2>
     </a>
     <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
-      <div class="form-group">
+        <form class="col-md-12" ng-submit="getLogbooks()">
+      <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-25">
         <label for="entryName">Lot d'archive</label>
-        <input ng-model="logctrl.searchOptions.obIdIn" type="text" name="entryName" class="form-control" />
-      </div>
-      <div class="row" style="padding-top: 20px">
-        <div class="col-md-6">
-          <button class="btn btn-primary center-block" ng-click="logctrl.clearSearchOptions()" type="reset">
-          <i class="material-icons pull-left">clear</i><span>Effacer</span>
-          </button>
+        <div class="input-group m-b-25">
+          <input ng-model="search.form.obIdIn" type="text" name="entryName" class="form-control input-lg" ng-change="onInputChange()"/>
+          <div class="input-group-addon">
+              <button class="btn btn-primary center-block" type="reset" ng-click="reinitForm()">
+                  <i class="material-icons pull-left">clear</i>
+              </button>
+          </div>
         </div>
-        <div class="col-md-6">
-          <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
-        </div>
+        <div class="clearfix"></div>
+        <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
       </div>
+        </form>
     </div>
       <div class="col-md-12">
-          <button ng-if="logctrl.noResult" class="btn btn-danger center-block" type="button" style="margin-top: 20px; margin-bottom: 20px">
-              {{logctrl.errorMessage}}
+          <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+              {{search.error.message}}
           </button>
       </div>
-  </form>
+    </div></div>
 
   <!--Pagination -->
     <div style="text-align: center">
-        <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=+logctrl.currentPage-1">
+        <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
             Précédent
         </button>
-        <input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
-        <button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=+logctrl.currentPage+1">
+        <input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
+        <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
             Suivant
         </button>
     </div>
 
 <div class="panel panel-default col-md-12">
   <a class="panel-header">
-      <h2> Résultats <span ng-if="logctrl.results == 0 || logctrl.results > 0">({{logctrl.results}})</span></h2>
+      <h2> Résultats <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span></h2>
   </a>
   <div id="boxEntriesList" class="panel-body panel-collapse collapse in">
     <div class="table-responsive">
@@ -53,29 +55,29 @@
           <th>Identifiant de l'entrée</th>
           <th>Début opération</th>
           <th>Fin opération</th>
-            <th>Statut</th>
-            <th>AR</th>
-            <th>Bordereau</th>
+          <th>Statut</th>
+          <th>AR</th>
+          <th>Bordereau</th>
         </tr>
 
-        <tbody ng-repeat="log in logctrl.logbookEntryList | startFormat:logctrl.startFormat() | limitTo:logctrl.itemsPerPage">
+        <tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo:search.pagination.itemsPerPage">
           <tr>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.events[0].obIdIn}}</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.evIdProc}}</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.evDateTime | vitamFormatDate}}</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)" >{{log.events[1].evDateTime | vitamFormatDate}}</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'OK'">Succès</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
-            <td ng-click="logctrl.goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
+            <td ng-click="goToDetails(log.evIdProc)" >{{log.events[0].obIdIn}}</td>
+            <td ng-click="goToDetails(log.evIdProc)" >{{log.evIdProc}}</td>
+            <td ng-click="goToDetails(log.evIdProc)" >{{log.evDateTime | vitamFormatDate}}</td>
+            <td ng-click="goToDetails(log.evIdProc)" >{{log.events[1].evDateTime | vitamFormatDate}}</td>
+            <td ng-click="goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'OK'">Succès</td>
+            <td ng-click="goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'STARTED'">En cours</td>
+            <td ng-click="goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() == 'KO' || log.events[1].outcome.toUpperCase() == 'FATAL'">Erreur</td>
+            <td ng-click="goToDetails(log.evIdProc)"  ng-if = "log.events[1].outcome.toUpperCase() != 'KO' && log.events[1].outcome.toUpperCase() != 'FATAL' && log.events[1].outcome.toUpperCase() != 'OK'
                         && log.events[1].outcome.toUpperCase() != 'STARTED'">Avertissement</td>
               <td>
-                  <a href="" ng-click="logctrl.downloadObject(log.evIdProc, 'reports')">
+                  <a href="" ng-click="downloadObject(log.evIdProc, 'reports')">
                       <i class="material-icons">file_download</i>
                   </a>
               </td>
               <td >
-                  <a ng-if="log.events[1].outcome.toUpperCase() == 'OK' || log.events[1].outcome.toUpperCase() == 'WARNING'"  href="" ng-click="logctrl.downloadObject(log.evIdProc, 'manifests')">
+                  <a ng-if="log.events[1].outcome.toUpperCase() == 'OK' || log.events[1].outcome.toUpperCase() == 'WARNING'"  href="" ng-click="downloadObject(log.evIdProc, 'manifests')">
                       <i class="material-icons">file_download</i>
                   </a>
               </td>

@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.offers.common.core;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -157,9 +159,8 @@ public interface DefaultOfferService {
 
     /**
      * Count the number of objects in a container defined by the tenant and the type
-     *
-     * @param tenant the tenant id
-     * @param type the type name
+     * 
+     * @param containerName the container name
      * @return Json with number of objects (objectNumber)
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
      * @throws ContentAddressableStorageServerException
@@ -179,7 +180,79 @@ public interface DefaultOfferService {
      *         be located in the container.
      * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
      */
-
     void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+    /**
+     * Check digest (UNIMPLEMENTED)
+     * 
+     * @param containerName the container name
+     * @param idObject the objectId to check
+     * @param digest the digest to be compared with
+     * @throws UnsupportedOperationException (UNIMPLEMENTED)
+     * @return true if the digest is correct
+     */
+    boolean checkDigest(String containerName, String idObject, String digest);
+
+    /**
+     * Check digest algorithm (UNIMPLEMENTED)
+     * 
+     * @param containerName the container name
+     * @param idObject the objectId to check
+     * @param digestAlgorithm the digest Algorithm
+     * @throws UnsupportedOperationException (UNIMPLEMENTED)
+     * @return true if the digest algorithm is correct
+     */
+    boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm);
+
+    /**
+     * Get Metadata
+     * 
+     * @param containerName
+     * @param objectId
+     * @return StorageMetadatasResult
+     * @throws ContentAddressableStorageException
+     * @throws IOException
+     */
+    StorageMetadatasResult getMetadatas(String containerName, String objectId)
+        throws ContentAddressableStorageException, IOException;
+
+    /**
+     * Create a new cursor for listing container operation
+     *
+     * @param containerName the container name
+     * @return the cursor ID value
+     * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
+     * @throws ContentAddressableStorageServerException thrown when delete action failed due some other failure
+     */
+    String createCursor(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+
+    /**
+     * Check if iterator have a next value
+     *
+     * @param containerName the container name
+     * @param cursorId the cursor ID
+     * @return true if there is yet one or more value
+     */
+    boolean hasNext(String containerName, String cursorId);
+
+    /**
+     * Get next values
+     *
+     * @param containerName the container name
+     * @param cursorId the cursor ID
+     * @return a list of next values
+     * @throws ContentAddressableStorageNotFoundException thrown when the container cannot be located
+     */
+    List<JsonNode> next(String containerName, String cursorId) throws ContentAddressableStorageNotFoundException;
+
+    /**
+     * Close the cursor
+     *
+     * @param containerName the container name
+     * @param cursorId the cursor ID
+     */
+    void finalizeCursor(String containerName, String cursorId);
+
 }

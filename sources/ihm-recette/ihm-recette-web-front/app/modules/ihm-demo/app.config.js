@@ -38,31 +38,39 @@ module('ihm.demo').
         templateUrl: 'views/login.html'
       }).
       when('/uploadperf', {
-        template: '<upload-sip-perf></upload-sip-perf>'
+        template: '<upload-sip-perf></upload-sip-perf>',
+        title: 'Téléchargement - Tests de perfs'
       }).
       when('/adminHome', {
-        template: '<admin-home></admin-home>'
+        template: '<admin-home></admin-home>',
+        title: 'Administration des collections'
       }).
       when('/soapUi', {
-        template: '<soap-ui></soap-ui>'
+        template: '<soap-ui></soap-ui>',
+        title: 'Tests SOAP-UI'
       }).
       when('/operationTraceability', {
-          template: '<operation-traceability></operation-traceability>'
+          template: '<operation-traceability></operation-traceability>',
+          title: 'Génération journal des opérations sécurisé'
       }).
       when('/searchOperation', {
-          template: '<search-operation></search-operation>'
+          template: '<search-operation></search-operation>',
+          title: 'Recherche d\'un journal sécurisé'
       }).
       when('/searchOperation/detailOperation/:entryId', {
           templateUrl: 'pages/search-operation/detailOperation.html',
-          controller: 'DetailOperationController'
+          controller: 'DetailOperationController',
+          title: 'Détail du journal sécurisé'
       })
       .otherwise('/adminHome');
     }
   ])
-  .config(function($translateProvider) {
+  .config(function($translateProvider, $mdThemingProvider) {
       $translateProvider.useSanitizeValueStrategy('sanitizeParameters');
       $translateProvider.useLoader('MessagesResource', {});
       // prefered language set options for useLoader
       $translateProvider.preferredLanguage('fr');
+      console.log($mdThemingProvider);
+      $mdThemingProvider.theme('success-toast');
     }
   );

@@ -1,0 +1,28 @@
+{ 
+    "DEFAULT_WORKFLOW_RESUME" : 
+    { 
+        "workFlowId" : "DefaultIngestWorkflow", 
+        "executionContext" : "resume",
+        "logbookTypeProcess" : "INGEST"
+    },
+    
+    "DEFAULT_WORKFLOW_NEXT" : 
+    { 
+        "workFlowId" : "DefaultIngestWorkflow", 
+        "executionContext" : "next",
+        "logbookTypeProcess" : "INGEST"
+    },
+    
+    "BLANK_TEST_RESUME" : 
+    { 
+        "workFlowId" : "DefaultIngestWorkflowBlankTest", 
+        "executionContext" : "resume",
+        "logbookTypeProcess" : "INGEST_TEST"
+    },
+     "BLANK_TEST_NEXT" : 
+    { 
+        "workFlowId" : "DefaultIngestWorkflowBlankTest", 
+        "executionContext" : "next",
+        "logbookTypeProcess" : "INGEST_TEST"
+    }
+}

@@ -27,15 +27,19 @@
 package fr.gouv.vitam.logbook.rest;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -45,11 +49,14 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
@@ -59,15 +66,27 @@ public class LogbookApplicationTest {
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     private static LogbookDbAccess mongoDbAccess;
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
     private static int databasePort;
     private static int serverPort;
     private static int oldPort;
+
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
+
     private static JunitHelper junitHelper;
     private static File logbook;
     private static LogbookConfiguration realLogbook;
+
+    private static final int TENANT_ID = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -85,12 +104,22 @@ public class LogbookApplicationTest {
             .net(new Net(databasePort, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
+        realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        mongoDbAccess =
-            LogbookMongoDbAccessFactory.create(
-                new DbConfigurationImpl(nodes,
-                    "vitam-test"));
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        LogbookConfiguration logbookConfiguration =
+            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+        logbookConfiguration.setTenants(tenantList);
+        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         serverPort = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         JunitHelper.setJettyPortSystemProperty(serverPort);
@@ -102,6 +131,9 @@ public class LogbookApplicationTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         mongoDbAccess.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(serverPort);

@@ -11,8 +11,8 @@ module.exports = function(config) {
 
     files: [
       'bower_components/jquery/dist/jquery.js',
-      'bower_components/lodash/dist/lodash.min.js',
       'bower_components/angular/angular.js',
+      'bower_components/lodash/lodash.js',
       'bower_components/restangular/dist/restangular.min.js',
       'bower_components/bootstrap/dist/js/bootstrap.min.js',
       'bower_components/angular-aria/angular-aria.min.js',
@@ -39,10 +39,13 @@ module.exports = function(config) {
       'app/modules/multiselect/angular-bootstrap-multiselect.js',
       'app/modules/flow/ng-flow-standalone.js',
       'app/**/*.module.js',
+      'app/core/**/*.js',
       'app/modules/**/*.js',
       'app/resources/*.js',
       'app/services/*.js',
       'app/pages/**/*.js',
+      'app/core/directives/*.js',
+      'app/core/filters/date.filters.js',
       'test/spec/**/*.js'
     ],
 

@@ -96,7 +96,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param configuration config for constructing AdminManagement
      */
     public AdminManagementResource(AdminManagementConfiguration configuration) {
-        super(new BasicVitamStatusServiceImpl());
+        super(new BasicVitamStatusServiceImpl(), configuration.getTenants());
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
             adminConfiguration =
@@ -115,7 +115,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     MongoDbAccess getLogbookDbAccess() {
         return mongoAccess;
     }
-    
+
     /**
      * @return the elasticsearchAccess
      */
@@ -140,12 +140,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } finally {
             StreamUtils.closeSilently(xmlPronom);
         }
@@ -166,19 +164,16 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
             formatManagement.importFile(xmlPronom);
-            return Response.status(Status.OK).entity(Status.OK.name()).build();
+            return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
+            final Status status = Status.BAD_REQUEST;
             return Response.status(status)
-                .entity(status)
+                .entity(e.getMessage())
                 .build();
         } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
-            final Status status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(status)
-                .build();
+            return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
@@ -294,14 +289,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return Response.status(Status.OK).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(status)
-                .build();
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } finally {
             StreamUtils.closeSilently(rulesStream);
         }
@@ -327,23 +318,15 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess)) {
             rulesFileManagement.importFile(rulesStream);
-            return Response.status(Status.OK).entity(Status.OK.name()).build();
+            return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final FileRulesException e) {
             LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(status)
-                .build();
-        } catch (final DatabaseConflictException e) {
-            LOGGER.error(e);
-            final Status status = Status.CONFLICT;
-            return Response.status(status)
-                .entity(status)
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage())
                 .build();
         } catch (final Exception e) {
             LOGGER.error(e);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(status).entity(status.getReasonPhrase()).build();
         } finally {
             StreamUtils.closeSilently(rulesStream);
         }

@@ -29,11 +29,6 @@
 
 angular.module('ihm.demo')
     .controller('logbookEntryController', function($scope, idOperationService, $routeParams , ihmDemoCLient) {
-        var self = this;
-        self.operationId = $routeParams.entryId;
 
-        ihmDemoCLient.getClient('logbook/operations').all(self.operationId).post({}).then(function(response) {
-            self.detail = response.data.$results[0];
-            self.detailId = idOperationService.getIdFromResult(self.detail);
-        });
-    });
+        $scope.operationId = $routeParams.entryId;
+ });

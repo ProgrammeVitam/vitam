@@ -100,6 +100,15 @@ Ces fonctionnalités sont :
 
    Response response = client.getContainerAsync("0", "default", "aeaaaaaaaaaam7mxaaaamakv3x3yehaaaaaq");
 
+- La récupération de la liste d'objets d'un certain type :
+
+.. code-block:: java
+
+   // Si cursorId non connu
+   Response response = listContainerObjects("default", DataCategory.OBJECT, null)
+   // Si cursorId connu
+   Response response = listContainerObjects("default", DataCategory.OBJECT, "idcursor")
+
 - La récupération du status est également disponible :
 
 .. code-block:: java

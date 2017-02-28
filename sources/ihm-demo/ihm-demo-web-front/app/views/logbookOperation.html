@@ -1,81 +1,88 @@
 <div id="global" class="container-fluid">
 	<ol class="breadcrumb">
-        <li>Administration</li>
-        <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
+		<li>Administration</li>
+		<li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
 	</ol>
 
-	<div class="panel panel-default col-md-12">
+	<div class="panel panel-default boxSearchWrapper col-md-12">
 		<a class="panel-header" href="#boxEntriesSearchForm">
 			<h2>Journal des Opérations</h2>
 		</a>
 
-		<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="logctrl.getList()">
-			<div class="form-group col-md-8">
-				<label for="entryName">ID</label>
-				<input ng-model="logctrl.searchID" type="text" name="entryName" class="form-control" />
-			</div>
+		<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="getList()">
+			<div class="row">
+				<div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
+					<label for="entryName">ID</label>
+					<input ng-model="search.form.EventID" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+				</div>
 
-			<div class="form-group col-md-4">
-				<label for="entryType">Type d'opération</label>
-				<select ng-model="logctrl.searchType" class="form-control" name="entryType">
-					<option value="--" >--</option>
-					<option value="audit">Audit</option>
-					<option value="elimination">Elimination</option>
-					<option value="ingest">Entrée</option>
-					<option value="update">Mise a jour</option>
-					<option value="preservation">Préservation</option>
-					<option value="check">Vérification</option>
-					<option value="masterdata">Données de base</option>
-					<option value="traceability">Sécurisation</option>
-				</select>
-            </div>
-            <button class="btn btn-primary center-block" type="submit">
-            	<i class="material-icons pull-left">search</i>
-            	<span>Rechercher</span>
-            </button>
-            <button ng-if="logctrl.fileNotFoundError" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
-                {{logctrl.errorMessage}}
-            </button>
-        </form>
+				<div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
+					<label for="entryType">Type d'opération</label>
+					<select ng-model="search.form.EventType" class="form-control" name="entryType" ng-change="onInputChange()">
+						<option value="--" >--</option>
+						<option value="audit">Audit</option>
+						<option value="elimination">Elimination</option>
+						<option value="ingest">Entrée</option>
+						<option value="update">Mise a jour</option>
+						<option value="preservation">Préservation</option>
+						<option value="check">Vérification</option>
+						<option value="masterdata">Données de base</option>
+						<option value="traceability">Sécurisation</option>
+					</select>
+				</div>
+			</div>
+			<div>
+				<div class="col-md-2"><!-- Blank zone --></div>
+				<div class="col-md-3">
+					<button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+				</div>
+				<div class="col-md-4">
+					<button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+				</div>
+			</div>
+			<button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+				{{search.error.message}}
+			</button>
+		</form>
 	</div>
 
 	<!-- Pagination -->
 	<div style="text-align: center">
-		<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage <= 1" ng-click="logctrl.currentPage=+logctrl.currentPage-1">
-            Précédent
-    	</button>
-    	<input ng-model="logctrl.currentPage" style="max-width: 40px">/{{logctrl.resultPages}}
-    	<button class="btn btn-default btn-s" ng-disabled="logctrl.currentPage >= logctrl.resultPages" ng-click="logctrl.currentPage=+logctrl.currentPage+1">
-            Suivant
-    	</button>		
+		<button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
+			Précédent
+		</button>
+		<input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
+		<button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
+			Suivant
+		</button>
 	</div>
 
 	<div class="panel panel-default col-md-12 dynamic-table-box">
 		<a class="panel-header">
-            <h2> Résultats <span ng-if="logctrl.results == 0 || logctrl.results > 0">({{logctrl.results}})</span></h2>
+			<h2> Résultats <span ng-if="search.response.totalResults == 0 || search.response.totalResults > 0">({{search.response.totalResults}})</span></h2>
 		</a>
 
 		<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
 
-			<dynamic-table custom-fields="logctrl.customFields" selected-objects="logctrl.selectedObjects">
+			<dynamic-table custom-fields="dynamicTable.customFields" selected-objects="dynamicTable.selectedObjects">
 			</dynamic-table>
 
 			<div class="table-responsive">
 				<table class="table">
 					<tr>
-                        <th>Catégorie d'opération</th>
+						<th>Catégorie d'opération</th>
 						<th>Opération</th>
 						<th>Date</th>
 						<th>Statut</th>
-                        <th>Message</th>
+						<th>Message</th>
 
 						<!-- Dynamic columns -->
-						<th ng-repeat="column in logctrl.selectedObjects">{{column.label}}</th>
+						<th ng-repeat="column in dynamicTable.selectedObjects">{{column.label | translate}}</th>
 					</tr>
 
-					<tbody ng-repeat='log in logctrl.operationList | startFrom:(logctrl.currentPage-1)*logctrl.itemsPerPage | limitTo:logctrl.itemsPerPage'>
-					<tr ng-click="logctrl.goToDetails(log.evIdProc)">
-                        <td>{{log.evTypeProc}}</td>
+					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo:search.pagination.itemsPerPage">
+					<tr ng-click="goToDetails(log.evIdProc)">
+						<td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>
 						<td>{{log.evDateTime | vitamFormatDate}}</td>
 
@@ -87,7 +94,7 @@
 						<td>{{log.outMessg}}</td>
 
 						<!-- Dynamic columns values -->
-						<td ng-repeat = "column in logctrl.selectedObjects">
+						<td ng-repeat = "column in dynamicTable.selectedObjects">
 							<span >{{log[column.id]}}</span>
 						</td>
 					</tr>

@@ -42,12 +42,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -114,7 +114,7 @@ public class WorkerImpl implements Worker {
     /**
      * Add an actionhandler in the pool of action
      *
-     * @param actionName    action name
+     * @param actionName action name
      * @param actionHandler action handler
      * @return WorkerImpl
      */
@@ -181,7 +181,7 @@ public class WorkerImpl implements Worker {
                 }
                 String handlerName = actionDefinition.getActionKey();
                 ItemStatus actionResponse;
-                //TODO Généralisation tous les workers
+                // TODO Généralisation tous les workers
                 // If this is a plugin
                 if (pluginLoader.contains(handlerName)) {
 
@@ -244,19 +244,19 @@ public class WorkerImpl implements Worker {
         if (step.getDistribution().getElement()
             .equals(LogbookType.UNITS.getType())) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
-                GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()), 
-                VitamLogbookMessages.getEventTypeLfc(handlerName), 
-                GUIDReader.getGUID(workParams.getContainerName()), 
+                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+                VitamLogbookMessages.getEventTypeLfc(handlerName),
+                GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
-                LogbookTypeProcess.INGEST, 
-                StatusCode.STARTED, 
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED), 
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED), 
+                LogbookTypeProcess.INGEST,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         } else if (step.getDistribution().getElement()
             .equals(LogbookType.OBJECTGROUP.getType())) {
             lfcParam = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()),
+                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
                 VitamLogbookMessages.getEventTypeLfc(handlerName),
                 GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
@@ -284,6 +284,10 @@ public class WorkerImpl implements Worker {
                 ItemStatus subItemStatus = subTaskEntry.getValue();
                 subLogbookLfcParam.setFinalStatus(handlerName,
                     entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
+                if (!subItemStatus.getEvDetailData().isEmpty()) {
+                    subLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
+                        subItemStatus.getEvDetailData());
+                }
                 logbookParamList.add(subLogbookLfcParam);
             }
             entry.getValue().getSubTaskStatus().clear();

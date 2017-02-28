@@ -25,8 +25,14 @@
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
- # Either rpm or deb
+ 
+if [ "$EUID" -eq 0 ]
+then
+	echo "Please dont't run this script as root !"
+	exit 1
+fi
 
+# Either rpm or deb
 if [ -z "${VITAM_TARGET}" ] ; then
 	VITAM_TARGET=rpm
 fi

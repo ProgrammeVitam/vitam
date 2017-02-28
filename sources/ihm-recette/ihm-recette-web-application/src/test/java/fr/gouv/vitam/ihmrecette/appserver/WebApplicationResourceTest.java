@@ -39,6 +39,7 @@ import java.io.IOException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -141,7 +142,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -151,7 +152,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
         throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -161,7 +162,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws LogbookClientException, InvalidParseOperationException {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID))
             .thenThrow(InvalidParseOperationException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -186,7 +187,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject(), anyObject());
+            .build()).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         given().param("file_name", "SIP.zip").expect().statusCode(Status.OK.getStatusCode())
             .when().get("/upload/SIP.zip");
@@ -202,7 +203,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject(), anyObject());
+            .build()).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         given().param("file_name", "incorrect_file.txt").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().get("/upload/incorrect_file.txt");
@@ -218,7 +219,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, FAKE_OPERATION_ID)
-            .build()).when(ingestClient).upload(anyObject(), anyObject());
+            .build()).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         given().param("file_name", "SIP_NOT_FOUND.zip").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
@@ -233,7 +234,8 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
-        Mockito.doThrow(VitamException.class).when(ingestClient).upload(anyObject(), anyObject());
+        Mockito.doThrow(VitamException.class).when(ingestClient).upload(anyObject(), anyObject(), anyObject(),
+            anyObject());
 
         given().param("file_name", "SIP.zip").expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
@@ -399,6 +401,7 @@ public class WebApplicationResourceTest {
     @Test
     public final void testTraceabilityEndpointIsWorking() {
         given()
+            .header(GlobalDataRest.X_TENANT_ID, "0")
             .body("")
             .post(TRACEABILITY_URI)
             .then()

@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.internal.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 /**
@@ -93,6 +95,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      */
     public AccessInternalResourceImpl(AccessInternalConfiguration configuration) {
         accessModule = new AccessInternalModuleImpl(configuration);
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
         LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
     }
 
@@ -108,45 +111,45 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
     /**
-     * get Archive Unit  list by query based on identifier
+     * get Archive Unit list by query based on identifier
      * 
      * @param queryDsl as JsonNode
      * @return an archive unit result list
      */
-	@Override
-	@GET
-	@Path("/units")
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	public Response getUnits(JsonNode queryDsl) {
-		LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
-		Status status;
-		JsonNode result = null;
-		try {
-			SanityChecker.checkJsonAll(queryDsl);
-			result = accessModule.selectUnit(queryDsl);
-		} catch (final InvalidParseOperationException e) {
-			LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-			// Unprocessable Entity not implemented by Jersey
-			status = Status.BAD_REQUEST;
-			return Response.status(status).entity(getErrorEntity(status)).build();
-		} catch (final AccessInternalExecutionException e) {
-			LOGGER.error(e.getMessage(), e);
-			status = Status.METHOD_NOT_ALLOWED;
-			return Response.status(status).entity(getErrorEntity(status)).build();
-		}
-		LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-		return Response.status(Status.OK).entity(result).build();
-	}
+    @Override
+    @GET
+    @Path("/units")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getUnits(JsonNode queryDsl) {
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
+        Status status;
+        JsonNode result = null;
+        try {
+            SanityChecker.checkJsonAll(queryDsl);
+            result = accessModule.selectUnit(queryDsl);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final AccessInternalExecutionException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.METHOD_NOT_ALLOWED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+        LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
+        return Response.status(Status.OK).entity(result).build();
+    }
 
     /**
-     * get Archive Unit  list by query based on identifier
+     * get Archive Unit list by query based on identifier
      * 
      * @param queryDsl as JsonNode
-     * @param idUnit identifier 
+     * @param idUnit identifier
      * @return an archive unit result list
      */
-	
+
 
     @Override
     @GET
@@ -160,10 +163,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         Status status;
         JsonNode result = null;
         try {
-            
-                SanityChecker.checkJsonAll(queryDsl);
-                SanityChecker.checkParameter(idUnit);
-                result = accessModule.selectUnitbyId(queryDsl, idUnit);
+
+            SanityChecker.checkJsonAll(queryDsl);
+            SanityChecker.checkParameter(idUnit);
+            result = accessModule.selectUnitbyId(queryDsl, idUnit);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -181,6 +184,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     /**
      * update archive units by Id with Json query
      *
+     * @param requestId request identifier
      * @param queryDsl DSK, null not allowed
      * @param idUnit units identifier
      * @return a archive unit result list
@@ -190,7 +194,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/units/{id_unit}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateUnitById(JsonNode queryDsl, @PathParam("id_unit") String idUnit) {
+    public Response updateUnitById(JsonNode queryDsl,
+        @PathParam("id_unit") String idUnit, @HeaderParam(GlobalDataRest.X_REQUEST_ID) String requestId) {
 
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
 
@@ -199,7 +204,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            result = accessModule.updateUnitbyId(queryDsl, idUnit);
+            SanityChecker.checkParameter(requestId);
+            result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
@@ -241,7 +247,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query,
         boolean post) {
-    	
+
         if (post) {
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
@@ -303,7 +309,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-    	  
+
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override

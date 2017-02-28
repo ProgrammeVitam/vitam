@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>0.14.0-SNAPSHOT</version>
+		<version>0.15.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-common</artifactId>
 	<name>Worker Common</name>
@@ -19,6 +19,11 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-client</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		

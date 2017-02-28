@@ -29,8 +29,10 @@ package fr.gouv.vitam.worker.server.registration;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
 
@@ -67,7 +69,15 @@ public class WorkerRegistrationListener implements ServletContextListener {
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener destroyed");
-        // TODO P1 unregister
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        final ProcessingManagementClient processingClient =
+            ProcessingManagementClientFactory.getInstance().getClient();
+        try {
+            processingClient.unregisterWorker(configuration.getWorkerFamily(),
+                String.valueOf(ServerIdentity.getInstance().getServerId()));
+        } catch (final Exception e) {
+            LOGGER.error("WorkerUnRegister run : unregister call failed on " + configuration.getProcessingUrl(), e);
+        }
     }
 
 }

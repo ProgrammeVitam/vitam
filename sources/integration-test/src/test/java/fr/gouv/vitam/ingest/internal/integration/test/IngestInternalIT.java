@@ -39,6 +39,10 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -65,6 +69,7 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -89,16 +94,18 @@ import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalApplication;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
-import fr.gouv.vitam.processing.integration.test.ProcessingIT;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
@@ -107,12 +114,13 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
  * Ingest Internal integration test
  */
 public class IngestInternalIT {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final int DATABASE_PORT = 12346;
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    private static LogbookElasticsearchAccess esClient;
     private static final Integer tenantId = 0;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -133,7 +141,7 @@ public class IngestInternalIT {
     private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
     private static final int PORT_SERVICE_LOGBOOK = 8099;
     private static final int PORT_SERVICE_INGEST_INTERNAL = 8095;
-    private static final int PORT_SERVICE_ACCESS_INTERNAL = 8100;
+    private static final int PORT_SERVICE_ACCESS_INTERNAL = 8092;
 
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
@@ -142,6 +150,7 @@ public class IngestInternalIT {
     private static final String LOGBOOK_PATH = "/logbook/v1";
     private static final String INGEST_INTERNAL_PATH = "/ingest/v1";
     private static final String ACCESS_INTERNAL_PATH = "/access-internal/v1";
+    private static final String CONTEXT_ID = "DEFAULT_WORKFLOW_RESUME";
 
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKSPACE_PATH = "";
@@ -171,6 +180,7 @@ public class IngestInternalIT {
         "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
     private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS =
         "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
+    private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
 
 
     private static ElasticsearchTestConfiguration config = null;
@@ -206,6 +216,11 @@ public class IngestInternalIT {
             .build());
         mongod = mongodExecutable.start();
 
+        // ES client
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
+        nodes.add(new ElasticsearchNode("localhost", config.getTcpPort()));
+        esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, nodes);
+
         // launch metadata
         SystemPropertyUtil.set(MetaDataApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_METADATA));
@@ -231,6 +246,7 @@ public class IngestInternalIT {
         SystemPropertyUtil.clear(LogbookApplication.PARAMETER_JETTY_SERVER_PORT);
 
         LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
 
         // launch processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
@@ -264,10 +280,10 @@ public class IngestInternalIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
+        esClient.close();
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
         }
-        JunitHelper.stopElasticsearchForTest(config);
         mongod.stop();
         mongodExecutable.stop();
         try {
@@ -338,10 +354,13 @@ public class IngestInternalIT {
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal() throws Exception {
-        try {            
+        try {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            //ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
+            //processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
+            //    ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -364,7 +383,11 @@ public class IngestInternalIT {
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
             final Response response2 = client.uploadInitialLogbook(params);
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             assertEquals(200, response.getStatus());
 
             // Try to check AU
@@ -416,6 +439,18 @@ public class IngestInternalIT {
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
             LOGGER.warn("read: " + size2);
             assertTrue(size2 == size);
+
+            JsonNode logbookOperation =
+                accessClient.selectOperationById(operationGuid.getId(), new Select().getFinalSelect());
+            QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 25);
+            assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
+            assertNotNull(elasticSearchResponse.getHits().getAt(0));
+            SearchHit hit = elasticSearchResponse.getHits().iterator().next();
+            assertNotNull(hit);
+            // TODO compare
+
             accessInternalApplication.stop();
         } catch (final Exception e) {
             e.printStackTrace();
@@ -452,7 +487,7 @@ public class IngestInternalIT {
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         final Response response2 = client.uploadInitialLogbook(params);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+        final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
         assertNotNull(response);
         // FIXME in error but not for good reason (Logbook issue)
         assertEquals(500, response.getStatus());
@@ -466,6 +501,9 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            //ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
+            //processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
+            //    ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -489,7 +527,10 @@ public class IngestInternalIT {
             final Response response2 = client.uploadInitialLogbook(params);
 
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Warning during format identification (SIP with MD5)
             assertEquals(206, response.getStatus());
@@ -523,7 +564,9 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
             tryImportFile();
+
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -545,8 +588,12 @@ public class IngestInternalIT {
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
             final Response response2 = client.uploadInitialLogbook(params);
 
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Warning during format identification (SIP with MD5)
             assertEquals(206, response.getStatus());
@@ -583,6 +630,7 @@ public class IngestInternalIT {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -604,9 +652,12 @@ public class IngestInternalIT {
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
             final Response response2 = client.uploadInitialLogbook(params);
-
+            
+            //init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE);
+            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Warning during format identification (SIP with MD5)
             assertEquals(206, response.getStatus());

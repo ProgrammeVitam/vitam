@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 /**
  * Abstract implementation for all worker parameters
@@ -249,6 +250,20 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
     public WorkerParameters setUrlWorkspace(String urlWorkspace) {
         ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "urlWorkspace"), urlWorkspace);
         mapParameters.put(WorkerParameterName.urlWorkspace, urlWorkspace);
+        return this;
+    }
+
+    @JsonIgnore
+    @Override
+    public LogbookTypeProcess getLogbookTypeProcess() {
+        return LogbookTypeProcess.valueOf(mapParameters.get(WorkerParameterName.logBookTypeProcess));
+    }
+
+    @JsonIgnore
+    @Override
+    public WorkerParameters setLogbookTypeProcess(LogbookTypeProcess logbookTypeProcess) {
+        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "logBookTypeProcess"), logbookTypeProcess);
+        mapParameters.put(WorkerParameterName.logBookTypeProcess, logbookTypeProcess.toString());
         return this;
     }
 

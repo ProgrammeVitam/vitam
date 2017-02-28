@@ -36,7 +36,7 @@
 // Logbook
 angular.module('core').factory(
 		'downloadOperationResource',
-		function($http, IHM_URLS) {
+		function($http, IHM_URLS, tenantService) {
 
 			var Download_operation_ROOT = '/logbooks';
 			var downloadOperationResource = {};
@@ -48,7 +48,7 @@ angular.module('core').factory(
 			 */
 			downloadOperationResource.result = function(idOperation) {
 				return IHM_URLS.IHM_BASE_URL + Download_operation_ROOT + '/'
-						+ idOperation + "/content";
+						+ idOperation + "/content?X-Tenant-Id="+tenantService.getTenant();
 			};
 			return downloadOperationResource;
 

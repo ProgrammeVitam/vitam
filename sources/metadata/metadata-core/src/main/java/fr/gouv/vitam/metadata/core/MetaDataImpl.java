@@ -33,17 +33,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.BasicDBObject;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;
 import difflib.Patch;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
@@ -60,9 +67,11 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 
 /**
@@ -206,9 +215,21 @@ public class MetaDataImpl implements MetaData {
                     LOGGER.debug("Adding given $hint filters: " + Arrays.toString(hints));
                     request.addHintFilter(hints);
                 }
+            }            
+            boolean shouldComputeUnitRule = false;
+            ObjectNode fieldsProjection = (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
+            if (fieldsProjection != null && fieldsProjection.get(GLOBAL.RULES.exactToken()) != null) {
+                shouldComputeUnitRule = true;
+                fieldsProjection.removeAll();
             }
             result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest, result);
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
+
+            // Compute Rule for unit(only with search by Id) 
+            if (shouldComputeUnitRule && result.hasFinalResult()) {
+                computeRuleForUnit(arrayNodeResponse);
+            }
+
 
         } catch (final InstantiationException | IllegalAccessException | MetaDataAlreadyExistException |
             MetaDataNotFoundException e) {
@@ -302,5 +323,41 @@ public class MetaDataImpl implements MetaData {
             }
         }
         return result;
+    }
+    
+    private Select createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {
+        Select newSelectQuery = new Select();
+        String[] rootList = new String[unitList.size()];
+        rootList = unitList.toArray(rootList);
+        newSelectQuery.addRoots(rootList);
+        newSelectQuery.addProjection(
+            JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(), 
+                JsonHandler.createObjectNode()
+                .put(PROJECTIONARGS.UNITUPS.exactToken(), 1)
+                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+        return newSelectQuery;
+    }
+    
+    private void computeRuleForUnit(ArrayNode arrayNodeResponse) throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataNotFoundException {
+        Map<String, UnitNode> allUnitNode = new HashMap<String, UnitNode>();
+        Set<String> rootList = new HashSet<>();
+        List<String> unitParentIdList = new ArrayList<>();
+        String unitId = "";
+        for (JsonNode unitNode : arrayNodeResponse) {
+            ArrayNode unitParentId = (ArrayNode) unitNode.get(PROJECTIONARGS.ALLUNITUPS.exactToken());
+            for (JsonNode parentIdNode :unitParentId) {
+                unitParentIdList.add(parentIdNode.asText());
+            }
+            unitId = unitNode.get(PROJECTIONARGS.ID.exactToken()).asText();
+            unitParentIdList.add(unitId);
+        }
+        Select newSelectQuery = createSearchParentSelect(unitParentIdList);
+        ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, null);
+        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents);
+        UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
+        unitNode.buildAncestors(unitMap, allUnitNode, rootList);
+        unitNode.computeRule();
+        JsonNode rule = JsonHandler.toJsonNode(unitNode.getHeritedRules().getInheritedRule());
+        ((ObjectNode)arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
     }
 }

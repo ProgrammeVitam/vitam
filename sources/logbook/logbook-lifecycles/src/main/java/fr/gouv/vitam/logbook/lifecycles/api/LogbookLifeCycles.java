@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -103,12 +104,14 @@ public interface LogbookLifeCycles {
      * Select logbook LifeCycle entries
      *
      * @param select the select request in format of JsonNode
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
-    List<LogbookLifeCycleUnit> selectUnit(JsonNode select)
+    List<LogbookLifeCycle> selectUnit(JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
@@ -116,24 +119,28 @@ public interface LogbookLifeCycles {
      *
      * @param select the select request in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
-    List<LogbookLifeCycleUnit> selectUnit(JsonNode select, boolean sliced)
+    List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
      * Selects object group life cycle entries
      *
      * @param select the select request in format of JsonNode
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
-    List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select)
+    List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
@@ -141,12 +148,14 @@ public interface LogbookLifeCycles {
      *
      * @param select the select request in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      */
-    List<LogbookLifeCycleObjectGroup> selectObjectGroup(JsonNode select, boolean sliced)
+    List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
 
     /**
@@ -211,11 +220,14 @@ public interface LogbookLifeCycles {
      * Selects logbook life cycle by lifecycle ID (using a queryDsl)
      *
      * @param queryDsl
+     * @param collection the collection on which the select operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the logbook LifeCycle found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      */
-    LogbookLifeCycleUnit getUnitById(JsonNode queryDsl) throws LogbookDatabaseException, LogbookNotFoundException;
+    LogbookLifeCycle getUnitById(JsonNode queryDsl, LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Select logbook life cycle by the lifecycle's ID
@@ -233,10 +245,12 @@ public interface LogbookLifeCycles {
      *
      * @param operationId
      * @param select
+     * @param collection the collection on which the cursor creation operation will be done : Production collection
+     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the X-Cursor-Id
      * @throws LogbookDatabaseException
      */
-    public String createCursorUnit(String operationId, JsonNode select, LifeCycleStatusCode lifeCycleStatusCode)
+    public String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
         throws LogbookDatabaseException;
 
     /**
@@ -255,10 +269,12 @@ public interface LogbookLifeCycles {
      *
      * @param operationId
      * @param select
+     * @param collection the collection on which the cursor creation operation will be done : Production collection
+     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return the X-Cursor-Id
      * @throws LogbookDatabaseException
      */
-    public String createCursorObjectGroup(String operationId, JsonNode select, LifeCycleStatusCode lifeCycleStatus)
+    public String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException;
 
     /**
@@ -344,5 +360,22 @@ public interface LogbookLifeCycles {
      */
     void rollBackObjectGroupsByOperation(String idOperation)
         throws LogbookNotFoundException, LogbookDatabaseException;
+
+    /**
+     * Returns the LifeCycle Status for a given unit Id
+     * 
+     * @param unitId the unit Id
+     * @return the lifeCycleStatusCode
+     */
+    LifeCycleStatusCode getUnitLifeCycleStatus(String unitId) throws LogbookDatabaseException, LogbookNotFoundException;
+
+    /**
+     * Returns the LifeCycle Status for a given objectGroup Id
+     * 
+     * @param objectGroupId the objectGroup Id
+     * @return the lifeCycleStatusCode
+     */
+    LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
+        throws LogbookDatabaseException, LogbookNotFoundException;
 
 }

@@ -27,24 +27,24 @@
 package fr.gouv.vitam.logbook.rest;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.mockito.Mockito.when;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -58,13 +58,19 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -72,10 +78,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
-import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
-import fr.gouv.vitam.logbook.lifecycles.core.LogbookLifeCyclesImpl;
 
 /**
  *
@@ -89,8 +95,16 @@ public class LogBookLifeCycleUnitTest {
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String SERVER_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
+
+    // ES
+    @ClassRule
+    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+    private final static String ES_CLUSTER_NAME = "vitam-cluster";
+    private final static String ES_HOST_NAME = "localhost";
+    private static ElasticsearchTestConfiguration config = null;
 
     private static final String LIFE_UNIT_ID_URI = "/operations/{id_op}/unitlifecycles/{id_lc}";
     private static final String LIFE_UNIT_URI = "/operations/{id_op}/unitlifecycles";
@@ -120,6 +134,7 @@ public class LogBookLifeCycleUnitTest {
     private static JunitHelper junitHelper;
 
     private static final Integer TENANT_ID = 0;
+    private static final List<Integer> tenantList = Arrays.asList(0);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -137,6 +152,12 @@ public class LogBookLifeCycleUnitTest {
             .build());
 
         mongod = mongodExecutable.start();
+        // ES
+        try {
+            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
+        } catch (final VitamApplicationServerException e1) {
+            assumeTrue(false);
+        }
         serverPort = junitHelper.findAvailablePort();
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
@@ -147,10 +168,15 @@ public class LogBookLifeCycleUnitTest {
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
             logbookConf.setDbName("vitam-test").setMongoDbNodes(nodes);
+            final List<ElasticsearchNode> esNodes = new ArrayList<>();
+            esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
             logbookConf.setWorkspaceUrl("http://localhost:8001");
+            logbookConf.setClusterName(ES_CLUSTER_NAME);
+            logbookConf.setElasticsearchNodes(esNodes);
+            logbookConf.setTenants(tenantList);
 
             application = new LogbookApplication(logbookConf);
             application.start();
@@ -232,6 +258,9 @@ public class LogBookLifeCycleUnitTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        if (config != null) {
+            JunitHelper.stopElasticsearchForTest(config);
+        }
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
@@ -239,7 +268,7 @@ public class LogBookLifeCycleUnitTest {
     }
 
     @Test
-    public final void given_lifeCycleUnit_when_create_update_test() {
+    public final void given_lifeCycleUnit_when_create_update_test() throws InvalidCreateOperationException {
         // Creation OK
 
         logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
@@ -311,18 +340,24 @@ public class LogBookLifeCycleUnitTest {
 
         // Commit the created unit lifeCycle
         given()
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED)
             .when()
-            .put(COMMIT_UNIT_ID_URI,
+            .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
             .then()
             .statusCode(Status.OK.getStatusCode());
 
         // Test direct access
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(LogbookLifeCycleMongoDbName.objectIdentifier.getDbname(),
+            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier)));
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new Select().getFinalSelect())
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED.toString())
+            .body(select.getFinalSelect())
             .when()
             .get("/unitlifecycles/" +
                 logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
@@ -379,6 +414,7 @@ public class LogBookLifeCycleUnitTest {
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesUnitParametersBAD.toString())
             .when()
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString())
             .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.eventIdentifierProcess),
                 logbookLifeCyclesUnitParametersBAD.getParameterValue(LogbookParameterName.objectIdentifier))
@@ -457,6 +493,7 @@ public class LogBookLifeCycleUnitTest {
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesUnitParametersUpdate.toString())
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString())
             .when()
             .put(LIFE_UNIT_ID_URI,
                 logbookLifeCyclesUnitParametersUpdate.getParameterValue(LogbookParameterName.eventIdentifierProcess),
@@ -518,11 +555,15 @@ public class LogBookLifeCycleUnitTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        JsonNode query = JsonHandler.getFromString(LIFECYCLE_SAMPLE);
-        when(logbookLifeCycles.getUnitById(query)).thenThrow(LogbookNotFoundException.class);
-        given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
+        InvalidCreateOperationException {
+
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(LogbookLifeCycleMongoDbName.objectIdentifier.getDbname(),
+            FAKE_UNIT_LF_ID));
+        JsonNode query = select.getFinalSelect();
+
+        given().contentType(ContentType.JSON).body(query)
             .param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode())
             .when().get(SELECT_UNIT_BY_ID_URI);
     }
@@ -531,9 +572,9 @@ public class LogBookLifeCycleUnitTest {
     @Test
     public void testGetObjectGroupLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
-        final LogbookLifeCycles logbookLifeCycles = Mockito.mock(LogbookLifeCyclesImpl.class);
-        when(logbookLifeCycles.getObjectGroupById(FAKE_OBG_LF_ID)).thenThrow(LogbookNotFoundException.class);
-        given().contentType(ContentType.JSON).body(new Select().getFinalSelect()).param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).body(new Select().getFinalSelect())
+            .param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }
 }

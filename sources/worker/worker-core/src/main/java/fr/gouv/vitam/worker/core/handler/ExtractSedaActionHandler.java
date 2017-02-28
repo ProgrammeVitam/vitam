@@ -85,7 +85,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -102,6 +101,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
@@ -259,6 +259,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingManifestReferenceException e) {
             LOGGER.debug("ProcessingException : reference incorrect in Manifest", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final MissingFieldException e) {
+            LOGGER.debug("MissingFieldException", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
@@ -442,7 +445,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // 1- Check if required informations exist
             for (String currentInfo : REQUIRED_GLOBAL_INFORMATIONS) {
                 if (!globalRequiredInfosFound.contains(currentInfo)) {
-                    throw new ProcessingException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
+                    throw new MissingFieldException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
                 }
             }
 
@@ -648,11 +651,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
                                 globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
                             }
-                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
-                                unitIdToSetOfRuleId != null &&
-                                unitIdToSetOfRuleId.get(unitId) != null && !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
-                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
-                            }
+                            // All MngtRuleMetadata Must be shown in RootArchive
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
                                 listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
                             }
@@ -896,7 +895,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             break;
                         }
                         case DATA_OBJECT_GROUPID: {
-                            groupGuid = GUIDFactory.newObjectGroupGUID(VitamThreadUtils.getVitamSession().getTenantId())
+                            groupGuid = GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter())
                                 .toString();
                             final String groupId = reader.getElementText();
                             // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
@@ -1067,7 +1066,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final ObjectNode bdoObjNode = (ObjectNode) bdo;
 
         final String technicalGotGuid =
-            GUIDFactory.newObjectGroupGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString();
+            GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).toString();
         objectGroupIdToGuid.put(technicalGotGuid, technicalGotGuid); // update object group id guid
         bdoObjNode.put(DATA_OBJECT_GROUPID, technicalGotGuid);
 
@@ -1112,7 +1111,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString());
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());
 
@@ -1226,7 +1225,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
-            GUIDFactory.newEventGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString());
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());
 
@@ -1262,7 +1261,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final List<String> archiveUnitGuids = new ArrayList<>();
 
         String existingElementGuid = null;
-        String elementGuid = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).toString();
+        String elementGuid = GUIDFactory.newUnitGUID(ParameterHelper.getTenantParameter()).toString();
         boolean isReferencedArchive = false;
 
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
@@ -1589,7 +1588,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             try {
                 final Map<String, ArrayList<JsonNode>> categoryMap = new HashMap<>();
                 objectGroup.put(SedaConstants.PREFIX_ID, objectGroupGuid);
-                objectGroup.put(SedaConstants.PREFIX_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+                objectGroup.put(SedaConstants.PREFIX_TENANT_ID, ParameterHelper.getTenantParameter());
                 final List<String> versionList = new ArrayList<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);

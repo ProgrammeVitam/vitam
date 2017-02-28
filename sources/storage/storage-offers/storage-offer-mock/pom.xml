@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-offers</artifactId>
-		<version>0.14.0-SNAPSHOT</version>
+		<version>0.15.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-offer-mock</artifactId>
 	<name>Storage Offer Mock</name>
@@ -18,6 +18,11 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-public</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>storage-engine-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<!-- Remove private when AbstractMockClient.FakeInboundResponse is in public  -->

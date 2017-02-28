@@ -26,20 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
-import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -194,8 +200,8 @@ public class LogbookLifeCyclesClientMockTest {
         assertNotNull(client);
         assertNotNull(client.selectObjectGroupLifeCycleById("id", JsonHandler.createObjectNode()));
         assertNotNull(client.selectUnitLifeCycleById("id", JsonHandler.createObjectNode()));
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.COMMITTED));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
 
     }
 
@@ -241,5 +247,49 @@ public class LogbookLifeCyclesClientMockTest {
             LogbookParameterName.objectIdentifierRequest.name());
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
             LogbookParameterName.objectIdentifierIncome.name());
+    }
+
+    @Test
+    public void testGetUnitLifeCycleStatus()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        LogbookLifeCyclesClientFactory.changeMode(null);
+
+        final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        String unitId = GUIDFactory.newUnitGUID(0).toString();
+        LifeCycleStatusCode unitLifeCycleStatus = client.getUnitLifeCycleStatus(unitId);
+        assertNull(unitLifeCycleStatus);
+
+        // Insert the unit lifeCycle
+        String operationId = GUIDFactory.newOperationLogbookGUID(0).toString();
+        client.commitUnit(operationId, unitId);
+
+        unitLifeCycleStatus = client.getUnitLifeCycleStatus(unitId);
+        assertNotNull(unitLifeCycleStatus);
+        assertEquals(unitLifeCycleStatus, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
+    }
+
+    @Test
+    public void testGetObjectGroupLifeCycleStatus()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        LogbookLifeCyclesClientFactory.changeMode(null);
+
+        final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        String objectGroupId = GUIDFactory.newObjectGroupGUID(0).toString();
+        LifeCycleStatusCode objectGroupLifeCycleStatus = client.getUnitLifeCycleStatus(objectGroupId);
+        assertNull(objectGroupLifeCycleStatus);
+
+        // Insert the objectGroup lifeCycle
+        String operationId = GUIDFactory.newOperationLogbookGUID(0).toString();
+        client.commitUnit(operationId, objectGroupId);
+
+        objectGroupLifeCycleStatus = client.getObjectGroupLifeCycleStatus(objectGroupId);
+        assertNotNull(objectGroupLifeCycleStatus);
+        assertEquals(objectGroupLifeCycleStatus, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
     }
 }

@@ -12,60 +12,64 @@
     <div id="boxSearch" class="panel-body panel-collapse collapse in">
       <!-- <div class="tab-content"> -->
       <md-tabs role="tablist" md-stretch-tabs="always" md-dynamic-height>
-        <md-tab label="Recherche simple" role="presentation" class="active">
-          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult($event, titleCriteria)">
-            <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-50">
+        <md-tab label="Recherche simple" role="presentation" class="active" ng-click="reinitForm()">
+          <!-- * RECHERCHE SIMPLE * -->
+          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult(titleCriteria)">
+            <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-25">
               <div class="input-group m-b-25">
-                <input ng-model="titleCriteria" type="text" class="form-control input-lg"/>
-                <div class="input-group-addon"><button class="btn btn-primary center-block" type="reset"><i class="material-icons pull-left">clear</i></button></div>
+                <input ng-model="search.form.titleCriteria" type="text" class="form-control input-lg" ng-change="onInputChange()"/>
+                <div class="input-group-addon"><button class="btn btn-primary center-block" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i></button></div>
               </div>
               <div class="clearfix"></div>
               <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
             </div>
           </form>
-
-          <!--
-          *
-          *    RECHERCHE SIMPLE
-          *
-        -->
         </md-tab>
-        <md-tab label="Recherche avancée" role="presentation" class="col-md-6">
-          <form role="tabpanel" class="tab-pane active" id="complexeSearch" ng-submit="getElasticSearchUnitsResult($event,idCriteria2,titleCriteria2,descriptionCriteria2,startDate,endDate)">
+        <md-tab label="Recherche avancée" role="presentation" class="col-md-6" ng-click="reinitForm()">
+          <!-- * RECHERCHE AVANCEE * -->
+          <form role="tabpanel" class="tab-pane active" id="complexeSearch"
+                ng-submit="getElasticSearchUnitsResult()">
             <div class="clearfix"></div>
             <div class="container col-md-12">
               <div class="panel panel-default col-md-12">
                 <div id="boxAdvanced" class="panel-body panel-collapse collapse in">
                   <div class="form-group col-md-4">
                     <label>Titre</label>
-                    <input ng-model="titleCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
+                    <input ng-model="search.form.title" type="text" ng-readonly="search.form.id.length" class="form-control input-sm" ng-change="onElasticInputChange()"/>
                   </div>
 
                   <div class="form-group col-md-6">
                     <label>Description</label>
-                    <input ng-model="descriptionCriteria2" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm" />
+                    <input ng-model="search.form.description" type="text" ng-readonly="search.form.id.length" class="form-control input-sm" ng-change="onElasticInputChange()"/>
                   </div>
                   <div class="form-group col-md-2">
                     <label>ID</label>
-                    <input ng-model="idCriteria2" type="text" class="form-control input-sm"/>
+                    <input ng-model="search.form.id" type="text" class="form-control input-sm" ng-change="onElasticInputChange()"/>
                   </div>
                   <div class="form-group col-md-2">
                     <label>Dates Extrêmes</label>
                     <div class="input-group">
-                      <input ng-model="startDate" date-picker="" id="startDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
+                      <input ng-model="search.form.startDate" date-picker="" id="startDate" type="text" ng-readonly="search.form.id.length" class="form-control input-sm" ng-change="onElasticInputChange()"/>
                       <div class="input-group-addon"><i class="material-icons">date_range</i></div>
                     </div>
                   </div>
                   <div class="form-group col-md-2">
                     <label>&nbsp;</label>
                     <div class="input-group">
-                      <input ng-model="endDate" date-picker="" id="endDate" type="text" ng-readonly="idCriteria2.length" class="form-control input-sm"/>
+                      <input ng-model="search.form.endDate" date-picker="" id="endDate" type="text" ng-readonly="search.form.id.length" class="form-control input-sm" ng-change="onElasticInputChange()"/>
                       <div class="input-group-addon"><i class="material-icons">date_range</i></div>
                     </div>
                   </div>
                   <div class="clearfix"></div>
-                  <button class="btn btn-default pull-left" type="reset" ng-click="reinitTab()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
-                  <button class="btn btn-primary pull-right" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+                  <div>
+                    <div class="col-md-2"><!-- Blank zone --></div>
+                    <div class="col-md-3">
+                      <button class="btn btn-default" type="reset" ng-click="reinitElasticForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+                    </div>
+                    <div class="col-md-4">
+                      <button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -74,9 +78,9 @@
       </md-tabs>
 
     <!--  Nbre d'archives trouvées -->
-    <div class="text-center" style="padding-bottom: 20px">
-        <label ng-if = "showResult && totalResult == 0">Il n'y a aucun résultat pour votre recherche</label>
-    </div>
+    <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+        {{search.error.message}}
+    </button>
 
   </div>
 </div>
@@ -88,11 +92,11 @@
 
   <!--Pagination -->
   <div style="text-align: center">
-    <button class="btn btn-default btn-s" ng-disabled="currentPage <= 1" ng-click="currentPage=+currentPage-1">
+    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
       Précédent
     </button>
-    <input ng-model="currentPage" style="max-width: 40px">/{{resultPages}}
-    <button class="btn btn-default btn-s" ng-disabled="currentPage >= resultPages" ng-click="currentPage=+currentPage+1">
+    <input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
+    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
       Suivant
     </button>
   </div>
@@ -105,9 +109,7 @@
 
 <div class="panel panel-default col-md-12">
   <a class="panel-header"  data-target="#boxSearchResults" data-toggle="collapse">
-      <h2> Résultats <span ng-if="totalResult == 0 || totalResult > 0">({{totalResult}})</span>
-          <!-- TODO Add 'showResult &&' in ng-if condition in order to not display 0 when no search asked ? -->
-      </h2>
+      <h2> Résultats <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span> </h2>
   </a>
   <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
     <div class="table-responsive ">
@@ -132,9 +134,9 @@
           </th>
         </tr>
 
-        <tbody ng-if="showResult && totalResult>0">
+        <tbody ng-if="search.response.totalResult>0">
           <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)"
-              ng-repeat="result in archiveUnitsSearchResult | startFormat: startFormat()| limitTo: itemsPerPage | orderBy:orderByField:reverseSort">
+              ng-repeat="result in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage)| limitTo: search.pagination.itemsPerPage | orderBy:orderByField:reverseSort">
             <td>{{result._id}}</td>
             <td>{{result.Title}}</td>
             <td>{{result.TransactedDate | vitamFormatDate}}</td>

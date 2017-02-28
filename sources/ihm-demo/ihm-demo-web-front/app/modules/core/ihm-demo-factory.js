@@ -47,7 +47,8 @@ angular.module('core')
   'UNIT_LIFECYCLE_TYPE': 'unit',
   'OG_LIFECYCLE_TYPE': 'objectgroup',
   'CHECK_OPERATION_STATUS': 'check',
-  'CLEAR_OPERATION_STATUS_HISTORY': 'clear'
+  'CLEAR_OPERATION_STATUS_HISTORY': 'clear',
+  'WORKFLOWS_LIST': '/operations'
 })
 
 /*ihmDemoCLient create a configured http client*/
@@ -124,6 +125,21 @@ angular.module('core')
   // Check operation status
   dataFactory.cleanOperationStatus = function(operationId){
     return ihmDemoCLient.getClient(IHM_URLS.CLEAR_OPERATION_STATUS_HISTORY).all('').get(operationId);
+  };
+
+  // Get Workflows List
+  dataFactory.getWorkflows = function(){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one('').get();
+  };
+
+  // Execute an action
+  dataFactory.executeAction = function(operationId, action){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one(operationId).put({},{'X-Action':action});
+  };
+
+  // Stop a process
+  dataFactory.stopProcess = function(operationId){
+    return ihmDemoCLient.getClient(IHM_URLS.WORKFLOWS_LIST).one(operationId).remove();
   };
 
   return dataFactory;
@@ -234,30 +250,44 @@ angular.module('core')
   })
   .factory('transferToIhmResult', function(){
     return {
-        transferUnit : function(Result){
-         Result.forEach(function(unit) {
-            unit._id = unit["#id"];
-            delete unit["#id"];
-            unit._og = unit["#object"];
-            delete unit["#object"];
-            unit._ops = unit["#operations"];
-            delete unit["#operations"];
-            unit._tenant = unit["#tenant"];
-            delete unit["#tenant"];
-            unit._nbc = unit["#nbunits"];
-            delete unit["#nbunits"];
-            unit._up = unit["#unitups"];
-            delete unit["#unitups"];
-            unit._us = unit["#allunitups"];
-            delete unit["#allunitups"];
-            unit._min = unit["#min"];
-            delete unit["#min"];
-            unit._max = unit["#max"];
-            delete unit["#max"];
-	    unit._mgt = unit["#management"];
-            delete unit["#management"];
+      transferUnit : function(Result){
+        Result.forEach(function(unit) {
+          unit._id = unit["#id"];
+          delete unit["#id"];
+          unit._og = unit["#object"];
+          delete unit["#object"];
+          unit._ops = unit["#operations"];
+          delete unit["#operations"];
+          unit._tenant = unit["#tenant"];
+          delete unit["#tenant"];
+          unit._nbc = unit["#nbunits"];
+          delete unit["#nbunits"];
+          unit._up = unit["#unitups"];
+          delete unit["#unitups"];
+          unit._us = unit["#allunitups"];
+          delete unit["#allunitups"];
+          unit._min = unit["#min"];
+          delete unit["#min"];
+          unit._max = unit["#max"];
+          delete unit["#max"];
+          unit._mgt = unit["#management"];
+          delete unit["#management"];
         });
         return Result;
+      }
+    }
+  })
+  .factory('RuleUtils', function(){
+    return {
+      translate : function(rule){
+        var newRule = '';
+        newRule = (rule == 'AppraisalRule') ? 'Durée d\'utilité Administrative' : newRule;
+        newRule = (rule == 'AccessRule') ? 'Délai de communicabilité' : newRule;
+        newRule = (rule == 'StorageRule') ? 'Durée d\'utilité courante' : newRule;
+        newRule = (rule == 'DisseminationRule') ? 'Délai de diffusion' : newRule;
+        newRule = (rule == 'ReuseRule') ? 'Durée de réutilisation' : newRule;
+        newRule = (rule == 'ClassificationRule') ? 'Durée de classification' : newRule;
+        return newRule;
       }
     }
   });

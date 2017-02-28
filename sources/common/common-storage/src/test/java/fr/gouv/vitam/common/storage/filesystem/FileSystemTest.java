@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -11,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,6 +26,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -52,6 +57,10 @@ public class FileSystemTest {
     private static final String SIP_TAR_GZ = "sip.tar.gz";
     private static final String SIP_TAR = "sip.tar";
 
+    private static final String TENANT_ID = "0";
+    private static final String TYPE = "object";
+    private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
+    private static final String OBJECT_ID2 = "aeaaaaaaaaaam7mxaa2pkak2bnhxy4aaaaaq";
 
 
     @Before
@@ -540,5 +549,62 @@ public class FileSystemTest {
     public void givenNullParamWhenCheckObjectThenRaiseAnException()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
+    }
+    
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
+        String containerName = TENANT_ID + "_"+ TYPE;
+        storage.createContainer(containerName);
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
+        //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
+        //get metadata of file
+        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
+        assertEquals(OBJECT_ID, result.getObjectName());
+        assertEquals(TYPE, result.getType());
+        assertEquals("9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418", 
+            result.getDigest());
+        assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
+        assertEquals(6906, result.getFileSize());
+        assertNotNull(result.getLastAccessDate());
+        assertNotNull(result.getLastModifiedDate());
+        
+        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
+        //get metadata of directory
+        result = storage.getObjectMetadatas(containerName, null);
+        assertEquals("0_object", result.getObjectName());
+        assertEquals(TYPE, result.getType());
+        assertEquals(null, result.getDigest());
+        assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
+        assertEquals(13843, result.getFileSize());
+        assertNotNull(result.getLastAccessDate());
+        assertNotNull(result.getLastModifiedDate());
+    }
+
+    @Test
+    public void listTest() throws Exception {
+        storage.createContainer("container");
+        assertNotNull(storage.getContainerInformation("container"));
+        for (int i = 0; i < 100; i++) {
+            storage.putObject("container", "file_" + i, new FakeInputStream(100, false));
+        }
+        PageSet<? extends StorageMetadata> pageSet = storage.listContainer("container");
+        assertNotNull(pageSet);
+        assertFalse(pageSet.isEmpty());
+        assertEquals(100, pageSet.size());
+
+        for (int i = 100; i < 150; i++) {
+            storage.putObject("container", "file_" + i, new FakeInputStream(100, false));
+        }
+        pageSet = storage.listContainer("container");
+        assertNotNull(pageSet);
+        assertFalse(pageSet.isEmpty());
+        assertEquals(100, pageSet.size());
+        assertNotNull(pageSet.getNextMarker());
+
+        pageSet = storage.listContainerNext("container", pageSet.getNextMarker());
+        assertNotNull(pageSet);
+        assertFalse(pageSet.isEmpty());
+        assertEquals(50, pageSet.size());
+        assertNull(pageSet.getNextMarker());
     }
 }

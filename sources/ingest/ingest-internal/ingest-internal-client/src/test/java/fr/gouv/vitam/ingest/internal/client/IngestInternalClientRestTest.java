@@ -40,12 +40,18 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -55,14 +61,21 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -75,6 +88,11 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     private static final String PATH = "/ingest/v1";
+    private static final String CONTEXTID = "contextId";
+    private static final String CONTAINERID = "containerId";
+    private static final String WORKFLOWID = "workFlowId";
+    private static final String ID = "id1";
+
 
     private IngestInternalClientRest client;
 
@@ -128,7 +146,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     }
 
     @Path(PATH)
-    public static class MockRessource {
+    public static class MockRessource<ProcessingEntry> {
 
         private final ExpectedResults expectedResponse;
         private final ExpectedResults expectedResponseLogbook;
@@ -146,7 +164,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             InputStream uploadedInputStream) {
             return expectedResponse.post();
         }
-        
+
         @GET
         @Path("/ingests/{objectId}/{type}")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -162,6 +180,47 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             return expectedResponseLogbook.post();
         }
 
+        @Path("/operations/{id}")
+        @POST
+        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
+            CommonMediaType.BZIP2})
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
+            InputStream uploadedInputStream) {
+            return expectedResponse.post();
+        }
+
+        @Path("/operations/{id}")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
+            return expectedResponse.get();
+        }
+
+        @Path("/operations/{id}")
+        @PUT
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
+            ProcessingEntry process, @Suspended final AsyncResponse asyncResponse) {
+            return expectedResponse.put();
+        }
+
+        @Path("/operations/{id}")
+        @HEAD
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
+            return expectedResponse.head();
+        }
+
+        @Path("/operations/{id}")
+        @DELETE
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response InterruptWorkFlowExecution(@PathParam("id") String id) {
+            return expectedResponse.delete();
+        }
     }
 
     @Test
@@ -201,7 +260,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
+        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
 
@@ -244,7 +303,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
+        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(500, response.getStatus());
         inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
@@ -286,7 +345,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
+        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(500, response.getStatus());
         assertNotNull(response.readEntity(String.class));
     }
@@ -325,18 +384,19 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
         final Response response2 = client.uploadInitialLogbook(operationList);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE);
+        final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(500, response.getStatus());
         assertNotNull(response.readEntity(String.class));
     }
-    
+
     @Test
     public void givenInputstreamWhenDownloadObjectThenReturnOK()
         throws Exception {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        final InputStream fakeUploadResponseInputStream = client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -347,4 +407,259 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             fail();
         }
     }
+
+    @Test
+    public void givenInputstreamWhenDownloadObjectThenStoreATR()
+        throws Exception {
+
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        final InputStream fakeUploadResponseInputStream =
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+        client.storeATR(GUIDFactory.newGUID(), fakeUploadResponseInputStream);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenHeadOperationStatusThenReturnOK()
+        throws Exception {
+
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getOperationProcessStatus(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenHeadOperationStatusPreconditionFailedThenThrowInternalServerError()
+        throws Exception {
+
+        when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.getOperationProcessStatus(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenGetOperationStatusThenThrowVitamClientInternalException()
+        throws Exception {
+
+        JsonNode query = JsonHandler.createObjectNode();
+
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getOperationProcessExecutionDetails(ID, query);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenHeadOperationStatusThenThrowInternalServerError()
+        throws Exception {
+
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.getOperationProcessStatus(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenGetOperationStatusThenThrowInternalServerError()
+        throws Exception {
+
+        JsonNode query = JsonHandler.createObjectNode();
+
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getOperationProcessExecutionDetails(ID, query);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenHeadOperationthInternalServerErrorThenThrowInternalServerError()
+        throws Exception {
+
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getOperationProcessStatus(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenHeadOperationStatusThenThrowUnauthorized()
+        throws Exception {
+
+        when(mock.head()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.getOperationProcessStatus(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenGetOperationStatusThenThrowUnauthorized()
+        throws Exception {
+
+        JsonNode query = JsonHandler.createObjectNode();
+
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.getOperationProcessExecutionDetails(ID, query);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenGetPreconditionFailedStatusThenThrowUnauthorized()
+        throws Exception {
+
+        JsonNode query = JsonHandler.createObjectNode();
+
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.getOperationProcessExecutionDetails(ID, query);
+
+    }
+
+    @Test(expected = BadRequestException.class)
+    public void givenDeleteOperationStatusThenThrowUnauthorized()
+        throws Exception {
+
+        when(mock.delete()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        client.cancelOperationProcessExecution(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenDeleteOperationStatusThenThrowInternalServerError()
+        throws Exception {
+
+        when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.cancelOperationProcessExecution(ID);
+
+    }
+
+    @Test(expected = WorkflowNotFoundException.class)
+    public void givenDeleteOperationNotFoundStatusThenThrowWorkflowNotFoundException()
+        throws Exception {
+        when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.cancelOperationProcessExecution(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenDeletePreconditionFailedThenThrowInternalServerError()
+        throws Exception {
+
+        when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.cancelOperationProcessExecution(ID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenUnauthorizedInitOperationStatusThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenInitOperationInternalServerErrorThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenInitOperationNotFoundThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenInitOperationPreConditionFailedThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.initVitamProcess(CONTEXTID, CONTAINERID, WORKFLOWID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException()
+        throws Exception {
+
+
+
+        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.initWorkFlow(CONTEXTID);
+
+    }
+
+    @Test
+    public void givenInitWorkFlowThenReturnResponseAccepted()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
+        client.initWorkFlow(CONTEXTID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenInitWorkFlowNotFoundThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.initWorkFlow(CONTEXTID);
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenInitWorkFlowInternalServerErrorThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.initWorkFlow(CONTEXTID);
+
+    }
+
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenPostOperationStatusThenThrowVitamClientInternalException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenUnauthorizedExecuteOperationThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+
+    }
+
+    @Test
+    public void givenAcceptedExecuteOperationThenReturnResponseAccepted()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED).build());
+        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenInternalServerErrorExecuteOperationThenThrowVitamClientInternalException()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+
+    }
+
+    @Test(expected = VitamClientInternalException.class)
+    public void givenPreconditionFailedExecuteOperationThenReturnResponseAccepted()
+        throws Exception {
+
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
+
+    }
+
 }

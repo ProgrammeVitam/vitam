@@ -455,7 +455,7 @@ table {
 
 .table > tbody > tr:hover > td {
   background-color: #AD9FFF;
-  color: white;
+  color: black;
   cursor: pointer;
 }
 
@@ -561,4 +561,12 @@ table {
 .dynamic-table-box {
   width: inherit;
   min-width: 100%;
+}
+
+.table > tbody > tr > td.koLine {
+  background-color: #FFA4B0;
+}
+
+.table > tbody > tr > td.warningLine {
+  color: #FF6600;
 }

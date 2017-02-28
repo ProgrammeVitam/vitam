@@ -54,7 +54,7 @@ public class StorageClientFactoryTest {
     @Test
     public void testInitWithoutConfigurationFile() {
         // assume that a fake file is like no file
-        StorageClientFactory.changeMode(null);
+        StorageClientFactory.changeMode((ClientConfiguration) null);
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertTrue(client instanceof StorageClientMock);
         assertEquals(VitamClientType.MOCK, StorageClientFactory.getInstance().getVitamClientType());
@@ -88,7 +88,7 @@ public class StorageClientFactoryTest {
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-        StorageClientFactory.changeMode(null);
+        StorageClientFactory.changeMode((ClientConfiguration) null);
 
         final StorageClient client =
             StorageClientFactory.getInstance().getClient();
@@ -109,7 +109,7 @@ public class StorageClientFactoryTest {
         assertTrue(client instanceof StorageClientRest);
         assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
 
-        StorageClientFactory.changeMode(null);
+        StorageClientFactory.changeMode((ClientConfiguration) null);
         final StorageClient client2 =
             StorageClientFactory.getInstance().getClient();
         assertTrue(client2 instanceof StorageClientMock);

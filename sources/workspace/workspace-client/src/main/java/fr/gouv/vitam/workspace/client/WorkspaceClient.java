@@ -27,6 +27,7 @@
 package fr.gouv.vitam.workspace.client;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
@@ -41,6 +42,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -51,8 +55,10 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -582,6 +588,27 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
+    }
+
+    @Override
+    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
+        throws ContentAddressableStorageException, IOException {
+        // FIXME implémente dans workspace 
+        return new MetadatasStorageObject();
+    }
+
+    // FIXME design : is it normal that the workspaceClient implements ContentAddressableStorage ?
+    @Override
+    public PageSet<? extends StorageMetadata> listContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException {
+        throw new UnsupportedOperationException();
+    }
+
+    // FIXME design : is it normal that the workspaceClient implements ContentAddressableStorage ?
+    @Override
+    public PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
+        throws ContentAddressableStorageNotFoundException {
+        throw new UnsupportedOperationException();
     }
 
 }

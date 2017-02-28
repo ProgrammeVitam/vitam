@@ -10,7 +10,7 @@ pushd ${WORKING_FOLDER}/vitam-consul/vitam/bin/consul/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer consul_${CONSUL_VERSION}_linux_amd64.zip"
 if [ ! -f consul_${CONSUL_VERSION}_linux_amd64.zip ]; then
-	curl -k https://releases.hashicorp.com/consul/0.7.0/consul_${CONSUL_VERSION}_linux_amd64.zip -o consul_${CONSUL_VERSION}_linux_amd64.zip
+	curl -k https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -o consul_${CONSUL_VERSION}_linux_amd64.zip
 fi
 echo "Décompacter consul_${CONSUL_VERSION}_linux_amd64.zip"
 unzip -o consul_${CONSUL_VERSION}_linux_amd64.zip

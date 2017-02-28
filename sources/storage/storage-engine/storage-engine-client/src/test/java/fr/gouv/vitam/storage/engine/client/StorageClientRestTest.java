@@ -70,7 +70,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.request.CreateObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -260,7 +261,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test
     public void getContainerInfos() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Response.Status.OK).build());
+        when(mock.head()).thenReturn(Response.status(Response.Status.OK).build());
         client.getStorageInformation("idStrategy");
     }
 
@@ -283,7 +284,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = StorageNotFoundClientException.class)
     public void getContainerInfosNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getStorageInformation("idStrategy");
     }
 
@@ -361,8 +362,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
         client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", null);
     }
 
-    private CreateObjectDescription getDescription() {
-        final CreateObjectDescription description = new CreateObjectDescription();
+    private ObjectDescription getDescription() {
+        final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
             "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
