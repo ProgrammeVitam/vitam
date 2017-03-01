@@ -513,6 +513,13 @@ Il contient les fichiers suivants :
   * token.tsp : timestamp de la combinaison de la racine de l'arbre de merkle, des empreintes des opérations de sécurisation antérieures : la dernière réalisée, celle du mois précédent et celle de l'année précédente.
   * computing_information.txt : reprend les différents empreintes qui ont permis de réaliser l'horodatage
   * additional_information.txt : contient le nombre d'informations sécurisées, ainsi que les dates du premier et du dernier élement
+    
+Journalisation des opérations de sécurisation
+---------------------------------------------
+
+La sécurisation des journaux d'opérations donne lieu à la création d'un journal d'opération de type TRACEABILITY. 
+
+Ces journaux sont créés par tenant.
 
 Rechercher des journaux sécurisés
 ---------------------------------
