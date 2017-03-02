@@ -62,9 +62,9 @@ public class BenchmarkMultipartResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkMultipartResource.class);
 
     /**
-     * Constructor IngestExternalResource
+     * Constructor BenchmarkMultipartResource
      *
-     * @param ingestExternalConfiguration
+     * @param configuration the Benchmark Configuration
      */
     public BenchmarkMultipartResource(BenchmarkConfiguration configuration) {
         LOGGER.info("init Ingest External Resource server");

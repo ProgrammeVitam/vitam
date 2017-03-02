@@ -44,8 +44,8 @@ public class PluginProperties {
     /**
      * Constructor.
      *
-     * @param String className definition
-     * @param String propertiesFile parameters
+     * @param className definition
+     * @param propertiesFile parameters
      */
     @JsonCreator
     public PluginProperties(@JsonProperty("className") String className,
@@ -68,7 +68,7 @@ public class PluginProperties {
     /**
      * Set the className
      *
-     * @param String className
+     * @param className
      */
     public void setClassName(String className) {
         this.className = className;
@@ -86,7 +86,7 @@ public class PluginProperties {
     /**
      * Set the propertiesFile
      *
-     * @param String propertiesFile
+     * @param propertiesFile
      */
     public void setPropertiesFile(String propertiesFile) {
         this.propertiesFile = propertiesFile;

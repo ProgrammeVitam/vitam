@@ -123,6 +123,8 @@ public interface AccessExternalClient extends BasicClient {
      * @param selectObjectQuery
      * @param unitId
      * @param tenantId
+     * @param usage
+     * @param version
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException

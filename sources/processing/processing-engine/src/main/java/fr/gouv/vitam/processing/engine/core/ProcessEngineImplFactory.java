@@ -38,6 +38,10 @@ import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 public class ProcessEngineImplFactory {
 
     /**
+     * @param workParams the work Params
+     * @param monitor the monitor
+     * @param asyncResponse the asynchronous response
+     * 
      * @return ProcessEngineImpl object created
      */
     public ProcessEngineImpl create(WorkerParameters workParams, Object monitor, AsyncResponse asyncResponse) {

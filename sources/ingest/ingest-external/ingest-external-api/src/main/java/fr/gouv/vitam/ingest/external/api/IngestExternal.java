@@ -44,6 +44,7 @@ public interface IngestExternal {
      * @param input the file
      * @param asyncResponse the async Response
      * @param contextId String
+     * @param action the action type
      * @return Response containing as InputStream the ArchiveTransferReply in XML format
      * @throws IngestExternalException thrown if an error occurred in workflow
      */

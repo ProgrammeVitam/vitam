@@ -69,6 +69,7 @@ public class ProcessStep extends Step {
      * Constructor to initalize a Process Step with a Step object
      *
      * @param step the Step object
+     * @param stepId the Step Id
      * @param containerName the container name concerned by the process
      * @param workflowId the workflow ID concerned by the process
      * @param position the position of the step

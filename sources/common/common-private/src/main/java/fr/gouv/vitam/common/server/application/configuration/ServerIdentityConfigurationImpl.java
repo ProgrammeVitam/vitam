@@ -51,7 +51,8 @@ public class ServerIdentityConfigurationImpl implements ServerIdentityConfigurat
      * ServerIdentityConfiguration constructor
      *
      * @param identityName database identity name
-     * @param identityPlatformId identity platform id
+     * @param identityServerId identity server id
+     * @param identitySiteId identity site id
      * @param identityRole identity role
      * @throws IllegalArgumentException if identityName or identityRole
      */
