@@ -23,6 +23,7 @@
   "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],
   "retry_interval": "10s",
   "enable_syslog": true,
+  "disable_remote_exec": true,
   "ports": {
     "dns" : 53
   },
