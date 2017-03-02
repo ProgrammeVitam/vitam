@@ -256,3 +256,39 @@ Lister des types d'objets dans l'offre de stockage
     } catch (StorageDriverException exc) {
         // Un problème est survenu lors de la communication avec le service distant
     }
+
+Récupérer les metadatas d'un objet    
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: java
+
+    // Définition des paramètres nécessaires à l'établissement d'une connexion avec l'offre de stockage
+    // Note: dans un vrai cas d'utilisation, ces paramètres doivent être récupérés de la configuration de
+    // l'offre et ne pourrons pas être défini en dur de cette manière car l'utilisation des drivers est un traitement
+    // générique à la fois vis à vis de l'offre et vis à vis du driver.
+    Properties parameters = new Properties();
+    parameters.put(StorageDriverParameterNames.USER.name(), "bob");
+    parameters.put(StorageDriverParameterNames.PASSWORD.name(), "p4ssword");
+
+    Integer tenantId = 0;
+    String type = DataCategory.OBJECT.getFolder();
+    String guid = "GUID";
+    String digestAlgorithm = DigestType.MD5.getName();
+    final Digest digest = new Digest(algo);
+    InputStream dataStream = new FileInputStream(PropertiesUtils.findFile("digitalObject.pdf"));
+    digest.update(dataStream);
+    // Etablissement d'une connexion avec l'offre de stockage et réalisation d'une opération
+    try (Connection myConnection = myDriver.connect("http://my.storage.offer.com", parameters)) {
+        // Construction de l'objet permettant d'effectuer la requete. L'identifiant du curseur n'existe pas et est à
+        // null, c'est une demande de nouveau cusreur, x-cursor à vrai.
+        StorageListRequest request = new StorageListRequest(tenantId, type, null, true);
+        VitamRequestIterator<JsonNode> result = myConnection.getMetadatas(request);
+
+        // On peut alors itérer sur le résultat
+        while(result.hasNext()) {
+            JsonNode json = result.next();
+            // Traitement....
+        }
+    } catch (StorageDriverException exc) {
+        // Un problème est survenu lors de la communication avec le service distant
+    }
