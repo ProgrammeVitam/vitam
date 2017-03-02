@@ -32,13 +32,13 @@ Pour tester le déploiement de VITAM :
 Pour le déployer : 
 
 1. générer les certificats nécessaire en lançant le script :
-``./pki-generate-ca.sh``, si pas ed PKI
-``./generate_certs <environnement>``, si pas de certificats fournis
-``./generate_stores.sh <environnement>``
-``./copie_fichiers_vitam.sh <environnement>``
+``./pki-generate-ca.sh``, si pas de PKI
+``./generate_certs.sh <environnement>``, si pas de certificats fournis, et où <environnement> correspond à l'extension du fichier d'inventaire
+``./generate_stores.sh <environnement>`` , où <environnement> correspond à l'extension du fichier d'inventaire
+``./copie_fichiers_vitam.sh <environnement>`` , où <environnement> correspond à l'extension du fichier d'inventaire
 
 
-Si gestion par VITAM des repositories :
+Si gestion par VITAM des repositories de binaires :
 Editer le fichier ``environments-rpm/group_vars/all/example_repo.yml`` (sert de modèle)
 Puis lancer :
 ``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
