@@ -26,17 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -106,6 +111,10 @@ public class QueryToElasticsearchTest {
         try {
             final Select select = createSelect();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
+            final List<SortBuilder> sortBuilders = QueryToElasticsearch
+                .getSorts(Document.parse(JsonHandler.unprettyPrint(select.getFilter().get("$orderby"))));
+            assertEquals(3, sortBuilders.size());
+
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
                 System.out.println(i + " = " + list.get(i).toString());
