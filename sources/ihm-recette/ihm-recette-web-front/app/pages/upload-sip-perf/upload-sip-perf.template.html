@@ -6,40 +6,56 @@
 
   <div class="panel panel-default col-md-12">
     <a class="panel-header" data-toggle="collapse" data-target="#upload">
-      <h2>Liste des fichiers disponibles</h2>
+      <h2>TEST de PERFORMANCEs </h2>
     </a>
-    <div id="upload" class="panel-collapse collapse in">
-      <md-radio-group ng-model="selectedSip" class="md-primary">
-        <md-radio-button ng-repeat="file in sipList" ng-value="file.fileName">
-            {{ file.fileName }} ({{ file.fileSize | filterSize }})<br/>
-        </md-radio-button>
-      </md-radio-group>
+
+    <label>Liste des sip  </label>
+
+    <select ng-model="fileName" ng-options="x for x in sipList" required>
+       <label>Sip</label>
+    </select>
+    <label>Nb Thread </label>
+
+    <input ng-model="parallelIngest" type="number" min="0" max="100" >
+    <label> </label>
+    <label>Nb Total </label>
+    <input ng-model="numberOfIngest" type="number" min="0"          max="100" >
+
+    <button  type="button" class="btn btn-prismary center-block" ng-click="uploadSelectedSip(selectedSip)">
+      Lancer
+    </button><br/>
+
+    <div ng-if ="true" class="panel panel-default col-md-12">
+      <a class="panel-header">
+        <h2>
+          Résultats
+          <span ng-if="resultList == 0 || resultList > 0">({{resultList}})</span>
+        </h2>
+      </a>
+
+      <div  id="boxEntriesList" class="panel-body panel-collapse collapse in">
+
+        <div class="table-responsive">
+          <table class="table">
+            <tr>
+              <th>Nom</th>
+              <th>Télecharger</th>
+            </tr>
+
+            <tbody>
+            <tr ng-repeat='log in resultList'>
+              <td>{{log}}</td>
+              <td>
+                <a href="" ng-click="downloadOperation(log)">
+                  <i class="material-icons">file_download</i>
+                </a>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
     </div>
-
-    <hr />
-
-    <button ng-if="sipFound" type="button" class="btn btn-primary center-block" ng-click="uploadSelectedSip(selectedSip)">
-      <i class="material-icons pull-left">file_upload</i>
-      Importer
-    </button>
-
-    <hr />
-
-    <div  ng-if = "!sipFound" class="text-center" style="padding-bottom: 20px">
-      <label>Aucun fichier disponible pour le téléchargement</label>
-    </div>
-
-    <div class="text-center" style="padding-bottom: 20px">
-        <label style="padding-bottom: 20px" ng-if = "uploadFinished && !uploadFailed">ID de l'opération créée : <span class="badge">{{ ingestOperationId }}</span> </label>
-
-        <button ng-if = "uploadFinished && !uploadFailed" type="button" class="btn btn-primary center-block" ng-click="generateOperationStatistics(ingestOperationId)">
-          <i class="material-icons pull-left">file_download</i>
-          Regénérer le rapport
-        </button>
-
-        <label ng-if = "uploadLaunched">Opération en cours de traitement</label>
-        <label ng-if = "uploadFailed">Opération terminée avec échec</label>
-    </div>
-
   </div>
 </div>

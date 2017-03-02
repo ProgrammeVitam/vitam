@@ -44,6 +44,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String staticContent;
     private boolean secure;
     private String sipDirectory;
+    private String performanceReportDirectory;
     private String masterdataDbName;
     private String logbookDbName;
     private String metadataDbName;
@@ -193,4 +194,21 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     public void setMetadataDbName(String metadataDbName) {
         this.metadataDbName = metadataDbName;
     }
+
+    /**
+     *
+     * @return performance report directory
+     */
+    public String getPerformanceReportDirectory() {
+        return performanceReportDirectory;
+    }
+
+    /**
+     *
+     * @param performanceReportDirectory performance report directory
+     */
+    public void setPerformanceReportDirectory(String performanceReportDirectory) {
+        this.performanceReportDirectory = performanceReportDirectory;
+    }
+
 }
