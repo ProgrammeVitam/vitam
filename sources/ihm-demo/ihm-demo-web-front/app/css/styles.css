@@ -453,7 +453,7 @@ table {
   background-color: #eeeeee;
 }
 
-.table > tbody > tr:hover > td {
+.table.highlighted > tbody > tr:hover > td {
   background-color: #AD9FFF;
   color: black;
   cursor: pointer;
