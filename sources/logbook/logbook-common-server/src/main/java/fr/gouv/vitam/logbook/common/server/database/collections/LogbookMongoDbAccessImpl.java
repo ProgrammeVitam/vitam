@@ -1006,7 +1006,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-            final DeleteResult result = collection.getCollection().deleteMany(new Document());
+            final DeleteResult result = collection.getCollection().deleteMany(new Document().append("_tenant", tenantId));
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }

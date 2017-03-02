@@ -74,6 +74,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -114,6 +115,8 @@ public class AdminManagementResourceTest {
 
     private static final String CREATE_FUND_REGISTER_URI = "/accession-register";
 
+    private static final int TENANT_ID = 0;
+    
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoDbAccessReferential mongoDbAccess;
@@ -140,7 +143,6 @@ public class AdminManagementResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
         new JHades().overlappingJarsReport();
 
         junitHelper = JunitHelper.getInstance();
@@ -216,12 +218,16 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public final void testGetStatus() {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenAWellFormedXMLInputstreamCheckThenReturnOK() throws FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_FORMAT_URI)
@@ -229,7 +235,9 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenANotWellFormedXMLInputstreamCheckThenReturnKO() throws FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_FORMAT_URI)
@@ -237,14 +245,16 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void insertAPronomFile() throws FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -252,37 +262,39 @@ public class AdminManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void createAccessionRegister() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        Integer tenantId = 0;
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final AccessionRegisterDetail register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetail.class);
         given().contentType(ContentType.JSON).body(register)
-            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
         register.setTotalObjects(null);
 
         given().contentType(ContentType.JSON).body(register)
-            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CREATE_FUND_REGISTER_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
+    @RunWithCustomExecutor
     public void getFileFormatByID() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
                 .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
@@ -290,7 +302,7 @@ public class AdminManagementResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", jsonDocument.get(0).get("_id").asText())
             .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
@@ -298,20 +310,22 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.BINARY).body(stream)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
-                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .contentType(ContentType.JSON)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
@@ -319,7 +333,7 @@ public class AdminManagementResourceTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", "fake_identifier")
             .when().post(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
@@ -328,18 +342,20 @@ public class AdminManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void findFormat() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
-            .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+            .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -347,41 +363,47 @@ public class AdminManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void givenFindDocumentWhenNotFoundThenThrowReferentialException()
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
 
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_FORMAT_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenAWellFormedCSVInputstreamCheckThenReturnOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CHECK_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Parameters.csv");
         given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CHECK_RULES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -389,13 +411,14 @@ public class AdminManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void insertRulesFile() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -403,12 +426,15 @@ public class AdminManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void insertRulesForDifferentTenantsSuccess() throws Exception {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 0)
+        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES);
+        
+        VitamThreadUtils.getVitamSession().setTenantId(1);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, 1)
             .when().post(IMPORT_RULES_URI)
@@ -416,27 +442,29 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void getRuleByID() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
                 .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
             .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
@@ -444,28 +472,30 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenFakeRuleByIDTheReturnNotFound()
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         final String document =
             given()
                 .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, 0)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .body(select.getFinalSelect())
                 .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_rule", "fake_identifier")
             .when().post(GET_BYID_RULES_URI + RULES_ID_URI)
@@ -474,7 +504,9 @@ public class AdminManagementResourceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void getDocumentRulesFile() throws InvalidCreateOperationException, FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
@@ -493,13 +525,15 @@ public class AdminManagementResourceTest {
     }
     
     @Test
+    @RunWithCustomExecutor
     public void testImportRulesForTenant0_ThenSearchForTenant1ReturnNotFound() throws InvalidCreateOperationException, FileNotFoundException {
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -512,6 +546,7 @@ public class AdminManagementResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound()
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
@@ -519,15 +554,16 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(IMPORT_RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());

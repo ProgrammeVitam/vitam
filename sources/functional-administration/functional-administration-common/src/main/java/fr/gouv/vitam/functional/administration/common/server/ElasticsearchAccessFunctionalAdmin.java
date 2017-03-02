@@ -86,6 +86,26 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             throw new ReferentialException(e);
         }
     }
+    
+    /**
+     * Delete one index
+     *
+     * @param collection
+     * @throws ReferentialException 
+     */
+    public final void deleteIndices(final FunctionalAdminCollections collection, String id) throws ReferentialException {
+        try {
+            if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
+                if (!client.admin().indices().prepareDelete(collection.getName().toLowerCase(), getMapping(collection), id)
+                		.get().isAcknowledged()) {
+                    LOGGER.error("Error on index delete");
+                }
+            }
+        } catch (final Exception e) {
+            LOGGER.error("Error while deleting index", e);
+            throw new ReferentialException(e);
+        }
+    }
 
     /**
      * Add a type to an index
@@ -93,6 +113,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      * @param collection
      * @return True if ok
      */
+    //FIXME seperate the elasticsearch index by tenant
     public final boolean addIndex(final FunctionalAdminCollections collection) {
         LOGGER.debug("addIndex: " + collection.getName().toLowerCase());
         if (!client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {

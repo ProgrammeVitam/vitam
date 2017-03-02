@@ -151,12 +151,23 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
     // Not check, test feature !
     @Override
     public void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException, ReferentialException {
-        final long count = collection.getCollection().count();
+        Document filter = new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
+        long count = 0;
+        if (FunctionalAdminCollections.FORMATS.equals(collection)) {
+            count = collection.getCollection().count();
+        } else {
+            count = collection.getCollection().count(filter);
+        }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-            final DeleteResult result = collection.getCollection().deleteMany(new Document());
+            DeleteResult result = null;
+            if (FunctionalAdminCollections.FORMATS.equals(collection)) {
+                result = collection.getCollection().deleteMany(new Document());
+            } else {
+                result = collection.getCollection().deleteMany(filter);
+            }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
             }
@@ -164,9 +175,13 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
                 throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
                     .getDeletedCount(), count));
             }
+            //FIXME seperate the elasticsearch index by tenant 
             if (INDEX_ES_LIST.contains(collection.getName())) {
-                collection.getEsClient().deleteIndex(collection);
-                collection.getEsClient().addIndex(collection);
+            	MongoCursor<Document> mongoCursor = collection.getCollection().find(filter).iterator();
+            	while (mongoCursor.hasNext()) {
+                    Document dbObject = mongoCursor.next();
+                    collection.getEsClient().deleteIndices(collection, dbObject.getString(VitamDocument.ID));
+            	}
             }
         }
     }
