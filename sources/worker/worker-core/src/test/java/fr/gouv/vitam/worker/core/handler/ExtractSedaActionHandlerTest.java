@@ -316,7 +316,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
@@ -432,4 +432,23 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenSipWithAURefToBDOThenExtractKO()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName("ExtractSedaActionHandlerTest");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-ko-bdo-ref-group.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
 }
