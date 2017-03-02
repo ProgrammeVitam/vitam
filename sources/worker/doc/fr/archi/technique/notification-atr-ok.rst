@@ -6,8 +6,8 @@ d'un document SIP.
 
 1. Génération et stockage de la notification : 
  worker/worker-core 
- - Le schéma de validation de la réponse XSD : les schémas différents de validation du fichier XML de la réponse 
- de notification se trouvent dans le répertoire src/main/resources.
+ - Le schéma de validation de la réponse XSD : le schéma de validation du fichier XML de la réponse 
+ de notification est src/main/resources/seda-2.0-main.xsd.
    
  - La génération du fichier XML de la réponse de notification est faite par  l'XML Stream pour les éléments 
  en dehors de ReplyOutcome et par des POJO JAXB pour les éléments à itérer (ArchiveUnit, BinaryDataObject). 

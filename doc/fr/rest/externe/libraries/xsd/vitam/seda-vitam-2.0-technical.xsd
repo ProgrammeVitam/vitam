@@ -312,12 +312,12 @@
             <xsd:documentation>Objet-données physique.</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="PhysicalDimensions" type="DimensionsType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="PhysicalDimensions" type="DimensionsType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Dimensions d'un objet-données physique.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any namespace="##local" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
             <!-- <xsd:element ref="OtherDimensionsAbstract" minOccurs="0" maxOccurs="unbounded"/> -->
         </xsd:sequence>
     </xsd:group>
@@ -367,7 +367,7 @@
                     <xsd:documentation>Métadonnées pour un objet-données de type vidéo.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any namespace="##local" processContents="lax" minOccurs="0"/>
+            <xsd:any processContents="lax" minOccurs="0"/>
             <!-- <xsd:element ref="OtherCoreTechnicalMetadataAbstract">
                 <xsd:annotation>
                     <xsd:documentation>Métadonnées pour un objet-données d’un autre type (base de données, 3D, programmes, formats propriétaires, etc.).</xsd:documentation>

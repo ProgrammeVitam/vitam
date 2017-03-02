@@ -9,7 +9,7 @@ uses:
 types:
   ArchiveTransferReply:
     description: Ingest Seda Response
-    type: !include xsd/seda-2.0-main.xsd
+    #type: !include xsd/vitam/seda-vitam-2.0-main.xsd
     #Later, with RAML 1.0, this include should be working
-    #type: !include xsd/seda-2.0-main.xsd#ArchiveTransferReply
+    type: !include xsd/seda-2.0-main.xsd#ArchiveTransferReply
     example: !include examples/sedaArchiveTransferReply.xml
