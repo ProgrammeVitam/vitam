@@ -319,6 +319,8 @@ public interface ContentAddressableStorage {
         throws ContentAddressableStorageException;
 
     /**
+     * get metadata of the object
+     * 
      * @param containerName the container name
      * @param objectId the objectId to check
      * @return MetadatasObjectResult

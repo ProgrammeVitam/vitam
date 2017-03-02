@@ -10,7 +10,7 @@ Le common storage est un module commun pour plusieurs modules qui consiste à g�
 
 Le Module common storage expose un ensemble des methodes qui gèrent la creation, la mise à jour , la supprission des contenaire, des repertoires et des objets, Vous trouverez ci-dessous la liste des methodes avec leur fonctions attendus.
 
-2.2 - Liste des méthodes :
+1.2 - Liste des méthodes :
 
 - getContainerInformation : consulter les information d'un contenaire (pour la version 0.14.0-SNAPSHOT)
     - Paramètres :
@@ -28,6 +28,20 @@ Le Module common storage expose un ensemble des methodes qui gèrent la creation
         - folderName::String (le nom de repertoire à consulter pour lister les URIs des objets )
     - Retourner :
         - List<URI>: La liste des URIs des objets dans le repertoire cité ci-dessus.
+        
+- getObjectMetadatas: lire et récupérer les métadonnées d'un objet (le fichier ou le répertoire)
+	- Paramètres :
+    	- containerName::String (le nom de contenaire dans lequel qu'on stock l'object)
+    	- objectId::String (Id de l'object. S'il est null, c'est-à-dire, il est un repertoire)
+    - Retourner : 
+    	- MetadatasObject: La classe qui contient les informations de metadata
+    		- objectName: l'ID du fichier
+    		- type: le type (dossier comme Units, Binary, ObjectGroup, Reports, ...)
+    		- digest: l'empreinte
+    		- fileOwner: propriétaire
+    		- fileSize: taille du fichier
+    		- lastAccessDate: date de dernier accès
+    		- lastModifiedDate: date de modification des données
 
 Dans le cas echéant la method retourne une immuatable empty list.
 
@@ -130,4 +144,61 @@ Dans ce cas, on peut utiliser un Builder qui permet de fournir le context associ
  
 	ContentAddressableStorage storage=StoreContextBuilder.newStoreContext(configuration)
 
-		
+
+
+3- Présentation des méthodes dans SWIFT & FileSystem:
+------------------------------------------------------
+
+3.1 - Introduction :
+
+Il y a deux classes qui héritent les APIs. l'une utilise SWIFT et l'autre utilise FileSystem.
+
+3.2 - Liste des méthodes :
+
+3.2.1 getObjectInformation :
+
+- SWIFT: Obtenir l'objet par les APIs swift
+	
+.. code-block:: java
+
+		result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+        result.setType(containerName.split("_")[1]);
+        result.setLastAccessDate(null);
+        if (objectId != null) {
+            SwiftObject swiftobject = getSwiftAPi()
+                .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName).get(objectId);
+
+            result.setObjectName(objectId);
+            result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+            result.setFileSize(swiftobject.getPayload().getContentMetadata().getContentLength());
+            result.setLastModifiedDate(swiftobject.getLastModified().toString());
+        } else {
+            Container container = getContainerApi().get(containerName);
+            result.setObjectName(containerName);
+            result.setDigest(null);
+            result.setFileSize(container.getBytesUsed());
+            result.setLastModifiedDate(null);
+        }
+	
+- FileSystem: Obtenir le fichier de jclouds par le nom du conteneur et le nom du dossier
+	
+.. code-block:: java
+
+		File file = getFileFromJClouds(containerName, objectId);
+        BasicFileAttributes basicAttribs = getFileAttributes(file);
+        long size = Files.size(Paths.get(file.getPath()));
+        if (null != file) { 
+            if (objectId != null) {
+                result.setObjectName(objectId);
+                result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+                result.setFileSize(size);
+            } else {
+                result.setObjectName(containerName);
+                result.setDigest(null);
+                result.setFileSize(getFolderUsedSize(file));
+            }
+            result.setType(containerName.split("_")[1]);
+            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+            result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
+            result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
+        }
