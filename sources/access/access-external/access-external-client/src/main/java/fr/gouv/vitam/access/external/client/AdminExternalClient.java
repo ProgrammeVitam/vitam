@@ -100,4 +100,23 @@ public interface AdminExternalClient extends BasicClient {
      */
     RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException;
+    
+    
+    /**
+     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts elready exist in the database</li>
+     * </ul>
+     * 
+     * @param contracts as InputStream
+     * @return Response jersey response
+     */
+    Response importContracts(InputStream contracts);
+    
 }

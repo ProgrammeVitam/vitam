@@ -35,6 +35,8 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.json.JsonSanitizer;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -44,6 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
@@ -202,6 +205,17 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             .setTotalUnits(totalUnits)
             .setObjectSize(objectSize);
         return ClientMockResultHelper.createReponse(detailBuider);
+    }
+
+    @Override
+    public Response importContracts(ArrayNode contractsToImport) {
+        LOGGER.debug("import contracts request ");
+        try {
+            SanityChecker.checkJsonAll(contractsToImport);
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+        return Response.status(Status.CREATED).build();
     }
 
 }

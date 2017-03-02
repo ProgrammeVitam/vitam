@@ -6,6 +6,7 @@ import static org.mockito.Matchers.anyObject;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.URI;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -52,6 +53,8 @@ public class AdminManagementExternalResourceImplTest {
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
 
     private static final String DOCUMENT_ID = "/1";
+
+    private static final String CONTRACTS_URI = "/contracts";
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -427,6 +430,39 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+    }
+
+    @Test
+    public void testImportContractsWithInvalidFileBadRequest() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(Response.status(400).build()).when(adminCLient).importContracts(anyObject());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CONTRACTS_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
+
+    }
+    
+    
+    @Test
+    public void testimportValidContractsFileReturnCreated() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(Response.created(URI.create("/contracts")).build()).when(adminCLient).importContracts(anyObject());
+        stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode()).header("location", "http://localhost:"+RestAssured.port+"/admin-external/v1/contracts");
 
     }
 

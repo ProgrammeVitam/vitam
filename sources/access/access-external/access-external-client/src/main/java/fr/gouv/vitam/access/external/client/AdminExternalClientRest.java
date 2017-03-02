@@ -6,14 +6,17 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -31,6 +34,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
+
+    private static final String CONTRACTS_URI = "contracts";
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -126,5 +131,32 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             consumeAnyEntityAndClose(response);
         }
     }
+
+    
+    @Override
+    public Response importContracts(InputStream contracts) {
+
+        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, CONTRACTS_URI, null,
+                contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case CREATED:
+                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case BAD_REQUEST:
+                    LOGGER.debug(Response.Status.BAD_REQUEST.getReasonPhrase());
+                    break;
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Client side exception ", e);
+            return null;
+        }
+        return response;
+    }
+    
 
 }

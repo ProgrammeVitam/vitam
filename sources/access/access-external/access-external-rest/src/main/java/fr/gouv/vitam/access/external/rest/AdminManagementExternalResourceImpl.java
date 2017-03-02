@@ -43,16 +43,19 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -70,6 +73,7 @@ public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
+    private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
 
     /**
      * Constructor
@@ -255,6 +259,46 @@ public class AdminManagementExternalResourceImpl {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+    
+    /**
+     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts elready exist in the database</li>
+     * </ul>
+     * 
+     * @param contracts as InputStream
+     * @param uri
+     * @return Response jersey response
+     */
+    @Path("/contracts")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importContracts(InputStream contracts, @Context UriInfo uri) {
+        ParametersChecker.checkParameter(CONTRACT_JSON_IS_MANDATORY_PATAMETER, contracts);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            JsonNode json = JsonHandler.getFromInputStream(contracts);
+            SanityChecker.checkJsonAll(json);
+            Response response = client.importContracts((ArrayNode) json);
+            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+                /* return created with the location of the external endpoint to GET contracts */
+                return Response.created(uri.getRequestUri().normalize()).build();
+            }
+            return Response.fromResponse(response).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error ", exp);
+            //don't send the internal error message to outside
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, null, null)).build();
         }
     }
 
