@@ -32,7 +32,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -94,8 +93,6 @@ import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
 import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -113,23 +110,16 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
-    private static final String FILENAME_REGEX = "^[a-z0-9_-]*(\\.)(zip|tar|tar.gz|tar.bz2)$";
-    private static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_REGEX, Pattern.CASE_INSENSITIVE);
     private static final String RESULTS_FIELD = "$results";
-    private static final String DEFAULT_CONTEXT = "defaultContext";
-    private static final String DEFAULT_EXECUTION_MODE = "defaultExecutionMode";
-    private static final String FILE_NAME_KEY = "fileName";
-    private static final String FILE_SIZE_KEY = "fileSize";
-    private static final String ZIP_EXTENSION = ".ZIP";
-    private static final String TAR_GZ_EXTENSION = ".TAR.GZ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     public static final String IHM_RECETTE = "IHM_RECETTE";
-    private final WebApplicationConfig webApplicationConfig;
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
     // FIXME : replace the boolean by a static timestamp updated by the soap ui
     // thread
     private static volatile boolean soapUiRunning = false;
+    private static final String DEFAULT_CONTEXT = "defaultContext";
+    private static final String DEFAULT_EXECUTION_MODE = "defaultExecutionMode";
 
     protected static boolean isSoapUiRunning() {
         return soapUiRunning;
@@ -145,18 +135,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Constructor
      *
-     * @param webApplicationConfig
      */
-    public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
-        super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
+    public WebApplicationResource(List<Integer> tenants) {
+        super(new BasicVitamStatusServiceImpl(), tenants);
 
         LOGGER.debug("init Admin Management Resource server");
-        this.webApplicationConfig = webApplicationConfig;
     }
 
     /**
      * Retrieve all the messages for logbook
-     *
      *
      * @return Response
      */
@@ -202,56 +189,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Returns the list of available files
-     *
-     * @return the list of available files
-     */
-    @GET
-    @Path("/upload/fileslist")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getAvailableFilesList() {
-
-        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
-            LOGGER.error("SIP directory not configured");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured").build();
-        }
-
-        final File fileDirectory = new File(webApplicationConfig.getSipDirectory());
-
-        if (!fileDirectory.isDirectory()) {
-            LOGGER.error("SIP directory <{}> is not a directory.", webApplicationConfig.getSipDirectory());
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity("SIP directory [" + webApplicationConfig.getSipDirectory() + "] is not a directory")
-                .build();
-        }
-        final File[] sipFiles = fileDirectory.listFiles(new SipFilenameFilterImpl());
-        final ArrayNode filesListDetails = JsonHandler.createArrayNode();
-
-        if (sipFiles != null) {
-            for (final File currentFile : sipFiles) {
-
-                if (FILENAME_PATTERN.matcher(currentFile.getName()).matches()) {
-                    final ObjectNode fileDetails = JsonHandler.createObjectNode();
-                    fileDetails.put(FILE_NAME_KEY, currentFile.getName());
-                    fileDetails.put(FILE_SIZE_KEY, currentFile.length());
-                    filesListDetails.add(fileDetails);
-                } else {
-                    LOGGER.warn("SIP filename incorrect {}", currentFile.getName());
-                }
-            }
-        }
-
-        return Response.status(Status.OK).entity(filesListDetails).build();
-    }
-
-    private class SipFilenameFilterImpl implements FilenameFilter {
-        @Override
-        public boolean accept(File dir, String fileName) {
-            return fileName.toUpperCase().endsWith(ZIP_EXTENSION) || fileName.toUpperCase().endsWith(TAR_GZ_EXTENSION);
-        }
-    }
-
-    /**
      * Generates the logbook operation statistics file (cvs format) relative to the operation parameter
      *
      * @param operationId logbook oeration id
@@ -263,14 +200,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
-
-            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId);
+                .selectOperationbyId(operationId, TENANT_ID);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
-                final JsonNode logbookOperation = ((ArrayNode) logbookOperationResult.toJsonNode().get(RESULTS_FIELD))
-                    .get(0);
+                final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
                 // Create csv file
                 final ByteArrayOutputStream csvOutputStream = JsonTransformer.buildLogbookStatCsvFile(logbookOperation);
                 final byte[] csvOutArray = csvOutputStream.toByteArray();
@@ -287,47 +220,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    /**
-     * Uploads the given file and returns the logbook operation id
-     *
-     * @param fileName the file name
-     * @return the logbook operation id
-     */
-    @GET
-    @Path("/upload/{file_name}")
-    @Produces(MediaType.TEXT_PLAIN)
-    public Response uploadFileFromServer(@PathParam("file_name") String fileName) {
-        ParametersChecker.checkParameter("SIP path is a mandatory parameter", fileName);
-        if (webApplicationConfig == null || webApplicationConfig.getSipDirectory() == null) {
-            LOGGER.error("SIP directory not configured");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP directory not configured").build();
-        }
-
-        if (!FILENAME_PATTERN.matcher(fileName).matches()) {
-            LOGGER.error("SIP path  invalid");
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("SIP path  invalid").build();
-        }
-
-        // Read the selected file into an InputStream
-        try (InputStream sipInputStream = new FileInputStream(webApplicationConfig.getSipDirectory() + "/" + fileName);
-            IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-            final Response response = client.upload(sipInputStream, TENANT_ID, DEFAULT_CONTEXT, DEFAULT_EXECUTION_MODE);
-            final String ingestOperationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-
-            return Response.status(response.getStatus()).entity(ingestOperationId).build();
-        } catch (final VitamException e) {
-            LOGGER.error("IngestExternalException in Upload sip", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
-        } catch (final FileNotFoundException e) {
-            LOGGER.error("The selected file is not found", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final IOException e) {
-            LOGGER.error("Error occured when trying to close the stream", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -403,7 +295,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
     /**
-     *
      * @return
      * @throws LogbookClientServerException
      */
@@ -430,7 +321,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
     /**
-     *
      * Post used because Angular not support Get with body
      *
      * @param headers
@@ -458,9 +348,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * this method is used to request logbook with the Vitam DSL
      *
-     * @param headers header containing the pagination for logbook
+     * @param headers   header containing the pagination for logbook
      * @param sessionId using for pagination
-     * @param options JSON object representing the Vitam DSL query
+     * @param options   JSON object representing the Vitam DSL query
      * @return Response
      */
     @GET
@@ -483,7 +373,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String requestId = null;
         RequestResponse result = null;
         OffsetBasedPagination pagination = null;
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
         try {
             tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -516,7 +406,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query);
+                result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -542,7 +432,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     *
      * @param operationId id of operation
      * @return Response
      */
@@ -552,13 +441,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookResultById(@PathParam("idOperation") String operationId,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         try {
+            Integer tenantId = null;
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
-            VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+            tenantId = Integer.parseInt(xTenantId);
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -573,7 +463,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     *
      * @param operationId
      * @param asyncResponse
      */
@@ -615,8 +504,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
 
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
             List<JsonNode> results = responseOK.getResults();

@@ -385,46 +385,6 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
-    @Test
-    public void testGetAvailableFilesListWithInternalSererWhenBadSipDirectory() {
-        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
-        application.getConfiguration().setSipDirectory("SIP_DIRECTORY_NOT_FOUND");
-
-        given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/fileslist");
-
-        // Reset WebApplicationConfiguration
-        application.getConfiguration().setSipDirectory(currentSipDirectory);
-    }
-
-    @Test
-    public void testGetAvailableFilesListWithInternalSererWhenNotConfiguredSipDirectory() {
-        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
-        application.getConfiguration().setSipDirectory(null);
-
-        given().expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/fileslist");
-
-        // Reset WebApplicationConfiguration
-        application.getConfiguration().setSipDirectory(currentSipDirectory);
-    }
-
-    @Test
-    public void testUploadFileFromServerWithInternalServerWhenNotConfiguredSipDirectory() throws VitamException {
-        final String currentSipDirectory = application.getConfiguration().getSipDirectory();
-        application.getConfiguration().setSipDirectory(null);
-
-        given().param("file_name", "SIP.zip").expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/upload/SIP.zip");
-
-        // Reset WebApplicationConfiguration
-        application.getConfiguration().setSipDirectory(currentSipDirectory);
-    }
-
     public GUID addData(FunctionalAdminCollections collection)
         throws ReferentialException {
         final GUID guid = GUIDFactory.newGUID();

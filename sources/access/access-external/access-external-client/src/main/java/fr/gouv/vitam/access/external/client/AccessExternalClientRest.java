@@ -20,7 +20,6 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -57,19 +56,18 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnits(JsonNode selectQuery)
+    public RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
 
         SanityChecker.checkJsonAll(selectQuery);
         if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
 
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.GET, "/units", headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -92,10 +90,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId)
+    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
@@ -129,18 +126,17 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId)
+    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         Response response = null;
         SanityChecker.checkJsonAll(updateQuery);
         if (updateQuery == null || updateQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
         try {
             response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
@@ -166,18 +162,18 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId)
+    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         SanityChecker.checkJsonAll(selectObjectQuery);
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
         }
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
+
         Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -205,10 +201,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version)
+    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         SanityChecker.checkJsonAll(selectObjectQuery);
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -222,7 +217,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
 
         try {
@@ -252,10 +247,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version)
+    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
+        Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         SanityChecker.checkJsonAll(selectObjectQuery);
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -299,13 +294,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /* Logbook external */
 
     @Override
-    public RequestResponse selectOperation(JsonNode select)
+    public RequestResponse selectOperation(JsonNode select, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            Integer tenantId = ParameterHelper.getTenantParameter();
-            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -327,12 +321,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectOperationbyId(String processId)
+    public RequestResponse selectOperationbyId(String processId, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
@@ -356,12 +349,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitLifeCycleById(String idUnit)
+    public RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response =
                 performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
@@ -386,10 +378,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitLifeCycle(JsonNode queryDsl)
+    public RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         SanityChecker.checkJsonAll(queryDsl);
 
         try {
@@ -414,15 +405,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectGroupLifeCycleById(String idObject)
+    public RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
-                headers,
+            	headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -445,14 +435,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse getAccessionRegisterSummary(JsonNode query)
+    public RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
         try {
             response = performRequest(HttpMethod.POST, AccessCollections.ACCESSION_REGISTER.getName(), headers,
@@ -476,14 +465,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
+    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
         try {
             response = performRequest(HttpMethod.POST,
