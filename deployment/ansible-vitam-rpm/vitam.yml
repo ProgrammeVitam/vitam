@@ -21,7 +21,6 @@
   roles:
     - consul
 
-# KWA : TODO : installer les serveurs en serial 1 avant les agents (qui n'en ont pas besoin, du serial 1)
 - hosts: vitam
   roles:
     - { role: consul, when: "inventory_hostname not in groups['hosts-consul-server']" }
