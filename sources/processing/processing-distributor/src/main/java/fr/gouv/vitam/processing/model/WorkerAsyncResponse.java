@@ -45,7 +45,7 @@ public class WorkerAsyncResponse {
     
     /**
      * @param workerAsyncRequest
-     * @param compositeItemStatus 
+     * @param itemStatus 
      */
     public WorkerAsyncResponse(WorkerAsyncRequest workerAsyncRequest,ItemStatus itemStatus) {
         this.itemStatus=itemStatus;
@@ -61,7 +61,7 @@ public class WorkerAsyncResponse {
     }
 
     /**
-     * @param compositeItemStatus the compositeItemStatus to set
+     * @param ItemStatus the ItemStatus to set
      *
      * @return this
      */

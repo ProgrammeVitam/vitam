@@ -627,8 +627,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * @param guid
      * @param atr
-     * @param asyncResponse
+     * @return the status of the request (OK)
      */
     @POST
     @Path("/ingests/{objectId}/report")
@@ -1165,6 +1166,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * creates ProcessContext object : parse JSON file
      *
      * @param fileName filename of Json file
+     * @param contextId the context id
      * @return ProcessContext's object
      * @throws WorkflowNotFoundException
      * @throws ContextNotFoundException

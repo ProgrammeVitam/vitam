@@ -234,7 +234,7 @@ public class Select extends RequestMultiple {
      *
      * @param qualifier might be either Xxx or Xxx_n
      * @param version
-     * @params additionalFields additional fields
+     * @param additionalFields additional fields
      * @throws InvalidParseOperationException
      */
     public void setProjectionSliceOnQualifier(String qualifier, int version, String... additionalFields)

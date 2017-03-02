@@ -82,7 +82,7 @@ public class DirectedGraph {
     /**
      * Initializes a DirectedGraph from the specified JsonNode.
      *
-     * @param in the input stream
+     * @param jsonGraph
      * @throws IndexOutOfBoundsException if the endpoints of any edge are not in prescribed range
      * @throws IllegalArgumentException if the number of vertices or edges is negative
      */

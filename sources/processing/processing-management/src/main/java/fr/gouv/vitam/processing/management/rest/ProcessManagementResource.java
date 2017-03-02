@@ -144,7 +144,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     /**
      * Execute the process as a set of operations.
      *
+     * @param headers
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
+     * @param asyncResponse
      * @return http response
      */
     @Path("operations")
@@ -259,6 +261,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
+     * @param asyncResponse
      * @return http response
      * @throws ProcessingException
      */
@@ -331,6 +334,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * get the workflow status
      *
      * @param id operation identifier
+     * @param query the query
      * @return http response
      */
     @Path("operations/{id}")
@@ -370,6 +374,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
+     * @param asyncResponse
      */
     @Path("operations/{id}")
     @PUT
@@ -435,6 +440,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Interrupt the process of an operation identified by Id.
      *
      * @param id operation identifier
+     * @param asyncResponse
      * @return http response
      */
     @Path("operations/{id}")

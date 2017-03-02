@@ -83,6 +83,7 @@ public class LogbookExternalResourceImpl {
     /***** LOGBOOK OPERATION - START *****/
     /**
      * @param operationId the operation id
+     * @param queryDsl the query
      * @return the response with a specific HTTP status
      */
     
@@ -122,6 +123,7 @@ public class LogbookExternalResourceImpl {
     
     /**
     *
+    * @param queryDSL the query
     * @param operationId path param, the operation id
     * @param xhttpOverride header param as String indicate the use of POST method as GET
     * @return the response with a specific HTTP status
@@ -202,6 +204,7 @@ public class LogbookExternalResourceImpl {
      * gets the unit life cycle based on its id
      *
      * @param unitLifeCycleId the unit life cycle id
+     * @param queryDsl the query
      * @return the unit life cycle
      *
      */
@@ -266,6 +269,7 @@ public class LogbookExternalResourceImpl {
      * gets the object group life cycle based on its id
      *
      * @param objectGroupLifeCycleId the object group life cycle id
+     * @param queryDsl the query
      * @return the object group life cycle
      */
     @GET
@@ -304,6 +308,7 @@ public class LogbookExternalResourceImpl {
 
     /**
      * @param query as JsonNode
+     * @param objectGroupLifeCycleId the object Group LifeCycle Id
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method
      */

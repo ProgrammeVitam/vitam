@@ -69,7 +69,7 @@ public class Graph {
     /**
      * Graph constructor
      *
-     * @param JsonGraph { "ID027" : { }, "ID028" : { "_up" : [ "ID027" ] }, "ID029" : { "_up" : [ "ID028" ] }}
+     * @param jsonGraph { "ID027" : { }, "ID028" : { "_up" : [ "ID027" ] }, "ID029" : { "_up" : [ "ID028" ] }}
      */
     public Graph(JsonNode jsonGraph) {
         roots = new HashSet<>();

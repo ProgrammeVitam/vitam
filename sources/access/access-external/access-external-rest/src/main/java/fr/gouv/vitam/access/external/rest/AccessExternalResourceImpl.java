@@ -328,7 +328,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
     /**
+     * @param headers
      * @param idObjectGroup
+     * @param query
+     * @param asyncResponse
      * @return Response
      */
     @GET
@@ -367,6 +370,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * @param headers
      * @param idObjectGroup
+     * @param query
+     * @param asyncResponse
      * @return Response
      */
     @POST

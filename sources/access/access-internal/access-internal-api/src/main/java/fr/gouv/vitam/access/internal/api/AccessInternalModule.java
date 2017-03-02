@@ -71,6 +71,7 @@ public interface AccessInternalModule {
      *
      * @param queryJson json update query
      * @param idUnit as String
+     * @param requestId the request id
      * @return the result of the update on Unit
      *
      * @throws InvalidParseOperationException Throw if json format is not correct

@@ -48,10 +48,10 @@ public class StorageMetadatasResult extends MetadatasObject {
      * @param object_name
      * @param type
      * @param digest
-     * @param fileSize
-     * @param fileOwner
-     * @param lastAccessDate
-     * @param lastModifiedDate
+     * @param file_size
+     * @param file_owner
+     * @param last_access_date
+     * @param last_modified_date
      */
     public StorageMetadatasResult(@JsonProperty("objectName") String object_name, 
         @JsonProperty("type") String type, 

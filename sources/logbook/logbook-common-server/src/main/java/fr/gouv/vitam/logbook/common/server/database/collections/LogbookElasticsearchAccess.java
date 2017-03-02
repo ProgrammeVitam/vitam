@@ -181,8 +181,8 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      *        values" : [list of id] } }"
      * @param filter the filter
      * @param sorts the list of sort
-     * @param from the offset
-     * @param size the limit
+     * @param offset the offset
+     * @param limit the limit
      * @return a structure as SearchResponse
      * @throws LogbookException thrown of an error occured while executing the request
      */

@@ -67,6 +67,9 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
      * WorkerApplication constructor
      *
      * @param configuration
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws PluginException
      */
     public WorkerApplication(String configuration)
         throws FileNotFoundException, PluginException, InvalidParseOperationException {
