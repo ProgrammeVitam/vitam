@@ -26,24 +26,23 @@
  */
 
 angular.module('upload.sip.perf')
- .filter('filterSize', function() {
-  return function(bytes, precision) {
-    if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
-    if (typeof precision === 'undefined') precision = 1;
-    var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
-      number = Math.floor(Math.log(bytes) / Math.log(1024));
-    return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
-  }})
   .controller('UploadSipPerfController', function($scope, uploadSipPerfResource){
     $scope.sipList = [];
+    $scope.resultList = [];
     $scope.ingestOperationId = '';
-    $scope.uploadLaunched = false;
-    $scope.uploadFinished = false;
-    $scope.uploadFailed = false;
-    $scope.sipFound = true;
 
-    $scope.getAvailableSipForUpload = function getAvailableSipForUpload(){
-      uploadSipPerfResource.getAvailableSipForUpload()
+    $scope.parallelIngest =  1  ;
+    $scope.numberOfIngest = 4   ;
+    $scope.fileName;
+    uploadSipPerfResource.generateIngestStatReport()
+          .then(function (response) {
+              $scope.resultList = response.data;
+          }, function (error) {
+              console.log('Report generation failed with error : ' + error.message);
+          });
+
+
+    uploadSipPerfResource.getAvailableSipForUpload()
       .then(function (response) {
         $scope.sipList = response.data;
         if ($scope.sipList.length > 0){
@@ -55,25 +54,24 @@ angular.module('upload.sip.perf')
           console.log('Get files available for upload failed with error : ' + error.message);
           $scope.sipFound = false;
       });
-    };
-
-    // Load SIP list
-    $scope.getAvailableSipForUpload();
 
     // Upload SIP
-    $scope.uploadSelectedSip = function uploadSelectedSip(fileName) {
+    $scope.uploadSelectedSip = function uploadSelectedSip() {
       $scope.uploadLaunched = true;
       $scope.uploadFinished = false;
       $scope.uploadFailed = false;
-      uploadSipPerfResource.uploadSelectedSip(fileName)
+        var data =    {
+            "fileName": $scope.fileName,
+            "parallelIngest": $scope.parallelIngest,
+            "numberOfIngest":$scope.numberOfIngest,
+        };
+      uploadSipPerfResource.uploadSelected(data)
       .then(function (response) {
+        console.log(response) ;
         $scope.ingestOperationId = response.data;
-        $scope.uploadFinished = true;
-        $scope.uploadLaunched = false;
-        $scope.uploadFailed = false;
 
         // Generate report
-        $scope.generateOperationStatistics($scope.ingestOperationId);
+      //  $scope.generateOperationStatistics($scope.ingestOperationId);
       }, function (error) {
           console.log('Upload failed with error : ' + error.message);
           $scope.uploadFinished = true;
@@ -81,23 +79,24 @@ angular.module('upload.sip.perf')
           $scope.uploadFailed = true;
       });
     };
+    $scope.downloadOperation = function(log){
 
-    // Generate Operation Statistics
-    $scope.generateOperationStatistics = function generateOperationStatistics(operationId) {
-      uploadSipPerfResource.generateIngestStatReport(operationId)
-      .then(function (response) {
-        var a = document.createElement("a");
-        document.body.appendChild(a);
-        var url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
-        a.href = url;
-        a.download = operationId + '.csv';
-        a.click();
-        setTimeout(function() {
-          window.URL.revokeObjectURL(url);
-        }, 100);
-      }, function (error) {
-          console.log('Report generation failed with error : ' + error.message);
-      });
-    };
+        uploadSipPerfResource.downloadURL(log)
+            .then(function (response) {
+                var a = document.createElement("a");
+                document.body.appendChild(a);
+                var url = URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
+                a.href = url;
+                a.download = log + '.csv';
+                a.click();
+                setTimeout(function() {
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+            }, function (error) {
+                console.log('Report generation failed with error : ' + error.message);
+            });
+
+    }
+
 
   });

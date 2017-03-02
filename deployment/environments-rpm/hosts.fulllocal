@@ -188,3 +188,4 @@ vitam_storageofferdefault_host_1=localhost
 # vitam_storageofferdefault_host_2=localhost
 
 vitam_tenant_ids=[0,1,2]
+vitam_tests_gitrepo_url=https://dev.programmevitam.fr/gitlab/vitam/vitam-itests.git

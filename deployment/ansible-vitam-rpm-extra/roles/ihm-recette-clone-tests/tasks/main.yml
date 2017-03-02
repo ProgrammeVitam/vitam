@@ -1,0 +1,78 @@
+---
+# tasks file for clone-tests
+- name: get repo for git lfs for CentOS
+  copy:
+    src: gitlfs-centos7.repo
+    dest: /etc/yum.repos.d/github_git-lfs.repo
+    owner: root
+    group: root
+    mode: 0640
+  when: (ansible_distribution == "CentOS" )
+
+# - name: test 
+#   command: echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports-main.list
+#   args:
+#     creates: /etc/apt/sources.list.d/wheezy-backports-main.list
+
+
+# github_git-lfs.list
+- name: get repo for git lfs for Debian
+  copy: 
+    src: gitlfs-debian8.list
+    dest: /etc/apt/sources.list.d/github_git-lfs.list
+    owner: root
+    group: root
+    mode: 0640
+  when: (ansible_distribution == "Debian" )
+
+- name: install git-lfs
+  package:
+    name: git-lfs
+    state: latest
+
+# SYSTEM WIDE ? sinon, lancer en tant que vitam
+- name: initialize git lfs
+  command: git lfs install
+
+- name: ensure subdir exist
+  file:
+    path: "{{vitam_folder_root}}/data/ihm-recette/test-data/system"
+    state: directory
+    owner: "{{ vitam_user}}"
+    group: "{{ vitam_group }}"
+    mode: "{{ vitam_folder_permission }}"
+
+# - name: only for this host, create home dir for vitam
+#   file:
+#     path: /home/vitam
+#     state: directory
+#     owner: "{{ vitam_user}}"
+#     group: "{{ vitam_group }}"
+#     mode: "{{ vitam_folder_permission }}"   
+
+- name: create git repo
+  command: git clone --no-checkout {{vitam_tests_gitrepo_url}} .
+  become_user: "{{vitam_user}}"
+  environment:
+    http_proxy: "{{ http_proxy_environnement }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+    creates: /vitam/data/ihm-recette/test-data/system/.git/
+
+# cf. https://help.github.com/articles/caching-your-github-password-in-git/
+- name: init cache for git
+  shell: git config credential.helper 'cache --timeout=3600'
+  become_user: "{{vitam_user}}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+
+# KWA introduce branch variable
+- name: checkout branch
+  command: git checkout {{ vitam_tests_branch }}
+  become_user: "{{vitam_user}}"
+  environment:
+    http_proxy: "{{ http_proxy_environnement }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+    creates: /vitam/data/ihm-recette/test-data/system/data/
+# Et les droits sur les fichiers ???
