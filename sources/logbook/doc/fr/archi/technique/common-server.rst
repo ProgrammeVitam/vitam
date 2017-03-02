@@ -47,4 +47,9 @@ Les données sont stockées dans 3 types de stockage :
 
 La gestion de la base MongoDB se fait par le service d'accès *LogbookMongoDbAccessImpl* (implémentation de *LogbookDbAccess*).
 La gestion de la base ElasticSearch se fait par le service d'accès *LogbookElasticsearchAccess* (implémentation de *ElasticsearchAccess*).
-Les données sont d'abord enregistrées (ou supprimées) dans MongoDB puis mises à jour (si nécessaire) dans ElasticSearch.
+
+En cas d'ajout / mise à jour /suppresssion les données sont d'abord gérées dans MongoDB puis la modification est répercutée (si nécessaire) dans ElasticSearch.
+
+Pour le cas de la recherche, la requête de recherche est d'abord envoyée dans ElasticSearch pour récupérer une liste d'identifiants (List<ID>) qui sont ensuite envoyés en remplacement de la Query originale dans MongoDb pour récupérer le détail des données.
+La traduction d'une requête DSL vers une requête MongoDb se fait à l'aide des objets de traduction présent dans le package du module common-database-private : **fr.gouv.vitam.common.database.translators.mongodb**.
+La traduction d'une requête DSL et/ou MongoDb vers une requête Elasticsearch se fait à l'aide des objets de traduction présent dans le package du module common-database-private : **fr.gouv.vitam.common.database.translators.elasticsearch**.
