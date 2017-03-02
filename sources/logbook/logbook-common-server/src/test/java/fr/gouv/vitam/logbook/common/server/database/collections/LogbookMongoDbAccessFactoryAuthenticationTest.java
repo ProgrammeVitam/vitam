@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -104,8 +105,12 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         assertEquals("db-logbook", mongoDbAccess.getMongoDatabase().getName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
-            parameters.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+            if (LogbookParameterName.eventDateTime.equals(name)) {
+                parameters.putParameterValue(name, LocalDateUtil.now().toString());
+            } else {
+                parameters.putParameterValue(name,
+                    GUIDFactory.newEventGUID(0).getId());
+            }
         }
         mongoDbAccess.createLogbookOperation(parameters);
         mongoDbAccess.close();

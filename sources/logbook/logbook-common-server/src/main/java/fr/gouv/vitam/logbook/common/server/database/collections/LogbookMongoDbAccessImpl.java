@@ -51,6 +51,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -90,7 +91,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -1307,8 +1307,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
         QueryBuilder query = QueryToElasticsearch.getCommand(requestToMongodb.getNthQuery(0));
+        List<SortBuilder> sorts = QueryToElasticsearch.getSorts(requestToMongodb.getFinalOrderBy());
         SearchResponse elasticSearchResponse =
-            collection.getEsClient().search(collection, tenantId, query, null, requestToMongodb.getFinalOffset(),
+            collection.getEsClient().search(collection, tenantId, query, null, sorts, requestToMongodb.getFinalOffset(),
                 requestToMongodb.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {
             return new EmptyMongoCursor();
@@ -1329,9 +1330,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     src.get(LogbookMongoDbName.eventIdentifierProcess.getDbname()).toString()));
             }
         }
-        Select newSelectRequest = new Select();
-        newSelectRequest.setQuery(newQuery);
-        parser.parse(newSelectRequest.getFinalSelect());
+        // replace query with list of ids from es
+        parser.getRequest().setQuery(newQuery);
         return selectExecute(collection, parser);
     }
 
