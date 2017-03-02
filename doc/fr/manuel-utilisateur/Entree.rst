@@ -18,7 +18,15 @@ Le transfert d'un SIP dans Vitam s'effectue depuis l'écran "Transfert", accessi
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
 
-Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP". Une fois le SIP sélectionné, le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparait en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP" et le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparait en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+
+Deux listes déroulantes sont présentes sur l'écran :
+
+- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouve dans la partie administration du manuel utilisateur)
+
+- Destination : l'utilisateur peut indiquer la destination de l'entrée d'un SIP : en production, option d'entrée classique, ou "à blanc", pour lancer une entrée qui s'assurera de la cohérence du SIP. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une entrée en production.
+
+Le mode d'exécution et la destination sont obligatoires.
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
@@ -34,7 +42,7 @@ Les informations visibles à l'écran sont :
 
 NB : Suite au téléchargement du SIP, un temps d'attente est necessaire pour traitement du SIP par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
-.. image:: images/upload_sip.jpg
+.. image:: images/upload_sip.png
 
 Si l'utilisateur tente d'importer un SIP au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
 Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
