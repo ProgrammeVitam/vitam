@@ -87,7 +87,8 @@ public class ItemStatus {
      * @param globalStatus
      * @param data
      * @param itemsStatus
-     * @param globalExecutionStatus 
+     * @param evDetailData
+     * @param globalExecutionStatus  
      */
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
@@ -367,7 +368,8 @@ public class ItemStatus {
     }
 
     /**
-     * @param subTaskStatus the subTaskStatus to set
+     * @param taskId the task id
+     * @param taskStatus task Status
      *
      * @return this
      */

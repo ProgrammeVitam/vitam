@@ -50,6 +50,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      *
      * @param mongoDbNodes the database hosts and ports
      * @param dbName the database name
+     * @param clusterName the cluster name
+     * @param elasticsearchNodes the list of Elasticsearch nodes
      */
     public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes) {

@@ -81,6 +81,7 @@ public class LogbookInternalResourceImpl {
     /***** LOGBOOK OPERATION - START *****/
     /**
      * @param operationId the operation id
+     * @param queryDsl the query
      * @return the response with a specific HTTP status
      */
     @GET
@@ -156,6 +157,7 @@ public class LogbookInternalResourceImpl {
      * gets the unit life cycle based on its id
      *
      * @param unitLifeCycleId the unit life cycle id
+     * @param queryDsl the query
      * @return the unit life cycle
      */
     @GET
@@ -219,6 +221,7 @@ public class LogbookInternalResourceImpl {
      * gets the object group life cycle based on its id
      *
      * @param objectGroupLifeCycleId the object group life cycle id
+     * @param queryDsl the query
      * @return the object group life cycle
      */
     @GET

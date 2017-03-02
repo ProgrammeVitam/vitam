@@ -307,7 +307,8 @@ public class LogbookResource extends ApplicationStatusResource {
 
     /**
      * Run traceability secure operation for logbook
-     *
+     * 
+     * @param xTenantId the tenant id
      * @return the response with a specific HTTP status
      */
     @POST
@@ -1413,7 +1414,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Gets the objectGroup life cycle status based on its id
      *
-     * @param objectGroupId the object group cycle id
+     * @param objectGroupLifeCycleId the object group cycle id
      * @return the object group cycle status : Committed or In process
      */
     @HEAD

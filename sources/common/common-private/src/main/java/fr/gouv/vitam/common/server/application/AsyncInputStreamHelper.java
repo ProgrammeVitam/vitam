@@ -209,6 +209,7 @@ public class AsyncInputStreamHelper {
      * Note that receivedResponse if any is closed for you there.
      *
      * @param responseBuilder the ResponseBuilder initialize with your own parameters and status
+     * @param status the status of the response
      */
     public void writeAsyncResponse(ResponseBuilder responseBuilder, Status status) {
         try {

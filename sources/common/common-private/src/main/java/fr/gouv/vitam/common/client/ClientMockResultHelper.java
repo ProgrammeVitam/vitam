@@ -348,6 +348,8 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * 
+     * @param id 
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
      */

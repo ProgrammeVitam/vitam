@@ -295,7 +295,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
     /**
-     * @return
+     * @param xTenantId the tenant id
+     * 
+     * @return the response of the request
      * @throws LogbookClientServerException
      */
     @POST
@@ -324,6 +326,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Post used because Angular not support Get with body
      *
      * @param headers
+     * @param xhttpOverride
      * @param sessionId
      * @param options
      * @return Response
@@ -433,6 +436,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param operationId id of operation
+     * @param xTenantId the tenant id
      * @return Response
      */
     @GET
@@ -465,6 +469,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * @param operationId
      * @param asyncResponse
+     * @param xTenantId the tenant id
      */
 
     @GET
@@ -486,6 +491,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param operationId
      * @param asyncResponse
+     * @param tenantId
      */
     @GET
     @Path("/logbooks/{idOperation}/content")

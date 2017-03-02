@@ -91,6 +91,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Delete one index
      *
      * @param collection
+     * @param tenantId
      * @return True if ok
      */
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
@@ -112,6 +113,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Add a type to an index
      *
      * @param collection
+     * @param tenantId
      * @return True if ok
      */
     public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
@@ -142,6 +144,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * refresh an index
      *
      * @param collection
+     * @param tenantId
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
         LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase() + "_" + tenantId);
@@ -153,6 +156,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Add an entry in the ElasticSearch index
      *
      * @param collection
+     * @param tenantId
      * @param id
      * @param json
      * @return True if ok
@@ -220,6 +224,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Add one VitamDocument to indexation immediately
      *
      * @param document
+     * @param tenantId
      * @return True if inserted in ES
      */
     public final boolean addEntryIndex(final MetadataDocument<?> document, Integer tenantId) {
@@ -244,6 +249,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Used for iterative reload in restore operation (using bulk).
      *
      * @param indexes
+     * @param tenantId
      * @param document
      * @return the number of Unit incorporated (0 if none)
      */
@@ -380,6 +386,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param currentNodes current parent nodes
      * @param subdepth where subdepth >= 1
      * @param condition
+     * @param tenantId
      * @param filterCond
      * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
      *         after (using MongoDB)
@@ -458,6 +465,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param currentNodes current parent nodes
      * @param condition
      * @param filterCond
+     * @param tenantId
      * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
      *         after (using MongoDb)
      * @throws MetaDataExecutionException
@@ -511,6 +519,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Build the filter for negative depth
      *
      * @param collection
+     * @param tenantId
      * @param subset subset of valid nodes in the negative depth
      * @param condition
      * @param filterCond
@@ -636,6 +645,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     /**
      *
      * @param collections
+     * @param tenantId
      * @param type
      * @param id
      * @throws MetaDataExecutionException
@@ -661,6 +671,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * 
      * 
      * @param cursor
+     * @param tenantId
      * @throws MetaDataExecutionException
      */
     public void insertBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId) throws MetaDataExecutionException {
@@ -747,6 +758,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Bulk to delete entry indexes
      * 
      * @param cursor
+     * @param tenantId
      * @throws MetaDataExecutionException
      */
     public boolean deleteBulkOGEntriesIndexes(MongoCursor<ObjectGroup> cursor, final Integer tenantId) throws MetaDataExecutionException {
@@ -778,6 +790,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Bulk to delete entry indexes
      * 
      * @param cursor
+     * @param tenantId
      * @throws MetaDataExecutionException
      */
     public void deleteBulkUnitsEntriesIndexes(MongoCursor<Unit> cursor, final Integer tenantId) throws MetaDataExecutionException {

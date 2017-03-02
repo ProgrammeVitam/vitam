@@ -71,6 +71,8 @@ public final class MongoDbAccessAdminFactory {
      * Creation of one MongoDbAccess and initialize elasticsearch access
      *
      * @param configuration config of MongoDbAcess
+     * @param clusterName the cluster name
+     * @param nodes the list of Elasticsearch nodes
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */

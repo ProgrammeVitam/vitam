@@ -58,6 +58,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param stream as InputStream
+     * @return the response to the request
      * @throws ReferentialException      when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
@@ -96,6 +97,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Import a the set of rules for a given tenant
      * @param stream
+     * @return the response to the request
      * @throws FileRulesException                   when file rules exception occurs
      * @throws DatabaseConflictException            when Database conflict exception occurs
      * @throws AdminManagementClientServerException

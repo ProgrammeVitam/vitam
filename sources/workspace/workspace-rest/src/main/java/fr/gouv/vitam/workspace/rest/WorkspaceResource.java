@@ -137,6 +137,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a container in the workspace
      *
      * @param containerName path param of container name
+     * @param recursive true if the container should be deleted recursively
      * @return Response
      */
     @Path("/containers/{containerName}")

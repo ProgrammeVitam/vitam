@@ -207,7 +207,8 @@ public final class JsonHandler {
     /**
      *
      * @param value
-     * @param clasz
+     * @param clasz 
+     * @param parameterClazz 
      * @return the object of type clasz
      * @throws InvalidParseOperationException
      */

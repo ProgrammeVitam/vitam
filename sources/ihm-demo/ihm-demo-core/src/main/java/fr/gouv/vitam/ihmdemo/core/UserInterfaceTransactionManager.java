@@ -80,7 +80,6 @@ public class UserInterfaceTransactionManager {
     /**
      *
      * Gets archive unit details
-     *
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
      * @param tenantId
@@ -140,15 +139,18 @@ public class UserInterfaceTransactionManager {
     /**
      * Retrieve an Object data as an input stream
      *
+     * @param asyncResponse the asynchronous response to be used
      * @param selectObjectQuery the query to be executed
      * @param objectGroupId the Id of the ObjectGroup
      * @param usage the requested usage
      * @param version the requested version of the usage
+     * @param filename the name od the file
      * @param tenantId
      * @return boolean for test purpose (solve mock issue)
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
+     * @throws UnsupportedEncodingException
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource

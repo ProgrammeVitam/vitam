@@ -80,6 +80,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * executeOperationProcess : execute an operation processing
      * 
      * 
+     * @param operationId :id of the operation
      * @param contextId :define the execution context of workflow
      * @param actionId : identify the action to be executed by the workflow(next , pause,resume)
      * @param container: name of the container
@@ -128,6 +129,8 @@ public interface OperationManagementClient extends MockOrRestClient {
      * initVitamProcess
      * 
      * @param contextId
+     * @param container
+     * @param workflow
      * @return
      * @throws InternalServerException
      * @throws VitamClientException
@@ -140,7 +143,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * Retrieve all the workflow operations
      * 
      * @return All details of the operations
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     Response listOperationsDetails() throws VitamClientException;
 
