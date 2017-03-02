@@ -26,11 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -283,8 +286,9 @@ public class LogbookResourceIT {
             client.create(traceabilityParameters2Start);
             client.update(traceabilityParameters2StpStart);
             client.update(traceabilityParameters2StpEndFatal);
-            try {
 
+            // request with limit and evDetData
+            try {
                 final Select select = new Select();
                 final Query eventProcType = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
                 final Query logType = QueryHelper
@@ -298,10 +302,30 @@ public class LogbookResourceIT {
                     .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.getDbname()),
                         "OK");
                 select.setLimitFilter(0, 1);
-                select.setQuery(QueryHelper.and().add(eventProcType, logType, eventType, outcome));
+                select.setQuery(QueryHelper.and().add(eventProcType,  logType, eventType, outcome));
+                JsonNode json = client.selectOperation(select.getFinalSelect());
+                RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
+                assertEquals(1, response.getHits().getTotal());
+
+            } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+                fail("Should not have raized an exception");
+            }
+
+            // request with sort
+            try {
+                final Select select = new Select();
+                final Query eventProcType = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
+                select.setQuery(QueryHelper.and().add(eventProcType));
                 select.addOrderByDescFilter("evDateTime");
                 JsonNode json = client.selectOperation(select.getFinalSelect());
                 RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
+                Iterator responseResults =  response.getResults().iterator();
+                Map<String, Object> firstResult = (Map<String, Object>) responseResults.next();
+                String eventIdProc1 = (String) firstResult.get(LogbookMongoDbName.eventIdentifierProcess.getDbname());
+                assertEquals(eip2.toString(), eventIdProc1);
+                Map<String, Object> secondResult = (Map<String, Object>) responseResults.next();
+                String eventIdProc2 = (String) secondResult.get(LogbookMongoDbName.eventIdentifierProcess.getDbname());
+                assertEquals(eip1.toString(), eventIdProc2);
             } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
                 fail("Should not have raized an exception");
             }

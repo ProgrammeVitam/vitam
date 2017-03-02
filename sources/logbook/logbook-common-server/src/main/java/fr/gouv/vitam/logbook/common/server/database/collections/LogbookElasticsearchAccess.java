@@ -38,6 +38,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -179,6 +180,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter the filter
+     * @param sorts the list of sort
      * @param from the offset
      * @param size the limit
      * @return a structure as SearchResponse
@@ -186,19 +188,25 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      */
     public final SearchResponse search(final LogbookCollections collection, final Integer tenantId,
         final QueryBuilder query,
-        final QueryBuilder filter, final int offset, final int limit) throws LogbookException {
+        final QueryBuilder filter, final List<SortBuilder> sorts, final int offset, final int limit)
+        throws LogbookException {
         final String type = getTypeUnique(collection);
 
         final SearchRequestBuilder request =
             client.prepareSearch(getIndexName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
                 .setTypes(type).setExplain(false).setFrom(offset)
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
+
+        if (sorts != null) {
+            sorts.stream().forEach(sort -> request.addSort(sort));
+        }
         if (filter != null) {
             request.setQuery(query).setPostFilter(filter);
         } else {
             request.setQuery(query);
         }
         try {
+            LOGGER.error(request.toString());
             return request.get();
         } catch (final Exception e) {
             LOGGER.debug(e.getMessage(), e);

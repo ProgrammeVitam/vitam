@@ -26,18 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.index.query.SimpleQueryStringFlag;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -50,6 +56,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -97,6 +104,57 @@ public class QueryToElasticsearch {
 
         // TODO P1 add TenantId filter
     }
+
+    /**
+     * Generate sort list from order by mongo query orders : {field1 : -1, field2 : 1} or [{field1 : -1, field2 :
+     * 1},{field3 : -1}]
+     * 
+     * @param orderBy orderBy (one or list)
+     * @return list of order by as sort objects
+     * @throws InvalidParseOperationException if the orderBy is not valid
+     */
+    public static List<SortBuilder> getSorts(final Bson orderBy) throws InvalidParseOperationException {
+        // FIXME P0 : clean code and validate orderBy => list translation
+        // FIXME P0 : use DSL object or JsonNode in place of a Bson
+        List<SortBuilder> sorts = new ArrayList<>();
+        if (orderBy != null) {
+            JsonNode node = JsonHandler.getFromString(MongoDbHelper.bsonToString(orderBy, false), JsonNode.class);
+            if (node.isArray()) {
+                ((ArrayNode) node).forEach(item -> sorts.addAll(getSortsForNode((ObjectNode) item)));
+            } else {
+                sorts.addAll(getSortsForNode((ObjectNode) node));
+            }
+        }
+        return sorts;
+    }
+
+    /**
+     * Generate sort list from node with form : {field1 : -1, field2 : 1}
+     * 
+     * @param node node containing sort list from mongo as json
+     * @return list of order by as sort objects
+     */
+    private static List<SortBuilder> getSortsForNode(ObjectNode node) {
+        List<SortBuilder> sorts = new ArrayList<>();
+        Iterator<String> fieldNames = node.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            if (!node.get(fieldName).isInt()) {
+                break;
+            }
+            int value = node.get(fieldName).asInt();
+            FieldSortBuilder fieldSort = SortBuilders.fieldSort(fieldName);
+            if (value < 0) {
+                fieldSort.order(SortOrder.DESC);
+                sorts.add(fieldSort);
+            } else if (value > 0) {
+                fieldSort.order(SortOrder.ASC);
+                sorts.add(fieldSort);
+            }
+        }
+        return sorts;
+    }
+
 
     /**
      *

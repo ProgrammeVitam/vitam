@@ -444,7 +444,7 @@ public class IngestInternalIT {
                 accessClient.selectOperationById(operationGuid.getId(), new Select().getFinalSelect());
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
-                esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 25);
+                esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
             assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
             assertNotNull(elasticSearchResponse.getHits().getAt(0));
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
