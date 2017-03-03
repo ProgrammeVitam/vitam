@@ -926,7 +926,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param asyncResponse asynchronous response
      */
     private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
-        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+        AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
             Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
                 new VitamError(VitamCodeHelper.getCode(vitamCode))
                     .setContext(vitamCode.getService().getName())

@@ -70,9 +70,21 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         }
         StreamUtils.closeSilently(stream);
 
-        return new AbstractMockClient.FakeInboundResponse(Status.OK,
-            IOUtils.toInputStream(MOCK_INGEST_EXTERNAL_RESPONSE_STREAM),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, getDefaultHeaders(FAKE_X_REQUEST_ID, tenantId));
+        return Response.status(Status.ACCEPTED)
+            .header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .build();
+    }
+
+    @Override
+    public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
+        throws IngestExternalException {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return upload(stream, tenantId, contextId, action);
     }
 
     /**
@@ -84,13 +96,18 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     private MultivaluedHashMap<String, Object> getDefaultHeaders(String requestId, Integer tenantId) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         return headers;
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+        throws IngestExternalException {
         return ClientMockResultHelper.getObjectStream();
+    }
+
+    @Override public Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException {
+        return Response.status(Status.OK).build();
     }
 
     @Override

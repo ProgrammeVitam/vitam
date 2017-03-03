@@ -24,66 +24,54 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.client;
+package fr.gouv.vitam.ingest.external.core;
+
+import fr.gouv.vitam.common.storage.filesystem.FileSystem;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.OperationManagementClient;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-
 /**
- * Ingest external interface
+Asynchrone exchange Model
  */
-public interface IngestExternalClient extends OperationManagementClient {
-    /**
-     * ingest upload file in local
-     *
-     * @param stream
-     * @param tenantId
-     * @param contextId
-     * @param action
-     * @return response
-     * @throws IngestExternalException
-     */
-    // TODO P0 : add file name
+public class PreUploadResume {
+    private LogbookOperationsClientHelper helper;
 
-    Response upload(InputStream stream, Integer tenantId, String contextId, String action)
-        throws IngestExternalException;
+    private LogbookTypeProcess logbookTypeProcess;
+    private LogbookOperationParameters startedParameters;
+    private FileSystem workspaceFileSystem;
+    private String contextWithExecutionMode;
 
-    /**
-     * ingest upload file in  with waiting
-     * For Intern Usage
-     * TNR
-     *
-     * @param stream
-     * @param tenantId
-     * @param contextId
-     * @return response
-     * @throws IngestExternalException
-     */
-    // TODO P0 : add file name
+    public PreUploadResume(
+        LogbookOperationsClientHelper helper,
+        LogbookTypeProcess logbookTypeProcess,
+        LogbookOperationParameters startedParameters,
+        FileSystem workspaceFileSystem, String contextWithExecutionMode) {
+        this.helper = helper;
+        this.logbookTypeProcess = logbookTypeProcess;
+        this.startedParameters = startedParameters;
+        this.workspaceFileSystem = workspaceFileSystem;
+        this.contextWithExecutionMode = contextWithExecutionMode;
+    }
 
-    Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
-        throws IngestExternalException;
+    public LogbookTypeProcess getLogbookTypeProcess() {
+        return logbookTypeProcess;
+    }
 
-    /**
-     * Download object stored by ingest operation
-     *
-     * @param objectId
-     * @param type
-     * @param tenantId
-     * @return response
-     * @throws IngestExternalException
-     */
-    Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
-        throws IngestExternalException;
+    public LogbookOperationParameters getStartedParameters() {
+        return startedParameters;
+    }
 
-    Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
+    public FileSystem getWorkspaceFileSystem() {
+        return workspaceFileSystem;
+    }
 
+    public String getContextWithExecutionMode() {
+        return contextWithExecutionMode;
+    }
+
+    public LogbookOperationsClientHelper getHelper() {
+        return helper;
+    }
 }

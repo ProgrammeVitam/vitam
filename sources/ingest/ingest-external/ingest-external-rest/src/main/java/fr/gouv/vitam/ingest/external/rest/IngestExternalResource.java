@@ -25,9 +25,6 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
-
-import java.io.InputStream;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -59,24 +56,26 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import fr.gouv.vitam.ingest.external.core.IngestExternalImpl;
+import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
+
+import java.io.InputStream;
 
 /**
  * The Ingest External Resource
@@ -94,7 +93,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration
-     *
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
@@ -106,46 +104,40 @@ public class IngestExternalResource extends ApplicationStatusResource {
      *
      * @param contextId
      * @param action
-     * @param uploadedInputStream data input stream 
+     * @param uploadedInputStream data input stream
      * @param asyncResponse
-     * 
      */
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
     // TODO P2 : add file name
     public void upload(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String action, InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
-
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         Integer tenantId = ParameterHelper.getTenantParameter();
+
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> uploadAsync(asyncResponse, uploadedInputStream, tenantId, contextId, action));
+            .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid));
+
     }
 
-    private void uploadAsync(final AsyncResponse asyncResponse, InputStream uploadedInputStream,
-        Integer tenantId, String contextId, String action) {
+    private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
+        Integer tenantId, String contextId, String action, GUID guid) {
         try {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            ingestExtern.upload(uploadedInputStream, asyncResponse, contextId, action);
-        } catch (final IngestExternalException exc) {
+            PreUploadResume
+                preUploadResume = ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            ingestExtern.upload(preUploadResume, guid);
+        } catch (final Exception exc) {
             LOGGER.error(exc);
-            try {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR)
-                        .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(),
-                            "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
-                            "PROCESS_SIP_UNITARY", exc.getMessage(), StatusCode.FATAL))
-                        .type(MediaType.APPLICATION_XML_TYPE).build());
-            } catch (final IngestExternalException e) {
-                // Really bad
-                LOGGER.error(e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR).build());
-            }
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.FAILED)
+                    .build());
         } finally {
             StreamUtils.closeSilently(uploadedInputStream);
         }
@@ -153,9 +145,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     /**
      * Download object stored by Ingest operation (currently ATR and manifest)
-     * 
+     * <p>
      * Return the object as stream asynchronously
-     * 
+     *
      * @param objectId
      * @param type
      * @param asyncResponse
@@ -178,11 +170,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
             helper.writeResponse(Response.status(response.getStatus()));
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         } catch (VitamClientException e) {
             LOGGER.error("VitamClientException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
@@ -190,10 +182,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Execute the process of an operation related to the id.
      *
-     *
-     * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param id operation identifier
+     * @param headers             contain X-Action and X-Context-ID
+     * @param id                  operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
      * @throws InternalServerException
@@ -315,7 +305,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * get the workflow status
      *
-     * @param id operation identifier
+     * @param id    operation identifier
      * @param query body
      * @return http response
      */
@@ -370,9 +360,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Update the status of an operation.
      *
-     * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param id operation identifier
+     * @param headers       contain X-Action and X-Context-ID
+     * @param id            operation identifier
      * @param asyncResponse asyncResponse
      * @return http response
      */
@@ -406,14 +395,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
         } catch (InternalServerException | VitamClientException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } catch (BadRequestException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         }
     }

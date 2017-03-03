@@ -632,15 +632,15 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND).entity(containerName).build());
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build());
         }
 

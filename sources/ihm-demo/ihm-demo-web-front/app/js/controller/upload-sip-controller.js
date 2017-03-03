@@ -76,15 +76,6 @@ angular.module('ihm.demo')
 
 
     // *************************************** TIMER *********************************************** //
-    function clearHistoryAfterUpload(operationIdServerAppLevel) {
-      ihmDemoFactory.cleanOperationStatus(operationIdServerAppLevel)
-      .then(function (response) {
-        console.log("clean succeeded");
-      }, function(error) {
-        console.log("clean failed");
-      });
-    }
-
     $scope.stopPromise = undefined;
     $scope.check = function(fileItem, operationIdServerAppLevel) {
        if ( angular.isDefined($scope.stopPromise) ) return;
@@ -104,7 +95,6 @@ angular.module('ihm.demo')
              $scope.stopCheck();
              fileItem.isFatalError = true;
 
-             clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            } else if (response.status !== UPLOAD_CONSTANTS.NO_CONTENT_STATUS) {
              // Finished operation
@@ -115,8 +105,7 @@ angular.module('ihm.demo')
              $scope.uploadFinished = true;
              $scope.uploadLaunched = false;
              $scope.uploadFailed = false;
-             fileItem.isProcessing = false;
-
+             fileItem.isProcessing = false;;
              if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
                fileItem.isWarning = true;
              } else {
@@ -124,7 +113,6 @@ angular.module('ihm.demo')
              }
 
              downloadATR(response, response.headers);
-             clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
          }, function (error) {
@@ -150,11 +138,10 @@ angular.module('ihm.demo')
              }
 
              downloadATR(error, error.headers);
-             clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
          });
-       }, 5000); // 5000 ms
+       }, 10000); // 10000 ms
     };
 
      $scope.stopCheck = function() {
@@ -186,7 +173,9 @@ angular.module('ihm.demo')
       $scope.fileItem.isWarning = false;
       $scope.fileItem.isFatalError = false;
 
-      $scope.check($scope.fileItem, operationIdServerAppLevel);
+      if(  $scope.contextId =='DEFAULT_WORKFLOW') {
+        $scope.check($scope.fileItem, operationIdServerAppLevel);
+      }
     };
 
     $scope.getSize = function(bytes, precision) {

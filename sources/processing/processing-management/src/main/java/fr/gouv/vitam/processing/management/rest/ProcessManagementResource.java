@@ -251,7 +251,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } else {
             builder.entity(entity);
         }
-        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, builder.build());
+        AsyncInputStreamHelper.asyncResponseResume(asyncResponse, builder.build());
     }
 
     /**

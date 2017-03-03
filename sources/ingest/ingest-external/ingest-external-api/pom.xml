@@ -22,5 +22,10 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ingest-external-common</artifactId>
+			<version>0.15.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 </project>

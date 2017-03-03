@@ -92,7 +92,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
                         null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response); // Using AsyncInputStreamHelper
                 } catch (VitamClientInternalException e) {
-                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 }
             }
@@ -147,7 +147,7 @@ public class AsyncInputStreamHelper {
             inputStream = null;
         }
         try {
-            writeErrorAsyncResponse(asyncResponse, errorResponse);
+            asyncResponseResume(asyncResponse, errorResponse);
         } finally {
             DefaultClient.staticConsumeAnyEntityAndClose(receivedResponse);
         }
@@ -168,7 +168,7 @@ public class AsyncInputStreamHelper {
                     inputStream = receivedResponse.readEntity(InputStream.class);
                 } catch (final IllegalStateException e) {
                     LOGGER.error(e);
-                    writeErrorAsyncResponse(asyncResponse, getResponseError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR));
+                    asyncResponseResume(asyncResponse, getResponseError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR));
                     return;
                 }
             }
@@ -185,11 +185,11 @@ public class AsyncInputStreamHelper {
      * {@link #writeErrorResponse(Response)}.
      *
      * @param asyncResponse
-     * @param errorResponse the fully prepared ErrorResponse
+     * @param response the fully prepared ErrorResponse
      */
-    public static void writeErrorAsyncResponse(AsyncResponse asyncResponse, Response errorResponse) {
-        ParametersChecker.checkParameter("ErrorResponse should not be null", errorResponse);
-        asyncResponse.resume(errorResponse);
+    public static void asyncResponseResume(AsyncResponse asyncResponse, Response response) {
+        ParametersChecker.checkParameter("ErrorResponse should not be null", response);
+        asyncResponse.resume(response);
     }
 
     private Response getResponseError(VitamCode vitamCode) {

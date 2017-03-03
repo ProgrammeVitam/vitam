@@ -26,26 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -73,6 +69,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     final int TENANT_ID = 0;
     private static final String CONTEXT_ID = "defaultContext";
     private static final String EXECUTION_MODE = "defaultContext";
+    private static final String ID = "id1";
 
 
     // ************************************** //
@@ -117,10 +114,12 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         }
     }
 
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
     }
+
 
     @Path("/ingest-external/v1")
     public static class MockResource {
@@ -133,7 +132,6 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         @POST
         @Path("ingests")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-        @Produces(MediaType.APPLICATION_XML)
         public Response upload(InputStream stream) {
             return expectedResponse.post();
         }
@@ -144,35 +142,16 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
             return expectedResponse.get();
         }
-    }
 
-    @Test
-    public void givenInputstreamWhenUploadThenReturnOK()
-        throws IngestExternalException, XMLStreamException, IOException {
-
-        final InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
-
-        final Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.OK,
-            mockResponseInputStream,
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
-        when(mock.post()).thenReturn(fakeResponse);
-
-
-        final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        final InputStream fakeUploadResponseInputStream =
-            client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE).readEntity(InputStream.class);
-        assertNotNull(fakeUploadResponseInputStream);
-
-        try {
-            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
-        } catch (final IOException e) {
-            e.printStackTrace();
-            fail();
+        @Path("/operations/{id}")
+        @HEAD
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
+            return expectedResponse.head();
         }
     }
+
 
     @Test
     public void givenErrorWhenUploadThenReturnBadRequestErrorWithBody() throws Exception {
@@ -218,4 +197,14 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             fail();
         }
     }
+
+    @Test
+    public void givenHeadOperationStatusThenOK()
+        throws Exception {
+
+        when(mock.head()).thenReturn(Response.status(Status.OK).build());
+        assertEquals(client.getOperationStatus(ID, 0).getStatus(),200);
+
+    }
+
 }

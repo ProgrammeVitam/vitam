@@ -403,17 +403,17 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.UNAUTHORIZED;
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         }
     }
@@ -440,17 +440,17 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.UNAUTHORIZED;
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(status).build());
         }
     }
@@ -520,14 +520,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         try {
             if (post) {
                 if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
-                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.PRECONDITION_FAILED)
                             .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
                     return;
                 }
                 final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
                 if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
-                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
                             .toString()).build());
                     return;
@@ -537,7 +537,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
                 LOGGER.error("At least one required header is missing. Required headers: (" +
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
                         .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
                 return;
@@ -547,7 +547,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
                 .build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
             return;
         }
 
@@ -571,13 +571,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
                 .build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                     .toString()).build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 

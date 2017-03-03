@@ -24,66 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.ingest.external.client;
+package fr.gouv.vitam.ingest.external.common.exception;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.client.OperationManagementClient;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Ingest external interface
+ * IngestInternalException ingest error
  */
-public interface IngestExternalClient extends OperationManagementClient {
-    /**
-     * ingest upload file in local
-     *
-     * @param stream
-     * @param tenantId
-     * @param contextId
-     * @param action
-     * @return response
-     * @throws IngestExternalException
-     */
-    // TODO P0 : add file name
-
-    Response upload(InputStream stream, Integer tenantId, String contextId, String action)
-        throws IngestExternalException;
+public class JavaExecuteScriptException extends VitamException {
 
     /**
-     * ingest upload file in  with waiting
-     * For Intern Usage
-     * TNR
+     * constructor with message
      *
-     * @param stream
-     * @param tenantId
-     * @param contextId
-     * @return response
-     * @throws IngestExternalException
+     * @param message message to associate with the exception
      */
-    // TODO P0 : add file name
-
-    Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
-        throws IngestExternalException;
+    public JavaExecuteScriptException(String message) {
+        super(message);
+    }
 
     /**
-     * Download object stored by ingest operation
+     * constructor with throwable
      *
-     * @param objectId
-     * @param type
-     * @param tenantId
-     * @return response
-     * @throws IngestExternalException
+     * @param cause cause to associate with the exception
      */
-    Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
-        throws IngestExternalException;
+    public JavaExecuteScriptException(Throwable cause) {
+        super(cause);
+    }
 
-    Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
-
+    /**
+     * constructor with message and throwable
+     *
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public JavaExecuteScriptException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

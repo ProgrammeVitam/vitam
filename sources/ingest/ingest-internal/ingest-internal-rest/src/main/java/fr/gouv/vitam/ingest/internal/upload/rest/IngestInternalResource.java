@@ -663,7 +663,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             if (documentType == StorageCollectionType.MANIFESTS || documentType == StorageCollectionType.REPORTS) {
                 objectId += XML;
             } else {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.METHOD_NOT_ALLOWED).build());
                 return;
             }
@@ -673,15 +673,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
             helper.writeResponse(Response.status(Status.OK));
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         } catch (StorageNotFoundException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND).build());
         } catch (StorageServerClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
@@ -728,7 +728,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             process.getWorkFlowId());
 
                         // Successful initialization
-                        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                        AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                             Response.status(Status.ACCEPTED).build());
                     }
                 } else {
@@ -796,7 +796,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final ContentAddressableStorageException e) {
                 if (parameters != null) {
@@ -808,7 +808,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 // FIXME P1 in particular Processing Exception could it be a "normal error" ?
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
@@ -827,14 +827,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final IngestInternalException | IllegalArgumentException | VitamClientException |
                 BadRequestException | InternalServerException e) {
                 // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal
                 // State)
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } finally {
                 if (logbookOperationsClient != null) {
@@ -972,7 +972,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             Response updateResponse = processingClient.updateOperationActionProcess(actionId, containerGUID.getId());
 
             if (Status.UNAUTHORIZED.getStatusCode() == updateResponse.getStatus()) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.UNAUTHORIZED).build());
                 return;
             }
@@ -1030,13 +1030,13 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         } catch (IngestInternalException | IllegalArgumentException | InternalServerException | VitamClientException |
             BadRequestException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } finally {
             if (processingClient != null) {
