@@ -99,7 +99,7 @@
 
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", secret_platform: "true" }
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", secret_platform: "true", port_https: "{{vitam_storageofferdefault_port_https}}", tls_active: true,password_keystore: "{{KeyStorePassword_default_offer}}", password_manager_keystore: "{{KeyStorePassword_default_offer}}", password_truststore: "{{TrustStorePassword_default_offer}}" }
 
 # - hosts: hosts-storage-offer-default-2
 #   roles:

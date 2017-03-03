@@ -245,6 +245,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     protected void disableUseAuthorizationFilter() {
         useAuthorizationFilter = false;
     }
+    
+    protected void enableUseAuthorizationFilter() {
+        useAuthorizationFilter = true;
+    }
 
     boolean useAuthorizationFilter() {
         return useAuthorizationFilter;

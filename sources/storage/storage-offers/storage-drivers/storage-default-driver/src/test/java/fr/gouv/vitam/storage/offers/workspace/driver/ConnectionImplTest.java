@@ -84,8 +84,8 @@ import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -95,6 +95,7 @@ import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class ConnectionImplTest extends VitamJerseyTest {
 
@@ -104,10 +105,10 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private static JunitHelper junitHelper;
     private static int tenant;
     private static ConnectionImpl connection;
+    private static StorageOffer offer = new StorageOffer();
     
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     private static final String TYPE = "object";
-
 
     public ConnectionImplTest() {
         super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
@@ -121,8 +122,10 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Override
     public void beforeTest() throws VitamApplicationServerException {
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+        
         try {
-            connection = DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
+            connection = DriverImpl.getInstance().connect(offer, null);
         } catch (final StorageDriverException e) {
             throw new VitamApplicationServerException(e);
         }

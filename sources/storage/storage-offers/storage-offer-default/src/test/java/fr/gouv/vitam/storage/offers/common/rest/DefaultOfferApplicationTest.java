@@ -62,4 +62,9 @@ public class DefaultOfferApplicationTest {
             // Result Expected
         }
     }
+
+    @Test
+    public void shouldActivateShiroFilter(){
+        new DefaultOfferApplication("src/test/resources/storage-default-offer-ssl.conf");
+    }
 }

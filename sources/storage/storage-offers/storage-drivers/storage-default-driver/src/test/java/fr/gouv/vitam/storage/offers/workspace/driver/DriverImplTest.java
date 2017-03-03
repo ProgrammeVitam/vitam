@@ -50,12 +50,14 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class DriverImplTest extends VitamJerseyTest {
 
     protected static final String HOSTNAME = "localhost";
     private static final String DRIVER_NAME = "WorkspaceDriver";
     private static JunitHelper junitHelper;
+    private static StorageOffer offer = new StorageOffer();
 
     public DriverImplTest() {
         super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
@@ -128,15 +130,19 @@ public class DriverImplTest extends VitamJerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+        
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
+        DriverImpl.getInstance().connect(offer, null);
     }
 
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
+        offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+  
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         final ConnectionImpl connection =
-            DriverImpl.getInstance().connect("http://" + HOSTNAME + ":" + getServerPort(), null);
+            DriverImpl.getInstance().connect(offer, null);
         assertNotNull(connection);
     }
 
