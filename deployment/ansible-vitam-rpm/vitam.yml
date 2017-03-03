@@ -16,11 +16,15 @@
     - normalize-host
 
 ### CONSUL INSTALLATION ###
-# KWA : TODO : installer les serveurs en serial 1 avant les agents (qui n'en ont pas besoin, du serial 1)
-- hosts: vitam
+- hosts: hosts-consul-server
   serial: 1
   roles:
     - consul
+
+- hosts: vitam
+  roles:
+    - { role: consul, when: "inventory_hostname not in groups['hosts-consul-server']" }
+
 
 ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts-elasticsearch-log
