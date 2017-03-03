@@ -62,7 +62,7 @@
 
         <tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo:search.pagination.itemsPerPage">
           <tr>
-            <td ng-click="goToDetails(log.evIdProc)" >{{log.events[0].obIdIn}}</td>
+            <td ng-click="goToDetails(log.evIdProc)" >{{getMessageIdentifier(log)}}</td>
             <td ng-click="goToDetails(log.evIdProc)" >{{log.evIdProc}}</td>
             <td ng-click="goToDetails(log.evIdProc)" >{{log.evDateTime | vitamFormatDate}}</td>
             <td ng-click="goToDetails(log.evIdProc)" >{{log.events[1].evDateTime | vitamFormatDate}}</td>
