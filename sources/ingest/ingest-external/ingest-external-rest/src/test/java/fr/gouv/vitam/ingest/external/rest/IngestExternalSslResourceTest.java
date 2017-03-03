@@ -63,6 +63,7 @@ public class IngestExternalSslResourceTest {
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
 
+        JunitHelper.setJettyPortSystemProperty(serverPort);
         // TODO P1 activate authentication
         // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
         try {

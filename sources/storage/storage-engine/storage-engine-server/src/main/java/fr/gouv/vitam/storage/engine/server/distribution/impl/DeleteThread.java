@@ -67,7 +67,7 @@ public class DeleteThread implements Callable<Boolean> {
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
         final Properties parameters = new Properties();
         parameters.putAll(offer.getParameters());
-        try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+        try (Connection connection = driver.connect(offer, parameters)) {
             connection.removeObject(request);
         }
         return true;
