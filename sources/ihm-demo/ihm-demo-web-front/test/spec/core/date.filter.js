@@ -29,7 +29,7 @@
 describe('Filter : vitamFormatDate', function () {
   beforeEach(module('ihm.demo'));
   var $filter;
-  // on sauvegarge la timeZONE
+  // on sauvegarde la timeZONE
   var timezoneProto = Date.prototype.getTimezoneOffset;
   beforeEach(inject(function (_$filter_) {
     $filter = _$filter_;
@@ -43,13 +43,15 @@ describe('Filter : vitamFormatDate', function () {
     // on restaure la timeZone
     Date.prototype.getTimezoneOffset = timezoneProto;
   });
-  it('should be able to tranform utc to local date', function () {
+  it('should be able to transform utc to local date', function () {
     var a = "2017-02-01T10:19:22.160";
+    expect($filter('vitamFormatDate')(a)).toBe('01-02-2017 11:19');
     expect($filter('vitamFormatDate')(a)).not.toBe('01-02-2017 10:19');
-    expect($filter('vitamFormatDate')("notAdate")).toBe('notAdate');
-    expect($filter('vitamFormatDate')("01-02-2017 10:19")).not.toBe('01-02-2017 10:19');
-    expect($filter('vitamFormatDate')("")).toBe("");
-    expect($filter('vitamFormatDate')(undefined)).toBe(undefined);
-    expect($filter('vitamFormatDate')(null)).toBe(null);
+    expect($filter('vitamFormatDate')('notAdate')).toBe('');
+    expect($filter('vitamFormatDate')('01-02-2017 10:19')).not.toBe('01-02-2017 10:19');
+    expect($filter('vitamFormatDate')('')).toBe('');
+    expect($filter('vitamFormatDate')(undefined)).toBe('');
+    expect($filter('vitamFormatDate')(null)).toBe('');
+    expect($filter('vitamFormatDate')('2017-02-01')).toBe('01-02-2017 00:00');
   });
 });
