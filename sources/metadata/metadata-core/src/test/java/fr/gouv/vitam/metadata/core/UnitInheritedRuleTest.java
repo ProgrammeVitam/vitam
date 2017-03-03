@@ -91,6 +91,9 @@ public class UnitInheritedRuleTest {
         au1RulesResult.concatRule(au3RulesResult);
         assertEquals(EXPECTED_CONCAT_RESULT, JsonHandler.unprettyPrint(au1RulesResult));
         
+        au1RulesResult.concatRule(au1RulesResult);
+        assertEquals(EXPECTED_CONCAT_RESULT, JsonHandler.unprettyPrint(au1RulesResult));
+        
     }
 
 }
