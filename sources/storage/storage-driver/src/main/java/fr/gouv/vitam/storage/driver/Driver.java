@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.driver;
 import java.util.Properties;
 
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
  * Driver interface that all storage offer drivers MUST implement to be discovered by the Vitam driver manager. </br>
@@ -52,7 +53,7 @@ public interface Driver {
      *         requests to the distant offer service without needing to pass parameters/configurations.
      * @throws StorageDriverException if any problem occurs during connection
      */
-    Connection connect(String url, Properties parameters) throws StorageDriverException;
+    Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException;
 
     /**
      * The driver MUST provide a way to check the availability of the storage offer based on URL and storage offer

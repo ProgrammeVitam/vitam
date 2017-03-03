@@ -37,6 +37,8 @@ import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
@@ -72,6 +74,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferApplication;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
 
@@ -82,7 +85,7 @@ public class DriverToOfferTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverToOfferTest.class);
 
-    private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
+    private static final String WORKSPACE_OFFER_CONF = "storage-default-offer-ssl.conf";
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
 
@@ -100,6 +103,7 @@ public class DriverToOfferTest {
     private static int TENANT_ID;
 
     private static String CONTAINER;
+    private static StorageOffer offer = new StorageOffer();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -162,7 +166,15 @@ public class DriverToOfferTest {
     @RunWithCustomExecutor
     @Test
     public void integrationTest() throws Exception {
-        connection = driver.connect("http://localhost:" + serverPort, null);
+        offer.setBaseUrl("https://localhost:" + serverPort);
+        Map<String, String> tmp = new HashMap<String, String>();
+        tmp.put("keyStore-keyPath", "src/test/resources/client.p12");
+        tmp.put("keyStore-keyPassword", "vitam2016");
+        tmp.put("trustStore-keyPath", "src/test/resources/truststore.jks");
+        tmp.put("trustStore-keyPassword", "tazerty");
+        offer.setParameters(tmp);
+        
+        connection = driver.connect(offer, null);
         assertNotNull(connection);
 
         StoragePutRequest request = null;

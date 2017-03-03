@@ -99,5 +99,60 @@ for j in ingest access; do
 	done
 done
 
+
+
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-engine ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+	echo "Génération du keystore de storage-engine"
+	echo "	Génération pour ${i}..."
+	echo "Génération du truststore de storage-engine..."
+	#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
+	echo "	Import des CA server dans truststore de storage-engine..."
+	echo "		... import CA server root..."
+	mkdir -p ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
+	echo "		... import CA server intermediate..."
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
+	echo "		... import CA client root..."
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
+	echo "		... import CA client intermediate..."
+	addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage.jks $(eval "echo \$TrustStore_storage_engine_password") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+
+	echo "Fin de génération du trustore de storage-engine"
+	echo "------------------------------------------------"
+done
+
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-offer-default ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+		echo "Génération du keystore de hosts-storage-offer-default"
+		echo "	Génération pour ${i}..."
+		# Importer les clés de ingest-external
+		echo "	Import du p12 de hosts-storage-offer-default dans le keystore"
+		addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_storage-offer-default.jks  $(eval "echo \$KeyStorePassword_default_offer") ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/storage-offer-default.p12 ${p12_storage_offer_default} storage-offer-default
+		echo "Fin de génération du keystore ${j}-external"
+		echo "---------------------------------------------"
+
+		echo "Génération du truststore de ${j}-external..."
+		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
+		echo "	Import des CA server dans truststore de ${j}-external..."
+		echo "		... import CA server root..."
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
+		echo "		... import CA server intermediate..."
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
+		echo "		... import CA client root..."
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
+		echo "		... import CA client intermediate..."
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+
+		echo "Fin de génération du trustore de ${j}-external"
+		echo "------------------------------------------------"
+
+		echo "Génération du grantedstore de ${j}-external..."
+		echo "	Import certificat IHM-demo, ihm-recette & reverse dans le grantedstore de ${j}-external..."
+		# FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE !
+		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_storage-offer-default.jks $(eval "echo \$grantedKeyStorePassphrase_default_offer") ${REPERTOIRE_CERTIFICAT}/client/storage/storage.crt storage
+		echo "------------------------------------------------"
+	#	importcastore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks ${TrustStorePassword_ingest_external} ${REPERTOIRE_CA}/server/ca.crt azerty ca_server_root_crt
+	done
+
+
 echo "============================================================================================="
 echo "Fin de script."

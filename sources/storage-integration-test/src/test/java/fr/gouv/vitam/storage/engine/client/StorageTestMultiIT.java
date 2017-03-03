@@ -74,7 +74,7 @@ public class StorageTestMultiIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiIT.class);
 
     private static DefaultOfferApplication defaultOfferApplication;
-    private static final String DEFAULT_OFFER_CONF = "storage-test/default-offer.conf";
+    private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
     private static final String OFFER_FOLDER = "offer";
 
     private static StorageApplication storageApplication;

@@ -29,9 +29,20 @@ package fr.gouv.vitam.storage.offers.common.rest;
 
 import static java.lang.String.format;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.EnumSet;
+
+import javax.servlet.DispatcherType;
+
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.glassfish.jersey.server.ResourceConfig;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
@@ -46,6 +57,7 @@ public final class DefaultOfferApplication
     extends AbstractVitamApplication<DefaultOfferApplication, StorageConfiguration> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferApplication.class);
     private static final String WORKSPACE_CONF_FILE_NAME = "default-offer.conf";
+    private static final String SHIRO_FILE = "shiro.ini";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
     /**
@@ -94,5 +106,24 @@ public final class DefaultOfferApplication
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new DefaultOfferResource());
         resourceConfig.register(new AdminStatusResource());
+    }
+    
+    //FIXME Duplication of code with other components in TLS
+    @Override
+    protected void setFilter(ServletContextHandler context) throws VitamApplicationServerException {
+        if (getConfiguration().isAuthentication()) {
+            File shiroFile = null;
+            try {
+                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
+            } catch (final FileNotFoundException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new VitamApplicationServerException(e.getMessage());
+            }
+            context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
+            context.addEventListener(new EnvironmentLoaderListener());
+            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        }
     }
 }

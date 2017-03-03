@@ -65,6 +65,29 @@ cat ${REPERTOIRE_CA}/client_intermediate/ca.crt >> ${REPERTOIRE_ROOT}/ansible-vi
 echo "	Fichiers recopiés"
 echo "------------------------"
 
+echo "	Recopie pour storage-engine..."
+mkdir -p ansible-vitam-rpm/roles/vitam/files/storage
+cp -f ${REPERTOIRE_CERTIFICAT}/client/storage/storage.p12 ansible-vitam-rpm/roles/vitam/files/storage/keystore_storage.p12
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-engine ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+	# FIXME : be more restrictive on jks files
+	cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/storage/
+done
+
+
+echo "	Recopie pour offer-default..."
+mkdir -p ansible-vitam-rpm/roles/vitam/files/storage-offer-default
+for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-offer-default ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+	# FIXME : be more restrictive on jks files
+	cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/storage-offer-default/
+done
+echo "	Fichiers recopiés"
+echo "------------------------"
+
+
+echo "	Fichiers recopiés"
+echo "------------------------"
+
+
 
 echo "============================================================================================="
 echo "Fin de procédure ; vous pouvez déployer l'ansiblerie."

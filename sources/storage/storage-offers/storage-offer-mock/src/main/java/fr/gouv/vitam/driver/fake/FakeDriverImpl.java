@@ -68,6 +68,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
  * Driver implementation for test only
@@ -75,7 +76,7 @@ import fr.gouv.vitam.storage.driver.model.StorageRequest;
 public class FakeDriverImpl implements Driver {
 
     @Override
-    public Connection connect(String s, Properties properties) throws StorageDriverException {
+    public Connection connect(StorageOffer offer, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
             throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
                 "Intentionaly thrown");

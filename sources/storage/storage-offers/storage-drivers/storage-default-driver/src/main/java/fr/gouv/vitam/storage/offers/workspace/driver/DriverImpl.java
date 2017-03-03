@@ -28,18 +28,26 @@ package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
+import fr.gouv.vitam.common.client.configuration.SSLKey;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
  * Workspace Driver Implementation
@@ -57,6 +65,7 @@ public class DriverImpl implements Driver {
 
         protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath, true, false, true, true);
+            enableUseAuthorizationFilter();
             this.parameters = parameters;
         }
 
@@ -67,7 +76,7 @@ public class DriverImpl implements Driver {
 
 
         @Override
-        public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
+        public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
             return true;
         }
 
@@ -87,7 +96,7 @@ public class DriverImpl implements Driver {
         }
 
         @Override
-        public Connection connect(String url, Properties parameters) throws StorageDriverException {
+        public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
             throw new UnsupportedOperationException("The internal factory does not support this method");
         }
 
@@ -110,9 +119,9 @@ public class DriverImpl implements Driver {
     }
 
     @Override
-    public ConnectionImpl connect(String url, Properties parameters) throws StorageDriverException {
+    public ConnectionImpl connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
         final InternalDriverFactory factory =
-            new InternalDriverFactory(changeConfigurationUrl(url), RESOURCE_PATH, parameters);
+            new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
         try {
             final ConnectionImpl connection = factory.getClient();
             connection.checkStatus();
@@ -123,24 +132,41 @@ public class DriverImpl implements Driver {
         }
     }
 
+    
     /**
-     * For compatibility with old implementation
+     * Change client configuration from a Yaml files
      *
-     * @param urlString
+     * @param configurationPath the path to the configuration file
+     * @return ClientConfiguration
      */
-    private static final ClientConfigurationImpl changeConfigurationUrl(String urlString) {
-        ParametersChecker.checkParameter("URI is mandatory", urlString);
+    static final ClientConfiguration changeConfigurationFile(StorageOffer offer) {
+        ClientConfiguration configuration = null;
+        ParametersChecker.checkParameter("StorageOffer cannot be null", offer);
         try {
-            final URI url = new URI(urlString);
-            LOGGER.info("Change configuration using " + url.getHost() + ":" + url.getPort());
-            return new ClientConfigurationImpl(url.getHost(), url.getPort());
+            final URI url = new URI(offer.getBaseUrl());
+            
+            Map<String, String> param = offer.getParameters();
+            
+            if (param != null){
+                List<SSLKey> keystoreList = new ArrayList<>();
+                List<SSLKey> truststoreList = new ArrayList<>();
+                keystoreList.add(new SSLKey(param.get("keyStore-keyPath"), param.get("keyStore-keyPassword")));
+                truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
+                
+                configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(),
+                    true, new SSLConfiguration(keystoreList, truststoreList));
+            } else {
+                configuration = new ClientConfigurationImpl(url.getHost(), url.getPort());
+            }
+            
         } catch (final URISyntaxException e) {
-            throw new IllegalStateException("Cannot parse the URI: " + urlString, e);
+            throw new IllegalStateException("Cannot parse the URI: ", e);
         }
+        return configuration;
     }
 
     @Override
-    public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
+    public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
         return true;
     }
 

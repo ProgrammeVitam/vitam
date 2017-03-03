@@ -97,7 +97,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
             final Properties parameters = new Properties();
             parameters.putAll(offer.getParameters());
             ThreadResponseData response;
-            try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
+            try (Connection connection = driver.connect(offer, parameters)) {
                 if (isRewritableObject(request, connection)) {
 
                     // ugly way to get digest from stream
