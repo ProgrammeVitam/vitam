@@ -45,6 +45,10 @@ angular.module('ihm.demo')
     $scope.contextIdKey = 'X-Context-Id';
     $scope.actionKey = 'X-Action';
 
+    // Default options : Resume + DefaultWorkflow
+    $scope.action = 'RESUME';
+    $scope.contextId = 'DEFAULT_WORKFLOW';
+
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {
       $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))

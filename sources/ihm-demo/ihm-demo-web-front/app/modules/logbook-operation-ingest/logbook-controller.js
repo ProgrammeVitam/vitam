@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
 
 angular.module('ihm.demo')
@@ -129,5 +129,12 @@ angular.module('ihm.demo')
     $scope.getLogbooks = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
+
+    $scope.getMessageIdentifier = function(logOperation){
+      if(logOperation.events[0].obIdIn === null){
+        return logOperation.events[1].obIdIn;
+      }
+      return logOperation.events[0].obIdIn;
+    };
 
   });
