@@ -36,10 +36,10 @@ angular.module('core')
       if (repsonse.data.length !== 0) {
         $scope.tenants = repsonse.data;
       }
-      $scope.tenantId = $scope.tenants[0];
+      $scope.tenantId = '' + $scope.tenants[0];
     }, function(error) {
       console.log('Error while get tenant. Set default list : ', error);
-      $scope.tenantId = $scope.tenants[0];
+      $scope.tenantId = '' + $scope.tenants[0];
     });
 
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
