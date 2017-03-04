@@ -5,6 +5,11 @@ name={{item.key}}
 baseurl={{item.value}}
 gpgcheck=0
 repo_gpgcheck=0
-enabled=1 
+enabled=1
+{% if item.proxy is defined %}
+proxy={{item.proxy or '_none_' }}
+{% else %}
+proxy=_none_
+{% endif %}
 
 {% endfor %}
