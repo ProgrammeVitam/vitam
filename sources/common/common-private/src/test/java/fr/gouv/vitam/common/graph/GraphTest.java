@@ -29,8 +29,10 @@ package fr.gouv.vitam.common.graph;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -56,12 +58,50 @@ public class GraphTest {
 
 
     @Test
-    public void test_graph_cyc() throws Exception {
+    public void test_graph_DAG() throws Exception {
 
         final File file = PropertiesUtils.getResourceFile("ingest_cyc_2.json");
         final JsonNode json = JsonHandler.getFromFile(file);
         final Graph g = new Graph(json);
         assertNotNull(g.getGraphWithLongestPaths());
+
+        assertTrue(g.getGraphWithLongestPaths().size() == 3);
+
+        Set<String> level_0 = g.getGraphWithLongestPaths().get(0);
+        assertNotNull(level_0);
+        assertTrue(level_0.size() == 2);
+        assertTrue(level_0.contains("ID030"));
+        assertTrue(level_0.contains("ID027"));
+
+        Set<String> level_1 = g.getGraphWithLongestPaths().get(1);
+        assertNotNull(level_1);
+        assertTrue(level_1.size() == 2);
+        assertTrue(level_1.contains("ID031"));
+        assertTrue(level_1.contains("ID028"));
+
+        Set<String> level_2 = g.getGraphWithLongestPaths().get(2);
+        assertNotNull(level_2);
+        assertTrue(level_2.size() == 3);
+        assertTrue(level_2.contains("ID032"));
+        assertTrue(level_2.contains("ID033"));
+        assertTrue(level_2.contains("ID029"));
+
+    }
+
+    @Test
+    public void test_graph_Acyc_multi_roots() throws Exception {
+
+        final File file = PropertiesUtils.getResourceFile("ingest_tree_multi_roots.json");
+        final JsonNode json = JsonHandler.getFromFile(file);
+        final Graph g = new Graph(json);
+        assertNotNull(g.getGraphWithLongestPaths());
+        assertTrue(g.getGraphWithLongestPaths().size() == 2);
+        Set<String> level_0 = g.getGraphWithLongestPaths().get(0);
+        assertTrue(level_0.contains("ID10"));
+        assertTrue(level_0.contains("ID4"));
+        Set<String> level_1 = g.getGraphWithLongestPaths().get(1);
+        assertTrue(level_1.contains("ID14"));
+        assertTrue(level_1.contains("ID8"));
 
     }
 }
