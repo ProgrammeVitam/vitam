@@ -273,7 +273,7 @@ public class IngestExternalImpl implements IngestExternal {
                 ingestGuid,
                 INGEST_EXT,
                 containerName,
-                LogbookTypeProcess.INGEST_TEST,
+                logbookTypeProcess,
                 StatusCode.UNKNOWN,
                 VitamLogbookMessages.getCodeOp(INGEST_EXT, StatusCode.UNKNOWN),
                 containerName);
