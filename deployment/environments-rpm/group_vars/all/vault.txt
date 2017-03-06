@@ -25,3 +25,5 @@
 #p12_logbook_password: p12logbook1234
 #p12_reverse_password: p12reverse1234
 #vitam_keystone_passwd: tototutu
+#above value is 16-bytes that is Base64-encoded
+# consul_encrypt: ZmhivHg51nrXlMcWd5tkxw==
