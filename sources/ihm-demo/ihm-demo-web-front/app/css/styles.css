@@ -570,3 +570,7 @@ table {
 .table > tbody > tr > td.warningLine {
   color: #FF6600;
 }
+
+a:hover {
+ cursor:pointer;
+}
