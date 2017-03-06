@@ -53,6 +53,7 @@ angular
     function ($scope, ihmDemoFactory, $window, $mdToast, $mdDialog, ITEM_PER_PAGE,
               ARCHIVE_SEARCH_MODULE_CONST, archiveDetailsService, dateValidator, transferToIhmResult, processSearchService, resultStartService) {
       $scope.startFormat = resultStartService.startFormat;
+      $scope.advancedSearch = false;
 
       $scope.search = {
         form: {
@@ -111,21 +112,9 @@ angular
         }
       };
 
-      var successCallback = function (response) {
-        if (response.data.$results == null || response.data.$results == undefined || response.data.$hits == null || response.data.$hits == undefined || response.data.$hits.total === 0) {
-          return false;
-        } else {
-          $scope.search.response.data = transferToIhmResult.transferUnit(response.data.$results);
-
-          // Set Total result
-          $scope.search.response.totalResult = response.data.$hits.total;
-
-          // Pagination
-          $scope.search.pagination.currentPage = 1;
-          $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult / $scope.search.pagination.itemsPerPage);
-
+      var successCallback = function () {
+          $scope.search.response.data = transferToIhmResult.transferUnit($scope.search.response.data);
           return true;
-        }
       };
 
       var computeErrorMessage = function () {
