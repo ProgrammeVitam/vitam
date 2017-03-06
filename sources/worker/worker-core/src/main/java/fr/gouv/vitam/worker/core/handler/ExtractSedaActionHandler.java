@@ -101,6 +101,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainBinaryDataObjectException;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -262,6 +263,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final MissingFieldException e) {
             LOGGER.debug("MissingFieldException", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ArchiveUnitContainBinaryDataObjectException e) {
+            LOGGER.debug("ProcessingException: archive unit contain an binary data object declared object group.", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
             LOGGER.debug("ProcessingException", e);
@@ -504,6 +508,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final IOException e) {
             LOGGER.error(SAVE_ARCHIVE_ID_TO_GUID_IOEXCEPTION_MSG, e);
             throw new ProcessingException(e);
+        } catch (final ArchiveUnitContainBinaryDataObjectException e) {
+            LOGGER.error("Archive Unit Reference to BDO", e);
+            throw e;
         } finally {
             StreamUtils.closeSilently(xmlFile);
             if (reader != null) {
@@ -828,8 +835,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (Strings.isNullOrEmpty(groupId)) {
                         throw new ProcessingException("Archive Unit references a BDO Id but is not correct");
                     } else {
+                        //
                         if (!groupId.equals(entry.getValue())) {
-                            throw new ProcessingException(
+                            throw new ArchiveUnitContainBinaryDataObjectException(
                                 "The archive unit " + entry.getKey() + " references one BDO Id " + entry.getValue() +
                                     " while this BDO has a GOT id " + groupId);
                         }
