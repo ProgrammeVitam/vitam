@@ -24,7 +24,7 @@
   run_once: true
 
 - name: load dashboards into Elasticsearch log .kibana index
-  when: "{{ (groups['hosts-log-server'] | length) > 0}}"  
+  when: "{{ (groups['hosts-log-server'] | length) > 0}}"
   run_once: true
   uri:
     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
@@ -50,7 +50,9 @@
   template:
     src: "{{item}}.j2"
     dest: "{{curator_conf_dir}}/{{item}}"
-    owner: logstash
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
   with_items:
     - "delete_index_topbeat.yml"
   delegate_to: "{{groups['hosts-log-server'][0]}}"
@@ -59,16 +61,15 @@
     - ansible_virtualization_type != 'docker'
     - "{{ (groups['hosts-log-server'] | length) > 0}}"
 
-- name: create root crontab entry
+- name: create vitam crontab entry
   run_once: true
   delegate_to : "{{groups['hosts-log-server'][0]}}"
   cron:
     name="curator purge on topbeat"
     minute="10"
     hour="0"
-    user="root"
+    user="{{ vitam_user }}"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index_topbeat.yml"
   when:
     - ansible_virtualization_type != 'docker'
-    - "{{ (groups['hosts-log-server'] | length) > 0}}"  
-
+    - "{{ (groups['hosts-log-server'] | length) > 0}}"

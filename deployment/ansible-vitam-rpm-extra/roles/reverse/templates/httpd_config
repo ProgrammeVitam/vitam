@@ -109,6 +109,12 @@
     ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
     ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }}
 
+    # Enable chunked mode for all requests to access-external & ingest-external
+    <LocationMatch "^/(ingest|access)-external">
+        SetEnv proxy-sendchunked 1
+        SetEnv proxy-sendcl 0
+    </LocationMatch>
+
     # External API for ingest-external
     ProxyPass /ingest-external https://{{groups['hosts-ingest-external'][0]}}:{{vitam_ingestexternal_port_https}}/ingest-external acquire=5000 connectiontimeout=3500 timeout=600 retry=5
     ProxyPassReverse  /ingest-external https://{{groups['hosts-ingest-external'][0]}}:{{vitam_ingestexternal_port_https}}/ingest-external
