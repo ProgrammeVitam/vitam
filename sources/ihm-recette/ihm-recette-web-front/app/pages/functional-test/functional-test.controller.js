@@ -25,22 +25,55 @@
  * accept its terms.
  */
 
-'use strict';
+// Define controller for soap-ui
+angular.module('functional.test')
+  .controller('functionalTestController', function($scope/*, $interval*/, $window, functionalTestService) {
+    $scope.step  = 'Name ';
+    $scope.version  = "";
+    $scope.dataVersion = "";
+    $scope.error = false;
+    $scope.pending = false;
+    $scope.finished = false;
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation',
-  'functional.test'
-]);
+
+    function getSuccess(array) {
+      var success = 0;
+      for(var i = 0, len = array.length; i < len; i++) {
+        var item = array[i];
+        if (item.Ok) {
+          success++;
+        }
+      }
+      return success;
+    }
+
+    var launchSuccessCallback = function(response) {
+        if (response.status == 202) {
+            $scope.pending = true;
+        }
+    };
+
+    var launchErrorCallback = function(response) {
+      $scope.finished = false;
+      $scope.error = true;
+    };
+
+    $scope.launchTests = function() {
+      $scope.finished = false;
+      $scope.pending = false;
+      $scope.error = false;
+      functionalTestService.launch(launchSuccessCallback, launchErrorCallback);
+    };
+
+    $scope.sync = functionalTestService.sync;
+
+    functionalTestService.listReports(function onSuccess(result) {
+      $scope.report = {
+        results: result.data
+      };
+    });
+
+    $scope.goToDetails = function(name) {
+      $window.open('#!/applicativeTest/' + name)
+    };
+  });

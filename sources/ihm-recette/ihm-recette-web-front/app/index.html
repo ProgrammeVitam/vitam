@@ -79,6 +79,11 @@
     <script src="pages/search-operation/search-operation.component.js"></script>
     <script src="pages/search-operation/detail-operation.controller.js"></script>
 
+    <script src="pages/functional-test/functional-test.module.js"></script>
+    <script src="pages/functional-test/functional-test.controller.js"></script>
+    <script src="pages/functional-test/functional-test.component.js"></script>
+    <script src="pages/functional-test/functional-tests-details.controller.js"></script>
+
     <!-- Services -->
     <script src="services/admin.service.js"></script>
     <script src="services/soap-ui.service.js"></script>
@@ -86,7 +91,8 @@
     <script src="services/search-operation.service.js"></script>
     <script src="services/download-operation.service.js"></script>
     <script src="services/detail-operation.service.js"></script>
-    
+    <script src="services/functional-test.service.js"></script>
+
 
     <!-- Resources -->
     <script src="resources/admin.resource.js"></script>
@@ -97,6 +103,7 @@
     <script src="resources/search-operation.resource.js"></script>
     <script src="resources/download-operation.resource.js"></script>
     <script src="resources/detail-operation.resource.js"></script>
+    <script src="resources/functional-test.resource.js"></script>
 </head>
 
 <body ng-controller='mainViewController'>
@@ -138,6 +145,7 @@
                             <li><a href="#!/uploadperf">Transfert (Test de performance)</a></li>
                             <li><a href="#!/operationTraceability">Sécurisation du journal des opérations </a></li>
                             <li><a href="#!/searchOperation">Rechercher un journal sécurisé</a></li>
+                            <li><a href="#!/applicativeTest">Tests fonctionnels</a></li>
                         </ul>
                     </li>
                 </ul>

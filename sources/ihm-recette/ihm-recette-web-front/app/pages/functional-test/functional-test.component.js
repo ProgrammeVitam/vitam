@@ -27,20 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation',
-  'functional.test'
-]);
+// Register `soapUi` component, along with its associated controller and template
+angular.
+  module('functional.test').
+  component('functionalTest', {
+    templateUrl: 'pages/functional-test/functional-test.template.html',
+    controller: 'functionalTestController'
+  });
