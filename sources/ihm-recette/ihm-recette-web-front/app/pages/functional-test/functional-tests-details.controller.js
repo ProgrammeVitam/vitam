@@ -27,20 +27,32 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ngRoute',
-  'core',
-  'ngMaterial',
-  'vAccordion',
-  'ngCookies',
-  'pascalprecht.translate',
-  'upload.sip.perf',
-  'admin.home',
-  'soap.ui',
-  'operation.traceability',
-  'search.operation',
-  'functional.test'
-]);
+angular.module('functional.test')
+  .controller('FunctionalTestDetailsController', function($scope, $routeParams, functionalTestService) {
+    var reportName = $routeParams.reportName;
+
+    function getSuccess(array) {
+      var success = 0;
+      for(var i = 0, len = array.length; i < len; i++) {
+        var item = array[i];
+        if (item.Ok) {
+          success++;
+        }
+      }
+      return success;
+    }
+
+    functionalTestService.getReportDetails(reportName, function onSuccess(result) {
+      var data = result.data;
+      var success = getSuccess(data.Reports);
+      var size = data.Reports.length;
+      $scope.reportDetails = {
+        results: data,
+        size: size,
+        success: success,
+        errors: size - success
+      };
+    });
+
+});
+

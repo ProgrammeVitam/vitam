@@ -57,6 +57,15 @@ module('ihm.demo').
           template: '<search-operation></search-operation>',
           title: 'Recherche d\'un journal sécurisé'
       }).
+      when('/applicativeTest', {
+        template: '<functional-test></functional-test>',
+        title: 'Tests fonctionnels'
+      }).
+      when('/applicativeTest/:reportName', {
+        templateUrl: 'pages/functional-test/functional-tests-details.template.html',
+        controller: 'FunctionalTestDetailsController',
+        title: 'Détail des tests fonctionnels'
+      }).
       when('/searchOperation/detailOperation/:entryId', {
           templateUrl: 'pages/search-operation/detailOperation.html',
           controller: 'DetailOperationController',

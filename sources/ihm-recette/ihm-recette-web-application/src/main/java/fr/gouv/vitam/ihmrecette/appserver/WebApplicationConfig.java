@@ -48,6 +48,8 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String masterdataDbName;
     private String logbookDbName;
     private String metadataDbName;
+    private String testSystemSipDirectory;
+    private String testSystemReportDirectory;
 
     /**
      * Constructor for tests
@@ -193,6 +195,38 @@ public class WebApplicationConfig extends MetaDataConfiguration {
      */
     public void setMetadataDbName(String metadataDbName) {
         this.metadataDbName = metadataDbName;
+    }
+
+    /**
+     *
+     * @return folder to store integration test
+     */
+    public String getTestSystemSipDirectory() {
+        return testSystemSipDirectory;
+    }
+
+    /**
+     *
+     * @param testSystemSipDirectory folder to store integration test
+     */
+    public void setTestSystemSipDirectory(String testSystemSipDirectory) {
+        this.testSystemSipDirectory = testSystemSipDirectory;
+    }
+
+    /**
+     *
+     * @return folder to store report of system test
+     */
+    public String getTestSystemReportDirectory() {
+        return testSystemReportDirectory;
+    }
+
+    /**
+     *
+     * @param testSystemReportDirectory folder to store report of system test
+     */
+    public void setTestSystemReportDirectory(String testSystemReportDirectory) {
+        this.testSystemReportDirectory = testSystemReportDirectory;
     }
 
     /**
