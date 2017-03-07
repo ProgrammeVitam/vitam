@@ -30,13 +30,13 @@ public class UnitRuleComputeTest {
     
     private final static String AU1_MGT = "{" +
         "    \"StorageRule\" : {" +
-        "      \"Rule\" : \"R1\"," +
+        "      \"Rule\" : \"str1\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
         "    }," +
         "    \"AccessRule\" : {" +
-        "      \"Rule\" : \"R2\"," +
+        "      \"Rule\" : \"acc1\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
@@ -45,15 +45,25 @@ public class UnitRuleComputeTest {
     
     private final static String AU5_MGT = "{" +
         "    \"DissiminationRule\" : {" +
-        "      \"Rule\" : \"R1\"" +
+        "      \"Rule\" : \"dis5\"" +
         "    }" +
         "  }";
     
     private final static String AU3_MGT = "{" +
         "    \"AccessRule\" : {" +
-        "      \"Rule\" : \"R2\"," +
+        "      \"Rule\" : \"acc3\"," +
         "      \"FinalAction\" : \"AU3Access\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
+        "    }," +
+        "    \"DissiminationRule\" : {" +
+        "      \"Rule\" : \"dis3\"," +
+        "      \"PreventInheritance\" : \"true\"" +
+        "    }" +
+        "  }";
+    
+    private final static String AU2_MGT = "{" +
+        "    \"AccessRule\" : {" +
+        "      \"PreventInheritance\" : \"true\"" +
         "    }" +
         "  }";
 
@@ -80,7 +90,7 @@ public class UnitRuleComputeTest {
         
         UnitSimplified AU1 = new UnitSimplified(AU1_ID, (ObjectNode) JsonHandler.getFromString(AU1_MGT), emptyParent);
         UnitSimplified AU5 = new UnitSimplified(AU5_ID, (ObjectNode) JsonHandler.getFromString(AU5_MGT), emptyParent);
-        UnitSimplified AU2 = new UnitSimplified(AU2_ID, node, upAU2);
+        UnitSimplified AU2 = new UnitSimplified(AU2_ID, (ObjectNode) JsonHandler.getFromString(AU2_MGT), upAU2);
         UnitSimplified AU3 = new UnitSimplified(AU3_ID, (ObjectNode) JsonHandler.getFromString(AU3_MGT), upAU3);
         UnitSimplified AU4 = new UnitSimplified(AU4_ID, node, upAU4);
         Map<String, UnitSimplified> parentMap = new HashedMap<>();
@@ -102,6 +112,7 @@ public class UnitRuleComputeTest {
         
         unitRule.computeRule();
         String ruleAU4 = JsonHandler.prettyPrint(unitRule.getHeritedRules());
+        System.out.print(ruleAU4);
         assertNotNull(ruleAU4);
     }
 
