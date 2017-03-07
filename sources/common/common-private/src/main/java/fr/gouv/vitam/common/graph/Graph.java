@@ -147,7 +147,7 @@ public class Graph {
     public class Vertex {
         int data;
         Neighbour adj;
-        int cost = Integer.MIN_VALUE;
+        int cost = 0;
         State state = State.NEW;
 
         /**
