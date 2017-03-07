@@ -9,13 +9,6 @@
     mode: 0640
   when: (ansible_distribution == "CentOS" )
 
-# - name: test 
-#   command: echo 'deb http://http.debian.net/debian wheezy-backports main' > /etc/apt/sources.list.d/wheezy-backports-main.list
-#   args:
-#     creates: /etc/apt/sources.list.d/wheezy-backports-main.list
-
-
-# github_git-lfs.list
 - name: get repo for git lfs for Debian
   copy: 
     src: gitlfs-debian8.list
@@ -25,6 +18,16 @@
     mode: 0640
   when: (ansible_distribution == "Debian" )
 
+- name: install package on Debian
+  package:
+    name: apt-transport-https
+    state: latest
+  when: (ansible_distribution == "Debian" )
+
+- name: add GPG key
+  shell: curl -L "https://packagecloud.io/github/git-lfs/gpgkey" 2> /dev/null | apt-key add -
+  when: (ansible_distribution == "Debian" )
+
 - name: install git-lfs
   package:
     name: git-lfs
@@ -32,7 +35,7 @@
 
 # SYSTEM WIDE ? sinon, lancer en tant que vitam
 - name: initialize git lfs
-  command: git lfs install
+  shell: git lfs install
 
 - name: ensure subdir exist
   file:
@@ -42,16 +45,8 @@
     group: "{{ vitam_group }}"
     mode: "{{ vitam_folder_permission }}"
 
-# - name: only for this host, create home dir for vitam
-#   file:
-#     path: /home/vitam
-#     state: directory
-#     owner: "{{ vitam_user}}"
-#     group: "{{ vitam_group }}"
-#     mode: "{{ vitam_folder_permission }}"   
-
 - name: create git repo
-  command: git clone --no-checkout {{vitam_tests_gitrepo_url}} .
+  shell: git clone --no-checkout {{vitam_tests_gitrepo_url}} .
   become_user: "{{vitam_user}}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
@@ -60,19 +55,34 @@
     creates: /vitam/data/ihm-recette/test-data/system/.git/
 
 # cf. https://help.github.com/articles/caching-your-github-password-in-git/
+# and https://git-scm.com/docs/git-credential-cache
 - name: init cache for git
-  shell: git config credential.helper 'cache --timeout=3600'
+  shell: git config credential.helper 'cache --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
   become_user: "{{vitam_user}}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+
+# - name: fix for git usage
+#   file:
+#     path: /home/vitam
+#     state: directory
+#     owner: "{{vitam_user}}"
+#     group: "{{vitam_group}}"
+#     mode: "{{ vitam_folder_permission }}"
+# #  when: (ansible_distribution == "Debian" )
+
+- name: ensure git repo is clean
+  shell: git clean -fd
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
 # KWA introduce branch variable
 - name: checkout branch
-  command: git checkout {{ vitam_tests_branch }}
+  shell: git checkout {{ vitam_tests_branch }}
   become_user: "{{vitam_user}}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-    creates: /vitam/data/ihm-recette/test-data/system/data/
+#    creates: /vitam/data/ihm-recette/test-data/system/data/
 # Et les droits sur les fichiers ???

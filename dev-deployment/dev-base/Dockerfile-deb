@@ -156,3 +156,5 @@ WORKDIR /code
 
 # Entry Point to systemd init
 CMD ["/sbin/init"]
+# Fix for 0.15.x version
+RUN apt install -t jessie-backports -y openjdk-8-jre-headless ca-certificates-java
