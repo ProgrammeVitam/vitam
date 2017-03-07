@@ -10,6 +10,9 @@ secure: true
 sipDirectory: {{vitam_folder_data}}/test-data
 performanceReportDirectory: {{vitam_folder_data}}/report/performance
 
+testSystemSipDirectory: {{vitam_folder_data}}/test-data/system
+testSystemReportDirectory: {{vitam_folder_data}}/report/system
+
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['mongos'] %}

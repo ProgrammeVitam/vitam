@@ -1,0 +1,90 @@
+<div id="global" class="container-fluid">
+  <ol class="breadcrumb">
+    <li>Menu</li>
+    <li><a href="#!/applicative-test">Tests fonctionnels</a></li>
+  </ol>
+
+  <div class="panel panel-default col-md-12" ng-if="!!reportDetails">
+    <span class="panel-header no-toggle">
+      <h2>Résultats des derniers tests</h2>
+    </span>
+    <div id="leftColumn">
+      <div id="navcolumn">
+        <h5>##</h5>
+        <ul>
+          <li class="collapsed">
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div>
+        <div class="section">
+          <h2>
+            Résumé
+          </h2>
+          <br />
+          <table style="text-align:center">
+            <tr class="a">
+              <td>Nb Tests</td>
+              <td>Succès</td>
+              <td>Echecs</td>
+            </tr>
+            <tr class="w3-xlarge">
+              <td class="w3-large"><b>{{reportDetails.size}}</b></td>
+              <td class="w3-large w3-text-green"><b>{{reportDetails.success}}</b></td>
+              <td class="w3-large w3-text-red"><b>{{reportDetails.errors}}</b></td>
+            </tr>
+          </table>
+
+        </div>
+
+        <div>
+
+          <div class="table-responsive ">
+            <h2>
+              Détails
+            </h2>
+            <table class="table">
+              <tr>
+                <th></th>
+                <th>Feature</th>
+                <th>ID Opération</th>
+                <th>Description</th>
+                <th>Errors</th>
+              </tr>
+              <!-- TODO : Check error / success and display good HTML -->
+              <tbody>
+                <tr ng-if="!item.Ok" ng-repeat="item in reportDetails.results.Reports">
+                  <td class='w3-pale-red' >
+                    <img src='images/icon_error_sml.gif' alt='' />
+                  </td>
+                  <td class="w3-pale-red">{{item.Feature}}</td>
+                  <td class="w3-pale-red">{{item.OperationId}}</td>
+                  <td class="w3-pale-red">{{item.Description}}</td>
+                  <td class="w3-pale-red">{{item.Errors.toString()}}</td>
+                </tr>
+
+                <tr ng-if="item.Ok" ng-repeat="item in reportDetails.results.Reports">
+                  <td class="w3-pale-green">
+                    <img src='images/icon_success_sml.gif' alt='' />
+                  </td>
+                  <td class="w3-pale-green">{{item.Feature}}</td>
+                  <td class="w3-pale-green">{{item.OperationId}}</td>
+                  <td class="w3-pale-green">{{item.Description}}</td>
+                  <td class="w3-pale-green">{{item.Errors.toString()}}</td>
+                </tr>
+              </tbody>
+
+            </table>
+          </div>
+          <br />
+        </div>
+      </div>
+    </div>
+    <div class="clear">
+      <hr />
+    </div>
+  </div>
+
+</div>
