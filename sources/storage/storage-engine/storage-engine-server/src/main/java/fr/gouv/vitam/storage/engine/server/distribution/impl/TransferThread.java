@@ -110,6 +110,8 @@ public class TransferThread implements Callable<ThreadResponseData> {
                         request.getGuid(), DigestType.valueOf(request.getDigestAlgorithm()),
                         digest.digestHex());
                 if (!connection.checkObject(storageCheckRequest).isDigestMatch()) {
+                    LOGGER.error("[Driver:" + driver.getName() + "] Content " +
+                        "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
                     throw new StorageTechnicalException("[Driver:" + driver.getName() + "] Content " +
                         "digest invalid in offer id : '" + offer.getId() + "' for object " + request.getGuid());
                 }
@@ -134,12 +136,15 @@ public class TransferThread implements Callable<ThreadResponseData> {
                 case OBJECT:
                 case MANIFEST:
                 case REPORT:
+                    LOGGER.error(VitamCodeHelper
+                        .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
                     throw new StorageObjectAlreadyExistsException(VitamCodeHelper
                         .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
                 case UNIT:
                 case OBJECT_GROUP:
                     return true;
                 default:
+                    LOGGER.error("Not implemented");
                     throw new UnsupportedOperationException("Not implemented");
             }
         }
