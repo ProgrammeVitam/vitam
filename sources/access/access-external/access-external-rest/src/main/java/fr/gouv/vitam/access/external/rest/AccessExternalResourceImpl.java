@@ -607,8 +607,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
@@ -669,8 +668,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
             return Response.status(Status.OK).entity(accessionRegisterDetail).build();
         } catch (final ReferentialNotFoundException e) {
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
         } catch (InvalidParseOperationException | UnsupportedEncodingException |
             InvalidCreateOperationException e) {
             LOGGER.error(e);
