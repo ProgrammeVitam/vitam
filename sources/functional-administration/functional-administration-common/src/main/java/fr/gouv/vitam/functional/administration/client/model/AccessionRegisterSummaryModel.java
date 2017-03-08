@@ -92,7 +92,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param id
+     * @param id value to set
      * @return this
      */
     public AccessionRegisterSummaryModel setId(String id) {
@@ -110,7 +110,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param tenant
+     * @param tenant the working tenant to set
      * @return this
      */
     public AccessionRegisterSummaryModel setTenant(long tenant) {
@@ -128,7 +128,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param originatingAgency
+     * @param originatingAgency value to set
      * @return this
      */
     public AccessionRegisterSummaryModel setOriginatingAgency(String originatingAgency) {
@@ -146,7 +146,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param totalObjects
+     * @param totalObjects value to set
      * @return this
      */
     public AccessionRegisterSummaryModel setTotalObjects(RegisterValueDetailModel totalObjects) {
@@ -164,7 +164,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param totalObjectsGroups
+     * @param totalObjectsGroups value to set
      * @return this
      */
     public AccessionRegisterSummaryModel setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
@@ -182,7 +182,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param totalUnits
+     * @param totalUnits value to set
      * @return AccessionRegisterSummaryModel
      */
     public AccessionRegisterSummaryModel setTotalUnits(RegisterValueDetailModel totalUnits) {
@@ -200,7 +200,7 @@ public class AccessionRegisterSummaryModel {
     
     /**
      * 
-     * @param objectSize
+     * @param objectSize value to set
      * @return this
      */
     public AccessionRegisterSummaryModel setObjectSize(RegisterValueDetailModel objectSize) {
@@ -217,7 +217,7 @@ public class AccessionRegisterSummaryModel {
     }
     
     /**
-     * @param creationDate
+     * @param creationDate value to set
      * @return this
      */
     public AccessionRegisterSummaryModel setCreationDate(String creationDate) {

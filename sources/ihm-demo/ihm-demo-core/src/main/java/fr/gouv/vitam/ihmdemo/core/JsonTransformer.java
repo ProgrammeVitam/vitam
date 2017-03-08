@@ -126,10 +126,10 @@ public final class JsonTransformer {
     /**
      * This method builds an ObjectNode based on a list of JsonNode object
      *
-     * @param unitId
+     * @param unitId achive unit
      * @param allParents list of JsonNode Objects used to build the referential
      * @return An ObjectNode where the key is the identifier and the value is the parent details (Title, Id, _up)
-     * @throws VitamException
+     * @throws VitamException if error when creating parent ObjectNode
      */
     public static ObjectNode buildAllParentsRef(String unitId, JsonNode allParents) throws VitamException {
         ParametersChecker.checkParameter("Result cannot be empty", allParents);
@@ -168,11 +168,11 @@ public final class JsonTransformer {
     /**
      * Generates execution time by step relative to a logbook operation
      *
-     * @param logbookOperation
-     * @return CSV report
-     * @throws VitamException
-     * @throws IOException
-     * @throws Exception
+     * @param logbookOperation logbook operation in JsonNode format
+     * @return CSV report logbook
+     * @throws VitamException if unexpected error in CSV file generation process 
+     * @throws IOException if error when write output stream
+     * @throws Exception if error in others cases
      */
     @SuppressWarnings("unchecked")
     public static ByteArrayOutputStream buildLogbookStatCsvFile(JsonNode logbookOperation)

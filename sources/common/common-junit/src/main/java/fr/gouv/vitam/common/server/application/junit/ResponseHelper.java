@@ -52,7 +52,7 @@ public class ResponseHelper {
     /**
      * Helper to build an outbound Response (mocking remote client response object)
      *
-     * @param status
+     * @param status the status of response
      * @param entity could be null
      * @param contentType could be null
      * @param headers could be null

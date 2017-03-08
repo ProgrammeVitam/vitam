@@ -104,7 +104,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract implements Conten
     /**
      * enables the connection to a storage service with the param provided
      *
-     * @param configuration
+     * @param configuration the storage configuration
      * @return BlobStoreContext
      */
     public abstract BlobStoreContext getContext(StorageConfiguration configuration);

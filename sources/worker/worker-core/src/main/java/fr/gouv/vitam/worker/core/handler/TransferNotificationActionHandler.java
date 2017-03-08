@@ -91,7 +91,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.model.ArchiveUnitReplyTypeRoot;
@@ -138,9 +137,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     /**
      * Constructor TransferNotificationActionHandler
-     *
-     * @throws IOException
-     *
      */
     public TransferNotificationActionHandler() {
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {

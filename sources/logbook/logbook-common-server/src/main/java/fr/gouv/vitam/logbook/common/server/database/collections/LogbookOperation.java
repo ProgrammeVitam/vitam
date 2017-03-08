@@ -103,7 +103,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor from LogbookOperationParameters
      *
-     * @param parameters
+     * @param parameters to create logbook operation
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookOperation(LogbookOperationParameters parameters) {
@@ -149,7 +149,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format Document to create LogbookOperation
      */
     public LogbookOperation(Document content) {
         super(content);
@@ -158,7 +158,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format String to create LogbookOperation
      */
     public LogbookOperation(String content) {
         super(content);
@@ -167,7 +167,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format JsonNode to create LogbookOperation
      */
     public LogbookOperation(JsonNode content) {
         super(content);

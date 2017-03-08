@@ -63,7 +63,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     /**
      * Add one result
      *
-     * @param result
+     * @param result to add to request response
      * @return this
      */
     public RequestResponseOK<T> addResult(T result) {
@@ -146,7 +146,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     * @param query
+     * @param query the set to request response
      * @return this
      */
     public RequestResponseOK<T> setQuery(JsonNode query) {
@@ -157,9 +157,9 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     }
 
     /**
-     * @param node
+     * @param node to transform
      * @return the corresponding VitamError
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse json object exception occurred 
      */
     public static RequestResponseOK getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, JsonNode.class);

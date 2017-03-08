@@ -501,7 +501,7 @@ public class SedaUtils {
     /**
      * @param evenReader of seda
      * @return Seda Info object
-     * @throws ProcessingException
+     * @throws ProcessingException if cannot get BinaryObject info
      */
     public SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
         throws ProcessingException {
@@ -716,7 +716,7 @@ public class SedaUtils {
      *
      * @param params worker parameters
      * @return the size of the manifest
-     * @throws ProcessingException
+     * @throws ProcessingException if json seda data is null or seda does not contain size attribute 
      */
     public long getManifestSize(WorkerParameters params)
         throws ProcessingException {

@@ -103,10 +103,10 @@ public abstract class CommitLifeCycleActionHandler extends ActionHandler {
      * @param handlerIO a HandlerIO instance
      * @param objectID the object id to commit
      * @param operationId the operation id
-     * @throws ProcessingException
-     * @throws LogbookClientBadRequestException
-     * @throws LogbookClientNotFoundException
-     * @throws LogbookClientServerException
+     * @throws ProcessingException if processing exception occurred when commit unit lifecycle
+     * @throws LogbookClientBadRequestException if the argument is incorrect when commit unit lifecycle 
+     * @throws LogbookClientNotFoundException if the element was not created before when commit unit lifecycle 
+     * @throws LogbookClientServerException if the Server got an internal error when commit unit lifecycle
      */
     public abstract void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)
         throws ProcessingException, LogbookClientBadRequestException, LogbookClientNotFoundException,

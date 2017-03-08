@@ -215,9 +215,9 @@ public class VitamError extends RequestResponse {
 
     /**
      *
-     * @param node
+     * @param node of vitam error in format JsonNode
      * @return the corresponding VitamError
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode node exception occurred
      */
     public static VitamError getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
         return JsonHandler.getFromJsonNode(node, VitamError.class);

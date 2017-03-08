@@ -47,12 +47,12 @@ public class HandlerUtils {
     /**
      * Save the given map as specified by the rank output argument
      *
-     * @param handlerIO
-     * @param map
-     * @param rank
-     * @param removeTmpFile
-     * @throws IOException
-     * @throws ProcessingException
+     * @param handlerIO the handler io
+     * @param map the data map to write
+     * @param rank the output rank
+     * @param removeTmpFile if remove temp output file
+     * @throws IOException if cannot write file in json format 
+     * @throws ProcessingException if processing exception occurred
      */
     public static void saveMap(HandlerIO handlerIO, Map<String, ?> map, int rank, boolean removeTmpFile)
         throws IOException, ProcessingException {

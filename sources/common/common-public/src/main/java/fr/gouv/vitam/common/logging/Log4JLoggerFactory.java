@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
 public final class Log4JLoggerFactory extends VitamLoggerFactory {
 
     /**
-     * @param level
+     * @param level the vitam log level
      */
     public Log4JLoggerFactory(final VitamLogLevel level) {
         super(level);

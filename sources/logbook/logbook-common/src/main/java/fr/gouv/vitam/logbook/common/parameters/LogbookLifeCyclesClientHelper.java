@@ -58,7 +58,7 @@ public class LogbookLifeCyclesClientHelper {
     /**
      * Check validity of the input and add default date and ServerIdentity
      *
-     * @param parameters
+     * @param parameters to check
      * @return the primary key
      */
     public static final String checkLogbookParameters(LogbookLifeCycleParameters parameters) {
@@ -74,7 +74,7 @@ public class LogbookLifeCyclesClientHelper {
     /**
      * Create a copy in order to allow reuse on client side
      *
-     * @param source
+     * @param source to copy and reuse
      * @return the copy of the source
      */
     public static final LogbookLifeCycleParameters copy(LogbookLifeCycleParameters source) {
@@ -133,7 +133,7 @@ public class LogbookLifeCyclesClientHelper {
 
     /**
      *
-     * @param key
+     * @param key of element to remove
      * @return the associated finalize Delegate Queue for creation
      */
     public Queue<LogbookLifeCycleParameters> removeCreateDelegate(String key) {
@@ -142,7 +142,7 @@ public class LogbookLifeCyclesClientHelper {
 
     /**
      *
-     * @param key
+     * @param key of element to remove
      * @return the associated finalize Delegate Queue for update
      */
     public Queue<LogbookLifeCycleParameters> removeUpdateDelegate(String key) {

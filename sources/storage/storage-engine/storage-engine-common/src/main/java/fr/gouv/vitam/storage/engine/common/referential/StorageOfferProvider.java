@@ -28,7 +28,6 @@
 package fr.gouv.vitam.storage.engine.common.referential;
 
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**

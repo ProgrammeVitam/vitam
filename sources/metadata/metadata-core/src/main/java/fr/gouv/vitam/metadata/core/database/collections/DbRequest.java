@@ -119,15 +119,15 @@ public class DbRequest {
     /**
      * The request should be already analyzed.
      *
-     * @param requestParser
+     * @param requestParser the RequestParserMultiple to execute
      * @param defaultStartSet the set of id from which the request should start, whatever the roots set
      * @return the Result
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws MetaDataExecutionException
-     * @throws InvalidParseOperationException
-     * @throws MetaDataAlreadyExistException
-     * @throws MetaDataNotFoundException
+     * @throws IllegalAccessException when exceute query exception
+     * @throws InstantiationException when result/request class instance exception occurred 
+     * @throws MetaDataExecutionException when select/insert/update/delete on metadata collection exception occurred
+     * @throws InvalidParseOperationException when json data exception occurred 
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public Result execRequest(final RequestParserMultiple requestParser, final Result defaultStartSet)
         throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
@@ -841,7 +841,6 @@ public class DbRequest {
      *
      * @throws Exception
      * 
-     * @return void
      */
     private void indexFieldsOGUpdated(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();                
@@ -874,7 +873,6 @@ public class DbRequest {
      *
      * @throws Exception
      * 
-     * @return void
      */
     private void removeOGIndexFields(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -906,7 +904,6 @@ public class DbRequest {
      *
      * @throws Exception
      * 
-     * @return boolean
      */
     private void removeUnitIndexFields(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();        

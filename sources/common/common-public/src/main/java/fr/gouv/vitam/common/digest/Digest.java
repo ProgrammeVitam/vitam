@@ -79,7 +79,7 @@ public class Digest {
     /**
      * Create one DigestLight from parameter
      *
-     * @param digest
+     * @param digest as String to create
      * @param algo the algorithm to use
      * @throws IllegalArgumentException if null or unknown algorithm or if digest is null or empty
      */
@@ -134,7 +134,7 @@ public class Digest {
 
     /**
      *
-     * @param buffer
+     * @param buffer for updating Digest 
      * @return this
      * @throws IllegalArgumentException if buffer null
      */

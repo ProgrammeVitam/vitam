@@ -53,7 +53,7 @@ public class VitamArchiveStreamFactory {
      * @param in the input stream
      * @return the archive input stream
      * @throws ArchiveException if the archiver name is not known
-     * @throws IOException
+     * @throws IOException if cannot create input stream
      * @throws IllegalArgumentException if the archiver name or stream is null
      */
     public ArchiveInputStream createArchiveInputStream(final MediaType mediaType, final InputStream in)

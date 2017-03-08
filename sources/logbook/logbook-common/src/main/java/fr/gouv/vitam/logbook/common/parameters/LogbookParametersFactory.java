@@ -164,13 +164,13 @@ public class LogbookParametersFactory {
     /**
      * Get a new LogbookOperationParameters object
      *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
-     * @param outcomeDetailMessage
-     * @param eventIdentifierRequest
+     * @param eventIdentifier the event id of LogbookOperationParameters to create
+     * @param eventType the event type of LogbookOperationParameters to create
+     * @param eventIdentifierProcess the event id process of LogbookOperationParameters to create
+     * @param eventTypeProcess the event type process of LogbookOperationParameters to create
+     * @param outcome the outcome of LogbookOperationParameters to create
+     * @param outcomeDetailMessage the outcome detail message of of LogbookOperationParameters to create
+     * @param eventIdentifierRequest the event id request of LogbookOperationParameters to create
      *
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
@@ -193,16 +193,16 @@ public class LogbookParametersFactory {
     }
 
     /**
-     * Get a new LogbookOperationParameters object
+     * Get a new LogbookOperationParameters object for subtask
      *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
+     * @param eventIdentifier the event id of LogbookOperationParameters to create
+     * @param eventType the event type of LogbookOperationParameters to create
+     * @param eventIdentifierProcess the event id process of LogbookOperationParameters to create
+     * @param eventTypeProcess the event type process of LogbookOperationParameters to create
+     * @param outcome the outcome of LogbookOperationParameters to create
      * @param subtask may be null
-     * @param appendedDetailMessage may be null
-     * @param eventIdentifierRequest
+     * @param appendedDetailMessage may be null, the detail message
+     * @param eventIdentifierRequest the event id request of LogbookOperationParameters to create
      *
      * @return the LogbookOperationParameters
      * @throws IllegalArgumentException if any parameter is null or empty
@@ -226,14 +226,14 @@ public class LogbookParametersFactory {
     /**
      * Get a new LogbookLifeCycleUnitParameters object
      *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
-     * @param outcomeDetail
-     * @param outcomeDetailMessage
-     * @param objectIdentifier
+     * @param eventIdentifier the event id of LogbookLifeCycleUnitParameters to create
+     * @param eventType the event type of LogbookLifeCycleUnitParameters to create
+     * @param eventIdentifierProcess the event id process of LogbookLifeCycleUnitParameters to create
+     * @param eventTypeProcess the event type process of LogbookLifeCycleUnitParameters to create
+     * @param outcome the outcome of LogbookLifeCycleUnitParameters to create
+     * @param outcomeDetail the outcome detail of LogbookLifeCycleUnitParameters to create
+     * @param outcomeDetailMessage the outcome detail message of LogbookLifeCycleUnitParameters to create
+     * @param objectIdentifier the object id of LogbookLifeCycleUnitParameters to create
      *
      * @return the LogbookLifeCycleUnitParameters
      * @throws IllegalArgumentException if any parameter is null or empty
@@ -261,14 +261,14 @@ public class LogbookParametersFactory {
     /**
      * Get a new LogbookLifeCycleObjectGroupParameters object
      *
-     * @param eventIdentifier
-     * @param eventType
-     * @param eventIdentifierProcess
-     * @param eventTypeProcess
-     * @param outcome
-     * @param outcomeDetail
-     * @param outcomeDetailMessage
-     * @param objectIdentifier
+     * @param eventIdentifier the event id of LogbookLifeCycleObjectGroupParameters to create
+     * @param eventType the event type of LogbookLifeCycleObjectGroupParameters to create
+     * @param eventIdentifierProcess the event id process of LogbookLifeCycleObjectGroupParameters to create
+     * @param eventTypeProcess the event type process of LogbookLifeCycleObjectGroupParameters to create
+     * @param outcome the outcome of LogbookLifeCycleObjectGroupParameters to create
+     * @param outcomeDetail the outcome detail of LogbookLifeCycleObjectGroupParameters to create
+     * @param outcomeDetailMessage the outcome detail message of LogbookLifeCycleObjectGroupParameters to create
+     * @param objectIdentifier the object id of LogbookLifeCycleObjectGroupParameters to create
      *
      * @return the LogbookLifeCycleObjectGroupParameters
      * @throws IllegalArgumentException if any parameter is null or empty

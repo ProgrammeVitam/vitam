@@ -56,8 +56,8 @@ public final class WorkerFactory {
      * return the only instance of {@link WorkerFactory}. Build the instance at the first call.
      * This method is synchronised, for performance issue, please call only one time.
      *
-     * @param pluginLoader
-     * @return
+     * @param pluginLoader the plugin loader
+     * @return {@link WorkerFactory}
      */
     public static synchronized WorkerFactory getInstance(PluginLoader pluginLoader) {
         if (WORKER_FACTORY == null ) {

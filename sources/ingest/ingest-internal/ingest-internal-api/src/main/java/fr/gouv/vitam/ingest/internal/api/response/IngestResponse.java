@@ -171,7 +171,7 @@ public class IngestResponse {
     }
 
     /**
-     * @param numberOfNumericalObject
+     * @param numberOfNumericalObject to set
      * @return this
      */
     public IngestResponse setNumberOfNumericalObject(Long numberOfNumericalObject) {
@@ -189,7 +189,7 @@ public class IngestResponse {
     /**
      * Setter GuidNumObjList
      *
-     * @param guidNumObjList
+     * @param guidNumObjList to set
      * @return this
      */
     public IngestResponse setGuidNumObjList(List<String> guidNumObjList) {
@@ -200,7 +200,7 @@ public class IngestResponse {
     }
 
     /**
-     * @param guid
+     * @param guid to add in response
      * @return this
      */
     public IngestResponse addGuidNumericObject(String guid) {

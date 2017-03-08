@@ -104,7 +104,7 @@ public class SoapUiClientFactory {
     /**
      * Change client configuration from server/host params
      *
-     * @param configurationPath
+     * @param configurationPath the path of client configuration file
      */
     public final void changeConfiguration(String configurationPath) {
         changeClientType(SoapUiClientType.MOCK);

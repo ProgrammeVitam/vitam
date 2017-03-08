@@ -66,7 +66,7 @@ public enum MetadataCollections {
     /**
      * Initialize the collection
      *
-     * @param ElasticsearchAccessMetadata ElasticsearchAccess
+     * @param esClient ElasticsearchAccessMetadata
      */
 
     protected void initialize(final ElasticsearchAccessMetadata esClient) {

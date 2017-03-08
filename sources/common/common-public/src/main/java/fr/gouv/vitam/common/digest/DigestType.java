@@ -68,7 +68,7 @@ public enum DigestType {
     }
 
     /**
-     * @param v
+     * @param v the value to get
      * @return the enum type based on String representation
      */
 

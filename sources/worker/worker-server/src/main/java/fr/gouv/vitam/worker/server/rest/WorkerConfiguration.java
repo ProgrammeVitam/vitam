@@ -220,7 +220,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the workerFamily name of this worker (Default Value : DefaultWorker)
-     * @param workerFamily
+     * @param workerFamily the worker family as String
      * @return this
      */
     public WorkerConfiguration setWorkerFamily(String workerFamily) {

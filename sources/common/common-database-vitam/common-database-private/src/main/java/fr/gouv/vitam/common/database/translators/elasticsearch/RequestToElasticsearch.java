@@ -56,7 +56,7 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
      *
      * @param requestParser AbstractParser of unknown type
      * @return the associated RequestToElasticsearch
-     * @throws VitamException
+     * @throws VitamException the type of request is not select
      */
     public static RequestToElasticsearch getRequestToElasticsearch(AbstractParser<?> requestParser)
         throws VitamException {

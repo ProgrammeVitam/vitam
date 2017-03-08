@@ -60,9 +60,9 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      *
-     * @param file
-     * @throws ArchiveException
-     * @throws FileNotFoundException
+     * @param file to archive
+     * @throws ArchiveException if error on creating TraceabilityFile 
+     * @throws FileNotFoundException if find not found
      */
     public TraceabilityFile(File file) throws ArchiveException, FileNotFoundException {
         final OutputStream archiveStream = new BufferedOutputStream(new FileOutputStream(file));
@@ -75,8 +75,8 @@ public class TraceabilityFile implements AutoCloseable {
     /**
      * store timestamp token in a specific file
      *
-     * @param timestampToken
-     * @throws IOException
+     * @param timestampToken to store
+     * @throws IOException if error on writing file 
      */
     public void storeTimeStampToken(byte[] timestampToken) throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(TIMESTAMP_FILENAME);
@@ -90,8 +90,8 @@ public class TraceabilityFile implements AutoCloseable {
     /**
      * store Mekle tree in a specific file
      *
-     * @param merkleTree
-     * @throws IOException
+     * @param merkleTree to store
+     * @throws IOException if error on writing file
      */
     public void storeMerkleTree(MerkleTree merkleTree) throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(MEKLE_TREE_FILENAME);
@@ -102,7 +102,7 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      *
-     * @throws IOException
+     * @throws IOException if error when create entry file
      */
     public void initStoreOperationLog() throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(LOGBOOK_OPERATIONS_FILENAME);
@@ -110,8 +110,8 @@ public class TraceabilityFile implements AutoCloseable {
     }
 
     /**
-     * @param logbookOperation
-     * @throws IOException
+     * @param logbookOperation to store
+     * @throws IOException if write log error
      */
     public void storeOperationLog(VitamDocument logbookOperation) throws IOException {
         archive.write(JsonHandler.unprettyPrint(logbookOperation).getBytes());
@@ -119,7 +119,7 @@ public class TraceabilityFile implements AutoCloseable {
     }
 
     /**
-     * @throws IOException
+     * @throws IOException if error on closing stream
      */
     public void closeStoreOperationLog() throws IOException {
         archive.closeArchiveEntry();
@@ -128,11 +128,11 @@ public class TraceabilityFile implements AutoCloseable {
     /**
      * store information use to compute timestamp token
      *
-     * @param currentHash
-     * @param previousHash
-     * @param currentHashMinusOneMonth
-     * @param currentHashMinusOneYear
-     * @throws IOException
+     * @param currentHash of timestamp token
+     * @param previousHash timestamp token
+     * @param currentHashMinusOneMonth timestamp token
+     * @param currentHashMinusOneYear timestamp token
+     * @throws IOException if error on writing/closing stream
      */
     public void storeHashCalculationInformation(String currentHash, String previousHash,
         String currentHashMinusOneMonth, String currentHashMinusOneYear) throws IOException {
@@ -150,10 +150,10 @@ public class TraceabilityFile implements AutoCloseable {
     }
 
     /**
-     * @param numberOfLine
-     * @param startDate
-     * @param endDate
-     * @throws IOException
+     * @param numberOfLine information to store
+     * @param startDate information to store
+     * @param endDate information to store
+     * @throws IOException if error on writing/closing stream
      */
     public void storeAdditionalInformation(long numberOfLine, String startDate, String endDate) throws IOException {
         ZipArchiveEntry entry;
@@ -171,7 +171,7 @@ public class TraceabilityFile implements AutoCloseable {
     /**
      * flush the stream and close it.
      *
-     * @throws IOException
+     * @throws IOException if error on closing stream
      */
     @Override
     public void close() throws IOException {

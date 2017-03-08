@@ -36,7 +36,7 @@ public class NopQuery extends Query {
     /**
      * Constructs a NopQuery and declare it ready
      *
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException when invalid parse data to create query
      */
     public NopQuery() throws InvalidCreateOperationException {
         currentQUERY = BuilderToken.QUERY.NOP;

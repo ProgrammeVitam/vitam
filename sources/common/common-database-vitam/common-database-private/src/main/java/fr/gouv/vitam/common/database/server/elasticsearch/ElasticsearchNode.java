@@ -43,8 +43,8 @@ public class ElasticsearchNode {
     }
 
     /**
-     * @param hostName
-     * @param tcpPort
+     * @param hostName the node host name 
+     * @param tcpPort the node tcp port
      */
     public ElasticsearchNode(String hostName, int tcpPort) {
         super();

@@ -65,7 +65,7 @@ public abstract class MinimalTestVitamApplicationFactory<A extends VitamApplicat
     /**
      *
      * @return the StartApplicationResponse after starting the Application
-     * @throws IllegalStateException
+     * @throws IllegalStateException when cannot start application server 
      */
     @SuppressWarnings("unchecked")
     public final StartApplicationResponse<A> findAvailablePortSetToApplication() {

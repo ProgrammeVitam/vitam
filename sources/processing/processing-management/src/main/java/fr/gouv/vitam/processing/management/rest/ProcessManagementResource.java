@@ -144,10 +144,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     /**
      * Execute the process as a set of operations.
      *
-     * @param headers
+     * @param headers the Http Header of request
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param asyncResponse
-     * @return http response
+     * @param asyncResponse {@link AsyncResponse}
      */
     @Path("operations")
     @POST
@@ -261,9 +260,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
-     * @param asyncResponse
-     * @return http response
-     * @throws ProcessingException
+     * @param asyncResponse {@link AsyncResponse}
+     * @throws ProcessingException if error in execute a workflow
      */
     @Path("operations/{id}")
     @POST
@@ -374,7 +372,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
-     * @param asyncResponse
+     * @param asyncResponse {@link AsyncResponse}
      */
     @Path("operations/{id}")
     @PUT
@@ -440,8 +438,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Interrupt the process of an operation identified by Id.
      *
      * @param id operation identifier
-     * @param asyncResponse
-     * @return http response
+     * @param asyncResponse of type {@link AsyncResponse}
      */
     @Path("operations/{id}")
     @DELETE
@@ -519,9 +516,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
 
     /**
-     * TODO add javadoc
+     * get the process workflow
      * 
-     * @return
+     * @return the workflow in response
      */
     @GET
     @Path("/operations")

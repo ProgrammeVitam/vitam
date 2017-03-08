@@ -55,10 +55,10 @@ public class FormatIdentifierResponse {
     /**
      * Create a new FormatIdentifierResponse with mandatory parameters.
      *
-     * @param formatLiteral
-     * @param mimeType
-     * @param puid
-     * @param matchedNamespace
+     * @param formatLiteral  the literal version of the matched format response
+     * @param mimeType the mime type of response
+     * @param puid the puid that match format
+     * @param matchedNamespace the base of format
      */
     public FormatIdentifierResponse(String formatLiteral, String mimeType, String puid, String matchedNamespace) {
         this.formatLiteral = formatLiteral;

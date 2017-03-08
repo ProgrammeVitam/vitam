@@ -187,7 +187,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param authentication
+     * @param authentication to set ou unset
      * @return StorageConfiguration
      */
     public StorageConfiguration setAuthentication(boolean authentication) {

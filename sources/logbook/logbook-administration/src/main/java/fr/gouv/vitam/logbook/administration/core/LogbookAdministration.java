@@ -140,10 +140,11 @@ public class LogbookAdministration {
         tmpFolder.mkdir();
     }
 
-    /**
-     * @param logbookOperations
-     * @param timestampGenerator
-     * @param workspaceClientFactory
+    /** Constructor
+     * 
+     * @param logbookOperations logbook operation 
+     * @param timestampGenerator to generate timestamp 
+     * @param workspaceClientFactory to create workspace client 
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
         WorkspaceClientFactory workspaceClientFactory) {
@@ -155,11 +156,11 @@ public class LogbookAdministration {
      * secure the logbook operation since last securisation.
      *
      * @return the GUID of the operation
-     * @throws TraceabilityException
-     * @throws LogbookNotFoundException
-     * @throws InvalidParseOperationException
-     * @throws LogbookDatabaseException
-     * @throws InvalidCreateOperationException
+     * @throws TraceabilityException if error on generating secure logbook
+     * @throws LogbookNotFoundException if not found on selecting logbook operation
+     * @throws InvalidParseOperationException if json data is not well-formed
+     * @throws LogbookDatabaseException if error on query logbook collection
+     * @throws InvalidCreateOperationException if error on creating query
      */
     // TODO: use a distributed lock to launch this function only on one server (cf consul)
     public synchronized GUID generateSecureLogbook()

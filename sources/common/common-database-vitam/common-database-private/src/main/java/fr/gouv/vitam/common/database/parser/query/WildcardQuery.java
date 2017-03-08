@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- *
+ * Wildcard query
  *
  */
 public class WildcardQuery extends fr.gouv.vitam.common.database.builder.query.WildcardQuery {

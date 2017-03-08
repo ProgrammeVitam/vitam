@@ -367,8 +367,8 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * </pre>
      *
      * @param condition the condition to add
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException when invalid create query exception occurred
+     * @throws InvalidParseOperationException when invalid parse data to create query 
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);

@@ -53,8 +53,8 @@ public class CallTraceability {
 
     /**
      * @param args ignored
-     * @throws InvalidParseOperationException
-     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws LogbookClientServerException if logbook server is unreachable
      */
     public static void main(String[] args) throws InvalidParseOperationException, LogbookClientServerException {
         platformSecretConfiguration();

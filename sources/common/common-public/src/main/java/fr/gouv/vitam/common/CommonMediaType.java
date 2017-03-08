@@ -126,7 +126,7 @@ public class CommonMediaType extends MediaType {
      *
      * @since 0.10.0
      *
-     * @param mimeType
+     * @param mimeType the mime type to check
      * @return boolean : true if archive type supported by Vitam.
      */
     public static boolean isSupportedFormat(String mimeType) {

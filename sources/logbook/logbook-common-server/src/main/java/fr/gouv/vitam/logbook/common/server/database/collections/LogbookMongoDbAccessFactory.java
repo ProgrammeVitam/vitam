@@ -41,7 +41,7 @@ public final class LogbookMongoDbAccessFactory {
     /**
      * Creation of one MongoDbAccess
      *
-     * @param configuration
+     * @param configuration of LogbookMongoDb
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */

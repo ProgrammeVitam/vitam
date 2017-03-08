@@ -106,7 +106,7 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
     /**
      * For compatibility with old implementation
      *
-     * @param urlString
+     * @param urlString the url
      */
     // TODO P2 should be removed
     public static final void changeConfigurationUrl(String urlString) {

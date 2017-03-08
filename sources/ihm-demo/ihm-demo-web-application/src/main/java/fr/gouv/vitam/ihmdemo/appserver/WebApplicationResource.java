@@ -148,8 +148,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Constructor
-     *
-     * @param webApplicationConfig
+     * 
+     * @param webApplicationConfig the web server ihm-demo configuration 
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
         super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
@@ -172,7 +172,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
      * @param criteria criteria search for units
      * @return Reponse
@@ -242,7 +242,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers
+     * @param headers needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param unitId archive unit id
      * @return archive unit details
      */
@@ -350,7 +350,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers
+     * @param headers needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param operationId id of operation
      * @param options the queries for searching
      * @return Response
@@ -393,8 +393,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * <li>Flow-Total-Chunks => The number of chunks</li>
      * </ul>
      *
-     * @param request
-     * @param response
+     * @param request the http servlet request
+     * @param response the http servlet response
      * @param stream data input stream for the current chunk
      * @param headers HTTP Headers containing chunk information
      * @return Response
@@ -575,7 +575,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Once done, clear the Upload operation history
      *
-     * @param operationId
+     * @param operationId the operation id
      * @return the Response
      */
     @Path("clear/{id_op}")
@@ -889,9 +889,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Retrieve an Object data stored by ingest operation as an input stream
      *
      * @param headers HTTP Headers
-     * @param objectId
-     * @param type
-     * @param asyncResponse
+     * @param objectId the object id to get
+     * @param type of collection
+     * @param asyncResponse request asynchronized response
      */
     @GET
     @Path("/ingests/{idObject}/{type}")
@@ -1200,7 +1200,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get the detail of an accessionregister matching options query
      *
      * @param headers HTTP Headers
-     * @param id
+     * @param id of accession response to get
      * @param options query criteria
      * @return accession register details
      */

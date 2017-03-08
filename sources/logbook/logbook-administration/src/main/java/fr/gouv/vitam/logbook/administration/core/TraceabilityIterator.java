@@ -53,7 +53,7 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
 
     /**
      *
-     * @param mongoCursor
+     * @param mongoCursor of logbook operation
      */
     public TraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {
         numberOfLine = 0;

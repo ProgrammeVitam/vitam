@@ -43,7 +43,7 @@ final class LogbackLogger extends AbstractVitamLogger {
 
     /**
      *
-     * @param logger
+     * @param logger the Logger instance
      */
     public LogbackLogger(final Logger logger) {
         super(logger.getName());

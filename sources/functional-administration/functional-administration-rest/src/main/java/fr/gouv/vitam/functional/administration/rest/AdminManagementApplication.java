@@ -57,7 +57,7 @@ public final class AdminManagementApplication
     /**
      * AdminManagementApplication constructor
      *
-     * @param configuration
+     * @param configuration the server configuration
      */
     public AdminManagementApplication(String configuration) {
         super(AdminManagementConfiguration.class, configuration);
@@ -67,7 +67,7 @@ public final class AdminManagementApplication
      * Main method to run the APPLICATION (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException
+     * @throws IllegalStateException when cannot start server
      */
     public static void main(String[] args) {
         try {

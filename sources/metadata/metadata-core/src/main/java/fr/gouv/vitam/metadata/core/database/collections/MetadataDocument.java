@@ -95,7 +95,7 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Constructor from Json
      *
-     * @param content
+     * @param content in JsonNode format for building MetadataDocument
      */
     public MetadataDocument(JsonNode content) {
         super(Document.parse(JsonHandler.unprettyPrint(content)));
@@ -105,7 +105,7 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Constructor from Document
      *
-     * @param content
+     * @param content in Document format for building MetadataDocument
      */
     public MetadataDocument(Document content) {
         super(content);
@@ -115,7 +115,7 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Constructor from Json as text
      *
-     * @param content
+     * @param content in String format for building MetadataDocument
      */
     public MetadataDocument(String content) {
         super(Document.parse(content));
@@ -133,8 +133,7 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Create a new ID
      *
-     * @param tenantId
-     * @return this
+     * @return this MetadataDocument
      */
     public MetadataDocument<E> checkId() {
         final String id = getId();
@@ -175,7 +174,7 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Load from a JSON String
      *
-     * @param json
+     * @param json in String format for building MetadataDocument
      * @return this
      */
     public final MetadataDocument<E> load(final String json) {
@@ -215,16 +214,16 @@ public abstract class MetadataDocument<E> extends Document {
      * Save the object. Implementation should call putBeforeSave before the real save operation (insert or update)
      *
      * @return this
-     * @throws MetaDataExecutionException
+     * @throws MetaDataExecutionException if an exception on insert/update operations occurred
      */
     public abstract MetadataDocument<E> save() throws MetaDataExecutionException;
 
     /**
      * Update the object to the database
      *
-     * @param update
+     * @param update data of update operation
      * @return this
-     * @throws MetaDataExecutionException
+     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query for update operation
      */
     public MetadataDocument<E> update(final Bson update)
         throws MetaDataExecutionException {
@@ -258,7 +257,7 @@ public abstract class MetadataDocument<E> extends Document {
      * Insert the document (only for new): should not be called elsewhere
      *
      * @return this
-     * @throws MetaDataExecutionException
+     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query
      */
     @SuppressWarnings("unchecked")
     protected final MetadataDocument<E> insert() throws MetaDataExecutionException {
@@ -275,7 +274,7 @@ public abstract class MetadataDocument<E> extends Document {
      * Save the document if new, update it (keeping non set fields, replacing set fields)
      *
      * @return this
-     * @throws MetaDataExecutionException
+     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query 
      */
     @SuppressWarnings("unchecked")
     protected final MetadataDocument<E> updateOrSave()
@@ -314,8 +313,8 @@ public abstract class MetadataDocument<E> extends Document {
     /**
      * Delete the current object
      *
-     * @return this
-     * @throws MetaDataExecutionException
+     * @return {@link MetadataDocument}
+     * @throws MetaDataExecutionException if mongo exception delete request on collection
      */
     public final MetadataDocument<E> delete() throws MetaDataExecutionException {
         try {

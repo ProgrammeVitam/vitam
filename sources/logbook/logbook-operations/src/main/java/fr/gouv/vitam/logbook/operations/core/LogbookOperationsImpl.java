@@ -60,7 +60,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     /**
      * Constructor
      *
-     * @param mongoDbAccess
+     * @param mongoDbAccess of logbook
      */
     public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;

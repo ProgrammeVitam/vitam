@@ -40,7 +40,7 @@ public class SecureConfiguration {
 
     /**
      *
-     * @return
+     * @return list of tenant
      */
     public List<String> getTenants() {
         return tenants;
@@ -49,7 +49,7 @@ public class SecureConfiguration {
     /**
      *
      *
-     * @param tenants
+     * @param tenants to set
      */
     public void setTenants(List<String> tenants) {
         this.tenants = tenants;

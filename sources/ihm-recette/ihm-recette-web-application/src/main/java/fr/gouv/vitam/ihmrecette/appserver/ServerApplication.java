@@ -88,7 +88,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
     /**
      * ServerApplication constructor
      *
-     * @param configuration
+     * @param configuration the ihm-recette server configuration
      */
     public ServerApplication(String configuration) {
         super(WebApplicationConfig.class, configuration);

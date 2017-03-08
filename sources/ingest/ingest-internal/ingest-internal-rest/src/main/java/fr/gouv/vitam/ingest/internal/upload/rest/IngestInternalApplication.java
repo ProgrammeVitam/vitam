@@ -56,7 +56,7 @@ public class IngestInternalApplication
     /**
      * Ingest Internal constructor
      *
-     * @param configuration
+     * @param configuration of the internal ingest server
      */
     public IngestInternalApplication(String configuration) {
         super(IngestInternalConfiguration.class, configuration);

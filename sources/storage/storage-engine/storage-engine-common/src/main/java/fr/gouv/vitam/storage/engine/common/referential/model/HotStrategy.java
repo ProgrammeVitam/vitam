@@ -49,7 +49,7 @@ public class HotStrategy {
     }
 
     /**
-     * @param copy
+     * @param copy for host strategy
      */
     public void setCopy(Integer copy) {
         this.copy = copy;
@@ -63,7 +63,7 @@ public class HotStrategy {
     }
 
     /**
-     * @param offers
+     * @param offers list of {@link OfferReference}
      */
     public void setOffers(List<OfferReference> offers) {
         this.offers = offers;

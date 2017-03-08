@@ -54,8 +54,8 @@ public class LogbookLifecycleWorkerHelper {
 
     /**
      *
-     * @param params
-     * @return the ObjectID
+     * @param params the worker parameter
+     * @return the ObjectID as String
      */
     public static final String getObjectID(WorkerParameters params) {
         final String extension = FilenameUtils.getExtension(params.getObjectName());
@@ -63,13 +63,13 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     * @param helper
-     * @param logbookLifecycleParameters
-     * @param params the parameters
-     * @param lfcEventType
-     * @param logbookTypeProcess
-     * @param additionalParams
-     * @throws ProcessingException
+     * @param helper the LogbookLifeCyclesClientHelper
+     * @param logbookLifecycleParameters the parameter of logbook lifecycle
+     * @param params the worker parameters
+     * @param lfcEventType the event type of lfc
+     * @param logbookTypeProcess the logbook type process
+     * @param additionalParams the additional params
+     * @throws ProcessingException if logbook lfc ressouce not found
      */
     public static void updateLifeCycleStartStep(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, String lfcEventType,
@@ -108,10 +108,10 @@ public class LogbookLifecycleWorkerHelper {
     }
 
     /**
-     * @param helper
-     * @param logbookLifecycleParameters
-     * @param params the parameters
-     * @throws ProcessingException
+     * @param helper the LogbookLifeCyclesClientHelper
+     * @param logbookLifecycleParameters the parameter of logbook lifecycle
+     * @param params the parameters the worker parameters
+     * @throws ProcessingException if logbook lfc ressouce not found
      */
     public static void updateLifeCycleForBegining(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params)
@@ -135,10 +135,10 @@ public class LogbookLifecycleWorkerHelper {
     /**
      *
      *
-     * @param helper
+     * @param helper the LogbookLifeCyclesClientHelper
      * @param logbookLifecycleParameters logbook LC parameters
      * @param itemStatus the Item Status
-     * @throws ProcessingException
+     * @throws ProcessingException if logbook lfc ressouce not found
      */
     public static void setLifeCycleFinalEventStatusByStep(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters,

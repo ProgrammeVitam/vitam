@@ -59,7 +59,7 @@ public class UnitSimplified {
     /**
      * COnstructor with ObjectNode
      * 
-     * @param unitNode
+     * @param unitNode for building UnitSimplified 
      */
     public UnitSimplified(ObjectNode unitNode) {
         ParametersChecker.checkParameterDefault("unitNode", unitNode);
@@ -74,9 +74,9 @@ public class UnitSimplified {
     
     /**
      * Constructor with id, management, parent direct
-     * @param id
-     * @param mgt
-     * @param up
+     * @param id the id of UnitSimplified
+     * @param mgt the management of UnitSimplified
+     * @param up list of direct parent of UnitSimplified
      */
     public UnitSimplified(String id, ObjectNode mgt, List<String> up) {
         this.id = id;
@@ -85,15 +85,15 @@ public class UnitSimplified {
     }
 
     /**
-     * @return
+     * @return id of Unit as String 
      */
     public String getId() {
         return id;
     }
 
     /**
-     * @param id
-     * @return
+     * @param id as String
+     * @return UnitSimplified where id is setted
      */
     public UnitSimplified setId(String id) {
         this.id = id;
@@ -101,7 +101,7 @@ public class UnitSimplified {
     }
 
     /**
-     * @return
+     * @return management data of Unit as ObjectNode 
      */
     public ObjectNode getManagement() {
         if (management == null) {
@@ -111,8 +111,8 @@ public class UnitSimplified {
     }
 
     /**
-     * @param management
-     * @return
+     * @param management of type ObjectNode
+     * @return UnitSimplified where management is setted
      */
     public UnitSimplified setManagement(ObjectNode management) {
         this.management = management;
@@ -120,15 +120,15 @@ public class UnitSimplified {
     }
 
     /**
-     * @return
+     * @return list of unit parent as a List of String
      */
     public List<String> getDirectParent() {
         return directParent;
     }
 
     /**
-     * @param directParent
-     * @return
+     * @param directParent as a list of String
+     * @return UnitSimplified where directParent is setted 
      */
     public UnitSimplified setDirectParent(List<String> directParent) {
         this.directParent = directParent;
@@ -136,8 +136,8 @@ public class UnitSimplified {
     }
     
     /**
-     * @param unitList
-     * @return
+     * @param unitList list of units as ArrayNode
+     * @return a map of unitId and UnitSimplified
      */
     public static Map<String, UnitSimplified> getUnitIdMap(ArrayNode unitList) {    
         Map<String, UnitSimplified> unitSimplifiedMap = new HashedMap<>();

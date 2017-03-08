@@ -36,7 +36,7 @@ import org.junit.Test;
 public class CheckObjectsNumberMessageTest {
     private static final String COUNT_DIGITAL_OBJECT_CONSISTENT = "Conformité du nombre d'objets numériques";
     private static final String DUPLICATED_DIGITAL_OBJECT_WORKSPACE = "Objet numérique dupliqué trouvé dans le SIP: ";
-    private static final String LIST_OF_UNDECLARED_DIGITAL_OBJECT = "List of undeclared digital objects: ";
+    private static final String LIST_OF_UNDECLARED_DIGITAL_OBJECT = "Liste des objets numériques non déclarés: ";
     private static final String COUNT_DIGITAL_OBJECT_SIP = "Nombre d'objets numériques trouvés dans le SIP: ";
     private static final String COUNT_DIGITAL_OBJECT_MANIFEST =
         "Nombre d'objets numériques référencés dans le bordereau: ";

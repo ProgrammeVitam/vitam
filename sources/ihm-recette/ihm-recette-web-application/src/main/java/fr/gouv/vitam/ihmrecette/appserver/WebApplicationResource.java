@@ -27,14 +27,10 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -60,7 +56,6 @@ import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
@@ -112,6 +107,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final String RESULTS_FIELD = "$results";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
+    /**
+     * field of VitamResponseError 
+     */
     public static final String IHM_RECETTE = "IHM_RECETTE";
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
@@ -134,6 +132,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Constructor
+     * @param tenants list of working tenant 
      *
      */
     public WebApplicationResource(List<Integer> tenants) {
@@ -296,9 +295,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param xTenantId the tenant id
-     * 
      * @return the response of the request
-     * @throws LogbookClientServerException
+     * @throws LogbookClientServerException if logbook internal resources exception occurred 
      */
     @POST
     @Path("/operations/traceability")
@@ -325,10 +323,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Post used because Angular not support Get with body
      *
-     * @param headers
-     * @param xhttpOverride
-     * @param sessionId
-     * @param options
+     * @param headers the HttpHeaders for the request
+     * @param xhttpOverride the use of http override POST method
+     * @param sessionId the id of session
+     * @param options the option for creating query to find logbook
      * @return Response
      */
     @POST
@@ -467,8 +465,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param operationId
-     * @param asyncResponse
+     * @param operationId the operation id 
+     * @param asyncResponse the asynchronized response
      * @param xTenantId the tenant id
      */
 
@@ -489,9 +487,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This method exist only to download a file with a browser
      *
-     * @param operationId
-     * @param asyncResponse
-     * @param tenantId
+     * @param operationId the operation id
+     * @param asyncResponse the asynchronized response 
+     * @param tenantId the working tenant
      */
     @GET
     @Path("/logbooks/{idOperation}/content")

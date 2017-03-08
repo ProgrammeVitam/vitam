@@ -94,26 +94,44 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     public LogbookConfiguration() {}
 
 
+    /**
+     * @return password of p12
+     */
     public String getP12LogbookPassword() {
         return p12LogbookPassword;
     }
 
+    /**
+     * @param p12LogbookPassword file to set
+     */
     public void setP12LogbookPassword(String p12LogbookPassword) {
         this.p12LogbookPassword = p12LogbookPassword;
     }
 
+    /**
+     * @return p12 logbook file
+     */
     public String getP12LogbookFile() {
         return p12LogbookFile;
     }
 
+    /**
+     * @param p12LogbookFile file to set
+     */
     public void setP12LogbookFile(String p12LogbookFile) {
         this.p12LogbookFile = p12LogbookFile;
     }
 
+    /**
+     * @return url workspace
+     */
     public String getWorkspaceUrl() {
         return workspaceUrl;
     }
 
+    /**
+     * @param workspaceUrl to set
+     */
     public void setWorkspaceUrl(String workspaceUrl) {
         this.workspaceUrl = workspaceUrl;
     }

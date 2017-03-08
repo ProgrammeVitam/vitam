@@ -79,7 +79,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     /**
      * Constructor
      *
-     * @param dbConfiguration
+     * @param dbConfiguration the mongo access for reference format configuration
      */
     public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
         mongoAccess = dbConfiguration;

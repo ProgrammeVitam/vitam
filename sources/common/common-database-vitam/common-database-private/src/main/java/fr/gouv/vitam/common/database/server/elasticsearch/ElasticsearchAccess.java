@@ -98,7 +98,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      *
      * @param clusterName the name of the Cluster
      * @param nodes the elasticsearch nodes
-     * @throws VitamException
+     * @throws VitamException when elasticseach node list is empty
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {
 

@@ -90,8 +90,8 @@ public final class SiegfriedClientFactory extends VitamClientFactory<SiegfriedCl
 
     /**
      *
-     * @param server
-     * @param port
+     * @param server the server name to instance 
+     * @param port the server port to instance
      */
     // TODO P2 should not be public (but IT test)
     public static final void changeMode(String server, int port) {

@@ -36,14 +36,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static java.lang.String.format;
 
-import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.PluginPropertiesLoader;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
@@ -65,8 +58,8 @@ public class PluginHelper {
     /**
      * Load action Handler
      *
-     * @param actionId
-     * @param plugin
+     * @param actionId the action id
+     * @param plugin the plugin properties
      * @return action Handler
      * @throws PluginNotFoundException if the plugin is not present in the classpath
      */

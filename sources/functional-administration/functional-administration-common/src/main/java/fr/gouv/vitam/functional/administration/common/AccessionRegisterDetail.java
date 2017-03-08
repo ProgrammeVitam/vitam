@@ -65,7 +65,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     /**
      * Constructor
      *
-     * @param document
+     * @param document in format Document to create AccessionRegisterDetail
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
@@ -73,7 +73,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param content
+     * @param content in format JsonNode to create AccessionRegisterDetail
      */
     public AccessionRegisterDetail(JsonNode content) {
         super(content);
@@ -81,7 +81,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param content
+     * @param content in format String to create AccessionRegisterDetail
      */
     public AccessionRegisterDetail(String content) {
         super(content);
@@ -90,14 +90,14 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     
     /**
      * 
-     * @param tenantId
+     * @param tenantId th working tenant
      */
     public AccessionRegisterDetail(Integer tenantId)  {
     	append(TENANT, tenantId);
     }
 
     /**
-     * @param id
+     * @param id to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setId(String id) {
@@ -106,7 +106,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param orgAgency
+     * @param orgAgency to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setOriginatingAgency(String orgAgency) {
@@ -115,7 +115,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param orgAgency
+     * @param orgAgency to set
      * @return String
      */
     public String getOriginatingAgency() {
@@ -123,7 +123,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param subAgency
+     * @param subAgency to set
      * @return this
      */
     public AccessionRegisterDetail setSubmissionAgency(String subAgency) {
@@ -133,7 +133,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
 
     /**
      * @param archivalAgreement Archival Agreement id
-     * @return
+     * @return this
      */
     public AccessionRegisterDetail setArchivalAgreement(String archivalAgreement) {
         append(ARCHIVALAGREEMENT, archivalAgreement);
@@ -141,7 +141,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param startDate
+     * @param startDate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStartDate(String startDate) {
@@ -150,7 +150,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param endDate
+     * @param endDate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setEndDate(String endDate) {
@@ -166,7 +166,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param lastUpdate
+     * @param lastUpdate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setLastUpdate(String lastUpdate) {
@@ -175,7 +175,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param totalUnits
+     * @param totalUnits to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setTotalUnits(RegisterValueDetailModel totalUnits) {
@@ -191,7 +191,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param totalObjectGroups
+     * @param totalObjectGroups to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setTotalObjectGroups(RegisterValueDetailModel totalObjectGroups) {
@@ -207,7 +207,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param total
+     * @param total to set
      * @return this
      */
     public AccessionRegisterDetail setTotalObjects(RegisterValueDetailModel total) {
@@ -223,7 +223,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param objectSize
+     * @param objectSize to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setObjectSize(RegisterValueDetailModel objectSize) {
@@ -239,7 +239,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param status
+     * @param status to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStatus(AccessionRegisterStatus status) {

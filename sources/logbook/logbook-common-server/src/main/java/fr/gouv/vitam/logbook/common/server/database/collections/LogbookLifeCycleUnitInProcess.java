@@ -43,7 +43,7 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
     /**
      * Constructor from LogbookLifeCycleUnitParameters
      *
-     * @param parameters
+     * @param parameters of LogbookLifeCycleUnitParameters
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookLifeCycleUnitInProcess(LogbookLifeCycleUnitParameters parameters) {
@@ -54,7 +54,7 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format Document to create LogbookLifeCycleUnitInProcess
      */
     public LogbookLifeCycleUnitInProcess(Document content) {
         super(content);
@@ -63,7 +63,7 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format String to create LogbookLifeCycleUnitInProcess
      */
     public LogbookLifeCycleUnitInProcess(String content) {
         super(content);
@@ -72,7 +72,7 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format JsonNode to create LogbookLifeCycleUnitInProcess
      */
     public LogbookLifeCycleUnitInProcess(JsonNode content) {
         super(content);

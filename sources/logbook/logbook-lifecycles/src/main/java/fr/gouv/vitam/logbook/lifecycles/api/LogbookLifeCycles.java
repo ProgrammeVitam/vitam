@@ -163,7 +163,7 @@ public interface LogbookLifeCycles {
     /**
      * Select logbook LifeCycle entry by operation
      *
-     * @param idOperation
+     * @param idOperation the operation id
      * @param idLc
      * @return the Unit Logbook Lifecycle
      * @throws LogbookDatabaseException
@@ -245,12 +245,12 @@ public interface LogbookLifeCycles {
     /**
      * Create a cursor for all Unit Lifecycles from one operation
      *
-     * @param operationId
-     * @param select
+     * @param operationId the operation id
+     * @param select the query in format JsonNode
      * @param logbookCollection the collection on which the cursor creation operation will be done : Production collection
      *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the X-Cursor-Id
-     * @throws LogbookDatabaseException
+     * @throws LogbookDatabaseException if the cursor is not found
      */
     public String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
         throws LogbookDatabaseException;
@@ -258,7 +258,7 @@ public interface LogbookLifeCycles {
     /**
      * Get the next available Unit Lifecycle
      *
-     * @param cursorId
+     * @param cursorId the cursor id
      * @return the next available
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
@@ -269,12 +269,12 @@ public interface LogbookLifeCycles {
     /**
      * Create a cursor for all ObjectGroup Lifecycles from one operation
      *
-     * @param operationId
-     * @param select
+     * @param operationId the operation id
+     * @param select the query to create cursor
      * @param collection the collection on which the cursor creation operation will be done : Production collection
      *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return the X-Cursor-Id
-     * @throws LogbookDatabaseException
+     * @throws LogbookDatabaseException if the cursor is not found
      */
     public String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException;
@@ -282,7 +282,7 @@ public interface LogbookLifeCycles {
     /**
      * Get the next available ObjectGroup Lifecycle
      *
-     * @param cursorId
+     * @param cursorId the cursor id 
      * @return the next available
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
@@ -293,7 +293,7 @@ public interface LogbookLifeCycles {
     /**
      * Finalize the cursor
      *
-     * @param cursorId
+     * @param cursorId the cursor id
      */
     public void finalizeCursor(String cursorId);
 

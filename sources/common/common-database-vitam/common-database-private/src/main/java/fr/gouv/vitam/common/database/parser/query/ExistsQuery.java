@@ -34,7 +34,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- *
+ * the class of exist query
  *
  */
 public class ExistsQuery extends fr.gouv.vitam.common.database.builder.query.ExistsQuery {

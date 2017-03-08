@@ -45,7 +45,7 @@ public class StorageStrategy {
     }
 
     /**
-     * @param id
+     * @param id of host storage
      */
     public void setId(String id) {
         this.id = id;
@@ -59,7 +59,7 @@ public class StorageStrategy {
     }
 
     /**
-     * @param hotStrategy
+     * @param hotStrategy to set
      */
     public void setHotStrategy(HotStrategy hotStrategy) {
         this.hotStrategy = hotStrategy;

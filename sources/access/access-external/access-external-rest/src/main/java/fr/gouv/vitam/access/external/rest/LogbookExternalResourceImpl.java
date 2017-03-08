@@ -242,7 +242,7 @@ public class LogbookExternalResourceImpl {
     }
 
     /**
-     * @param unitLifeCycleId
+     * @param unitLifeCycleId the unit lifecycle id to get
      * @param query as JsonNode
      * @param xhttpOverride header parameter indicate that we use POST with X-Http-Method-Override,
      * @return Response of SELECT query with POST method

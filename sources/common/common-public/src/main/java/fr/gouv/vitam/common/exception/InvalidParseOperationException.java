@@ -34,22 +34,22 @@ public class InvalidParseOperationException extends VitamException {
     private static final long serialVersionUID = -2365283080814579299L;
 
     /**
-     * @param arg0
+     * @param arg0 the message
      */
     public InvalidParseOperationException(final String arg0) {
         super(arg0);
     }
 
     /**
-     * @param arg0
+     * @param arg0 the cause
      */
     public InvalidParseOperationException(final Throwable arg0) {
         super(arg0);
     }
 
     /**
-     * @param arg0
-     * @param arg1
+     * @param arg0 the message
+     * @param arg1 the cause
      */
     public InvalidParseOperationException(final String arg0, final Throwable arg1) {
         super(arg0, arg1);

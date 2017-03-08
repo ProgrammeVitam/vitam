@@ -28,9 +28,7 @@ package fr.gouv.vitam.common.database.parser.query;
 
 
 /**
- * Boolean Requests
- *
- *
+ * the class Boolean query
  *
  */
 public class BooleanQuery extends fr.gouv.vitam.common.database.builder.query.BooleanQuery {

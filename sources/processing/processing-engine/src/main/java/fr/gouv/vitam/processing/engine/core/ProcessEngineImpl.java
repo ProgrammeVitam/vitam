@@ -280,6 +280,9 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         }
     }
 
+    /**
+     * @param asyncResponse of type {@link AsyncResponse}
+     */
     public void setAsyncResponse(AsyncResponse asyncResponse) {
         // Before setting the new asyncResponse, resume it with conflict status
         if (this.asyncResponse != null && (!this.asyncResponse.isDone() || !this.asyncResponse.isCancelled())) {

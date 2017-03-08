@@ -42,7 +42,7 @@ public final class BinaryObjectInfo {
     private DigestType algo;
 
     /**
-     * @return id
+     * @return id of the binary data object
      */
     public String getId() {
         return id;
@@ -59,7 +59,7 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * @return version
+     * @return version of the binary data object
      */
     public String getVersion() {
         return version;
@@ -76,15 +76,14 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * @return uri
+     * @return uri of the binary data as String
      */
     public String getUri() {
         return uri;
     }
 
     /**
-     * @param uri
-     * @param String the uri of the binary data to set
+     * @param uri uri of the binary data object as String
      * @return BinaryObjectInfo
      */
     public BinaryObjectInfo setUri(String uri) {
@@ -94,7 +93,7 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * @return messageDigest
+     * @return messageDigest as String
      */
     public String getMessageDigest() {
         return messageDigest;

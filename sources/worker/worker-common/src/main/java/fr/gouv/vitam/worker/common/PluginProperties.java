@@ -59,7 +59,7 @@ public class PluginProperties {
     /**
      * Get the className
      *
-     * @return className
+     * @return class name as String
      */
     public String getClassName() {
         return className;
@@ -68,7 +68,7 @@ public class PluginProperties {
     /**
      * Set the className
      *
-     * @param className
+     * @param className as String
      */
     public void setClassName(String className) {
         this.className = className;
@@ -86,7 +86,7 @@ public class PluginProperties {
     /**
      * Set the propertiesFile
      *
-     * @param propertiesFile
+     * @param propertiesFile the properties file
      */
     public void setPropertiesFile(String propertiesFile) {
         this.propertiesFile = propertiesFile;

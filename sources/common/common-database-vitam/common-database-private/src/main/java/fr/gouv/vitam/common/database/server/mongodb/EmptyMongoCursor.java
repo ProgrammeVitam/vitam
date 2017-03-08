@@ -37,6 +37,9 @@ import com.mongodb.client.MongoCursor;
  */
 public class EmptyMongoCursor<TResult> implements MongoCursor<TResult> {
 
+    /**
+     * the constructor
+     */
     public EmptyMongoCursor() {
         super();
     }

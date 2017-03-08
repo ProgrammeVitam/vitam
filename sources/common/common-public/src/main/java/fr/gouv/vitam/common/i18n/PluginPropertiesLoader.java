@@ -53,8 +53,8 @@ public class PluginPropertiesLoader {
     
     /**
      * loadProperties from handler Id and properties file
-     * @param handlerID
-     * @param propertyFilename
+     * @param handlerID the handler id to load
+     * @param propertyFilename the property file name
      */
     public static void loadProperties(String handlerID, String propertyFilename) {
         try (InputStream inputStream = PropertiesUtils.getResourceAsStream(propertyFilename)) {
@@ -69,7 +69,7 @@ public class PluginPropertiesLoader {
     }
     
     /**
-     * @param message
+     * @param message the message id to get from resource map 
      * @return message detail
      */
     public static final String getString(String message) {

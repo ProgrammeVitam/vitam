@@ -147,7 +147,7 @@ public class JunitHelper extends ExternalResource {
     /**
      * Remove the used port
      *
-     * @param port
+     * @param port to release
      */
     public final synchronized void releasePort(int port) {
         LOGGER.debug("Relaese port: " + port);
@@ -195,7 +195,7 @@ public class JunitHelper extends ExternalResource {
     /**
      * Read and close the inputStream using buffer read (read(buffer))
      *
-     * @param inputStream
+     * @param inputStream to read and close
      * @return the size of the inputStream read
      */
     public static final long consumeInputStream(InputStream inputStream) {
@@ -223,7 +223,7 @@ public class JunitHelper extends ExternalResource {
     /**
      * Read and close the inputStream one byte at a time (read())
      *
-     * @param inputStream
+     * @param inputStream to read and close
      * @return the size of the inputStream read
      */
     public static final long consumeInputStreamPerByte(InputStream inputStream) {
@@ -268,7 +268,7 @@ public class JunitHelper extends ExternalResource {
     /**
      * Set JettyPort System Property
      *
-     * @param port
+     * @param port set to jetty server
      */
     public static final void setJettyPortSystemProperty(int port) {
         SystemPropertyUtil.set(PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
@@ -284,7 +284,7 @@ public class JunitHelper extends ExternalResource {
     /**
      * Utility to check empty private constructor
      *
-     * @param clasz
+     * @param clasz class template
      */
     public static final void testPrivateConstructor(Class<?> clasz) {
         // Get the empty constructor

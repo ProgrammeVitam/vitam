@@ -47,7 +47,7 @@ public class StepsNotFoundException extends ProcessingException {
     }
 
     /**
-     * @param message
+     * @param message of exception
      */
     public StepsNotFoundException(String message) {
         super(message);

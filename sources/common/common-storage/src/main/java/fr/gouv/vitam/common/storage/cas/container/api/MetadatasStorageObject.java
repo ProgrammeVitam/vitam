@@ -28,6 +28,9 @@ package fr.gouv.vitam.common.storage.cas.container.api;
 
 import fr.gouv.vitam.common.model.MetadatasObject;
 
+/**
+ * metadata storage object
+ */
 public class MetadatasStorageObject extends MetadatasObject {
     
 }

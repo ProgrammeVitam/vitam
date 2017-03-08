@@ -42,7 +42,7 @@ public final class StringUtils {
     }
 
     /**
-     * @param length
+     * @param length the length of rray
      * @return a byte array with random values
      */
     public static final byte[] getRandom(final int length) {
@@ -59,7 +59,7 @@ public final class StringUtils {
     /**
      * Revert Arrays.toString for bytes
      *
-     * @param bytesString
+     * @param bytesString the string to transform
      * @return the array of bytes
      * @throws IllegalArgumentException if bytesString is null or empty
      */
@@ -79,7 +79,7 @@ public final class StringUtils {
 
     /**
      *
-     * @param object
+     * @param object to get its class name
      * @return the short name of the Class of this object
      */
     public static final String getClassName(Object object) {

@@ -141,9 +141,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
+     * @param value in format String to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final JsonNode getFromString(final String value)
         throws InvalidParseOperationException {
@@ -157,9 +157,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param file
+     * @param file to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final JsonNode getFromFile(final File file)
         throws InvalidParseOperationException {
@@ -173,9 +173,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param stream
+     * @param stream to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final JsonNode getFromInputStream(final InputStream stream)
         throws InvalidParseOperationException {
@@ -189,10 +189,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
-     * @param clasz
+     * @param value to transform
+     * @param clasz the instance of target class 
      * @return the object of type clasz
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromString(final String value, final Class<T> clasz)
         throws InvalidParseOperationException {
@@ -206,11 +206,11 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
-     * @param clasz 
-     * @param parameterClazz 
+     * @param value in format String to transform
+     * @param clasz the instance of target class
+     * @param parameterClazz the the target class template parameters 
      * @return the object of type clasz
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromString(final String value, final Class<T> clasz, Class<?> parameterClazz )
         throws InvalidParseOperationException {
@@ -226,10 +226,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
-     * @param clasz
+     * @param value to transform
+     * @param clasz  the instance of target class
      * @return the object of type clasz
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromStringLowerCamelCase(final String value, final Class<T> clasz)
         throws InvalidParseOperationException {
@@ -243,9 +243,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
+     * @param value in format byte to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final JsonNode getFromBytes(final byte[] value)
         throws InvalidParseOperationException {
@@ -259,10 +259,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param file
-     * @param clasz
+     * @param file to transform
+     * @param clasz the instance of target class
      * @return the corresponding object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromFile(File file, Class<T> clasz)
         throws InvalidParseOperationException {
@@ -276,10 +276,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param file
-     * @param clasz
+     * @param file to transform
+     * @param clasz  the instance of target class
      * @return the corresponding object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromFileLowerCamelCase(File file, Class<T> clasz)
         throws InvalidParseOperationException {
@@ -293,10 +293,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param jsonNode
-     * @param clasz
+     * @param jsonNode the json object to transform
+     * @param clasz the instance of target class
      * @return the corresponding object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromJsonNode(JsonNode jsonNode, Class<T> clasz)
         throws InvalidParseOperationException {
@@ -310,10 +310,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param jsonNode
-     * @param clasz
+     * @param jsonNode the json object to get
+     * @param clasz the instance of target class
      * @return the corresponding object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromJsonNodeLowerCamelCase(JsonNode jsonNode, Class<T> clasz)
         throws InvalidParseOperationException {
@@ -327,9 +327,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
+     * @param object to transform
      * @return the Json representation of the object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final JsonNode toJsonNode(final Object object)
         throws InvalidParseOperationException {
@@ -343,9 +343,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
+     * @param object to transform
      * @return the Json representation of the object (shall be prettyPrint)
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final String writeAsString(final Object object)
         throws InvalidParseOperationException {
@@ -359,7 +359,7 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
+     * @param object to write
      * @return the Json representation of the object in Pretty Print format
      */
     public static String prettyPrint(Object object) {
@@ -375,7 +375,7 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
+     * @param object to transform
      * @return the Json representation of the object in UnPretty Print format
      */
     public static String unprettyPrint(Object object) {
@@ -390,7 +390,7 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
+     * @param object to transform
      * @return the Json representation of the object in UnPretty Print format
      */
     public static String unprettyPrintLowerCamelCase(Object object) {
@@ -405,9 +405,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
-     * @param file
-     * @throws InvalidParseOperationException
+     * @param object to write
+     * @param file to write object 
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final void writeAsFile(final Object object, File file)
         throws InvalidParseOperationException {
@@ -421,9 +421,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param object
-     * @param outputStream
-     * @throws InvalidParseOperationException
+     * @param object to write
+     * @param outputStream the output stream
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final void writeAsOutputStream(final Object object, OutputStream outputStream)
         throws InvalidParseOperationException {
@@ -439,7 +439,7 @@ public final class JsonHandler {
      * Check if JsonNodes are not null and not empty
      *
      * @param message default message within exception
-     * @param nodes
+     * @param nodes to check
      * @throws IllegalArgumentException if nodes are null or empty
      */
     public static final void checkNullOrEmpty(final String message, final JsonNode... nodes) {
@@ -458,9 +458,9 @@ public final class JsonHandler {
      * node should have only one property
      *
      * @param nodeName name to print in case of error
-     * @param node
+     * @param node to check
      * @return the couple property name and property value
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final Entry<String, JsonNode> checkUnicity(final String nodeName,
         final JsonNode node)
@@ -491,9 +491,9 @@ public final class JsonHandler {
      * node should have only one property ; simple value is allowed
      *
      * @param nodeName name to print in case of error
-     * @param node
+     * @param node to check
      * @return the couple property name and property value
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final Entry<String, JsonNode> checkLaxUnicity(final String nodeName,
         final JsonNode node)
@@ -536,9 +536,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
+     * @param value to transform
      * @return the corresponding HashMap
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final Map<String, Object> getMapFromString(final String value)
         throws InvalidParseOperationException {
@@ -561,9 +561,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param value
+     * @param value to transform
      * @return the corresponding HashMap
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final Map<String, String> getMapStringFromString(final String value)
         throws InvalidParseOperationException {
@@ -586,9 +586,9 @@ public final class JsonHandler {
 
     /**
      *
-     * @param inputStream
+     * @param inputStream to transform
      * @return the corresponding HashMap
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final Map<String, Object> getMapFromInputStream(final InputStream inputStream)
         throws InvalidParseOperationException {
@@ -613,12 +613,12 @@ public final class JsonHandler {
     }
 
     /**
-     * transform an inputStream into a {@link Map<String, T>}
-     * @param inputStream
+     * transform an inputStream into a {@link {Map<String, T>} maps of template class
+     * @param inputStream to transform
      * @param parameterClazz type of the value on the Map
-     * @param <T>
+     * @param <T> the class template
      * @return the corresponding HashMap
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> Map<String, T> getMapFromInputStream(final InputStream inputStream, Class<T> parameterClazz)
         throws InvalidParseOperationException {
@@ -645,10 +645,10 @@ public final class JsonHandler {
 
     /**
      *
-     * @param inputStream
-     * @param clasz
+     * @param inputStream to transform
+     * @param clasz the instance of target class
      * @return the corresponding object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final <T> T getFromInputStream(InputStream inputStream, Class<T> clasz)
         throws InvalidParseOperationException {
@@ -670,9 +670,9 @@ public final class JsonHandler {
     /**
      * From one ArrayNode, get a new ArrayNode from offset to limit items
      *
-     * @param array
-     * @param offset
-     * @param limit
+     * @param array to get node data
+     * @param offset of array to get
+     * @param limit of array to get 
      * @return Sub ArrayNode
      */
     public static ArrayNode getSubArrayNode(ArrayNode array, int offset, int limit) {

@@ -28,6 +28,9 @@ package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * Metadata object
+ */
 public abstract class MetadatasObject {
 
     @JsonProperty("objectName")
@@ -61,13 +64,13 @@ public abstract class MetadatasObject {
     /**
      * Constructor to initialize the needed parameters for get metadata results
      * 
-     * @param objectName
-     * @param type
-     * @param digest
-     * @param fileSize
-     * @param fileOwner
-     * @param lastAccessDate
-     * @param lastModifiedDate
+     * @param objectName the object name
+     * @param type the type of metadata object
+     * @param digest of metadata object
+     * @param fileSize of metadata object
+     * @param fileOwner of metadata object
+     * @param lastAccessDate of metadata object
+     * @param lastModifiedDate of metadata object
      */
     public MetadatasObject(String objectName, String type, String digest, long fileSize, String fileOwner,
         String lastAccessDate, String lastModifiedDate) {
@@ -89,7 +92,7 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @param objectName
+     * @param objectName of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setObjectName(String objectName) {
@@ -105,7 +108,7 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @param type
+     * @param type of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setType(String type) {
@@ -121,7 +124,7 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @param digest
+     * @param digest of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setDigest(String digest) {
@@ -130,14 +133,14 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @return
+     * @return the file size of metadata object
      */
     public long getFileSize() {
         return fileSize;
     }
 
     /**
-     * @param fileSize
+     * @param fileSize of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setFileSize(long fileSize) {
@@ -153,7 +156,7 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @param fileOwner
+     * @param fileOwner of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setFileOwner(String fileOwner) {
@@ -169,7 +172,7 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @param lastAccessDate
+     * @param lastAccessDate of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setLastAccessDate(String lastAccessDate) {
@@ -185,7 +188,7 @@ public abstract class MetadatasObject {
     }
 
     /**
-     * @param lastModifiedDate
+     * @param lastModifiedDate of metadata object to set
      * @return MetadatasObjectResult
      */
     public MetadatasObject setLastModifiedDate(String lastModifiedDate) {

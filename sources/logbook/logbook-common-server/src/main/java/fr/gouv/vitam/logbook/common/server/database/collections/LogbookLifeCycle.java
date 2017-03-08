@@ -44,17 +44,22 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 
 /**
  * Abstract class for Logbook LifeCycle item
+ * 
+ * @param <T> template 
  */
 public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
     private static final long serialVersionUID = 105654500015427902L;
 
+    /**
+     * Constructor
+     */
     public LogbookLifeCycle() {
     }
 
     /**
      * Constructor from LogbookLifeCycleParameters
      *
-     * @param parameters
+     * @param parameters of type LogbookParameters
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookLifeCycle(LogbookParameters parameters) {
@@ -72,7 +77,7 @@ public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content in format Document
      */
     public LogbookLifeCycle(Document content) {
         super(content);
@@ -81,7 +86,7 @@ public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content in format String
      */
     public LogbookLifeCycle(String content) {
         super(content);
@@ -90,7 +95,7 @@ public abstract class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content in format JsonNode
      */
     public LogbookLifeCycle(JsonNode content) {
         super(content);

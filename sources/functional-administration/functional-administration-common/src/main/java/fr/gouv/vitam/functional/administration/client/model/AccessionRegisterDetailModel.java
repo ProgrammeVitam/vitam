@@ -127,7 +127,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param id
+     * @param id value to set
      * @return this
      */
     public AccessionRegisterDetailModel setId(String id) {
@@ -143,7 +143,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param tenant
+     * @param tenant the working tenant to set
      * @return this
      */
     public AccessionRegisterDetailModel setTenant(long tenant) {
@@ -159,7 +159,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param originatingAgency
+     * @param originatingAgency value to set
      * @return this
      */
     public AccessionRegisterDetailModel setOriginatingAgency(String originatingAgency) {
@@ -175,7 +175,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param submissionAgency
+     * @param submissionAgency value to set
      * @return this
      */
     public AccessionRegisterDetailModel setSubmissionAgency(String submissionAgency) {
@@ -207,7 +207,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param endDate
+     * @param endDate value to set
      * @return this
      */
     public AccessionRegisterDetailModel setEndDate(String endDate) {
@@ -223,7 +223,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param startDate
+     * @param startDate value to set
      * @return this
      */
     public AccessionRegisterDetailModel setStartDate(String startDate) {
@@ -239,7 +239,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param lastUpdate
+     * @param lastUpdate value to set
      * @return this
      */
     public AccessionRegisterDetailModel setLastUpdate(String lastUpdate) {
@@ -255,7 +255,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param status
+     * @param status value to set
      * @return this
      */
     public AccessionRegisterDetailModel setStatus(AccessionRegisterStatus status) {
@@ -271,7 +271,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param totalObjectsGroups
+     * @param totalObjectsGroups value to set
      * @return this
      */
     public AccessionRegisterDetailModel setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
@@ -287,7 +287,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param totalUnits
+     * @param totalUnits value to set
      * @return this
      */
     public AccessionRegisterDetailModel setTotalUnits(RegisterValueDetailModel totalUnits) {
@@ -303,7 +303,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param totalObjects
+     * @param totalObjects value to set
      * @return this
      */
     public AccessionRegisterDetailModel setTotalObjects(RegisterValueDetailModel totalObjects) {
@@ -319,7 +319,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param objectSize
+     * @param objectSize value to set
      * @return this
      */
     public AccessionRegisterDetailModel setObjectSize(RegisterValueDetailModel objectSize) {
