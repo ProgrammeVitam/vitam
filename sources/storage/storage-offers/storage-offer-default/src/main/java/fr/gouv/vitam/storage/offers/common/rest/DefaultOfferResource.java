@@ -65,6 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -130,10 +131,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             response.header(GlobalDataRest.X_TENANT_ID, xTenantId);
             return response.build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, exc);
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
         } catch (final ContentAddressableStorageServerException exc) {
-            LOGGER.error(exc);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -171,7 +172,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             try {
                 cursorId = DefaultOfferServiceImpl.getInstance().createCursor(buildContainerName(type, xTenantId));
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException exc) {
-                LOGGER.error(exc);
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
                 status = Status.INTERNAL_SERVER_ERROR;
                 final Response.ResponseBuilder builder = Response.status(status)
                     .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -192,7 +193,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     (responseOK.setHits(list.size(), 0, list.size()));
                 return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
             } catch (ContentAddressableStorageNotFoundException exc) {
-                LOGGER.error(exc);
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
                 status = Status.INTERNAL_SERVER_ERROR;
                 final Response.ResponseBuilder builder = Response.status(status)
                     .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -232,10 +233,10 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             final JsonNode result = DefaultOfferServiceImpl.getInstance().countObjects(containerName);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
-            LOGGER.error(exc);
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, exc);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (final ContentAddressableStorageServerException exc) {
-            LOGGER.error(exc);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -316,7 +317,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 DefaultOfferServiceImpl.getInstance().initCreateObject(containerName, objectInit, objectGUID);
             return Response.status(Response.Status.CREATED).entity(objectInitFilled).build();
         } catch (final ContentAddressableStorageException exc) {
-            LOGGER.error(exc);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -363,7 +364,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return Response.status(Response.Status.CREATED).entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis
                 .getSize() + "\"}").build();
         } catch (IOException | ContentAddressableStorageException exc) {
-            LOGGER.error("Cannot create object", exc);
+            LOGGER.error("Cannot create object "+ containerName, exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } finally {
             StreamUtils.closeSilently(input);
@@ -400,18 +401,18 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(MISSING_X_DIGEST);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+        final String containerName = buildContainerName(type, xTenantId);
         try {
-            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
-            final String containerName = buildContainerName(type, xTenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));            
             DefaultOfferServiceImpl.getInstance().deleteObject(containerName, idObject, xDigest,
                 DigestType.fromValue(xDigestAlgorithm));
             return Response.status(Response.Status.OK)
                 .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}").build();
         } catch (ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
 
@@ -469,7 +470,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 return Response.status(Status.CONFLICT).build();
             }
         } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -483,35 +484,36 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+        final String containerName = buildContainerName(type, xTenantId);
         try {
             StorageMetadatasResult result = DefaultOfferServiceImpl.getInstance().getMetadatas(
-                buildContainerName(type, xTenantId), idObject);
+                containerName, idObject);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException | IOException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     private void getObjectAsync(DataCategory type, String objectId, HttpHeaders headers, AsyncResponse asyncResponse) {
-        try {
-            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        final String containerName = buildContainerName(type, xTenantId);
+        try {            
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
                 AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED).build());
                 return;
-            }
-            final String containerName = buildContainerName(type, xTenantId);
+            }            
             DefaultOfferServiceImpl.getInstance().getObject(containerName, objectId, asyncResponse);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
             buildErrorResponseAsync(VitamCode.STORAGE_NOT_FOUND, asyncResponse);
         } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e);
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             buildErrorResponseAsync(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, asyncResponse);
         }
 
