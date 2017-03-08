@@ -1,5 +1,5 @@
-Workspace Offer
-###############
+Vitam Offer
+###########
 
 Présentation
 ************
@@ -223,17 +223,3 @@ REST API
   - code : 200
   - contenu : statut
 
-
-Intégration du workspace
-========================
-
-Le module core du Workspace est utilisé pour gérer le stockage des objets.
-
-L'arborescence cible est la suivante :
-
-- pour chaque tenant un dossier est créé dans le workspace (équivalent du container) : /idTenant
-
-- pour chaque type d'objet, un sous-dossier est créé dans le dossier tenant (unit, logbook, objectGroup, object) : /idTenant/objectGroup
-
-Chaque objet, selon son type et le tenant associé, est stocké dans le dossier adéquat.
-Si le dossier cible n'existe pas à l'écriture de l'objet, il est créé automatiquement.

@@ -42,23 +42,22 @@ import org.jclouds.providers.ProviderMetadata;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.storage.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.model.ContainerInformation;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 
 
 /**
  * FileSystemMock implements a Content Addressable Storage that stores objects on the file system.
  */
-public class FileSystem extends ContentAddressableStorageAbstract {
+public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileSystem.class);
 
@@ -73,6 +72,7 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     @Override
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException {
+        ParametersChecker.checkParameter("Container name may not be null", containerName);
         final File baseDirFile = getBaseDir(containerName);
         final long usableSpace = baseDirFile.getUsableSpace();
         final long usedSpace = getFolderUsedSize(baseDirFile);
@@ -151,9 +151,9 @@ public class FileSystem extends ContentAddressableStorageAbstract {
     @Override
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws IOException, ContentAddressableStorageException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
         try {
             File file = getFileFromJClouds(containerName, objectId);
             BasicFileAttributes basicAttribs = getFileAttributes(file);

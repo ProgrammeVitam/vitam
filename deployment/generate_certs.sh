@@ -73,9 +73,9 @@ echo "Fin de génération du certificat client de ihm-recette"
 echo "Generation du certificat server de default-offer"
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-offer-default ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	echo "	Génération pour ${i}..."
-	generatehostcertificate storage-offer-default storageofferdefaultkeypassword caintermediatekeypassword ${i} server ${i}
+	generatehostcertificate offer storageofferdefaultkeypassword caintermediatekeypassword ${i} server ${i}
 	echo "	Conversion en p12..."
-	crtkey2p12 ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/storage-offer-default storageofferdefaultkeypassword ${i} ${p12_storage_offer_default}
+	crtkey2p12 ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/offer storageofferdefaultkeypassword ${i} ${p12_storage_offer_default}
 	echo "	Fin de conversion sous ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/ !"
 done
 echo "Fin de génération du certificat server de default-offer"

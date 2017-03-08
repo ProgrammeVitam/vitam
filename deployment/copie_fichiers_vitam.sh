@@ -75,10 +75,10 @@ done
 
 
 echo "	Recopie pour offer-default..."
-mkdir -p ansible-vitam-rpm/roles/vitam/files/storage-offer-default
+mkdir -p ansible-vitam-rpm/roles/vitam/files/offer
 for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts-storage-offer-default ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
 	# FIXME : be more restrictive on jks files
-	cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/storage-offer-default/
+	cp -f ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/*jks ansible-vitam-rpm/roles/vitam/files/offer/
 done
 echo "	Fichiers recopiés"
 echo "------------------------"

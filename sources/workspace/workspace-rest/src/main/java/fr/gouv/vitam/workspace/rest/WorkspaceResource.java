@@ -64,8 +64,6 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
-import fr.gouv.vitam.common.storage.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -73,10 +71,10 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.api.model.ContainerInformation;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
+import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 
 /**
  * The Workspace Resource.
@@ -93,7 +91,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
     private static final String CONTAINER_NAME = "containerName";
 
-    private final ContentAddressableStorage workspace;
+    private final WorkspaceFileSystem workspace;
 
     /**
      * Constructor used to configure a workspace
@@ -101,7 +99,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param configuration the storage config
      */
     public WorkspaceResource(StorageConfiguration configuration) {
-        workspace = StoreContextBuilder.newStoreContext(configuration);
+        workspace = new WorkspaceFileSystem(configuration);
         LOGGER.info("init Workspace Resource server");
     }
 
@@ -125,7 +123,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
             return Response.status(Status.CONFLICT).entity(containerName).build();
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -155,7 +153,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -185,7 +183,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -217,7 +215,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, exc);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -244,7 +242,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, exc);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -275,7 +273,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName, e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -306,7 +304,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName, e);
             return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -338,7 +336,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -493,7 +491,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
-        } catch (final ContentAddressableStorageException e) {
+        } catch (final Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
         }
@@ -607,7 +605,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 } else {
                     return Response.status(Status.NOT_FOUND).build();
                 }
-            } catch (final ContentAddressableStorageException e) {
+            } catch (final Exception e) {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
             }

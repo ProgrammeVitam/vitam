@@ -52,7 +52,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>storage-offer-default</artifactId>
+			<artifactId>vitam-offer</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>

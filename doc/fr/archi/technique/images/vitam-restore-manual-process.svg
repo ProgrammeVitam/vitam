@@ -945,7 +945,7 @@
 				<v:ud v:nameU="WHBoxIntersection" v:prompt="" v:val="VT7(PNT(0,0.32418435891664)):40"/>
 			</v:userDefs>
 			<title>Remarque.266</title>
-			<desc>act: systemctl start vitam-storage-offer-default ctrl : syste...</desc>
+			<desc>act: systemctl start vitam-offer ctrl : syste...</desc>
 			<g id="shape75-526" v:mID="75" v:groupContext="groupContent">
 				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 				<v:textRect cx="132.732" cy="2430.28" width="265.47" height="42.8996"/>

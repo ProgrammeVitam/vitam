@@ -76,8 +76,8 @@ systemctl stop vitam-metadata
 systemctl stop vitam-storage
 ! systemctl is-active vitam-storage
 
-systemctl stop vitam-storage-offer-default
-! systemctl is-active vitam-storage-offer-default
+systemctl stop vitam-offer
+! systemctl is-active vitam-offer
 
 systemctl stop vitam-elasticsearch-data
 ! systemctl is-active vitam-elasticsearch-data
@@ -140,9 +140,9 @@ systemctl start vitam-elasticsearch-data
 sleep 3
 systemctl is-active vitam-elasticsearch-data
 
-systemctl start vitam-storage-offer-default
+systemctl start vitam-offer
 sleep 3
-systemctl is-active vitam-storage-offer-default
+systemctl is-active vitam-offer
 
 systemctl start vitam-storage
 sleep 3
