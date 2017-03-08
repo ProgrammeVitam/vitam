@@ -90,6 +90,8 @@ public class ExtractSedaActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SIP_ADD_LINK = "extractSedaActionHandler/addLink/SIP_Add_Link.xml";
     private static final String SIP_ADD_UNIT = "extractSedaActionHandler/addUnit/SIP_Add_Unit.xml";
+    private static final String SIP_WITHOUT_ORIGINATING_AGENCY =
+        "extractSedaActionHandler/manifestKO/originating_agency_not_set.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
@@ -432,4 +434,21 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithOriginatingAgencyNotSetThenReadKO() throws VitamException, IOException {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl")
+            .setUrlMetadata("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_WITHOUT_ORIGINATING_AGENCY));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
 }

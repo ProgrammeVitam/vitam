@@ -46,16 +46,14 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -1022,15 +1020,14 @@ public class LogbookResource extends ApplicationStatusResource {
                 cursorId = logbookLifeCycle.createCursorObjectGroup(operationId, query,
                     fromLifeCycleStatusToObjectGroupCollection(lifeCycleStatus));
             }
-            final RequestResponseOK responseOK =
-                new RequestResponseOK().setQuery(nodeQuery);
+            final RequestResponseOK responseOK = new RequestResponseOK().setQuery(nodeQuery);
             int nb = 0;
             try {
                 for (; nb < MAX_NB_PART_ITERATOR; nb++) {
-                    final LogbookLifeCycle lcObjectGroup =
-                        logbookLifeCycle.getCursorObjectGroupNext(cursorId);
+                    final LogbookLifeCycle lcObjectGroup = logbookLifeCycle.getCursorObjectGroupNext(cursorId);
+                    responseOK.addResult(JsonHandler.toJsonNode(lcObjectGroup));
                 }
-            } catch (final LogbookNotFoundException e) {
+            } catch (final LogbookNotFoundException | InvalidParseOperationException e) {
                 // Ignore
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
