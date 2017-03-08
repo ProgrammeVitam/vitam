@@ -67,20 +67,7 @@ angular.module('accession.register.search')
       return requestOptions;
     };
 
-    var successCallback = function(response) {
-      var isReponseValid = responseValidator.validateReceivedResponse(response);
-      if (!isReponseValid) {
-        return false;
-      }
-      // Get total results
-      $scope.search.response.totalResult = response.data.$hits.total;
-      $scope.search.pagination.currentPage = 1;
-      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
-
-      if ($scope.search.response.totalResult > 0) {
-        // Display found registers
-        $scope.search.response.data = response.data.$results;
-      }
+    var successCallback = function() {
       return true;
     };
 

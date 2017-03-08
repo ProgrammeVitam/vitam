@@ -94,14 +94,7 @@ angular.module('ihm.demo')
       return requestOptions;
     };
 
-    var successCallback = function(response) {
-      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-        return false;
-      }
-      $scope.search.response.data = response.data.$results;
-      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/$scope.search.pagination.itemsPerPage);
-      $scope.search.response.totalResults = response.data.$hits.total;
-      $scope.search.pagination.currentPage = 1;
+    var successCallback = function() {
       return true;
     };
 
@@ -113,7 +106,11 @@ angular.module('ihm.demo')
       }
     };
 
-    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('logbook').all('operations').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    var customPost = function(criteria, headers) {
+      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(criteria, null, null, headers);
+    };
+
+    var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getList = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;

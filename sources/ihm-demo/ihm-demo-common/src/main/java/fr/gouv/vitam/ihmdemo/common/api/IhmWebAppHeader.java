@@ -43,7 +43,7 @@ public enum IhmWebAppHeader {
      */
     LIMIT(IhmDataRest.X_LIMIT, "[0-9]+"),
     /**
-     * The X-X_OFFSET header, used to get an object
+     * The X_OFFSET header, used to get an object
      */
     OFFSET(IhmDataRest.X_OFFSET, "[0-9]+"),
     /**
