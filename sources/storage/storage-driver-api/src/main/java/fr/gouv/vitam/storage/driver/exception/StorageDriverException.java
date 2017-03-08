@@ -39,47 +39,40 @@ public class StorageDriverException extends Exception {
      */
     private static final long serialVersionUID = -5618781604751959001L;
     private final String driverInfo;
-    private final ErrorCode errorCode;
     private static final String ERROR_MESSAGE = "An error occured for driver '";
 
     /**
      * Constructor with a message and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
-     * @param errorCode code representing the error
      * @param message a message to add
      */
-    public StorageDriverException(String driverInfos, ErrorCode errorCode, String message) {
+    public StorageDriverException(String driverInfos, String message) {
         super(ERROR_MESSAGE + driverInfos + "' with message :" + message);
         driverInfo = driverInfos;
-        this.errorCode = errorCode;
     }
 
     /**
      * Constructor with a message and an original exception and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
-     * @param errorCode code representing the error
      * @param message the exception message
      * @param cause the original exception
      */
-    public StorageDriverException(String driverInfos, ErrorCode errorCode, String message, Throwable cause) {
+    public StorageDriverException(String driverInfos, String message, Throwable cause) {
         super(ERROR_MESSAGE + driverInfos + "' with message :" + message, cause);
         driverInfo = driverInfos;
-        this.errorCode = errorCode;
     }
 
     /**
      * Constructor with an original exception and additional info about the driver
      *
      * @param driverInfos information about the driver (id, name, version...)
-     * @param errorCode code representing the error
      * @param cause the original exception
      */
-    public StorageDriverException(String driverInfos, ErrorCode errorCode, Throwable cause) {
+    public StorageDriverException(String driverInfos, Throwable cause) {
         super(ERROR_MESSAGE + driverInfos, cause);
         driverInfo = driverInfos;
-        this.errorCode = errorCode;
     }
 
     /**
@@ -91,30 +84,4 @@ public class StorageDriverException extends Exception {
         return driverInfo;
     }
 
-    /**
-     * Get error code
-     *
-     * @return the error code
-     */
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
-    /**
-     * Enum representing exception error
-     */
-    public enum ErrorCode {
-        /**
-         * Not found code
-         */
-        NOT_FOUND,
-        /**
-         * Precondition failed code
-         */
-        PRECONDITION_FAILED,
-        /**
-         * Internal server error code
-         */
-        INTERNAL_SERVER_ERROR
-    }
 }

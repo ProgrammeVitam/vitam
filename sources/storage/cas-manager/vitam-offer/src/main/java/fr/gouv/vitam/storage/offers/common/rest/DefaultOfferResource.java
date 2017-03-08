@@ -132,7 +132,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             return response.build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, exc);
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+            return Response.status(Response.Status.NOT_FOUND).build();
         } catch (final ContentAddressableStorageServerException exc) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();

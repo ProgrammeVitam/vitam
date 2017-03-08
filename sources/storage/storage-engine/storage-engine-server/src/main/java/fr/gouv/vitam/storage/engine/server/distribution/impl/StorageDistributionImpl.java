@@ -72,7 +72,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
@@ -80,6 +80,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -187,7 +188,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public StoredInfoResult storeData(String strategyId, String objectId,
         ObjectDescription createObjectDescription, DataCategory category, String requester)
-        throws StorageException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageAlreadyExistsException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
         checkStoreDataParams(createObjectDescription, strategyId, objectId, category);
@@ -220,7 +221,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private StorageLogbookParameters tryAndRetry(String objectId, ObjectDescription createObjectDescription,
         DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt,
         StorageLogbookParameters parameters)
-        throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
+        throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
 
         Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
 
@@ -257,27 +258,37 @@ public class StorageDistributionImpl implements StorageDistribution {
             try {
                 future.get(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
                     TimeUnit.MILLISECONDS);
-                parameters = setLogbookStorageParameters(parameters, offerId, future.get(), requester, attempt);
+                parameters = setLogbookStorageParameters(parameters, offerId, future.get(), requester, attempt, null);
                 datas.koListToOkList(offerId);
             } catch (TimeoutException e) {
                 LOGGER.error("Timeout on offer ID " + offerId);
                 future.cancel(true);
                 // TODO: manage thread to take into account this interruption
                 LOGGER.error("Interrupted after timeout on offer ID " + offerId);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
             } catch (InterruptedException e) {
                 LOGGER.error("Interrupted on offer ID " + offerId, e);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
             } catch (ExecutionException e) {
                 LOGGER.error("Error on offer ID " + offerId, e);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+                Status status = Status.INTERNAL_SERVER_ERROR;
+                if (e.getCause() instanceof StorageAlreadyExistsException) {
+                    status = Status.CONFLICT;
+                    datas.changeStatus(offerId, status);
+                }
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, status);
+                if (e.getCause() instanceof StorageDriverException ||
+                    e.getCause() instanceof StorageDriverPreconditionFailedException) {
+                    LOGGER.error("Error encountered is " + e.getCause().getClass() + ", no need to retry");
+                    attempt = NB_RETRY;
+                }
                 // TODO: review this exception to manage errors correctly
                 // Take into account Exception class
                 // For example, for particular exception do not retry (because it's useless)
                 // US : #2009
             } catch (NumberFormatException e) {
                 LOGGER.error("Wrong number on wait on offer ID " + offerId, e);
-                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt);
+                parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
             }
         }
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
@@ -325,15 +336,19 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
 
+
     private StorageLogbookParameters setLogbookStorageParameters(StorageLogbookParameters parameters, String offerId,
         ThreadResponseData res,
-        String requester, int attempt) {
+        String requester, int attempt, Status status) {
+        if (status == null) {
+            status = Status.INTERNAL_SERVER_ERROR;
+        }
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
-                null, offerId, res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, requester, attempt);
+                null, offerId, res != null ? res.getStatus() : status, requester, attempt);
         } else {
             updateStorageLogbookParameters(parameters, offerId,
-                res != null ? res.getStatus() : Status.INTERNAL_SERVER_ERROR, attempt);
+                res != null ? res.getStatus() : status, attempt);
         }
         return parameters;
     }
@@ -350,18 +365,26 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StoredInfoResult buildStoreDataResponse(String objectId, DataCategory category,
-        Map<String, Status> offerResults) throws StorageTechnicalException {
+        Map<String, Status> offerResults) throws StorageTechnicalException, StorageAlreadyExistsException {
 
         final String offerIds = String.join(", ", offerResults.keySet());
         // Aggregate result of all store actions. If all went well, allSuccess is true, false if one action failed
-        final boolean allSuccess = offerResults.entrySet().stream()
+        final boolean allWithoutInternalServerError = offerResults.entrySet().stream()
             .map(Map.Entry::getValue)
             .noneMatch(Status.INTERNAL_SERVER_ERROR::equals);
+        final boolean allWithoutAlreadyExists = offerResults.entrySet().stream()
+            .map(Map.Entry::getValue)
+            .noneMatch(Status.CONFLICT::equals);
 
-        if (!allSuccess) {
+        if (!allWithoutInternalServerError) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CANT_STORE_OBJECT,
                 objectId, offerIds));
             throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CANT_STORE_OBJECT,
+                objectId, offerIds));
+        } else if (!allWithoutAlreadyExists) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS,
+                objectId, offerIds));
+            throw new StorageAlreadyExistsException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS,
                 objectId, offerIds));
         }
 
@@ -435,9 +458,9 @@ public class StorageDistributionImpl implements StorageDistribution {
     private void updateStorageLogbookParameters(StorageLogbookParameters parameters, String offerId,
         Status status, int attempt) {
         String offers = parameters.getMapParameters().get(StorageLogbookParameterName.agentIdentifiers);
-        if (Status.INTERNAL_SERVER_ERROR.equals(status)) {
+        if (Status.INTERNAL_SERVER_ERROR.equals(status) || Status.CONFLICT.equals(status)) {
             parameters.getMapParameters().put(StorageLogbookParameterName.outcome, StorageLogbookOutcome.KO.name());
-            offers += ", " + offerId + " attempt " + attempt + " : KO";
+            offers += ", " + offerId + " attempt " + attempt + " : KO - "+ status.name();
         } else {
             offers += ", " + offerId + " attempt " + attempt + " : OK";
         }
@@ -515,13 +538,20 @@ public class StorageDistributionImpl implements StorageDistribution {
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         final Properties parameters = new Properties();
         parameters.putAll(offer.getParameters());
+
         try (Connection connection = driver.connect(offer, parameters)) {
             final ObjectNode ret = JsonHandler.createObjectNode();
             ret.put("offerId", offer.getId());
             ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
             return ret;
-        } catch (StorageDriverException | RuntimeException exc) {
-            // TODO IT_13 (celeg): response error ? (like offerId + usableSpace to 0 ?)
+        } catch (StorageDriverException | RuntimeException exc) {            
+            if (exc instanceof StorageDriverNotFoundException) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND, tenantId), exc);
+                throw new StorageNotFoundException(exc);
+            } else if (exc instanceof StorageDriverPreconditionFailedException) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_BAD_REQUEST), exc);
+                throw new IllegalArgumentException(exc);
+            }
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageTechnicalException(exc);
         }
@@ -570,14 +600,13 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode createContainer(String strategyId) throws StorageException {
+    public JsonNode createContainer(String strategyId) throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteContainer(String strategyId) throws StorageTechnicalException,
-        StorageNotFoundException {
+    public void deleteContainer(String strategyId) throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
@@ -729,6 +758,13 @@ public class StorageDistributionImpl implements StorageDistribution {
                             VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
                     }
                 } catch (StorageDriverException | RuntimeException exc) {
+                    if (exc instanceof StorageDriverNotFoundException) {
+                        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId), exc);
+                        throw new StorageNotFoundException(exc);
+                    } else if (exc instanceof StorageDriverPreconditionFailedException) {
+                        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_BAD_REQUEST), exc);
+                        throw new IllegalArgumentException(exc);
+                    }
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
                     throw new StorageTechnicalException(exc);
                 }
@@ -738,14 +774,14 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException {
+    public JsonNode getContainerLogbooks(String strategyId) throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerLogbook(String strategyId, String logbookId)
-        throws StorageNotFoundException {
+        throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
@@ -753,54 +789,51 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public void deleteLogbook(String strategyId, String logbookId)
-        throws StorageNotFoundException {
+        throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerUnits(String strategyId) throws StorageNotFoundException {
+    public JsonNode getContainerUnits(String strategyId) throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerUnit(String strategyId, String unitId)
-        throws StorageNotFoundException {
+        throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public void deleteUnit(String strategyId, String unitId)
-        throws StorageNotFoundException {
+        throws UnsupportedOperationException {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjectGroups(String strategyId)
-        throws StorageNotFoundException {
+    public JsonNode getContainerObjectGroups(String strategyId) {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
-        throws StorageNotFoundException {
+    public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId) {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public void deleteObjectGroup(String strategyId, String objectGroupId)
-        throws StorageNotFoundException {
+    public void deleteObjectGroup(String strategyId, String objectGroupId) {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
-    public JsonNode status() throws StorageException {
+    public JsonNode status() {
         LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }

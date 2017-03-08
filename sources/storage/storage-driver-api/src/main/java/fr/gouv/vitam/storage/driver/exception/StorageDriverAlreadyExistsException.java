@@ -24,49 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 package fr.gouv.vitam.storage.driver.exception;
 
 /**
- * Define a Storage Exception to be thrown when the storing object is already present in the offer
+ * Exceptions to be thrown by the storage drivers in case service requested is unavailable
+ *
  */
-public class StorageObjectAlreadyExistsException extends Exception {
+public class StorageDriverAlreadyExistsException extends StorageDriverException {
+
+    private static final long serialVersionUID = 1L;
 
     /**
+     * Constructor with a message and additional info about the driver
      *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param message a message to add
      */
-    private static final long serialVersionUID = -3017427500292680375L;
-
-    /**
-     * @param message associated message
-     */
-    public StorageObjectAlreadyExistsException(String message) {
-        super(message);
+    public StorageDriverAlreadyExistsException(String driverInfos, String message) {
+        super(driverInfos, message);
     }
 
     /**
-     * @param cause associated cause
+     * Constructor with a message and an original exception and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param message the exception message
+     * @param cause the original exception
      */
-    public StorageObjectAlreadyExistsException(Throwable cause) {
-        super(cause);
+    public StorageDriverAlreadyExistsException(String driverInfos, String message, Throwable cause) {
+        super(driverInfos, message, cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * Constructor with an original exception and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param cause the original exception
      */
-    public StorageObjectAlreadyExistsException(String messsage, Throwable cause) {
-        super(messsage, cause);
-    }
-
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     * @param enableSuppression allow suppression or not
-     * @param writableStackTrace allow writable stack trace or not
-     */
-    public StorageObjectAlreadyExistsException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
+    public StorageDriverAlreadyExistsException(String driverInfos, Throwable cause) {
+        super(driverInfos, cause);
     }
 
 }

@@ -66,8 +66,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
@@ -113,7 +113,7 @@ public class StorageDistributionImplTest {
     @Test
     @RunWithCustomExecutor
     public void testStoreData_IllegalArguments()
-        throws StorageException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageAlreadyExistsException {
         // storeData(String tenantId, String strategyId, String objectId,
         // CreateObjectDescription createObjectDescription, DataCategory category,
         // JsonNode jsonData)
@@ -283,8 +283,7 @@ public class StorageDistributionImplTest {
         }
     }
 
-    // TODO: REVIEW ERROR MANAGEMENT
-    @Ignore
+
     @Test(expected = StorageTechnicalException.class)
     @RunWithCustomExecutor
     public void testStoreData_DigestKO() throws Exception {
@@ -308,10 +307,8 @@ public class StorageDistributionImplTest {
         }
     }
 
-    // TODO: REVIEW ERROR MANAGEMENT
-    @Ignore
     @RunWithCustomExecutor
-    @Test(expected = StorageObjectAlreadyExistsException.class)
+    @Test(expected = StorageAlreadyExistsException.class)
     public void testObjectAlreadyInOffer() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final String objectId = "already_in_offer";
@@ -331,12 +328,8 @@ public class StorageDistributionImplTest {
         } finally {
             IOUtils.closeQuietly(stream);
         }
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
     }
 
-    // TODO: REVIEW ERROR MANAGEMENT
-    @Ignore
     @Test
     @RunWithCustomExecutor
     public void testStoreData_NotFoundAndWorspaceErrorToTechnicalError() throws Exception {
@@ -385,10 +378,10 @@ public class StorageDistributionImplTest {
             // Expection
         }
     }
-
+        
     private void checkInvalidArgumentException(String strategyId, String objectId,
         ObjectDescription createObjectDescription, DataCategory category)
-        throws StorageException, StorageObjectAlreadyExistsException {
+        throws StorageException, StorageAlreadyExistsException {
         try {
             simpleDistribution.storeData(strategyId, objectId, createObjectDescription, category,
                 "testRequester");

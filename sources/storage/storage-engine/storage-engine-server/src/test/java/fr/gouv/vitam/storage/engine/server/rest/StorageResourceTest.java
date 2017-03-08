@@ -56,10 +56,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -72,7 +70,6 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -117,6 +114,7 @@ public class StorageResourceTest {
     private static final Integer TENANT_ID_E = 1;
     private static final Integer TENANT_ID_A_E = 2;
     private static final Integer TENANT_ID_Ardyexist = 3;
+    private static final Integer TENANT_ID_BAD_REQUEST = -1;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -198,7 +196,8 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E).when().head().then().statusCode(Status.NOT_FOUND.getStatusCode());
+                TENANT_ID_E)
+            .when().head().then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
 
@@ -257,15 +256,16 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON).body("").when()
             .delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, 
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.X_DIGEST.getName(), "digest", VitamHttpHeader.X_DIGEST_ALGORITHM.getName(),
                 VitamConfiguration.getDefaultDigestType().getName())
             .body("").when()
             .delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NO_CONTENT.getStatusCode());
-       
+
+        // Provokes a not found exception -> leading to a NOT_FOUND
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E, VitamHttpHeader.X_DIGEST.getName(), "digest", VitamHttpHeader.X_DIGEST_ALGORITHM.getName(),
@@ -273,6 +273,26 @@ public class StorageResourceTest {
             .body("").when()
             .delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
+
+        // Provokes a technical exception -> leading to an INTERNAL_SERVER_ERROR
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_A_E, VitamHttpHeader.X_DIGEST.getName(), "digest",
+                VitamHttpHeader.X_DIGEST_ALGORITHM.getName(),
+                VitamConfiguration.getDefaultDigestType().getName())
+            .body("").when()
+            .delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        // Provokes an illegal argument exception -> leading to a precondition failed
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_BAD_REQUEST, VitamHttpHeader.X_DIGEST.getName(), "digest",
+                VitamHttpHeader.X_DIGEST_ALGORITHM.getName(),
+                VitamConfiguration.getDefaultDigestType().getName())
+            .body("").when()
+            .delete(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(ContentType.JSON).when()
             .head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
@@ -855,6 +875,12 @@ public class StorageResourceTest {
     }
 
     @Test
+    public void getContainerInformationIllegalArgument() {
+        given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_BAD_REQUEST).when().head().then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+    
+    @Test
     public void getContainerInformationWrongHeaders() {
         given().accept(MediaType.APPLICATION_JSON).headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID).when()
             .head().then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -910,14 +936,14 @@ public class StorageResourceTest {
         @Override
         public StoredInfoResult storeData(String strategyId, String objectId,
             ObjectDescription createObjectDescription, DataCategory category, String requester)
-            throws StorageTechnicalException, StorageNotFoundException, StorageObjectAlreadyExistsException {
+            throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
             } else if (TENANT_ID_A_E.equals(tenantId)) {
                 throw new StorageTechnicalException("Technical error");
             } else if (TENANT_ID_Ardyexist.equals(tenantId)) {
-                throw new StorageObjectAlreadyExistsException("Already Exists Exception");
+                throw new StorageAlreadyExistsException("Already Exists Exception");
             }
             return null;
         }
@@ -930,6 +956,8 @@ public class StorageResourceTest {
                 throw new StorageNotFoundException("Not Found");
             } else if (TENANT_ID_A_E.equals(tenantId)) {
                 throw new StorageTechnicalException("Technical error");
+            } else if (TENANT_ID_BAD_REQUEST.equals(tenantId)) {
+                throw new IllegalArgumentException("IllegalArgumentException");
             }
             return null;
         }
@@ -940,15 +968,15 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode createContainer(String strategyId) throws StorageAlreadyExistsException {
+        public JsonNode createContainer(String strategyId) throws UnsupportedOperationException {
             return null;
         }
 
         @Override
-        public void deleteContainer(String strategyId) throws StorageNotFoundException {
+        public void deleteContainer(String strategyId) throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
         }
 
@@ -990,104 +1018,108 @@ public class StorageResourceTest {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
-            }
+            } 
             return null;
         }
 
         @Override
         public void deleteObject(String strategyId, String objectId, String digest, DigestType digestAlgorithm)
-            throws StorageNotFoundException {
+            throws StorageException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
+            } else if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical error");
+            } else if (TENANT_ID_BAD_REQUEST.equals(tenantId)) {
+                throw new IllegalArgumentException("IllegalArgumentException");
             }
         }
 
         @Override
-        public JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException {
+        public JsonNode getContainerLogbooks(String strategyId) throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
             return null;
         }
 
         @Override
         public JsonNode getContainerLogbook(String strategyId, String logbookId)
-            throws StorageNotFoundException {
+            throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
             return null;
         }
 
         @Override
         public void deleteLogbook(String strategyId, String logbookId)
-            throws StorageNotFoundException {
+            throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
         }
 
         @Override
-        public JsonNode getContainerUnits(String strategyId) throws StorageNotFoundException {
+        public JsonNode getContainerUnits(String strategyId) throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
             return null;
         }
 
         @Override
         public JsonNode getContainerUnit(String strategyId, String unitId)
-            throws StorageNotFoundException {
+            throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
             return null;
         }
 
         @Override
-        public void deleteUnit(String strategyId, String unitId) throws StorageNotFoundException {
+        public void deleteUnit(String strategyId, String unitId) throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
         }
 
         @Override
-        public JsonNode getContainerObjectGroups(String strategyId) throws StorageNotFoundException {
+        public JsonNode getContainerObjectGroups(String strategyId) throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
             return null;
         }
 
         @Override
         public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
-            throws StorageNotFoundException {
+            throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
             return null;
         }
 
         @Override
         public void deleteObjectGroup(String strategyId, String objectGroupId)
-            throws StorageNotFoundException {
+            throws UnsupportedOperationException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
-                throw new StorageNotFoundException("Not Found");
+                throw new UnsupportedOperationException("UnsupportedOperationException");
             }
         }
 
         @Override
-        public JsonNode status() throws StorageException {
+        public JsonNode status() throws UnsupportedOperationException {
             return null;
         }
 

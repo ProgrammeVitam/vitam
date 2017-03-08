@@ -27,21 +27,43 @@
 
 package fr.gouv.vitam.storage.driver.exception;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 /**
- * StorageDriverExceptionTest
+ * Exceptions to be thrown by the storage drivers in case resource was not found on the storage offer
+ *
  */
-public class StorageDriverExceptionTest {
+public class StorageDriverNotFoundException extends StorageDriverException {
 
-    @Test
-    public void testGetDriverInfo() throws Exception {
-        StorageDriverException exc =
-            new StorageDriverException("drivername", "message");
-        exc = new StorageDriverException("drivername", exc);
-        exc = new StorageDriverException("drivername","message", exc);
-        assertEquals("drivername", exc.getDriverInfo());
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Constructor with a message and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param message a message to add
+     */
+    public StorageDriverNotFoundException(String driverInfos, String message) {
+        super(driverInfos, message);
     }
+
+    /**
+     * Constructor with a message and an original exception and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param message the exception message
+     * @param cause the original exception
+     */
+    public StorageDriverNotFoundException(String driverInfos, String message, Throwable cause) {
+        super(driverInfos, message, cause);
+    }
+
+    /**
+     * Constructor with an original exception and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param cause the original exception
+     */
+    public StorageDriverNotFoundException(String driverInfos, Throwable cause) {
+        super(driverInfos, cause);
+    }
+
 }

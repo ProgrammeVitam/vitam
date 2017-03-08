@@ -30,6 +30,8 @@ package fr.gouv.vitam.storage.driver;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
@@ -65,9 +67,12 @@ public interface Connection extends AutoCloseable {
      *
      * @param tenantId the tenant id needed to get storage capacity
      * @return the usable and used space in bytes and a remind of the given tenantId
+     * @throws StorageDriverPreconditionFailedException if a bad request is encountered
+     * @throws StorageDriverNotFoundException if container is not found
      * @throws StorageDriverException if any problem occurs during request
      */
-    StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException;
+    StorageCapacityResult getStorageCapacity(Integer tenantId)
+        throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException;
 
     /**
      * Count the number of binary objects ine the container
@@ -124,7 +129,7 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      */
     StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException;
-    
+
     /**
      * Get metadata of object
      * 

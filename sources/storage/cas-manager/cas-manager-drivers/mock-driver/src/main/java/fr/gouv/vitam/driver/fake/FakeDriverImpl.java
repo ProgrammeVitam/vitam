@@ -55,6 +55,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
@@ -78,8 +80,7 @@ public class FakeDriverImpl implements Driver {
     @Override
     public Connection connect(StorageOffer offer, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
-            throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                "Intentionaly thrown");
+            throw new StorageDriverException(getName(), "Intentionaly thrown");
         }
         return new ConnectionImpl();
     }
@@ -87,8 +88,7 @@ public class FakeDriverImpl implements Driver {
     @Override
     public boolean isStorageOfferAvailable(String s, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
-            throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                "Intentionaly thrown");
+            throw new StorageDriverException(getName(), "Intentionaly thrown");
         }
         return true;
     }
@@ -116,11 +116,10 @@ public class FakeDriverImpl implements Driver {
 
         @Override
         public StorageCapacityResult getStorageCapacity(Integer tenantId)
-            throws StorageDriverException {
+            throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException {
             Integer fakeTenant = -1;
             if (fakeTenant.equals(tenantId)) {
-                throw new StorageDriverException("driverInfo", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    "ExceptionTest");
+                throw new StorageDriverException("driverInfo", "ExceptionTest");
             }
 
             final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
@@ -146,8 +145,7 @@ public class FakeDriverImpl implements Driver {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
                     objectRequest.getGuid(), objectRequest.getGuid(), "different_digest_hash", 0);
             } if ("retry_test".equals(objectRequest.getGuid())) {
-                throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    "retry_test");
+                throw new StorageDriverException(getName(), "retry_test");
             } else {
                 try {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
@@ -156,8 +154,7 @@ public class FakeDriverImpl implements Driver {
                         objectRequest.getGuid(), objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)),
                         bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
-                    throw new StorageDriverException(getName(), StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                        e);
+                    throw new StorageDriverException(getName(), e);
                 }
             }
         }
@@ -165,8 +162,7 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                throw new StorageDriverException("removeObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    "ExceptionTest");
+                throw new StorageDriverException("removeObject", "ExceptionTest");
 
             } else {
                 return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(),
@@ -183,8 +179,7 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
             if ("digest_bad_test".equals(request.getGuid())) {
-                throw new StorageDriverException("checkObject", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    "ExceptionTest");
+                throw new StorageDriverException("checkObject", "ExceptionTest");
             }
             return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
                 request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
