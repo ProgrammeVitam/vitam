@@ -1350,7 +1350,7 @@ public class AccessExternalResourceImplTest {
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -1365,7 +1365,7 @@ public class AccessExternalResourceImplTest {
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
