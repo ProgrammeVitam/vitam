@@ -46,20 +46,11 @@
 		</form>
 	</div>
 
-	<!-- Pagination -->
-	<div style="text-align: center">
-		<button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
-			Précédent
-		</button>
-		<input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
-		<button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
-			Suivant
-		</button>
-	</div>
+	<search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
 
 	<div class="panel panel-default col-md-12 dynamic-table-box">
 		<a class="panel-header">
-			<h2> Résultats <span ng-if="search.response.totalResults == 0 || search.response.totalResults > 0">({{search.response.totalResults}})</span></h2>
+			<h2> Résultats <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span></h2>
 		</a>
 
 		<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
@@ -80,7 +71,7 @@
 						<th ng-repeat="column in dynamicTable.selectedObjects">{{column.label | translate}}</th>
 					</tr>
 
-					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo:search.pagination.itemsPerPage">
+					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
 					<tr ng-click="goToDetails(log.evIdProc)">
 						<td>{{log.evTypeProc}}</td>
 						<td>{{log.evType}}</td>

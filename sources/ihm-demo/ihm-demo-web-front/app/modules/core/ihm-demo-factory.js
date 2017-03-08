@@ -63,8 +63,8 @@ angular.module('core')
   };
 
   // Search Archive Units Http Request (POST method)
-  dataFactory.searchArchiveUnits = function (criteria) {
-    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_SEARCH_ROOT).all(IHM_URLS.ARCHIVE_SEARCH_UNITS).post(criteria);
+  dataFactory.searchArchiveUnits = function (criteria, headers) {
+    return ihmDemoCLient.getClient(IHM_URLS.ARCHIVE_SEARCH_ROOT).all(IHM_URLS.ARCHIVE_SEARCH_UNITS).customPOST(criteria, null, null, headers);
   };
 
   // Search Selected Archive Unit Details Http Request (GET Method)
@@ -112,8 +112,8 @@ angular.module('core')
   };
 
   // Default Accession Register Search
-  dataFactory.getAccessionRegisters = function(defaultCriteria){
-    return ihmDemoCLient.getClient(IHM_URLS.ADMIN_ROOT).all(IHM_URLS.ACCESSION_REGISTER_SEARCH).post(defaultCriteria);
+  dataFactory.getAccessionRegisters = function(defaultCriteria, headers){
+    return ihmDemoCLient.getClient(IHM_URLS.ADMIN_ROOT).all(IHM_URLS.ACCESSION_REGISTER_SEARCH).customPOST(defaultCriteria, null, null, headers);
   };
 
   // Check operation status

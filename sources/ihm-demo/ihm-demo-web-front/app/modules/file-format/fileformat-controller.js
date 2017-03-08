@@ -70,17 +70,10 @@ angular.module('ihm.demo')
       return requestOptions;
     };
 
-    var successCallback = function(response) {
-      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-        return false;
-      }
-      $scope.search.response.data = response.data.$results.sort(function (a, b) {
+    var successCallback = function() {
+      $scope.search.response.data = $scope.search.response.data.sort(function (a, b) {
         return a.Name.trim().toLowerCase().localeCompare(b.Name.trim().toLowerCase());
       });
-      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.data.length/ITEM_PER_PAGE);
-      $scope.search.pagination.currentPage = 1;
-      $scope.search.response.totalResult = response.data.$hits.total;
-      $scope.totalItems = $scope.search.response.totalResult;
       return true;
     };
 
@@ -88,7 +81,11 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var searchService = processSearchService.initAndServe(ihmDemoCLient.getClient('admin').all('formats').post, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    var customPost = function(criteria, headers) {
+      return ihmDemoCLient.getClient('admin').all('formats').customPOST(criteria, null, null, headers);
+    };
+
+    var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getFileFormats = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
