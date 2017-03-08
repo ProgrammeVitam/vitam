@@ -35,15 +35,15 @@ angular.module('core')
   .service('resultStartService', function() {
     var VitamStartFormat = {};
 
-    VitamStartFormat.startFormat = function(currentPage, resultPages, itemsPerPage) {
+    VitamStartFormat.startFormat = function(currentPage, resultPages, itemsPerPage, startOffset) {
       var start = 0;
 
       if(currentPage > 0 && currentPage <= resultPages){
-        start= (currentPage - 1) * itemsPerPage;
+        start= (currentPage - 1) * itemsPerPage - startOffset;
       }
 
       if(currentPage > resultPages){
-        start= (resultPages - 1) * itemsPerPage;
+        start= (resultPages - 1) * itemsPerPage - startOffset;
       }
 
       return start;

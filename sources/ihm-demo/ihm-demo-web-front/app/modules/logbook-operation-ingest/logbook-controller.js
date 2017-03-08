@@ -28,15 +28,6 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .constant('ITEM_PER_PAGE', 25)
-  .constant('MAX_REQUEST_ITEM_NUMBER', 125)
-  // FIXME : Same filter than logbook-operation-controller. Do a generic filter in core/filters!
-  .filter('startFrom', function() {
-    return function (input, start) {
-      start = +start; //parse to int
-      return input.slice(start);
-    }
-  })
   .filter('replaceDoubleQuote', function() {
       return function (input) {
         if (!!input) {
@@ -45,9 +36,7 @@ angular.module('ihm.demo')
         return input;
       }
     })
-  .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER, processSearchService, resultStartService) {
-    var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
-
+  .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, processSearchService, resultStartService) {
     $scope.startFormat = resultStartService.startFormat;
     $scope.search = {
       form: {
@@ -98,22 +87,13 @@ angular.module('ihm.demo')
       if(requestOptions.obIdIn === ""){
         delete requestOptions.obIdIn;
       }
-      return [requestOptions, header];
+      return requestOptions;
     };
 
-    var successCallback = function(response) {
-      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-        return false;
-      }
-      $scope.search.response.data = response.data.$results;
+    var successCallback = function() {
       $scope.search.response.data.map(function(item) {
         item.obIdIn = $scope.search.form.obIdIn;
       });
-      $scope.search.pagination.currentPage = 1;
-      $scope.search.response.totalResult = response.data.$hits.total;
-      // FIXME What about X-REQUEST-ID in header ?
-      // header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
-      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
       return true;
     };
 
@@ -121,11 +101,11 @@ angular.module('ihm.demo')
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var searchFunction = function(result) {
-      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(result[0], null, null, result[1]);
+    var callCustomPost = function (criteria, headers) {
+      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(criteria, null, null, headers);
     };
 
-    var searchService = processSearchService.initAndServe(searchFunction, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    var searchService = processSearchService.initAndServe(callCustomPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getLogbooks = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;

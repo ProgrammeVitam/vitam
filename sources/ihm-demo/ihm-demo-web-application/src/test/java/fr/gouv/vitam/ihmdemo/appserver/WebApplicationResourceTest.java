@@ -57,6 +57,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -67,6 +68,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Cookie;
 import com.jayway.restassured.response.ResponseBody;
 
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -80,13 +82,13 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -98,7 +100,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
-@PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
+@PrepareForTest({PaginationHelper.class, UserInterfaceTransactionManager.class, DslQueryHelper.class,
     IngestExternalClientFactory.class, AdminExternalClientFactory.class,
     JsonTransformer.class, WebApplicationConfig.class})
 public class WebApplicationResourceTest {
@@ -106,6 +108,7 @@ public class WebApplicationResourceTest {
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String OPTIONS = "{name: \"myName\"}";
+    private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
     private static final String CREDENTIALS_NO_VALID =
         "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
@@ -165,6 +168,7 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
         PowerMockito.mockStatic(AdminExternalClientFactory.class);
+        PowerMockito.mockStatic(PaginationHelper.class);
     }
 
     @SuppressWarnings("rawtypes")
@@ -191,8 +195,15 @@ public class WebApplicationResourceTest {
 
 
     @Test
-    public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() {
-        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.OK.getStatusCode()).when()
+    public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() throws Exception {
+    	PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+                .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
+
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
             .post("/archivesearch/units");
     }
 
@@ -621,7 +632,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/formats");
     }
@@ -636,7 +651,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+    			.thenReturn(JsonHandler.createObjectNode());
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/formats");
     }
@@ -653,7 +672,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/formats");
     }
@@ -994,7 +1017,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+    	PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+    			.thenReturn(JsonHandler.createObjectNode());
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/rules");
     }
@@ -1011,7 +1038,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/rules");
     }
@@ -1028,7 +1059,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/rules");
     }
@@ -1165,7 +1200,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/accession-register");
     }
@@ -1175,7 +1214,11 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/accession-register");
     }

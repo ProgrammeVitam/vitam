@@ -31,17 +31,7 @@
     </div>
   </div>
 
-
-  <!--Pagination -->
-  <div style="text-align: center">
-    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
-      Précédent
-    </button>
-    <input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
-    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
-      Suivant
-    </button>
-  </div>
+  <search-pagination pagination-scope="search.pagination" search-function="searchRegistersByCriteria"></search-pagination>
 
   <!--
   *
@@ -62,7 +52,7 @@
 
           <tbody>
             <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="goToDetails(result.OriginatingAgency)"
-                ng-repeat="result in search.response.data | startFrom : startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) |limitTo : search.pagination.itemsPerPage">
+                ng-repeat="result in search.response.data | startFrom : startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) |limitTo : search.pagination.itemsPerPage">
               <td>{{ result.OriginatingAgency }}</td>
               <td>{{ result.creationDate | vitamFormatDate }}</td>
             </tr>

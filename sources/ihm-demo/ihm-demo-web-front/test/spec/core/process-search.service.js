@@ -31,8 +31,12 @@ describe('processSearchService', function() {
   beforeEach(module('ihm.demo'));
 
   var ProcessSearchService, scope, $rootScope, $q, $httpBackend;
+  var itemsPerPage, nbPages;
   beforeEach(inject(function ($injector) {
     ProcessSearchService = $injector.get('processSearchService');
+    itemsPerPage = $injector.get('ITEM_PER_PAGE');
+    nbPages = $injector.get('LIMIT_NB_PAGES');
+
     $rootScope = $injector.get('$rootScope');
     scope = $rootScope.$new(false, null);
     $q = $injector.get('$q');
@@ -44,8 +48,10 @@ describe('processSearchService', function() {
       form: {
         test: ''
       }, pagination: {
+        startOffset: 0,
         currentPage: 0,
-        resultPages: 0
+        resultPages: 0,
+        itemsPerPage: itemsPerPage
       }, error: {
         message: '',
         displayMessage: false
@@ -72,7 +78,12 @@ describe('processSearchService', function() {
         scope.state.error = 'sF';
         deferred.reject(result);
       } else {
-        result = 'Success';
+        result = {
+          data: {
+            $hits: {},
+            $results: []
+          }
+        };
         deferred.resolve(result);
       }
 
@@ -170,7 +181,7 @@ describe('processSearchService', function() {
     ProcessSearchService.initAndServe(mock.sF, mock.cPP, mock.sC, mock.cEM, scope.search, true, preProcessParams);
 
     // assert
-    expect(mock.sF).toHaveBeenCalledWith(preProcessParams);
+    expect(mock.sF).toHaveBeenCalledWith(preProcessParams, {'X-Limit': nbPages*itemsPerPage, 'X-Offset': 0});
   });
 
   it('should call the error callback without call search function nor computeErrorMessage', function() {
@@ -303,9 +314,8 @@ describe('processSearchService', function() {
   });
 
   it('should recall search on reset if autoSeatch is true', function(done) {
-    var count = 0;
-
     // setup
+    var count = 0;
     spyOn(mock, 'sC').and.callThrough();
 
     function doneAfterSuccessCallback(params) {
@@ -328,7 +338,9 @@ describe('processSearchService', function() {
   });
 
   it('should not do anything if autoSearch = false on onInputChange call', function(done) {
+    // setup
     var count = 0;
+    spyOn(mock, 'sC').and.callThrough();
 
     function doneAfterSuccessCallback(params) {
       var result = mock.sC(params);
@@ -355,7 +367,9 @@ describe('processSearchService', function() {
   });
 
   it('should recall search onInputChange call', function(done) {
+    // setup
     var count = 0;
+    spyOn(mock, 'sC').and.callThrough();
 
     function doneAfterSuccessCallback(params) {
       var result = mock.sC(params);
@@ -364,8 +378,8 @@ describe('processSearchService', function() {
       if (count === 0) {
         // First call, nothing to check
       } else if (count === 1) {
-        // Should be called only once
-        expect(mock.sC).toHaveBeenCalledTimes(1);
+        // Should be called only twice (init call + 2nd onInputChange)
+        expect(mock.sC).toHaveBeenCalledTimes(2);
         setTimeout(function() {
           done();
         }, 2000);
