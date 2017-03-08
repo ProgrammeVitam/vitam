@@ -1,31 +1,33 @@
 ---
 # tasks file for clone-tests
-- name: get repo for git lfs for CentOS
-  copy:
-    src: gitlfs-centos7.repo
-    dest: /etc/yum.repos.d/github_git-lfs.repo
-    owner: root
-    group: root
-    mode: 0640
+- block: 
+  - name: get repo for git lfs for CentOS
+    copy:
+      src: gitlfs-centos7.repo
+      dest: /etc/yum.repos.d/github_git-lfs.repo
+      owner: root
+      group: root
+      mode: 0640
+
   when: (ansible_distribution == "CentOS" )
 
-- name: get repo for git lfs for Debian
-  copy: 
-    src: gitlfs-debian8.list
-    dest: /etc/apt/sources.list.d/github_git-lfs.list
-    owner: root
-    group: root
-    mode: 0640
-  when: (ansible_distribution == "Debian" )
+- block:
+  - name: get repo for git lfs for Debian
+    copy: 
+      src: gitlfs-debian8.list
+      dest: /etc/apt/sources.list.d/github_git-lfs.list
+      owner: root
+      group: root
+      mode: 0640
 
-- name: install package on Debian
-  package:
-    name: apt-transport-https
-    state: latest
-  when: (ansible_distribution == "Debian" )
+  - name: install package on Debian
+    package:
+      name: apt-transport-https
+      state: latest
 
-- name: add GPG key
-  shell: curl -L "https://packagecloud.io/github/git-lfs/gpgkey" 2> /dev/null | apt-key add -
+  - name: add GPG key
+    shell: curl -L "https://packagecloud.io/github/git-lfs/gpgkey" 2> /dev/null | apt-key add -
+  
   when: (ansible_distribution == "Debian" )
 
 - name: install git-lfs
@@ -62,17 +64,20 @@
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
-# - name: fix for git usage
-#   file:
-#     path: /home/vitam
-#     state: directory
-#     owner: "{{vitam_user}}"
-#     group: "{{vitam_group}}"
-#     mode: "{{ vitam_folder_permission }}"
-# #  when: (ansible_distribution == "Debian" )
-
-- name: ensure git repo is clean
+- name: ensure git repo is clean on current branch
   shell: git clean -fd
+  become_user: "{{vitam_user}}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+
+- name: check whether data are already downloaded from git lfs
+  stat:
+      path: /vitam/data/ihm-recette/test-data/system/data/
+  register: git_pulled
+
+- name: get all branches from git repo
+  shell: git fetch
+  become_user: "{{vitam_user}}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -86,3 +91,10 @@
     chdir: /vitam/data/ihm-recette/test-data/system/
 #    creates: /vitam/data/ihm-recette/test-data/system/data/
 # Et les droits sur les fichiers ???
+
+- name: rebase documents under git lfs
+  shell: git rebase
+  become_user: "{{vitam_user}}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir)
