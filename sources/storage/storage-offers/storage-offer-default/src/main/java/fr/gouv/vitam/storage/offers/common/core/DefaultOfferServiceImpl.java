@@ -153,6 +153,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws IOException, ContentAddressableStorageException {
         // check container
         if (!defaultStorage.isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageException("Container does not exist");
         }
         // TODO No chunk mode (should be added in the future)
@@ -210,12 +211,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public boolean checkDigest(String containerName, String idObject,
         String digest) {
+        LOGGER.error("Not yet implemented");
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public boolean checkDigestAlgorithm(String containerName, String idObject,
         DigestType digestAlgorithm) {
+        LOGGER.error("Not yet implemented");
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -227,6 +230,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (offerDigest.equals(digest)) {
             defaultStorage.deleteObject(containerName, objectId);
         } else {
+            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId);
         }
     }
@@ -240,6 +244,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     public String createCursor(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (!defaultStorage.isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
         }
         String cursorId = GUIDFactory.newGUID().toString();

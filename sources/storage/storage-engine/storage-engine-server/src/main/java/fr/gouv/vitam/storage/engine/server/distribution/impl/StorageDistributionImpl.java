@@ -69,7 +69,6 @@ import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultipleInputStreamHandler;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -129,7 +128,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     /**
      * Global pool thread
      */
-     static final ExecutorService executor = new VitamThreadPoolExecutor();
+    static final ExecutorService executor = new VitamThreadPoolExecutor();
 
 
     /**
@@ -200,6 +199,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
                 throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
 
@@ -213,6 +213,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             // TODO P1 Handle Status result if different for offers
             return buildStoreDataResponse(objectId, category, datas.getGlobalOfferResult());
         }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
@@ -342,6 +343,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
             storageLogbook.add(parameters);
         } catch (final StorageException exc) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG), exc);
             throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_LOGBOOK_CANNOT_LOG),
                 exc);
         }
@@ -357,6 +359,8 @@ public class StorageDistributionImpl implements StorageDistribution {
             .noneMatch(Status.INTERNAL_SERVER_ERROR::equals);
 
         if (!allSuccess) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CANT_STORE_OBJECT,
+                objectId, offerIds));
             throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CANT_STORE_OBJECT,
                 objectId, offerIds));
         }
@@ -471,8 +475,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             result.put(STREAM_KEY, response.getEntity());
             return result;
         } catch (final ContentAddressableStorageNotFoundException exc) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, containerGUID), exc);
             throw new StorageNotFoundException(exc);
         } catch (final ContentAddressableStorageServerException exc) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageTechnicalException(exc);
         }
     }
@@ -490,6 +496,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
                 throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             ArrayNode resultArray = JsonHandler.createArrayNode();
@@ -499,6 +506,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             JsonNode result = JsonHandler.createObjectNode().set("capacities", resultArray);
             return result;
         }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
@@ -514,6 +522,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             return ret;
         } catch (StorageDriverException | RuntimeException exc) {
             // TODO IT_13 (celeg): response error ? (like offerId + usableSpace to 0 ?)
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
             throw new StorageTechnicalException(exc);
         }
     }
@@ -521,6 +530,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public InputStream getStorageContainer(String strategyId)
         throws StorageNotFoundException, StorageTechnicalException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
@@ -561,12 +571,14 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public JsonNode createContainer(String strategyId) throws StorageException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public void deleteContainer(String strategyId) throws StorageTechnicalException,
         StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
@@ -581,6 +593,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         if (hotStrategy != null) {
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             // TODO: make priority -> Use the first one here but don't take into account errors !
@@ -592,9 +605,11 @@ public class StorageDistributionImpl implements StorageDistribution {
                 StorageListRequest request = new StorageListRequest(tenantId, category.getFolder(), cursorId, true);
                 return connection.listObjects(request);
             } catch (final StorageDriverException exc) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
                 throw new StorageTechnicalException(exc);
             }
         }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
@@ -614,12 +629,14 @@ public class StorageDistributionImpl implements StorageDistribution {
             isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             final StorageGetResult result =
                 getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
             return result.getObject();
         }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
@@ -645,12 +662,14 @@ public class StorageDistributionImpl implements StorageDistribution {
                 LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
             }
         }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND), objectId);
         throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, objectId));
     }
 
     @Override
     public JsonNode getContainerObjectInformations(String strategyId, String objectId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
@@ -691,6 +710,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             isStrategyValid(hotStrategy);
             final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
             if (offerReferences.isEmpty()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             // TODO : Improve this code, use same thread system as used for the storeData method see @TrasferThread
@@ -704,10 +724,12 @@ public class StorageDistributionImpl implements StorageDistribution {
                         objectId, digestType, digest);
                     StorageRemoveResult result = connection.removeObject(request);
                     if (!result.isObjectDeleted()) {
+                        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
                         throw new StorageNotFoundException(
                             VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND));
                     }
                 } catch (StorageDriverException | RuntimeException exc) {
+                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
                     throw new StorageTechnicalException(exc);
                 }
 
@@ -717,12 +739,14 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     @Override
     public JsonNode getContainerLogbooks(String strategyId) throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerLogbook(String strategyId, String logbookId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
@@ -730,46 +754,54 @@ public class StorageDistributionImpl implements StorageDistribution {
     @Override
     public void deleteLogbook(String strategyId, String logbookId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerUnits(String strategyId) throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerUnit(String strategyId, String unitId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public void deleteUnit(String strategyId, String unitId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerObjectGroups(String strategyId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode getContainerObjectGroup(String strategyId, String objectGroupId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public void deleteObjectGroup(String strategyId, String objectGroupId)
         throws StorageNotFoundException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
     @Override
     public JsonNode status() throws StorageException {
+        LOGGER.error(NOT_IMPLEMENTED_MSG);
         throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
     }
 
