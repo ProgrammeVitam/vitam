@@ -91,13 +91,14 @@ public class SelectUnitResourceTest {
     
     private final static String AU0_MGT = "{" +
         "    \"StorageRule\" : {" +
-        "      \"Rule\" : \"R1\"," +
+        "      \"Rule\" : \"str0\"," +
+        "      \"PreventInheritance\" : \"true\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
         "    }," +
         "    \"AccessRule\" : {" +
-        "      \"Rule\" : \"R2\"," +
+        "      \"Rule\" : \"acc0\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
@@ -106,7 +107,10 @@ public class SelectUnitResourceTest {
     
     private final static String AU1_MGT = "{" +
         "    \"DissiminationRule\" : {" +
-        "      \"Rule\" : \"R1\"" +
+        "      \"Rule\" : \"dis1\"" +
+        "    }," +
+        "    \"AccessRule\" : {" +
+        "      \"PreventInheritance\" : \"true\"" +
         "    }" +
         "  }";
     
@@ -139,7 +143,7 @@ public class SelectUnitResourceTest {
     private static final String SEARCH_QUERY =
         "{\"$query\": [], \"$projection\": {}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_WITH_RULE =
-        "{\"$query\": [], \"$projection\": {\"$fields\" : {\"rules\" : 1}}, \"$filter\": {}}";
+        "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
     
     private static JunitHelper junitHelper;
     private static int serverPort;
