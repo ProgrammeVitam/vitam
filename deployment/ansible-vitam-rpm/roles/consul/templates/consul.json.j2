@@ -3,9 +3,9 @@
   "node_name": "{{ansible_hostname}}",
   "log_level": "INFO",
   "enable_syslog": true,
-
-{% if inventory_hostname in groups['hosts-mongo-express'] %}
+{% if ansible_interfaces|length > 2 %}
   "advertise_addr": "{{ ansible_eth0["ipv4"]["address"] }}",
+
 {% endif %}
 
 {% if inventory_hostname in groups['hosts-consul-server'] %}
