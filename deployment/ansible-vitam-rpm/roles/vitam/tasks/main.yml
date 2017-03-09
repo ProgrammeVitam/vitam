@@ -58,6 +58,8 @@
     mode: "{{vitam_conf_permission}}"
   with_items:
     - "java_opts"
+   tags:
+    - update_jvmoptions_vitam
   notify:
     - restart service
 

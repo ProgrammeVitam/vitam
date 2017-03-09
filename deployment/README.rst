@@ -53,6 +53,7 @@ ou
 
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
+
 3. Pour déployer les extra seulement nécessaire pour le projet :
 
 a. extra complet
@@ -78,5 +79,17 @@ ou
 
 et
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
+
+(et renseigner le mot de passe demandé)
+
+5. Pour modifier uniquement la configuration JVM des composants VITAM
+Modifier dans environments-rpm/<fichier d'inventaire> la directive memory_opts
+Exemple:
+memory_opts="-Xms384m -Xmx384m"
+
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
+
+et
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
 
 (et renseigner le mot de passe demandé)
