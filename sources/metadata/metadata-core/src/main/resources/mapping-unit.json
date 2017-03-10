@@ -1,0 +1,210 @@
+{
+  "properties": {
+    "ArchivalAgencyArchiveUnitIdentifier": {
+      "type": "string"
+    },
+    "ArchiveUnitProfile": {
+      "type": "string"
+    },
+    "CreatedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "Description": {
+      "type": "string"
+    },
+    "DescriptionLevel": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "EndDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "Event": {
+      "properties": {
+        "EventDateTime": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "EventType": {
+          "type": "string"
+        }
+      }
+    },
+    "FilePlanPosition": {
+      "type": "string"
+    },
+    "Language": {
+      "type": "string"
+    },
+    "OriginatingAgency": {
+      "properties": {
+        "Identifier": {
+          "type": "string"
+        }
+      }
+    },
+    "OriginatingAgencyArchiveUnitIdentifier": {
+      "type": "string"
+    },
+    "OriginatingSystemId": {
+      "type": "string"
+    },
+    "StartDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "SubmissionAgency": {
+      "properties": {
+        "Identifier": {
+          "type": "string"
+        }
+      }
+    },
+    "Tag": {
+      "type": "string"
+    },
+    "Title": {
+      "type": "string"
+    },
+    "TransactedDate": {
+      "type": "date",
+      "index": "analyzed",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "TransferringAgencyArchiveUnitIdentifier": {
+      "type": "string"
+    },
+    "Writer": {
+      "properties": {
+        "BirthName": {
+          "type": "string"
+        },
+        "FirstName": {
+          "type": "string"
+        }
+      }
+    },
+    "_max": {
+      "type": "long"
+    },
+    "_mgt": {
+      "properties": {
+        "AccessRule": {
+          "properties": {
+            "EndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "Rule": {
+              "type": "string"
+            },
+            "StartDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            }
+          }
+        },
+        "AppraisalRule": {
+          "properties": {
+            "EndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "FinalAction": {
+              "type": "string"
+            },
+            "Rule": {
+              "type": "string"
+            },
+            "StartDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            }
+          }
+        },
+        "DisseminationRule": {
+          "properties": {
+            "EndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "Rule": {
+              "type": "string"
+            },
+            "StartDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            }
+          }
+        },
+        "ReuseRule": {
+          "properties": {
+            "EndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "Rule": {
+              "type": "string"
+            },
+            "StartDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            }
+          }
+        },
+        "StorageRule": {
+          "properties": {
+            "EndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "FinalAction": {
+              "type": "string"
+            },
+            "Rule": {
+              "type": "string"
+            },
+            "StartDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            }
+          }
+        }
+      }
+    },
+    "_min": {
+      "type": "long"
+    },
+    "_nbc": {
+      "type": "long"
+    },
+    "_og": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "_ops": {
+      "type": "string"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_uds": {
+      "type": "object",
+      "enabled": false
+    },
+    "_unused": {
+      "type": "object",
+      "enabled": false
+    },
+    "_up": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "_us": {
+      "type": "string",
+      "index": "not_analyzed"
+    }
+  }
+}

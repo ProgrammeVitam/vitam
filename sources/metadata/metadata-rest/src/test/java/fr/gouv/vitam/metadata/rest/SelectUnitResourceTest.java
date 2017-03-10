@@ -93,14 +93,14 @@ public class SelectUnitResourceTest {
         "    \"StorageRule\" : {" +
         "      \"Rule\" : \"R1\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
-        "      \"StartDate\" : \"01/01/2017\"," +
-        "      \"EndDate\" : \"01/01/2019\"" +
+        "      \"StartDate\" : \"2017-01-01\"," +
+        "      \"EndDate\" : \"2019-01-01\"" +
         "    }," +
         "    \"AccessRule\" : {" +
         "      \"Rule\" : \"R2\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
-        "      \"StartDate\" : \"01/01/2017\"," +
-        "      \"EndDate\" : \"01/01/2019\"" +
+        "      \"StartDate\" : \"2017-01-01\"," +
+        "      \"EndDate\" : \"2019-01-01\"" +
         "    }" +
         "  }";
     

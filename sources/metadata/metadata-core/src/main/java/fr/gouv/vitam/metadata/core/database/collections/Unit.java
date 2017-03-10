@@ -35,12 +35,17 @@ import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.BSONObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -112,23 +117,6 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String TYPEUNIQUE = "typeunique";
 
     // TODO P1 add Nested objects or Parent/child relationships
-    /**
-     * Mapping of this Collection
-     */
-    public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
-        "properties : { " + Unit.UNITDEPTHS + " : { type : \"object\", enabled : false }, " +
-        Unit.UNITUPS + " : { type : \"string\", index : \"not_analyzed\" }, " +
-        Unit.NBCHILD + " : { type : \"long\" }," +
-        VitamLinks.UNIT_TO_UNIT.field2to1 + " : { type : \"string\", index : \"not_analyzed\" }, " +
-        VitamLinks.UNIT_TO_UNIT.field1to2 + " : { type : \"object\", enabled : false }, " +
-        VitamLinks.UNIT_TO_OBJECTGROUP.field1to2 + " : { type : \"string\", index : \"not_analyzed\" }, " +
-
-        "Title : { type : \"string\", index : \"analyzed\" }, " +
-        "Description : { type : \"string\", index : \"analyzed\" }, " +
-        "DescriptionLevel : { type : \"string\", index : \"not_analyzed\" }, " +
-        "TransactedDate : { type : \"date\", index : \"analyzed\" } " +
-
-        " } } }";
 
     /**
      * Quick projection for ID and ObjectGroup Only
