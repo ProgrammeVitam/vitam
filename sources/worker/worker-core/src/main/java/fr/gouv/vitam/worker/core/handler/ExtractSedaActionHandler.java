@@ -308,8 +308,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void extractSEDAWithWorkspaceClient(String containerId,
-        ItemStatus globalCompositeItemStatus,
+    private void extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
         LogbookLifeCyclesClient logbookLifeCycleClient)
         throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
@@ -354,29 +353,33 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 final XMLEvent event = reader.nextEvent();
 
                 // extract info for ATR
-                // The DataObjectPackage EndElement is tested before the add condition as we need to add a empty
+                // The DataObjectPackage EndElement is tested before the add
+                // condition as we need to add a empty
                 // DataObjectPackage endElement event
                 if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
                     globalMetadata = true;
                 }
 
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart()
-                        .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+
                     final String orgAgId = reader.getElementText();
+
+                    // Check if the OriginatingAgency was really set
+                    if (orgAgId != null && !orgAgId.isEmpty()) {
+                        globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    }
+
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(orgAgId));
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     globalMetadata = false;
-
-                    globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                 }
 
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart()
-                        .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
                     final String orgAgId = reader.getElementText();
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
@@ -386,18 +389,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     globalMetadata = false;
                 }
                 // Process rules : build mgtRulesMap
-                if (event.isStartElement() &&
-                    SedaConstants.getSupportedRules().contains(event.asStartElement().getName().getLocalPart())) {
+                if (event.isStartElement() && SedaConstants.getSupportedRules()
+                    .contains(event.asStartElement().getName().getLocalPart())) {
                     final StartElement element = event.asStartElement();
                     parseMetadataManagementRules(reader, element, event.asStartElement().getName().getLocalPart());
                 }
 
-                // We add all the end but the start and end document and the event in the DataObjectPackage structure
+                // We add all the end but the start and end document and the
+                // event in the DataObjectPackage structure
                 if (globalMetadata && event.getEventType() != XMLStreamConstants.START_DOCUMENT &&
                     event.getEventType() != XMLStreamConstants.END_DOCUMENT) {
                     writer.add(event);
                 }
-                // The DataObjectPackage StartElement is tested after the add event condition as we need to add an empty
+                // The DataObjectPackage StartElement is tested after the add
+                // event condition as we need to add an empty
                 // DataObjectPackage startElement event
                 if (event.isStartElement() &&
                     event.asStartElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
@@ -407,11 +412,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
                     if (element.getName().equals(unitName)) {
-                        writeArchiveUnitToTmpDir(containerId, reader, element, archiveUnitTree,
-                            logbookLifeCycleClient);
+                        writeArchiveUnitToTmpDir(containerId, reader, element, archiveUnitTree, logbookLifeCycleClient);
                     } else if (element.getName().equals(dataObjectName)) {
-                        final String objectGroupGuid =
-                            writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient);
+                        final String objectGroupGuid = writeBinaryDataObjectInLocal(reader, element, containerId,
+                            logbookLifeCycleClient);
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             handlerIO.getHelper()
                                 .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
@@ -420,15 +424,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             // Add creation sub task event
                             handlerIO.getHelper()
                                 .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                                    .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
-                                        null,
-                                        StatusCode.OK,
-                                        null));
+                                    .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null,
+                                        StatusCode.OK, null));
 
                             handlerIO.getHelper()
                                 .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                                    .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null,
-                                        StatusCode.OK,
+                                    .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
                                         null));
                             logbookLifeCycleClient.bulkCreateObjectGroup(containerId,
                                 handlerIO.getHelper().removeCreateDelegate(objectGroupGuid));
@@ -591,12 +592,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 handlerIO.getHelper().updateDelegate(llcp);
                 // TODO : add else case
                 if (!existingUnitGuids.contains(unitGuid)) {
-                    llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK,
-                        null);
+                    llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK, null);
                     handlerIO.getHelper().updateDelegate(llcp);
                 }
-                llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                    null);
+                llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
                 handlerIO.getHelper().updateDelegate(llcp);
                 logbookLifeCycleClient.bulkUpdateUnit(containerId,
                     handlerIO.getHelper().removeUpdateDelegate(unitGuid));
@@ -612,8 +611,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartDocument());
             writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.ROOT_TAG));
             boolean startCopy = false;
+
             // management rules id to add
-            Set<String> globalMgtIdExtra = null;
+            Set<String> globalMgtIdExtra = new HashSet<>();
             while (true) {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() && ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
@@ -648,10 +648,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                         String listRulesForAuRoot = "";
                         if (isRootArchive) {
+                            // Add rules from global Management Data (only new
+                            // ones)
                             if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
-                                globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
+                                globalMgtIdExtra.clear();
+                                globalMgtIdExtra.addAll(mngtMdRuleIdToRulesXml.keySet());
                             }
-                            // All MngtRuleMetadata Must be shown in RootArchive
+
+                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
+                                unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.get(unitId) != null &&
+                                !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
+                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
+                            }
+
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
                                 listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
                             }
@@ -697,20 +706,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             for (final String id : globalMgtIdExtra) {
                                 final StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(id);
                                 final StringReader stringReader = new StringReader(stringWriter.toString());
-                                final XMLEventReader xmlEventReaderRule =
-                                    inputFactory.createXMLEventReader(stringReader);
+                                final XMLEventReader xmlEventReaderRule = inputFactory
+                                    .createXMLEventReader(stringReader);
                                 boolean startCopyRule = false;
                                 while (true) {
                                     final XMLEvent eventRule = xmlEventReaderRule.nextEvent();
-                                    if (eventRule.isStartElement() &&
-                                        GLOBAL_MGT_RULE_TAG
-                                            .equals(eventRule.asStartElement().getName().getLocalPart())) {
+                                    if (eventRule.isStartElement() && GLOBAL_MGT_RULE_TAG
+                                        .equals(eventRule.asStartElement().getName().getLocalPart())) {
                                         startCopyRule = true;
                                         continue;
                                     }
 
-                                    if (eventRule.isEndElement() &&
-                                        GLOBAL_MGT_RULE_TAG.equals(eventRule.asEndElement().getName().getLocalPart())) {
+                                    if (eventRule.isEndElement() && GLOBAL_MGT_RULE_TAG
+                                        .equals(eventRule.asEndElement().getName().getLocalPart())) {
                                         break;
                                     }
                                     if (startCopyRule) {

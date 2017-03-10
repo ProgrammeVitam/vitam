@@ -28,7 +28,6 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -61,7 +60,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.Status.Family;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
@@ -417,8 +415,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             String contextId = headers.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
             String action = headers.getHeaderString(GlobalDataRest.X_ACTION);
-            int tenantId = getTenantId(headers);
-
             if (currentChunkIndex == 1) {
                 // GUID operation (Server Application level)
                 operationGuidFirstLevel = GUIDFactory.newGUID().getId();
@@ -428,12 +424,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 try (FileOutputStream outputStream = new FileOutputStream(temporarySipFile)) {
                     StreamUtils.copy(stream, outputStream);
                 }
-
-                // if it is the last chunk => start INGEST upload
-                if (currentChunkIndex == totalChunks) {
-                    startUpload(operationGuidFirstLevel, tenantId, contextId, action);
-                }
-
             } else {
                 operationGuidFirstLevel = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
                 temporarySipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
