@@ -165,7 +165,7 @@ public class UnitInheritedRule {
 							if (selfOriginDetailNode != null) {
 								// 2 Rules have the same rule category, same ruleId, same rule Origin
 								if (!selfOriginDetailNode.get(PATH).equals(parentOriginDetailNode.get(PATH))) {
-									((ArrayNode) selfOriginDetailNode.get(PATH)).add(parentOriginDetailNode.get(PATH));
+									((ArrayNode) selfOriginDetailNode.get(PATH)).addAll((ArrayNode) parentOriginDetailNode.get(PATH));
 								}
 							} else {
 								selfOriginNode.set(parentOriginId, parentOriginDetailNode);
