@@ -39,6 +39,7 @@ package fr.gouv.vitam.metadata.core;
  */
 public class UnitRuleCompute extends UnitNode {
     private UnitInheritedRule heritedRules;
+    private boolean isComputed;
 
     /**
      * constructor with UnitSimplified
@@ -47,6 +48,7 @@ public class UnitRuleCompute extends UnitNode {
      */
     public UnitRuleCompute(UnitSimplified u) {
         super(u);
+        isComputed = false;
     }
 
     /**
@@ -63,6 +65,9 @@ public class UnitRuleCompute extends UnitNode {
      * Compute rule of Unit node
      */
     public void computeRule() {
+        if (isComputed) {
+          return;  
+        }
         if (getUnit().getDirectParent().isEmpty()) {
             this.heritedRules = new UnitInheritedRule(getUnit().getManagement(), getUnit().getId());
         } else {
@@ -75,6 +80,7 @@ public class UnitRuleCompute extends UnitNode {
             UnitInheritedRule rule = parentNode.heritedRules.createNewInheritedRule(getUnit().getManagement(), getUnit().getId());
             heritedRules.concatRule(rule);
         }
+        isComputed = true;
     }
 
     /**
