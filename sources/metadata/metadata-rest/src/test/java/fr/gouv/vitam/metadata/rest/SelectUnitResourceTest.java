@@ -94,14 +94,14 @@ public class SelectUnitResourceTest {
         "      \"Rule\" : \"str0\"," +
         "      \"PreventInheritance\" : \"true\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
-        "      \"StartDate\" : \"01/01/2017\"," +
-        "      \"EndDate\" : \"01/01/2019\"" +
+        "      \"StartDate\" : \"2017-01-01\"," +
+        "      \"EndDate\" : \"2019-01-01\"" +
         "    }," +
         "    \"AccessRule\" : {" +
         "      \"Rule\" : \"acc0\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
-        "      \"StartDate\" : \"01/01/2017\"," +
-        "      \"EndDate\" : \"01/01/2019\"" +
+        "      \"StartDate\" : \"2017-01-01\"," +
+        "      \"EndDate\" : \"2019-01-01\"" +
         "    }" +
         "  }";
     
