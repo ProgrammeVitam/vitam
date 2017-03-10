@@ -164,7 +164,7 @@ public class UnitInheritedRule {
                             ObjectNode parentOriginDetailNode = (ObjectNode) parentCategoryNode.get(ruleId).get(parentOriginId);
                             if (selfOriginDetailNode != null) {
                                 if (!selfOriginDetailNode.get(PATH).equals(parentOriginDetailNode.get(PATH))) {
-                                    ((ArrayNode) selfOriginDetailNode.get(PATH)).add(parentOriginDetailNode.get(PATH));
+                                    ((ArrayNode) selfOriginDetailNode.get(PATH)).addAll((ArrayNode) parentOriginDetailNode.get(PATH));
                                 }
                             } else {
                                 selfOriginNode.set(parentOriginId, parentOriginDetailNode);
