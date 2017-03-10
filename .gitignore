@@ -19,3 +19,4 @@ Packages.gz
 local.conf
 local.json
 *.orig
+.DS_Store
