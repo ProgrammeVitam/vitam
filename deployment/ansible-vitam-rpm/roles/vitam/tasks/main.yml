@@ -58,7 +58,7 @@
     mode: "{{vitam_conf_permission}}"
   with_items:
     - "java_opts"
-   tags:
+  tags:
     - update_jvmoptions_vitam
   notify:
     - restart service
@@ -110,7 +110,7 @@
   notify:
     - restart service
 
-- name: copy files section (symbolic links to sources) for {{ package_name }} when applicable 
+- name: copy files section (symbolic links to sources) for {{ package_name }} when applicable
   copy:
     src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
     dest: "{{vitam_folder_conf}}/{{item }}"
