@@ -64,7 +64,7 @@
     </xsd:attributeGroup>
     <xsd:complexType name="OpenType" abstract="true">
         <xsd:sequence>
-            <xsd:any namespace="##local" processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attributeGroup ref="OpenTypeAttributeGroup"/>
     </xsd:complexType> 

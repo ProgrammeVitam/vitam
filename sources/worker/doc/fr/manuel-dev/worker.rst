@@ -60,8 +60,8 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
  "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
  
  
- 2.5. Persistence des workers
-------------------------------
+2.5. Persistence des workers
+----------------------------
  
  La lise de workers est persistée dans une base de données. Pour le moment, la base est un fichier de données qui contient une tableau de 
  workers en format ArrayNode et chaque worker est une élément JsonNode. Exemple ci-dessous est des données d'une liste de workers 
@@ -92,8 +92,8 @@ et la base sera mise à jour.
 	marshallToDB()   // mise à jour la base de la liste des workers enregistrés
 	
 	
-2.6. Désenregistrement d'un worker 
------------------------------------
+2.6. Désenregistrement d'un worker
+----------------------------------
 
 Lorsque le worker s'arrête ou se plante, ce worker doit être désenregistré. 
 
@@ -535,7 +535,10 @@ L'exécution de l'algorithme est présenté dans le code suivant :*
 4.4 Détail du handler : CheckSedaActionHandler
 ----------------------------------------------
 
-TODO
+Ce handler permet de valider la validité du manifest par rapport à un schéma XSD. 
+Il permet aussi de vérifier que les informations remplies dans ce manifest sont correctes.
+
+ - Le schéma de validation du manifest : src/main/resources/seda-vitam-2.0-main.xsd.
 
 4.4 Détail du handler : CheckStorageAvailabilityActionHandler
 -------------------------------------------------------------

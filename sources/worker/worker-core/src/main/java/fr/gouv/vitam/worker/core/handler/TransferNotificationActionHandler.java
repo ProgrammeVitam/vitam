@@ -48,6 +48,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.bson.Document;
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -89,6 +90,8 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
+import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.model.ArchiveUnitReplyTypeRoot;
@@ -119,7 +122,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String XLINK_URI = "http://www.w3.org/1999/xlink";
     private static final String PREMIS_URI = "info:lc/xmlns/premis-v2";
     private static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
-    private static final String XSD_VERSION = " seda-2.0-main.xsd";
+    private static final String XSD_VERSION = "seda-2.0-main.xsd";    
 
     private HandlerIO handlerIO;
     private static final String DEFAULT_STRATEGY = "default";
@@ -192,12 +195,18 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
 
             itemStatus.getData().put(LogbookParameterName.eventDetailData.name(), eventDetailData);
-            // FIXME P1 : Fix bug on jenkin org.xml.sax.SAXParseException: src-resolve: Cannot resolve the name
-            // 'xml:id' to a(n) 'attribute declaration' component.
-            // Actually cannot reproduce but get another SAX exception on the seda-vitam-2.0-main.xsd file (and its
-            // imports, it seems).
-            // if (new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), SEDA_VALIDATION_FILE)) {
-            handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);
+            try {
+                // TODO : Works for ATR_OK but not for some ATR_KO - need to be fixed
+                new ValidationXsdUtils().checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);                    
+            } catch (SAXException e) {
+                if (e.getCause() == null) {
+                    LOGGER.error("ATR File is not valid with the XSD", e);
+                }
+                LOGGER.error("ATR File is not a correct xml file", e);
+            } catch (XMLStreamException e) {
+                LOGGER.error("ATR File is not a correct xml file", e);
+            }
+            handler.addOuputResult(ATR_RESULT_OUT_RANK, atrFile, true);            
             // store binary data object
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(params.getContainerName());
