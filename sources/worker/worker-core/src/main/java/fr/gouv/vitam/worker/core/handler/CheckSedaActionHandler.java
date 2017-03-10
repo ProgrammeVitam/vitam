@@ -41,13 +41,17 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
  * Check Seda Handler
  */
 public class CheckSedaActionHandler extends ActionHandler {
+    
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
+    private static final String NOT_XSD_VALID = "NOT_XSD_VALID";
+    private static final String NOT_XML_FILE = "NOT_XML_FILE";
+    private static final String NO_FILE = "NO_FILE";
     private static final String HANDLER_ID = "CHECK_SEDA";
     private static final String CONTAINER_FORMAT = "CONTAINER_FORMAT";
     private static final String FILE = "FILE";
     private static final String DIRECTORY = "DIRECTORY";
-    private static final String SUBTASK_CHECK_MULTI_MANIFEST = HANDLER_ID + "." + CONTAINER_FORMAT + "." + FILE;    
-    private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = HANDLER_ID + "." + CONTAINER_FORMAT + "." + DIRECTORY;
+    private static final String SUBTASK_CHECK_MULTI_MANIFEST = CONTAINER_FORMAT + "." + FILE;    
+    private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = CONTAINER_FORMAT + "." + DIRECTORY;
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -92,15 +96,15 @@ public class CheckSedaActionHandler extends ActionHandler {
                 itemStatus.setData("messageIdentifier", messageId);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NO_FILE:
-                itemStatus.setItemId(HANDLER_ID + ".NO_FILE");
+                itemStatus.setItemId(NO_FILE);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XML_FILE:
-                itemStatus.setItemId(HANDLER_ID + ".NOT_XML_FILE");
+                itemStatus.setItemId(NOT_XML_FILE);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XSD_VALID:
-                itemStatus.setItemId(HANDLER_ID + ".NOT_XSD_VALID");
+                itemStatus.setItemId(NOT_XSD_VALID);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case MORE_THAN_ONE_MANIFEST:
