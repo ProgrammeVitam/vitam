@@ -62,6 +62,7 @@ public class UnitInheritedRule {
     private static final String OVERRIDE_BY = "OverridedBy";
     private static final String PATH = "path";
     private static final String PREVENTINHERITANCE = "PreventInheritance";
+    private static final String REFNONRULEID = "RefNonRuleId";
     public static final String RULE = "Rule";
 
     public static final String INHERITED_RULE = "inheritedRule";
@@ -293,7 +294,35 @@ public class UnitInheritedRule {
         Iterator<String> fieldNames = unitManagement.fieldNames();
         while (fieldNames.hasNext()) {
             String unitRuleCategory = fieldNames.next();
-            if (!parentCategoryList.contains(unitRuleCategory)) {
+            
+            if (unitManagement.get(unitRuleCategory).has(REFNONRULEID)){
+                ArrayNode nonRefRuleId = new ArrayNode(null);
+                String ruleId = null;
+                ObjectNode ruleCategories = null;
+                boolean isItself = false;
+                
+                if (unitManagement.get(unitRuleCategory).get(REFNONRULEID).isArray()){
+                    nonRefRuleId = (ArrayNode) unitManagement.get(unitRuleCategory).get(REFNONRULEID);
+                } else {
+                    nonRefRuleId.add(unitManagement.get(unitRuleCategory).get(REFNONRULEID));
+                }
+                    
+                for (JsonNode id : nonRefRuleId) {
+                    String rule = id.asText();
+                    newRule.inheritedRule.get(unitRuleCategory).remove(rule);
+                    if (unitManagement.get(unitRuleCategory).has(RULE)){
+                        ruleId = unitManagement.get(unitRuleCategory).get(RULE).asText();
+                        if (rule.equals(ruleId)){
+                            isItself = true;
+                        }
+                    }
+                }
+                
+                if (!isItself && unitManagement.get(unitRuleCategory).has(RULE)){
+                    ruleCategories = createRuleCategories((ObjectNode) unitManagement.get(unitRuleCategory), unitId);
+                    ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
+                }
+            } else if (!parentCategoryList.contains(unitRuleCategory)) {
                 ObjectNode ruleCategories = createRuleCategories((ObjectNode) unitManagement.get(unitRuleCategory), unitId);
                 ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
             } else {
