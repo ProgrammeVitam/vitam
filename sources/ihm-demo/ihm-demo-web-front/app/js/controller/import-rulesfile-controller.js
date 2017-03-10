@@ -64,10 +64,10 @@ angular.module('ihm.demo')
 
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
-    		var confirm = $mdDialog.confirm()
+    		var alert = $mdDialog.alert()
     			.title(' Le référentiel des règles de gestion est importé')
     			.ok("Fermer");
-    		$mdDialog.show(confirm);
+    		$mdDialog.show(alert);
     	}
 
     };
@@ -75,18 +75,17 @@ angular.module('ihm.demo')
     uploader.onErrorItem = function(fileItem, response, status, headers) {
     	console.info('onErrorItem', fileItem, response, status, headers);
     	if (uploader.queue[0].url == serviceURI + checkRules){
-    		var confirm = $mdDialog.confirm()
+    		var alert = $mdDialog.alert()
 				.title('Fichier invalide ou référentiel des règles de gestion déjà existant')
 				.ok("Fermer");
-    		$mdDialog.show(confirm).then(function(){
+    		$mdDialog.show(alert).then(function(){
     			$route.reload();
     		});
     	} else if (uploader.queue[0].url == serviceURI + uploadRules) {
-    		var confirm = $mdDialog.confirm()
-    		            	.title('Règle est déjà chargé dans la base.' +
-    		        				' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
-    		            	.ok("Fermer");
-    		    		$mdDialog.show(confirm)
+    		var alert = $mdDialog.alert()
+				.title('Règle est déjà chargé dans la base.' + ' Si vous voulez télécharger un nouveau format, appuyez sur le bouton Supprimer.')
+				.ok("Fermer");
+    		$mdDialog.show(alert)
     	}
 
     };
