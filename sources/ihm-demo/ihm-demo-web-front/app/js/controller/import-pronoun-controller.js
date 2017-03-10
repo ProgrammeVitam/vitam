@@ -64,10 +64,10 @@ angular.module('ihm.demo')
 
     		$mdDialog.show(confirm).then(uploadAction, cancelAction);
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
-    		var confirm = $mdDialog.confirm()
+    		var alert = $mdDialog.alert()
     			.title('Referentiel de formats importé')
     			.ok("Fermer");
-    		$mdDialog.show(confirm);
+    		$mdDialog.show(alert);
     	}
 
     };
@@ -75,17 +75,17 @@ angular.module('ihm.demo')
     uploader.onErrorItem = function(fileItem, response, status, headers) {
     	console.info('onErrorItem', fileItem, response, status, headers);
     	if (uploader.queue[0].url == serviceURI + checkFormat){
-    		var confirm = $mdDialog.confirm()
+    		var alert = $mdDialog.alert()
 				.title('Fichier invalide')
 				.ok("Fermer");
-    		$mdDialog.show(confirm).then(function(){
+    		$mdDialog.show(alert).then(function(){
     			$route.reload();
     		});
     	} else if (uploader.queue[0].url == serviceURI + uploadFormat) {
-    		var confirm = $mdDialog.confirm()
-    		            	.title('Référentiel des formats déjà existant')
-    		            	.ok("Fermer");
-    		    		$mdDialog.show(confirm)
+    		var alert = $mdDialog.alert()
+				.title('Référentiel des formats déjà existant')
+				.ok("Fermer");
+    		$mdDialog.show(alert)
     	}
 
     };
