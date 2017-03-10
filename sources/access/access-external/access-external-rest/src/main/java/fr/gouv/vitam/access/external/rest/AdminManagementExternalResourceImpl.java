@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -261,7 +262,7 @@ public class AdminManagementExternalResourceImpl {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
-    
+
     /**
      * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
      * the collection and indexed. </BR>
@@ -287,32 +288,39 @@ public class AdminManagementExternalResourceImpl {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             JsonNode json = JsonHandler.getFromInputStream(contracts);
             SanityChecker.checkJsonAll(json);
-            Response response = client.importContracts((ArrayNode) json);
-            if (response.getStatus() == Status.CREATED.getStatusCode()) {
+            RequestResponse response = client.importContracts((ArrayNode) json);
+            if (response instanceof RequestResponseOK) {
                 /* return created with the location of the external endpoint to GET contracts */
-                return Response.created(uri.getRequestUri().normalize()).build();
+                return Response.created(uri.getRequestUri().normalize()).entity(response).build();
             }
-            return Response.fromResponse(response).build();
+            if (response instanceof VitamError) {
+                int httpCode = ((VitamError) response).getHttpCode();
+                return Response.status(httpCode).entity(response).build();
+            }
+            return Response.serverError().entity(response).build();
         } catch (InvalidParseOperationException e) {
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error ", exp);
-            //don't send the internal error message to outside
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, null, null)).build();
+            // don't send the internal error message to outside
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, null, null)).build();
         }
     }
 
     /**
      * Construct the error following input
      * 
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
         String aMessage =
-            (message != null && !message.trim().isEmpty() ) ? message : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);

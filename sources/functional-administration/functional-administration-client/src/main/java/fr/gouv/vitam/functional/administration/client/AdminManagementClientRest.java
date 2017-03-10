@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -456,28 +457,20 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Response importContracts(ArrayNode contractsToImport) {
-
+    public RequestResponse importContracts(ArrayNode contractsToImport)
+        throws VitamClientInternalException, InvalidParseOperationException {
         ParametersChecker.checkParameter("The input contracts json is mandatory", contractsToImport);
         Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, CONTRACTS_URI, null,
-                contractsToImport, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
-                false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case CREATED:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                    break;
-                case BAD_REQUEST:
-                    LOGGER.debug(Response.Status.BAD_REQUEST.getReasonPhrase());
-                    break;
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Client side exception ", e);
-            return null;
+        response = performRequest(HttpMethod.POST, CONTRACTS_URI, null,
+            contractsToImport, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            false);
+        final Status status = Status.fromStatusCode(response.getStatus());
+        if (status == Status.CREATED) {
+            LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                IngestContractModel.class);
         }
-        return response;
+        return RequestResponse.parseFromResponse(response);
     }
 
 }

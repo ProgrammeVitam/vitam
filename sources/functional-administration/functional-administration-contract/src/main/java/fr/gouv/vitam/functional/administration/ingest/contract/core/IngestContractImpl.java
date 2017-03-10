@@ -3,7 +3,10 @@ package fr.gouv.vitam.functional.administration.ingest.contract.core;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -74,38 +77,30 @@ public class IngestContractImpl implements VitamAutoCloseable {
      * {@link IngestContractImpl#validators}
      * 
      * @param contractsToImport
+     * @return 
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    public void importContracts(ArrayNode contractsToImport)
+    public List<JsonNode> importContracts(ArrayNode contractsToImport)
         throws InvalidParseOperationException, ReferentialException {
 
         SanityChecker.checkJsonAll(contractsToImport);
-        Map<String, JsonNode> contractsToPersist = null;
-        Map<IngestContract, RejectionCause> wrongContracts = null;
+        Map<String, JsonNode> contractsToPersist = new HashMap<>();
+        Map<IngestContract, RejectionCause> wrongContracts = new HashMap<>(0);
         logStarted();
-        loopOnContracts: for (JsonNode contractAsJson : contractsToImport) {
+        for (JsonNode contractAsJson : contractsToImport) {
             try {
-                IngestContract contract = JsonHandler.getFromJsonNode(contractAsJson, IngestContract.class);
-                for (ContractValidator validator : validators) {
-                    Optional<RejectionCause> result = validator.validate(contract, contractsToPersist);
-                    if (result.isPresent()) {
-                        // there is a validation error on this contract
-                        /* contract is valid, add it to the list to persist */
-                        if (wrongContracts == null) {
-                            wrongContracts = new HashMap<IngestContract, RejectionCause>();
-                        }
-                        wrongContracts.put(contract, result.get());
-                        // once a validation error is detected on a contract, jump to next contract
-                        continue loopOnContracts;
+                IngestContract contractToValidate = JsonHandler.getFromJsonNode(contractAsJson, IngestContract.class);
+                if (validateContract(contractsToPersist, wrongContracts, contractToValidate)) {
+                    /* contract is valid, add it to the list to persist */
+                    if (contractsToPersist == null) {
+                        contractsToPersist = new HashMap<>();
                     }
+                    contractToValidate
+                        .setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
+                    contractsToPersist.put(contractToValidate.getName(),
+                        JsonHandler.getFromString(contractToValidate.toJson()));
                 }
-                /* contract is valid, add it to the list to persist */
-                if (contractsToPersist == null) {
-                    contractsToPersist = new HashMap<>();
-                }
-                contract.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
-                contractsToPersist.put(contract.getName(), JsonHandler.getFromString(contract.toJson()));
             } catch (InvalidParseOperationException poe) {
                 // invalid contract json at parse
                 logValidationError(poe.getMessage());
@@ -113,7 +108,7 @@ public class IngestContractImpl implements VitamAutoCloseable {
 
             }
         }
-        if (wrongContracts != null) {
+        if (! wrongContracts.isEmpty()) {
             // log book + application log
             // stop
             String errorsDetails =
@@ -128,7 +123,25 @@ public class IngestContractImpl implements VitamAutoCloseable {
             mongoAccess.insertDocuments(JsonHandler.createArrayNode().addAll(contractsToPersist.values()),
                 FunctionalAdminCollections.INGEST_CONTRACT);
             logSuccess();
+            return new ArrayList<>(contractsToPersist.values());
         }
+        return Collections.emptyList();
+    }
+
+
+    private boolean validateContract(Map<String, JsonNode> contractsToPersist,
+        Map<IngestContract, RejectionCause> wrongContracts, IngestContract contract) {
+        for (ContractValidator validator : validators) {
+            Optional<RejectionCause> result = validator.validate(contract, contractsToPersist);
+            if (result.isPresent()) {
+                // there is a validation error on this contract
+                /* contract is valid, add it to the list to persist */
+                wrongContracts.put(contract, result.get());
+                // once a validation error is detected on a contract, jump to next contract
+                return false;
+            }
+        }
+        return true;
     }
 
 

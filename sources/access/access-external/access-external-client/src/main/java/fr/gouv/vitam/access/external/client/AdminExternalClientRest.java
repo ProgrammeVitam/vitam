@@ -6,10 +6,8 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -132,31 +130,23 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    
-    @Override
-    public Response importContracts(InputStream contracts) {
 
+    @Override
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+        throws AccessExternalClientException {
         ParametersChecker.checkParameter("The input contracts json is mandatory", contracts);
         Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.POST, CONTRACTS_URI, null,
+            response = performRequest(HttpMethod.POST, CONTRACTS_URI, headers,
                 contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE,
                 false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case CREATED:
-                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                    break;
-                case BAD_REQUEST:
-                    LOGGER.debug(Response.Status.BAD_REQUEST.getReasonPhrase());
-                    break;
-            }
         } catch (final VitamClientInternalException e) {
-            LOGGER.error("Client side exception ", e);
-            return null;
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
-        return response;
+        return RequestResponse.parseFromResponse(response);
     }
-    
 
 }

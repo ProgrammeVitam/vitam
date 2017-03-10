@@ -219,6 +219,8 @@ public final class GUIDObjectType {
      */
     public static boolean getDefaultWorm(int type) {
         switch (type) {
+        	case INGEST_CONTRACT_TYPE:
+        	return false;
             case UNIT_TYPE:
             case OBJECTGROUP_TYPE:
             case STORAGE_OPERATION_TYPE:

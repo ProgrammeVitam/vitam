@@ -35,9 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -199,8 +197,10 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
-        Response resp = client.importContracts((ArrayNode) json);
-        assertEquals(Status.CREATED.getStatusCode(), resp.getStatus());
+        RequestResponse resp = client.importContracts((ArrayNode) json);
+        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
+        Assert.assertTrue(((RequestResponseOK)resp).isOk());
+        Assert.assertEquals(1,  ((RequestResponseOK)resp).getResults().size());        
     }
 
 

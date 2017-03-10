@@ -27,6 +27,10 @@
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -127,7 +131,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
-        contractImpl.importContracts((ArrayNode) json);
+        List<JsonNode> res = contractImpl.importContracts((ArrayNode) json);
+        Assert.assertEquals(2, res.size());
     }
 
     @Test(expected = ReferentialException.class)
@@ -136,7 +141,8 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_missingName.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
-        contractImpl.importContracts((ArrayNode) json);
+        List<JsonNode> res = contractImpl.importContracts((ArrayNode) json);
+        
     }
 
     @Test
@@ -155,6 +161,5 @@ public class IngestContractImplTest {
         //this code should not be reached , cause of the exception
         Assert.fail("An exception should have been thrown before this line");
     }
-
 
 }

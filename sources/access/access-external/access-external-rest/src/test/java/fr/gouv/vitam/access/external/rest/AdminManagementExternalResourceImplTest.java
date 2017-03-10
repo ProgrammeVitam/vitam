@@ -6,7 +6,8 @@ import static org.mockito.Matchers.anyObject;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -20,6 +21,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -28,11 +30,14 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -440,7 +445,9 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Response.status(400).build()).when(adminCLient).importContracts(anyObject());
+        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID").
+        		setMessage("invalid input").setDescription("Input file of contracts is malformed");
+        PowerMockito.doReturn(error).when(adminCLient).importContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -457,7 +464,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Response.created(URI.create("/contracts")).build()).when(adminCLient).importContracts(anyObject());
+        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getContracts())).when(adminCLient).importContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -466,5 +473,12 @@ public class AdminManagementExternalResourceImplTest {
 
     }
 
+    private List<Object> getContracts() throws FileNotFoundException, InvalidParseOperationException {
+    	InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
+		ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
+		List<Object> res = new ArrayList<>();
+		array.forEach(e -> res.add(e));
+		return res;
+	}
 
 }

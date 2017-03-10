@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -564,7 +565,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     /**
      * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR> The input is invalid in the following situations : </BR>
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -583,19 +585,44 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
         ParametersChecker.checkParameter(CONTRACT_JSON_IS_MANDATORY_PATAMETER, contractsToImport);
+        List<JsonNode> created = null;
         try (IngestContractImpl ingestContract = new IngestContractImpl(mongoAccess)) {
             SanityChecker.checkJsonAll(contractsToImport);
-            ingestContract.importContracts(contractsToImport);
+            created = ingestContract.importContracts(contractsToImport);
         } catch (InvalidParseOperationException e) {
-            return Response.status(Status.BAD_REQUEST).entity("Invalid json file").build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } catch (ReferentialException refExp) {
             LOGGER.error(refExp);
-            return Response.status(Status.BAD_REQUEST).entity(refExp.getMessage()).build();
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, refExp.getMessage(), null)).build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
-        return Response.created(uri.getRequestUri().normalize()).build();
+        RequestResponseOK resp = new RequestResponseOK<>();
+        if(created != null){
+        	resp.addAllResults(created);
+        }
+        return Response.created(uri.getRequestUri().normalize()).entity(resp).build();
+    }
+
+    /**
+     * Construct the error following input
+     * 
+     * @param status Http error status
+     * @param message The functional error message, if absent the http reason phrase will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
+     * @return
+     */
+    private VitamError getErrorEntity(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext("ADMIN_MODULE")
+            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
 }

@@ -29,15 +29,14 @@ package fr.gouv.vitam.functional.administration.client;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
@@ -62,7 +61,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param stream as InputStream
      * @return the response to the request
-     * @throws ReferentialException      when import exception occurs
+     * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
     Response importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
@@ -103,8 +102,8 @@ public interface AdminManagementClient extends MockOrRestClient {
      * 
      * @param stream
      * @return the response to the request
-     * @throws FileRulesException                   when file rules exception occurs
-     * @throws DatabaseConflictException            when Database conflict exception occurs
+     * @throws FileRulesException when file rules exception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
     Response importRulesFile(InputStream stream)
@@ -178,8 +177,11 @@ public interface AdminManagementClient extends MockOrRestClient {
      * </ul>
      * 
      * @param contractsToImport
-     * @return The server response
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
      */
-    Response importContracts(ArrayNode contractsToImport);
+    RequestResponse importContracts(ArrayNode contractsToImport)
+        throws VitamClientInternalException, InvalidParseOperationException;
 
 }

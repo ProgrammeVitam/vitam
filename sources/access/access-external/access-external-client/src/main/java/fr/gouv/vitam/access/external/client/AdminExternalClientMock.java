@@ -1,8 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 
 import javax.ws.rs.core.Response;
 
@@ -11,7 +9,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -67,15 +64,9 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response importContracts(InputStream contracts) {
-        try {
-            if(contracts == null ||contracts.available() == 0){
-                return Response.status(400).build();
-            }
-        } catch (IOException e) {
-            return Response.status(400).build();
-        }
-        return Response.created(URI.create("/contracts")).build();
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+        throws InvalidParseOperationException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContracts().toJsonNode());
     }
 
 }

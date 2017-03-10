@@ -115,8 +115,11 @@ public interface AdminExternalClient extends BasicClient {
      * </ul>
      * 
      * @param contracts as InputStream
-     * @return Response jersey response
+     * @param tenantId
+     * @return Vitam response
+     * @throws InvalidParseOperationException 
+     * @throws AccessExternalClientException 
      */
-    Response importContracts(InputStream contracts);
+    RequestResponse importContracts(InputStream contracts, Integer tenantId) throws InvalidParseOperationException, AccessExternalClientException;
     
 }

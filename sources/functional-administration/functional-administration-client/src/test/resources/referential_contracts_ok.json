@@ -7,5 +7,14 @@
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016"
+	},
+	{
+		"Name":"aName 2",
+		"Description":"aDescription of the contract 2",
+		"Status" : "ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016"
 	}
 ]
