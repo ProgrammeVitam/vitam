@@ -32,6 +32,8 @@ import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 
@@ -56,6 +58,11 @@ public class World {
     private AccessExternalClient accessClient;
 
     /**
+     * admin eternal client
+     */
+    private AdminExternalClient adminClient;
+
+    /**
      * base path of all the feature
      */
     private String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
@@ -64,6 +71,7 @@ public class World {
     public void init() {
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
+        adminClient =  AdminExternalClientFactory.getInstance().getClient();
     }
 
     /**
@@ -99,6 +107,13 @@ public class World {
     }
 
     /**
+     * @return admin client
+     */
+    public AdminExternalClient getAdminClient() {
+        return adminClient;
+    }
+
+    /**
      *
      * @return operation ID
      */
@@ -116,6 +131,7 @@ public class World {
 
     @After
     public void finish() {
+        adminClient.close();
         accessClient.close();
         ingestClient.close();
     }

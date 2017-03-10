@@ -58,7 +58,7 @@ angular.module('core')
     };
 
     FunctionalTestResource.sync = function () {
-      return $http(IHM_URLS.IHM_BASE_URL + FUNCTIONAL_TEST_ROOT + "sync");
+      return $http.post(IHM_URLS.IHM_BASE_URL + FUNCTIONAL_TEST_ROOT + "sync");
     };
 
     return FunctionalTestResource;
