@@ -83,6 +83,7 @@ import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
@@ -446,7 +447,12 @@ public class ProcessingIT {
 
             assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery = new fr.gouv.vitam.common.database.builder.request.single.Select();
+            selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
+            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(), 
+                "STP_INGEST_FINALISATION.STARTED");
             // checkMonitoring - meaning something has been added in the monitoring tool
             final StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
             assertNotNull(status);

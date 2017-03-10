@@ -1084,6 +1084,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             if (parameters != null) {
                 parameters.setStatus(logbookOutcome);
+
+                parameters.putParameterValue(LogbookParameterName.outcomeDetail, 
+                    VitamLogbookMessages.getOutcomeDetail(INGEST_WORKFLOW, logbookOutcome));
                 parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
                 logbookOperationsClient.update(parameters);
             }
