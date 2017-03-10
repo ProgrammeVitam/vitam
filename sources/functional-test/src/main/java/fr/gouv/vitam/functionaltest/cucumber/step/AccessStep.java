@@ -26,9 +26,16 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.assertj.core.api.Fail;
 
@@ -38,6 +45,8 @@ import com.google.common.collect.Iterables;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -47,6 +56,12 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
  * step defining access glue
  */
 public class AccessStep {
+
+    private static final String UNIT_PREFIX = "unit:";
+
+    private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
+
+    private static final String TITLE = "Title";
 
     private List<JsonNode> results;
 
@@ -66,13 +81,77 @@ public class AccessStep {
     @Then("^les metadonnées sont$")
     public void metadata_are(DataTable dataTable) throws Throwable {
 
-        JsonNode lastJsonNode = Iterables.getLast(results);
-
+        JsonNode firstJsonNode = Iterables.get(results, 0);
+        
         List<List<String>> raws = dataTable.raw();
 
         for (List<String> raw : raws) {
-            assertThat(lastJsonNode.get(raw.get(0)).textValue()).contains(raw.get(1));
+            String resultValue = getResultValue(firstJsonNode, raw.get(0)); 
+            String resultExpected = transformToGuid(raw.get(1)); 
+            assertThat(resultValue).contains(resultExpected);
         }
+    }
+
+    /**
+     * @param lastJsonNode
+     * @param raw
+     * @return
+     * @throws Throwable 
+     */
+    private String getResultValue(JsonNode lastJsonNode, String raw) throws Throwable {
+        String rawCopy = transformToGuid(raw);
+        String[] paths = rawCopy.split("\\.");
+        for (String path: paths ) {
+            lastJsonNode = lastJsonNode.get(path);
+        }
+        
+        return JsonHandler.unprettyPrint(lastJsonNode);
+    }
+    
+    private String transformToGuid(String raw) throws Throwable {
+
+        Matcher matcher = Pattern.compile(REGEX)
+            .matcher(raw);
+        String rawCopy = new String(raw);
+        Map<String, String> unitToGuid = new HashMap<>();
+        while (matcher.find()) {
+          String unit = matcher.group(1);
+          String unitTitle = unit.substring(2, unit.length()-2).replace(UNIT_PREFIX, "").trim();
+          String unitGuid = "";
+          if (unitToGuid.get(unitTitle) != null) {
+              unitGuid = unitToGuid.get(unitTitle);
+          } else {
+              unitGuid = replaceTitleByGUID(unitTitle);
+              unitToGuid.put(unitTitle, unitGuid);
+          }
+          rawCopy = rawCopy.replace(unit, unitGuid);
+        }
+        return rawCopy;
+    }
+
+    /**
+     * @param substring
+     */
+    private String replaceTitleByGUID(String auTitle) throws Throwable {
+        String auId = "";
+        Select searchQuery = new Select();
+        searchQuery.addQueries(
+            and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId())).setDepthLimit(20));
+        RequestResponse requestResponse = world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            if (requestResponseOK.getHits().getTotal() == 0) {
+                Fail.fail("Archive Unit not found : title = " + auTitle); 
+            }
+            JsonNode firstJsonNode = Iterables.get(requestResponseOK.getResults(), 0);
+            if (firstJsonNode.get(VitamFieldsHelper.id()) != null) {
+                auId =  firstJsonNode.get(VitamFieldsHelper.id()).textValue();
+            }
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+        return auId;
     }
 
     /**
