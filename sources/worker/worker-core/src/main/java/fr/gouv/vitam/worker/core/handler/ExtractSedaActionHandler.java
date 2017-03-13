@@ -312,10 +312,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void extractSEDAWithWorkspaceClient(String containerId,
-        ItemStatus globalCompositeItemStatus,
-        LogbookLifeCyclesClient logbookLifeCycleClient)
-        throws ProcessingException, CycleFoundException {
+    private void extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
+        LogbookLifeCyclesClient logbookLifeCycleClient) throws ProcessingException, CycleFoundException {
+
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
 
@@ -364,22 +363,25 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     globalMetadata = true;
                 }
 
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart()
-                        .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+
                     final String orgAgId = reader.getElementText();
+
+                    // Check if the OriginatingAgency was really set
+                    if (orgAgId != null && !orgAgId.isEmpty()) {
+                        globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                    }
+
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     writer.add(eventFactory.createCharacters(orgAgId));
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     globalMetadata = false;
-
-                    globalRequiredInfosFound.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                 }
 
-                if (event.isStartElement() &&
-                    event.asStartElement().getName().getLocalPart()
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                         .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
                     final String orgAgId = reader.getElementText();
                     writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
@@ -619,8 +621,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartDocument());
             writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.ROOT_TAG));
             boolean startCopy = false;
+
             // management rules id to add
-            Set<String> globalMgtIdExtra = null;
+            Set<String> globalMgtIdExtra = new HashSet<>();
             while (true) {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() && ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
@@ -655,10 +658,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                         String listRulesForAuRoot = "";
                         if (isRootArchive) {
+                            // Add rules from global Management Data (only new
+                            // ones)
                             if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
-                                globalMgtIdExtra = mngtMdRuleIdToRulesXml.keySet();
+                                globalMgtIdExtra.clear();
+                                globalMgtIdExtra.addAll(mngtMdRuleIdToRulesXml.keySet());
                             }
-                            // All MngtRuleMetadata Must be shown in RootArchive
+
+                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
+                                unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.get(unitId) != null &&
+                                !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
+                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
+                            }
+
                             if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
                                 listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
                             }
