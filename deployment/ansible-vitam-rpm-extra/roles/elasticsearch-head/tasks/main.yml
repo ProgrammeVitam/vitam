@@ -2,12 +2,12 @@
 
 #### Elasticsearch plugins ####
 
-- name: install vitam-elasticsearch-head rpm
+- name: install vitam-elasticsearch-head package
   package:
     name: vitam-elasticsearch-head
     state: latest
 
-- name: install vitam-elasticsearch-kopf rpm
+- name: install vitam-elasticsearch-kopf package
   package:
     name: vitam-elasticsearch-kopf
     state: latest
