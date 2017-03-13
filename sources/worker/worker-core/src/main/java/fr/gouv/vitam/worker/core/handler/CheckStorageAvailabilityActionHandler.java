@@ -94,7 +94,8 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             // TODO P1 fix getcontainerInformation in storage
             if (storageCapacityNode == null) {
                 LOGGER.error("storage capacity account information not found");
-                return itemStatus.increment(StatusCode.WARNING);
+                itemStatus.increment(StatusCode.WARNING);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
             final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
                 StorageInformation[].class);
