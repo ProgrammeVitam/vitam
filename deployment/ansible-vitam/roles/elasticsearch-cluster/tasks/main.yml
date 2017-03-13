@@ -174,7 +174,17 @@
     name: "vitam-{{cluster_name}}"
     state: started
 
+# TODO OMA : factor these 2 steps ?
+
 - name: install vitam-elasticsearch-kopf package
   package:
     name: vitam-elasticsearch-kopf
     state: latest
+
+# OMA : needs a restart to be effective
+- name: install vitam-elasticsearch-analysis-icu package
+  package:
+    name: vitam-elasticsearch-analysis-icu
+    state: latest
+  notify:
+    - restart elasticsearch

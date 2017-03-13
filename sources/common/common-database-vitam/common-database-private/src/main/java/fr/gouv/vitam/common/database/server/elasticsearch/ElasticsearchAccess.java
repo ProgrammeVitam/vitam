@@ -76,12 +76,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
      */
     public static final String DEFAULT_INDEX_CONFIGURATION = "{\"analysis\":{" +
         "\"analyzer\": {" +
-        "\"default\": {\"type\":\"custom\",\"tokenizer\":\"letter\"," +
+        "\"default\": {\"type\":\"custom\",\"tokenizer\":\"icu_tokenizer\"," +
         "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]," +
-        "\"char_filter\": [\"html_strip\"]}," +
-        "\"default_search\":{\"type\":\"custom\",\"tokenizer\":\"letter\"," +
+        "\"char_filter\": [\"dotreplace\", \"html_strip\"]}," +
+        "\"default_search\":{\"type\":\"custom\",\"tokenizer\":\"icu_tokenizer\"," +
         "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]," +
-        "\"char_filter\": [\"html_strip\"]}}," +
+        "\"char_filter\": [\"dotreplace\", \"html_strip\"]}}," +
+        "\"char_filter\": {\"dotreplace\":{\"type\":\"pattern_replace\",\"pattern\":\"\\\\.\", \"replacement\": \" \"}}," +
         "\"tokenizer\":{\"letter\":{\"type\":\"letter\"}}," +
         "\"filter\":{" +
         "\"snowball\":{\"type\":\"snowball\",\"language\":\"French\"}," +
