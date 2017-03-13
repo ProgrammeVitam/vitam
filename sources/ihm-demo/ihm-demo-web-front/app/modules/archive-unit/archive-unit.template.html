@@ -154,8 +154,8 @@
                                 </tr>
                                 <tr class="table-row" ng-repeat="rule in ruleCategory.displayArray">
                                     <td class="whitetd">{{rule.ruleId}}</td>
-                                    <td class="whitetd">{{rule.StartDate}}</td>
-                                    <td class="whitetd">{{rule.EndDate}}</td>
+                                    <td class="whitetd">{{rule.StartDate | vitamFormatDate }}</td>
+                                    <td class="whitetd">{{rule.EndDate | vitamFormatDate }}</td>
                                     <td class="whitetd">{{rule.FinalAction}}</td>
                                     <td class="whitetd">{{checkHerited(rule.originId)}}</td>
                                     <td class="whitetd" data-toggle="tooltip" title="{{rule.originId}}"><i class="material-icons md-18">info_outline</i></td>
