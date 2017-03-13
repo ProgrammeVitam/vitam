@@ -315,9 +315,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         }
         // Now notify the Distributor if it is waiting on the Running Job set to be empty
         if (workerAsyncResponse.getWorkerAsyncRequest().getCurrentRunningObjectsInStep().isEmpty()) {
-            try {
+            try {                
                 processDataAccess.updateStep(workParams.getContainerName(), workParams.getStepUniqId(), 0,
-                    true, VitamThreadUtils.getVitamSession().getTenantId());
+                    true, workerAsyncResponse.getWorkerAsyncRequest().getSession().getTenantId());
             } catch (ProcessingException | RuntimeException e) {
                 if (step.getStepResponses() != null) {
                     step.getStepResponses().increment(StatusCode.FATAL);

@@ -88,6 +88,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new IllegalArgumentException(ErrorMessage.INVALID_METADATA_VALUE.getMessage());
             }
             return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
