@@ -2,8 +2,8 @@
 
 SIEGFRIED_VERSION="1.6.5"
 WORKING_FOLDER=$(dirname $0)
-#GO_PROGRAM="/usr/lib/go-1.6/bin/go"
-GO_PROGRAM="/usr/bin/go"
+GO_PROGRAM="/usr/lib/go-1.6/bin/go"
+#GO_PROGRAM="/usr/bin/go"
 
 # Inspired by RPM build script as dh-make-golang seems to have vendors dependencies issues since go 1.6
 # https://github.com/Debian/dh-make-golang/issues/46
