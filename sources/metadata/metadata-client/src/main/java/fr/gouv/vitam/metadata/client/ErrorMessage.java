@@ -41,6 +41,7 @@ public enum ErrorMessage {
     INTERNAL_SERVER_ERROR("Internal Server Error"),
     SIZE_TOO_LARGE("Document Size is Too Large"),
     INVALID_PARSE_OPERATION("Invalid Parse Operation"),
+    INVALID_METADATA_VALUE("Invalid metadata values"),
     MISSING_SELECT_QUERY("Missing Select Query"),
     DATA_ALREADY_EXISTS("Data Already Exists"),
     NOT_FOUND("Not Found Exception");
