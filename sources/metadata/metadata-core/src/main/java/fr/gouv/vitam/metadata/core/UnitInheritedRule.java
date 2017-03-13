@@ -334,7 +334,12 @@ public class UnitInheritedRule {
                         newRule.inheritedRule.get(unitRuleCategory).removeAll();
                     }
 
-                    if (newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
+                    if (!newRule.inheritedRule.containsKey(unitRuleCategory)){
+                        newRule.inheritedRule.put(unitRuleCategory, new ObjectNode(null));
+                    }
+                    
+                    if (!newRule.inheritedRule.get(unitRuleCategory).has(ruleId) ||
+                        newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
                         ObjectNode unitNode = createNewRuleWithOrigin(unitRuleNode, unitId);
                         newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
                     }
