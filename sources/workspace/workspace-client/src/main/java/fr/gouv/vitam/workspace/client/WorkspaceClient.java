@@ -42,9 +42,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -57,8 +54,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.storage.api.ContentAddressableStorage;
-import fr.gouv.vitam.common.storage.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -66,15 +62,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
-import fr.gouv.vitam.workspace.api.model.ContainerInformation;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 
 
 /**
  * Workspace client which calls rest services
- * <p>
- * FIXME design : is it normal that the workspaceClient extends ContentAddressableStorage ?
  */
-public class WorkspaceClient extends DefaultClient implements ContentAddressableStorage {
+public class WorkspaceClient extends DefaultClient {
 
     private static final String INTERNAL_SERVER_ERROR2 = "Internal Server Error";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
@@ -91,8 +85,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         super(factory);
     }
 
-
-    @Override
     public void createContainer(String containerName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
 
@@ -121,13 +113,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
 
     }
 
-    @Override
-    public void purgeContainer(String containerName) {
-        // FIXME P1
-    }
-
-
-    @Override
     public void deleteContainer(String containerName, boolean recursive)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -156,7 +141,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
@@ -173,8 +157,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-
-    @Override
     public long countObjects(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -201,7 +183,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -228,7 +209,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public void deleteFolder(String containerName, String folderName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -256,7 +236,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public boolean isExistingFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -274,7 +253,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -301,7 +279,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
 
     }
 
-    @Override
     public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -330,7 +307,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -364,7 +340,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
 
@@ -393,7 +368,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public boolean isExistingObject(String containerName, String objectName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -411,7 +385,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -439,7 +412,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public void uncompressObject(String containerName, String folderName, String archiveType,
         InputStream inputStreamObject)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
@@ -499,9 +471,8 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName, algo);
@@ -531,7 +502,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
@@ -555,7 +525,6 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public JsonNode getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -583,32 +552,15 @@ public class WorkspaceClient extends DefaultClient implements ContentAddressable
         }
     }
 
-    @Override
     public boolean checkObject(String containerName, String objectId, String digest,
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
     }
 
-    @Override
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
         // FIXME implémente dans workspace 
         return new MetadatasStorageObject();
     }
-
-    // FIXME design : is it normal that the workspaceClient implements ContentAddressableStorage ?
-    @Override
-    public PageSet<? extends StorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException {
-        throw new UnsupportedOperationException();
-    }
-
-    // FIXME design : is it normal that the workspaceClient implements ContentAddressableStorage ?
-    @Override
-    public PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException {
-        throw new UnsupportedOperationException();
-    }
-
 }

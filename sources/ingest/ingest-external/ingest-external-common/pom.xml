@@ -42,7 +42,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-storage</artifactId>
+			<artifactId>workspace-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

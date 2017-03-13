@@ -61,7 +61,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
@@ -81,6 +80,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 
 /**
  * Implementation of IngestExtern
@@ -139,7 +139,7 @@ public class IngestExternalImpl implements IngestExternal {
         final GUID objectName = guid;
         final GUID ingestGuid = guid;
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        FileSystem workspaceFileSystem = null;
+        WorkspaceFileSystem workspaceFileSystem = null;
         Response responseNoProcess = null;
 
         
@@ -184,8 +184,7 @@ public class IngestExternalImpl implements IngestExternal {
             }
 
 
-            workspaceFileSystem =
-                new FileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
+            workspaceFileSystem = new WorkspaceFileSystem(new StorageConfiguration().setStoragePath(config.getPath()));
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
 

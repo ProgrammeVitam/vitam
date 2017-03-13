@@ -126,7 +126,7 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 		echo "	Génération pour ${i}..."
 		# Importer les clés de ingest-external
 		echo "	Import du p12 de hosts-storage-offer-default dans le keystore"
-		addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_storage-offer-default.jks  $(eval "echo \$KeyStorePassword_default_offer") ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/storage-offer-default.p12 ${p12_storage_offer_default} storage-offer-default
+		addp12injks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/keystore_offer.jks  $(eval "echo \$KeyStorePassword_default_offer") ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/offer.p12 ${p12_storage_offer_default} vitam-offer
 		echo "Fin de génération du keystore ${j}-external"
 		echo "---------------------------------------------"
 
@@ -134,13 +134,13 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 		#generationstore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks truststore_ingest-external ${TrustStorePassword_ingest_external}
 		echo "	Import des CA server dans truststore de ${j}-external..."
 		echo "		... import CA server root..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_offer.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server/ca.crt ca_server_root_crt
 		echo "		... import CA server intermediate..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_offer.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/server_intermediate/ca.crt ca_server_interm_root_crt
 		echo "		... import CA client root..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_offer.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client/ca.crt ca_client_root_crt
 		echo "		... import CA client intermediate..."
-		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_storage-offer-default.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
+		addcainjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_offer.jks $(eval "echo \$TrustStorePassword_default_offer") ${REPERTOIRE_CA}/client_intermediate/ca.crt ca_client_interm_root_crt
 
 		echo "Fin de génération du trustore de ${j}-external"
 		echo "------------------------------------------------"
@@ -148,7 +148,7 @@ for i in $(ansible -i environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts hosts
 		echo "Génération du grantedstore de ${j}-external..."
 		echo "	Import certificat IHM-demo, ihm-recette & reverse dans le grantedstore de ${j}-external..."
 		# FIXMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE !
-		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_storage-offer-default.jks $(eval "echo \$grantedKeyStorePassphrase_default_offer") ${REPERTOIRE_CERTIFICAT}/client/storage/storage.crt storage
+		addcrtinjks ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/grantstore_offer.jks $(eval "echo \$grantedKeyStorePassphrase_default_offer") ${REPERTOIRE_CERTIFICAT}/client/storage/storage.crt storage
 		echo "------------------------------------------------"
 	#	importcastore ${REPERTOIRE_CERTIFICAT}/server/hosts/${i}/truststore_ingest-external.jks ${TrustStorePassword_ingest_external} ${REPERTOIRE_CA}/server/ca.crt azerty ca_server_root_crt
 	done

@@ -1817,7 +1817,7 @@
 				<v:ud v:nameU="WHBoxIntersection" v:prompt="" v:val="VT7(PNT(0,0.32422179045598)):40"/>
 			</v:userDefs>
 			<title>Remarque.136</title>
-			<desc>act: systemctl stop vitam-storage-offer-default ctrl : system...</desc>
+			<desc>act: systemctl stop vitam-offer ctrl : system...</desc>
 			<g id="shape136-1050" v:mID="136" v:groupContext="groupContent">
 				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 				<v:textRect cx="132.732" cy="3236.17" width="265.47" height="42.8996"/>
@@ -2609,7 +2609,7 @@
 				<v:ud v:nameU="WHBoxIntersection" v:prompt="" v:val="VT7(PNT(0,0.32418435891664)):40"/>
 			</v:userDefs>
 			<title>Remarque.266</title>
-			<desc>act: systemctl start vitam-storage-offer-default ctrl : syste...</desc>
+			<desc>act: systemctl start vitam-offer ctrl : syste...</desc>
 			<g id="shape266-1530" v:mID="266" v:groupContext="groupContent">
 				<v:textBlock v:margins="rect(4,4,4,4)" v:tabSpace="42.5197"/>
 				<v:textRect cx="132.732" cy="3236.17" width="265.47" height="42.8996"/>

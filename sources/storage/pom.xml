@@ -13,9 +13,9 @@
 
 	<packaging>pom</packaging>
 	<modules>
-		<module>storage-driver</module>
+		<module>storage-driver-api</module>
 		<module>storage-engine</module>
-		<module>storage-offers</module>
-		
+		<module>cas-manager</module>
+		<module>cas-container</module>
 	</modules>
 </project>
