@@ -1,0 +1,39 @@
+{
+	"CHECK_DIGEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin",
+		"propertiesFile": "check_conformity_plugin.properties"
+	},
+
+	"OG_OBJECTS_FORMAT_CHECK": {
+		"className": "fr.gouv.vitam.worker.core.plugin.FormatIdentificationActionPlugin",
+		"propertiesFile": "format_check_plugin.properties"
+	}, 	
+
+	"UNIT_METADATA_INDEXATION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.IndexUnitActionPlugin",
+		"propertiesFile": "index_unit_plugin.properties"
+	},
+
+	"OG_METADATA_INDEXATION": {
+		"className": "fr.gouv.vitam.worker.core.plugin.IndexObjectGroupActionPlugin",
+		"propertiesFile": "index_object_group_plugin.properties"
+        },
+	"OG_STORAGE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin",
+		"propertiesFile": "store_object_group_plugin.properties"
+	},
+	"UNITS_RULES_COMPUTE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.UnitsRulesComputePlugin",
+		"propertiesFile": "units_rules_compute_plugin.properties"
+	},
+	"OG_METADATA_STORAGE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin",
+		"propertiesFile": "store_metadata_objectGroup_plugin.properties"
+	},
+	"UNIT_METADATA_STORAGE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.StoreMetaDataUnitActionPlugin",
+		"propertiesFile": "store_metadata_unit_plugin.properties"
+	}	
+
+}
+
