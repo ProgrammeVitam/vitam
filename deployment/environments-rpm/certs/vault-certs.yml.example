@@ -1,0 +1,8 @@
+server_ingest_external_key: changeme
+server_access_external_key: changeme
+server_storage_offer_default_key: changeme
+timestamping_logbook_key: changeme
+client_client_external_ihm_demo_key: changeme
+client_client_external_ihm_recette_key: changeme
+client_client_external_reverse_key: changeme
+client_client_storage_storage_key: changeme

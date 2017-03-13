@@ -1,6 +1,6 @@
 ---
 # KWA review : replace cron call by a systemd timer task ?
-#  Pro : no external dependencies, kept in systemd 
+#  Pro : no external dependencies, kept in systemd
 #  Pro/Con : everything in https://wiki.archlinux.org/index.php/Systemd/Timers#As_a_cron_replacement
 #  Con : not well-known by sysadmin
 #  Con : may be useless, as job scheduling inside Vitam may be delegated to a dedicated component (ihm-technical-administration)
@@ -31,6 +31,14 @@
     minute: "1"
     hour: "0-23"
     user: "{{ vitam_user }}"
-    job: "/vitam/script/logbook/launchTraceability.sh"
+    job: "/vitam/script/logbook/launchTraceability.sh >> /vitam/log/logbook/secure_logbook.log 2>&1"
   run_once: yes
   delegate_to: "{{ groups['hosts-logbook'] | last }}"
+
+- name: add logrotate conf for secure logbook operations
+  copy:
+    src: "vitam_secure_logbook"
+    dest: "/etc/logrotate.d/vitam_secure_logbook"
+    owner: "root"
+    group: "root"
+    mode: "644"

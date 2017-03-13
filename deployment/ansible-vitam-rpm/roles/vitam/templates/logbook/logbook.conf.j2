@@ -11,8 +11,8 @@ dbUserName: {{mongoLogbookUser}}
 dbPassword: {{mongoLogbookPassword}}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-p12LogbookPassword: {{p12_logbook_password}}
-p12LogbookFile: logbook.p12
+p12LogbookPassword: {{keystores.timestamping.logbook}}
+p12LogbookFile: keystore_logbook.p12
 workspaceUrl: {{vitam_workspace_baseurl}}
 
 # ElasticSearch
@@ -22,4 +22,3 @@ elasticsearchNodes:
 - hostName: {{server}}
   tcpPort: {{elasticsearch_data_tcp_port}}
 {% endfor %}
-

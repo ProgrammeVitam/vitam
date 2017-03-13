@@ -1,0 +1,14 @@
+V	270227163946Z		A4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270227163947Z		A5	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	200229164027Z		A6	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
+V	270227174339Z		A7	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270227174340Z		A8	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	200229174356Z		A9	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
+V	270228082241Z		AA	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270228082241Z		AB	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270228082648Z		AC	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270228082648Z		AD	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	200301083151Z		AE	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
+V	270304180342Z		AF	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270304180342Z		B0	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	200305180417Z		B1	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
