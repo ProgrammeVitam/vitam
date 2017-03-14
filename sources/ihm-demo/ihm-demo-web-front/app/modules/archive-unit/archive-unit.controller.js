@@ -188,6 +188,14 @@ angular.module('archive.unit')
     //************* Intercept user changes *********** //
     self.modifiedFields = [];
     self.interceptUserChanges = function interceptUserChanges(fieldSet){
+      var fieldStr = !fieldSet.fieldLabel ? fieldSet.fieldName : fieldSet.fieldLabel;
+      var isDateField = fieldStr.toUpperCase().indexOf('DATE') > -1;
+
+      if(isDateField && (fieldSet.currentFieldValue === '')){
+        fieldSet.currentFieldValue = fieldSet.fieldValue;
+        self.showAlert(null, "Erreur", "Veuillez saisir une date valide.");
+      }
+
       fieldSet.isFieldModified = fieldSet.fieldValue !== fieldSet.currentFieldValue;
     };
 
