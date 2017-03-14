@@ -53,7 +53,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -294,7 +294,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         final SelectParserMultiple selectRequest = new SelectParserMultiple();
         selectRequest.parse(queryJson);
-        final Select request = selectRequest.getRequest();
+        final SelectMultiQuery request = selectRequest.getRequest();
         request.reset().addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
         request.setProjectionSliceOnQualifier(qualifier, version, "FormatIdentification", "FileInfo");
@@ -546,7 +546,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         StorageClientException, AccessInternalException {
 
         JsonNode jsonResponse = null;
-        Select query = new Select();
+        SelectMultiQuery query = new SelectMultiQuery();
         JsonNode constructQuery = query.getFinalSelect();
         final String fileName = idUnit + JSON;
 

@@ -147,6 +147,16 @@ public abstract class RequestSingle extends AbstractRequest {
     public JsonNode getData() {
         return JsonHandler.createObjectNode();
     }
+    
+    @Override
+    public boolean getAllProjection() {
+        return selectGetAllProjection();
+    }
+
+    @Override
+    public ObjectNode getProjection() {
+        return selectGetProjection();
+    }
 
     /**
      * default implements of getActions

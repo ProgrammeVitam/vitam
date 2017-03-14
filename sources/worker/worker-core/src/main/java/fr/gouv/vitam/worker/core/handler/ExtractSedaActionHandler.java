@@ -68,7 +68,7 @@ import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
@@ -1779,7 +1779,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final SelectParserMultiple selectRequest = new SelectParserMultiple();
-            final Select request = selectRequest.getRequest().reset();
+            final SelectMultiQuery request = selectRequest.getRequest().reset();
             return metadataClient.selectUnitbyId(request.getFinalSelect(), archiveUnitId);
 
         } catch (final MetaDataException e) {

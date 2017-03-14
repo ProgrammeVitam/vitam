@@ -75,6 +75,7 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
@@ -1351,7 +1352,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LOGGER.debug("insertToElasticsearch");
         Map<String, String> mapIdJson = new HashMap<>();
         String id = vitamDocument.getId();
-        vitamDocument.remove(LogbookCollections.ID);
+        vitamDocument.remove(VitamDocument.ID);
         tranformEvDetDataForElastic(vitamDocument);
         final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         vitamDocument.clear();
@@ -1380,7 +1381,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (existingDocument == null) {
             throw new LogbookNotFoundException("Logbook item not found");
         }
-        existingDocument.remove(LogbookCollections.ID);
+        existingDocument.remove(VitamDocument.ID);
         tranformEvDetDataForElastic(existingDocument);
         final String mongoJson = existingDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         existingDocument.clear();

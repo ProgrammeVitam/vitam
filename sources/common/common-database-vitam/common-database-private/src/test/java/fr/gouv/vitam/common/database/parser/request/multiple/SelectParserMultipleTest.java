@@ -71,7 +71,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -164,7 +164,7 @@ public class SelectParserMultipleTest {
             assertNotNull(request1);
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
-            final Select select = new Select();
+            final SelectMultiQuery select = new SelectMultiQuery();
             select.addRoots("id0");
             select.addQueries(path("id1", "id2"));
             select.addQueries(
@@ -236,7 +236,7 @@ public class SelectParserMultipleTest {
     @Test
     public void testFilterParse() {
         final SelectParserMultiple request = new SelectParserMultiple();
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             // empty
             request.filterParse(select.getFilter());
@@ -313,7 +313,7 @@ public class SelectParserMultipleTest {
     @Test
     public void testProjectionParse() {
         final SelectParserMultiple request = new SelectParserMultiple();
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             // empty rootNode
             request.projectionParse(select.getProjection());
@@ -393,7 +393,7 @@ public class SelectParserMultipleTest {
     @Test
     public void testAddConditionParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)));
         select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));
         select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")

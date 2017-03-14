@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -104,7 +104,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getJsonFromWorkspace(OBJECT_GROUP + "/" + objectName);
             json.remove(SedaConstants.PREFIX_WORK);
-            final Insert insertRequest = new Insert().addData(json);
+            final InsertMultiQuery insertRequest = new InsertMultiQuery().addData(json);
             metadataClient.insertObjectGroup(insertRequest.getFinalInsert());
             itemStatus.increment(StatusCode.OK);
         } catch (final MetaDataException e) {

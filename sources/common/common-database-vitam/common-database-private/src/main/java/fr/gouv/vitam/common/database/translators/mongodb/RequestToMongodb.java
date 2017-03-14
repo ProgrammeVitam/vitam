@@ -67,7 +67,7 @@ public abstract class RequestToMongodb extends RequestToAbstract {
         } else if (requestParser instanceof InsertParserMultiple) {
             return new InsertToMongodb(requestParser);
         } else if (requestParser instanceof UpdateParserMultiple) {
-            return new UpdateToMongodb((UpdateParserMultiple) requestParser);
+            return new UpdateToMongodb(requestParser);
         } else {
             return new DeleteToMongodb(requestParser);
         }

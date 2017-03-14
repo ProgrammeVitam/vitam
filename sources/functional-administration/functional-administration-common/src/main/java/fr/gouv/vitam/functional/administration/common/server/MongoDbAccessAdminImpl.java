@@ -26,52 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
+import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
-import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
-import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -79,18 +59,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
  * MongoDbAccess Implement for Admin
  */
 public class MongoDbAccessAdminImpl extends MongoDbAccess
-    implements MongoDbAccessReferential {
+implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
-    private static final List<String> INDEX_ES_LIST = Arrays.asList("FileFormat", "FileRules");
 
     /**
      * @param mongoClient client of mongo
@@ -104,47 +81,17 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
         }
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
         throws ReferentialException {
-        final List<VitamDocument> vitamDocumentList = new ArrayList<>();
-        try {
-            for (final JsonNode objNode : arrayNode) {
-                //((ObjectNode) objNode).put("_id", GUIDFactory.newGUID().toString());
-                VitamDocument obj = (VitamDocument) JsonHandler.getFromJsonNode(objNode, collection.getClasz());
-
-                vitamDocumentList.add(obj);
-            }
-        } catch (final InvalidParseOperationException e) {
+        try {    
+            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            Insert insertquery = new Insert();
+            insertquery.setData(arrayNode);
+            dbrequest.execute(insertquery);
+        } catch (InvalidParseOperationException | DatabaseException | InvalidCreateOperationException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
-        }
-        collection.getCollection().insertMany(vitamDocumentList);
-      //FIXME : to be refactor in the collection class (schema)
-        if (INDEX_ES_LIST.contains(collection.getName())) {
-            insertToElasticsearch(collection, vitamDocumentList);
-        }
-    }
-
-    /**
-     * @param collection
-     * @param vitamDocumentList
-     * @throws ReferentialException if error occurs
-     */
-    private void insertToElasticsearch(FunctionalAdminCollections collection, List<VitamDocument> vitamDocumentList) throws ReferentialException {
-        Map<String, String> mapIdJson = new HashMap<>();
-        for (VitamDocument document : vitamDocumentList) {
-            String id = document.getId();
-            document.remove(FunctionalAdminCollections.ID);
-            final String mongoJson = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            document.clear();
-            final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
-            mapIdJson.put(id, esJson);
-        }
-        final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, mapIdJson);
-        if (bulkResponse.hasFailures()) {
-            throw new ReferentialException("Index Elasticsearch has errors");
         }
     }
 
@@ -162,26 +109,21 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
         if (count > 0) {
-            DeleteResult result = null;
-            if (FunctionalAdminCollections.FORMATS.equals(collection)) {
-                result = collection.getCollection().deleteMany(new Document());
-            } else {
-                result = collection.getCollection().deleteMany(filter);
+            final Delete delete = new Delete();
+            DbRequestResult result = null;
+            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            try {
+                delete.setQuery(QueryHelper.exists(VitamFieldsHelper.id()));
+                result = dbrequest.execute(delete);
+            } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+                throw new DatabaseException("Delete document exception");
             }
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getDeletedCount());
+                LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
             }
-            if (result.getDeletedCount() != count) {
-                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
-                    .getDeletedCount(), count));
-            }
-            //FIXME seperate the elasticsearch index by tenant 
-            if (INDEX_ES_LIST.contains(collection.getName())) {
-            	MongoCursor<Document> mongoCursor = collection.getCollection().find(filter).iterator();
-            	while (mongoCursor.hasNext()) {
-                    Document dbObject = mongoCursor.next();
-                    collection.getEsClient().deleteIndices(collection, dbObject.getString(VitamDocument.ID));
-            	}
+            if (result.getCount() != count) {
+                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), 
+                    result.getCount(), count));
             }
         }
     }
@@ -193,103 +135,23 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
     }
 
     @Override
-    public MongoCursor<?> findDocuments(JsonNode select, FunctionalAdminCollections collection)
+    public MongoCursor<VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection)
         throws ReferentialException {
         try {
-            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
             parser.parse(select);
-            final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
-            if (requestToMongodb.hasFullTextQuery() && INDEX_ES_LIST.contains(collection.getName())) {
-                return findDocumentsElasticsearch(collection, parser);
-            } else {
-                return selectMongoDbExecute(collection, parser);
-            }
-        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            return dbrequest.execute(parser.getRequest()).getCursor();
+        } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
     }
 
-    /**
-     * @param collection
-     * @param parser
-     * @return
-     * @throws InvalidParseOperationException 
-     * @throws ReferentialException 
-     * @throws InvalidCreateOperationException 
-     */
-    private MongoCursor<?> findDocumentsElasticsearch(FunctionalAdminCollections collection,
-        SelectParserSingle parser) throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException {
-        final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
-        QueryBuilder query = QueryToElasticsearch.getCommand(requestToMongodb.getNthQuery(0));
-        SearchResponse elasticSearchResponse = 
-            collection.getEsClient().search(collection, query, null);
-        if (elasticSearchResponse.status() != RestStatus.OK) {
-            return null;
-        }
-        final SearchHits hits = elasticSearchResponse.getHits();
-        if (hits.getTotalHits() == 0) {
-            return null;
-        }
-        final BooleanQuery newQuery = or();
-        final Iterator<SearchHit> iterator = hits.iterator();
-        // get document with Elasticsearch then create a new request to mongodb with unique object's attribute   
-        while (iterator.hasNext()) {
-            final SearchHit hit = iterator.next();
-            final Map<String, Object> src = hit.getSource();
-            LOGGER.error("findDocumentsElasticsearch result" + src.toString());
-            //FIXME : to be refactor in the collection class (schema)
-            if (FunctionalAdminCollections.FORMATS.equals(collection)) {
-                newQuery.add(QueryHelper.eq(FileFormat.PUID, src.get(FileFormat.PUID).toString()));
-            }
-            if (FunctionalAdminCollections.RULES.equals(collection)) {
-                newQuery.add(QueryHelper.eq(FileRules.RULEID, src.get(FileRules.RULEID).toString()));
-            }
-        }
-        Select newSelectRequest = new Select();
-        newSelectRequest.setQuery(newQuery);
-        parser.parse(newSelectRequest.getFinalSelect());
-        return selectMongoDbExecute(collection, parser);
-    }
-
-    /**
-     * @param collection
-     * @param parser
-     * @return the Closeable MongoCursor on the find request based on the given collection
-     * @throws InvalidParseOperationException when query is not correct
-     */
-    private MongoCursor<?> selectMongoDbExecute(final FunctionalAdminCollections collection, SelectParserSingle parser)
-        throws InvalidParseOperationException {
-        final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        int tenantId = ParameterHelper.getTenantParameter();        
-        Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
-        // FIXME - add a method to VitamDocument to specify if the tenant should be filtered for collection.
-        // if the collection should not be filtered, then the method should be overridden
-        Bson condition = and(initialCondition, eq(VitamDocument.TENANT_ID, tenantId));        
-        if (FunctionalAdminCollections.FORMATS.equals(collection)) {
-            condition = initialCondition;
-        }
-        final Bson projection = selectToMongoDb.getFinalProjection();
-        final Bson orderBy = selectToMongoDb.getFinalOrderBy();
-        final int offset = selectToMongoDb.getFinalOffset();
-        final int limit = selectToMongoDb.getFinalLimit();
-        FindIterable<?> find = collection.getCollection().find(condition).skip(offset);
-        if (projection != null) {
-            find = find.projection(projection);
-        }
-        if (orderBy != null) {
-            find = find.sort(orderBy);
-        }
-        if (limit > 0) {
-            find = find.limit(limit);
-        }
-        return find.iterator();
-    }
-
     @Override
     public void updateDocumentByMap(Map<String, Object> map, JsonNode objNode,
         FunctionalAdminCollections collection, UPDATEACTION operator)
-        throws ReferentialException {
+            throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
         final BasicDBObject updateFields = new BasicDBObject();
         for (final Entry<String, Object> entry : map.entrySet()) {
@@ -305,13 +167,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
 
     @Override
     public void insertDocument(JsonNode json, FunctionalAdminCollections collection) throws ReferentialException {
-        try {
-            final VitamDocument obj = (VitamDocument) JsonHandler.getFromJsonNode(json, collection.getClasz());
-            collection.getCollection().insertOne(obj);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Documents not conformed Exception", e);
-            throw new ReferentialException(e);
-        }
+        insertDocuments(JsonHandler.createArrayNode().add(json), collection);
     }
 
 }

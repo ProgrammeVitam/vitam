@@ -32,11 +32,13 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -92,13 +94,13 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         try {
             final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister
-                .setId(GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId())
-                .setOriginatingAgency(registerDetail.getOriginatingAgency())
-                .setTotalObjects(initialValue)
-                .setTotalObjectGroups(initialValue)
-                .setTotalUnits(initialValue)
-                .setObjectSize(initialValue)
-                .setCreationDate(LocalDateUtil.now().toString());
+            .setId(GUIDFactory.newAccessionRegisterSummaryGUID(ParameterHelper.getTenantParameter()).getId())
+            .setOriginatingAgency(registerDetail.getOriginatingAgency())
+            .setTotalObjects(initialValue)
+            .setTotalObjectGroups(initialValue)
+            .setTotalUnits(initialValue)
+            .setObjectSize(initialValue)
+            .setCreationDate(LocalDateUtil.now().toString());
 
 
             LOGGER.debug("register ID / Originating Agency: {} / {}", registerDetail.getId(),
@@ -108,7 +110,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
         } catch (final InvalidParseOperationException e) {
             throw new ReferentialException(e);
-        } catch (final MongoWriteException e) {
+        } catch (final MongoWriteException | MongoBulkWriteException e) {
             LOGGER.info("Document existed, updating ...");
         }
 
@@ -173,16 +175,17 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
 
     public List<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
-        try (@SuppressWarnings("unchecked")
-        final MongoCursor<AccessionRegisterSummary> registers =
-            (MongoCursor<AccessionRegisterSummary>) mongoAccess.findDocuments(select,
+        try (final MongoCursor<VitamDocument<?>> registers =
+            (MongoCursor<VitamDocument<?>>) mongoAccess.findDocuments(select,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+
             final List<AccessionRegisterSummary> result = new ArrayList<>();
+
             if (registers == null || !registers.hasNext()) {
-                throw new ReferentialNotFoundException("Register Summary not found");
+                throw new ReferentialNotFoundException("Register Detail not found");
             }
             while (registers.hasNext()) {
-                result.add(registers.next());
+                result.add((AccessionRegisterSummary)registers.next());
             }
             return result;
         } catch (final ReferentialException e) {
@@ -200,19 +203,19 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      */
     public List<AccessionRegisterDetail> findDetail(JsonNode select) throws ReferentialException {
         try (@SuppressWarnings("unchecked")
-        final MongoCursor<AccessionRegisterDetail> registers =
-            (MongoCursor<AccessionRegisterDetail>) mongoAccess.findDocuments(select,
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+        final MongoCursor<VitamDocument<?>> registers =
+        (MongoCursor<VitamDocument<?>>) mongoAccess.findDocuments(select,
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
 
             final List<AccessionRegisterDetail> result = new ArrayList<>();
+
             if (registers == null || !registers.hasNext()) {
                 throw new ReferentialNotFoundException("Register Detail not found");
             }
             while (registers.hasNext()) {
-                result.add(registers.next());
+                result.add((AccessionRegisterDetail)registers.next());
             }
             return result;
-
         } catch (final ReferentialException e) {
             LOGGER.error(e.getMessage());
             throw e;

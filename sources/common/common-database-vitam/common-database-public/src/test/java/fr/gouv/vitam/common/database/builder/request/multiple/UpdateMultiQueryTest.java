@@ -52,11 +52,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 @SuppressWarnings("javadoc")
-public class UpdateTest {
+public class UpdateMultiQueryTest {
 
     @Test
     public void testSetMult() {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         assertTrue(update.getFilter().size() == 0);
         update.setMult(true);
         assertTrue(update.getFilter().size() == 1);
@@ -69,7 +69,7 @@ public class UpdateTest {
 
     @Test
     public void testAddActions() {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         assertTrue(update.actions.isEmpty());
         try {
             update.addActions(new AddAction("varname", 1).add(true));
@@ -91,7 +91,7 @@ public class UpdateTest {
 
     @Test
     public void testAddRequests() {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         assertTrue(update.queries.isEmpty());
         try {
             update.addQueries(
@@ -111,7 +111,7 @@ public class UpdateTest {
 
     @Test
     public void testGetFinalUpdate() {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         assertTrue(update.queries.isEmpty());
         try {
             update.addQueries(new PathQuery("path3"));
@@ -128,7 +128,7 @@ public class UpdateTest {
 
     @Test
     public void testAllReset() throws InvalidCreateOperationException {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(new AddAction("varname", 1));
         assertEquals(1, update.actions.size());
         update.reset();
@@ -137,7 +137,7 @@ public class UpdateTest {
 
     @Test
     public void testAllSet() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         update.setMult(JsonHandler.createObjectNode().put("$mult", "true"));
         assertTrue(update.getFilter().size() == 1);
         update.resetFilter();

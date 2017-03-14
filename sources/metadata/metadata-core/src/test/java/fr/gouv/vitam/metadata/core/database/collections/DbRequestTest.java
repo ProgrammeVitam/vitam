@@ -94,10 +94,10 @@ import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.DeleteParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
@@ -647,7 +647,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
 
             // SELECT
-            selectRequest = clientSelectMultipleBuild(uuid, uuid2);
+            selectRequest = clientSelectMultiQueryBuild(uuid, uuid2);
             // Now considering select request and parsing it as in Data Server (GET command)
             try {
                 requestParser =
@@ -765,7 +765,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode createDeleteRequestWithUUID(GUID uuid) {
-        final Delete delete = new Delete();
+        final DeleteMultiQuery delete = new DeleteMultiQuery();
         try {
             delete.addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
         } catch (final InvalidCreateOperationException e) {
@@ -781,7 +781,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode createSelectAllRequestWithUUID(GUID uuid) {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(all())
                 .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
@@ -799,7 +799,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode createUpdateRequestWithUUID(GUID uuid) {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         try {
             update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"))
                 .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
@@ -816,7 +816,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode createSelectRequestWithUUID(GUID uuid) {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(id(), TITLE, DESCRIPTION)
                 .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)));
@@ -852,7 +852,7 @@ public class DbRequestTest {
             e.printStackTrace();
             fail(e.getMessage());
         }
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addData(data);
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         return insert.getFinalInsert();
@@ -868,7 +868,7 @@ public class DbRequestTest {
         final ObjectNode data = JsonHandler.createObjectNode().put(id(), child.toString())
             .put(TITLE, VALUE_MY_TITLE + "2").put(DESCRIPTION, "Ma description2 vitam")
             .put(CREATED_DATE, "" + LocalDateUtil.now()).put(MY_INT, 10);
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addData(data).addQueries(eq(VitamFieldsHelper.id(), parent.toString()));
         LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
         return insert.getFinalInsert();
@@ -879,7 +879,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientRichSelectAllBuild(GUID uuid) {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(all())
                 .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE),
@@ -901,7 +901,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientRichUpdateBuild(GUID uuid) {
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         try {
             update.addActions(set("NewVar", false), inc(MY_INT, 2), set(DESCRIPTION, "New description"),
                 unset(UNKNOWN_VAR), push(ARRAY_VAR, "val2"), min(MY_FLOAT, 1.5),
@@ -920,7 +920,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientSelect2Build(GUID uuid) {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(id(), TITLE, DESCRIPTION)
                 .addQueries(eq(id(), uuid.toString()).setDepthLimit(2));
@@ -937,8 +937,8 @@ public class DbRequestTest {
      * @param uuid2 son
      * @return
      */
-    private JsonNode clientSelectMultipleBuild(GUID uuid, GUID uuid2) {
-        final Select select = new Select();
+    private JsonNode clientSelectMultiQueryBuild(GUID uuid, GUID uuid2) {
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addUsedProjection(id(), TITLE, DESCRIPTION)
                 .addQueries(and().add(eq(id(), uuid.toString()), eq(TITLE, VALUE_MY_TITLE)),
@@ -956,7 +956,7 @@ public class DbRequestTest {
      * @return
      */
     private JsonNode clientDelete2Build(GUID uuid) {
-        final Delete delete = new Delete();
+        final DeleteMultiQuery delete = new DeleteMultiQuery();
         try {
             delete.addQueries(path(uuid.toString()));
         } catch (final InvalidCreateOperationException e) {
@@ -1010,7 +1010,7 @@ public class DbRequestTest {
 
     private ObjectNode createInsertRequestGO(GUID uuid, GUID uuidParent) throws InvalidParseOperationException {
         // Create Insert command as in Internal Vitam Modules
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         final JsonNode json = JsonHandler.getFromString("{\"#id\":\"" + uuid +
@@ -1047,7 +1047,7 @@ public class DbRequestTest {
     private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException, InstantiationException, IllegalAccessException {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
         if (isOG) {
             select.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
@@ -1076,7 +1076,7 @@ public class DbRequestTest {
         }
         executeRequest(dbRequest, insertParser);
 
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         insert.resetFilter();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         insert.addRoots(uuidUnit.getId());
@@ -1128,7 +1128,7 @@ public class DbRequestTest {
 
         final GUID uuid1 = GUIDFactory.newObjectGroupGUID(tenantId);
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(tenantId);
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
 
         final ObjectNode json = (ObjectNode) JsonHandler.getFromString("{\"#id\":\"" + uuid1 +
@@ -1252,14 +1252,14 @@ public class DbRequestTest {
         final Result resultSelect4 = dbRequest.execRequest(selectParser4, null);
         assertEquals(1, resultSelect4.nbResult);
 
-        Insert insert = new Insert();
+        InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_2).addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
-        Select select = new Select();
+        SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
             .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         selectParser1.parse(select.getFinalSelect());
@@ -1269,7 +1269,7 @@ public class DbRequestTest {
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
             resultSelectRel0.getCurrentIds().iterator().next().toString());
 
-        select = new Select();
+        select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
             .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         selectParser1.parse(select.getFinalSelect());
@@ -1279,7 +1279,7 @@ public class DbRequestTest {
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
             resultSelectRel1.getCurrentIds().iterator().next().toString());
 
-        select = new Select();
+        select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(3))
             .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         selectParser1.parse(select.getFinalSelect());
@@ -1289,7 +1289,7 @@ public class DbRequestTest {
         assertEquals("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar",
             resultSelectRel3.getCurrentIds().iterator().next().toString());
 
-        insert = new Insert();
+        insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_3).addRoots("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -1303,14 +1303,14 @@ public class DbRequestTest {
                 root.equalsIgnoreCase("aeaqaaaaaet33ntwablhaaku6z67pzqaaaar"));
         }
 
-        insert = new Insert();
+        insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_4).addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
         esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
 
-        select = new Select();
+        select = new SelectMultiQuery();
         select.addQueries(match("Title", "othervalue").setDepthLimit(1))
             .addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq");
         selectParser1.parse(select.getFinalSelect());
@@ -1321,7 +1321,7 @@ public class DbRequestTest {
             resultSelectRel5.getCurrentIds().iterator().next().toString());
 
         // Check for "France.pdf"
-        select = new Select();
+        select = new SelectMultiQuery();
         select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq").addQueries(match("Title", "Frânce").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
@@ -1331,7 +1331,7 @@ public class DbRequestTest {
             resultSelectRel6.getCurrentIds().iterator().next().toString());
 
         // Check for "social vs sociales"
-        select = new Select();
+        select = new SelectMultiQuery();
         select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq").addQueries(match("Title", "social").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectParser1.getRequest());
@@ -1341,7 +1341,7 @@ public class DbRequestTest {
             resultSelectRel7.getCurrentIds().iterator().next().toString());
 
         // Check for "name_with_underscore"
-        select = new Select();
+        select = new SelectMultiQuery();
         select.addRoots("aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq")
             .addQueries(match("Title", "underscore").setDepthLimit(1));
         selectParser1.parse(select.getFinalSelect());
@@ -1383,7 +1383,7 @@ public class DbRequestTest {
         // insert title ARchive 3
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         insert.parseData(REQUEST_INSERT_TEST_ES_UPDATE).addRoots("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq");
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -1403,7 +1403,7 @@ public class DbRequestTest {
         // check old value should not exist in the collection
         final JsonNode selectRequest2 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser2 = new SelectParserMultiple();
-        final Select select1 = new Select();
+        final SelectMultiQuery select1 = new SelectMultiQuery();
         select1.addQueries(eq("title", "Archive3").setDepthLimit(1))
             .addRoots("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq");
         selectParser2.parse(select1.getFinalSelect());
@@ -1414,7 +1414,7 @@ public class DbRequestTest {
         // check new value should exist in the collection
         final JsonNode selectRequest1 = JsonHandler.getFromString(REQUEST_SELECT_TEST_ES_UPDATE);
         final SelectParserMultiple selectParser1 = new SelectParserMultiple();
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq("title", "Archive2").setDepthLimit(1)).addRoots("aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq");
         selectParser1.parse(select.getFinalSelect());
         LOGGER.debug("SelectParser: {}", selectRequest1);
@@ -1476,7 +1476,7 @@ public class DbRequestTest {
            e.printStackTrace();
            fail(e.getMessage());
        }
-    final Insert insert = new Insert();
+    final InsertMultiQuery insert = new InsertMultiQuery();
     insert.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
       insert.addData(data);
       LOGGER.debug("InsertString: " + insert.getFinalInsert().toString());
@@ -1496,7 +1496,7 @@ public class DbRequestTest {
         requestParser = RequestParserHelper.getParser(createInsertRequestGOTenant(uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
         
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
         select.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);

@@ -53,6 +53,7 @@ import com.mongodb.DBObject;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -136,7 +137,7 @@ public class LogbookElasticsearchAccessTest {
         LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation, false);
         Map<String, String> mapIdJson = new HashMap<>();
         String id = operationForCreation.getId();
-        operationForCreation.remove(LogbookCollections.ID);
+        operationForCreation.remove(VitamDocument.ID);
         final String mongoJson =
             operationForCreation.toJson(new JsonWriterSettings(JsonMode.STRICT));
         operationForCreation.clear();

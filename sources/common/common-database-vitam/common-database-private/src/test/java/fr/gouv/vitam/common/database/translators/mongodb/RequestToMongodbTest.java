@@ -261,7 +261,7 @@ public class RequestToMongodbTest {
                 final Bson pseudoRequest = rtm.getRequest(bsonRoot, bsonQuery);
                 System.out.println(i + " = " + MongoDbHelper.bsonToString(pseudoRequest, false));
             }
-            System.out.println("Update Actons = " + MongoDbHelper.bsonToString(rtm.getFinalUpdate(), false));
+            System.out.println("Update Actons = " + MongoDbHelper.bsonToString(rtm.getFinalUpdateActions(), false));
             System.out.println("Update Context = " + rtm.getLastDepth() + ":" + rtm.isMultiple());
         } catch (final Exception e) {
             e.printStackTrace();

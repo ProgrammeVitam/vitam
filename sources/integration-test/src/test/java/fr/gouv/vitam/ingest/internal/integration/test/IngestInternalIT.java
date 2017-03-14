@@ -68,7 +68,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -392,7 +392,7 @@ public class IngestInternalIT {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            Select select = new Select();
+            SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("Title", "Sensibilisation API"));
             final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
             LOGGER.debug(JsonHandler.prettyPrint(node));
@@ -403,7 +403,7 @@ public class IngestInternalIT {
             final String og = unit.get("#object").asText();
             assertNotNull(og);
             // Try to check OG
-            select = new Select();
+            select = new SelectMultiQuery();
             select.addRoots(og);
             select.setProjectionSliceOnQualifier("BinaryMaster", 0);
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
@@ -432,7 +432,7 @@ public class IngestInternalIT {
 
             // Now redo Object with access internal
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            responseStorage = accessClient.getObject(new Select().getFinalSelect(), og, "BinaryMaster", 0);
+            responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 0);
             inputStream = responseStorage.readEntity(InputStream.class);
 
             sizedInputStream = new SizedInputStream(inputStream);
@@ -441,7 +441,7 @@ public class IngestInternalIT {
             assertTrue(size2 == size);
 
             JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new Select().getFinalSelect());
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect());
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
                 esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
@@ -537,7 +537,7 @@ public class IngestInternalIT {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            Select select = new Select();
+            SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("Title", "Unit with Management META DATA rules"));
             final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
             LOGGER.debug(JsonHandler.prettyPrint(node));
@@ -600,7 +600,7 @@ public class IngestInternalIT {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            Select select = new Select();
+            SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("Title", "UNIT with both rules"));
             final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
             LOGGER.debug(JsonHandler.prettyPrint(node));
@@ -664,7 +664,7 @@ public class IngestInternalIT {
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
-            Select select = new Select();
+            SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("Title", "LEVANT"));
             final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
             LOGGER.debug(JsonHandler.prettyPrint(node));

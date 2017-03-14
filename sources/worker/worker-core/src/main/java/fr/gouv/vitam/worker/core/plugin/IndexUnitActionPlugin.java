@@ -56,9 +56,9 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -159,9 +159,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 final Boolean existing = (Boolean) archiveDetailsRequiredForIndex.get("existing");
 
                 if (existing) {
-                    query = new Update();
+                    query = new UpdateMultiQuery();
                 } else {
-                    query = new Insert();
+                    query = new InsertMultiQuery();
                 }
                 // Add _up to archive unit json object
                 if (archiveDetailsRequiredForIndex.get("up") != null) {
@@ -171,11 +171,11 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 if (Boolean.TRUE.equals(existing)) {
                     // update case
                     computeExistingData(data, query);
-                    metadataClient.updateUnitbyId(((Update) query).getFinalUpdate(),
+                    metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
                         (String) archiveDetailsRequiredForIndex.get("id"));
                 } else {
                     // insert case
-                    metadataClient.insertUnit(((Insert) query).addData((ObjectNode) data).getFinalInsert());
+                    metadataClient.insertUnit(((InsertMultiQuery) query).addData((ObjectNode) data).getFinalInsert());
                 }
                 itemStatus.increment(StatusCode.OK);
             } else {
@@ -215,14 +215,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
             if (data.get(fieldName).isArray()) {
                 // if field is multiple values
                 for (JsonNode fieldNode : (ArrayNode) data.get(fieldName)) {
-                    ((Update) query)
+                    ((UpdateMultiQuery) query)
                         .addActions(UpdateActionHelper.add(fieldName.replace("_", "#"), fieldNode.textValue()));
                 }
             } else {
                 // if field is single value
                 String fieldValue = data.get(fieldName).textValue();
                 if (!"#id".equals(fieldName) && fieldValue != null && !fieldValue.isEmpty()) {
-                    ((Update) query)
+                    ((UpdateMultiQuery) query)
                         .addActions(UpdateActionHelper.set(fieldName.replace("_", "#"), fieldValue));
                 }
             }

@@ -46,7 +46,7 @@ import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -136,7 +136,7 @@ public class AccessStep {
      */
     private String replaceTitleByGUID(String auTitle) throws Throwable {
         String auId = "";
-        Select searchQuery = new Select();
+        SelectMultiQuery searchQuery = new SelectMultiQuery();
         searchQuery.addQueries(
             and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId())).setDepthLimit(20));
         RequestResponse requestResponse = world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId());

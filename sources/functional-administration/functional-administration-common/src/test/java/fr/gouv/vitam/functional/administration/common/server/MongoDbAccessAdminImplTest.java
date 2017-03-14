@@ -63,10 +63,16 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -180,7 +186,6 @@ public class MongoDbAccessAdminImplTest {
         register = new AccessionRegisterDetail(TENANT_ID)
             .setObjectSize(initialValue)
             .setOriginatingAgency(AGENCY)
-            .setId(AGENCY)
             .setSubmissionAgency(AGENCY)
             .setStartDate("startDate")
             .setEndDate("endDate")
@@ -219,9 +224,9 @@ public class MongoDbAccessAdminImplTest {
         select.setQuery(and()
             .add(match(FileFormat.NAME, "name"))
             .add(eq(FileFormat.PUID, FILEFORMAT_PUID)));
-        final MongoCursor<FileFormat> fileList =
-            (MongoCursor<FileFormat>) mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
-        final FileFormat f1 = fileList.next();
+        final MongoCursor<VitamDocument<?>> fileList =
+            mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
+        final FileFormat f1 = (FileFormat) fileList.next();
         final String id = f1.getString("_id");
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
         assertEquals(f2, f1);
@@ -231,10 +236,24 @@ public class MongoDbAccessAdminImplTest {
             formatCollection.getEsClient()
                 .search(formatCollection, query, null);
         assertEquals(1, requestResponse.getHits().getTotalHits());
-        formatCollection.getEsClient().deleteIndex(formatCollection);
-        mongoAccess.deleteCollection(formatCollection);
+        
+        //Test update and delete by query 
+        final Update update = new Update();
+        update.setQuery(match(FileFormat.NAME, "name"));
+        update.addActions(UpdateActionHelper.set(FileFormat.NAME, "new name"));
+        DbRequestSingle dbrequest = new DbRequestSingle(formatCollection.getVitamCollection());
+        DbRequestResult updateResult = dbrequest.execute(update);
+        assertEquals(1, updateResult.getCount());
+        formatCollection.getEsClient().refreshIndex(formatCollection);
+        
+        final Delete delete = new Delete();
+        delete.setQuery(match(FileFormat.NAME, "new name"));
+        DbRequestResult deleteResult = dbrequest.execute(delete);
+        assertEquals(1, deleteResult.getCount());
         assertEquals(0, collection.count());
         fileList.close();
+        formatCollection.getEsClient().deleteIndex(formatCollection);
+        mongoAccess.deleteCollection(formatCollection);
         client.close();
     }
 
@@ -258,24 +277,20 @@ public class MongoDbAccessAdminImplTest {
             .add(or()
                 .add(eq(FileRules.RULETYPE, REUSE_RULE))
                 .add(eq(FileRules.RULETYPE, "AccessRule"))));
-        final MongoCursor<FileRules> fileList =
-            (MongoCursor<FileRules>) mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
-        final FileRules f1 = fileList.next();
+        final MongoCursor<VitamDocument<?>> fileList =
+            mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
+        final FileRules f1 = (FileRules) fileList.next();
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
-        final String id = f1.getString(RULE_ID);
-        final FileRules f2 = (FileRules) mongoAccess.getDocumentById(id, rulesCollection);
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
 
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse requestResponse =
             rulesCollection.getEsClient()
                 .search(rulesCollection, query, null);
-
+        fileList.close();
         assertEquals(1, requestResponse.getHits().getTotalHits());
         mongoAccess.deleteCollection(rulesCollection);
         assertEquals(0, collection.count());
-
-        fileList.close();
         client.close();
     }
 
@@ -340,9 +355,6 @@ public class MongoDbAccessAdminImplTest {
         JsonNode jsonContract = JsonHandler.getFromString(contract.toJson());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        final MongoCollection<Document> collection =
-            client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection);
         
         final Select select = new Select();
@@ -350,10 +362,10 @@ public class MongoDbAccessAdminImplTest {
             .add(eq(IngestContract.NAME, "aName"))
             .add(or()
                 .add(eq(IngestContract.CREATIONDATE, "10/12/2016"))));
-        @SuppressWarnings("unchecked")
-        final MongoCursor<IngestContract> contracts =
-            (MongoCursor<IngestContract>) mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
-        final IngestContract foundContract = contracts.next();
+        final MongoCursor<VitamDocument<?>> contracts =
+        mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
+        final IngestContract foundContract = (IngestContract) contracts.next();
+        contracts.close();
         assertEquals("aName", foundContract.getString(IngestContract.NAME));
         mongoAccess.deleteCollection(contractCollection);
 

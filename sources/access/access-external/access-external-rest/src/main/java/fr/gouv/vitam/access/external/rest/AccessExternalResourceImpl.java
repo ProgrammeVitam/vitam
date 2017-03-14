@@ -60,7 +60,7 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -501,8 +501,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         // Select "Object from ArchiveUNit idu
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            Select select = new Select();
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+            SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection("#object");
             result = client.selectUnitbyId(select.getFinalSelect(), idu);
             SanityChecker.checkJsonAll(result);

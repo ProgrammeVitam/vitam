@@ -39,12 +39,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * projection ]
  *
  */
-public class Select extends RequestMultiple {
+public class SelectMultiQuery extends RequestMultiple {
     /**
      *
      * @return this Query
      */
-    public final Select resetLimitFilter() {
+    public final SelectMultiQuery resetLimitFilter() {
         selectResetLimitFilter();
         return this;
     }
@@ -53,7 +53,7 @@ public class Select extends RequestMultiple {
      *
      * @return this Query
      */
-    public final Select resetOrderByFilter() {
+    public final SelectMultiQuery resetOrderByFilter() {
         selectResetOrderByFilter();
         return this;
     }
@@ -62,7 +62,7 @@ public class Select extends RequestMultiple {
      *
      * @return this Query
      */
-    public final Select resetUsedProjection() {
+    public final SelectMultiQuery resetUsedProjection() {
         selectResetUsedProjection();
         return this;
     }
@@ -71,7 +71,7 @@ public class Select extends RequestMultiple {
      *
      * @return this Query
      */
-    public final Select resetUsageProjection() {
+    public final SelectMultiQuery resetUsageProjection() {
         if (projection != null) {
             projection.remove(PROJECTION.USAGE.exactToken());
         }
@@ -82,7 +82,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      */
     @Override
-    public final Select reset() {
+    public final SelectMultiQuery reset() {
         super.reset();
         resetUsageProjection();
         selectReset();
@@ -94,7 +94,7 @@ public class Select extends RequestMultiple {
      * @param limit ignored if 0
      * @return this Query
      */
-    public final Select setLimitFilter(final long offset, final long limit) {
+    public final SelectMultiQuery setLimitFilter(final long offset, final long limit) {
         selectSetLimitFilter(offset, limit);
         return this;
     }
@@ -104,7 +104,7 @@ public class Select extends RequestMultiple {
      * @param filterContent content json
      * @return this Query
      */
-    public final Select setLimitFilter(final JsonNode filterContent) {
+    public final SelectMultiQuery setLimitFilter(final JsonNode filterContent) {
         selectSetLimitFilter(filterContent);
         return this;
     }
@@ -115,7 +115,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select parseLimitFilter(final String filter)
+    public final SelectMultiQuery parseLimitFilter(final String filter)
         throws InvalidParseOperationException {
         selectParseLimitFilter(filter);
         return this;
@@ -127,7 +127,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addOrderByAscFilter(final String... variableNames)
+    public final SelectMultiQuery addOrderByAscFilter(final String... variableNames)
         throws InvalidParseOperationException {
         selectAddOrderByAscFilter(variableNames);
         return this;
@@ -139,7 +139,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addOrderByDescFilter(final String... variableNames)
+    public final SelectMultiQuery addOrderByDescFilter(final String... variableNames)
         throws InvalidParseOperationException {
         selectAddOrderByDescFilter(variableNames);
         return this;
@@ -151,7 +151,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addOrderByFilter(final JsonNode filterContent)
+    public final SelectMultiQuery addOrderByFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
         selectAddOrderByFilter(filterContent);
         return this;
@@ -163,7 +163,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select parseOrderByFilter(final String filter)
+    public final SelectMultiQuery parseOrderByFilter(final String filter)
         throws InvalidParseOperationException {
         selectParseOrderByFilter(filter);
         return this;
@@ -176,7 +176,7 @@ public class Select extends RequestMultiple {
      * @throws InvalidParseOperationException when query is invalid
      */
     @Override
-    public final Select setFilter(final JsonNode filterContent)
+    public final SelectMultiQuery setFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
         super.setFilter(filterContent);
         selectSetFilter(filterContent);
@@ -189,7 +189,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addUsedProjection(final String... variableNames)
+    public final SelectMultiQuery addUsedProjection(final String... variableNames)
         throws InvalidParseOperationException {
         selectAddUsedProjection(variableNames);
         return this;
@@ -201,7 +201,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addUnusedProjection(final String... variableNames)
+    public final SelectMultiQuery addUnusedProjection(final String... variableNames)
         throws InvalidParseOperationException {
         selectAddUnusedProjection(variableNames);
         return this;
@@ -212,7 +212,7 @@ public class Select extends RequestMultiple {
      * @param projectionContent json projection
      * @return this Query
      */
-    public final Select addProjection(final JsonNode projectionContent) {
+    public final SelectMultiQuery addProjection(final JsonNode projectionContent) {
         selectAddProjection(projectionContent);
         return this;
     }
@@ -223,7 +223,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select parseProjection(final String projection)
+    public final SelectMultiQuery parseProjection(final String projection)
         throws InvalidParseOperationException {
         selectParseProjection(projection);
         return this;
@@ -258,7 +258,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select setUsageProjection(final String usage)
+    public final SelectMultiQuery setUsageProjection(final String usage)
         throws InvalidParseOperationException {
         GlobalDatas.sanityParameterCheck(usage);
         if (projection == null) {
@@ -277,7 +277,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select setUsageProjection(final JsonNode projectionContent)
+    public final SelectMultiQuery setUsageProjection(final JsonNode projectionContent)
         throws InvalidParseOperationException {
         resetUsageProjection();
         if (projectionContent.has(PROJECTION.USAGE.exactToken())) {
@@ -288,7 +288,7 @@ public class Select extends RequestMultiple {
     }
 
     @Override
-    protected final Select selectSetProjection(final JsonNode projectionContent)
+    protected final SelectMultiQuery selectSetProjection(final JsonNode projectionContent)
         throws InvalidParseOperationException {
         super.selectSetProjection(projectionContent);
         setUsageProjection(projectionContent);
@@ -301,7 +301,7 @@ public class Select extends RequestMultiple {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select setProjection(final JsonNode projectionContent)
+    public final SelectMultiQuery setProjection(final JsonNode projectionContent)
         throws InvalidParseOperationException {
         selectSetProjection(projectionContent);
         return this;
