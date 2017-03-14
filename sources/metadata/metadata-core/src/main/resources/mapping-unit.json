@@ -6,6 +6,10 @@
     "ArchiveUnitProfile": {
       "type": "string"
     },
+    "AcquiredDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
     "CreatedDate": {
       "type": "date",
       "format": "strict_date_optional_time||epoch_millis"
@@ -14,6 +18,10 @@
       "type": "string"
     },
     "DescriptionLevel": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "DocumentType": {
       "type": "string",
       "index": "not_analyzed"
     },
@@ -51,6 +59,21 @@
     "OriginatingSystemId": {
       "type": "string"
     },
+    "ReceivedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "RegisteredDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "SentDate": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    },
+    "Source": {
+      "type": "string"
+    },
     "StartDate": {
       "type": "date",
       "format": "strict_date_optional_time||epoch_millis"
@@ -61,6 +84,9 @@
           "type": "string"
         }
       }
+    },
+    "SystemId": {
+      "type": "string"
     },
     "Tag": {
       "type": "string"
@@ -100,6 +126,12 @@
             "Rule": {
               "type": "string"
             },
+            "PreventInheritance": {
+              "type": "boolean"
+            },
+            "RefNonRuleId": {
+              "type": "string"
+            },
             "StartDate": {
               "type": "date",
               "format": "strict_date_optional_time||epoch_millis"
@@ -113,6 +145,12 @@
               "format": "strict_date_optional_time||epoch_millis"
             },
             "FinalAction": {
+              "type": "string"
+            },
+            "PreventInheritance": {
+              "type": "boolean"
+            },
+            "RefNonRuleId": {
               "type": "string"
             },
             "Rule": {
@@ -130,6 +168,12 @@
               "type": "date",
               "format": "strict_date_optional_time||epoch_millis"
             },
+            "PreventInheritance": {
+              "type": "boolean"
+            },
+            "RefNonRuleId": {
+              "type": "string"
+            },
             "Rule": {
               "type": "string"
             },
@@ -144,6 +188,12 @@
             "EndDate": {
               "type": "date",
               "format": "strict_date_optional_time||epoch_millis"
+            },
+            "PreventInheritance": {
+              "type": "boolean"
+            },
+            "RefNonRuleId": {
+              "type": "string"
             },
             "Rule": {
               "type": "string"
@@ -161,6 +211,12 @@
               "format": "strict_date_optional_time||epoch_millis"
             },
             "FinalAction": {
+              "type": "string"
+            },
+            "PreventInheritance": {
+              "type": "boolean"
+            },
+            "RefNonRuleId": {
               "type": "string"
             },
             "Rule": {
