@@ -67,6 +67,8 @@
 - name: ensure git repo is clean on current branch
   shell: git clean -fd
   become_user: "{{vitam_user}}"
+  environment:
+    http_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -78,6 +80,8 @@
 - name: get all branches from git repo
   shell: git fetch
   become_user: "{{vitam_user}}"
+  environment:
+    http_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -95,6 +99,8 @@
 - name: rebase documents under git lfs
   shell: git rebase
   become_user: "{{vitam_user}}"
+  environment:
+    http_proxy: "{{ http_proxy_environnement }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
   when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir)
