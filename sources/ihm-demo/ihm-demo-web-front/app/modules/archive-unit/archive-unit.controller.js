@@ -418,21 +418,41 @@ angular.module('archive.unit')
               }
             })
           } else {
-            for (var key in selfManagement) {
+            for (var key in selfManagement) {            	
               var translateKey = RuleUtils.translate(key);
               var rule = selfManagement[key];
-              var displayArray = [];
-              var displayObject = {};
-              displayObject.ruleId = rule.Rule;
-              delete rule.Rule;
-              for (var detail in rule) {
-                displayObject[detail] = rule[detail];
+              if(angular.isArray(rule)) {
+            	  // in case we have an array of rules 
+            	  var displayArray = [];
+                  var displayObject = {};
+            	  for (var ruleKey in rule) {
+            		  var oneRule = selfManagement[key][ruleKey];	            	  
+	                  displayObject.ruleId = oneRule.Rule;
+	                  delete oneRule.Rule;              
+	                  for (var detail in oneRule) {
+	                    displayObject[detail] = oneRule[detail];
+	                  }
+	                  displayObject.originId = idField;
+	                  displayArray.push(displayObject);
+	                  displayObject = {};
+	                  self.ruleDisplay[translateKey] = {};
+	                  self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+            	  }
+              } else {
+            	  // in case we just have one rule (should not happen)
+            	  var displayArray = [];
+                  var displayObject = {};
+                  displayObject.ruleId = rule.Rule;
+                  delete rule.Rule;              
+                  for (var detail in rule) {
+                    displayObject[detail] = rule[detail];
+                  }
+                  displayObject.originId = idField;
+                  displayArray.push(displayObject);
+                  displayObject = {};
+                  self.ruleDisplay[translateKey] = {};
+                  self.ruleDisplay[translateKey]['displayArray'] = displayArray;
               }
-              displayObject.originId = idField;
-              displayArray.push(displayObject);
-              displayObject = {};
-              self.ruleDisplay[translateKey] = {};
-              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
             }
           }
         }
