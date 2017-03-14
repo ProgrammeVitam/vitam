@@ -4,8 +4,13 @@
  xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
  xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/C:/Users/gwendoline.stab.CULTURE.DOM/Documents/Travaux_transversaux/SEDA/SEDA_Vitam/seda-2.0-main.xsd" xml:id="ID001">
+    <Comment lang="en">English Comment</Comment>
+    <Comment>Commentaire par défaut</Comment>
+    <Comment lang="fr">Commentaire français</Comment>
+    <Comment lang="de">Deutsch Kommentare</Comment>
     <Date>2016-06-23T09:45:51.0</Date>
     <MessageIdentifier>Entrée avec groupe d'objet</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
     <!-- SIP test OK pour un groupe d'objet comprenant deux objets -->
     <CodeListVersions xml:id="ID005">
         <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>

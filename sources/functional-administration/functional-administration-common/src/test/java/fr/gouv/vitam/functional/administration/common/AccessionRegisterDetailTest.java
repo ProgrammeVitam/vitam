@@ -37,6 +37,7 @@ public class AccessionRegisterDetailTest {
             .setId(id)
             .setObjectSize(initialValue)
             .setSubmissionAgency(TEST)
+            .setArchivalAgreement(TEST)
             .setEndDate(TEST)
             .setStartDate(TEST)
             .setLastUpdate(TEST)

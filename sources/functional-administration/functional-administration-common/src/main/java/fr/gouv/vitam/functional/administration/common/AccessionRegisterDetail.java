@@ -43,6 +43,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final long serialVersionUID = 3439757375656161919L;
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String SUBMISSION_AGENCY = "SubmissionAgency";
+    private static final String ARCHIVALAGREEMENT = "ArchivalAgreement";
     private static final String START_DATE = "StartDate";
     private static final String END_DATE = "EndDate";
     private static final String LAST_UPDATE = "LastUpdate";
@@ -127,6 +128,15 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail setSubmissionAgency(String subAgency) {
         append(SUBMISSION_AGENCY, subAgency);
+        return this;
+    }
+
+    /**
+     * @param archivalAgreement Archival Agreement id
+     * @return
+     */
+    public AccessionRegisterDetail setArchivalAgreement(String archivalAgreement) {
+        append(ARCHIVALAGREEMENT, archivalAgreement);
         return this;
     }
 

@@ -195,6 +195,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             .setTenant(0)
             .setOriginatingAgency("FRAN_NP_005568")
             .setSubmissionAgency("FRAN_NP_005061")
+            .setArchivalAgreement("Something")
             .setEndDate("2016-11-04T21:40:47.912+01:00")
             .setStartDate("2016-11-04T21:40:47.912+01:00")
             .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)

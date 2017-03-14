@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
@@ -91,6 +92,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -723,7 +725,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Remove _id and events fields
             document.remove(LogbookDocument.EVENTS);
             document.remove(LogbookDocument.ID);
-
             final UpdateResult result = collection.getCollection().updateOne(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
                 Updates.push(LogbookDocument.EVENTS, document));
@@ -951,6 +952,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             final VitamDocument currentEvent = getDocument(items[i]);
             currentEvent.remove(LogbookDocument.EVENTS);
             currentEvent.remove(LogbookDocument.ID);
+
+            checkCopyToMaster(collection, items[i]);
 
             events.add(currentEvent);
         }
@@ -1422,6 +1425,42 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
         vitamDocument.remove(LogbookDocument.EVENTS);
         vitamDocument.put(LogbookDocument.EVENTS, eventDocuments);
+
+    }
+
+    private boolean shouldCopyToMaster(JsonNode evDetDataJson) {
+        if (evDetDataJson.get("evDetDataType") != null) {
+            String evDetDataType = evDetDataJson.get("evDetDataType").asText();
+            return LogbookEvDetDataType.MASTER.equals(LogbookEvDetDataType.valueOf(evDetDataType));
+        }
+        return false;
+    }
+    
+    private void checkCopyToMaster(LogbookCollections collection, LogbookParameters item) throws LogbookNotFoundException {
+    	String evDetData = item.getParameterValue(LogbookParameterName.eventDetailData);
+        boolean copyToMaster = false;
+        if (StringUtils.isNotEmpty(evDetData)) {
+            try {
+				copyToMaster = shouldCopyToMaster(JsonHandler.getFromString(evDetData));
+			} catch (InvalidParseOperationException e) {
+				// Do not throw this error
+				LOGGER.warn("evDetData is not parsable as a json. Analyse cancelled: " + evDetData);
+			}
+        }
+
+        final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
+
+        if (copyToMaster) {
+            LOGGER.debug("Copy evDetData to master: " + evDetData);
+            final UpdateResult updateResult = collection.getCollection().updateOne(
+                eq(LogbookDocument.ID, mainLogbookDocumentId),
+                Updates.set(LogbookDocument.EVENT_DETAILS, evDetData));
+
+            if (updateResult.getModifiedCount() != 1) {
+                LOGGER.error("Error while update document " + mainLogbookDocumentId + " With values [" + LogbookDocument.EVENT_DETAILS + ", " + evDetData + "]");
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
+            }
+        }
 
     }
 

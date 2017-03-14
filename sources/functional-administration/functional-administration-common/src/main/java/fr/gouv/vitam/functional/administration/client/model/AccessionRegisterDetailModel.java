@@ -60,6 +60,11 @@ public class AccessionRegisterDetailModel {
     private String submissionAgency;
     // TODO date object
     /**
+     * archival agreement identifier
+     */
+    @JsonProperty("ArchivalAgreement")
+    private String archivalAgreement;
+    /**
      * end date
      */
     @JsonProperty("EndDate")
@@ -177,6 +182,22 @@ public class AccessionRegisterDetailModel {
         this.submissionAgency = submissionAgency;
         return this;
     }
+
+    /**
+     * @return archivalAgreement identifier
+     */
+    public String getArchivalAgreement() {
+		return archivalAgreement;
+	}
+
+    /**
+     * Set the archivalAgreement identifier
+     * @param archivalAgreement
+     */
+    public AccessionRegisterDetailModel setArchivalAgreement(String archivalAgreement) {
+		this.archivalAgreement = archivalAgreement;
+        return this;
+	}
 
     /**
      * @return endDate
