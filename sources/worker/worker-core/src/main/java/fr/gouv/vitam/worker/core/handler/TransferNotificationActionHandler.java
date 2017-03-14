@@ -282,6 +282,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
             new FileInputStream((File) handlerIO.getInput(BINARYDATAOBJECT_ID_TO_VERSION_DATAOBJECT_MAP_RANK));
         final Map<String, Object> bdoVersionDataObject =
             JsonHandler.getMapFromInputStream(binaryDataObjectIdToVersionDataObjectMapTmpFile);
+        final InputStream objectGroupSystemGuidTmpFile = new FileInputStream((File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK));
+        final Map<String, Object> objectGroupSystemGuid =
+            JsonHandler.getMapFromInputStream(objectGroupSystemGuidTmpFile);
+        
         final SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
         final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
@@ -372,7 +376,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         usedDataObjectGroup.add(dataOGID);
                     }
                     dotr.setDataObjectVersion(dataBDOVersion);
-                    dotr.setDataObjectGroupSystemId(entry.getValue().toString());
+                    dotr.setDataObjectGroupSystemId(objectGroupSystemGuid.get(dataOGID).toString());
                     writeXMLFragment(dotr, xmlsw);
                 }
             }
