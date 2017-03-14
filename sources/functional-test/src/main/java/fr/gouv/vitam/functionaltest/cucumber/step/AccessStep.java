@@ -57,6 +57,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
  */
 public class AccessStep {
 
+    private static final String OPERATION_ID = "Operation-Id";
+
     private static final String UNIT_PREFIX = "unit:";
 
     private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
@@ -171,7 +173,7 @@ public class AccessStep {
      */
     @When("^j'utilise la requête suivante$")
     public void i_use_the_following_query(String query) throws Throwable {
-        this.query = query;
+        this.query = query.replace(OPERATION_ID, world.getOperationId());
     }
 
     /**
