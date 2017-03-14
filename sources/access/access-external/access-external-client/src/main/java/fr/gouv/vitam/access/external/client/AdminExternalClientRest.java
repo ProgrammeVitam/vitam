@@ -33,8 +33,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
 
-    private static final String CONTRACTS_URI = "contracts";
-
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
     }
@@ -139,9 +137,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.POST, CONTRACTS_URI, headers,
-                contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE,
-                false);
+            response = performRequest(HttpMethod.POST, AdminCollections.CONTRACTS.getName(), headers,
+                contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

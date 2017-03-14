@@ -49,6 +49,7 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -141,21 +142,40 @@ public class AdminManagementExternalResourceImpl {
         InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
+            ParametersChecker.checkParameter(collection, "The collection is mandatory");
+
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
                 Response resp = null;
+                Object respEntity = null;
+                int status = Status.CREATED.getStatusCode();
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     resp = client.importFormat(document);
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
                     resp = client.importRulesFile(document);
                 }
-                // final Status status = Status.CREATED;
-                ResponseBuilder ResponseBuilder = Response.status(resp.getStatus())
-                    .entity(resp.hasEntity() ? resp.getEntity() : "Successfully imported");
+                //get response entity 
+                if (resp != null) {
+                    status = resp.getStatus();
+                    if (resp.hasEntity()) {
+                        respEntity = resp.getEntity();
+                    }
+                }
+                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    respEntity = client.importContracts((ArrayNode) json);
+                    //get response entity and http status
+                    if (respEntity != null && respEntity instanceof VitamError) {
+                        status = ((VitamError) respEntity).getHttpCode();
+                    }
+                }
+                // Send the http response with the entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status)
+                    .entity(respEntity != null ? respEntity : "Successfully imported");
                 return ResponseBuilder.build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);
@@ -163,6 +183,12 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (VitamClientInternalException e) {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
@@ -260,52 +286,6 @@ public class AdminManagementExternalResourceImpl {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
-        }
-    }
-
-    /**
-     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
-     * The input is invalid in the following situations : </BR>
-     * <ul>
-     * <li>The json is invalid</li>
-     * <li>The json contains 2 ore many contracts having the same name</li>
-     * <li>One or more mandatory field is missing</li>
-     * <li>A field has an invalid format</li>
-     * <li>One or many contracts elready exist in the database</li>
-     * </ul>
-     * 
-     * @param contracts as InputStream
-     * @param uri
-     * @return Response jersey response
-     */
-    @Path("/contracts")
-    @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response importContracts(InputStream contracts, @Context UriInfo uri) {
-        ParametersChecker.checkParameter(CONTRACT_JSON_IS_MANDATORY_PATAMETER, contracts);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            JsonNode json = JsonHandler.getFromInputStream(contracts);
-            SanityChecker.checkJsonAll(json);
-            RequestResponse response = client.importContracts((ArrayNode) json);
-            if (response instanceof RequestResponseOK) {
-                /* return created with the location of the external endpoint to GET contracts */
-                return Response.created(uri.getRequestUri().normalize()).entity(response).build();
-            }
-            if (response instanceof VitamError) {
-                int httpCode = ((VitamError) response).getHttpCode();
-                return Response.status(httpCode).entity(response).build();
-            }
-            return Response.serverError().entity(response).build();
-        } catch (InvalidParseOperationException e) {
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
-                .build();
-        } catch (Exception exp) {
-            LOGGER.error("Unexpected server error ", exp);
-            // don't send the internal error message to outside
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, null, null)).build();
         }
     }
 

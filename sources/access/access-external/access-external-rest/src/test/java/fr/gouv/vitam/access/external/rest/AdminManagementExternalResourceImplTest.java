@@ -469,7 +469,7 @@ public class AdminManagementExternalResourceImplTest {
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CONTRACTS_URI)
-            .then().statusCode(Status.CREATED.getStatusCode()).header("location", "http://localhost:"+RestAssured.port+"/admin-external/v1/contracts");
+            .then().statusCode(Status.CREATED.getStatusCode());
 
     }
 
