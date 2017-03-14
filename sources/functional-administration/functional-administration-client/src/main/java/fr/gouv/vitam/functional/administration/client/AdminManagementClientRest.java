@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -47,6 +48,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -74,6 +76,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
     private static final String ACCESSION_REGISTER_GET_DOCUMENT_URL = "/accession-register/document";
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
+    private static final String CONTRACTS_URI = "/contracts";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -94,9 +97,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
-                /* BAD_REQUEST status is more suitable when formats are not well formated */    
+                /* BAD_REQUEST status is more suitable when formats are not well formated */
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     throw new ReferentialException(reason);
                 default:
@@ -122,7 +126,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     throw new ReferentialException(reason);
                 case CONFLICT:
@@ -211,7 +216,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 /* BAD_REQUEST status is more suitable when rules are not well formated */
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     throw new FileRulesException(reason);
                 default:
@@ -221,7 +227,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
-        } 
+        }
     }
 
     @Override
@@ -242,7 +248,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
                     break;
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     throw new FileRulesException(reason);
                 case CONFLICT:
@@ -409,11 +416,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
         RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
-        accessionRegisterDetail.setId(model.getId()).
-            setOriginatingAgency(model.getOriginatingAgency()).
-            setSubmissionAgency(model.getSubmissionAgency()).
-            setEndDate(model.getEndDate()).
-            setStartDate(model.getStartDate());
+        accessionRegisterDetail.setId(model.getId()).setOriginatingAgency(model.getOriginatingAgency())
+            .setSubmissionAgency(model.getSubmissionAgency()).setEndDate(model.getEndDate())
+            .setStartDate(model.getStartDate());
         if (model.getStatus() != null) {
             accessionRegisterDetail.setStatus(model.getStatus());
 
@@ -421,37 +426,51 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         accessionRegisterDetail.setLastUpdate(model.getLastUpdate());
 
         if (model.getTotalObjectsGroups() != null) {
-            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal()).
-                setRemained(model.getTotalObjectsGroups().getRemained()).
-                setDeleted(model.getTotalObjectsGroups().getDeleted()).
-                setOriginatingAgency(model.getTotalObjectsGroups().getOriginatingAgency());
+            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal())
+                .setRemained(model.getTotalObjectsGroups().getRemained())
+                .setDeleted(model.getTotalObjectsGroups().getDeleted())
+                .setOriginatingAgency(model.getTotalObjectsGroups().getOriginatingAgency());
 
             accessionRegisterDetail.setTotalObjectGroups(totalObjectsGroups);
         }
         if (model.getTotalUnits() != null) {
-            totalUnits.setTotal(model.getTotalUnits().getTotal()).
-                setRemained(model.getTotalUnits().getRemained()).
-                setDeleted(model.getTotalUnits().getDeleted()).
-                setOriginatingAgency(model.getTotalUnits().getOriginatingAgency());
+            totalUnits.setTotal(model.getTotalUnits().getTotal()).setRemained(model.getTotalUnits().getRemained())
+                .setDeleted(model.getTotalUnits().getDeleted())
+                .setOriginatingAgency(model.getTotalUnits().getOriginatingAgency());
 
             accessionRegisterDetail.setTotalUnits(totalUnits);
         }
         if (model.getTotalObjects() != null) {
-            totalObjects.setTotal(model.getTotalObjects().getTotal()).
-                setRemained(model.getTotalObjects().getRemained()).
-                setDeleted(model.getTotalObjects().getDeleted()).
-                setOriginatingAgency(model.getTotalObjects().getOriginatingAgency());
+            totalObjects.setTotal(model.getTotalObjects().getTotal()).setRemained(model.getTotalObjects().getRemained())
+                .setDeleted(model.getTotalObjects().getDeleted())
+                .setOriginatingAgency(model.getTotalObjects().getOriginatingAgency());
 
             accessionRegisterDetail.setTotalObjects(totalObjects);
         }
         if (model.getObjectSize() != null) {
-            objectSize.setTotal(model.getObjectSize().getTotal()).
-                setRemained(model.getObjectSize().getRemained()).
-                setDeleted(model.getObjectSize().getDeleted()).
-                setOriginatingAgency(model.getObjectSize().getOriginatingAgency());
+            objectSize.setTotal(model.getObjectSize().getTotal()).setRemained(model.getObjectSize().getRemained())
+                .setDeleted(model.getObjectSize().getDeleted())
+                .setOriginatingAgency(model.getObjectSize().getOriginatingAgency());
             accessionRegisterDetail.setObjectSize(objectSize);
         }
         return accessionRegisterDetail;
+    }
+
+    @Override
+    public RequestResponse importContracts(ArrayNode contractsToImport)
+        throws VitamClientInternalException, InvalidParseOperationException {
+        ParametersChecker.checkParameter("The input contracts json is mandatory", contractsToImport);
+        Response response = null;
+        response = performRequest(HttpMethod.POST, CONTRACTS_URI, null,
+            contractsToImport, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+            false);
+        final Status status = Status.fromStatusCode(response.getStatus());
+        if (status == Status.CREATED) {
+            LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                IngestContractModel.class);
+        }
+        return RequestResponse.parseFromResponse(response);
     }
 
 }

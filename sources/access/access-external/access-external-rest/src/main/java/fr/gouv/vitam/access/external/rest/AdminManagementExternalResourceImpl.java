@@ -43,16 +43,21 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -70,6 +75,7 @@ public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
+    private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
 
     /**
      * Constructor
@@ -136,21 +142,40 @@ public class AdminManagementExternalResourceImpl {
         InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
+            ParametersChecker.checkParameter(collection, "The collection is mandatory");
+
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
                 Response resp = null;
+                Object respEntity = null;
+                int status = Status.CREATED.getStatusCode();
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     resp = client.importFormat(document);
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
                     resp = client.importRulesFile(document);
                 }
-                // final Status status = Status.CREATED;
-                ResponseBuilder ResponseBuilder = Response.status(resp.getStatus())
-                    .entity(resp.hasEntity() ? resp.getEntity() : "Successfully imported");
+                //get response entity 
+                if (resp != null) {
+                    status = resp.getStatus();
+                    if (resp.hasEntity()) {
+                        respEntity = resp.getEntity();
+                    }
+                }
+                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    respEntity = client.importContracts((ArrayNode) json);
+                    //get response entity and http status
+                    if (respEntity != null && respEntity instanceof VitamError) {
+                        status = ((VitamError) respEntity).getHttpCode();
+                    }
+                }
+                // Send the http response with the entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status)
+                    .entity(respEntity != null ? respEntity : "Successfully imported");
                 return ResponseBuilder.build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);
@@ -158,6 +183,12 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (VitamClientInternalException e) {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
@@ -261,14 +292,15 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Construct the error following input
      * 
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
         String aMessage =
-            (message != null && !message.trim().isEmpty() ) ? message : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);

@@ -35,6 +35,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -45,15 +46,15 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
-import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 
 /**
  * Mock client implementation for AdminManagement
@@ -152,29 +153,29 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("get document Register Fund request:");
 
         model.setId("aefaaaaaaaaam7mxaa2gyakygejizayaaaaq")
-        .setTenant(0)
-        .setOriginatingAgency("FRAN_NP_005568");
+            .setTenant(0)
+            .setOriginatingAgency("FRAN_NP_005568");
 
         totalObjects.setTotal(12)
-        .setDeleted(0)
-        .setRemained(12);
+            .setDeleted(0)
+            .setRemained(12);
         model.setTotalObjects(totalObjects);
 
         totalObjectsGroups.setTotal(3)
-        .setDeleted(0)
-        .setRemained(3);
+            .setDeleted(0)
+            .setRemained(3);
         model.setTotalObjectsGroups(totalObjectsGroups);
 
         totalUnits.setTotal(3)
-        .setDeleted(0)
-        .setRemained(3);
+            .setDeleted(0)
+            .setRemained(3);
         model.setTotalUnits(totalUnits);
 
         objectSize.setTotal(1035126)
-        .setDeleted(0)
-        .setRemained(1035126);
+            .setDeleted(0)
+            .setRemained(1035126);
         model.setObjectSize(objectSize)
-        .setCreationDate("2016-11-04T20:40:49.030");
+            .setCreationDate("2016-11-04T20:40:49.030");
         modelJson = JsonHandler.writeAsString(model);
         return ClientMockResultHelper.createReponse(modelJson);
     }
@@ -202,6 +203,12 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             .setTotalUnits(totalUnits)
             .setObjectSize(objectSize);
         return ClientMockResultHelper.createReponse(detailBuider);
+    }
+
+    @Override
+    public RequestResponse importContracts(ArrayNode contractsToImport) throws InvalidParseOperationException {
+        LOGGER.debug("import contracts request ");
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContracts().toJsonNode());
     }
 
 }

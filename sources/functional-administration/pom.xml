@@ -18,5 +18,6 @@
 		<module>functional-administration-client</module>
 		<module>functional-administration-rules</module>
 		<module>functional-administration-accession-register</module>
+		<module>functional-administration-contract</module>
 	</modules>
 </project>

@@ -29,8 +29,11 @@ package fr.gouv.vitam.functional.administration.client;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -38,21 +41,28 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -61,6 +71,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -241,6 +252,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         public Response getAccessionRegisterDetail() {
             return expectedResponse.post();
         }
+
+        @POST
+        @Path("/contracts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
+           return expectedResponse.post();
+        }
     }
 
 
@@ -355,7 +374,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             final JsonNode result = client.getRuleByID("APP-00001");
         } catch (FileRulesException e) {
             assertEquals("Wrong format", e.getMessage());
-            throw(e);
+            throw (e);
         }
     }
 
@@ -451,7 +470,27 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("{}").build());
         client.getAccessionRegister(JsonHandler.getFromString(QUERY));
-
     }
+
+    @Test()
+    @RunWithCustomExecutor
+    public void importContractsWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException {
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        RequestResponse resp = client.importContracts((ArrayNode) json);
+        Assert.assertTrue(resp instanceof RequestResponseOK);
+        Assert.assertTrue(((RequestResponseOK)resp).getResults().get(0) instanceof IngestContractModel);
+    }
+    
+    private List<Object> getContracts() throws FileNotFoundException, InvalidParseOperationException {
+    	InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
+		ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
+		List<Object> res = new ArrayList<>();
+		array.forEach(e -> res.add(e));
+		return res;
+	}
 
 }

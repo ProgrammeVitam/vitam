@@ -77,7 +77,12 @@ public final class GUIDObjectType {
         /**
          * Store Accession register Symmary type
          */
-        ACCESSION_REGISTER_SUMMARY(ACCESSION_REGISTER_SUMMARY_TYPE);
+        ACCESSION_REGISTER_SUMMARY(ACCESSION_REGISTER_SUMMARY_TYPE), 
+        
+        /**
+         * Ingest contract type
+         */
+        INGEST_CONTRACT(INGEST_CONTRACT_TYPE);
 
         final int id;
 
@@ -140,6 +145,10 @@ public final class GUIDObjectType {
      */
     public static final int ACCESSION_REGISTER_SUMMARY_TYPE = 10;
 
+    /**
+     * Accession register
+     */
+    public static final int INGEST_CONTRACT_TYPE = 11;
 
     private GUIDObjectType() {
         // empty
@@ -175,6 +184,8 @@ public final class GUIDObjectType {
                 return GUIDObjectEnumType.STORAGE_OPERATION;
             case ACCESSION_REGISTER_SUMMARY_TYPE:
                 return GUIDObjectEnumType.ACCESSION_REGISTER_SUMMARY;
+            case INGEST_CONTRACT_TYPE:
+                return GUIDObjectEnumType.INGEST_CONTRACT;
             default:
                 return GUIDObjectEnumType.UNASSIGNED;
         }
@@ -208,6 +219,8 @@ public final class GUIDObjectType {
      */
     public static boolean getDefaultWorm(int type) {
         switch (type) {
+        	case INGEST_CONTRACT_TYPE:
+        	return false;
             case UNIT_TYPE:
             case OBJECTGROUP_TYPE:
             case STORAGE_OPERATION_TYPE:

@@ -14,6 +14,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -125,6 +126,25 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+
+    @Override
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+        throws AccessExternalClientException {
+        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts);
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response = performRequest(HttpMethod.POST, AdminCollections.CONTRACTS.getName(), headers,
+                contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        }
+        return RequestResponse.parseFromResponse(response);
     }
 
 }

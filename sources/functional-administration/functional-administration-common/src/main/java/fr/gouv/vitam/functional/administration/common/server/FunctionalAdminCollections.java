@@ -35,6 +35,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 
 /**
  * All collections in functional admin module
@@ -58,7 +59,16 @@ public enum FunctionalAdminCollections {
     /**
      * Accession Register detail Collection
      */
-    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class);
+    /**
+     * 
+     */
+    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class),
+    
+    /**
+     * Ingest contract collection
+     * 
+     */
+    INGEST_CONTRACT(IngestContract.class);
 
     private VitamCollection vitamCollection;
     

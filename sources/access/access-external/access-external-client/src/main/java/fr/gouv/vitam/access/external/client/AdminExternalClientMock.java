@@ -3,7 +3,6 @@ package fr.gouv.vitam.access.external.client;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -62,6 +61,12 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
             return ClientMockResultHelper.getFormat();
         }
         throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
+    }
+
+    @Override
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+        throws InvalidParseOperationException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContracts().toJsonNode());
     }
 
 }

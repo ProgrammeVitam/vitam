@@ -38,7 +38,12 @@ public enum AdminCollections {
     /**
      * Rules Collection
      */
-    RULES("rules");
+    RULES("rules"),
+    
+    /**
+     * Ingest contracts collection
+     */
+    CONTRACTS("contracts");
 
     private String name;
 

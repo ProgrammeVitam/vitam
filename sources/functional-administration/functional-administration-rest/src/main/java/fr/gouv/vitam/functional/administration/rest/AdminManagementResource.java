@@ -39,17 +39,21 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -75,6 +79,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
+import fr.gouv.vitam.functional.administration.ingest.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 
 /**
@@ -83,9 +88,12 @@ import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 @Path("/adminmanagement/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
+
+    static final String CONTRACTS_URI = "contracts";
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
+    private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "The json input of contracts is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
@@ -551,6 +559,70 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 .setQuery(select)
                 .addAllResults(fileAccessionRegistersDetail))
             .build();
+    }
+
+
+
+    /**
+     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts elready exist in the database</li>
+     * </ul>
+     * 
+     * @param xmlPronom as InputStream
+     * @param uri
+     * @return Response jersey response
+     */
+    @Path(CONTRACTS_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
+        ParametersChecker.checkParameter(CONTRACT_JSON_IS_MANDATORY_PATAMETER, contractsToImport);
+        List<JsonNode> created = null;
+        try (IngestContractImpl ingestContract = new IngestContractImpl(mongoAccess)) {
+            SanityChecker.checkJsonAll(contractsToImport);
+            created = ingestContract.importContracts(contractsToImport);
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
+        } catch (ReferentialException refExp) {
+            LOGGER.error(refExp);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, refExp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+        RequestResponseOK resp = new RequestResponseOK<>();
+        if(created != null){
+        	resp.addAllResults(created);
+        }
+        return Response.created(uri.getRequestUri().normalize()).entity(resp).build();
+    }
+
+    /**
+     * Construct the error following input
+     * 
+     * @param status Http error status
+     * @param message The functional error message, if absent the http reason phrase will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
+     * @return
+     */
+    private VitamError getErrorEntity(Status status, String message, String code) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
+        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext("ADMIN_MODULE")
+            .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
 }

@@ -327,6 +327,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
+
     /**
      * @param headers
      * @param idObjectGroup
@@ -340,7 +341,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject (headers,idObjectGroup,query,asyncResponse,false) ;
+        getObject(headers, idObjectGroup, query, asyncResponse, false);
     }
 
     /**
@@ -380,7 +381,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
+        getObject(headers, idObjectGroup, query, asyncResponse, true);
     }
 
 
@@ -399,7 +400,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         try {
             String idObjectGroup = idObjectGroup(idu);
-            getObject(headers, idObjectGroup, query, asyncResponse,false) ;
+            getObject(headers, idObjectGroup, query, asyncResponse, false);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -435,7 +436,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         try {
             String idObjectGroup = idObjectGroup(idu);
-            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
+            getObject(headers, idObjectGroup, query, asyncResponse, true);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -493,13 +494,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
+
     private String idObjectGroup(String idu)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        // Select  "Object from ArchiveUNit idu
+        // Select "Object from ArchiveUNit idu
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.addUsedProjection("#object");
             result = client.selectUnitbyId(select.getFinalSelect(), idu);
@@ -507,13 +509,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return result.findValue("#object").textValue();
         }
     }
-    private void getObject( HttpHeaders headers, String idObjectGroup,
-        JsonNode query,final AsyncResponse asyncResponse, boolean post ){
+
+    private void getObject(HttpHeaders headers, String idObjectGroup,
+        JsonNode query, final AsyncResponse asyncResponse, boolean post) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, post));
     }
+
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query, boolean post) {
 
@@ -680,4 +684,5 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
+
 }
