@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -118,6 +119,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
         
             try {        
                 indexArchiveUnit(params, itemStatus);
+            } catch(final IllegalArgumentException e){
+                LOGGER.error(e);
+                itemStatus.increment(StatusCode.KO);
             } catch (final ProcessingException e) {
                 LOGGER.error(e);
                 itemStatus.increment(StatusCode.FATAL);
@@ -139,7 +143,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
         final String containerId = params.getContainerName();
         final String objectName = params.getObjectName();
-
+        RequestMultiple query = null;
         InputStream input;
         Response response = null;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
@@ -154,7 +158,6 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 final JsonNode data = ((JsonNode) archiveDetailsRequiredForIndex.get("data")).get(ARCHIVE_UNIT);
                 final Boolean existing = (Boolean) archiveDetailsRequiredForIndex.get("existing");
 
-                RequestMultiple query;
                 if (existing) {
                     query = new Update();
                 } else {
@@ -180,12 +183,18 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 throw new ProcessingException("Archive unit not found");
             }
 
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error("Unit references a non existing unit "+ query != null ? query.toString() : "");
+            throw new IllegalArgumentException(e);
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Internal Server Error", e);
             throw new ProcessingException(e);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Workspace Server Error");
             throw new ProcessingException(e);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("Illegal Argument Exception for "+ query != null ? query.toString() : "");
+            throw e;
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);
         }
