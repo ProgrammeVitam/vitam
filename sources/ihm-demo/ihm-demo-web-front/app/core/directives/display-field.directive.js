@@ -41,6 +41,12 @@
  field-label: Allow to override the label of the field with a specific value
  */
 angular.module('archive.unit')
+  .controller('DisplayFieldController', function($scope) {
+    $scope.isDateField = function(fieldLabel, fieldName) {
+      var fieldStr = !fieldLabel ? fieldName : fieldLabel;
+      return fieldStr.toUpperCase().indexOf('DATE') > -1;
+    }
+  })
   .directive('displayField', function() {
     return {
       scope: {
