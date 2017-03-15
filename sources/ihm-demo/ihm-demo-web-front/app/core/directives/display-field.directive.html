@@ -1,3 +1,4 @@
+<div ng-controller="DisplayFieldController">
 <div class="col-md-1">
   <button type="button" class="btn btn-sm" aria-label="Left Align"
           ng-if="editMode && fieldObject.isModificationAllowed"
@@ -9,7 +10,58 @@
 <div ng-class="'col-md-' + fieldSize">
   <label class="label" style="font-size:14px">{{!fieldLabel ? fieldObject.fieldName : fieldLabel}}</label>
   <textarea rows="5" ng-model="fieldObject.currentFieldValue" ng-change="interceptUserChange({fieldSet: fieldObject})"
-            ng-init="fieldObject.fieldValue" ng-if="editMode && fieldObject.isFieldEdit" class="width-100">
+            ng-init="fieldObject.fieldValue"
+            ng-if="editMode && fieldObject.isFieldEdit && !isDateField(fieldLabel, fieldObject.fieldName)"
+            class="width-100">
   </textarea>
+
+  <div ng-if="editMode && fieldObject.isFieldEdit && isDateField(fieldLabel, fieldObject.fieldName)" class="col-md-5 input-group">
+    <input ng-model="fieldObject.currentFieldValue" date-picker=""  type="text" class="form-control input-sm"
+    ng-change="interceptUserChange({fieldSet: fieldObject})" ng-init="fieldObject.fieldValue"/>
+    <div class="input-group-addon"><i class="material-icons">date_range</i></div>
+  </div>
+
   <span class="overflow-break-words" ng-if="!editMode || !fieldObject.isFieldEdit" >{{!displayValue ? fieldObject.fieldValue: displayValue}}</span>
 </div>
+
+</div>
+
+
+<script>
+// TODO : refactor this component : it is used in archive search page too
+/* French initialisation for the jQuery UI date picker plugin. */
+/* Written by Keith Wood (kbwood{at}iinet.com.au),
+Stéphane Nahmani (sholby@sholby.net),
+Stéphane Raimbault <stephane.raimbault@gmail.com> */
+(function( factory ) {
+  if ( typeof define === "function" && define.amd ) {
+    // AMD. Register as an anonymous module.
+    define([ "../jquery.ui.datepicker" ], factory );
+  } else {
+    // Browser globals
+    factory( jQuery.datepicker );
+  }
+}(function( datepicker ) {
+  datepicker.regional['fr'] = {
+    closeText: 'Fermer',
+    prevText: '<',
+    nextText: '>',
+    currentText: 'Aujourd\'hui',
+    monthNames: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+    'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+    monthNamesShort: ['janv.', 'févr.', 'mars', 'avril', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+    dayNames: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+    dayNamesShort: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+    dayNamesMin: ['D','L','M','M','J','V','S'],
+    weekHeader: 'Sem.',
+    dateFormat: 'yy-mm-dd',
+    firstDay: 1,
+    isRTL: false,
+    showMonthAfterYear: false,
+    yearSuffix: ''};
+    datepicker.setDefaults(datepicker.regional['fr']);
+    return datepicker.regional['fr'];
+  }));
+
+  </script>
