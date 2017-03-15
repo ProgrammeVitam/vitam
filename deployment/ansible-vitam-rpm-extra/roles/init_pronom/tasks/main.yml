@@ -1,0 +1,42 @@
+---
+# tasks file for init_pronom
+
+# Source example: http://www.nationalarchives.gov.uk/documents/DROID_SignatureFile_V88.xml
+- name: get PRONOM {{pronom_version}}
+  get_url:
+    url: "{{pronom_baseurl}}/DROID_SignatureFile_{{pronom_version}}.xml"
+    dest: "/vitam/tmp/ihm-demo/DROID_SignatureFile_{{pronom_version}}.xml"
+    mode: "{{vitam_conf_permission}}"
+    owner: "{{vitam_user}}"
+    group: "{{vitam_group}}"
+
+- name: Connection to ihm-demo before uploading
+  uri:
+    url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/login
+    method: POST
+    body: '{"token":{"principal":"{{users.vitam_uuser.login}}","credentials": "{{users.vitam_uuser.password}}" }}'
+    body_format: json
+    status_code: 200
+    headers:
+      Content-Type: "application/json;charset=utf-8"
+      accept: "application/json, text/plain, */*"
+      Connection: "keep-alive"
+      body_format: json
+  register: connected
+
+- name: upload PRONOM
+  uri: 
+    url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/format/upload
+    method: POST
+    headers: 
+      Connection: "keep-alive"
+      X-Tenant-Id: "{{item}}"
+      Content-Type: "application/octet-stream"
+      Cookie: "{{connected.set_cookie}}"
+    body: "{{ lookup('file', '/vitam/tmp/ihm-demo/DROID_SignatureFile_{{pronom_version}}.xml') }}"
+  ignore_errors: true
+  run_once: true # Limit as this upload is not related to tenants
+  when: connected.set_cookie != ''
+  with_items:
+    - "{{vitam_tenant_ids|first}}"
+

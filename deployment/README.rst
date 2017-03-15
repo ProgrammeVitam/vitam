@@ -85,3 +85,11 @@ et
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
 et
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
+
+6. Automatisation du chargement de PRONOM
+
+``ansible-playbook ansible-vitam-rpm-extra/init_pronom.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
+.. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
+
+
