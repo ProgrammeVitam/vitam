@@ -13,7 +13,9 @@ hosts-mongo-express
 
 # EXTRA : Front reverse-proxy (test environments ONLY) ; add machine name after
 [reverse]
-
+# optional : after machine, if this machine is different from VITAM machines, you can specify another become user
+# Example
+# vitam-centos-01.vitam become_user=centos
 
 ########### Extra VITAM applications ###########
 
