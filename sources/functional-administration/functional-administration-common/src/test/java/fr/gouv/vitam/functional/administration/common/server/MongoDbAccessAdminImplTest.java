@@ -165,7 +165,7 @@ public class MongoDbAccessAdminImplTest {
             .setRuleDuration("10")
             .setRuleMeasurement("Annee");
 
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(1, 0, 1, null);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(1, 0, 1);
         register = new AccessionRegisterDetail(TENANT_ID)
             .setObjectSize(initialValue)
             .setOriginatingAgency(AGENCY)
