@@ -28,3 +28,8 @@ V	270304180339Z		BE	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_server
 V	200305180413Z		BF	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ingest-external.service.consul
 V	200305180414Z		C0	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=access-external.service.consul
 V	200305180416Z		C1	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=storage-offer-default.service.consul
+V	270313121839Z		C2	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_server
+V	270313121840Z		C3	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_server
+V	200314121844Z		C4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ingest-external.service.consul
+V	200314121846Z		C5	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=access-external.service.consul
+V	200314121848Z		C6	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=storage-offer-default.service.consul

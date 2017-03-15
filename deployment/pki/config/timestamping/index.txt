@@ -12,3 +12,6 @@ V	200301083151Z		AE	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.con
 V	270304180342Z		AF	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
 V	270304180342Z		B0	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
 V	200305180417Z		B1	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
+V	270313121842Z		B2	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	270313121843Z		B3	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping
+V	200314121849Z		B4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul
