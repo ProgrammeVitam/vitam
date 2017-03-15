@@ -53,6 +53,8 @@ Ci-après un exemple
 
 L'heure affichée s'adapte au fuseau horaire définit sur le poste de consultation.
 
+Dans le cas où aucune heure n'est renseignée dans l'enregistrement, il est par défaut indiqué sur l'interface 00:00, et ceci quel que soit le fuseau horaire.
+
 Titre des pages
 ---------------
 
