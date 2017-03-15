@@ -66,7 +66,7 @@ angular.module('ihm.demo')
     	console.info('onErrorItem', fileItem, response, status, headers);
     	if (uploader.queue[0].url == serviceURI) {
     		var confirm = $mdDialog.confirm()
-    		            	.title('Fichier invalide.')
+    		            	.title('Echec de l\'import du fichier.')
     		            	.ok("Fermer");
     		    		$mdDialog.show(confirm)
     	}
