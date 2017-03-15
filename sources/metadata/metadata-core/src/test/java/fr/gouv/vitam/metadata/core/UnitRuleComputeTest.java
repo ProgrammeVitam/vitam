@@ -40,9 +40,15 @@ public class UnitRuleComputeTest {
         "    \"StorageRule\" : {" +
         "      \"Rule\" : \"R10\"" +
         "    }," +
-        "    \"AccessRule\" : {" +
+        "    \"AccessRule\" : " +
+        "    [" +
+        "    {" +
+        "      \"Rule\" : \"ACC-0011\"" +
+        "    }," +
+        "    {" +
         "      \"Rule\" : \"ACC-0010\"" +
         "    }" +
+        "    ]" +
         "  }";
     
     private final static String MGT3 = "{" +
@@ -53,9 +59,15 @@ public class UnitRuleComputeTest {
         "  }";
     
     private final static String MGT4 = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : " +
+        "    [" +
+        "    {" +
         "      \"Rule\" : \"R4\"" +
+        "    }," +
+        "    {" +
+        "      \"Rule\" : \"R4bis\"" +
         "    }" +
+        "    ]" +
         "  }";
     
     
@@ -214,9 +226,9 @@ public class UnitRuleComputeTest {
     }
     
     @Test
-    public void testPreventInheritance  () throws InvalidParseOperationException{
+    public void testPreventInheritance() throws InvalidParseOperationException{
         //  AU1 [R1, ACC-00001] -> AU2 -> AU3 [R3] -> AU4
-        //  AU10 [R6, ACC-00010] -> AU2
+        //  AU10 [R6, ACC-00010, ACC-00011] -> AU2
         String ID1 = "AU1";
         String ID10 = "AU10";
         String ID2 = "AU2";
