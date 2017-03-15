@@ -151,6 +151,27 @@ angular.module('lifecycle')
       });
     };
 
+// ************ Gets Archive Unit Title ************* /
+    if (self.lifeCycleType === 'unit') {
+      ihmDemoFactory.getArchiveUnitDetails(self.lifeCycleId)
+        .then(function (response) {
+          if (response.data) {
+            $scope.archiveUnitTitle = response.data.$results[0].Title;
+          }
+        },function (error) {
+          console.log(error);
+        });
+    } else {
+      ihmDemoFactory.getArchiveObjectGroup(self.lifeCycleId)
+        .then(function (response) {
+          if (response.data) {
+            $scope.archiveUnitTitle = response.data.versions[0].FileName;
+          }
+        },function (error) {
+          console.log(error);
+        });
+    }
+
     $scope.selectStyleByStepLevel = function(isStepLevelEvent){
       if (isStepLevelEvent) {
         return "logbookProcess";
