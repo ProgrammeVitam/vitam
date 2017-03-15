@@ -1,0 +1,4 @@
+# Example for git lfs ; uncomment & use if needed
+#vitam_gitlab_itest_login: "account"
+#vitam_gitlab_itest_password: "password"
+
