@@ -9,6 +9,8 @@
     mode: "{{vitam_conf_permission}}"
     owner: "{{vitam_user}}"
     group: "{{vitam_group}}"
+  environment:
+    http_proxy: "{{ http_proxy_environnement }}"
 
 - name: Connection to ihm-demo before uploading
   uri:
