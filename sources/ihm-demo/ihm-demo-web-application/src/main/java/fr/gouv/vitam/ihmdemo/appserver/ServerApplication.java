@@ -201,4 +201,10 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
             .register(new AuthInjectionBinder());
     }
 
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        // do not expose admin resource
+        return false;
+    }
 }

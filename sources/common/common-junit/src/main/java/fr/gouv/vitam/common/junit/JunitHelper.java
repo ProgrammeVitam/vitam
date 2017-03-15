@@ -63,7 +63,7 @@ public class JunitHelper extends ExternalResource {
     private static final int MAX_PORT = 65535;
     private static final int BUFFER_SIZE = 65536;
     private static final String COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON =
-        "Could not find a free TCP/IP port to start embedded Server on";
+            "Could not find a free TCP/IP port to start embedded Server on";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JunitHelper.class);
 
     private final Set<Integer> portAlreadyUsed = new HashSet<>();
@@ -71,6 +71,15 @@ public class JunitHelper extends ExternalResource {
      * Jetty port SystemProperty
      */
     private static final String PARAMETER_JETTY_SERVER_PORT = "jetty.port";
+    public static final String PARAMETER_JETTY_SERVER_PORT_ADMIN = "jetty.port.admin";
+    /**
+     * Convention according to the story #938
+     * We prefix PARAMETER_JETTY_SERVER_PORT with number of (1 or 2 or , ...),
+     * As there is already used port number like 18001, this is why we choose the prefix 2
+     * Example: If jetty.port = 8082 then jetty.port.admin = 28082
+     */
+    private static final String PORT_ADMIN_PREFIX = "2";
+
     private static final JunitHelper JUNIT_HELPER = new JunitHelper();
 
     /**
@@ -88,12 +97,27 @@ public class JunitHelper extends ExternalResource {
         return JUNIT_HELPER;
     }
 
+
     /**
      * @return an available port if it exists
      * @throws IllegalStateException if no port available
      */
     public final synchronized int findAvailablePort() {
-        return getAvailablePort();
+        return this.findAvailablePort(PARAMETER_JETTY_SERVER_PORT);
+    }
+
+    /**
+     * @param environmentVariable if not null, set the port nomber in the system environment
+     * @return an available port if it exists
+     * @throws IllegalStateException if no port available
+     */
+    public final synchronized int findAvailablePort(String environmentVariable) {
+        int port = getAvailablePort();
+
+        if (PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) || PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable)) {
+            setJettyPortSystemProperty(environmentVariable, port);
+        }
+        return port;
     }
 
     /**
@@ -105,11 +129,11 @@ public class JunitHelper extends ExternalResource {
      * @throws IllegalStateException if no port available
      */
     public final synchronized StartApplicationResponse<?> findAvailablePortSetToApplication(
-        VitamApplicationTestFactory<?> testFactory) {
+            VitamApplicationTestFactory<?> testFactory) {
         if (testFactory == null) {
             throw new IllegalStateException("Factory must not be null");
         }
-        final int port = getAvailablePort();
+        final int port = findAvailablePort();
         try {
             final StartApplicationResponse<?> response = testFactory.startVitamApplication(port);
             final int realPort = response.getServerPort();
@@ -133,7 +157,6 @@ public class JunitHelper extends ExternalResource {
             if (!portAlreadyUsed.contains(port)) {
                 portAlreadyUsed.add(port);
                 LOGGER.debug("Available port: " + port);
-                setJettyPortSystemProperty(port);
                 return port.intValue();
             }
             try {
@@ -270,8 +293,11 @@ public class JunitHelper extends ExternalResource {
      *
      * @param port set to jetty server
      */
-    public static final void setJettyPortSystemProperty(int port) {
-        SystemPropertyUtil.set(PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+    public static final void setJettyPortSystemProperty(String environmentVariable, int port) {
+        if (!PARAMETER_JETTY_SERVER_PORT.equals(environmentVariable) && !PARAMETER_JETTY_SERVER_PORT_ADMIN.equals(environmentVariable))
+            throw new IllegalArgumentException("JunitHelper setJettyPortSystemProperty method, accept only [jetty.port or jetty.port.admin] params");
+
+        SystemPropertyUtil.set(environmentVariable, Integer.toString(port));
     }
 
     /**
@@ -279,6 +305,7 @@ public class JunitHelper extends ExternalResource {
      */
     public static final void unsetJettyPortSystemProperty() {
         SystemPropertyUtil.clear(PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(PARAMETER_JETTY_SERVER_PORT_ADMIN);
     }
 
     /**
@@ -296,7 +323,7 @@ public class JunitHelper extends ExternalResource {
             // finally call the constructor
             c.newInstance();
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
-            IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
+                IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
@@ -344,25 +371,25 @@ public class JunitHelper extends ExternalResource {
     }
 
     private static final void tryStartElasticsearch(ElasticsearchTestConfiguration config, TemporaryFolder tempFolder,
-        String clusterName) {
+                                                    String clusterName) {
         try {
             config.elasticsearchHome = tempFolder.newFolder();
             final Settings settings = Settings.settingsBuilder()
-                .put("http.enabled", true)
-                .put("discovery.zen.ping.multicast.enabled", false)
-                .put("transport.tcp.port", config.tcpPort)
-                .put("http.port", config.httpPort)
-                .put("path.home", config.elasticsearchHome.getCanonicalPath())
-                .put("transport.tcp.connect_timeout", "1s")
-                .put("transport.profiles.tcp.connect_timeout", "1s")
-                .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
-                .build();
+                    .put("http.enabled", true)
+                    .put("discovery.zen.ping.multicast.enabled", false)
+                    .put("transport.tcp.port", config.tcpPort)
+                    .put("http.port", config.httpPort)
+                    .put("path.home", config.elasticsearchHome.getCanonicalPath())
+                    .put("transport.tcp.connect_timeout", "1s")
+                    .put("transport.profiles.tcp.connect_timeout", "1s")
+                    .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
+                    .build();
 
             config.node = nodeBuilder()
-                .settings(settings)
-                .client(false)
-                .clusterName(clusterName)
-                .node();
+                    .settings(settings)
+                    .client(false)
+                    .clusterName(clusterName)
+                    .node();
 
             config.node.start();
         } catch (BindTransportException | IOException e) {
@@ -391,7 +418,7 @@ public class JunitHelper extends ExternalResource {
      * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
      */
     public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-        String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
+                                                                                 String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
         final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
         config.httpPort = httpPort;
         config.tcpPort = tcpPort;
@@ -413,7 +440,7 @@ public class JunitHelper extends ExternalResource {
      * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
      */
     public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-        String clusterName) throws VitamApplicationServerException {
+                                                                                 String clusterName) throws VitamApplicationServerException {
         final JunitHelper junitHelper = getInstance();
         final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
         for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {

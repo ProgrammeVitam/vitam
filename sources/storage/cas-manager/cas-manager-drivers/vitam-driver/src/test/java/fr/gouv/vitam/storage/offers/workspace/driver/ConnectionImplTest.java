@@ -161,6 +161,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
         }
 
         @Override
+        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+            // do nothing as @admin is not tested here
+            return false;
+        }
+
+        @Override
         protected void platformSecretConfiguration() {
             // None
         }

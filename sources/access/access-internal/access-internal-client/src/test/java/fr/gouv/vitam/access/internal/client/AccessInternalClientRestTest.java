@@ -130,6 +130,12 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {
             resourceConfig.registerInstances(new MockResource(mock));
         }
+
+        @Override
+        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+            // do nothing as @admin is not tested here
+            return false;
+        }
     }
 
     // Define your Configuration class if necessary

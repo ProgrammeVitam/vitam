@@ -66,26 +66,30 @@
         </Call>
         -->
     </New>
-    <Call name="addConnector">
-        <Arg>
-            <New class="org.eclipse.jetty.server.ServerConnector">
-                <Arg name="server"><Ref refid="Server" /></Arg>
-                <Arg name="factories">
-                    <Array type="org.eclipse.jetty.server.ConnectionFactory">
-                        <Item>
-                            <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-                                <Arg name="config"><Ref refid="httpConfig" /></Arg>
-                            </New>
-                        </Item>
-                    </Array>
-                </Arg>
-                <Set name="port">{{port_http}}</Set>
-                <Set name="idleTimeout">
-                    <Property name="http.timeout" default="{{port_http_timeout}}"/>
-                </Set>
-            </New>
-        </Arg>
-    </Call>
+
+    <!-- ======================== Original Connector =============================== -->
+    <!-- <Call name="addConnector">								-->
+    <!--     <Arg>										-->
+    <!--         <New class="org.eclipse.jetty.server.ServerConnector">				-->
+    <!--             <Arg name="server"><Ref refid="Server" /></Arg>				-->
+    <!--             <Arg name="factories">							-->
+    <!--                 <Array type="org.eclipse.jetty.server.ConnectionFactory">		-->
+    <!--                     <Item>								-->
+    <!--                         <New class="org.eclipse.jetty.server.HttpConnectionFactory">	-->
+    <!--                             <Arg name="config"><Ref refid="httpConfig" /></Arg>	-->
+    <!--                         </New>								-->
+    <!--                     </Item>								-->
+    <!--                 </Array>								-->
+    <!--             </Arg>									-->
+    <!--             <Set name="port">{{port_http}}</Set>					-->
+    <!--             <Set name="idleTimeout">							-->
+    <!--                 <Property name="http.timeout" default="{{port_http_timeout}}"/>	-->
+    <!--             </Set>									-->
+    <!--         </New>										-->
+    <!--     </Arg>										-->
+    <!-- </Call>										-->
+
+
 
     <!-- =========================================================== -->
     <!-- Set the default handler structure for the Server            -->
@@ -129,6 +133,7 @@
     <Set name="stopTimeout">5000</Set>
     <Set name="dumpAfterStart">false</Set>
     <Set name="dumpBeforeStop">false</Set>
+
 {% if tls_active %}
    <New id="httpsConfig" class="org.eclipse.jetty.server.HttpConfiguration">
         <Call name="addCustomizer">
@@ -177,7 +182,7 @@
         </Arg>
         <Arg name="next">http/1.1</Arg>
     </New>
-    <New id="sslConnector" class="org.eclipse.jetty.server.ServerConnector">
+    <New id="businessConnector" class="org.eclipse.jetty.server.ServerConnector">
         <Arg name="server">
             <Ref refid="Server" />
         </Arg>
@@ -198,18 +203,73 @@
         <Set name="port">
             <SystemProperty name="jetty.port" default="{{ port_https }}"/>
         </Set>
+	<Set name="name">business</Set>
     </New>
+
+{% else %}
+
+    <!-- =========================================================== -->
+    <!-- Connector for API business            			     -->    
+    <!-- Attach all ContextHanlder except Admin			     -->
+    <!-- =========================================================== -->
+
+    <New id="businessConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server"><Ref refid="Server" /></Arg>
+        <Arg name="factories">
+            <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                <Item>
+                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                        <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                    </New>
+                </Item>
+            </Array>
+        </Arg>
+        <Set name="port">{{port_http}}</Set>
+	<Set name="name">business</Set>
+        <Set name="idleTimeout">
+            <Property name="http.timeout" default="{{port_http_timeout}}"/>
+        </Set>
+    </New>
+
+{% endif %}
+
+    <!-- =========================================================== -->
+    <!-- Connector for API Admin            			     -->    
+    <!-- Attach all ContextHanlder				     -->
+    <!-- =========================================================== -->
+
+    <New id="adminConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server"><Ref refid="Server" /></Arg>
+        <Arg name="factories">
+            <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                <Item>
+                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                        <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                    </New>
+                </Item>
+            </Array>
+        </Arg>
+        <Set name="port">{{port_http_admin}}</Set>
+	<Set name="name">admin</Set>
+        <Set name="idleTimeout">
+            <Property name="http.timeout" default="{{port_http_timeout}}"/>
+        </Set>
+    </New>
+
+
+
+
     <Call name="setConnectors">
         <Arg>
              <Array type="org.eclipse.jetty.server.ServerConnector">
-               <!--    <Item>
-                    <Ref refid="connector" />
-                </Item> -->
                 <Item>
-                    <Ref refid="sslConnector" />
+                    <Ref refid="businessConnector" />
+                </Item>
+                <Item>
+                    <Ref refid="adminConnector" />
                 </Item>
             </Array>
         </Arg>
     </Call>
-{% endif %}
+
 </Configure>

@@ -116,9 +116,15 @@ public class AccessExternalApplication
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())
             .register(new AdminManagementExternalResourceImpl())
-            .register(new AdminStatusResource(serviceRegistry))
             .register(SanityCheckerCommonFilter.class)
             .register(SanityDynamicFeature.class);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
+
     }
 
 

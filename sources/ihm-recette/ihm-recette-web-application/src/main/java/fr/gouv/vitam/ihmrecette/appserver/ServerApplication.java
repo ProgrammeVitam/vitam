@@ -26,18 +26,25 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import static java.lang.String.format;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.google.common.base.Throwables;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.TenantIdContainerFilter;
+import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
+import fr.gouv.vitam.common.server.application.ConsumeAllAfterResponseFilter;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResource;
+import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
+import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
+import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
@@ -52,26 +59,16 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import com.google.common.base.Throwables;
+import javax.servlet.DispatcherType;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.EnumSet;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.TenantIdContainerFilter;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.ConsumeAllAfterResponseFilter;
-import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
-import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
-import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
-import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
-import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResource;
-import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
+import static java.lang.String.format;
 
 /**
  * Server application for ihm-recette
@@ -232,7 +229,6 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         resourceConfig
             .register(resource)
             .register(deleteResource)
-            .register(new AdminStatusResource(serviceRegistry))
             .register(new PerformanceResource(performanceService));
 
         String testSystemSipDirectory = getConfiguration().getTestSystemSipDirectory();
@@ -242,6 +238,12 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         resourceConfig.register(new ApplicativeTestResource(applicativeTestService,
             testSystemSipDirectory));
 
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 
 }

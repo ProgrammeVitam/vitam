@@ -171,6 +171,7 @@
                 <Set name="idleTimeout">
                     <Property name="http.timeout" default="99999999"/>
                 </Set><!-- 27.7 h -->
+        <Set name="name">business</Set>
     </New>
 
     <!-- set connectors                                      -->

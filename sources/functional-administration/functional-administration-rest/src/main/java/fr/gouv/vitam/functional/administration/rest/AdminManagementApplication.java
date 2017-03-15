@@ -99,7 +99,13 @@ public final class AdminManagementApplication
         final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
         serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
             .register(resource.getLogbookDbAccess());
-        resourceConfig.register(new AdminManagementResource(getConfiguration()))
-            .register(new AdminStatusResource(serviceRegistry));
+        resourceConfig.register(new AdminManagementResource(getConfiguration()));
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
+
     }
 }

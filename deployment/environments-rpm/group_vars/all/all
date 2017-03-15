@@ -14,39 +14,46 @@ vitam_tenant_ids: [0]
 
 vitam_accessinternal_host: "access-internal.service.{{consul_domain}}"
 vitam_accessinternal_port: 8101
+vitam_accessinternal_port_admin: 28101
 vitam_accessinternal_baseurl: "http://{{vitam_accessinternal_host}}:{{vitam_accessinternal_port}}"
 vitam_accessinternal_baseuri: "/access-internal"
 
 vitam_accessexternal_host: "access-external.service.{{consul_domain}}"
 vitam_accessexternal_port: 8102
+vitam_accessexternal_port_admin: 28102
 vitam_accessexternal_port_https: 8444
 vitam_accessexternal_baseurl: "http://{{vitam_accessexternal_host}}:{{vitam_accessexternal_port}}"
 vitam_accessexternal_baseuri: "/access-external"
 
 vitam_ingestinternal_host: "ingest-internal.service.{{consul_domain}}"
 vitam_ingestinternal_port: 8100
+vitam_ingestinternal_port_admin: 28100
 vitam_ingestinternal_baseurl: "http://{{vitam_ingestinternal_host}}:{{vitam_ingestinternal_port}}"
 vitam_ingestinternal_baseuri: "/ingest-internal"
 
 vitam_ingestexternal_host: "ingest-external.service.{{consul_domain}}"
 vitam_ingestexternal_port: 8001
+vitam_ingestexternal_port_admin: 28001
 vitam_ingestexternal_port_https: 8443
 vitam_ingestexternal_baseurl: "http://{{vitam_ingestexternal_host}}:{{vitam_ingestexternal_port}}"
 vitam_ingestexternal_baseuri: "/ingest-external"
 
 vitam_metadata_host: "metadata.service.{{consul_domain}}"
 vitam_metadata_port: 8200
+vitam_metadata_port_admin: 28200
 vitam_metadata_baseurl: "http://{{vitam_metadata_host}}:{{vitam_metadata_port}}"
 vitam_metadata_baseuri: "/metadata"
 
 vitam_ihm_demo_host: "{{groups['hosts-ihm-demo'][0]}}"
 vitam_ihm_demo_port: 8002
+vitam_ihm_demo_port_admin: 28002
 vitam_ihm_demo_baseurl: /ihm-demo
 vitam_ihm_demo_static_content: "{{vitam_folder_root}}/app/ihm-demo"
 vitam_ihm_demo_baseuri: "/ihm-demo"
 
 vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
 vitam_ihm_recette_port: 8204
+vitam_ihm_recette_port_admin: 28204
 vitam_ihm_recette_baseurl: /ihm-recette
 vitam_ihm_recette_static_content: "{{vitam_folder_root}}/app/ihm-recette"
 vitam_ihm_recette_baseuri: "/ihm-recette"
@@ -54,33 +61,40 @@ vitam_ihm_recette_baseuri: "/ihm-recette"
 # Internal components communication configuration
 vitam_logbook_host: "logbook.service.{{consul_domain}}"
 vitam_logbook_port: 9002
+vitam_logbook_port_admin: 29002
 vitam_logbook_baseurl: "http://{{vitam_logbook_host}}:{{vitam_logbook_port}}"
 vitam_logbook_baseuri: "/logbook"
 
 vitam_workspace_host: "workspace.service.{{consul_domain}}"
 vitam_workspace_port: 8201
+vitam_workspace_port_admin: 28201
 vitam_workspace_baseurl: "http://{{vitam_workspace_host}}:{{vitam_workspace_port}}"
 vitam_workspace_baseuri: "/workspace"
 
 vitam_processing_host: "processing.service.{{consul_domain}}"
 vitam_processing_port: 8203
+vitam_processing_port_admin: 28203
 vitam_processing_baseurl: "http://{{vitam_processing_host}}:{{vitam_processing_port}}"
 vitam_processing_baseuri: "/processing"
 
 vitam_worker_port: 9104
+vitam_worker_port_admin: 29104
 vitam_worker_baseuri: "/worker"
 
 vitam_storageengine_host: "storage.service.{{consul_domain}}"
 vitam_storageengine_port: 9102
+vitam_storageengine_port_admin: 29102
 vitam_storageengine_baseurl: "http://{{vitam_storageengine_host}}:{{vitam_storageengine_port}}"
 vitam_storageengine_baseuri: "/storage-engine"
 
 vitam_storageofferdefault_port: 9900
+vitam_storageofferdefault_port_admin: 29900
 vitam_storageofferdefault_port_https: 9901
 vitam_storageofferdefault_baseuri: "/storage-offer-default"
 
 vitam_functional_administration_host: "functional-administration.service.{{consul_domain}}"
 vitam_functional_administration_port: 8004
+vitam_functional_administration_port_admin: 18004
 vitam_functional_administration_baseurl: "http://{{vitam_functional_administration_host}}:{{vitam_functional_administration_port}}"
 vitam_functional_administration_baseuri: "/functional-administration"
 

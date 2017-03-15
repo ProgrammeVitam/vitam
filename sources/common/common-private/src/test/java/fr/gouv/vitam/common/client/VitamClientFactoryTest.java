@@ -77,9 +77,10 @@ public class VitamClientFactoryTest {
         assertEquals(cft.getHttpClient(), cft.getHttpClient(false));
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.PRODUCTION, cft.getVitamClientType());
-        final BasicClient vitamClient = cft.getClient();
-        assertEquals(((DefaultClient) vitamClient).getClientConfiguration(), cft.getClientConfiguration());
-        assertTrue(vitamClient.toString().contains(cft.toString()));
+        try (BasicClient vitamClient = cft.getClient()) {
+            assertEquals(((DefaultClient) vitamClient).getClientConfiguration(), cft.getClientConfiguration());
+            assertTrue(vitamClient.toString().contains(cft.toString()));
+        }
     }
 
     @Test
@@ -91,10 +92,10 @@ public class VitamClientFactoryTest {
         assertEquals(cft.getHttpClient(), cft.getHttpClient(false));
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.MOCK, cft.getVitamClientType());
-        final BasicClient vitamClient = cft.getClient();
-        assertEquals(((DefaultClient) vitamClient).getClientConfiguration(), cft.getClientConfiguration());
-        assertTrue(vitamClient.toString().contains(cft.toString()));
-
+        try (BasicClient vitamClient = cft.getClient()) {
+            assertEquals(((DefaultClient) vitamClient).getClientConfiguration(), cft.getClientConfiguration());
+            assertTrue(vitamClient.toString().contains(cft.toString()));
+        }
 
     }
 

@@ -104,9 +104,7 @@ public class BenchmarkResourceMinimalTest {
     @Test
     public final void testStatus() {
         BenchmarkClientFactory.getInstance().mode(BenchmarkConnectorProvider.APACHE);
-        final BenchmarkClientRest client =
-            BenchmarkClientFactory.getInstance().getClient();
-        try {
+        try (BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
             client.checkStatus();
         } catch (final VitamApplicationServerException e) {
             fail("Cannot connect to server");

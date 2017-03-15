@@ -40,6 +40,7 @@ public interface VitamApplicationTestFactory<A> {
      */
     public static final class StartApplicationResponse<A> {
         private int serverPort;
+        private int serverAdminPort;
         private A application;
 
         /**
@@ -50,6 +51,15 @@ public interface VitamApplicationTestFactory<A> {
             return serverPort;
         }
 
+
+        /**
+         *
+         * @return The server admin port
+         */
+        public int getServerAdminPort() {
+            return serverAdminPort;
+        }
+
         /**
          *
          * @param serverPort the newly assigned port
@@ -57,6 +67,16 @@ public interface VitamApplicationTestFactory<A> {
          */
         public StartApplicationResponse<A> setServerPort(int serverPort) {
             this.serverPort = serverPort;
+            return this;
+        }
+
+        /**
+         *
+         * @param serverAdminPort the newly assigned admin port
+         * @return this
+         */
+        public StartApplicationResponse<A> setServerAdminPort(int serverAdminPort) {
+            this.serverAdminPort = serverAdminPort;
             return this;
         }
 

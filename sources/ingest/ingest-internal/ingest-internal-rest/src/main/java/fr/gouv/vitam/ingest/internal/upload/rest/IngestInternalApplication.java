@@ -105,7 +105,12 @@ public class IngestInternalApplication
             // Register Storage (ATR access)
             .register(StorageClientFactory.getInstance())
             .register(ProcessingManagementClientFactory.getInstance());
-        resourceConfig.register(resource)
-            .register(new AdminStatusResource(serviceRegistry));
+        resourceConfig.register(resource);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 }

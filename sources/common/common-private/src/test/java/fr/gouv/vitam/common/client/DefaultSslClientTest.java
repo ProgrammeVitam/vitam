@@ -123,6 +123,12 @@ public class DefaultSslClientTest {
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {
             resourceConfig.register(new SslResource());
         }
+
+        @Override
+        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+            // do nothing as @admin is not tested here
+            return false;
+        }
     }
 
     @BeforeClass

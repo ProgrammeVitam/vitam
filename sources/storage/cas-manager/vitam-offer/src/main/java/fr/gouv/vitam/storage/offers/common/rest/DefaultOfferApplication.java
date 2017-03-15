@@ -105,7 +105,12 @@ public final class DefaultOfferApplication extends AbstractVitamApplication<Defa
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new DefaultOfferResource());
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new AdminStatusResource());
+        return true;
     }
 
     // FIXME Duplication of code with other components in TLS

@@ -69,7 +69,7 @@ public interface VitamApplication<A extends VitamApplication<A, C>, C extends Vi
     /**
      * @return the application Handler
      */
-    Handler getApplicationHandler();
+    Handler getApplicationHandlers();
 
     /**
      * Start the server as full daemon and blocking

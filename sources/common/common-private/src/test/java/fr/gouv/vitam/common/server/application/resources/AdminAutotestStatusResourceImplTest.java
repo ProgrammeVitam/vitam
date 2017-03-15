@@ -64,13 +64,14 @@ public class AdminAutotestStatusResourceImplTest {
 
     // URI
     private static final String TEST_RESOURCE_URI = TestApplication.TEST_RESOURCE_URI;
-    private static final String TEST_CONF = "test.conf";
+    private static final String ADMIN_STATUS_URI = "/admin/v1";
+    private static final String TEST_CONF = "test-multiple-connector.conf";
 
     private static JunitHelper junitHelper;
 
     private static int serverPort;
+    private static int serverAdminPort;
     private static TestApplication application;
-    private static BasicClient client;
     private static TestVitamAdminClientFactory factory;
 
     @BeforeClass
@@ -79,25 +80,27 @@ public class AdminAutotestStatusResourceImplTest {
         VitamConfiguration.setConnectTimeout(100);
         TestApplication.serviceRegistry = new VitamServiceRegistry();
         final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestApplication>() {
+                new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-                @Override
-                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final TestApplication application = new TestApplication(TEST_CONF);
-                    return startAndReturn(application);
-                }
+                    @Override
+                    public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+                            throws IllegalStateException {
+                        final TestApplication application = new TestApplication(TEST_CONF);
+                        return startAndReturn(application);
+                    }
 
-            };
+                };
+
+        serverAdminPort = junitHelper.findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
+
         final StartApplicationResponse<TestApplication> response =
-            testFactory.findAvailablePortSetToApplication();
+                testFactory.findAvailablePortSetToApplication();
         serverPort = response.getServerPort();
         application = response.getApplication();
-        factory = new TestVitamAdminClientFactory(serverPort, TEST_RESOURCE_URI);
+        factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
         final DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
         TestApplication.serviceRegistry.register(factory).register((DatabaseConnection) null)
-            .register((VitamStatusService) null).register(fakeDb);
-        client = factory.getClient();
+                .register((VitamStatusService) null).register(fakeDb);
         LOGGER.debug("Beginning tests");
     }
 
@@ -112,15 +115,15 @@ public class AdminAutotestStatusResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        JunitHelper.getInstance().releasePort(serverPort);
-        client.close();
         junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(serverAdminPort);
     }
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
         public TestVitamAdminClientFactory(int serverPort, String resourcePath) {
             super(serverPort, resourcePath);
+            super.disableUseAuthorizationFilter();
         }
 
         @Override

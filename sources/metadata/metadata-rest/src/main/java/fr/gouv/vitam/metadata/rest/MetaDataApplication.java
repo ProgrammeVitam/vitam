@@ -111,9 +111,16 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
         setServiceRegistry(new VitamServiceRegistry());
         final MetaDataResource resource = new MetaDataResource(getConfiguration());
         serviceRegistry.register(resource.getMongoDbAccess()).register(resource.getMongoDbAccess().getEsClient());
-        resourceConfig.register(resource).register(new AdminStatusResource(serviceRegistry))
-            .register(SanityCheckerCommonFilter.class)
-            .register(SanityDynamicFeature.class);
+        resourceConfig.register(resource)
+                .register(SanityCheckerCommonFilter.class)
+                .register(SanityDynamicFeature.class);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
+
     }
 
 }

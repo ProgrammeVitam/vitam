@@ -8,6 +8,7 @@ java_opts: ""
 java_args: ""
 package_name: "vitam-{{ vitam_component }}"
 port_http: 8082
+port_http_admin: 28082
 tls_active: false
 days_to_delete_local: 30
 days_to_delete_access_local: 7

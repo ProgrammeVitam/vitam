@@ -96,7 +96,13 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new WorkspaceResource(getConfiguration()))
-            .register(new AdminStatusResource()).register(SanityCheckerCommonFilter.class);
+                .register(SanityCheckerCommonFilter.class);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource());
+        return true;
     }
 
 }

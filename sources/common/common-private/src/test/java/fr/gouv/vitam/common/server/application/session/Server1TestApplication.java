@@ -78,24 +78,32 @@ public class Server1TestApplication extends AbstractTestApplication {
         public String setRequestIdAndCallServer2() throws VitamThreadAccessException {
             VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1");
             LOGGER.debug("RequestId set.");
-            return clientFactory.getClient().doRequest("failIfNoRequestId");
+            try (LocalhostClientFactory.LocalhostClient client = clientFactory.getClient()) {
+                return client.doRequest("failIfNoRequestId");
+            }
         }
 
         @GET
         @Path("/callWithoutRequestId")
         public String justCallServer2() {
             LOGGER.debug("RequestId not set.");
-            return clientFactory.getClient().doRequest("failIfNoRequestId");
+            try (LocalhostClientFactory.LocalhostClient client = clientFactory.getClient()) {
+                return client.doRequest("failIfNoRequestId");
+            }
         }
 
         @GET
         @Path("/callWithThreadPoolRequestId")
         public String setRequestIdAndCallServer2WithThreadPool()
-            throws ExecutionException, InterruptedException, VitamThreadAccessException {
+                throws ExecutionException, InterruptedException, VitamThreadAccessException {
             VitamThreadUtils.getVitamSession().setRequestId("id-from-server-1-with-threadpool");
             LOGGER.debug("RequestId set. Forwarding execution to ThreadPool.");
             final Future<String> future = VitamThreadPoolExecutor.getDefaultExecutor()
-                .submit(() -> clientFactory.getClient().doRequest("failIfNoRequestId"));
+                    .submit(() -> {
+                        try (LocalhostClientFactory.LocalhostClient client = clientFactory.getClient()) {
+                            return client.doRequest("failIfNoRequestId");
+                        }}
+                    );
             return future.get();
         }
 
@@ -104,10 +112,13 @@ public class Server1TestApplication extends AbstractTestApplication {
         @Path("/callToGetRequestIdInResponse")
         public String justCallServer2ForRequestIdInResponse() throws VitamThreadAccessException {
             LOGGER.debug("RequestId not set.");
-            clientFactory.getClient().doRequest("setRequestIdInResponse");
+            try (LocalhostClientFactory.LocalhostClient client = clientFactory.getClient()) {
+                client.doRequest("setRequestIdInResponse");
+            }
+
             final String reqId = VitamThreadUtils.getVitamSession().getRequestId();
             Assert.assertEquals(MDC.get(GlobalDataRest.X_REQUEST_ID), reqId); // Check that the logging framework is
-                                                                              // working
+            // working
             return reqId;
         }
 

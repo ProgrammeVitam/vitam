@@ -67,6 +67,11 @@ public class VitamServerTest {
             return 10;
         }
 
+        @Override
+        public int getAdminPort() {
+            return 11;
+        }
+
     }
     private static class ConfigurationTest implements VitamApplicationConfigurationInterface {
 
@@ -169,6 +174,11 @@ public class VitamServerTest {
                 public VitamClientFactoryInterface<?> setVitamClientType(
                     fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType vitamClientType) {
                     return null;
+                }
+
+                @Override
+                public void changeResourcePath(String resourcePath) {
+
                 }
 
                 @Override

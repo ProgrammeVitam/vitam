@@ -146,7 +146,7 @@ public class DefaultOfferResourceTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        // junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(serverPort);
     }
 
     @After

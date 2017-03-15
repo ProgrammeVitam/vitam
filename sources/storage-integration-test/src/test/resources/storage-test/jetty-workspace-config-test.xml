@@ -111,6 +111,7 @@
                 <Set name="port">
                     <SystemProperty name="jetty.workspace.port" default="8987"/>
                 </Set>
+                <Set name="name">business</Set>
                 <Set name="idleTimeout">
                     <Property name="http.timeout" default="99999999"/>
                 </Set><!-- 27.7 h -->
