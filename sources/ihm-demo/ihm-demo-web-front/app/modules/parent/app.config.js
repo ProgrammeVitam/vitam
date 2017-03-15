@@ -95,7 +95,7 @@ config(['$locationProvider' ,'$routeProvider',
       controller: 'OperationLogbookEntryController',
       title: 'Détail d\'une opération'
     }).
-    when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
+    when('/lifecycle/:type/:lifecycleId', {
       template: '<lifecycle></lifecycle>',
       title: 'Journal du cycle de vie '
     }).
