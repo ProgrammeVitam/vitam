@@ -29,6 +29,16 @@
   "operation.logbook.displayField.obIdIn": "Identifiant externe du lot d'objet",
   "operation.logbook.displayField._tenant": "Identifiant du tenant",
 
+  "ingest.logbook.displayField.EvDetailReq": "Intitulé",
+  "ingest.logbook.displayField.MessageIdentifier": "Identifiant de la demande",
+  "ingest.logbook.displayField.ArchivalProfile": "Profil",
+  "ingest.logbook.displayField.EvDateTimeReq": "Date",
+  "ingest.logbook.displayField.AgIfTrans": "Service versant",
+  "ingest.logbook.displayField.ArchivalAgreement": "Contrat",
+  "ingest.logbook.displayField.ServiceLevel": "Niveau de service",
+  "ingest.logbook.displayField.Signature": "Signature",
+  "ingest.logbook.displayField.evIdProc": "Identifiant de l'entrée",
+
   "search.accessionRegister.fields._id": "Identifiant",
   "search.accessionRegister.fields.OriginatingAgency": "Service producteur",
   "search.accessionRegister.fields.SubmissionAgency": "Service versant",
