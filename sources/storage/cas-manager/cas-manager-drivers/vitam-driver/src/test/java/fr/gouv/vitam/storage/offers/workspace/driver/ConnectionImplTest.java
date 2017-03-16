@@ -71,7 +71,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -79,6 +78,8 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
@@ -106,7 +107,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private static int tenant;
     private static ConnectionImpl connection;
     private static StorageOffer offer = new StorageOffer();
-    
+
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     private static final String TYPE = "object";
 
@@ -123,7 +124,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Override
     public void beforeTest() throws VitamApplicationServerException {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-        
+
         try {
             connection = DriverImpl.getInstance().connect(offer, null);
         } catch (final StorageDriverException e) {
@@ -223,12 +224,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
         public Response putObject(@PathParam("id") String objectId, InputStream input) {
             return expectedResponse.put();
         }
-        
+
         @GET
         @Path("/objects/{type}/{id:.+}/metadatas")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId){
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
             return expectedResponse.get();
         }
 
@@ -455,7 +456,19 @@ public class ConnectionImplTest extends VitamJerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void getStorageCapacityException() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        connection.getStorageCapacity(0);
+    }
+    
+    @Test(expected = StorageDriverNotFoundException.class)
+    public void getStorageCapacityNotFoundException() throws Exception {
+        when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        connection.getStorageCapacity(0);
+    }
+    
+    @Test(expected = StorageDriverPreconditionFailedException.class)
+    public void getStorageCapacityPreconditionFailedException() throws Exception {
+        when(mock.head()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         connection.getStorageCapacity(0);
     }
 
@@ -481,7 +494,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             connection.getObject(request);
             fail("Expected exception");
         } catch (final StorageDriverException exc) {
-            assertEquals(exc.getErrorCode(), StorageDriverException.ErrorCode.NOT_FOUND);
+            assertEquals(StorageDriverNotFoundException.class, exc.getClass());
         }
     }
 
@@ -494,7 +507,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             connection.getObject(request);
             fail("Expected exception");
         } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+            assertEquals(StorageDriverException.class, exc.getClass());
         }
     }
 
@@ -507,7 +520,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             connection.getObject(request);
             fail("Expected exception");
         } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc.getErrorCode());
+            assertEquals(StorageDriverPreconditionFailedException.class, exc.getClass());
         }
     }
 
@@ -526,6 +539,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         connection.objectExistsInOffer(null);
     }
 
+
     @Test
     public void objectExistInOfferInternalServerError() throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
@@ -535,7 +549,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             connection.objectExistsInOffer(request);
             fail("Expected exception");
         } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+            assertEquals(StorageDriverException.class, exc.getClass());
         }
     }
 
@@ -575,7 +589,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             connection.objectExistsInOffer(request);
             fail("Expected exception");
         } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc.getErrorCode());
+            assertEquals(StorageDriverPreconditionFailedException.class, exc.getClass());
         }
     }
 
@@ -587,6 +601,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         assertNotNull(storageCheckResult);
         assertEquals(true, storageCheckResult.isDigestMatch());
     }
+
 
     @Test
     public void checkObjectTestIllegalArgument() throws Exception {
@@ -646,13 +661,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
         connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
     }
 
-    @SuppressWarnings("unchecked")
-    @Test(expected = StorageDriverException.class)
-    public void checkObjectTestVitamClientException() throws Exception {
-        when(mock.head()).thenThrow(VitamClientInternalException.class);
-        connection.checkObject(getStorageCheckRequest(true, true, true, true, true));
-    }
 
+    @Test
     public void countObjectOK() throws Exception {
         final ObjectNode dataResult = JsonHandler.createObjectNode();
         dataResult.put("numberObjects", 2L);
@@ -670,7 +680,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         try {
             connection.countObjects(request);
         } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+            assertEquals(StorageDriverNotFoundException.class, exc.getClass());
         }
     }
 
@@ -682,7 +692,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         try {
             connection.countObjects(request);
         } catch (final StorageDriverException exc) {
-            assertEquals(StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc.getErrorCode());
+            assertEquals(StorageDriverPreconditionFailedException.class, exc.getClass());
         }
     }
 
@@ -830,7 +840,6 @@ public class ConnectionImplTest extends VitamJerseyTest {
             fail("Should raized an exception");
         } catch (IllegalArgumentException e) {
 
-
         }
     }
 
@@ -921,19 +930,35 @@ public class ConnectionImplTest extends VitamJerseyTest {
         result.put("status", Response.Status.NOT_FOUND.toString());
         return result;
     }
-    
+
     @Test
-    public void getObjectMetadataTestOK() throws StorageDriverException{
+    public void getObjectMetadataTestOK() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(mockMetadatasObjectResult()).build());
         final StorageObjectRequest request =
             new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         final StorageMetadatasResult result = connection.getMetadatas(request);
         assertNotNull(result);
-        
+
     }
     
-    private StorageMetadatasResult mockMetadatasObjectResult(){
-        return new StorageMetadatasResult(OBJECT_ID, TYPE, "abcdef", 6096, 
+    @Test(expected = StorageDriverNotFoundException.class)
+    public void getObjectMetadataTestTestNotFound() throws StorageDriverException {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        final StorageObjectRequest request =
+            new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        connection.getMetadatas(request);
+    }
+    
+    @Test(expected = StorageDriverException.class)
+    public void getObjectMetadataTestInternalServerError() throws StorageDriverException {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        final StorageObjectRequest request =
+            new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
+        connection.getMetadatas(request);
+    }
+
+    private StorageMetadatasResult mockMetadatasObjectResult() {
+        return new StorageMetadatasResult(OBJECT_ID, TYPE, "abcdef", 6096,
             "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
     }
 

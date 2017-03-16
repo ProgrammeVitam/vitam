@@ -48,6 +48,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
@@ -106,25 +109,38 @@ public class ConnectionImpl extends DefaultClient implements Connection {
     }
 
     @Override
-    public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
+    public StorageCapacityResult getStorageCapacity(Integer tenantId)
+        throws StorageDriverPreconditionFailedException, StorageDriverNotFoundException, StorageDriverException {
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenantId);
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
                 getDefaultHeaders(tenantId, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE, false);
-            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                StorageCapacityResult result = new StorageCapacityResult(tenantId, Long.valueOf(response.getHeaderString
-                    ("X-Usable-Space")), Long.valueOf(response.getHeaderString("X-Used-Space")));
-                return result;
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    StorageCapacityResult result =
+                        new StorageCapacityResult(tenantId, Long.valueOf(response.getHeaderString("X-Usable-Space")),
+                            Long.valueOf(response.getHeaderString("X-Used-Space")));
+                    return result;
+                case NOT_FOUND:
+                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
+                        tenantId + "_" + DataCategory.OBJECT));
+                    throw new StorageDriverNotFoundException(driverName,
+                        VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
+                            tenantId + "_" + DataCategory.OBJECT));
+                case BAD_REQUEST:
+                    LOGGER.error("Bad request");
+                    throw new StorageDriverPreconditionFailedException(driverName, "Bad request");
+                default:
+                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+                    throw new StorageDriverException(driverName, response.getStatusInfo().getReasonPhrase());
             }
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                response.getStatusInfo().getReasonPhrase());
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e.getMessage());
+            throw new StorageDriverException(driverName, e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -140,18 +156,29 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + request.getType() + COUNT_PATH,
                 getDefaultHeaders(request.getTenantId(), null, null, null),
                 MediaType.APPLICATION_JSON_TYPE, false);
-            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                JsonNode result = handleResponseStatus(response, JsonNode.class);
-                return new StorageCountResult(request.getTenantId(), request.getType(),
-                    result.get("numberObjects").longValue());
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    JsonNode result = handleResponseStatus(response, JsonNode.class);
+                    return new StorageCountResult(request.getTenantId(), request.getType(),
+                        result.get("numberObjects").longValue());
+                case NOT_FOUND:
+                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
+                        request.getTenantId() + "_" + request.getType()));
+                    throw new StorageDriverNotFoundException(driverName,
+                        VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
+                            request.getTenantId() + "_" + request.getType()));
+                case BAD_REQUEST:
+                    LOGGER.error("Bad request");
+                    throw new StorageDriverPreconditionFailedException(driverName, "Bad request");
+                default:
+                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+                    throw new StorageDriverException(driverName, response.getStatusInfo().getReasonPhrase());
             }
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                response.getStatusInfo().getReasonPhrase());
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e.getMessage());
+            throw new StorageDriverException(driverName, e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -180,21 +207,17 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                     return result;
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
-                        "not found");
+                    throw new StorageDriverNotFoundException(driverName, "Object " + request.getGuid() + " not found");
                 case PRECONDITION_FAILED:
                     LOGGER.error("Precondition failed");
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-                        "Precondition failed");
+                    throw new StorageDriverPreconditionFailedException(driverName, "Precondition failed");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                        INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
             }
         } catch (final VitamClientInternalException e1) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e1.getMessage());
+            throw new StorageDriverException(driverName, e1.getMessage());
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
@@ -228,12 +251,10 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 request.getTenantId());
         } catch (final IllegalArgumentException exc) {
             LOGGER.error(exc);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED, exc
-                .getMessage());
+            throw new StorageDriverPreconditionFailedException(driverName, exc.getMessage());
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e.getMessage());
+            throw new StorageDriverException(driverName, e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -269,21 +290,18 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                     return result;
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
+                    throw new StorageDriverNotFoundException(driverName, "Object " + request.getGuid() +
                         "not found");
                 case BAD_REQUEST:
                     LOGGER.error("Bad request");
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-                        "Bad request");
+                    throw new StorageDriverPreconditionFailedException(driverName, "Bad request");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                        INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e.getMessage());
+            throw new StorageDriverException(driverName, e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -312,17 +330,14 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                     return false;
                 case BAD_REQUEST:
                     LOGGER.error("Bad request");
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-                        "Bad request");
+                    throw new StorageDriverPreconditionFailedException(driverName, "Bad request");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                        INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e.getMessage());
+            throw new StorageDriverException(driverName, e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -346,21 +361,17 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 return response.readEntity(responseType);
             case INTERNAL_SERVER_ERROR:
                 LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    status.getReasonPhrase());
+                throw new StorageDriverException(driverName, status.getReasonPhrase());
             case NOT_FOUND:
                 // FIXME P1 : clean useless case
                 LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
-                    .getReasonPhrase());
+                throw new StorageDriverNotFoundException(driverName, status.getReasonPhrase());
             case SERVICE_UNAVAILABLE:
                 LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, status
-                    .getReasonPhrase());
+                throw new StorageDriverServiceUnavailableException(driverName, status.getReasonPhrase());
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    INTERNAL_SERVER_ERROR);
+                throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -413,15 +424,14 @@ public class ConnectionImpl extends DefaultClient implements Connection {
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
             finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
                 json.get("digest").textValue(), Long.valueOf(json.get("size").textValue()));
+            // TODO G1 : deal with different types of errors
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
-                LOGGER.error("Error to perfom put object");
-                throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Error to perfom put object");
+                LOGGER.error("Error while performing put object operation");
+                throw new StorageDriverException(driverName, "Error while performing put object operation");
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e.getMessage());
+            throw new StorageDriverException(driverName, e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -440,36 +450,34 @@ public class ConnectionImpl extends DefaultClient implements Connection {
         Response response = null;
         try {
             response =
-                    performRequest(HttpMethod.HEAD,
-                        OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                        getDefaultHeaders(request.getTenantId(), null,
-                                request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
-                        MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                performRequest(HttpMethod.HEAD,
+                    OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null,
+                        request.getDigestHashBase16(), request.getDigestAlgorithm().getName()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case OK: case CONFLICT:
+                case OK:
+                case CONFLICT:
                     final StorageCheckResult result =
                         new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
                             request.getDigestAlgorithm(), request.getDigestHashBase16(), status.equals(Status.OK));
                     return result;
                 case NOT_FOUND:
                     LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
-                        "not found");
+                    throw new StorageDriverNotFoundException(driverName, "Object " + request.getGuid() +
+                        " not found");
                 case PRECONDITION_FAILED:
                     LOGGER.error("Precondition failed");
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-                        "Precondition failed");
+                    throw new StorageDriverPreconditionFailedException(driverName, "Precondition failed");
                 default:
                     LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                    throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                        INTERNAL_SERVER_ERROR);
+                    throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
             }
         } catch (final VitamClientInternalException e1) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                e1.getMessage());
+            throw new StorageDriverException(driverName, e1.getMessage());
         } finally {
             if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
@@ -479,42 +487,40 @@ public class ConnectionImpl extends DefaultClient implements Connection {
 
     @Override
     public StorageMetadatasResult getMetadatas(StorageObjectRequest request) throws StorageDriverException {
-      ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
-      ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
-      ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
-      ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
-      Response response = null;
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        Response response = null;
 
-      try {
-          response = performRequest(HttpMethod.GET, OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() 
-                  + METADATAS, getDefaultHeaders(request.getTenantId(), null, null, null),
-                  MediaType.APPLICATION_JSON_TYPE, false);
-          final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-          switch (status) {
-              case OK:
-                  return handleResponseStatus(response, StorageMetadatasResult.class);
-              case NOT_FOUND:
-                  LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND), request.getGuid());
-                  throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.NOT_FOUND, "Object " +
-                      "not found");
-              default:
-                  LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
-                  throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                      INTERNAL_SERVER_ERROR);                                  
-          }
-      } catch (VitamClientInternalException e) {
-          LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-          throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-              e.getMessage());
-      } finally {
-          consumeAnyEntityAndClose(response);
-      }      
+        try {
+            response = performRequest(HttpMethod.GET,
+                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS,
+                getDefaultHeaders(request.getTenantId(), null, null, null),
+                MediaType.APPLICATION_JSON_TYPE, false);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return handleResponseStatus(response, StorageMetadatasResult.class);
+                case NOT_FOUND:
+                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, request.getGuid()));
+                    throw new StorageDriverNotFoundException(driverName, "Object " + request.getGuid() +
+                        " not found");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(driverName, INTERNAL_SERVER_ERROR);
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
+            throw new StorageDriverException(driverName, e.getMessage());
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
 
     @Override
-    public Response listObjects(StorageListRequest request) throws
-        StorageDriverException {
+    public Response listObjects(StorageListRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
         ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
@@ -530,7 +536,7 @@ public class ConnectionImpl extends DefaultClient implements Connection {
                 headers, MediaType.APPLICATION_JSON_TYPE);
         } catch (Exception exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), exc);
-            throw new StorageDriverException(driverName, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, exc);
+            throw new StorageDriverException(driverName, exc);
         }
     }
 }

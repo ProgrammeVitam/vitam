@@ -329,6 +329,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 // No space left on storage offer(s)
                 throw new StorageNotFoundClientException(VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " +
                     status.getReasonPhrase());
+            case PRECONDITION_FAILED:
+                throw new StorageServerClientException(VitamCodeHelper.getCode(VitamCode.STORAGE_BAD_REQUEST) + " : " +
+                    status.getReasonPhrase());
             default:
                 final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
                     status.getReasonPhrase();

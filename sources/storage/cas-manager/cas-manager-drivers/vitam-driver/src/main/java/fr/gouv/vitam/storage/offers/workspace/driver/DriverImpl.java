@@ -127,8 +127,7 @@ public class DriverImpl implements Driver {
             connection.checkStatus();
             return connection;
         } catch (final VitamApplicationServerException exception) {
-            throw new StorageDriverException(DRIVER_NAME, StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR,
-                exception.getMessage(), exception);
+            throw new StorageDriverException(DRIVER_NAME, exception.getMessage(), exception);
         }
     }
 

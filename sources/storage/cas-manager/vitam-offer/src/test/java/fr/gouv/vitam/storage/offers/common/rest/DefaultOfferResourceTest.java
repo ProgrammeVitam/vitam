@@ -167,7 +167,7 @@ public class DefaultOfferResourceTest {
 
     @Test
     public void getCapacityTestBadRequest() {
-        given().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(400);
+        given().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -182,6 +182,13 @@ public class DefaultOfferResourceTest {
         // test
         given().header(GlobalDataRest.X_TENANT_ID, 1)
             .when().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(200);
+    }
+    
+    @Test
+    public void getCapacityTestNotFound() {
+        // test
+        given().header(GlobalDataRest.X_TENANT_ID, 1)
+            .when().head(OBJECTS_URI + "/" + UNIT_CODE).then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test

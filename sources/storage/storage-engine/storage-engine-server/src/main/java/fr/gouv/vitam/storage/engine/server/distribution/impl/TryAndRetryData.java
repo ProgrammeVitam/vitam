@@ -47,6 +47,11 @@ public class TryAndRetryData {
      * Offers transfer KO
      */
     private List<String> koList;
+    
+    /**
+     * Result
+     */
+    private Map<String, Response.Status> globalOfferResult;
 
     /**
      * Populate KO offer with offerReferences list to start a new object transfer
@@ -54,6 +59,7 @@ public class TryAndRetryData {
      * @param offerReferences list of offer reference
      */
     public void populateFromOfferReferences(List<OfferReference> offerReferences) {
+        globalOfferResult = new HashMap<>();
         if (okList == null) {
             okList = new ArrayList<>();
         }
@@ -62,6 +68,7 @@ public class TryAndRetryData {
         }
         for (OfferReference offerReference : offerReferences) {
             koList.add(offerReference.getId());
+            globalOfferResult.put(offerReference.getId(), Response.Status.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -107,14 +114,7 @@ public class TryAndRetryData {
      * @return the map of global transfer result
      */
     public Map<String, Response.Status> getGlobalOfferResult() {
-        Map<String, Response.Status> result = new HashMap<>();
-        for (String id : okList) {
-            result.put(id, Response.Status.CREATED);
-        }
-        for (String id : koList) {
-            result.put(id, Response.Status.INTERNAL_SERVER_ERROR);
-        }
-        return result;
+        return globalOfferResult;
     }
 
     /**
@@ -125,5 +125,16 @@ public class TryAndRetryData {
     public void koListToOkList(String offerId) {
         koList.remove(offerId);
         okList.add(offerId);
+        globalOfferResult.put(offerId, Response.Status.CREATED);
+    }
+    
+    /**
+     * Change the status of an offer id transfer
+     *
+     * @param offerId the offerId
+     * @param status the response status to set
+     */
+    public void changeStatus(String offerId, Response.Status status) {
+        globalOfferResult.put(offerId, status);
     }
 }

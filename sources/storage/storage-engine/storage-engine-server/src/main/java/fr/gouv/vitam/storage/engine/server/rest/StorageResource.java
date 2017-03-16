@@ -67,7 +67,7 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -157,6 +157,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+            } catch (final IllegalArgumentException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_BAD_REQUEST;
             }
             return buildErrorResponse(vitamCode);
         }
@@ -372,9 +375,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             try {
                 distribution.deleteObject(strategyId, objectId, digest, DigestType.fromValue(digestAlgorithm));
                 return Response.status(Status.NO_CONTENT).build();
-            } catch (final StorageException e) {
-                LOGGER.error(e);
+            } catch (final StorageNotFoundException exc) {
+                LOGGER.error(exc);
                 return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            } catch (final StorageException exc) {
+                LOGGER.error(exc);
+                return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            } catch (final IllegalArgumentException exc) {
+                LOGGER.error(exc);
+                return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
             }
         }
         return response;
@@ -841,12 +850,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             } catch (final StorageNotFoundException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageObjectAlreadyExistsException exc) {
+            } catch (final StorageAlreadyExistsException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
             } catch (final StorageException exc) {
                 LOGGER.error(exc);
                 vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+            } catch (final UnsupportedOperationException exc) {
+                LOGGER.error(exc);
+                vitamCode = VitamCode.STORAGE_BAD_REQUEST;
             }
             // If here, an error occurred
             return buildErrorResponse(vitamCode);

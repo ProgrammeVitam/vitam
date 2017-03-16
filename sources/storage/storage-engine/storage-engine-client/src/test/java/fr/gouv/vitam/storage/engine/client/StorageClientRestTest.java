@@ -292,7 +292,15 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = StorageServerClientException.class)
     public void getContainerInfosInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.getStorageInformation("idStrategy");
+    }
+    
+    @RunWithCustomExecutor
+    @Test(expected = StorageServerClientException.class)
+    public void getContainerInfosBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.getStorageInformation("idStrategy");
     }
 

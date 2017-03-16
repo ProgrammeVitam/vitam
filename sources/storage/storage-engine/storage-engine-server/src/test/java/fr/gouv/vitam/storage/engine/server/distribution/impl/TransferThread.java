@@ -43,11 +43,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.exception.StorageObjectAlreadyExistsException;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
@@ -131,7 +131,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
     }
 
     private boolean isRewritableObject(StoragePutRequest request, Connection connection)
-        throws StorageDriverException, StorageObjectAlreadyExistsException {
+        throws StorageDriverException, StorageAlreadyExistsException {
         final StorageObjectRequest req = new StorageObjectRequest(request.getTenantId(), request.getType(), request
             .getGuid());
         if (connection.objectExistsInOffer(req)) {
@@ -141,7 +141,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                 case OBJECT:
                 case MANIFEST:
                 case REPORT:
-                    throw new StorageObjectAlreadyExistsException(VitamCodeHelper
+                    throw new StorageAlreadyExistsException(VitamCodeHelper
                         .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
                 case UNIT:
                 case OBJECT_GROUP:
