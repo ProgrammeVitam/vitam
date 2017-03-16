@@ -32,7 +32,9 @@ authc.loginUrl = /#!/login
 #username = password
 
 {% for item in vitam_users %}
+{% if item.role == "admin" %}
 {{item.login}}={{item.password|hash('sha256')}}
+{% endif %}
 {% endfor %}
 
 [roles]
