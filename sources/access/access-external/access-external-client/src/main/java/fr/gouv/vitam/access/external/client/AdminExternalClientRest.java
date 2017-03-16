@@ -37,6 +37,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         super(factory);
     }
 
+    // FIXME replace Response by RequestResponse
     @Override
     public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
@@ -57,6 +58,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
+    // FIXME replace Response by RequestResponse
     @Override
     public Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
@@ -132,6 +134,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse importContracts(InputStream contracts, Integer tenantId)
         throws AccessExternalClientException {
+        // FIXME : should be replaced by createDocuments
         ParametersChecker.checkParameter("The input contracts json is mandatory", contracts);
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();

@@ -31,11 +31,19 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
 
 import org.assertj.core.api.Fail;
 
@@ -45,6 +53,8 @@ import com.google.common.collect.Iterables;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.error.VitamError;
@@ -77,6 +87,7 @@ public class AccessStep {
 
     /**
      * check if the metadata are valid.
+     * 
      * @param dataTable
      * @throws Throwable
      */
@@ -84,12 +95,12 @@ public class AccessStep {
     public void metadata_are(DataTable dataTable) throws Throwable {
 
         JsonNode firstJsonNode = Iterables.get(results, 0);
-        
+
         List<List<String>> raws = dataTable.raw();
 
         for (List<String> raw : raws) {
-            String resultValue = getResultValue(firstJsonNode, raw.get(0)); 
-            String resultExpected = transformToGuid(raw.get(1)); 
+            String resultValue = getResultValue(firstJsonNode, raw.get(0));
+            String resultExpected = transformToGuid(raw.get(1));
             assertThat(resultValue).contains(resultExpected);
         }
     }
@@ -98,18 +109,18 @@ public class AccessStep {
      * @param lastJsonNode
      * @param raw
      * @return
-     * @throws Throwable 
+     * @throws Throwable
      */
     private String getResultValue(JsonNode lastJsonNode, String raw) throws Throwable {
         String rawCopy = transformToGuid(raw);
         String[] paths = rawCopy.split("\\.");
-        for (String path: paths ) {
+        for (String path : paths) {
             lastJsonNode = lastJsonNode.get(path);
         }
-        
+
         return JsonHandler.unprettyPrint(lastJsonNode);
     }
-    
+
     private String transformToGuid(String raw) throws Throwable {
 
         Matcher matcher = Pattern.compile(REGEX)
@@ -117,16 +128,16 @@ public class AccessStep {
         String rawCopy = new String(raw);
         Map<String, String> unitToGuid = new HashMap<>();
         while (matcher.find()) {
-          String unit = matcher.group(1);
-          String unitTitle = unit.substring(2, unit.length()-2).replace(UNIT_PREFIX, "").trim();
-          String unitGuid = "";
-          if (unitToGuid.get(unitTitle) != null) {
-              unitGuid = unitToGuid.get(unitTitle);
-          } else {
-              unitGuid = replaceTitleByGUID(unitTitle);
-              unitToGuid.put(unitTitle, unitGuid);
-          }
-          rawCopy = rawCopy.replace(unit, unitGuid);
+            String unit = matcher.group(1);
+            String unitTitle = unit.substring(2, unit.length() - 2).replace(UNIT_PREFIX, "").trim();
+            String unitGuid = "";
+            if (unitToGuid.get(unitTitle) != null) {
+                unitGuid = unitToGuid.get(unitTitle);
+            } else {
+                unitGuid = replaceTitleByGUID(unitTitle);
+                unitToGuid.put(unitTitle, unitGuid);
+            }
+            rawCopy = rawCopy.replace(unit, unitGuid);
         }
         return rawCopy;
     }
@@ -138,16 +149,18 @@ public class AccessStep {
         String auId = "";
         SelectMultiQuery searchQuery = new SelectMultiQuery();
         searchQuery.addQueries(
-            and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId())).setDepthLimit(20));
-        RequestResponse requestResponse = world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId());
+            and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId()))
+                .setDepthLimit(20));
+        RequestResponse requestResponse =
+            world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             if (requestResponseOK.getHits().getTotal() == 0) {
-                Fail.fail("Archive Unit not found : title = " + auTitle); 
+                Fail.fail("Archive Unit not found : title = " + auTitle);
             }
             JsonNode firstJsonNode = Iterables.get(requestResponseOK.getResults(), 0);
             if (firstJsonNode.get(VitamFieldsHelper.id()) != null) {
-                auId =  firstJsonNode.get(VitamFieldsHelper.id()).textValue();
+                auId = firstJsonNode.get(VitamFieldsHelper.id()).textValue();
             }
         } else {
             VitamError vitamError = (VitamError) requestResponse;
@@ -158,6 +171,7 @@ public class AccessStep {
 
     /**
      * check if the number of result is OK
+     * 
      * @param numberOfResult number of result.
      * @throws Throwable
      */
@@ -167,7 +181,20 @@ public class AccessStep {
     }
 
     /**
+     * define a query from a file to reuse it after
+     * 
+     * @param queryFilename name of the file containing the query
+     * @throws Throwable
+     */
+    @When("^j'utilise le fichier de requête suivant$")
+    public void i_use_the_following_file_query(String queryFilename) throws Throwable {
+        Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
+        this.query = FileUtil.readFile(queryFile.toFile());
+    }
+
+    /**
      * define a query to reuse it after
+     * 
      * @param query
      * @throws Throwable
      */
@@ -178,6 +205,7 @@ public class AccessStep {
 
     /**
      * search an archive unit according to the query define before
+     * 
      * @throws Throwable
      */
     @When("^je recherche les unités archivistiques$")
@@ -190,6 +218,56 @@ public class AccessStep {
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+    /**
+     * Import or Check an admin referential file
+     * 
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
+     * @param collection name of the collection
+     * @throws Throwable
+     */
+    @When("^(?:je |j')(.*) le fichier nommé (.*) (?:pour|dans) le référentiel (.*)$")
+    public void i_import_or_check_the_file_for_the_admin_collection(String action, String filename, String collection)
+        throws Throwable {
+        Path file = Paths.get(world.getBaseDirectory(), filename);
+        try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
+            AdminCollections adminCollection = AdminCollections.valueOf(collection);
+            Response response = null;
+            results = new ArrayList<>();
+            if ("vérifie".equals(action)) {
+                response =
+                    world.getAdminClient().checkDocuments(adminCollection, inputStream, world.getTenantId());
+            } else if ("importe".equals(action)) {
+                response =
+                    world.getAdminClient().createDocuments(adminCollection, inputStream, world.getTenantId());
+            }
+            if (response != null) {
+                results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(response.getStatus())));
+            }
+        }
+    }
+
+    /**
+     * Search in admin collection according to the query define before
+     * 
+     * @param collection name of the collection
+     * @throws Throwable
+     */
+    @When("^je recherche les données dans le référentiel (.*)$")
+    public void search_in_admin_collection(String collection) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        AdminCollections adminCollection = AdminCollections.valueOf(collection);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAdminClient().findDocuments(adminCollection, queryJSON, world.getTenantId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request findDocuments return an error: " + vitamError.getCode());
         }
     }
 
