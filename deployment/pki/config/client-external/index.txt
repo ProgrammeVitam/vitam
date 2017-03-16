@@ -33,3 +33,8 @@ V	270304180340Z		E2	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_client-external
 V	200305180418Z		E3	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ihm-demo
 V	200305180419Z		E4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ihm-recette
 V	200305180420Z		E5	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=reverse
+V	270313121840Z		E6	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_client-external
+V	270313121842Z		E7	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_client-external
+V	200314121851Z		E8	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ihm-demo
+V	200314121852Z		E9	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ihm-recette
+V	200314121854Z		EA	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=reverse

@@ -95,7 +95,7 @@
 
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", port_https: "{{vitam_storageofferdefault_port_https}}", tls_active: true, secret_platform: "true", password_keystore: "{{keystores.server.storage_offer_default}}", password_manager_keystore: "{{keystores.server.storage_offer_default}}", password_truststore: "{{truststores.server}}", password_grantedstore: "{{grantedstores.client_storage}}", vitam_certificate_client_type: "storage" }
+    - {role: vitam, vitam_component: storage-offer-default, java_args: /vitam/conf/storage-offer-default/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", port_https: "{{vitam_storageofferdefault_port_https}}", tls_active: true, secret_platform: "true", password_keystore: "{{keystores.server.storage_offer_default}}", password_manager_keystore: "{{keystores.server.storage_offer_default}}", password_truststore: "{{truststores.client_storage}}", password_grantedstore: "{{grantedstores.client_storage}}", vitam_certificate_client_type: "storage" }
 
 - hosts: hosts-storage-engine
   roles:
@@ -135,7 +135,7 @@
 
 - hosts: hosts-access-external
   roles:
-    - {role: vitam, vitam_component: access-external, java_args: /vitam/conf/access-external/access-external.conf, port_http: "{{vitam_accessexternal_port}}", port_https: "{{vitam_accessexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{keystores.server.access_external}}", password_manager_keystore: "{{keystores.server.access_external}}", password_truststore: "{{truststores.server}}", password_grantedstore: "{{grantedstores.client_external}}", vitam_certificate_client_type: "external" }
+    - {role: vitam, vitam_component: access-external, java_args: /vitam/conf/access-external/access-external.conf, port_http: "{{vitam_accessexternal_port}}", port_https: "{{vitam_accessexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{keystores.server.access_external}}", password_manager_keystore: "{{keystores.server.access_external}}", password_truststore: "{{truststores.client_external}}", password_grantedstore: "{{grantedstores.client_external}}", vitam_certificate_client_type: "external" }
 
 - hosts: hosts-ingest-internal
   roles:
@@ -144,7 +144,7 @@
 - hosts: hosts-ingest-external
   roles:
     - siegfried
-    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", port_https: "{{vitam_ingestexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{keystores.server.ingest_external}}", password_manager_keystore: "{{keystores.server.ingest_external}}", password_truststore: "{{truststores.server}}", password_grantedstore: "{{grantedstores.client_external}}", vitam_certificate_client_type: "external" }
+    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", port_https: "{{vitam_ingestexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{keystores.server.ingest_external}}", password_manager_keystore: "{{keystores.server.ingest_external}}", password_truststore: "{{truststores.client_external}}", password_grantedstore: "{{grantedstores.client_external}}", vitam_certificate_client_type: "external" }
     - {role: clamav, when: installation_clamav=="true"}
 
 - hosts: hosts-ihm-demo
