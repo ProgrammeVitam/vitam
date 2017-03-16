@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -67,135 +68,136 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
  */
 public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, VitamAutoCloseable {
 
-	private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
-	private final MongoDbAccessAdminImpl mongoAccess;
-	private static final String COLLECTION_NAME = "FileFormat";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
+    private final MongoDbAccessAdminImpl mongoAccess;
+    private static final String COLLECTION_NAME = "FileFormat";
 
-	private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
-	private static final String VERSION = " version ";
-	private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
+    private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
+    private static final String VERSION = " version ";
+    private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
 
-	/**
-	 * Constructor
-	 *
-	 * @param dbConfiguration
-	 */
-	public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
-		mongoAccess = dbConfiguration;
-	}
+    /**
+     * Constructor
+     *
+     * @param dbConfiguration
+     */
+    public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
+        mongoAccess = dbConfiguration;
+    }
 
-	@Override
-	public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
-		ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-		final ArrayNode pronomList = this.checkFile(xmlPronom);
-		try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-			final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-			final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-					.newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-							LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-							VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
-			try {
-				client.create(logbookParametersStart);
-			} catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException
-					| LogbookClientServerException e) {
-				LOGGER.error(e);
-				throw new ReferentialException(e);
-			}
+    @Override
+    public void importFile(InputStream xmlPronom) throws ReferentialException, DatabaseConflictException {
+        ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
+        final ArrayNode pronomList = this.checkFile(xmlPronom);
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
+            try {
+                client.create(logbookParametersStart);
+            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException
+                | LogbookClientServerException e) {
+                LOGGER.error(e);
+                throw new ReferentialException(e);
+            }
 
-			final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-			try {
-				if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
-					mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
+            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            try {
+                if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+                    mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS);
 
-					final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-							.newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-									LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-									VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK)
-											+ VERSION + pronomList.get(0).get("VersionPronom").textValue()
-											+ FILE_PRONOM,
-									eip1);
+                    final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+                        .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                            LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK)
+                            + VERSION + pronomList.get(0).get("VersionPronom").textValue()
+                            + FILE_PRONOM,
+                            eip1);
 
-					try {
-						client.update(logbookParametersEnd);
-					} catch (LogbookClientBadRequestException | LogbookClientNotFoundException
-							| LogbookClientServerException e) {
-						LOGGER.error(e);
-						throw new ReferentialException(e);
-					}
-				} else {
-					final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-							.newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-									LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-									VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
-					try {
-						client.update(logbookParametersEnd);
-					} catch (LogbookClientBadRequestException | LogbookClientNotFoundException
-							| LogbookClientServerException e) {
-						LOGGER.error(e);
-						throw new ReferentialException(e);
-					}
+                    try {
+                        client.update(logbookParametersEnd);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException
+                        | LogbookClientServerException e) {
+                        LOGGER.error(e);
+                        throw new ReferentialException(e);
+                    }
+                } else {
+                    final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+                        .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                            LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
+                    try {
+                        client.update(logbookParametersEnd);
+                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException
+                        | LogbookClientServerException e) {
+                        LOGGER.error(e);
+                        throw new ReferentialException(e);
+                    }
 
-					throw new DatabaseConflictException("File format collection is not empty");
-				}
-			} catch (final ReferentialException e) {
-				LOGGER.error(e.getMessage());
-				final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-						.newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-								LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-								VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
-				try {
-					client.update(logbookParametersEnd);
-				} catch (LogbookClientBadRequestException | LogbookClientNotFoundException
-						| LogbookClientServerException e1) {
-					LOGGER.error(e1);
-					throw new ReferentialException(e1);
-				}
-				throw new ReferentialException(e);
-			}
-		}
-	}
+                    throw new DatabaseConflictException("File format collection is not empty");
+                }
+            } catch (final ReferentialException e) {
+                LOGGER.error(e.getMessage());
+                final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+                    .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                        LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
+                try {
+                    client.update(logbookParametersEnd);
+                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException
+                    | LogbookClientServerException e1) {
+                    LOGGER.error(e1);
+                    throw new ReferentialException(e1);
+                }
+                throw new ReferentialException(e);
+            }
+        }
+    }
 
-	@Override
-	public ArrayNode checkFile(InputStream xmlPronom) throws ReferentialException {
-		ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
-		/* Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is thrown*/ 
-		ArrayNode deserializeFormatsAsJson = PronomParser.getPronom(xmlPronom);
-		StreamUtils.closeSilently(xmlPronom);
-		return deserializeFormatsAsJson;
-	}
+    @Override
+    public ArrayNode checkFile(InputStream xmlPronom) throws ReferentialException {
+        ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
+        /* Deserialize as json arrayNode, this operation will will ensure the format is valid first, else Exception is thrown*/ 
+        ArrayNode deserializeFormatsAsJson = PronomParser.getPronom(xmlPronom);
+        StreamUtils.closeSilently(xmlPronom);
+        return deserializeFormatsAsJson;
+    }
 
-	@Override
-	public FileFormat findDocumentById(String id) throws ReferentialException {
-		try {
-			return (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
-		} catch (final ReferentialException e) {
-			LOGGER.error(e.getMessage());
-			throw new FileFormatException(e);
-		}
-	}
+    @Override
+    public FileFormat findDocumentById(String id) throws ReferentialException {
+        try {
+            return (FileFormat) mongoAccess.getDocumentById(id, FunctionalAdminCollections.FORMATS);
+        } catch (final ReferentialException e) {
+            LOGGER.error(e.getMessage());
+            throw new FileFormatException(e);
+        }
+    }
 
-	@Override
-	public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
-		try (@SuppressWarnings("unchecked")
-		final MongoCursor<FileFormat> formats = (MongoCursor<FileFormat>) mongoAccess.findDocuments(select,
-				FunctionalAdminCollections.FORMATS)) {
+    @Override
+    public List<FileFormat> findDocuments(JsonNode select) throws ReferentialException {
+        try (final MongoCursor<VitamDocument<?>> formats = mongoAccess.findDocuments(select,
+            FunctionalAdminCollections.FORMATS)) {
 
-			final List<FileFormat> result = new ArrayList<>();
-			if (formats == null || !formats.hasNext()) {
-				throw new FileFormatNotFoundException("Format not found");
-			}
-			while (formats.hasNext()) {
-				result.add(formats.next());
-			}
-			return result;
-		} catch (final ReferentialException e) {
-			LOGGER.error(e.getMessage());
-			throw new FileFormatException(e);
-		}
-	}
+            final List<FileFormat> result = new ArrayList<>();
+            if (formats == null || !formats.hasNext()) {
+                throw new FileFormatNotFoundException("Format not found");
+            }
 
-	@Override
-	public void close() {
-		// Empty
-	}
+            while (formats.hasNext()) {
+                result.add((FileFormat) formats.next());
+            }
+
+            return result;
+        } catch (final ReferentialException e) {
+            LOGGER.error(e.getMessage());
+            throw new FileFormatException(e);
+        }
+    }
+
+    @Override
+    public void close() {
+        // Empty
+    }
 }

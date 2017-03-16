@@ -47,8 +47,8 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -266,7 +266,7 @@ public final class DslQueryHelper {
     public static JsonNode createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
 
         // AND by default
         final BooleanQuery booleanQueries = and();
@@ -317,7 +317,7 @@ public final class DslQueryHelper {
     public static JsonNode createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         final BooleanQuery andQuery = and();
         final BooleanQuery booleanQueries = or();
         String startDate = null;
@@ -410,7 +410,7 @@ public final class DslQueryHelper {
     public static JsonNode createUpdateDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
 
         for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
@@ -441,7 +441,7 @@ public final class DslQueryHelper {
      */
     public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Select selectParentsDetails = new Select();
+        final SelectMultiQuery selectParentsDetails = new SelectMultiQuery();
 
         // Add projections
         // Title

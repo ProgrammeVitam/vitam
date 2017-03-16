@@ -46,7 +46,7 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -93,7 +93,7 @@ public class QueryToElasticsearchTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {}
 
-    private Select createSelect() {
+    private SelectMultiQuery createSelect() {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(example);
@@ -109,7 +109,7 @@ public class QueryToElasticsearchTest {
     @Test
     public void testGetCommands() {
         try {
-            final Select select = createSelect();
+            final SelectMultiQuery select = createSelect();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
             final List<SortBuilder> sortBuilders = QueryToElasticsearch
                 .getSorts(Document.parse(JsonHandler.unprettyPrint(select.getFilter().get("$orderby"))));

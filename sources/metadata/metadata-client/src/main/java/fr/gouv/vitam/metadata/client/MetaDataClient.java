@@ -61,7 +61,7 @@ public interface MetaDataClient extends BasicClient {
     /**
      * Search units by select query (DSL)
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.Select} as String
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery} as String
      *        <br>
      *        Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}

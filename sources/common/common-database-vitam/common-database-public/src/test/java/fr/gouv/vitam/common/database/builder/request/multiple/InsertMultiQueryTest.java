@@ -27,11 +27,13 @@
 package fr.gouv.vitam.common.database.builder.request.multiple;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -44,35 +46,46 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 @SuppressWarnings("javadoc")
-public class DeleteTest {
+public class InsertMultiQueryTest {
 
     @Test
     public void testSetMult() {
-        final Delete delete = new Delete();
-        assertTrue(delete.getFilter().size() == 0);
-        delete.setMult(true);
-        assertTrue(delete.getFilter().size() == 1);
-        delete.setMult(false);
-        assertTrue(delete.getFilter().size() == 1);
-        assertTrue(delete.getFilter().has(MULTIFILTER.MULT.exactToken()));
-        delete.resetFilter();
-        assertTrue(delete.getFilter().size() == 0);
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        assertTrue(insert.getFilter().size() == 0);
+        insert.setMult(true);
+        assertTrue(insert.getFilter().size() == 1);
+        insert.setMult(false);
+        assertTrue(insert.getFilter().size() == 1);
+        assertTrue(insert.getFilter().has(MULTIFILTER.MULT.exactToken()));
+        insert.resetFilter();
+        assertTrue(insert.getFilter().size() == 0);
+    }
+
+    @Test
+    public void testAddData() {
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        assertNull(insert.data);
+        insert.addData(JsonHandler.createObjectNode().put("var1", 1));
+        insert.addData(JsonHandler.createObjectNode().put("var2", "val"));
+        assertEquals(2, insert.data.size());
+        insert.resetData();
+        assertEquals(0, insert.data.size());
     }
 
     @Test
     public void testAddRequests() {
-        final Delete delete = new Delete();
-        assertTrue(delete.queries.isEmpty());
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        assertTrue(insert.queries.isEmpty());
         try {
-            delete.addQueries(
+            insert.addQueries(
                 new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
                     .setRelativeDepthLimit(5));
-            delete.addQueries(new PathQuery("path1", "path2"),
+            insert.addQueries(new PathQuery("path1", "path2"),
                 new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
-            delete.addQueries(new PathQuery("path3"));
-            assertEquals(4, delete.queries.size());
-            delete.resetQueries();
-            assertEquals(0, delete.queries.size());
+            insert.addQueries(new PathQuery("path3"));
+            assertEquals(4, insert.queries.size());
+            insert.resetQueries();
+            assertEquals(0, insert.queries.size());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -80,15 +93,16 @@ public class DeleteTest {
     }
 
     @Test
-    public void testGetFinalDelete() {
-        final Delete delete = new Delete();
-        assertTrue(delete.queries.isEmpty());
+    public void testGetFinalInsert() {
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        assertTrue(insert.queries.isEmpty());
         try {
-            delete.addQueries(new PathQuery("path3"));
-            assertEquals(1, delete.queries.size());
-            delete.setMult(true);
-            final ObjectNode node = delete.getFinalDelete();
-            assertEquals(3, node.size());
+            insert.addQueries(new PathQuery("path3"));
+            assertEquals(1, insert.queries.size());
+            insert.setMult(true);
+            insert.addData(JsonHandler.createObjectNode().put("var1", 1));
+            final ObjectNode node = insert.getFinalInsert();
+            assertEquals(4, node.size());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -96,19 +110,43 @@ public class DeleteTest {
     }
 
     @Test
-    public void testAllSet() throws InvalidParseOperationException {
-        final Delete delete = new Delete();
-        delete.setFilter(JsonHandler.createObjectNode().put("$mult", "true"));
-        assertEquals("{\"$mult\":\"true\"}", delete.getFilter().toString());
+    public void testSetData() throws InvalidParseOperationException {
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        assertNull(insert.data);
+        assertEquals(JsonHandler.createObjectNode(), insert.getData());
+        insert.resetData();
+        assertNull(insert.data);
+        insert.reset();
+        assertNull(insert.data);
+        final JsonNode data1 = JsonHandler.createObjectNode().put("var1", 1);
+        final JsonNode data2 = JsonHandler.createObjectNode().put("var2", 2);
+        insert.setData(data1);
+        assertEquals(1, insert.data.size());
+        assertEquals(JsonHandler.createObjectNode().put("var1", 1), insert.getData());
+        insert.setData(data2);
+        assertEquals(2, insert.data.size());
+        insert.reset();
+        assertEquals(0, insert.data.size());
     }
 
     @Test
-    public void testToString() throws InvalidCreateOperationException {
-        final Delete delete = new Delete();
-        delete.addQueries(new ExistsQuery(QUERY.EXISTS, "var1"));
-        delete.setMult(true);
-        delete.resetFilter();
-        final String s = "DELETE: Requests: \n{\"$exists\":\"var1\"}\n\tFilter: {}\n\tRoots: []";
-        assertEquals(s, delete.toString());
+    public void testParseData() throws InvalidParseOperationException {
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        insert.setMult(true);
+        insert.resetFilter();
+
+        final String data = "{'var1':1}";
+        insert.parseData(data);
+        final String res = "INSERT: Requests: \n\tFilter: {}\n\tRoots: []\n\tData: {\"var1\":1}";
+        assertEquals(res, insert.toString());
     }
+
+    @Test
+    public void testSetMult1() throws InvalidParseOperationException {
+        final InsertMultiQuery insert = new InsertMultiQuery();
+        final JsonNode filt1 = JsonHandler.createObjectNode().put("$mult", "true");
+        insert.setFilter(filt1);
+        assertEquals("{\"$mult\":\"true\"}", insert.getFilter().toString());
+    }
+
 }

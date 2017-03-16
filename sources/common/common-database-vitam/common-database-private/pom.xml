@@ -16,6 +16,10 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.googlecode.java-diff-utils</groupId>
+			<artifactId>diffutils</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>de.flapdoodle.embed</groupId>
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
 			<scope>test</scope>

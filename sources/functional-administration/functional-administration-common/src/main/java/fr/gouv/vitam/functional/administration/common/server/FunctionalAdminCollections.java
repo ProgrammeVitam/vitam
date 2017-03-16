@@ -71,11 +71,13 @@ public enum FunctionalAdminCollections {
     INGEST_CONTRACT(IngestContract.class);
 
     private VitamCollection vitamCollection;
-    
-    final public static String ID = "_id";
 
     private FunctionalAdminCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz);
+        if (clasz.equals(FileFormat.class)) {
+            vitamCollection = VitamCollectionHelper.getCollectionWithoutTenant(clasz);
+        } else {
+            vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
+        }
     }
 
     /**
@@ -116,6 +118,9 @@ public enum FunctionalAdminCollections {
         return vitamCollection.getCollection();
     }
 
+    public VitamCollection getVitamCollection() {
+        return vitamCollection;
+    }
 
     /**
      *

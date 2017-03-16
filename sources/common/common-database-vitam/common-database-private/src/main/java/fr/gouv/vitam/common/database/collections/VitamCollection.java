@@ -55,10 +55,24 @@ public class VitamCollection {
     private final String name;
     private MongoCollection<?> collection;
     private ElasticsearchAccess esClient;
+    private static final String TYPEUNIQUE = "typeunique";
+    private boolean isMultiTenant;
+
+    /**
+     * @return the typeunique
+     */
+    public String getTypeunique() {
+        return TYPEUNIQUE;
+    }
 
     protected VitamCollection(final Class<?> clasz) {
+        this(clasz, true);
+    }
+    
+    protected VitamCollection(final Class<?> clasz, final boolean isMultiTenant) {
         this.clasz = clasz;
         name = clasz.getSimpleName();
+        this.isMultiTenant = isMultiTenant;
     }
 
     /**
@@ -149,5 +163,10 @@ public class VitamCollection {
             .build();
     }
 
-
+    /**
+     * @return isMultiTenant value
+     */
+    public boolean isMultiTenant() {
+        return isMultiTenant;
+    }
 }

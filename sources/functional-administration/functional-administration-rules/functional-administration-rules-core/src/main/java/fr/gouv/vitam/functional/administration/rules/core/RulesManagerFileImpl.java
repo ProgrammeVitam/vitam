@@ -64,9 +64,11 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
+import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -374,15 +376,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
     @Override
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {
-        try (@SuppressWarnings("unchecked")
-        final MongoCursor<FileRules> rules = (MongoCursor<FileRules>) mongoAccess.findDocuments(select,
-            FunctionalAdminCollections.RULES)) {
+        try (
+            final MongoCursor<VitamDocument<?>> rules = mongoAccess.findDocuments(select,
+                    FunctionalAdminCollections.RULES)) {
+              
             final List<FileRules> result = new ArrayList<>();
             if (rules == null || !rules.hasNext()) {
                 throw new FileRulesNotFoundException(RULES_NOT_FOUND);
             }
             while (rules.hasNext()) {
-                result.add(rules.next());
+                result.add((FileRules) rules.next());
             }
             return result;
         } catch (final FileRulesException e) {

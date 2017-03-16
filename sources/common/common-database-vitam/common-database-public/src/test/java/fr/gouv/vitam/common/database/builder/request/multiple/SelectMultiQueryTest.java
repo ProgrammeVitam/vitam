@@ -46,11 +46,11 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 @SuppressWarnings("javadoc")
-public class SelectTest {
+public class SelectMultiQueryTest {
 
     @Test
     public void testAddLimitFilter() {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.setLimitFilter(0, 0);
         assertFalse(select.getFilter().has(SELECTFILTER.LIMIT.exactToken()));
         assertFalse(select.getFilter().has(SELECTFILTER.OFFSET.exactToken()));
@@ -70,7 +70,7 @@ public class SelectTest {
 
     @Test
     public void testAddHintFilter() {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addHintFilter(FILTERARGS.CACHE.exactToken());
         } catch (final InvalidParseOperationException e) {
@@ -93,7 +93,7 @@ public class SelectTest {
 
     @Test
     public void testAddOrderByAscFilter() {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         try {
             select.addOrderByAscFilter("var1", "var2");
             assertEquals(2, select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).size());
@@ -113,7 +113,7 @@ public class SelectTest {
 
     @Test
     public void testAddUsedProjection() {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         assertTrue(select.getProjection().size() == 0);
         try {
             select.addUsedProjection("var1", "var2");
@@ -135,7 +135,7 @@ public class SelectTest {
 
     @Test
     public void testAddUsageProjection() {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         assertTrue(select.getProjection().size() == 0);
         try {
             select.setUsageProjection("usage");
@@ -150,7 +150,7 @@ public class SelectTest {
 
     @Test
     public void testAddRequests() {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         assertTrue(select.queries.isEmpty());
         try {
             select.addQueries(
@@ -187,7 +187,7 @@ public class SelectTest {
 
     @Test
     public void testAllReset() throws InvalidParseOperationException {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.addUsedProjection("var1");
         select.setUsageProjection("usageId1");
         assertEquals(2, select.getProjection().size());
@@ -197,7 +197,7 @@ public class SelectTest {
 
     @Test
     public void testParser() throws InvalidParseOperationException {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
         select.parseLimitFilter("{$limit : 5}");
         assertEquals("{\"maclef1\":1,\"maclef2\":-1}",

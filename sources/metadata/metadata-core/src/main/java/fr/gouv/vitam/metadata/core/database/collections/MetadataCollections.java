@@ -48,7 +48,7 @@ public enum MetadataCollections {
     private VitamCollection vitamCollection;
 
     private MetadataCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz);
+        vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
     }
 
     /**

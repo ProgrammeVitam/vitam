@@ -26,7 +26,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -139,7 +139,7 @@ public class StoreMetaDataUnitActionPluginTest {
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
 
-        Select query = new Select();
+        SelectMultiQuery query = new SelectMultiQuery();
         ObjectNode constructQuery = query.getFinalSelect();
 
         when(metadataClient.selectUnitbyId(constructQuery, UNIT_GUID))
@@ -191,7 +191,7 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
-        Select query = new Select();
+        SelectMultiQuery query = new SelectMultiQuery();
         ObjectNode constructQuery = query.getFinalSelect();
 
         when(metadataClient.selectUnitbyId(constructQuery, UNIT_GUID))
@@ -220,7 +220,7 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setUrlWorkspace("http://localhost:8083")
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
-        Select query = new Select();
+        SelectMultiQuery query = new SelectMultiQuery();
         ObjectNode constructQuery = query.getFinalSelect();
 
         when(metadataClient.selectUnitbyId(constructQuery, UNIT_GUID))

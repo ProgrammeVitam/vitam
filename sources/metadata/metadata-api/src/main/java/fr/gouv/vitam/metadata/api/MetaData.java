@@ -29,7 +29,7 @@ package fr.gouv.vitam.metadata.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -122,7 +122,7 @@ public interface MetaData {
         MetaDataNotFoundException;
 
     /**
-     * Update UNITs by Id {@link Update}Query <br>
+     * Update UNITs by Id {@link UpdateMultiQuery}Query <br>
      * for this method, the roots will be filled<br>
      * for example request :{
      * <h3>$roots:[{id:"id"}]</h3>,<br>

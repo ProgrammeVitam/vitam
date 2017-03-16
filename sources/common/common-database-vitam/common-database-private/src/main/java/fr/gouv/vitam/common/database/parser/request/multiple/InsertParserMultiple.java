@@ -30,7 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -67,7 +67,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
 
     @Override
     protected RequestMultiple getNewRequest() {
-        return new Insert();
+        return new InsertMultiQuery();
     }
 
     /**
@@ -121,7 +121,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
         // For instance: mavar : #id
         final JsonNode newRootNode = insertAdapter.getFixedVarNameJsonNode(rootNode);
         try {
-            ((Insert) request).setData(newRootNode);
+            ((InsertMultiQuery) request).setData(newRootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
                 "Parse in error for Insert: " + rootNode, e);
@@ -134,7 +134,7 @@ public class InsertParserMultiple extends RequestParserMultiple {
     }
 
     @Override
-    public Insert getRequest() {
-        return (Insert) request;
+    public InsertMultiQuery getRequest() {
+        return (InsertMultiQuery) request;
     }
 }

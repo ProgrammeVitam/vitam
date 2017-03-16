@@ -87,7 +87,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -649,7 +649,7 @@ public class ProcessingIT {
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            Select query = new Select();
+            SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
             query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
@@ -706,7 +706,7 @@ public class ProcessingIT {
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            Select query = new Select();
+            SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
             query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
                 JsonHandler.createObjectNode()

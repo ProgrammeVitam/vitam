@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -81,7 +81,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             JsonNode jsonResponse = null;
             try {
-                Select query = new Select();
+                SelectMultiQuery query = new SelectMultiQuery();
                 ObjectNode constructQuery = query.getFinalSelect();
                 jsonResponse = metadataClient.selectUnitbyId(constructQuery, guid);
                 if (jsonResponse != null) {

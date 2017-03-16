@@ -24,59 +24,63 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.parser.request.multiple;
+package fr.gouv.vitam.common.database.parser.request.adapter;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Delete Parser: { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]
- *
+ * Model for VarNameAdapter
  */
-public class DeleteParserMultiple extends RequestParserMultiple {
+public class SingleVarNameAdapter extends VarNameAdapter {
 
     /**
-     *
+     * Constructor
      */
-    public DeleteParserMultiple() {
-        super();
-    }
-
-    /**
-     * @param adapter VarNameAdapter
-     *
-     */
-    public DeleteParserMultiple(VarNameAdapter adapter) {
-        super(adapter);
+    public SingleVarNameAdapter() {
     }
 
     @Override
-    protected RequestMultiple getNewRequest() {
-        return new DeleteMultiQuery();
+    public boolean metadataAdapter() {
+        return true;
     }
 
     /**
-     *
-     * @param request containing a parsed JSON as { $roots: roots, $query : query, $filter : multi } or [ roots, query,
-     *        multi ]
-     * @throws InvalidParseOperationException if request could not parse to JSON
+     * @see ParserTokens.PROJECTIONARGS
+     * @param name
+     * @return the new name or null if the same
+     * @throws InvalidParseOperationException
      */
     @Override
-    public void parse(final JsonNode request) throws InvalidParseOperationException {
-        parseJson(request);
-    }
-
-    @Override
-    public String toString() {
-        return new StringBuilder().append(request.toString()).append("\n\tLastLevel: ").append(lastDepth).toString();
-    }
-
-    @Override
-    public DeleteMultiQuery getRequest() {
-        return (DeleteMultiQuery) request;
+    public String getVariableName(String name) throws InvalidParseOperationException {
+        if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+            // Check on prefix (preceding '.')
+            int pos = name.indexOf('.');
+            final String realname;
+            final String extension;
+            if (pos > 1) {
+                realname = name.substring(1, pos);
+                extension = name.substring(pos);
+            } else {
+                realname = name.substring(1);
+                extension = "";
+            }
+            try {
+                final PROJECTIONARGS proj = ParserTokens.PROJECTIONARGS.parse(realname);
+                switch (proj) {
+                    case TENANT:
+                        return "_tenant";
+                    case ID:
+                        return "_id";
+                    default:
+                        break;
+                }
+            } catch (final IllegalArgumentException e) {
+                throw new InvalidParseOperationException(e);
+            }
+        }
+        return null;
     }
 }

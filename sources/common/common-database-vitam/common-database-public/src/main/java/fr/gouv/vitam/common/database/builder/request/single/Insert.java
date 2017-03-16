@@ -24,23 +24,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.builder.request.multiple;
+package fr.gouv.vitam.common.database.builder.request.single;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Insert: { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ]
+ * Insert: { $query: query, $data : data , $filter: filter} // No query in  
  *
  */
-public class Insert extends RequestMultiple {
-    protected ObjectNode data;
+public class Insert extends RequestSingle {
+    protected ArrayNode data;
 
     /**
      *
@@ -64,45 +64,6 @@ public class Insert extends RequestMultiple {
     }
 
     /**
-     * @param mult True to act on multiple elements, False to act only on 1 element
-     * @return this Insert
-     */
-    public final Insert setMult(final boolean mult) {
-        if (filter == null) {
-            filter = JsonHandler.createObjectNode();
-        }
-        filter.put(MULTIFILTER.MULT.exactToken(), mult);
-        return this;
-    }
-
-    /**
-     * @param filterContent json filter
-     * @return this Insert
-     */
-    public final Insert setMult(final JsonNode filterContent) {
-        if (filter == null) {
-            filter = JsonHandler.createObjectNode();
-        }
-        if (filterContent.has(MULTIFILTER.MULT.exactToken())) {
-            filter.setAll((ObjectNode) filterContent);
-        }
-        return this;
-    }
-
-    /**
-     *
-     * @param filterContent json filter
-     * @return this Insert
-     * @throws InvalidParseOperationException when query is invalid
-     */
-    @Override
-    public final Insert setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
-        super.setFilter(filterContent);
-        return setMult(filterContent);
-    }
-
-    /**
      * Note that if previous attributes have the same name, they will be replaced.
      *
      * @param data list of json data
@@ -110,11 +71,11 @@ public class Insert extends RequestMultiple {
      */
     public final Insert addData(final ObjectNode... data) {
         if (this.data == null) {
-            this.data = JsonHandler.createObjectNode();
+            this.data = JsonHandler.createArrayNode();
         }
         for (final ObjectNode act : data) {
             if (!act.isMissingNode()) {
-                this.data.setAll(act);
+                this.data.add(act);
             }
         }
         return this;
@@ -126,12 +87,12 @@ public class Insert extends RequestMultiple {
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Insert setData(final JsonNode dataContent)
+    public final Insert setData(final ArrayNode dataContent)
         throws InvalidParseOperationException {
         if (data == null) {
-            data = JsonHandler.createObjectNode();
+            data = JsonHandler.createArrayNode();
         }
-        data.setAll((ObjectNode) dataContent);
+        data.addAll(dataContent);
         return this;
     }
 
@@ -145,12 +106,12 @@ public class Insert extends RequestMultiple {
         throws InvalidParseOperationException {
         GlobalDatas.sanityValueCheck(data);
         final JsonNode dataContent = JsonHandler.getFromString(data);
-        return setData(dataContent);
+        return setData((ArrayNode) dataContent);
     }
 
     /**
      *
-     * @return the Final Insert containing all 4 parts: roots, queries array, filter and data
+     * @return the Final Insert containing all 3 parts: query filter and data
      */
     public final ObjectNode getFinalInsert() {
         final ObjectNode node = getFinal();
@@ -166,9 +127,9 @@ public class Insert extends RequestMultiple {
      * @return the data
      */
     @Override
-    public final ObjectNode getData() {
+    public final ArrayNode getData() {
         if (data == null) {
-            return JsonHandler.createObjectNode();
+            return JsonHandler.createArrayNode();
         }
         return data;
     }
@@ -180,4 +141,6 @@ public class Insert extends RequestMultiple {
             .append("\n\tData: ").append(data);
         return builder.toString();
     }
+
+
 }

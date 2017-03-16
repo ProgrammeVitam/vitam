@@ -26,23 +26,60 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.builder.request.multiple;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
- * Delete: { $roots: roots, $query : query, $filter : multi } or [ roots, query, multi ]
+ * Update: { $roots: roots, $query : query, $filter : multi, $action : action } or [ roots, query, multi, action ]
  *
  */
-public class Delete extends RequestMultiple {
+public class UpdateMultiQuery extends RequestMultiple {
+    protected List<Action> actions = new ArrayList<>();
+
+    /**
+     *
+     * @return this Update
+     */
+    public final UpdateMultiQuery resetActions() {
+        if (actions != null) {
+            actions.forEach(new Consumer<Action>() {
+                @Override
+                public void accept(Action t) {
+                    t.clean();
+                }
+            });
+            actions.clear();
+        }
+        return this;
+    }
+
+    /**
+     * @return this Update
+     */
+    @Override
+    public final UpdateMultiQuery reset() {
+        super.reset();
+        resetActions();
+        return this;
+    }
+
     /**
      * @param mult True to act on multiple elements, False to act only on 1 element
-     * @return this Delete
+     * @return this Update
      */
-    public final Delete setMult(final boolean mult) {
+    public final UpdateMultiQuery setMult(final boolean mult) {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -52,9 +89,9 @@ public class Delete extends RequestMultiple {
 
     /**
      * @param filterContent json filter
-     * @return this Delete
+     * @return this Update
      */
-    public final Delete setMult(final JsonNode filterContent) {
+    public final UpdateMultiQuery setMult(final JsonNode filterContent) {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -67,11 +104,11 @@ public class Delete extends RequestMultiple {
     /**
      *
      * @param filterContent json filter
-     * @return this Delete
-     * @throws InvalidParseOperationException if filter invalid
+     * @return this Update
+     * @throws InvalidParseOperationException when query is not valid
      */
     @Override
-    public final Delete setFilter(final JsonNode filterContent)
+    public final UpdateMultiQuery setFilter(final JsonNode filterContent)
         throws InvalidParseOperationException {
         super.setFilter(filterContent);
         return setMult(filterContent);
@@ -79,16 +116,57 @@ public class Delete extends RequestMultiple {
 
     /**
      *
-     * @return the Final Delete containing all 3 parts: roots, queries array and filter
+     * @param action list
+     * @return this Update
+     * @throws InvalidCreateOperationException when action is not valid
      */
-    public final ObjectNode getFinalDelete() {
-        return getFinal();
+    public final UpdateMultiQuery addActions(final Action... action)
+        throws InvalidCreateOperationException {
+        for (final Action act : action) {
+            if (!act.isReady()) {
+                throw new InvalidCreateOperationException(
+                    "Action is not ready to be added: " + act.getCurrentAction());
+            }
+            actions.add(act);
+        }
+        return this;
+    }
+
+    /**
+     *
+     * @return the Final Update containing all 4 parts: roots, queries array, filter and actions
+     */
+    public final ObjectNode getFinalUpdate() {
+        final ObjectNode node = getFinal();
+        if (actions != null && !actions.isEmpty()) {
+            final ArrayNode array = JsonHandler.createArrayNode();
+            for (final Action action : actions) {
+                array.add(action.getCurrentAction());
+            }
+            node.set(GLOBAL.ACTION.exactToken(), array);
+        } else {
+            node.putArray(GLOBAL.ACTION.exactToken());
+        }
+        return node;
+    }
+
+    /**
+     * @return the actions list
+     */
+    @Override
+    public final List<Action> getActions() {
+        return actions;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("DELETE: ").append(super.toString());
+        builder.append("UPDATEACTION: ").append(super.toString())
+            .append("\n\tActions: ");
+        for (final Action subaction : getActions()) {
+            builder.append("\n").append(subaction);
+        }
         return builder.toString();
     }
+
 }

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.parser.request.multiple;
+package fr.gouv.vitam.common.database.parser.request.single;
 
 import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.add;
 import static fr.gouv.vitam.common.database.parser.query.action.UpdateActionParserHelper.inc;
@@ -48,27 +48,26 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
-import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.RequestSingle;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Update Parser: [ {root}, {query}, {filter}, {actions} ] or { $roots: root, $query : query, $filter : filter, $action
- * : action }
+ * Select Parser: { $query : query, $filter : filter, $actions : actions } or [ query, filter, actions ]
  *
  */
-public class UpdateParserMultiple extends RequestParserMultiple {
-    protected static final int ACTIONS_POS = 3;
+public class UpdateParserSingle extends RequestParserSingle {
+    protected static final int ACTIONS_POS = 2;
 
     VarNameUpdateAdapter updateAdapter;
 
     /**
      * Empty constructor
      */
-    public UpdateParserMultiple() {
+    public UpdateParserSingle() {
         super();
         updateAdapter = new VarNameUpdateAdapter(adapter);
     }
@@ -77,20 +76,20 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      * @param adapter VarNameAdapter
      *
      */
-    public UpdateParserMultiple(VarNameAdapter adapter) {
+    public UpdateParserSingle(VarNameAdapter adapter) {
         super(adapter);
         updateAdapter = new VarNameUpdateAdapter(adapter);
     }
 
     @Override
-    protected RequestMultiple getNewRequest() {
-        return new UpdateMultiQuery();
+    protected RequestSingle getNewRequest() {
+        return new Update();
     }
 
     /**
      *
-     * @param request containing a parsed JSON as [ {root}, {query}, {filter}, {actions} ] or { $roots: root, $query :
-     *        query, $filter : filter, $action : action }
+     * @param request containing a parsed JSON as [ {query}, {filter}, {actions} ] 
+     * or { $query : query, $filter : filter, $action : action }
      * @throws InvalidParseOperationException if request could not parse to JSON
      */
     @Override
@@ -103,44 +102,35 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      * @throws InvalidParseOperationException if could not parse to JSON
      */
     private void internalParseUpdate() throws InvalidParseOperationException {
-        if (rootNode.isArray()) {
-            // should be 4, but each could be empty ( '{}' )
-            if (rootNode.size() > ACTIONS_POS) {
-                actionParse(rootNode.get(ACTIONS_POS));
-            }
-        } else {
-            // not as array but composite as { $roots: root, $query : query,
-            // $filter : filter, $action : action }
-            actionParse(rootNode.get(GLOBAL.ACTION.exactToken()));
-        }
+        actionParse(rootNode.get(GLOBAL.ACTION.exactToken()));
     }
 
     /**
      * {$"action" : args, ...}
      *
-     * @param rootNode JsonNode
+     * @param actionNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void actionParse(final JsonNode rootNode)
+    protected void actionParse(final JsonNode actionNode)
         throws InvalidParseOperationException {
-        if (rootNode == null) {
+        if (actionNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(rootNode.toString(),
+        GlobalDatas.sanityParametersCheck(actionNode.toString(),
             GlobalDatasParser.NB_ACTIONS);
         try {
-            for (final JsonNode node : (ArrayNode) rootNode) {
+            for (final JsonNode node : (ArrayNode) actionNode) {
                 Iterator<Entry<String, JsonNode>> iterator = node.fields();
                 while (iterator.hasNext()) {
                     final Entry<String, JsonNode> entry = iterator.next();
                     final Action updateAction = analyseOneAction(entry.getKey(), entry.getValue());
-                    ((UpdateMultiQuery) request).addActions(updateAction);
+                    ((Update) request).addActions(updateAction);
                 }
                 iterator = null;
             }
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
-                "Parse in error for Action: " + rootNode, e);
+                "Parse in error for Action: " + actionNode, e);
         }
     }
 
@@ -201,11 +191,11 @@ public class UpdateParserMultiple extends RequestParserMultiple {
 
     @Override
     public String toString() {
-        return new StringBuilder().append(request.toString()).append("\n\tLastLevel: ").append(lastDepth).toString();
+        return request.toString();
     }
 
     @Override
-    public UpdateMultiQuery getRequest() {
-        return (UpdateMultiQuery) request;
+    public Update getRequest() {
+        return (Update) request;
     }
 }
