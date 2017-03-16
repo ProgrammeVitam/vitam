@@ -89,6 +89,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookEvDetDataType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -249,9 +250,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             checkMandatoryIOParameter(ioParam);
             globalSedaParametersFile =
                 handlerIO.getNewLocalFile(handlerIO.getOutput(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK).getPath());
-            extractSEDA(params, globalCompositeItemStatus);
+            ObjectNode evDetData = extractSEDA(params, globalCompositeItemStatus);
+            globalCompositeItemStatus.getData().put(LogbookParameterName.eventDetailData.name(), JsonHandler.unprettyPrint(evDetData));
             globalCompositeItemStatus.increment(StatusCode.OK);
-
         } catch (final ProcessingDuplicatedVersionException e) {
             LOGGER.debug("ProcessingException: duplicated version", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
@@ -302,19 +303,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException
      */
-    public void extractSEDA(WorkerParameters params, ItemStatus globalCompositeItemStatus)
+    public ObjectNode extractSEDA(WorkerParameters params, ItemStatus globalCompositeItemStatus)
         throws ProcessingException, CycleFoundException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         try (LogbookLifeCyclesClient logbookLifeCycleClient =
             LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus, logbookLifeCycleClient);
+            return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus, logbookLifeCycleClient);
         }
     }
 
-    private void extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
+    private ObjectNode extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
         LogbookLifeCyclesClient logbookLifeCycleClient) throws ProcessingException, CycleFoundException {
-
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
 
@@ -352,6 +352,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartDocument());
             boolean globalMetadata = true;
             List<String> globalRequiredInfosFound = new ArrayList<>();
+
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            evDetData.put("evDetDataType", LogbookEvDetDataType.MASTER.name());
 
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -445,6 +448,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     break;
                 }
             }
+
             writer.add(eventFactory.createEndDocument());
             writer.close();
 
@@ -487,8 +491,76 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // Save unitIdToGuid Map
             HandlerUtils.saveMap(handlerIO, unitIdToGuid, UNIT_ID_TO_GUID_IO_RANK, true);
 
+			// Fill evDetData
+			try {
+				JsonNode metadataAsJson = JsonHandler.getFromFile(globalSedaParametersFile).get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+
+				JsonNode comments = metadataAsJson.get(SedaConstants.TAG_COMMENT);
+				
+				if (comments != null && comments.isArray()) {
+					ArrayNode commentsArray = (ArrayNode)comments;
+					for ( JsonNode node: commentsArray) {
+						String comment = null, lang = null;
+						if (node.isTextual()) {
+							comment = node.asText();
+						} else {
+							lang = node.get('@' + SedaConstants.TAG_ATTRIBUTE_LANG).asText();
+							comment = node.get("$").asText();
+						}
+						
+						JsonNode oldComment = evDetData.get("EvDetailReq");
+		                String evDetReq = null;
+		                if (oldComment != null) {
+		                    evDetReq = oldComment.asText();
+		                }
+
+		                if (evDetReq == null || "fr".equalsIgnoreCase(lang)) {
+		                    evDetData.put("EvDetailReq", comment);
+		                }
+
+		                evDetData.put("EvDetailReq" + (StringUtils.isEmpty(lang) ? "": "_" + lang), comment);
+		                LOGGER.debug("evDetData after comment: " + evDetData);
+					}
+					
+				} else if (comments != null && comments.isTextual()){
+					evDetData.put("EvDetailReq", comments.asText());
+				}
+				
+	            JsonNode date = metadataAsJson.get(SedaConstants.TAG_DATE);
+	            if (date != null) {
+	            	LOGGER.debug("Find a date: " + date);
+	                evDetData.put("EvDateTimeReq", date.asText());
+	            }
+
+	            JsonNode archAgreement = metadataAsJson.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+	            if (archAgreement != null) {
+	            	LOGGER.debug("Find an archival agreement: " + archAgreement);
+	                evDetData.put("ArchivalAgreement", archAgreement.asText());
+	            }
+
+	            JsonNode transfAgency = metadataAsJson.get(SedaConstants.TAG_TRANSFERRING_AGENCY);
+                if (transfAgency != null) {
+                    JsonNode identifier = transfAgency.get(SedaConstants.TAG_IDENTIFIER);
+                    if (identifier != null) {
+                    	LOGGER.debug("Find a transfAgency: " + transfAgency);
+                        evDetData.put("AgIfTrans", identifier.asText());
+                    }
+	            }
+
+	            JsonNode serviceLevel = metadataAsJson.get(SedaConstants.TAG_SERVICE_LEVEL);
+	            if (serviceLevel != null) {
+	            	LOGGER.debug("Find a service Level: " + serviceLevel);
+	                evDetData.put("ServiceLevel", serviceLevel.asText());
+	            }
+
+			} catch (InvalidParseOperationException e) {
+	            LOGGER.error("Can't parse globalSedaPareters", e);
+	            throw new ProcessingException(e);
+	        }
+
             handlerIO.addOuputResult(GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK, globalSedaParametersFile, false);
 
+            return evDetData;
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);

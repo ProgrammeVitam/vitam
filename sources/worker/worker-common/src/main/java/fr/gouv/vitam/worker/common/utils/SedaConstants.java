@@ -184,8 +184,10 @@ public class SedaConstants {
 
     // XML Tags used in SEDA
     public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
+    public static final String TAG_COMMENT = "Comment";
     public static final String TAG_DATE = "Date";
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
+    public static final String TAG_SERVICE_LEVEL = "ServiceLevel";
     public static final String TAG_DATA_OBJECT_PACKAGE = "DataObjectPackage";
     public static final String TAG_DESCRIPTIVE_METADATA = "DescriptiveMetadata";
     public static final String TAG_MANAGEMENT_METADATA = "ManagementMetadata";
@@ -204,6 +206,7 @@ public class SedaConstants {
     public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
     public static final String TAG_GRANT_DATE = "GrantDate";
 
+    public static final String TAG_ORGANIZATIONDESCRIPTIVEMETADATA = "OrganizationDescriptiveMetadata";
     public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
     public static final String TAG_SUBMISSIONAGENCYIDENTIFIER = "SubmissionAgencyIdentifier";
     public static final String TAG_DATA_OBJECT_GROUPE_ID = "DataObjectGroupId";
@@ -227,6 +230,8 @@ public class SedaConstants {
 
     public static final String TAG_MANAGEMENT = "Management";
 
+    // Tag's attribute used in SEDA
+    public static final String TAG_ATTRIBUTE_LANG = "lang";
     
     /**
      * Prefix of rules will be applicatedto archive unit

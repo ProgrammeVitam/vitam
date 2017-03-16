@@ -227,7 +227,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 }
             }
 
-            // }
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException | ContentAddressableStorageException e) {
             LOGGER.error(e);

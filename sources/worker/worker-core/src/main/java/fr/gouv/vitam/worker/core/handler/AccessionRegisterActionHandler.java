@@ -150,16 +150,17 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                     .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
             String originalAgency = "OriginatingAgencyUnknown";
             String submissionAgency = "SubmissionAgencyUnknown";
+            String archivalAgreement = "ArchivalAgreementUnknow";
             if (sedaParameters != null) {
-                final JsonNode node = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
-                if (node != null) {
-                    final JsonNode nodeOrigin = node.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+                final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                if (dataObjectNode != null) {
+                    final JsonNode nodeOrigin = dataObjectNode.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
                     if (nodeOrigin != null && !Strings.isNullOrEmpty(nodeOrigin.asText())) {
                         originalAgency = nodeOrigin.asText();
                     } else {
                         throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
                     }
-                    final JsonNode nodeSubmission = node.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+                    final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
                     if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                         submissionAgency = nodeSubmission.asText();
                     } else {
@@ -167,6 +168,11 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                     }
                 } else {
                     throw new ProcessingException("No DataObjectPackage found");
+                }
+
+                final JsonNode archivalArchivalAgreement = sedaParameters.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+                if (archivalArchivalAgreement != null && !Strings.isNullOrEmpty(archivalArchivalAgreement.asText())) {
+                        archivalAgreement = archivalArchivalAgreement.asText();
                 }
             } else {
                 throw new ProcessingException("No ArchiveTransfer found");
@@ -177,8 +183,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
             register =
                 mapParamsToAccessionRegisterDetailModel(params, bdoVersionMap, archiveUnitMap, objectGroupMap,
-                    originalAgency,
-                    submissionAgency, sedaUtils);
+                    originalAgency, submissionAgency, archivalAgreement, sedaUtils);
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
             throw new ProcessingException(e);
@@ -189,7 +194,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
         Map<String, Object> bdoVersionMap, Map<String, Object> archiveUnitMap, Map<String, Object> objectGroupMap,
-        String originalAgency, String submissionAgency, SedaUtils sedaUtils) throws ProcessingException {
+        String originalAgency, String submissionAgency, String archivalAgreement, SedaUtils sedaUtils) throws ProcessingException {
 
         SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
@@ -210,6 +215,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setId(params.getContainerName())
             .setOriginatingAgency(originalAgency)
             .setSubmissionAgency(submissionAgency)
+            .setArchivalAgreement(archivalAgreement)
             .setEndDate(sdfDate.format(new Date()))
             .setStartDate(sdfDate.format(new Date()))
             .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)

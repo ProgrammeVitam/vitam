@@ -58,6 +58,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -415,6 +417,46 @@ public class ExtractSedaActionHandlerTest {
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithUpdateAddUnitExtractSedaThenCheckEvDetData()
+        throws VitamException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        JsonNode parent = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
+
+        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        // Check master evDetData
+        String evDetDataString = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
+        assertNotNull(evDetData);
+        assertEquals("MASTER", evDetData.get("evDetDataType").asText());
+
+        // Check comment
+        assertEquals("Commentaire français", evDetData.get("EvDetailReq").asText());
+        assertEquals("Commentaire français", evDetData.get("EvDetailReq_fr").asText());
+        assertEquals("English Comment", evDetData.get("EvDetailReq_en").asText());
+        assertEquals("Deutsch Kommentare", evDetData.get("EvDetailReq_de").asText());
+
+        // Check other fields
+        assertEquals("ArchivalAgreement0", evDetData.get("ArchivalAgreement").asText());
+        assertEquals("Identifier1", evDetData.get("AgIfTrans").asText());
+        assertEquals("2016-06-23T09:45:51.0", evDetData.get("EvDateTimeReq").asText());
+    }
+    
+    
 
     @Test
     @RunWithCustomExecutor
