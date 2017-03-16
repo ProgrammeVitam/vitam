@@ -56,8 +56,8 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
 
 .. code-block:: json
     
-{ "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
- "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
+   { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+   "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
  
  
 2.5. Persistence des workers
@@ -68,13 +68,12 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
 
 .. code-block:: json
 
-[
-  {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
- "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 }}}, 
-     
- {"workerId": "workerId2", "workerinfo": { "name" : "workername2", "family" : "BigWorker", "capacity" : 10, "storage" : 100,
- "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 54321 } }} 
-] 
+   [
+     {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+    "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 }}},   
+    {"workerId": "workerId2", "workerinfo": { "name" : "workername2", "family" : "BigWorker", "capacity" : 10, "storage" : 100,
+    "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 54321 } }} 
+   ]
 
 Le fichier nommé "worker.db" qui sera créé dans le /vitam/data/processing   
  
