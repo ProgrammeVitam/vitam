@@ -30,7 +30,7 @@ public class AccessionRegisterDetailTest {
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
     	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, null);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
         final String id = GUIDFactory.newGUID().getId();
         AccessionRegisterDetail register = new AccessionRegisterDetail()
             .setOriginatingAgency(id)

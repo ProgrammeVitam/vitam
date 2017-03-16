@@ -196,22 +196,25 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
 
         RegisterValueDetailModel totalObjectsGroups =
-            new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size(), null);
+            new RegisterValueDetailModel(objectGroupMap.size(), 0, objectGroupMap.size());
 
         RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel(archiveUnitMap.size(), 0, archiveUnitMap.size(), null);
+            new RegisterValueDetailModel(archiveUnitMap.size(), 0, archiveUnitMap.size());
 
         RegisterValueDetailModel totalObjects =
-            new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size(), null);
+            new RegisterValueDetailModel(bdoVersionMap.size(), 0, bdoVersionMap.size());
 
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip, null);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip);
 
+        String updateDate = sdfDate.format(new Date());
+        
         return new AccessionRegisterDetailModel()
             .setId(params.getContainerName())
             .setOriginatingAgency(originalAgency)
             .setSubmissionAgency(submissionAgency)
-            .setEndDate(sdfDate.format(new Date()))
-            .setStartDate(sdfDate.format(new Date()))
+            .setEndDate(updateDate)
+            .setLastUpdate(updateDate)
+            .setStartDate(updateDate)
             .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
             .setTotalObjectsGroups(totalObjectsGroups)
             .setTotalUnits(totalUnits)
