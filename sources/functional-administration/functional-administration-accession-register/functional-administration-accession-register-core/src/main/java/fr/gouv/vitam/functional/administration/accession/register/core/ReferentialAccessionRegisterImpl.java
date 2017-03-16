@@ -90,7 +90,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
 
         // store accession register summary
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, null);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
         try {
             final AccessionRegisterSummary accessionRegister = new AccessionRegisterSummary();
             accessionRegister

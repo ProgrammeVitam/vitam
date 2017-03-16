@@ -427,31 +427,30 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         accessionRegisterDetail.setLastUpdate(model.getLastUpdate());
 
         if (model.getTotalObjectsGroups() != null) {
-            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal())
-                .setRemained(model.getTotalObjectsGroups().getRemained())
-                .setDeleted(model.getTotalObjectsGroups().getDeleted())
-                .setOriginatingAgency(model.getTotalObjectsGroups().getOriginatingAgency());
+            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal()).
+                setRemained(model.getTotalObjectsGroups().getRemained()).
+                setDeleted(model.getTotalObjectsGroups().getDeleted());
 
             accessionRegisterDetail.setTotalObjectGroups(totalObjectsGroups);
         }
         if (model.getTotalUnits() != null) {
-            totalUnits.setTotal(model.getTotalUnits().getTotal()).setRemained(model.getTotalUnits().getRemained())
-                .setDeleted(model.getTotalUnits().getDeleted())
-                .setOriginatingAgency(model.getTotalUnits().getOriginatingAgency());
+            totalUnits.setTotal(model.getTotalUnits().getTotal()).
+                setRemained(model.getTotalUnits().getRemained()).
+                setDeleted(model.getTotalUnits().getDeleted());
 
             accessionRegisterDetail.setTotalUnits(totalUnits);
         }
         if (model.getTotalObjects() != null) {
-            totalObjects.setTotal(model.getTotalObjects().getTotal()).setRemained(model.getTotalObjects().getRemained())
-                .setDeleted(model.getTotalObjects().getDeleted())
-                .setOriginatingAgency(model.getTotalObjects().getOriginatingAgency());
+            totalObjects.setTotal(model.getTotalObjects().getTotal()).
+                setRemained(model.getTotalObjects().getRemained()).
+                setDeleted(model.getTotalObjects().getDeleted());
 
             accessionRegisterDetail.setTotalObjects(totalObjects);
         }
         if (model.getObjectSize() != null) {
-            objectSize.setTotal(model.getObjectSize().getTotal()).setRemained(model.getObjectSize().getRemained())
-                .setDeleted(model.getObjectSize().getDeleted())
-                .setOriginatingAgency(model.getObjectSize().getOriginatingAgency());
+            objectSize.setTotal(model.getObjectSize().getTotal()).
+                setRemained(model.getObjectSize().getRemained()).
+                setDeleted(model.getObjectSize().getDeleted());
             accessionRegisterDetail.setObjectSize(objectSize);
         }
         return accessionRegisterDetail;

@@ -183,10 +183,10 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     @Override
     public RequestResponse getAccessionRegisterDetail(JsonNode query)
         throws InvalidParseOperationException, ReferentialException {
-        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1, null);
-        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1, null);
-        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel(4, 0, 4, null);
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(345042, 0, 345042, null);
+        RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel(1, 0, 1);
+        RegisterValueDetailModel totalUnits = new RegisterValueDetailModel(1, 0, 1);
+        RegisterValueDetailModel totalObjects = new RegisterValueDetailModel(4, 0, 4);
+        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(345042, 0, 345042);
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Accession Register request:");
 

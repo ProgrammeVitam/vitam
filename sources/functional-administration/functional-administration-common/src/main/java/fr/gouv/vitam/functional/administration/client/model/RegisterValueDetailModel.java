@@ -39,8 +39,6 @@ public class RegisterValueDetailModel {
     private long deleted;
     @JsonProperty("remained")
     private long remained;
-    @JsonProperty("OriginatingAgency")
-    private String OriginatingAgency;
 
     /**
      * Constructor without fields
@@ -58,11 +56,10 @@ public class RegisterValueDetailModel {
      * @param remained          number of remaining object
      * @param originatingAgency originating agency
      */
-    public RegisterValueDetailModel(long total, long deleted, long remained, String originatingAgency) {
+    public RegisterValueDetailModel(long total, long deleted, long remained) {
         this.total = total;
         this.deleted = deleted;
         this.remained = remained;
-        OriginatingAgency = originatingAgency;
     }
     
     /**
@@ -116,24 +113,6 @@ public class RegisterValueDetailModel {
      */
     public RegisterValueDetailModel setRemained(long remained) {
         this.remained = remained;
-        return this;
-    }
-    
-    /**
-     * 
-     * @return OriginatingAgency
-     */
-    public String getOriginatingAgency() {
-        return OriginatingAgency;
-    }
-    
-    /**
-     * 
-     * @param originatingAgency
-     * @return this
-     */
-    public RegisterValueDetailModel setOriginatingAgency(String originatingAgency) {
-        OriginatingAgency = originatingAgency;
         return this;
     }
 
