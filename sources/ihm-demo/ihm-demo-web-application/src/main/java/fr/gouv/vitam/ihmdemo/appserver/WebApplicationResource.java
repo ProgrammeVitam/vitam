@@ -682,64 +682,29 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getFileFormats(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
 
-        ParametersChecker.checkParameter("cookie is mandatory", sessionId);
-        String requestId = null;
-        RequestResponse result = null;
-        OffsetBasedPagination pagination = null;
+        // FIXME P0: Pagination rollbacked because of error on mongo/ES indexation
+        // FIXME Pagination should be use as in others endpoints after solution found (See Item #2227)
 
-        try {
-            pagination = new OffsetBasedPagination(headers);
-        } catch (final VitamException e) {
+        ParametersChecker
+        .checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory
+            .getInstance().getClient()) {
+            Integer tenantId = getTenantId(headers);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final RequestResponse result = adminClient.findDocuments(
+                AdminCollections.FORMATS, query, tenantId);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        }
-        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-        Integer tenantId = getTenantId(headers);
-        if (requestIds != null) {
-            requestId = requestIds.get(0);
-            // get result from shiro session
-            try {
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
-
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
-                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
-            } catch (final VitamException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
-            }
-        } else {
-            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
-                final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                result = adminClient.findDocuments(AdminCollections.FORMATS, query,
-                    getTenantId(headers));
-
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessExternalClientNotFoundException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+        } catch (final AccessExternalClientNotFoundException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
