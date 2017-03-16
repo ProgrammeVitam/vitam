@@ -1,0 +1,5 @@
+---
+
+- hosts: hosts-ihm-demo
+  roles:
+    - init_pronom
