@@ -301,7 +301,9 @@ public class UnitInheritedRule {
                     
                 for (JsonNode id : nonRefRuleId) {
                     String rule = id.asText();
-                    newRule.inheritedRule.get(unitRuleCategory).remove(rule);
+                    if (newRule.inheritedRule.containsKey(unitRuleCategory)){
+                        newRule.inheritedRule.get(unitRuleCategory).remove(rule);                        
+                    }
                     if (unitManagement.get(unitRuleCategory).has(RULE)){
                         ruleId = unitManagement.get(unitRuleCategory).get(RULE).asText();
                         if (rule.equals(ruleId)){
@@ -349,6 +351,13 @@ public class UnitInheritedRule {
             }
         }
         newRule.inheritedRule.putAll(ruleCategoryFromUnit);
+        for (String rule : parentCategoryList){
+            if (newRule.inheritedRule.containsKey(rule)){
+                if (newRule.inheritedRule.get(rule).isEmpty(null)) {
+                    newRule.inheritedRule.remove(rule);
+                }
+            }
+        }
         return newRule;
     }
     
