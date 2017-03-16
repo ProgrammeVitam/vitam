@@ -30,6 +30,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import fr.gouv.vitam.ingest.external.common.exception.JavaExecuteScriptException;
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
@@ -40,7 +41,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
  * Class JavaExecuteScript used to execute the shell script in java
@@ -55,24 +55,23 @@ public class JavaExecuteScript {
      * @param arg the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
-     * @throws IngestExternalException
-     * @throws IngestExternException
+     * @throws JavaExecuteScriptException
      * @throws FileNotFoundException
      */
-    public static int executeCommand(String cmd, String arg, long timeoutScanDelay) throws IngestExternalException {
+    public static int executeCommand(String cmd, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
         int exitStatus = 3;
         String scriptPath;
         try {
             scriptPath = PropertiesUtils.findFile(cmd).getPath();
         } catch (final FileNotFoundException e) {
             LOGGER.error(cmd + " does not exit");
-            throw new IngestExternalException(e);
+            throw new JavaExecuteScriptException(e);
         }
         exitStatus = execute(scriptPath, arg, timeoutScanDelay);
         return exitStatus;
     }
 
-    private static int execute(String scriptPath, String arg, long timeoutScanDelay) throws IngestExternalException {
+    private static int execute(String scriptPath, String arg, long timeoutScanDelay) throws JavaExecuteScriptException {
         final CommandLine cmd = new CommandLine(scriptPath).addArgument(arg);
         final DefaultExecutor defaultExecutor = new DefaultExecutor();
         // TODO P1 : Le résultat de la commande (sortie du scanner) doit être prise en compte pour informer le client du
@@ -91,7 +90,7 @@ public class JavaExecuteScript {
                 return e.getExitValue();
             }
         } catch (final IOException e) {
-            throw new IngestExternalException(e);
+            throw new JavaExecuteScriptException(e);
         } finally {
             // TODO Until now, output is lost
             watchdog.stop();

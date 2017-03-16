@@ -176,58 +176,10 @@ public class IngestExternalResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
 
-    @Test
-    public void givenAnInputstreamWhenUploadAndFixVirusThenReturnOK()
-        throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
-    public void givenAnInputstreamWhenUploadThenReturnErrorCode() throws Exception {
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
-
-        stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
-
-        given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void givenIngestInternalUploadErrorThenReturnInternalServerError() throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
-
-        PowerMockito.mockStatic(IngestInternalClientFactory.class);
-        final IngestInternalClient ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
-        final IngestInternalClientFactory ingestInternalFactory = PowerMockito.mock(IngestInternalClientFactory.class);
-        PowerMockito.when(ingestInternalClient.upload(anyObject(), anyObject(), anyObject()))
-            .thenThrow(VitamException.class);
-        PowerMockito.when(ingestInternalFactory.getClient()).thenReturn(ingestInternalClient);
-        PowerMockito.when(IngestInternalClientFactory.getInstance()).thenReturn(ingestInternalFactory);
-
-        given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
 
     private FormatIdentifierSiegfried getMockedFormatIdentifierSiegfried()
         throws FormatIdentifierNotFoundException, FormatIdentifierFactoryException, FormatIdentifierTechnicalException {

@@ -130,7 +130,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 isFirstCall = false;
 
                 // TODO rename this method
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.ok().build());
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.ok().build());
                 synchronized (monitor) {
                     monitor.wait();
                 }
@@ -138,12 +138,12 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             startWorkflow(workParams);
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(RUNTIME_EXCEPTION_MESSAGE, e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         } catch (InterruptedException e) {
             LOGGER.error(RUNTIME_EXCEPTION_MESSAGE, e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
@@ -217,7 +217,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 LOGGER.info("End Workflow: " + processId.getId());
             }
         } catch (final StepsNotFoundException e) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND).build());
         } catch (final Exception e) {
             processResponse.setStatus(StatusCode.FATAL);
@@ -284,7 +284,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         // Before setting the new asyncResponse, resume it with conflict status
         if (this.asyncResponse != null && (!this.asyncResponse.isDone() || !this.asyncResponse.isCancelled())) {
             Response currentResponse = Response.status(Status.CONFLICT).build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(this.asyncResponse, currentResponse);
+            AsyncInputStreamHelper.asyncResponseResume(this.asyncResponse, currentResponse);
         }
 
         this.asyncResponse = asyncResponse;

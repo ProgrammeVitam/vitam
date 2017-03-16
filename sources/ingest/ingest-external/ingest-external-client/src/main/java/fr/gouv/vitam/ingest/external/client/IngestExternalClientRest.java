@@ -32,6 +32,10 @@ import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
@@ -75,6 +79,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
+    private static final int TIME_TO_SLEEP = 1000; // Tree seconds
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -88,10 +93,9 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", tenantId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_CONTEXT_ID, contextId);
-        headers.add(X_TENANT_ID, tenantId);
-        headers.add(X_ACTION, action);
-
+        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 
         try {
@@ -99,8 +103,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_XML_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                case ACCEPTED:
+                    LOGGER.debug(Status.ACCEPTED.getReasonPhrase());
                     break;
                 case BAD_REQUEST:
                     LOGGER.error(ErrorMessage.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage());
@@ -118,27 +122,59 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             LOGGER.error("Ingest External Internal Server Error", e);
             throw new IngestExternalException("Ingest External Internal Server Error", e);
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode() &&
+            if (response != null && response.getStatus() != Status.ACCEPTED.getStatusCode() &&
                 response.getStatus() != Status.BAD_REQUEST.getStatusCode() &&
                 response.getStatus() != Status.PARTIAL_CONTENT.getStatusCode() &&
                 response.getStatus() != Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 consumeAnyEntityAndClose(response);
             }
         }
-
         return response;
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
+    public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action) {
+
+        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            Response response = client.upload(stream, tenantId, contextId, action);
+            String id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            if (!Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
+
+                return response;
+            }
+            while (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
+                //SLEEP
+                try {
+                    Thread.sleep(TIME_TO_SLEEP);
+                } catch (InterruptedException ex) {
+                    LOGGER.error(ex);
+                    Thread.currentThread().interrupt();
+                    return response;
+                }
+
+                try {
+                    response = getOperationStatus(id, tenantId);
+                } catch (Exception e) {
+                    LOGGER.error(e);
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+                }
+            }
+            return response;
+        } catch (final VitamException e) {
+            LOGGER.error("IngestExternalException in Upload sip", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+    }
+
+    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+        throws IngestExternalException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_TENANT_ID, tenantId);
-
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
             response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
                 headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -157,8 +193,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public Response initWorkFlow(String contextId) throws VitamException {
         ParametersChecker.checkParameter("Params cannot be null", contextId);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_CONTEXT_ID, contextId);
-        headers.add(X_ACTION, ProcessAction.INIT);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
+        headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
 
         // add header action id default init
         final Response response =
@@ -178,8 +214,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_CONTEXT_ID, contextId);
-
+        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         try {
             response =
                 performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId, headers,
@@ -212,8 +247,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_ACTION, actionId);
-        headers.add(X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+        headers.add(GlobalDataRest.X_ACTION, actionId);
+        headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
 
         Response response = null;
         try {
@@ -272,10 +307,30 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
+    public Response getOperationStatus(String id, Integer tenantId) throws VitamClientException {
+        ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_ACTION, id);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response =
+                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        }
+        return Response.status(response.getStatus()).entity(response.getEntity()).header(GlobalDataRest.X_REQUEST_ID,id).build();
+    }
+
+
+    @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
-
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_ACTION, id);
+        headers.add(GlobalDataRest.X_TENANT_ID, 0);
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, null,
@@ -308,7 +363,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+            headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
             response =
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
         } catch (VitamClientInternalException e) {
@@ -339,7 +394,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (actionId.equals(ProcessAction.START)) {
             ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-            headers.add(X_CONTEXT_ID, contextId);
+            headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
         }
         Response response = null;
         try {
@@ -373,7 +428,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public Response initVitamProcess(String contextId, String container, String workFlow)
         throws InternalServerException, VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(X_CONTEXT_ID, ProcessAction.INIT);
+        headers.add(GlobalDataRest.X_CONTEXT_ID, ProcessAction.INIT);
 
         Response response = null;
         try {
@@ -408,7 +463,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
+            headers.add(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId());
 
             response = performRequest(HttpMethod.GET, OPERATION_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);

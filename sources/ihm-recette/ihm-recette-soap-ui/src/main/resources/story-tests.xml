@@ -233,6 +233,70 @@ if (response.getStatusLine().getStatusCode() == 401 ||
 	context.ope_id =response.getFirstHeader('X-REQUEST-ID').getValue();
 }
 
+</script></con:config></con:testStep><con:testStep type="groovy" name="waitATR" id="56431484-8a03-4a5c-857f-7a54fbc295b4"><con:settings/><con:config><script>import java.security.KeyStore
+import org.apache.http.conn.scheme.Scheme
+import org.apache.http.conn.ssl.SSLSocketFactory
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.InputStreamEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import groovy.json.JsonSlurper
+import org.apache.http.client.methods.HttpHead;
+
+import org.apache.http.impl.client.DefaultHttpClient;
+def url = context.ingest+"ingest-external/v1/operations/"
+def TIME_TO_SLEEP = 300000; 
+
+if(context.ope_id != null){
+	log.info '----check status '+context.ope_id
+	def http = new DefaultHttpClient();
+	if (url.startsWith('https')) {
+		def keyStore = KeyStore.getInstance( "PKCS12" )
+		def trustStore = KeyStore.getInstance("JKS")
+		//def keyStore = KeyStore.getInstance( "TLS" )
+		
+		new File(cert).withInputStream  {
+	    		keyStore.load(it, certPass.toCharArray() )
+		}
+		new File(trust).withInputStream {
+			trustStore.load(it, trustPass.toCharArray())
+		}
+		SSLSocketFactory socketFactory = new SSLSocketFactory(keyStore,certPass , trustStore )
+		//socketFactory.setHostnameVerified( new AllowAllHostnameVerifier() )
+		socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+		http.connectionManager.schemeRegistry.register( new Scheme("https", socketFactory, 443 ) )
+	}
+	
+		//HttpHead httpHead = new HttpHead(url+context.ope_id);
+		HttpHead httpHead = new HttpHead(url+context.ope_id);
+		def headeReponse  = http.execute(httpHead);
+		def responseStatus  = 202 ;
+		
+		int statusReponse = headeReponse.getStatusLine().getStatusCode() ; 
+		//headeReponse.getStatusLine().getStatusCode() ; 
+	
+		while (statusReponse == 202  ) {
+		log.info "||||||||||||||||||||||||||||||||||||"
+			      try {
+	                    Thread.sleep(TIME_TO_SLEEP);
+	                } catch (InterruptedException ex) {
+	                    LOGGER.error(ex);
+	                    Thread.currentThread().interrupt();
+	                      statusReponse = 500; 
+	                }
+				/// try again
+	                try {
+	         
+	                 responseStatus  = http.execute(httpHead).getStatusLine().getStatusCode() ;
+	                } catch (Exception e) {                
+	                    statusReponse = 500
+	                }
+	        }
+}
 </script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script><![CDATA[import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import java.security.KeyStore
@@ -575,7 +639,7 @@ def items = []
 context.items = items</con:setupScript>
 <con:tearDownScript>//context.inputFile.close()</con:tearDownScript><con:properties/></con:testCase><con:properties/></con:testSuite>
 <con:endpointStrategy xsi:type="con:DefaultEndpointStrategy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:endpoint mode="COMPLEMENT" username="ykouki" password="">https://int.env.programmevitam.fr</con:endpoint></con:endpointStrategy>
-<con:properties><con:property><con:name>ingestHost</con:name><con:value>https://143.126.93.158:8443/</con:value></con:property><con:property><con:name>logbookHost</con:name><con:value>https://143.126.93.158:8444/</con:value></con:property><con:property><con:name>accessHost</con:name><con:value>https://143.126.93.158:8444/</con:value></con:property><con:property><con:name>certfile</con:name><con:value>/vitam/conf/keystore_ihm-demo.p12</con:value></con:property><con:property><con:name>certPass</con:name><con:value>vitam1234</con:value></con:property><con:property><con:name>truststore</con:name><con:value>/vitam/conf/truststore_ihm-demo.jks</con:value></con:property><con:property><con:name>trustPass</con:name><con:value>jksazerty</con:value></con:property><con:property><con:name>dataDir</con:name><con:value>/vitam/conf/soapui/data/</con:value></con:property><con:property><con:name>reportingDir</con:name><con:value>/vitam/conf/soapui/report/</con:value></con:property><con:property><con:name>configDir</con:name><con:value>/vitam/conf/soapui/config/</con:value></con:property><con:property><con:name>rulesCreatePath</con:name><con:value>/admin-external/v1/rules</con:value></con:property><con:property><con:name>tenant</con:name><con:value>0</con:value></con:property><con:property><con:name>fileRule</con:name><con:value>/vitam/conf/soapui/data/rules/regles_CSV.csv</con:value></con:property></con:properties><con:wssContainer>
+<con:properties><con:property><con:name>ingestHost</con:name><con:value>http://localhost:8079/</con:value></con:property><con:property><con:name>logbookHost</con:name><con:value>http://localhost:8085/</con:value></con:property><con:property><con:name>accessHost</con:name><con:value>http://localhost:8083/</con:value></con:property><con:property><con:name>certfile</con:name><con:value>/vitam/conf/keystore_ihm-demo.p12</con:value></con:property><con:property><con:name>certPass</con:name><con:value>vitam1234</con:value></con:property><con:property><con:name>truststore</con:name><con:value>/vitam/conf/truststore_ihm-demo.jks</con:value></con:property><con:property><con:name>trustPass</con:name><con:value>jksazerty</con:value></con:property><con:property><con:name>dataDir</con:name><con:value>/vitam/conf/soapui/data/</con:value></con:property><con:property><con:name>reportingDir</con:name><con:value>/vitam/conf/soapui/report/</con:value></con:property><con:property><con:name>configDir</con:name><con:value>/vitam/conf/soapui/config/</con:value></con:property><con:property><con:name>rulesCreatePath</con:name><con:value>/admin-external/v1/rules</con:value></con:property><con:property><con:name>tenant</con:name><con:value>0</con:value></con:property><con:property><con:name>fileRule</con:name><con:value>/vitam/conf/soapui/data/rules/regles_CSV.csv</con:value></con:property></con:properties><con:wssContainer>
 <con:crypto>
 	<con:source>/vitam/conf/tsa.p12</con:source>
 	<con:password>vitam1234</con:password>

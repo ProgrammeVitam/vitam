@@ -187,7 +187,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         ProcessWorkflow processWorkflow = processData.getProcessWorkflow(operationId, tenantId);
         if (processWorkflow.getExecutionStatus().ordinal() > ProcessExecutionStatus.PAUSE.ordinal()) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
             throw new ProcessingException(UNAUTHORIZED_ACTION + processWorkflow.getExecutionStatus().toString());
         }
 
@@ -217,7 +217,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         try {
             ProcessWorkflow processWorkflow = processData.getProcessWorkflow(operationId, tenantId);
             if (processWorkflow.getExecutionStatus().ordinal() > ProcessExecutionStatus.PAUSE.ordinal()) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.UNAUTHORIZED).build());
                 throw new ProcessingException(UNAUTHORIZED_ACTION + processWorkflow.getExecutionStatus().toString());
             }
@@ -227,7 +227,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                 processWorkflow.getExecutionStatus().ordinal() == ProcessExecutionStatus.PAUSE.ordinal();
             processWorkflow = processData.cancelProcessWorkflow(operationId, tenantId);
             if (isSuspendedWorkflow) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.OK)
                         .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.CANCELLED)
                         .build());
@@ -250,7 +250,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                 .setGlobalExecutionStatus(processWorkflow.getExecutionStatus());
 
         } catch (WorkflowNotFoundException e) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
             throw e;
         }
     }
@@ -260,7 +260,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         throws ProcessingException {
         ProcessWorkflow processWorkflow = processData.getProcessWorkflow(operationId, tenantId);
         if (processWorkflow.getExecutionStatus().ordinal() >= ProcessExecutionStatus.PAUSE.ordinal()) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
             throw new ProcessingException(UNAUTHORIZED_ACTION + processWorkflow.getExecutionStatus().toString());
         }
 
