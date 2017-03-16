@@ -1,13 +1,3 @@
-#KeyStorePassword_ingest_external: azerty
-#KeyManagerPassword_ingest_external: azerty
-#TrustStorePassword_ingest_external: tazerty
-#grantedKeyStorePassphrase_ingest_external: gazerty
-#p12_ihm_demo_password: vitam1234
-#TrustStore_ihm_demo_password: jksazerty
-#KeyStorePassword_access_external: qsdfgh
-#KeyManagerPassword_access_external: qsdfgh
-#TrustStorePassword_access_external: tqsdfgh
-#grantedKeyStorePassphrase_access_external: gqsdfgh
 #plateforme_secret: vitamsecret
 #mongoAdminUser: vitamdb-admin
 #mongoAdminPassword: azerty
@@ -20,10 +10,18 @@
 #mongoClientUser: mongoclient
 #mongoClientPassword: azerty
 #mongoPassPhrase: mongogo
-#p12_ihm_recette_password: grokbizftej
-#TrustStore_ihm_recette_password: AzErTy
-#p12_logbook_password: p12logbook1234
-#p12_reverse_password: p12reverse1234
-#vitam_keystone_passwd: tototutu
-#above value is 16-bytes that is Base64-encoded
-# consul_encrypt: ZmhivHg51nrXlMcWd5tkxw==
+#vitam_keystone_passwd: 2kwRWUKXyjR65VtUCma1vd5TS8DFZjQnpeJ0sLbN
+#vitam_users:
+#  - vitam_uuser:
+#    login: uuser
+#    password: uuser1234
+#  - vitam_aadmin:
+#    login: aadmin
+#    password: aadmin1234
+#  - vitam_gguest:
+#    login: gguest
+#    password: gguest1234
+#  - techadmin:
+#    login: techadmin
+#    password: techadmin1234
+#
