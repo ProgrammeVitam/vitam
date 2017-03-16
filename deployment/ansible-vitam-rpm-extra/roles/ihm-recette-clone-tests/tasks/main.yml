@@ -56,13 +56,35 @@
     chdir: /vitam/data/ihm-recette/test-data/system/
     creates: /vitam/data/ihm-recette/test-data/system/.git/
 
-# cf. https://help.github.com/articles/caching-your-github-password-in-git/
-# and https://git-scm.com/docs/git-credential-cache
-- name: init cache for git
-  shell: git config credential.helper 'cache --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
+- name: store auth
+  shell: git config credential.helper 'store --file=/vitam/data/ihm-recette/test-data/system/.git/.git-credentials'
   become_user: "{{vitam_user}}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
+
+- name: copy git-credentials
+  template:
+    src: git-credentials.j2
+    dest: /vitam/data/ihm-recette/test-data/system/.git/.git-credentials
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{ vitam_conf_permission }}"
+  when: vitam_gitlab_itest_login is defined
+
+
+# cf. https://help.github.com/articles/caching-your-github-password-in-git/
+# and https://git-scm.com/docs/git-credential-cache
+# - name: init cache for git
+#   shell: git config credential.helper 'store --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
+#   become_user: "{{vitam_user}}"
+#   args:
+#     chdir: /vitam/data/ihm-recette/test-data/system/  
+
+# - name: init cache for git
+#   shell: git config credential.helper 'cache --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
+#   become_user: "{{vitam_user}}"
+#   args:
+#     chdir: /vitam/data/ihm-recette/test-data/system/
 
 - name: ensure git repo is clean on current branch
   shell: git clean -fd
