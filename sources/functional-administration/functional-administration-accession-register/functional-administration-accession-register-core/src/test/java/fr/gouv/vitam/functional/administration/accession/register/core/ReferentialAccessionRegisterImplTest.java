@@ -142,6 +142,12 @@ public class ReferentialAccessionRegisterImplTest {
         register.setOriginatingAgency("newOriginalAgency");
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(2, collection.count());
+        
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
+        assertEquals(3, collection.count());
+        accessionRegisterImpl.createOrUpdateAccessionRegister(register);
+        assertEquals(3, collection.count());
     }
 
     @Test
