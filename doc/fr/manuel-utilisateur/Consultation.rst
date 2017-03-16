@@ -121,6 +121,8 @@ Si des règles de gestions s'appliquent à l'unité, alors celles ci sont listé
 - Sort final : optionnel, dans le cas où la règle possède un sort final
 - Héritée : indique si la règle est héritée d'un de ses parents (oui) ou si la règle est déclarée directement dans cette unité (non)
 
+Lorsqu'une règle est bloquée, au travers des mécanismes de blocages totaux ou partiels, par une unité archivistique située en amont dans l'arborescence, elle n'apparaît naturellement pas dans les unités situées en dessous.
+
 .. image:: images/detail_regle_gestion.png
 
 Si des objets sont disponibles, le bloc "Groupe d'Objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées.
