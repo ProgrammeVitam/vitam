@@ -281,8 +281,12 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess
             updateFields.append(entry.getKey(), entry.getValue());
         }
         incQuery.append(operator.exactToken(), updateFields);
-        final UpdateResult result = collection.getCollection().updateOne(eq(AccessionRegisterSummary.ORIGINATING_AGENCY,
-            objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()), incQuery);
+        Bson query = and(
+            eq(AccessionRegisterSummary.ORIGINATING_AGENCY,
+            objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()),
+            eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
+        
+        final UpdateResult result = collection.getCollection().updateOne(query, incQuery);
         if (result.getModifiedCount() == 0 && result.getMatchedCount() == 0) {
             throw new ReferentialException("Document is not updated");
         }
