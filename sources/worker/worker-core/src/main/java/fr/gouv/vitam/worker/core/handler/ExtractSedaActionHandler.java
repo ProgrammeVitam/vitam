@@ -520,9 +520,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void parseMetadataManagementRules(XMLEventReader reader, StartElement element, String currentRuleInProcess)
         throws ProcessingException {
         try {
-            final StringWriter stringWriterRule = new StringWriter();
+            StringWriter stringWriterRule = new StringWriter();
             final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
-            final XMLEventWriter xw =
+            XMLEventWriter xw =
                 xmlOutputFactory.createXMLEventWriter(stringWriterRule);
             final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
             String currentRuleId = null;
@@ -545,6 +545,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 if (event.isStartElement() &&
                     SedaConstants.TAG_RULE_RULE.equals(event.asStartElement().getName().getLocalPart())) {
+
+                    // A new rule was found => close the current stringWriterRule and add it to map
+                    if (currentRuleId != null) {
+                        mngtMdRuleIdToRulesXml.put(currentRuleId, stringWriterRule);
+                        stringWriterRule.close();
+                        xw.add(eventFactory.createEndDocument());
+
+                        // Start a new build of a stringWriterRule
+                        stringWriterRule = new StringWriter();
+                        xw = xmlOutputFactory.createXMLEventWriter(stringWriterRule);
+                        xw.add(eventFactory.createStartElement("", "", GLOBAL_MGT_RULE_TAG));
+                        xw.add(element);
+                    }
+
                     xw.add(event);
                     event = (XMLEvent) reader.next();
                     xw.add(event);
@@ -574,6 +588,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (unitIdToGuid == null) {
             return;
         }
+
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
@@ -583,23 +598,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final String unitGuid = element.getValue();
             final String unitId = element.getKey();
             boolean isRootArchive = true;
-            boolean mgtRulesAdded = false;
+            boolean hasMgtBloc = false;
+            boolean isGlobalMgtRulesAdded = false;
 
             // 1- Update created Unit life cycles
-            if (guidToLifeCycleParameters.get(unitGuid) != null) {
-                final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
-                llcp.setBeginningLog(HANDLER_ID, null, null);
-                handlerIO.getHelper().updateDelegate(llcp);
-                // TODO : add else case
-                if (!existingUnitGuids.contains(unitGuid)) {
-                    llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK, null);
-                    handlerIO.getHelper().updateDelegate(llcp);
-                }
-                llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
-                handlerIO.getHelper().updateDelegate(llcp);
-                logbookLifeCycleClient.bulkUpdateUnit(containerId,
-                    handlerIO.getHelper().removeUpdateDelegate(unitGuid));
-            }
+            addFinalStatusToUnitLifeCycle(unitGuid, containerId, logbookLifeCycleClient);
 
             // 2- Update temporary files
             final File unitTmpFileForRead = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + unitGuid);
@@ -612,123 +615,58 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.ROOT_TAG));
             boolean startCopy = false;
 
-            // management rules id to add
+            // Management rules id to add
             Set<String> globalMgtIdExtra = new HashSet<>();
             while (true) {
+
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement() && ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
                     startCopy = true;
                 }
 
                 if (startCopy) {
-                    if (event.isStartElement() &&
-                        ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart())) {
+                    boolean isArchiveUnitStarted = event.isStartElement() &&
+                        ARCHIVE_UNIT.equals(event.asStartElement().getName().getLocalPart());
 
-                        // add start work tag
-                        writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.WORK_TAG));
+                    boolean isArchiveUnitTagEnded = event.isEndElement() &&
+                        ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart());
 
-                        // Get parents list
-                        // Add _up tag
-                        writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.UP_FIELD));
-                        if (archiveUnitTree.has(unitId)) {
-                            final JsonNode archiveNode = archiveUnitTree.get(unitId);
-                            if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
-                                final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
-                                if (archiveUps.isArray() && archiveUps.size() > 0) {
-                                    writer.add(eventFactory.createCharacters(getUnitParents((ArrayNode) archiveUps)));
-                                    isRootArchive = false;
-                                }
-                            }
-                        }
-                        writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.UP_FIELD));
+                    boolean isMgtTagEnded = event.isEndElement() &&
+                        SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart());
 
-                        String listRulesForCurrentUnit = "";
-                        if (unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.containsKey(unitId)) {
-                            listRulesForCurrentUnit = getListOfRulesFormater(unitIdToSetOfRuleId.get(unitId));
-                        }
-                        String listRulesForAuRoot = "";
-                        if (isRootArchive) {
-                            // Add rules from global Management Data (only new
-                            // ones)
-                            if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
-                                globalMgtIdExtra.clear();
-                                globalMgtIdExtra.addAll(mngtMdRuleIdToRulesXml.keySet());
-                            }
+                    if (isArchiveUnitStarted) {
 
-                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
-                                unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.get(unitId) != null &&
-                                !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
-                                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
-                            }
+                        // Add Work informations first
+                        addWorkInformations(unitId, unitGuid, isRootArchive, archiveUnitTree, writer, eventFactory,
+                            globalMgtIdExtra);
 
-                            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
-                                listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
-                            }
+                    } else if (isArchiveUnitTagEnded || isMgtTagEnded) {
+
+                        if (isMgtTagEnded) {
+                            hasMgtBloc = true;
                         }
 
-                        final StringBuilder rules = new StringBuilder();
-                        if (!Strings.isNullOrEmpty(listRulesForCurrentUnit)) {
-                            rules.append(listRulesForCurrentUnit);
-                        }
-                        if (!Strings.isNullOrEmpty(listRulesForAuRoot)) {
-                            rules.append(listRulesForAuRoot);
-                        }
+                        boolean isMgtTagtoBeAdded =
+                            ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()) && !hasMgtBloc &&
+                                (isRootArchive && globalMgtIdExtra != null);
 
-                        if (!StringUtils.isBlank(rules)) {
-                            writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.RULES));
-                            writer.add(eventFactory.createCharacters(rules.toString()));
-                            writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.RULES));
-                        }
-
-                        if (existingUnitGuids.contains(unitGuid)) {
-                            writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.EXISTING_TAG));
-                            writer.add(eventFactory.createCharacters("true"));
-                            writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.EXISTING_TAG));
-                        }
-
-                        // add existing tag
-                        writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.WORK_TAG));
-                    } else if (event.isEndElement() &&
-                        (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart()) ||
-                            ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()))) {
-                        if (SedaConstants.TAG_MANAGEMENT.equals(((EndElement) event).getName().getLocalPart())) {
-                            mgtRulesAdded = true;
-                        }
-
-                        if (ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()) && !mgtRulesAdded &&
-                            (isRootArchive && globalMgtIdExtra != null)) {
+                        if (isMgtTagtoBeAdded) {
                             writer.add(eventFactory.createStartElement("", "", SedaConstants.TAG_MANAGEMENT));
                         }
-                        if (isRootArchive && globalMgtIdExtra != null) {
+
+                        if (isRootArchive && globalMgtIdExtra != null && !isGlobalMgtRulesAdded) {
+
+                            isGlobalMgtRulesAdded = true;
+
                             final XMLInputFactory inputFactory = XMLInputFactory.newInstance();
 
                             // Add inherited rules from Management bloc
-                            for (final String id : globalMgtIdExtra) {
-                                final StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(id);
-                                final StringReader stringReader = new StringReader(stringWriter.toString());
-                                final XMLEventReader xmlEventReaderRule = inputFactory
-                                    .createXMLEventReader(stringReader);
-                                boolean startCopyRule = false;
-                                while (true) {
-                                    final XMLEvent eventRule = xmlEventReaderRule.nextEvent();
-                                    if (eventRule.isStartElement() && GLOBAL_MGT_RULE_TAG
-                                        .equals(eventRule.asStartElement().getName().getLocalPart())) {
-                                        startCopyRule = true;
-                                        continue;
-                                    }
-
-                                    if (eventRule.isEndElement() && GLOBAL_MGT_RULE_TAG
-                                        .equals(eventRule.asEndElement().getName().getLocalPart())) {
-                                        break;
-                                    }
-                                    if (startCopyRule) {
-                                        writer.add(eventRule);
-                                    }
-                                }
+                            for (final String ruleId : globalMgtIdExtra) {
+                                appendGlobalMgtRule(inputFactory, ruleId, writer);
                             }
                         }
 
-                        if (ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()) && !mgtRulesAdded &&
+                        if (ARCHIVE_UNIT.equals(event.asEndElement().getName().getLocalPart()) && !hasMgtBloc &&
                             (isRootArchive && globalMgtIdExtra != null)) {
                             writer.add(eventFactory.createEndElement("", "", SedaConstants.TAG_MANAGEMENT));
                         }
@@ -758,6 +696,140 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
         }
+    }
+
+    private void appendGlobalMgtRule(XMLInputFactory inputFactory, String ruleId, XMLEventWriter writer)
+        throws XMLStreamException {
+        final StringWriter stringWriter = mngtMdRuleIdToRulesXml.get(ruleId);
+        final StringReader stringReader = new StringReader(stringWriter.toString());
+        final XMLEventReader xmlEventReaderRule = inputFactory
+            .createXMLEventReader(stringReader);
+        boolean startCopyRule = false;
+        while (true) {
+            final XMLEvent eventRule = xmlEventReaderRule.nextEvent();
+            if (eventRule.isStartElement() && GLOBAL_MGT_RULE_TAG
+                .equals(eventRule.asStartElement().getName().getLocalPart())) {
+                startCopyRule = true;
+                continue;
+            }
+
+            if (eventRule.isEndElement() && GLOBAL_MGT_RULE_TAG
+                .equals(eventRule.asEndElement().getName().getLocalPart())) {
+                break;
+            }
+            if (startCopyRule) {
+                writer.add(eventRule);
+            }
+        }
+    }
+
+    private void addWorkInformations(String unitId, String unitGuid, boolean isRootArchive, ObjectNode archiveUnitTree,
+        XMLEventWriter writer, XMLEventFactory eventFactory, Set<String> globalMgtIdExtra) throws XMLStreamException {
+
+        // add start work tag
+        writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.WORK_TAG));
+
+        // Get parents list
+        // Add _up tag
+        writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.UP_FIELD));
+        isRootArchive = addParentsToTmpFile(unitId, archiveUnitTree, writer, eventFactory);
+        writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.UP_FIELD));
+
+        // Determine rules to apply
+        globalMgtIdExtra.addAll(getMgtRulesToApplyByUnit(unitId, isRootArchive, writer, eventFactory));
+
+        if (existingUnitGuids.contains(unitGuid)) {
+            writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.EXISTING_TAG));
+            writer.add(eventFactory.createCharacters("true"));
+            writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.EXISTING_TAG));
+        }
+
+        // add existing tag
+        writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.WORK_TAG));
+    }
+
+    private void addFinalStatusToUnitLifeCycle(String unitGuid, String containerId,
+        LogbookLifeCyclesClient logbookLifeCycleClient)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        if (guidToLifeCycleParameters.get(unitGuid) != null) {
+            final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
+            llcp.setBeginningLog(HANDLER_ID, null, null);
+            handlerIO.getHelper().updateDelegate(llcp);
+            // TODO : add else case
+            if (!existingUnitGuids.contains(unitGuid)) {
+                llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK, null);
+                handlerIO.getHelper().updateDelegate(llcp);
+            }
+            llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
+            handlerIO.getHelper().updateDelegate(llcp);
+            logbookLifeCycleClient.bulkUpdateUnit(containerId,
+                handlerIO.getHelper().removeUpdateDelegate(unitGuid));
+        }
+    }
+
+    private boolean addParentsToTmpFile(String unitId, ObjectNode archiveUnitTree, XMLEventWriter writer,
+        XMLEventFactory eventFactory) throws XMLStreamException {
+
+        boolean isRootArchive = true;
+        if (archiveUnitTree.has(unitId)) {
+            final JsonNode archiveNode = archiveUnitTree.get(unitId);
+            if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
+                final JsonNode archiveUps = archiveNode.get(IngestWorkflowConstants.UP_FIELD);
+                if (archiveUps.isArray() && archiveUps.size() > 0) {
+                    writer.add(eventFactory.createCharacters(getUnitParents((ArrayNode) archiveUps)));
+                    isRootArchive = false;
+                }
+            }
+        }
+        
+        return isRootArchive;
+    }
+
+    private Set<String> getMgtRulesToApplyByUnit(String unitId, boolean isRootArchive, XMLEventWriter writer,
+        XMLEventFactory eventFactory) throws XMLStreamException {
+
+        String listRulesForCurrentUnit = "";
+        if (unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.containsKey(unitId)) {
+            listRulesForCurrentUnit = getListOfRulesFormater(unitIdToSetOfRuleId.get(unitId));
+        }
+
+        String listRulesForAuRoot = "";
+        Set<String> globalMgtIdExtra = new HashSet<>();
+
+        if (isRootArchive) {
+            // Add rules from global Management Data (only new
+            // ones)
+            if (mngtMdRuleIdToRulesXml != null && !mngtMdRuleIdToRulesXml.isEmpty()) {
+                globalMgtIdExtra.clear();
+                globalMgtIdExtra.addAll(mngtMdRuleIdToRulesXml.keySet());
+            }
+
+            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty() &&
+                unitIdToSetOfRuleId != null && unitIdToSetOfRuleId.get(unitId) != null &&
+                !unitIdToSetOfRuleId.get(unitId).isEmpty()) {
+                globalMgtIdExtra.removeAll(unitIdToSetOfRuleId.get(unitId));
+            }
+
+            if (globalMgtIdExtra != null && !globalMgtIdExtra.isEmpty()) {
+                listRulesForAuRoot = getListOfRulesFormater(globalMgtIdExtra);
+            }
+        }
+
+        final StringBuilder rules = new StringBuilder();
+        if (!Strings.isNullOrEmpty(listRulesForCurrentUnit)) {
+            rules.append(listRulesForCurrentUnit);
+        }
+        if (!Strings.isNullOrEmpty(listRulesForAuRoot)) {
+            rules.append(listRulesForAuRoot);
+        }
+
+        if (!StringUtils.isBlank(rules)) {
+            writer.add(eventFactory.createStartElement("", "", IngestWorkflowConstants.RULES));
+            writer.add(eventFactory.createCharacters(rules.toString()));
+            writer.add(eventFactory.createEndElement("", "", IngestWorkflowConstants.RULES));
+        }
+
+        return globalMgtIdExtra;
     }
 
     private String getListOfRulesFormater(Set<String> rulesId) {
