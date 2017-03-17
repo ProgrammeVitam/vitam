@@ -189,7 +189,10 @@ public class AccessStep {
     @When("^j'utilise le fichier de requête suivant (.*)$")
     public void i_use_the_following_file_query(String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
-        this.query = FileUtil.readFile(queryFile.toFile()).replace(OPERATION_ID, world.getOperationId());
+        this.query = FileUtil.readFile(queryFile.toFile());
+        if (world.getOperationId() != null) {
+            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+        }
     }
 
     /**
@@ -200,7 +203,10 @@ public class AccessStep {
      */
     @When("^j'utilise la requête suivante$")
     public void i_use_the_following_query(String query) throws Throwable {
-        this.query = query.replace(OPERATION_ID, world.getOperationId());
+        this.query = query;
+        if (world.getOperationId() != null) {
+            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+        }
     }
 
     /**
@@ -242,6 +248,7 @@ public class AccessStep {
 
     /**
      * search an accession register detail according to the originating agency and the query define before
+     * 
      * @param originatingAgency originating agency
      * 
      * @throws Throwable
