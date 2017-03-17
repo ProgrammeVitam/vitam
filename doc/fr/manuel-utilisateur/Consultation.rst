@@ -293,8 +293,9 @@ Pour chaque entrée, les informations suivantes sont affichées :
 
 - Identifiant de l'opération attribué par la solution logicielle VITAM (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
+- Contrat correspondant au contrat d'entrée appliqué lors du versement du SIP
 - Date d'entrée
-- nombre d'unités archivistiques
+- Nombre d'unités archivistiques
 
   - Total : Nombre d'unités archivistiques entrées dans le système
   - Supprimé : Nombre d'unités archivistiques supprimées du système
