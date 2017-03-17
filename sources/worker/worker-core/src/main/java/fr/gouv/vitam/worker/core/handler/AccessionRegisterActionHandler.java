@@ -217,6 +217,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setId(params.getContainerName())
             .setOriginatingAgency(originalAgency)
             .setSubmissionAgency(submissionAgency)
+            .setArchivalAgreement(archivalAgreement)
             .setEndDate(updateDate)
             .setLastUpdate(updateDate)
             .setStartDate(updateDate)

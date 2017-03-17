@@ -186,10 +186,10 @@ public class AccessStep {
      * @param queryFilename name of the file containing the query
      * @throws Throwable
      */
-    @When("^j'utilise le fichier de requête suivant$")
+    @When("^j'utilise le fichier de requête suivant (.*)$")
     public void i_use_the_following_file_query(String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
-        this.query = FileUtil.readFile(queryFile.toFile());
+        this.query = FileUtil.readFile(queryFile.toFile()).replace(OPERATION_ID, world.getOperationId());
     }
 
     /**
@@ -218,6 +218,45 @@ public class AccessStep {
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+    /**
+     * search logbook operations according to the query define before
+     * 
+     * @throws Throwable
+     */
+    @When("^je recherche les journaux d'opération$")
+    public void search_logbook_operation() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().selectOperation(queryJSON, world.getTenantId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectOperation return an error: " + vitamError.getCode());
+        }
+    }
+
+    /**
+     * search an accession register detail according to the originating agency and the query define before
+     * @param originatingAgency originating agency
+     * 
+     * @throws Throwable
+     */
+    @When("^je recherche les détails des registres de fond pour le service producteur (.*)$")
+    public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().getAccessionRegisterDetail(originatingAgency, queryJSON, world.getTenantId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectOperation return an error: " + vitamError.getCode());
         }
     }
 
