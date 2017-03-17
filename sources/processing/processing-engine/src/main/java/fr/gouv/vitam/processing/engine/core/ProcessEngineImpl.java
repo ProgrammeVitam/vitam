@@ -419,7 +419,9 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
 
             parameters.putParameterValue(LogbookParameterName.eventIdentifier,
                 GUIDFactory.newEventGUID(tenantId).getId());
-            parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
+            parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());           
+            parameters.putParameterValue(
+                LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus()));            
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
             helper.updateDelegate(parameters);

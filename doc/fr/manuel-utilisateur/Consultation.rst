@@ -121,6 +121,8 @@ Si des règles de gestions s'appliquent à l'unité, alors celles ci sont listé
 - Sort final : optionnel, dans le cas où la règle possède un sort final
 - Héritée : indique si la règle est héritée d'un de ses parents (oui) ou si la règle est déclarée directement dans cette unité (non)
 
+Lorsqu'une règle est bloquée, au travers des mécanismes de blocages totaux ou partiels, par une unité archivistique située en amont dans l'arborescence, elle n'apparaît naturellement pas dans les unités situées en dessous.
+
 .. image:: images/detail_regle_gestion.png
 
 Si des objets sont disponibles, le bloc "Groupe d'Objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées.
@@ -291,8 +293,9 @@ Pour chaque entrée, les informations suivantes sont affichées :
 
 - Identifiant de l'opération attribué par la solution logicielle VITAM (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
+- Contrat correspondant au contrat d'entrée appliqué lors du versement du SIP
 - Date d'entrée
-- nombre d'unités archivistiques
+- Nombre d'unités archivistiques
 
   - Total : Nombre d'unités archivistiques entrées dans le système
   - Supprimé : Nombre d'unités archivistiques supprimées du système
