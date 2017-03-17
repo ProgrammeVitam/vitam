@@ -648,6 +648,38 @@ Map<String, String> objectGuidToUri
 
 sauvegarde des maps (binaryDataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
 
+
+4.6.3 Vérifier les ArchiveUnit du SIP
+=========================================
+Dans les cas où le SIP contient un objet numérique référencé par un groupe d'objet et qu'une unité archiviste
+référence cet objet directement (au lieu de déclarer le GOT), le résultat attendu est un statut KO au niveau de 
+l'étape STP_INGEST_CONTROL_SIP dans l'action CHECK_MANIFEST. Ce contrôle est effectué dans la fonction 
+checkArchiveUnitIdReference de ExtractSedaHandler.
+
+Pour ce cas, le map unitIdToGroupId contient une référence entre un unitId et groupId et ce groupId est l'id de l'objet numérique.  
+Dans le objectGroupIdToGuid, il n'existe pas de lien entre id de groupe d'objet et son guid (parce que c'est un id d'object
+numérique).
+
+On vérifie la valeur des groupIds récupérés dans binaryDataObjectIdToObjectGroupId et unitIdToGroupId. Si ils sont différents,
+il s'agit du cas abordé ci-dessus, sinon c'est celui des objects numériques sans groupe d'objet technique. Enfin, l'exception
+ArchiveUnitContainBinaryDataObjectException est déclenchée pour ExtractSeda et dans cette étape, le status KO est mise à jour 
+pour l'exécution de l'étape.
+
+L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
+	
+	Si (map unitIdToGroupId contient des valeurs)    
+		Pour (chaque élement ELEM du map unitIdToGroupId)
+			Si (la valeur guid de groupe d'object dans objectGroupIdToGuid associé à ELEM) // archiveUnit reference par BDO
+				Prendre la valeur groupId dans le maps binaryDataObjectIdToObjectGroupId associé à groupId d'ELEM
+				Si cette groupId est NULLE // ArchiveUnit réferencé BDO mais il n'existe pas un lien BDO à groupe d'objet 
+					Délencher l'exception ProcessingException					
+				Autrement
+					Si (cette groupId est différente grouId associé à ELEM)
+						Délencher l'exception ArchiveUnitContainBinaryDataObjectException
+				Fin Si
+			Fin Si
+		Fin Pour		
+
 4.7 Détail du handler : IndexObjectGroupActionHandler
 -----------------------------------------------------
 
