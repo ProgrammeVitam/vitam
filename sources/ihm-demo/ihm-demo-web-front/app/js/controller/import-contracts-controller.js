@@ -58,7 +58,7 @@ angular.module('ihm.demo')
     		var confirm = $mdDialog.confirm()
     			.title('Les contrats ont bien été importés')
     			.ok("Fermer");
-    		$mdDialog.show(confirm);
+    		$mdDialog.show(confirm).then(function(){ $route.reload() });
     	}
     };
 
@@ -68,8 +68,8 @@ angular.module('ihm.demo')
     		var confirm = $mdDialog.confirm()
     		            	.title('Echec de l\'import du fichier.')
     		            	.ok("Fermer");
-    		    		$mdDialog.show(confirm)
-    	}
+    		$mdDialog.show(confirm).then(function(){ $route.reload()});
+       }
     };
 
     $scope.uploadAction = function() {
