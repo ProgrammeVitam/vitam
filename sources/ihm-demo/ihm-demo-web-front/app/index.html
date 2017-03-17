@@ -158,40 +158,42 @@
 
       <div id="navbar" class="navbar-collapse collapse" ng-if="session.status=='logged'">
         <ul class="nav navbar-nav">
-          <li class="@@mainMenu1 dropdown">
+          <li class="@@mainMenu1 dropdown" ng-show="hasPermission('ingest:create') || hasPermission('logbook:operations:read')">
             <button class="block dropdown-toggle" data-toggle="dropdown">
               <i class="material-icons pull-left">cloud_queue</i>
               <span class="pull-left m-l-10">Entrée</span>
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
-              <li><a tabindex="-1" href="#!/uploadSIP">Transfert</a></li>
-              <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrée</a></li>
+              <li><a tabindex="-1" href="#!/uploadSIP" ng-show="hasPermission('ingest:create')">Transfert</a></li>
+              <li><a href="#!/admin/logbookOperations" ng-show="hasPermission('logbook:operations:read')">Suivi des opérations d'entrée</a></li>
             </ul>
           </li>
-          <li class="@@mainMenu2 dropdown">
+          <li class="@@mainMenu2 dropdown" >
             <button class="block dropdown-toggle" data-toggle="dropdown">
               <i class="material-icons pull-left">search</i>
               <span class="pull-left m-l-10">Recherche</span>
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="Recherche">
-                <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
-                <li><a href="#!/accessionRegister/search">Registre des fonds</a></li>
+                <li><a href="#!/archiveSearch" ng-show="hasPermission('archivesearch:units:read')">Recherche d'archives</a></li>
+                <li><a href="#!/accessionRegister/search" ng-show="hasPermission('admin:accession-register:read')">Registre des fonds</a></li>
             </ul>
           </li>
-          <li class="@@mainMenu3 dropdown">
+          <li class="@@mainMenu3 dropdown" ng-show="hasPermission('admin:rules:read') || hasPermission('admin:formats:read') ||
+                hasPermission('logbook:operations:read') || hasPermission('operations:read') ||
+                hasPermission('rules:create') || hasPermission('format:create') ">
             <button class="block dropdown-toggle" data-toggle="dropdown">
               <i class="material-icons pull-left">access_time</i>
               <span class="pull-left m-l-10">Administration</span>
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="AdminFonctionnelle">
-              <li><a href="#!/admin/rules">Référentiel des règles de gestion</a></li>
-              <li><a href="#!/admin/formats">Référentiel des formats</a></li>
-              <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
-              <li><a href="#!/admin/workflows">Gestion des versements</a></li>
-              <li class="divider"></li>
-              <li><a href="#!/admin/importFileRules">Import du Référentiel des Règles de gestion</a></li>
-              <li><a href="#!/admin/importPronoun">Import du Référentiel des formats</a></li>
-              <li><a href="#!/admin/importContracts">Import des contrats</a></li>
+              <li><a href="#!/admin/rules" ng-show="hasPermission('admin:rules:read')">Référentiel des règles de gestion</a></li>
+              <li><a href="#!/admin/formats" ng-show="hasPermission('admin:formats:read')">Référentiel des formats</a></li>
+              <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
+              <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
+              <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
+              <li><a href="#!/admin/importFileRules" ng-show="hasPermission('rules:create')">Import du Référentiel des Règles de gestion</a></li>
+              <li><a href="#!/admin/importPronoun" ng-show="hasPermission('format:create')">Import du Référentiel des formats</a></li>
+              <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats</a></li>
             </ul>
           </li>
           <li class="@@mainMenu2">
@@ -202,6 +204,9 @@
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown" style ="padding-top: 25px" ng-show="user">
+            {{user.userName}} (tenant : {{user.tenantId}})
+          </li>
           <li class="dropdown">
             <button class="block dropdown-toggle" data-toggle="dropdown">
               <i class="material-icons">settings</i>

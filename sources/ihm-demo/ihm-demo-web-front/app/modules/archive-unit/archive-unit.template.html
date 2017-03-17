@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="text-right">
-        <button ng-if="!$ctrl.isEditMode" data-parent="#boxContractsList" ng-click="$ctrl.switchToEditMode()">
+        <button ng-if="!$ctrl.isEditMode" data-parent="#boxContractsList" ng-click="$ctrl.switchToEditMode()" ng-show="hasPermission('archiveupdate:units:update')">
           <i class="material-icons pull-left">create</i>
           <span>Modifier</span>
         </button>

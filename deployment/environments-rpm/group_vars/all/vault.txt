@@ -15,13 +15,17 @@
 #  - vitam_uuser:
 #    login: uuser
 #    password: uuser1234
+#    role: user
 #  - vitam_aadmin:
 #    login: aadmin
 #    password: aadmin1234
+#    role: admin
 #  - vitam_gguest:
 #    login: gguest
 #    password: gguest1234
+#    role: guest
 #  - techadmin:
 #    login: techadmin
 #    password: techadmin1234
+#    role: admin
 #

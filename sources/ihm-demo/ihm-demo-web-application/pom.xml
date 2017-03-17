@@ -55,6 +55,12 @@
 			<artifactId>jetty-webapp</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.secnod.shiro</groupId>
+			<artifactId>shiro-jersey</artifactId>
+			<version>0.2.0</version>
+		</dependency>
+
 		<!-- Servlet API -->
 		<dependency>
 			<groupId>javax.servlet</groupId>

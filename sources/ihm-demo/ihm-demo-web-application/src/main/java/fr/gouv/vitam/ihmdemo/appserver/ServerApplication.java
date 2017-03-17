@@ -32,9 +32,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.servlet.DispatcherType;
 
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
@@ -48,6 +51,9 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
+import org.secnod.shiro.jersey.AuthInjectionBinder;
+import org.secnod.shiro.jersey.AuthorizationFilterFeature;
+import org.secnod.shiro.jersey.SubjectFactory;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -59,6 +65,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 
 /**
  * Server application for ihm-demo
@@ -186,6 +193,12 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-        resourceConfig.register(new WebApplicationResource(getConfiguration()));
+        Set<String> permissions =
+            PermissionReader.getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
+        resourceConfig.register(new WebApplicationResource(getConfiguration(), permissions))
+            .register(new AuthorizationFilterFeature())
+            .register(new SubjectFactory())
+            .register(new AuthInjectionBinder());
     }
+
 }

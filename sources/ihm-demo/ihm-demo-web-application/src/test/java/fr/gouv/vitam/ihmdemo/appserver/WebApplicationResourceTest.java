@@ -45,12 +45,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -63,6 +66,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.secnod.shiro.jersey.AuthInjectionBinder;
+import org.secnod.shiro.jersey.AuthorizationFilterFeature;
+import org.secnod.shiro.jersey.SubjectFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -89,6 +95,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
+import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -148,7 +155,14 @@ public class WebApplicationResourceTest {
                 .setSecure(false)
                 .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath())
                 .setJettyConfig(JETTY_CONFIG).setTenants(tenants);
-        application = new ServerApplication(webApplicationConfig);
+        application = new ServerApplication(webApplicationConfig) {
+            @Override
+            protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+                Set<String> permissions =
+                    PermissionReader.getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
+                resourceConfig.register(new WebApplicationResource(getConfiguration(), permissions));
+            }
+        };
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";

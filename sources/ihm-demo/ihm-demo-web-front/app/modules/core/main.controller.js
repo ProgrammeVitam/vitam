@@ -42,6 +42,13 @@ angular.module('core')
       $scope.tenantId = '' + $scope.tenants[0];
     });
 
+    $rootScope.hasPermission = function(permission) {
+        console.log(permission);
+        console.log($rootScope.user.permissions);
+        console.log($rootScope.user.permissions.indexOf(permission));
+        return $rootScope.user.permissions.indexOf(permission) > -1;
+    };
+
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       $scope.session.status = authVitamService.isConnect('userCredentials');
       if (!angular.isUndefined(next.$$route) && !angular.isUndefined(next.$$route.title)) {
@@ -81,6 +88,11 @@ angular.module('core')
           authVitamService.createCookie(authVitamService.COOKIE_TENANT_ID, tenantId || 0);
           $scope.session.status = 'logged';
           $scope.logginError = false;
+          $rootScope.user = {
+              userName: res.userName,
+              tenantId: tenantId,
+              permissions: res.permissions
+          };
           if (authVitamService.url && authVitamService.url != '') {
             $location.path(authVitamService.url);
             delete authVitamService.url;
@@ -98,6 +110,9 @@ angular.module('core')
     $scope.logoutUser = function() {
       subject.logout();
       $scope.session.status = 'notlogged';
+
+      delete $rootScope.user;
+
       delete authVitamService.url;
       authVitamService.logout().then(function(res) {
         $location.path('/login');

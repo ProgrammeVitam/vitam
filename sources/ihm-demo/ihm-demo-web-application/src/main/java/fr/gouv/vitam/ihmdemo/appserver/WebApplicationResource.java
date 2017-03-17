@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -62,6 +63,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 
@@ -108,6 +110,7 @@ import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
+import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -146,14 +149,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private final WebApplicationConfig webApplicationConfig;
 
+    private final Set<String> permissions;
+
     /**
      * Constructor
-     * 
-     * @param webApplicationConfig the web server ihm-demo configuration 
+     *
+     * @param webApplicationConfig the web server ihm-demo configuration
+     * @param permissions list of permissions
      */
-    public WebApplicationResource(WebApplicationConfig webApplicationConfig) {
+    public WebApplicationResource(WebApplicationConfig webApplicationConfig, Set<String> permissions) {
         super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
         this.webApplicationConfig = webApplicationConfig;
+        this.permissions = permissions;
     }
 
     /**
@@ -164,6 +171,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/messages/logbook")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("messages:logbook:read")
     public Response getLogbookMessages() {
         // TODO P0 : If translation key could be the same in different
         // .properties file, MUST add an unique prefix per
@@ -180,6 +188,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/archivesearch/units")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archivesearch:units:read")
     public Response getArchiveSearchResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String criteria) {
 
@@ -249,7 +258,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/archivesearch/unit/{id}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archivesearch:units:read")
     public Response getArchiveUnitDetails(@Context HttpHeaders headers, @PathParam("id") String unitId) {
+
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
@@ -287,6 +298,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/logbook/operations")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("logbook:operations:read")
     public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
 
@@ -358,6 +370,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/logbook/operations/{idOperation}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("logbook:operations:read")
     public Response getLogbookResultById(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
         String options) {
         RequestResponse result = null;
@@ -403,6 +416,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("ingest:create")
     public Response upload(@Context HttpServletRequest request, @Context HttpServletResponse response,
         @Context HttpHeaders headers, InputStream stream) {
         String operationGuidFirstLevel = null;
@@ -548,6 +562,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("check/{id_op}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("check:read")
     public Response checkUploadOperation(@PathParam("id_op") String operationId) {
         // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
         // dont call VITAM backend) ?
@@ -580,6 +595,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     @Path("clear/{id_op}")
     @GET
+    @RequiresPermissions("clear:delete")
     public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
         // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
         // dont call VITAM backend) ?
@@ -611,6 +627,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveupdate/units/{id}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveupdate:units:update")
     public Response updateArchiveUnitDetails(@Context HttpHeaders headers, @PathParam("id") String unitId,
         String updateSet) {
         try {
@@ -664,6 +681,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/formats")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:formats:read")
     public Response getFileFormats(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
 
@@ -737,6 +755,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/formats/{idFormat}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:formats:read")
     public Response getFormatById(@Context HttpHeaders headers, @PathParam("idFormat") String formatId,
         String options) {
         RequestResponse result = null;
@@ -771,6 +790,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/format/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("format:check")
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
@@ -802,6 +822,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/format/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("format:create")
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
@@ -831,6 +852,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/archiveunit/objects/{idOG}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveunit:objects:read")
     public Response getArchiveObjectGroup(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupId);
         try {
@@ -871,11 +893,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param filename additional mandatory parameters filename
      * @param tenantId the tenant id
      * @param asyncResponse will return the inputstream
-     *
      */
     @GET
     @Path("/archiveunit/objects/download/{idOG}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("archiveunit:objects:read")
     public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId,
         @QueryParam("usage") String usage, @QueryParam("version") String version,
         @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId,
@@ -896,6 +918,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{idObject}/{type}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("ingests:read")
     public void getObjectFromStorageAsInputStreamAsync(@Context HttpHeaders headers,
         @PathParam("idObject") String objectId, @PathParam("type") String type,
         @Suspended final AsyncResponse asyncResponse) {
@@ -978,6 +1001,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/rules")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:rules:read")
     public Response getFileRules(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
 
@@ -1051,6 +1075,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/rules/{id_rule}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:rules:read")
     public Response getRuleById(@Context HttpHeaders headers, @PathParam("id_rule") String ruleId, String options) {
         RequestResponse result = null;
 
@@ -1084,6 +1109,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/rules/check")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("rules:create")
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
@@ -1112,6 +1138,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/rules/upload")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("rules:create")
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
@@ -1140,6 +1167,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/accession-register")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:accession-register:read")
     public Response getAccessionRegister(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
 
@@ -1207,6 +1235,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/admin/accession-register/{id}/accession-register-detail")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("admin:accession-register:read")
     public Response getAccessionRegisterDetail(@Context HttpHeaders headers, @PathParam("id") String id,
         String options) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
@@ -1240,6 +1269,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveunit/tree/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("archiveunit:tree:read")
     public Response getUnitTree(@Context HttpHeaders headers, @PathParam("id") String unitId, String allParents) {
 
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
@@ -1313,7 +1343,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        return Response.status(Status.OK).build();
+        List<String> permissionsByUser = PermissionReader.filterPermission(permissions, subject);
+
+        return Response.status(Status.OK).entity(new LoginModel(username, permissionsByUser)).build();
     }
 
     /**
@@ -1326,6 +1358,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("unitlifecycles:read")
     public Response getUnitLifeCycleById(@Context HttpHeaders headers, @PathParam("id_lc") String unitLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         RequestResponse result = null;
@@ -1354,6 +1387,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("objectgrouplifecycles:read")
     public Response getObjectGroupLifeCycleById(@Context HttpHeaders headers,
         @PathParam("id_lc") String objectGroupLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupLifeCycleId);
@@ -1377,13 +1411,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Get the workflow operations list for step by step ingest
-     * 
+     *
      * @param headers request headers
      * @return the operations list
      */
     @GET
     @Path("/operations")
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("operations:read")
     public Response listOperationsDetails(@Context HttpHeaders headers) {
         Response response = null;
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
@@ -1401,14 +1436,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
-     * @param asyncResponse asyncResponse
      * @return http response
      */
     @Path("operations/{id}")
     @PUT
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("operations:update")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         Response response = null;
         ParametersChecker.checkParameter("ACTION Request must not be null",
@@ -1468,6 +1502,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     @DELETE
     @Path("/operations/{id}")
+    @RequiresPermissions("operations:delete")
     public Response cancelProcess(@Context HttpHeaders headers, @PathParam("id") String id) {
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
@@ -1502,6 +1537,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/contracts")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:create")
     public Response uploadRefContracts(@Context HttpHeaders headers, InputStream input) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
