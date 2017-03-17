@@ -41,7 +41,6 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;
@@ -68,11 +67,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 
 /**
@@ -106,9 +103,8 @@ public class MetaDataImpl implements MetaData {
      * Get a new MetaDataImpl instance
      *
      * @param configuration of mongoDB access
-     * @param mongoDbAccessFactory
+     * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata 
      * @return a new instance of MetaDataImpl
-     * @throws IllegalArgumentException if mongoDbAccessFactory is null
      */
     public static MetaData newMetadata(MetaDataConfiguration configuration,
         MongoDbAccessMetadataFactory mongoDbAccessFactory) {

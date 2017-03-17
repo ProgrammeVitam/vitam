@@ -135,14 +135,14 @@ public class FileFormat extends VitamDocument<FileFormat> {
     }
 
     /**
-     * @param content
+     * @param content in format JsonNode to create
      */
     public FileFormat(JsonNode content) {
         super(content);
     }
 
     /**
-     * @param content
+     * @param content in format String to create
      */
     public FileFormat(String content) {
         super(content);

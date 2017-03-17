@@ -84,7 +84,7 @@ public class IngestContractModel {
     }
 
     /**
-     * @param id
+     * @param id value to set field
      * @return this
      */
     public IngestContractModel setId(String id) {
@@ -100,7 +100,7 @@ public class IngestContractModel {
     }
 
     /**
-     * @param tenant
+     * @param tenant value to set working tenant
      * @return this
      */
     public IngestContractModel setTenant(long tenant) {
@@ -109,8 +109,8 @@ public class IngestContractModel {
     }
 
     /**
-     * Name of the contract
-     * @return
+     * Get name of the contract
+     * @return name as String
      */
     public String getName() {
     	return this.name;
@@ -118,8 +118,8 @@ public class IngestContractModel {
 
     /**
      * Set or change the contract name
-     * @param name
-     * @return
+     * @param name as String to set
+     * @return this
      */
     public IngestContractModel setName(String name) {
         this.name = name;
@@ -128,7 +128,7 @@ public class IngestContractModel {
 
     /**
      * Get the contract description
-     * @return
+     * @return description of contract
      */
     public String getDescription() {
         return this.description;
@@ -136,8 +136,8 @@ public class IngestContractModel {
 
     /**
      * Set or change the contract description
-     * @param description
-     * @return
+     * @param description to set
+     * @return this
      */
     public IngestContractModel setDescription(String description) {
         this.description = description;
@@ -147,7 +147,7 @@ public class IngestContractModel {
         
     /**
      * Get the contract status
-     * @return
+     * @return status of contract
      */
     public String getStatus() {
         return this.status;
@@ -156,45 +156,73 @@ public class IngestContractModel {
 
     /**
      * Set or change the contract status
-     * @param status
-     * @return
+     * @param status toi set
+     * @return this
      */
     public IngestContractModel setStatus(String status) {
         this.status = status;
     	return this;
     }
 
+    /**
+     * @return the creation date of contract
+     */
     public String getCreationdate() {
         return this.creationdate;
     }
 
+    /**
+     * @param creationdate to set
+     * @return this
+     */
     public IngestContractModel setCreationdate(String creationdate) {
         this.creationdate = creationdate;
     	return this;
     }
 
+    /**
+     * @return last update of contract
+     */
     public String getLastupdate() {
     	return this.lastupdate;
     }
 
+    /**
+     * @param lastupdate to set
+     * @return this
+     */
     public IngestContractModel setLastupdate(String lastupdate) {
         this.lastupdate = lastupdate;
     	return this;
     }
 
+    /**
+     * @return the activation date of contracr
+     */
     public String getActivationdate() {
     	return this.activationdate;
     }
 
+    /**
+     * @param activationdate to set
+     * @return this
+     */
     public IngestContractModel setActivationdate(String activationdate) {
     	this.activationdate = activationdate;
     	return this;
     }
 
+    /**
+     * @return the desactivation date of contract
+     */
     public String getDeactivationdate() {
     	return this.deactivationdate;
     }
 
+    /**
+     * @param deactivationdate to set
+     * @return this
+     */
     public IngestContractModel setDeactivationdate(String deactivationdate) {
     	this.deactivationdate = activationdate;
     	return this;

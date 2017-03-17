@@ -169,12 +169,24 @@ public enum OutcomeMessage {
      */
     CHECK_BDO_KO("Echec de la vérification de l'emprunte de l'objet"),
 
+    /**
+     * Check Digest
+     */
     CHECK_DIGEST("Digest Check, Vérification de l'empreinte des objets"),
 
+    /**
+     * Check Digest OK
+     */
     CHECK_DIGEST_OK("Succès de la vérification de l'empreinte"),
 
+    /**
+     * Check Digest KO
+     */
     CHECK_DIGEST_KO("Échec de la vérification de l'empreinte"),
 
+    /**
+     * Check Digest Start
+     */
     CHECK_DIGEST_STARTED("Début de la vérification de l'empreinte"),
 
     /**

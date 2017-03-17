@@ -81,7 +81,7 @@ public class ParameterHelper {
     /**
      * Check parameters emptiness or nullity
      *
-     * @param parameters
+     * @param parameters the template of vitam parameter
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
     @SuppressWarnings({"rawtypes", "unchecked"})

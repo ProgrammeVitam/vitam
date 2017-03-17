@@ -104,6 +104,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class LogbookResource extends ApplicationStatusResource {
     private static final int MAX_NB_PART_ITERATOR = 100;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
+    /**
+     * alias host
+     */
     public static final String CERTIFICATE_ALIAS = "localhost";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
@@ -116,7 +119,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Constructor
      *
-     * @param configuration
+     * @param configuration of type LogbookConfiguration
      */
     public LogbookResource(LogbookConfiguration configuration) {
         if (configuration.isDbAuthentication()) {
@@ -752,7 +755,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Lifecycle Unit Bulk Create
      *
-     * @param idOp
+     * @param idOp the operation id
      * @param array Lifecycle Unit Logbooks as ArrayNode
      * @return Response of CREATED
      */
@@ -795,7 +798,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Update Lifecycle With Bulk Mode
      *
-     * @param idOp
+     * @param idOp the operation id
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
      * @return Response with a status of OK if updated
      */
@@ -830,7 +833,7 @@ public class LogbookResource extends ApplicationStatusResource {
      *
      * @param unitLifeCycleId the unit life cycle id
      * @param evtStatus the lifeCycle Status that we are looking for : COMMITTED or IN_PROCESS
-     * @param queryDsl
+     * @param queryDsl the query to get unit lfc
      * @return the unit life cycle
      */
     @GET
@@ -1278,7 +1281,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Lifecycle ObjectGroup Bulk Create
      *
-     * @param idOp
+     * @param idOp the operation id
      * @param array Lifecycle ObjectGroup Logbooks as ArrayNode
      * @return Response of CREATED
      */
@@ -1321,7 +1324,7 @@ public class LogbookResource extends ApplicationStatusResource {
     /**
      * Update Lifecycle ObjectGroup With Bulk Mode
      *
-     * @param idOp
+     * @param idOp the operation id
      * @param arrayNodeLifecycle as ArrayNode of operations to add to existing Lifecycle Logbook entry
      * @return Response with a status of OK if updated
      */

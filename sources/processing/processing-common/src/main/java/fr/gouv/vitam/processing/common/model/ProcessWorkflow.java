@@ -209,10 +209,17 @@ public class ProcessWorkflow {
         return this;
     }
 
+    /**
+     * @return the tenant
+     */
     public Integer getTenantId() {
         return tenantId;
     }
 
+    /**
+     * @param tenantId to set
+     * @return this
+     */
     public ProcessWorkflow setTenantId(Integer tenantId) {
         this.tenantId = tenantId;
         return this;

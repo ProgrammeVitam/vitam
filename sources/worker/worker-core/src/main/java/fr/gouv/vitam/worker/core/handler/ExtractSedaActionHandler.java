@@ -299,9 +299,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param params parameters of workspace server
-     * @param globalCompositeItemStatus
+     * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
-     * @throws CycleFoundException
+     * @throws CycleFoundException when a cycle is found in data extract
      */
     public ObjectNode extractSEDA(WorkerParameters params, ItemStatus globalCompositeItemStatus)
         throws ProcessingException, CycleFoundException {

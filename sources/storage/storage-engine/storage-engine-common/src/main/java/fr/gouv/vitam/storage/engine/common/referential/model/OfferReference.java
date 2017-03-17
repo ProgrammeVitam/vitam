@@ -45,7 +45,7 @@ public class OfferReference {
     }
 
     /**
-     * @param id
+     * @param id of {@link OfferReference}
      */
     public void setId(String id) {
         this.id = id;

@@ -97,8 +97,8 @@ public class SelectParserSingle extends RequestParserSingle {
      * </pre>
      *
      * @param condition the condition to add
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException when invalid create query exception occurred
+     * @throws InvalidParseOperationException hen invalid parse data to create query
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final SelectParserSingle newOne = new SelectParserSingle(adapter);

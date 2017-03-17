@@ -69,7 +69,7 @@ public enum ProcessAction {
 
     /**
      * 
-     * @return value
+     * @return value of process workflow in String format
      */
     public String getValue() {
         return this.value;
@@ -78,7 +78,7 @@ public enum ProcessAction {
     /**
      * Returns Enum from value
      * 
-     * @param value
+     * @param value of process workflow in String format
      * @return ProcessAction
      */
     public static ProcessAction getProcessAction(String value) {

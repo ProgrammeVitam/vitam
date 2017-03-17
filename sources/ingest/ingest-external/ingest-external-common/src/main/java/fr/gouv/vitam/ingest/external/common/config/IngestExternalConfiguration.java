@@ -53,7 +53,7 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     }
 
     /**
-     * @param path
+     * @param path to set to configuration  
      * @return IngestExternalConfiguration
      */
     public IngestExternalConfiguration setPath(String path) {
@@ -86,7 +86,7 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     }
 
     /**
-     * @param antiVirusScriptName
+     * @param antiVirusScriptName the antivirus script name to set
      * @return IngestExternalConfiguration
      */
     public IngestExternalConfiguration setAntiVirusScriptName(String antiVirusScriptName) {
@@ -102,7 +102,7 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     }
 
     /**
-     * @param timeoutScanDelay
+     * @param timeoutScanDelay set to configuration
      * @return IngestExternalConfiguration
      */
     public IngestExternalConfiguration setTimeoutScanDelay(long timeoutScanDelay) {

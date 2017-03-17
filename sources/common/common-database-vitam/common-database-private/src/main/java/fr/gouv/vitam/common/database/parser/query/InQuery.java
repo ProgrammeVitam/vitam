@@ -42,8 +42,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * In and Nin queries
  *
- *
- *
  */
 public class InQuery extends fr.gouv.vitam.common.database.builder.query.InQuery {
     /**

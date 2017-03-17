@@ -65,14 +65,14 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
     /**
      * Constructor
      *
-     * @param dbConfiguration
+     * @param dbConfiguration the mongo access configuration
      */
     public ReferentialAccessionRegisterImpl(MongoDbAccessAdminImpl dbConfiguration) {
         mongoAccess = dbConfiguration;
     }
 
     /**
-     * @param registerDetail
+     * @param registerDetail to create in Mongodb
      * @throws ReferentialException throws when insert mongodb error
      */
     public void createOrUpdateAccessionRegister(AccessionRegisterDetail registerDetail)

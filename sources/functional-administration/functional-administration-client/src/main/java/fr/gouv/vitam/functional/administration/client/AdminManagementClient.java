@@ -90,8 +90,8 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Check if rule file is well formated
      * 
-     * @param stream
-     * @return
+     * @param stream rule file inputstream to check 
+     * @return Response
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
      */
@@ -100,7 +100,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Import a the set of rules for a given tenant
      * 
-     * @param stream
+     * @param stream rule file inputstream to import
      * @return the response to the request
      * @throws FileRulesException when file rules exception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
@@ -123,12 +123,12 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * List the rules that match the query
      * 
-     * @param query
+     * @param query to get rule
      * @return Rules in JsonNode format
      * @throws FileRulesException when file rules exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      * @throws IOException when IO Exception occurs
-     * @throws AdminManagementClientServerException
+     * @throws AdminManagementClientServerException when admin management resources not found
      */
     JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
@@ -138,7 +138,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param register AccessionRegisterDetail
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
-     * @throws AdminManagementClientServerException
+     * @throws AdminManagementClientServerException when  
      */
     void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
@@ -146,8 +146,8 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Get the accession register summary matching the given query
      *
-     * @param query The DSL Query as Json Node
-     * @return The AccessionregisterSummary list as a response JsonNode
+     * @param query The DSL Query as JsonNode
+     * @return instance of RequestResponse of type AccessionRegisterSummaryModel
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
@@ -176,7 +176,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * <li>One or many contracts elready exist in the database</li>
      * </ul>
      * 
-     * @param contractsToImport
+     * @param contractsToImport the contract to import
      * @return The server response as vitam RequestResponse
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException

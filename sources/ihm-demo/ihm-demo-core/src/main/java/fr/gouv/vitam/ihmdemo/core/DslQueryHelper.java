@@ -60,6 +60,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 public final class DslQueryHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
+    /**
+     * the projection part of DSL
+     */
     public static final String PROJECTION_DSL = "projection_";
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String ALL = "All";
@@ -436,8 +439,8 @@ public final class DslQueryHelper {
      * @param unitId the unit id
      * @param immediateParents immediate parents (_up field value)
      * @return DSL Select Query
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException if error when parse json data for creating query
+     * @throws InvalidCreateOperationException if exception occurred when create query
      */
     public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
         throws InvalidParseOperationException, InvalidCreateOperationException {

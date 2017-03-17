@@ -139,8 +139,8 @@ public abstract class MongoDbAccess implements DatabaseConnection {
      * Create a mongoDB client according to the configuration and using the MongoClientOptions specific to the
      * sub-systems (ex: metadata,logbook)
      *
-     * @param configuration
-     * @param options
+     * @param configuration the configuration of mongo client (host/port to connect)
+     * @param options the option mongo client
      * @return the MongoClient
      */
     public static MongoClient createMongoClient(DbConfiguration configuration, MongoClientOptions options) {

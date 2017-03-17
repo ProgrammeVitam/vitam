@@ -72,7 +72,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @param total
+     * @param total value to set field  
      * @return this
      */
     public RegisterValueDetailModel setTotal(long total) {
@@ -82,7 +82,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @return deleted
+     * @return deleted value to set field
      */
     public long getDeleted() {
         return deleted;
@@ -90,7 +90,7 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @param deleted
+     * @param deleted value to set field
      * @return this
      */
     public RegisterValueDetailModel setDeleted(long deleted) {
@@ -108,12 +108,11 @@ public class RegisterValueDetailModel {
     
     /**
      * 
-     * @param remained
+     * @param remained value to set field
      * @return this
      */
     public RegisterValueDetailModel setRemained(long remained) {
         this.remained = remained;
         return this;
     }
-
 }

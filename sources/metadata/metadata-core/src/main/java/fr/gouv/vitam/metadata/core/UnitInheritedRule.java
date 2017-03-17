@@ -63,10 +63,17 @@ public class UnitInheritedRule {
     private static final String PATH = "path";
     private static final String PREVENTINHERITANCE = "PreventInheritance";
     private static final String REFNONRULEID = "RefNonRuleId";
-    public static final String RULE = "Rule";
 
-    public static final String INHERITED_RULE = "inheritedRule";
+    /**
+	 * rule field name  
+	 */
+	public static final String RULE = "Rule";
 
+	/**
+	 *  inherited rule field name
+	 */
+	public static final String INHERITED_RULE = "inheritedRule";
+	
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(UnitInheritedRule.class);
 
@@ -84,8 +91,8 @@ public class UnitInheritedRule {
      * constructor for rootNode only with ObjectNode and unitId
      * if unit is not root then unitId should be null
      * 
-     * @param rule
-     * @param unitId
+     * @param rule ad ObjectNode for creating
+     * @param unitId the unit id
      */
     public UnitInheritedRule(ObjectNode rule, String unitId) {
         this();
@@ -123,15 +130,15 @@ public class UnitInheritedRule {
     }
 
     /**
-     * @return
+     * @return a map of inheritedRule
      */
     public Map<String, ObjectNode> getInheritedRule() {
         return inheritedRule;
     }
 
     /**
-     * @param rules
-     * @return
+     * @param rules as a map
+     * @return UnitInheritedRule in which inheritedRule setted
      */
     public UnitInheritedRule setInheritedRule(Map<String, ObjectNode> rules) {
         this.inheritedRule = rules;
@@ -139,8 +146,9 @@ public class UnitInheritedRule {
     }
 
     /**
-     * @param ruleCategory
-     * @param ruleResults
+     * @param ruleCategory rule category value
+     * @param ruleResults rule of results
+     * @return UnitInheritedRule in which inheritedRule setted
      */
     public UnitInheritedRule addInheritedRule(String ruleCategory, ObjectNode ruleResults) {
         inheritedRule.put(ruleCategory, ruleResults);
@@ -150,8 +158,7 @@ public class UnitInheritedRule {
     /**
      * Concat UnitInheritedRule when unit have many parent
      * 
-     * @param parentRule
-     * @return
+     * @param parentRule of type UnitInheritedRule
      */
     public void concatRule(UnitInheritedRule parentRule) {
         for (Entry<String, ObjectNode> entry : parentRule.inheritedRule.entrySet()) {
@@ -202,10 +209,9 @@ public class UnitInheritedRule {
     /**
      * Herite rule from parent with unit management 
      * 
-     * @param unitManagement
-     * @param unitId
-     * @return
-     * @throws InvalidParseOperationException 
+     * @param unitManagement as ObjectNode
+     * @param unitId as String
+     * @return UnitInheritedRule created 
      */
     public UnitInheritedRule createNewInheritedRule(ObjectNode unitManagement, String unitId) {
         UnitInheritedRule newRule = deepCopy(this);
@@ -468,6 +474,11 @@ public class UnitInheritedRule {
         return false;
     }
 
+    /**
+     *  check inheritedRule set if empty
+     *   
+     * @return boolean value 
+     */    
     @JsonIgnore
     public boolean isEmpty() {
         return inheritedRule.isEmpty();
@@ -475,8 +486,8 @@ public class UnitInheritedRule {
 
     /**
      * Deep copy a new unit rule
-     * @param unit
-     * @return
+     * @param unit as UnitInheritedRule
+     * @return UnitInheritedRule where unit is copied
      */
     public UnitInheritedRule deepCopy(UnitInheritedRule unit) {
         UnitInheritedRule newRule = new UnitInheritedRule();

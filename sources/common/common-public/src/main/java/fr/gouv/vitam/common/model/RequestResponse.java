@@ -60,7 +60,7 @@ public abstract class RequestResponse<T> {
     /**
      *
      * @return the Json representation
-     * @throws IllegalStateException
+     * @throws IllegalStateException if JsonNode parse exception occurred
      */
     @JsonIgnore
     public JsonNode toJsonNode() {
@@ -78,7 +78,7 @@ public abstract class RequestResponse<T> {
      * Might return an empty VitamError in case response is empty with only the HttpCode set and the Code set to empty
      * String.
      *
-     * @param response
+     * @param response to parse in RequestResponse 
      * @return The associate RequestResponseOk or VitamError
      * @throws IllegalStateException if the response cannot be parsed to one of the two model
      */
@@ -108,9 +108,9 @@ public abstract class RequestResponse<T> {
 
     /**
      *
-     * @param response
+     * @param response to parse in RequestResponse
      * @return the RequestResponseOk
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if JsonNode parse exception occurred
      */
     @JsonIgnore
     public static RequestResponseOK parseRequestResponseOk(Response response) throws InvalidParseOperationException {
@@ -119,9 +119,9 @@ public abstract class RequestResponse<T> {
 
     /**
      *
-     * @param response
+     * @param response to parse in RequestResponse
      * @return the VitamError
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if JsonNode parse exception occurred
      */
     @JsonIgnore
     public static VitamError parseVitamError(Response response) throws InvalidParseOperationException {

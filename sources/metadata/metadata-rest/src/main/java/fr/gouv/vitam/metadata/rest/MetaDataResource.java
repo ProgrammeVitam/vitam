@@ -93,8 +93,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Insert unit with json request
      *
-     * @param insertRequest
-     * @param xhttpOverride
+     * @param insertRequest the insert request in JsonNode format
      * @return Response
      */
     @Path("units")
@@ -167,7 +166,7 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Select unit with json request
      *
-     * @param request
+     * @param request the request in JsonNode format
      * @return Response
      */
     @Path("units")
@@ -233,10 +232,10 @@ public class MetaDataResource extends ApplicationStatusResource {
 
     /**
      *
-     * @param selectRequest
-     * @param unitId
+     * @param selectRequest the select request in JsonNode format
+     * @param unitId the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
-     * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
+     * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
      */
     @Path("units/{id_unit}")
@@ -250,11 +249,11 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Update unit by query and path parameter unit_id
      *
-     * @param updateRequest
-     * @param unitId
+     * @param updateRequest the update request
+     * @param unitId the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
-     * @see #entity(java.lang.Object, java.lang.annotation.Annotation[])
-     * @see #type(javax.ws.rs.core.MediaType)
+     * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
+     * @see type(javax.ws.rs.core.MediaType)
      */
     @Path("units/{id_unit}")
     @PUT
@@ -359,10 +358,10 @@ public class MetaDataResource extends ApplicationStatusResource {
     /**
      * Create unit with json request
      *
-     * @param insertRequest
+     * @param insertRequest the insert query
      * @return the Response
      *
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when json data exception occurred
      */
     @Path("objectgroups")
     @POST

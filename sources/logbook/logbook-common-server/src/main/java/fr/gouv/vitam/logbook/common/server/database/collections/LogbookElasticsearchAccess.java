@@ -56,9 +56,9 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
 
     /**
-     * @param clusterName
-     * @param nodes
-     * @throws VitamException
+     * @param clusterName cluster name
+     * @param nodes elasticsearch node
+     * @throws VitamException if elasticsearch nodes list is empty/null
      */
     public LogbookElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {
         super(clusterName, nodes);

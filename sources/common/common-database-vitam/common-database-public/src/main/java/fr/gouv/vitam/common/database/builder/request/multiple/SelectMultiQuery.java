@@ -233,9 +233,9 @@ public class SelectMultiQuery extends RequestMultiple {
      * Specific command to get the correct Qualifier and Version from ObjectGroup. By default always return "_id".
      *
      * @param qualifier might be either Xxx or Xxx_n
-     * @param version
+     * @param version the version ob object group
      * @param additionalFields additional fields
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when projection parse exception occurred  
      */
     public void setProjectionSliceOnQualifier(String qualifier, int version, String... additionalFields)
         throws InvalidParseOperationException {

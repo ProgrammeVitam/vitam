@@ -172,7 +172,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Constructor from Json
      *
-     * @param content
+     * @param content the objectgroup of JsonNode format 
      */
     public ObjectGroup(JsonNode content) {
         super(content);
@@ -181,7 +181,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Constructor from Document
      *
-     * @param content
+     * @param content the objectgroup of Document format
      */
     public ObjectGroup(Document content) {
         super(content);
@@ -190,7 +190,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Constructor from Json as Text
      *
-     * @param content
+     * @param content the objectgroup of String format
      */
     public ObjectGroup(String content) {
         super(content);
@@ -292,7 +292,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     }
 
     /**
-     * @param remove
+     * @param remove if remove the link unit/objectgroup
      * @return the list of parent Unit
      */
     @SuppressWarnings("unchecked")
@@ -327,7 +327,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     /**
      * Check if the current ObjectGroup has Unit as immediate parent
      *
-     * @param unit
+     * @param unit the unit could be immediate parent of objectgroup
      * @return True if immediate parent, else False (however could be a grand parent)
      */
     public boolean isImmediateParent(final String unit) {

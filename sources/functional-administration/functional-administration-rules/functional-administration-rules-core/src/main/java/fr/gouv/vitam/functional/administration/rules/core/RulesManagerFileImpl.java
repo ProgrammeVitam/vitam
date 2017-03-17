@@ -119,7 +119,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     /**
      * Constructor
      *
-     * @param dbConfiguration
+     * @param dbConfiguration the mongo access admin configuration
      */
     public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
         mongoAccess = dbConfiguration;
@@ -259,8 +259,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * findExistsRuleQueryBuilder:Check if the Collection contains records
      *
      * @return the JsonNode answer
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException if exception occurred when create query
+     * @throws InvalidParseOperationException if parse json query exception occurred
      */
     public JsonNode findExistsRuleQueryBuilder()
         throws InvalidCreateOperationException, InvalidParseOperationException {

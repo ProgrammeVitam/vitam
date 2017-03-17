@@ -60,6 +60,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @param type
      * @param tenantId
      * @return object as stream
+     * @throws IngestExternalException 
      * @throws VitamClientException
      */
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)

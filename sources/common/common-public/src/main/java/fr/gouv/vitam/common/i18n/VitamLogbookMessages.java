@@ -97,7 +97,7 @@ public class VitamLogbookMessages {
 
     /**
      *
-     * @param stepOrHandler
+     * @param stepOrHandler step or handler name or full name 
      * @return the final EventType code
      */
     public static final String getEventTypeLfc(String stepOrHandler) {
@@ -129,8 +129,8 @@ public class VitamLogbookMessages {
 
     /**
      *
-     * @param stepOrHandler
-     * @param code
+     * @param stepOrHandler step or handler name or full name 
+     * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetail(String stepOrHandler, StatusCode code) {
@@ -139,8 +139,8 @@ public class VitamLogbookMessages {
 
     /**
      *
-     * @param stepOrHandler
-     * @param code
+     * @param stepOrHandler step or handler name or full name 
+     * @param code of status
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetailLfc(String stepOrHandler, StatusCode code) {
@@ -149,9 +149,9 @@ public class VitamLogbookMessages {
 
     /**
      *
-     * @param stepOrHandler
-     * @param transaction
-     * @param code
+     * @param stepOrHandler step or handler name or full name 
+     * @param transaction transaction transaction name (within this handler)
+     * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetail(String stepOrHandler, String transaction, StatusCode code) {
@@ -160,9 +160,9 @@ public class VitamLogbookMessages {
 
     /**
      *
-     * @param stepOrHandler
-     * @param transaction
-     * @param code
+     * @param stepOrHandler step or handler name or full name 
+     * @param transaction transaction transaction name (within this handler)
+     * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
      */
     public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, StatusCode code) {

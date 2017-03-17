@@ -65,15 +65,15 @@ public abstract class AbstractJsonType {
 
     /**
      * @return the XML string representation
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse exception occurred when writing a JsonNode 
      */
     public String generateJsonString() throws InvalidParseOperationException {
         return JsonHandler.writeAsString(this);
     }
 
     /**
-     * @param file
-     * @throws InvalidParseOperationException
+     * @param file the file to write
+     * @throws InvalidParseOperationException when parse exception occurred when writing a JsonNode
      * @throws IllegalArgumentException if file null
      */
     public void writeJsonToFile(File file) throws InvalidParseOperationException {
@@ -82,9 +82,9 @@ public abstract class AbstractJsonType {
     }
 
     /**
-     * @param file
+     * @param file to write
      * @return the associated object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse exception occurred when reading file in json object
      * @throws IllegalArgumentException if file null
      */
     public static AbstractJsonType readJsonFile(File file)
@@ -94,9 +94,9 @@ public abstract class AbstractJsonType {
     }
 
     /**
-     * @param data
+     * @param data as String to read
      * @return the associated object
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if parse exception occurred when reading file in json object
      * @throws IllegalArgumentException if data null
      */
     public static AbstractJsonType readJsonString(String data)

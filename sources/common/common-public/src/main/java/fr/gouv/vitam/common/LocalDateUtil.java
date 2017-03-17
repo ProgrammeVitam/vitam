@@ -46,7 +46,7 @@ public final class LocalDateUtil {
 
     /**
      *
-     * @param localDateTime
+     * @param localDateTime in format LocalDateTime to transform
      * @return the ISO Date Time
      */
     public static final String getString(LocalDateTime localDateTime) {
@@ -62,7 +62,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param date
+     * @param date in format String to transform
      * @return the corresponding Date from date string
      * @throws IllegalArgumentException date null or empty
      */
@@ -75,7 +75,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param millis
+     * @param millis in format long to transform
      * @return the corresponding LocalDateTime in UTC
      */
     public static final LocalDateTime fromMillis(long millis) {
@@ -87,7 +87,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param ldt
+     * @param ldt in format LocalDateTime to transform
      * @return the millis in epoch
      * @throws IllegalArgumentException ldt null or empty
      */
@@ -97,7 +97,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param date
+     * @param date in format Date to transform
      * @return the corresponding LocalDateTime in UTC
      */
     public static final LocalDateTime fromDate(Date date) {
@@ -108,7 +108,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param fileTime
+     * @param fileTime in format FileTime to transform
      * @return the corresponding LocalDateTime in UTC
      */
     public static final LocalDateTime fromDate(FileTime fileTime) {
@@ -119,7 +119,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param ldt
+     * @param ldt in format LocalDateTime to transform
      * @return the corresponding date
      */
     public static final Date getDate(LocalDateTime ldt) {

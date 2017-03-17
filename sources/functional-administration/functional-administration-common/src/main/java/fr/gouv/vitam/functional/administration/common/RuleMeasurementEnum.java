@@ -79,7 +79,7 @@ public enum RuleMeasurementEnum {
 
     /**
      *
-     * @param month
+     * @param month as String to transform
      * @return the associated RuleMeasurementEnum according to parameter
      */
     public static RuleMeasurementEnum getEnumFromMonth(String month) {

@@ -109,7 +109,7 @@ public class SelectToMongodb extends RequestToMongodb {
      * FindIterable.projection(projection)
      *
      * @return the projection
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when getting invalid projection request
      */
     public Bson getFinalProjection() throws InvalidParseOperationException {
         if (requestParser.getRequest().getAllProjection()) {

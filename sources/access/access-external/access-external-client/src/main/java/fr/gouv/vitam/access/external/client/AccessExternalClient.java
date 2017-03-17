@@ -45,8 +45,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnits /units
      *
-     * @param selectQuery
-     * @param tenantId
+     * @param selectQuery the select query
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -59,9 +59,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
      *
-     * @param selectQuery
-     * @param unitId
-     * @param tenantId
+     * @param selectQuery the select query
+     * @param unitId the unit id to select
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -74,9 +74,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * updateUnitbyId UPDATE /units/{id}
      *
-     * @param updateQuery
-     * @param unitId
-     * @param tenantId
+     * @param updateQuery the update query
+     * @param unitId the unit id to update
+     * @param tenantId 
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -89,11 +89,11 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * getObjectAsInputStream
      *
-     * @param selectQuery
-     * @param objectId
-     * @param usage
-     * @param version
-     * @param tenantId
+     * @param selectQuery the select query
+     * @param objectId the object id to get
+     * @param usage kind of usage
+     * @param version the version
+     * @param tenantId the working tenant
      * @return Response including InputStream
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -106,9 +106,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectObjectById
      *
-     * @param selectQuery
-     * @param unitId
-     * @param tenantId
+     * @param selectQuery the select query
+     * @param unitId the unit id for getting object
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -120,11 +120,11 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectObjectById
      *
-     * @param selectObjectQuery
-     * @param unitId
-     * @param tenantId
-     * @param usage
-     * @param version
+     * @param selectObjectQuery the select object query
+     * @param unitId the unit id for getting object
+     * @param tenantId the working tenant
+     * @param usage the usage kind
+     * @param version the version
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -137,9 +137,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectOperation
      *
-     * @param select
-     * @param tenantId
-     * @return Json representation
+     * @param select the select query
+     * @param tenantId the working tenant
+     * @return Json representation 
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
@@ -148,8 +148,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectOperationbyId
      *
-     * @param processId
-     * @param tenantId
+     * @param processId the process id
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -159,8 +159,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitLifeCycleById
      *
-     * @param idUnit
-     * @param tenantId
+     * @param idUnit the unit id
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -171,7 +171,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnitLifeCycle
      *
-     * @param queryDsl
+     * @param queryDsl the query for get lfc
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -182,8 +183,8 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectObjectGroupLifeCycleById
      *
-     * @param idObject
-     * @param tenantId
+     * @param idObject the object id
+     * @param tenantId the working tenant
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -195,9 +196,9 @@ public interface AccessExternalClient extends BasicClient {
 
     /**
      * Get the accession register summary matching the given query
-     *
+     * 
      * @param query The DSL Query as Json Node
-     * @param tenantId
+     * @param tenantId the working tenant
      * @return The AccessionregisterSummary list as a response JsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -210,9 +211,9 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * Get the accession register details matching the given query
      *
-     * @param id
+     * @param id the id of accession register 
      * @param query The DSL Query as a JSON Node
-     * @param tenantId
+     * @param tenantId the working tenant
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException

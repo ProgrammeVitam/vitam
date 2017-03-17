@@ -46,8 +46,8 @@ public class PluginConfiguration {
 
     /**
      * constructor
-     * @param propertiesFile
-     * @param actionHandlerClazz
+     * @param propertiesFile the plugin properties file
+     * @param actionHandlerClazz the class of worker ActionHandler
      */
     public PluginConfiguration(String propertiesFile, Class<ActionHandler> actionHandlerClazz) {
         this.propertiesFile = propertiesFile;
@@ -65,7 +65,7 @@ public class PluginConfiguration {
     /**
      * create a new instance for the plugin
      * @return new instance
-     * @throws InvocationPluginException
+     * @throws InvocationPluginException if could not instance the plugin
      */
     public ActionHandler newInstance() throws InvocationPluginException {
         try {

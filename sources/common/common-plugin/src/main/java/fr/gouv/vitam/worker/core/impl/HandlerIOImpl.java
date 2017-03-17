@@ -94,8 +94,8 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     /**
      * Constructor with local root path
      *
-     * @param containerName
-     * @param workerId
+     * @param containerName the container name
+     * @param workerId the worker id
      */
     public HandlerIOImpl(String containerName, String workerId) {
         this.containerName = containerName;

@@ -100,7 +100,7 @@ public class WorkerImpl implements Worker {
     /**
      * Constructor
      *
-     * @param pluginLoader
+     * @param pluginLoader the plugin loader
      */
     public WorkerImpl(PluginLoader pluginLoader) {
         this.pluginLoader = pluginLoader;

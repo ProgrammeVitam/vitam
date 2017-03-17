@@ -60,10 +60,10 @@ public class RulesManagerParser {
     /**
      * readObjectsFromCsvWriteAsArrayNode : read objects from a csv file and write it as array node
      *
-     * @param fileToParse
-     * @return ArrayNode
-     * @throws IOException
-     * @throws InvalidParseOperationException
+     * @param fileToParse rule file to read
+     * @return ArrayNode json of rules date 
+     * @throws IOException when read file exception occurred
+     * @throws InvalidParseOperationException when json parse exception occurred
      */
     public static ArrayNode readObjectsFromCsvWriteAsArrayNode(File fileToParse) throws IOException,
         InvalidParseOperationException {

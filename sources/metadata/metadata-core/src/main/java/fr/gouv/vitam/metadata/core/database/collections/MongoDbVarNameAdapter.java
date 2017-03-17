@@ -50,9 +50,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
 
     /**
      * @see ParserTokens.PROJECTIONARGS
-     * @param name
-     * @return the new name or null if the same
-     * @throws InvalidParseOperationException
+     * @param name as String
+     * @return the new name or null if the same 
+     * @throws InvalidParseOperationException when parsing error
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {

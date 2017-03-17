@@ -35,5 +35,12 @@ package fr.gouv.vitam.access.internal.api;
 // Storage module DataCategory component
 
 public enum DataCategory {
-    UNIT, OBJECT_GROUP
+    /**
+     * the unit data type 
+     */
+    UNIT, 
+    /**
+     * the object group data type
+     */
+    OBJECT_GROUP
 }

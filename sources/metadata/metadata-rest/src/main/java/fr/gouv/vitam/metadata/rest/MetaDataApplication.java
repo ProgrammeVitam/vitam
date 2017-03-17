@@ -52,6 +52,9 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
     private static final String CONF_FILE_NAME = "metadata.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
+    /**
+     * the port of metadata server
+     */
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.metadata.port";
 
     static VitamServiceRegistry serviceRegistry = null;
@@ -68,7 +71,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
     /**
      * Constructor with metadata configuration object
      *
-     * @param configuration
+     * @param configuration the {@link MetaDataConfiguration}
      */
     public MetaDataApplication(MetaDataConfiguration configuration) {
         super(MetaDataConfiguration.class, configuration);
@@ -76,7 +79,7 @@ public class MetaDataApplication extends AbstractVitamApplication<MetaDataApplic
 
     /**
      *
-     * @param args
+     * @param args list of argument to launch server
      */
     public static void main(String[] args) {
         try {

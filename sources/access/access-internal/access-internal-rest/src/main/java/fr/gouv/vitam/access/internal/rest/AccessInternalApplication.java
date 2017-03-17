@@ -65,7 +65,7 @@ public class AccessInternalApplication
     /**
      * AccessApplication constructor
      *
-     * @param configuration
+     * @param configuration the access internal server configuration
      */
     public AccessInternalApplication(String configuration) {
         super(AccessInternalConfiguration.class, configuration);
@@ -83,7 +83,7 @@ public class AccessInternalApplication
     /**
      * runs AccessApplication server app
      *
-     * @param args
+     * @param args the arguments of configuration  to start access internal server
      */
     public static void main(String[] args) {
         try {

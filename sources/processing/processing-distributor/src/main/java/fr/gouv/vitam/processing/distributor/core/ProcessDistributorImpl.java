@@ -116,9 +116,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
     /**
      * Temporary method for distribution supporting multi-list
      * 
-     * @param workParams
-     * @param step
-     * @param operationId
+     * @param workParams of type {@link WorkerParameters}
+     * @param step the execution step 
+     * @param operationId the operation id
      * @return the final step status
      */
     @Override
@@ -294,7 +294,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
     /**
      * Add response to the current step (use for async)
      * 
-     * @param workerAsyncResponse
+     * @param workerAsyncResponse the asynchronized response
      */
     @Override
     public synchronized void callbackResponse(WorkerAsyncResponse workerAsyncResponse) {

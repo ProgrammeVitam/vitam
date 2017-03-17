@@ -33,17 +33,55 @@ package fr.gouv.vitam.metadata.client;
 // TODO: move it to a common (when it is)
 public enum ErrorMessage {
 
+    /**
+     *  message when select units query is null
+     */
     SELECT_UNITS_QUERY_NULL("Select units query is null"),
+    /**
+     * message when select objectgroup query is null
+     */
     SELECT_OBJECT_GROUP_QUERY_NULL("Select object group query is null"),
+    /**
+     * message when update units query is null
+     */
     UPDATE_UNITS_QUERY_NULL("Update units query is null"),
+    /**
+     * message when insert units query is null
+     */
     INSERT_UNITS_QUERY_NULL("Insert units query is null"),
+    /**
+     * message when unit id parameter is blank
+     */
     BLANK_PARAM("Unit id parameter is blank"),
+    /**
+     * message when internal server error occured
+     */
     INTERNAL_SERVER_ERROR("Internal Server Error"),
+    /**
+     * message when document size of unit is too large
+     */
     SIZE_TOO_LARGE("Document Size is Too Large"),
+    /**
+     * message when parsing an invalid json 
+     */
     INVALID_PARSE_OPERATION("Invalid Parse Operation"),
+
+    /**
+     * when invalid metadata values
+     */
     INVALID_METADATA_VALUE("Invalid metadata values"),
+
+    /**
+     * when missing select query
+     */
     MISSING_SELECT_QUERY("Missing Select Query"),
+    /**
+     * message when data insert/update exists
+     */
     DATA_ALREADY_EXISTS("Data Already Exists"),
+    /**
+     * message when querying data not found 
+     */
     NOT_FOUND("Not Found Exception");
 
     private final String message;

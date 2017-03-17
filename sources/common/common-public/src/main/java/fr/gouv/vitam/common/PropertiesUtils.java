@@ -64,7 +64,7 @@ public final class PropertiesUtils {
      *
      * @param resourcesFile properties file from resources directory
      * @return the associated File
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if the resource file not found
      */
     public static final InputStream getConfigAsStream(String resourcesFile) throws FileNotFoundException {
         File file = new File(resourcesFile);
@@ -79,7 +79,7 @@ public final class PropertiesUtils {
      *
      * @param resourcesFile properties file from resources directory
      * @return the associated File
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if the resource file not found
      */
     public static final InputStream getResourceAsStream(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
@@ -111,7 +111,7 @@ public final class PropertiesUtils {
      *
      * @param resourcesFile properties file from resources directory
      * @return the associated File
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if the resource file not found
      */
     public static final File getResourceFile(String resourcesFile) throws FileNotFoundException {
         if (resourcesFile == null) {
@@ -149,7 +149,7 @@ public final class PropertiesUtils {
      *
      * @param resourcesFile properties file from resources directory
      * @return the associated Path
-     * @throws FileNotFoundException
+     * @throws FileNotFoundException if resource file not found
      */
     public static final Path getResourcePath(String resourcesFile) throws FileNotFoundException {
         return getResourceFile(resourcesFile).toPath();
@@ -159,7 +159,7 @@ public final class PropertiesUtils {
      * Get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as
      * Resources file
      *
-     * @param filename
+     * @param filename the file name
      * @return the File if found
      * @throws FileNotFoundException if not fount
      */
@@ -232,7 +232,7 @@ public final class PropertiesUtils {
      *
      * @param propertiesFile properties file
      * @return the associated Properties
-     * @throws IOException
+     * @throws IOException if cannot load file
      */
     public static final Properties readProperties(File propertiesFile) throws IOException {
         if (propertiesFile == null) {
@@ -248,10 +248,10 @@ public final class PropertiesUtils {
     /**
      * Read the Yaml file and return the object read
      *
-     * @param yamlFile
+     * @param yamlFile the yaml file to read
      * @param clasz the class representing the target object
      * @return the object read
-     * @throws IOException
+     * @throws IOException if read yaml input stream to class template exception occurred
      */
     public static final <C> C readYaml(File yamlFile, Class<C> clasz) throws IOException {
         if (yamlFile == null || clasz == null) {
@@ -268,10 +268,10 @@ public final class PropertiesUtils {
     /**
      * Read the Yaml file and return the object read
      *
-     * @param yamlFile
+     * @param yamlFile the yaml file
      * @param typeReference the type reference representing the target interface object
      * @return the object read
-     * @throws IOException
+     * @throws IOException if read yaml input stream to class template exception occurred
      */
     public static final <C> C readYaml(File yamlFile, TypeReference<C> typeReference) throws IOException {
         if (yamlFile == null || typeReference == null) {
@@ -288,10 +288,10 @@ public final class PropertiesUtils {
     /**
      * Read the Yaml InputStream and return the object read
      *
-     * @param yamlInputStream
+     * @param yamlInputStream the yaml input stream to read
      * @param clasz the class representing the target object
      * @return the object read
-     * @throws IOException
+     * @throws IOException if read yaml input stream to class template exception occurred 
      */
     public static final <C> C readYaml(InputStream yamlInputStream, Class<C> clasz) throws IOException {
         if (yamlInputStream == null || clasz == null) {
@@ -308,10 +308,10 @@ public final class PropertiesUtils {
     /**
      * Read the Yaml file and return the object read
      *
-     * @param yamlPath
+     * @param yamlPath yaml file path
      * @param clasz the class representing the target object
      * @return the object read
-     * @throws IOException
+     * @throws IOException if file not found exception
      */
     public static final <C> C readYaml(Path yamlPath, Class<C> clasz) throws IOException {
         if (yamlPath == null || clasz == null) {
@@ -326,7 +326,7 @@ public final class PropertiesUtils {
      *
      * @param destination the destination file
      * @param config the configuration object to write using Yaml format
-     * @throws IOException
+     * @throws IOException if write object config exception occurred
      */
     public static final void writeYaml(File destination, Object config) throws IOException {
         try (FileOutputStream outputStream = new FileOutputStream(destination)) {

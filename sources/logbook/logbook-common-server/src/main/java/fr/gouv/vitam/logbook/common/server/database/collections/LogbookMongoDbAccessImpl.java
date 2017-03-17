@@ -1130,6 +1130,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
+    /**
+     * @param inProccessCollection collection of logbook in process
+     * @param logbookLifeCycleInProd to create logbook lfc Unit/GroupObject
+     * @throws LogbookDatabaseException if mongo execution error
+     * @throws LogbookAlreadyExistsException if duplicated key in mongo
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void createLogbookLifeCycleForUpdate(LogbookCollections inProccessCollection,
         LogbookLifeCycle logbookLifeCycleInProd)

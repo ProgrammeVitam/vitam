@@ -348,7 +348,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param stream data input stream
      * @param containerName name of container
      * @param folderName name of folder
-     * @param archiveType
+     * @param archiveType the type of archive
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")

@@ -31,6 +31,9 @@ package fr.gouv.vitam.storage.engine.common.model;
  */
 public enum StorageCollectionType {
     // TODO P1 pourquoi pas de nom à Containers ?
+    /**
+     * Container
+     */
     CONTAINERS(""),
     /**
      * Units collection

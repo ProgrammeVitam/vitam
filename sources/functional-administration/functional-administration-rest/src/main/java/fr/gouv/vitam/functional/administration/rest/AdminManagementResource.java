@@ -200,7 +200,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param formatId path param as String
      * @return Response jersey response
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException when transform result to json exception occurred
      * @throws IOException when error json occurs
      */
     @POST
@@ -234,8 +234,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * retrieve all the file format inserted in the collection fileFormat
      *
-     * @param select as String
-     * @return Response jersay Response
+     * @param select as String the query to get format
+     * @return Response jersey Response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
@@ -279,10 +279,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response response jersey
-     * @throws IOException
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
-     * @throws ReferentialException
+     * @throws IOException convert inputstream rule to File exception occurred
+     * @throws InvalidCreateOperationException if exception occurred when create query
+     * @throws InvalidParseOperationException if parsing json data exception occurred
+     * @throws ReferentialException if exception occurred when create rule file manager 
      */
     @Path("rules/check")
     @POST
@@ -305,6 +305,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             StreamUtils.closeSilently(rulesStream);
         }
 
+        
     }
 
 
@@ -315,7 +316,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @return Response jersey response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException
+     * @throws ReferentialException when the mongo insert throw error 
      */
     @Path("rules/import")
     @POST
@@ -346,10 +347,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param ruleId path param as String
      * @return Response jersey response
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if exception occurred when transform json rule id
      * @throws IOException when error json occurs
-     * @throws ReferentialException
-     * @throws InvalidCreateOperationException
+     * @throws ReferentialException when the mongo search throw error or search result is null
+     * @throws InvalidCreateOperationException if exception occurred when create query
      */
     @POST
     @Path("rules/{id_rule}")
@@ -479,11 +480,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * retrieve all accession summary from accession summary collection
      *
-     * @param select as String
-     * @return Response jersay Response
+     * @param select as String the query to find accession register 
+     * @return Response jersey Response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException
+     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/document")
     @POST
@@ -522,11 +523,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve accession register detail based on a given dsl query
      *
      *
-     * @param select as String
-     * @return Response jersay Response
+     * @param select as String the query to find the accession register
+     * @return Response jersey Response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException
+     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/detail")
     @POST
@@ -576,7 +577,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * </ul>
      * 
      * @param xmlPronom as InputStream
-     * @param uri
+     * @param uri the uri info
      * @return Response jersey response
      */
     @Path(CONTRACTS_URI)

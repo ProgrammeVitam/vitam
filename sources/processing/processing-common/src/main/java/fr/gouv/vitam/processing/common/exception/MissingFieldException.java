@@ -45,7 +45,7 @@ public class MissingFieldException extends ProcessingException {
 
 
     /**
-     * @param message
+     * @param message of exception
      */
     public MissingFieldException(String message) {
         super(message);

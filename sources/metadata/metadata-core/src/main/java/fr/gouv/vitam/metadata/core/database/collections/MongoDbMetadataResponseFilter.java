@@ -50,7 +50,7 @@ public class MongoDbMetadataResponseFilter {
      * This method will modify the document argument in order to filter as output all _varname to corresponding #varname
      * according to ParserTokens
      *
-     * @param document
+     * @param document of type Document to be modified
      */
     public static final void filterFinalResponse(MetadataDocument<?> document) {
         final boolean isUnit = document instanceof Unit;

@@ -92,13 +92,30 @@ public class IngestWorkflowConstants {
      */
     public static final String EXEC_FOLDER = "Exec";
 
-    // TODO P1 : add doc
+    /**
+     * the name of ROOT tag 
+     */
     public static final String ROOT_TAG = "ROOT";
+    /**
+     * the name WORK tag
+     */
     public static final String WORK_TAG = "WORK";
+    /**
+     * the seperator in parent list
+     */
     public static final String UPS_SEPARATOR = "-";
+    /**
+     * the name of field up that indicate the parent 
+     */
     public static final String UP_FIELD = "_up";
+    /**
+     * the name of RulesToApply tag
+     */
     public static final String RULES = "RulesToApply";
 
+    /**
+     * the name of rule tag 
+     */
     public static final String RULES_TAG = "Rules";
     
     /**

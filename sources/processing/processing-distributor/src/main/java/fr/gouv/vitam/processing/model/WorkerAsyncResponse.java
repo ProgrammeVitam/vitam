@@ -44,8 +44,8 @@ public class WorkerAsyncResponse {
     private ItemStatus itemStatus;
     
     /**
-     * @param workerAsyncRequest
-     * @param itemStatus 
+     * @param workerAsyncRequest of type {@link WorkerAsyncRequest }
+     * @param itemStatus the item status of request 
      */
     public WorkerAsyncResponse(WorkerAsyncRequest workerAsyncRequest,ItemStatus itemStatus) {
         this.itemStatus=itemStatus;

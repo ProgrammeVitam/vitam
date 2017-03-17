@@ -35,14 +35,14 @@ import java.util.Set;
 public abstract class LogbookLifeCycleParameters extends AbstractParameters {
 
     /**
-     * @param mandatory
+     * @param mandatory set of logbook parameter
      */
     public LogbookLifeCycleParameters(Set<LogbookParameterName> mandatory) {
         super(mandatory);
     }
 
     /**
-     * @param map
+     * @param map of parameter
      */
     public LogbookLifeCycleParameters(Map<String, String> map) {
         super(map);

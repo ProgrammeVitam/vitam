@@ -63,7 +63,7 @@ public class UserInterfaceTransactionManager {
      * Gets search units result
      *
      * @param parameters search criteria as DSL query
-     * @param tenantId
+     * @param tenantId the working tenant
      * @return result
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
@@ -82,7 +82,7 @@ public class UserInterfaceTransactionManager {
      * Gets archive unit details
      * @param preparedDslQuery search criteria as DSL query
      * @param unitId archive unit id to find
-     * @param tenantId
+     * @param tenantId  the working tenant
      * @return result
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
@@ -102,7 +102,7 @@ public class UserInterfaceTransactionManager {
      *
      * @param parameters search criteria as DSL query
      * @param unitId unitIdentifier
-     * @param tenantId
+     * @param tenantId  the working tenant
      * @return result
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
@@ -121,7 +121,7 @@ public class UserInterfaceTransactionManager {
      *
      * @param preparedDslQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
-     * @param tenantId
+     * @param tenantId  the working tenant
      * @return JsonNode object including DSL queries, context and results
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
@@ -145,12 +145,12 @@ public class UserInterfaceTransactionManager {
      * @param usage the requested usage
      * @param version the requested version of the usage
      * @param filename the name od the file
-     * @param tenantId
+     * @param tenantId  the working tenant
      * @return boolean for test purpose (solve mock issue)
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessExternalClientServerException if the server encountered an exception
      * @throws AccessExternalClientNotFoundException if the requested object does not exist
-     * @throws UnsupportedEncodingException
+     * @throws UnsupportedEncodingException if unsupported encoding error for input file content
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
@@ -194,7 +194,7 @@ public class UserInterfaceTransactionManager {
      * @param unitId the unit Id for which all paths will be constructed
      * @param allParents unit's all parents (_us field value + the unit id)
      * @return all paths relative to the specified unit
-     * @throws VitamException
+     * @throws VitamException if error when build the tree
      */
     public static JsonNode buildUnitTree(String unitId, JsonNode allParents) throws VitamException {
         // Construct all parents referential
@@ -249,11 +249,11 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param unitLifeCycleId
-     * @param tenantId
+     * @param unitLifeCycleId the unit lifecycle id to select
+     * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws InvalidParseOperationException
-     * @throws LogbookClientException
+     * @throws InvalidParseOperationException if json data not well-formed 
+     * @throws LogbookClientException if the request with illegal parameter
      */
 
     public static RequestResponse<JsonNode> selectUnitLifeCycleById(String unitLifeCycleId, Integer tenantId)
@@ -265,11 +265,11 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param query
-     * @param tenantId
+     * @param query the select query
+     * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws InvalidParseOperationException
-     * @throws LogbookClientException
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws LogbookClientException if the request with illegal parameter
      */
     public static RequestResponse<JsonNode> selectOperation(JsonNode query, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
@@ -279,11 +279,11 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param operationId
-     * @param tenantId
+     * @param operationId the operation id
+     * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws InvalidParseOperationException
-     * @throws LogbookClientException
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws LogbookClientException if the request with illegal parameter
      */
     public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException {
@@ -293,11 +293,11 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param objectGroupLifeCycleId
-     * @param tenantId
+     * @param objectGroupLifeCycleId the object lifecycle id to select
+     * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws InvalidParseOperationException
-     * @throws LogbookClientException
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws LogbookClientException if the request with illegal parameter
      */
 
     public static RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
@@ -309,14 +309,14 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param options
-     * @param tenantId
+     * @param options for creating query
+     * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws InvalidCreateOperationException
+     * @throws LogbookClientException if the request with illegal parameter
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws AccessExternalClientServerException if access internal server error
+     * @throws AccessExternalClientNotFoundException if access external resource not found
+     * @throws InvalidCreateOperationException if error when create query
      */
     public static RequestResponse<JsonNode> findAccessionRegisterSummary(String options, Integer tenantId)
         throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException,
@@ -329,14 +329,14 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param id
-     * @param options
-     * @param tenantId
+     * @param id the id of accession register
+     * @param options for creating query
+     * @param tenantId the working tenant
      * @return JsonNode result
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws AccessExternalClientServerException if access internal server error
+     * @throws AccessExternalClientNotFoundException if access external resource not found
+     * @throws InvalidCreateOperationException  if error when create query
      */
 
 

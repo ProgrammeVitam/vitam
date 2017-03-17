@@ -68,6 +68,9 @@ public class WorkerResource extends ApplicationStatusResource {
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
 
+    /**
+     * the worker factory 
+     */
     public final WorkerFactory WORKER_FACTORY;
 
     private final Worker workerMocked;

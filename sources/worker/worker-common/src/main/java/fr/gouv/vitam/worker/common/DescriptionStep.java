@@ -31,7 +31,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.processing.common.model.Step;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 
 /**
@@ -63,7 +62,7 @@ public class DescriptionStep {
     /**
      * Get the step
      *
-     * @return step
+     * @return Step 
      */
     public Step getStep() {
         return step;
@@ -72,7 +71,7 @@ public class DescriptionStep {
     /**
      * Set the step
      *
-     * @param step step
+     * @param step of type Step
      */
     public void setStep(Step step) {
         this.step = step;
@@ -81,7 +80,7 @@ public class DescriptionStep {
     /**
      * Get the workParams
      *
-     * @return workParams
+     * @return WorkerParameters
      */
     public WorkerParameters getWorkParams() {
         return workParams;
@@ -90,7 +89,7 @@ public class DescriptionStep {
     /**
      * Set the workParams
      *
-     * @param workParams workParams
+     * @param workParams of type WorkerParameters
      */
     public void setWorkParams(WorkerParameters workParams) {
         this.workParams = workParams;

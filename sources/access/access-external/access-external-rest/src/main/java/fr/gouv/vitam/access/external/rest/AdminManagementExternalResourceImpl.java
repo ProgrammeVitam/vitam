@@ -87,8 +87,8 @@ public class AdminManagementExternalResourceImpl {
     /**
      * checkDocument
      *
-     * @param collection
-     * @param document
+     * @param collection the working collection top check document 
+     * @param document the document to check 
      * @return Response
      */
     @Path("/{collection}")
@@ -205,8 +205,8 @@ public class AdminManagementExternalResourceImpl {
     /**
      * findDocuments
      *
-     * @param collection
-     * @param select
+     * @param collection the working collection to find document
+     * @param select the select query to find document
      * @return Response
      */
     @Path("/{collection}")
@@ -248,8 +248,8 @@ public class AdminManagementExternalResourceImpl {
     /**
      * findDocumentByID
      *
-     * @param collection
-     * @param documentId
+     * @param collection he working collection find check document
+     * @param documentId the document id to find
      * @return Response
      */
     @POST

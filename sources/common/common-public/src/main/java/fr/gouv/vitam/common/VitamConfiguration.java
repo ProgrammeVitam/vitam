@@ -434,7 +434,7 @@ public class VitamConfiguration {
     /**
      * Junit facility
      *
-     * @param timeout
+     * @param timeout to set
      */
     public static void setConnectTimeout(int timeout) {
         getConfiguration().connectTimeout = timeout;

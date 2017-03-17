@@ -46,7 +46,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param bytes
+     * @param bytes to transform
      * @return the Base 16 representation
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -56,7 +56,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param bytes
+     * @param bytes to transform
      * @return the Base 32 representation
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -66,7 +66,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param bytes
+     * @param bytes to transform
      * @return the Base 64 Without Padding representation (used only for url)
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -76,7 +76,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param bytes
+     * @param bytes to transform
      * @return the Base 64 With Padding representation (used only for url)
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -86,7 +86,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param bytes
+     * @param bytes to transform
      * @return the Base 64 With Padding representation
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -96,7 +96,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param base16
+     * @param base16 to transform
      * @return the byte from Base 16
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -106,7 +106,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param base32
+     * @param base32 to transform
      * @return the byte from Base 32
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -116,7 +116,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param base64
+     * @param base64 to transform
      * @return the byte from Base 64 Without Padding (used only for url)
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -126,7 +126,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param base64Padding
+     * @param base64Padding to transform
      * @return the byte from Base 64 With Padding (used only for url)
      * @throws IllegalArgumentException if argument is not compatible
      */
@@ -136,7 +136,7 @@ public final class BaseXx {
     }
 
     /**
-     * @param base64Padding
+     * @param base64Padding to transform
      * @return the byte from Base 64 With Padding
      * @throws IllegalArgumentException if argument is not compatible
      */

@@ -69,7 +69,7 @@ public class MongoDbMetadataHelper {
      * Does not call getAfterLoad
      *
      * @param metadataCollections (not results except if already hashed)
-     * @param ref
+     * @param ref the reference of MetadataDocument object 
      * @return a MetadataDocument generic object from ID = ref value
      */
     @SuppressWarnings("rawtypes")
@@ -81,11 +81,11 @@ public class MongoDbMetadataHelper {
     /**
      * Load a Document into MetadataDocument<?>. Calls getAfterLoad
      *
-     * @param coll
-     * @param obj
+     * @param coll the working collection
+     * @param obj the document 
      * @return the MetadataDocument<?> casted object
-     * @throws InstantiationException
-     * @throws IllegalAccessException
+     * @throws InstantiationException when collection class instantiation exception occurred 
+     * @throws IllegalAccessException when illegal access exception occurred
      */
     @SuppressWarnings("rawtypes")
     public static final MetadataDocument loadFromDocument(final MetadataCollections coll, final Document obj)
@@ -99,9 +99,9 @@ public class MongoDbMetadataHelper {
     /**
      * Calls getAfterLoad
      *
-     * @param col (not Results except if already hashed)
-     * @param field
-     * @param ref
+     * @param col metadata collection (not Results except if already hashed)
+     * @param field of collection
+     * @param ref reference of collection field 
      * @return the MetadataDocument casted object using field = ref
      */
     @SuppressWarnings("rawtypes")
@@ -119,8 +119,8 @@ public class MongoDbMetadataHelper {
     /**
      * Find the corresponding id in col collection if it exists. Calls getAfterLoad
      *
-     * @param col (not results except if already hashed)
-     * @param id
+     * @param col (not results except if already hashed) the working collection
+     * @param id the id value for searching in collection field 
      * @return the MetadataDocument casted object using ID = id
      */
     @SuppressWarnings("rawtypes")
@@ -134,8 +134,8 @@ public class MongoDbMetadataHelper {
     /**
      * OK with native id for Results
      *
-     * @param col
-     * @param id
+     * @param col the working collection
+     * @param id the id value for searching in collection field 
      * @return True if one MetadataDocument object exists with this id
      */
     public static final boolean exists(final MetadataCollections col, final String id) {
@@ -194,10 +194,10 @@ public class MongoDbMetadataHelper {
     /**
      * @param collection domain of request
      * @param condition where condition
-     * @param data update
-     * @param nb nb of item to update
+     * @param data the update data 
+     * @param nb number of item to update
      * @return the UpdateResult on the update request based on the given collection
-     * @throws MetaDataExecutionException
+     * @throws MetaDataExecutionException if a mongo operation exception occurred
      */
     public static final UpdateResult update(final MetadataCollections collection,
         final Bson condition, final Bson data, int nb)
@@ -218,7 +218,7 @@ public class MongoDbMetadataHelper {
      * @param condition where condition
      * @param nb nb of item to delete
      * @return the DeleteResult on the update request based on the given collection
-     * @throws MetaDataExecutionException
+     * @throws MetaDataExecutionException if a mongo operation exception occurred
      */
     public static final DeleteResult delete(final MetadataCollections collection,
         final Bson condition, int nb)
@@ -235,8 +235,8 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * @param targetIds
-     * @param ancestorIds
+     * @param targetIds set of target ids
+     * @param ancestorIds set of ancestor ids 
      * @return the Filter condition to find if ancestorIds are ancestors of ObjectGroup targetIds
      */
     public static final Bson queryObjectGroupForAncestors(Set<String> targetIds, Set<String> ancestorIds) {
@@ -245,8 +245,8 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * @param targetIds
-     * @param ancestorIds
+     * @param targetIds set of target id
+     * @param ancestorIds set of ancestor id
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds
      */
     public static final Bson queryForAncestors(Set<String> targetIds, Set<String> ancestorIds) {
@@ -254,8 +254,8 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * @param targetIds
-     * @param ancestorIds
+     * @param targetIds set of target ids
+     * @param ancestorIds set of ancestor ids 
      * @return the Filter condition to find if ancestorIds are ancestors of targetIds or equals to targetIds
      */
     public static final Bson queryForAncestorsOrSame(Set<String> targetIds, Set<String> ancestorIds) {
@@ -339,8 +339,8 @@ public class MongoDbMetadataHelper {
     /**
      * Update the linkset (N link type)
      *
-     * @param obj1
-     * @param vtReloaded
+     * @param obj1 MetadataDocument object
+     * @param vtReloaded the MetadataDocument object loaded
      * @param relation
      * @param src
      * @return the update part as { field : {$each : [value] } }
@@ -380,10 +380,9 @@ public class MongoDbMetadataHelper {
     /**
      * Add a single relation (1) from Obj1 to Obj2 (used in N-1 link)
      *
-     * @param db
-     * @param obj1
+     * @param obj1 MetadataDocument object
      * @param obj1ToObj2
-     * @param obj2
+     * @param obj2 MetadataDocument object
      * @return a {@link BasicDBObject} for update as { field : value }
      */
     @SuppressWarnings("rawtypes")
@@ -401,9 +400,9 @@ public class MongoDbMetadataHelper {
     /**
      * Add a one way relation (n) from Obj1 to Obj2 (used in N-(N) and N-1 links)
      *
-     * @param obj1
+     * @param obj1 MetadataDocument object
      * @param obj1ToObj2
-     * @param obj2
+     * @param obj2 MetadataDocument object
      * @param toUpdate True if this element will be updated through $addToSet only
      * @return a {@link BasicDBObject} for update as { $addToSet : { field : value } }
      */
@@ -434,7 +433,7 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * @param type to use
+     * @param type of filter
      * @return a new Result
      */
     public static Result createOneResult(FILTERARGS type) {
@@ -442,8 +441,8 @@ public class MongoDbMetadataHelper {
     }
 
     /**
-     * @param type
-     * @param set
+     * @param type of filter
+     * @param set of collection for creating Result
      * @return a new Result
      */
     public static Result createOneResult(FILTERARGS type, Set<String> set) {

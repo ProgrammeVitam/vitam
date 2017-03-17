@@ -46,7 +46,7 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
     /**
      * AccessConfiguration constructor
      *
-     * @param urlMetaData
+     * @param urlMetaData the url of metadata server
      */
     public AccessInternalConfiguration(String urlMetaData) {
         this.urlMetaData = urlMetaData;
@@ -65,7 +65,7 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
     /**
      * setter UrlMetaData
      *
-     * @param urlMetaData
+     * @param urlMetaData the url of metadata server
      * @return this
      */
     public AccessInternalConfiguration setUrlMetaData(String urlMetaData) {

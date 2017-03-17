@@ -286,9 +286,9 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * Remove created unit lifeCycles during the given operation
      * 
      * @param operationId the operation id
-     * @throws LogbookClientNotFoundException
-     * @throws LogbookClientBadRequestException
-     * @throws LogbookClientServerException
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientServerException if the server got an internal error
      */
     public void rollBackUnitsByOperation(String operationId)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
@@ -297,9 +297,9 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * Remove created object group lifeCycles during the given operation
      * 
      * @param operationId the operation id
-     * @throws LogbookClientNotFoundException
-     * @throws LogbookClientBadRequestException
-     * @throws LogbookClientServerException
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientServerException if the server got an internal error
      */
     public void rollBackObjectGroupsByOperation(String operationId)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
@@ -309,8 +309,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * 
      * @param unitId the unit id
      * @return the unit lifeCycle status (COMMITTED or IN_PROCESS)
-     * @throws LogbookClientNotFoundException
-     * @throws LogbookClientServerException
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the server got an internal error
      */
     public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
         throws LogbookClientNotFoundException, LogbookClientServerException;
@@ -320,8 +320,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * 
      * @param objectGroupId the object group id
      * @return the object group lifeCycle status (COMMITTED or IN_PROCESS)
-     * @throws LogbookClientNotFoundException
-     * @throws LogbookClientServerException
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the server got an internal error
      */
     public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
         throws LogbookClientNotFoundException, LogbookClientServerException;

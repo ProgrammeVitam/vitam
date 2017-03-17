@@ -38,15 +38,15 @@ public class ResultError extends Result {
     /**
      * Constructor
      *
-     * @param type
+     * @param type of filter argument
      */
     public ResultError(FILTERARGS type) {
         super(type);
     }
 
     /**
-     * @param type
-     * @param set
+     * @param type of filter argument
+     * @param set of collection
      */
     public ResultError(FILTERARGS type, final Set<String> set) {
         super(type, set);
@@ -59,8 +59,8 @@ public class ResultError extends Result {
 
     /**
      *
-     * @param error
-     * @return this
+     * @param error as a String for adding to ResultError 
+     * @return ResultError with an error added
      */
     public ResultError addError(String error) {
         currentIds.add(error);

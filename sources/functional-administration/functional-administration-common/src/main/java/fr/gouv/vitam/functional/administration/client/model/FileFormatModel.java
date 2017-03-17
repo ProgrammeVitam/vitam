@@ -123,7 +123,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param id
+     * @param id value to set
      * @return this
      */
     public FileFormatModel setId(String id) {
@@ -141,7 +141,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param createdDate
+     * @param createdDate value to set
      * @return this
      */
     public FileFormatModel setCreatedDate(String createdDate) {
@@ -159,7 +159,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param versionPronom
+     * @param versionPronom value to set
      * @return this
      */
     public FileFormatModel setVersionPronom(String versionPronom) {
@@ -177,7 +177,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param version
+     * @param version value to set
      * @return this
      */
     public FileFormatModel setVersion(String version) {
@@ -195,7 +195,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param hasPriorityOverFileFormatIDs
+     * @param hasPriorityOverFileFormatIDs value to set
      * @return this
      */
     public FileFormatModel setHasPriorityOverFileFormatIDs(List<String> hasPriorityOverFileFormatIDs) {
@@ -213,7 +213,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param mimeType
+     * @param mimeType value to set
      * @return this
      */
     public FileFormatModel setMimeType(String mimeType) {
@@ -231,7 +231,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param name
+     * @param name value to set
      * @return this
      */
     public FileFormatModel setName(String name) {
@@ -249,7 +249,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param group
+     * @param group value to set
      * @return this
      */
     public FileFormatModel setGroup(String group) {
@@ -267,7 +267,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param alert
+     * @param alert value to set
      * @return this
      */
     public FileFormatModel setAlert(boolean alert) {
@@ -285,7 +285,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param comment
+     * @param comment value to set
      * @return this
      */
     public FileFormatModel setComment(String comment) {
@@ -303,7 +303,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param extensions
+     * @param extensions value to set
      * @return this
      */
     public FileFormatModel setExtensions(List<String> extensions) {
@@ -321,7 +321,7 @@ public class FileFormatModel {
     
     /**
      * 
-     * @param puid
+     * @param puid value to set
      * @return this
      */
     public FileFormatModel setPuid(String puid) {
