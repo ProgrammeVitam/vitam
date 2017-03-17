@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -44,6 +45,10 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -60,11 +65,15 @@ public class CheckStorageAvailabilityActionHandlerTest {
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private GUID guid;
     private HandlerIOImpl handlerIO;
+    
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
-        PowerMockito.mockStatic(SedaUtils.class);
+        PowerMockito.mockStatic(SedaUtils.class);        
         guid = GUIDFactory.newGUID();
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
     }
@@ -111,6 +120,25 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
         when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
 
+        assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+    
+    // This test checks that if a null is returned by the getStorageInformation, then we get an OK status, and a WARN log is displayed
+    @RunWithCustomExecutor
+    @Test
+    public void givenProblemWithOfferCheckStorageExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(-1);
+        final SedaUtils sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
+       
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
