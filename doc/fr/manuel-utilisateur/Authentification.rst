@@ -34,8 +34,48 @@ Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de 
 
 Par défaut, après connexion, la page "Transfert" d'un SIP est affichée.
 
+Le nom de l'utilisateur est indiqué en haut à droite de l'écran. Le tenant est indiqué entre parenthèses.
+
+.. image:: images/authentification_indication_user.png
+
 Si l'utilisateur souhaite accéder à la plate-forme en saisissant une URL vers une page de Vitam, une fois l'authentification effectuée, il sera redirigé vers la page demandée.
-Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est d'une heure, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la derniere page consultée.
+Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est d'une heure, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
+
+Rôles
+=====
+
+Trois niveaux de permissions sont gérés au travers des rôles suivants :
+
+	* Admin
+	* User
+	* Guest
+
+**Admin** : rôle accordant des droits étendus. Permet d'accéder à l'ensemble des fonctionnalités, aux fonctionnalités d'administration fonctionnelle et à l'IHM de recette.
+
+**User** : permet d'accéder au fonctionnalités suivantes :
+	
+	* Transfert d'archives
+	* Suivi des opérations d'entrée
+	* Recherche et consultation d'archives
+	* Consultation du registre des fonds
+	* Détail des unités archivistiques
+	* Consultation des référentiels
+	* Consultation des journaux d'opération
+	* Accès au gestionnaire des versements
+	  
+Menu d'administration en vue user :
+
+.. image:: images/authentification_admin_menu_user.png
+
+**Guest** : permet d'accéder aux fonctionnalités suivantes :
+
+	* Recherche et consultation d'archives
+	* Consultation du registre des fonds
+	* Détail des unités archivistiques
+	  
+Menus disponibles en vue guest :
+
+.. image:: images/authentification_admin_menu_guest.png
 
 Déconnexion
 ===========
