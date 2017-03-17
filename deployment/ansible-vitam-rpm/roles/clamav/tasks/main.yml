@@ -97,5 +97,10 @@
     when: freshclam_status.stdout == ""
     notify:
       - restart debian_clamav
+
+  - name: force restart clamAV  
+    service:
+      name: "clamav-daemon"
+      state: restarted
   
   when: ansible_distribution == "Debian"
