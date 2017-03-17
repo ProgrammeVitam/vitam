@@ -9,7 +9,7 @@
 # Detect if authentication is enabled
 
 - name: Check if authent is enabled
-  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'rs.status()'"
+  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'db.help()'"
   become_user: "{{ vitamdb_user}}"
   run_once: true
   register: mongo_authent_enabled
@@ -84,7 +84,6 @@
   delegate_to: "{{item}}"
   with_items: "{{groups['mongos']}}"
   run_once: true
-  when: mongo_no_auth
 
 - name: Activate security on mongod instances
   blockinfile:
@@ -98,7 +97,6 @@
   delegate_to: "{{item}}"
   with_items: "{{groups['mongod']}}"
   run_once: true
-  when: mongo_no_auth
 
 - name: Activate security on mongoc instances
   blockinfile:
@@ -112,7 +110,6 @@
   delegate_to: "{{item}}"
   with_items: "{{groups['mongoc']}}"
   run_once: true
-  when: mongo_no_auth
 
 # Restart the mongo instances (to enable auth)
 
