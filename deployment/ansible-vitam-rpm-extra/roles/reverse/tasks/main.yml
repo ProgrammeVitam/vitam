@@ -95,6 +95,7 @@
   notify:
      - reload apache
 
+#OMA: if problem with apache2 restart due to absent pem, manually remove on reverse the above p12 file and relaunch playbook
 - name: copy certificate
   copy:
     src: "keystore_client.p12"
