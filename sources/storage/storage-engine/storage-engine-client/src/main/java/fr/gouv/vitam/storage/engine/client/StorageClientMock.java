@@ -45,6 +45,8 @@ import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -80,8 +82,19 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     @Override
     public JsonNode getStorageInformation(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
+        Integer tenantId = 0;
         try {
-            return JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY);
+            tenantId = ParameterHelper.getTenantParameter();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+        try {
+            if (tenantId == -1){
+                return null;
+            }
+            else {
+                return JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY);
+            }
         } catch (final InvalidParseOperationException e) {
             throw new StorageServerClientException(e);
         }
