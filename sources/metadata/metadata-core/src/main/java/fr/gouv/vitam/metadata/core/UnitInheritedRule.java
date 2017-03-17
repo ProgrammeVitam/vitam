@@ -270,18 +270,23 @@ public class UnitInheritedRule {
 				ObjectNode ruleCategories = createRuleCategories((ObjectNode) unitManagement.get(unitRuleCategory), unitId);
 				ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
 			} else {
-				String ruleId  = unitManagement.get(unitRuleCategory).get(RULE).asText();
-				ObjectNode unitRuleNode = (ObjectNode) unitManagement.get(unitRuleCategory);
-				if (newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
-					ObjectNode unitNode = createNewRuleWithOrigin(unitRuleNode, unitId);
-					newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
-				}
+                JsonNode unitCategory = unitManagement.get(unitRuleCategory);
+                if (unitCategory.isArray()) {
+                    for (JsonNode unitRuleNode : unitCategory) {
+                        String ruleId = unitRuleNode.get(RULE).asText();
+                        if (newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
+                            ObjectNode unitNode = createNewRuleWithOrigin((ObjectNode) unitRuleNode, unitId);
+                            newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
+                        }
+                    }
+                }
+
 			}
 		}
 		newRule.inheritedRule.putAll(ruleCategoryFromUnit);
 		return newRule;
 	}
-	
+
 	private void compareInheritedRuleWithManagement(ObjectNode unitRuleNode, String ruleId, ObjectNode ruleNode, String unitId, 
         Map<String, String> ruleIdTodReplace){
         

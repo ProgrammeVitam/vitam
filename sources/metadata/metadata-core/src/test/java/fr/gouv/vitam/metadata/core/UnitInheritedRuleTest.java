@@ -68,17 +68,17 @@ public class UnitInheritedRuleTest {
         "  }";
     
     private final static String AU2_MGT = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"R1\"," +
         "      \"FinalAction\" : \"NoAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"" +
-        "    }," +
-        "    \"AccessRule\" : {" +
+        "    }]," +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"R4\"," +
         "      \"FinalAction\" : \"Access\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     @Test
