@@ -1,22 +1,65 @@
 ---
 # tasks file for mongo-express
 # Docker role tasks
-- name: installer le package docker
-  package:
-    name: "{{item}}"
-    state: latest
-  with_items:
-  - docker
+- block:
+  - name: supprimer le package docker actuel
+    package:
+      name: "{{item}}"
+      state: absent
+    with_items:
+    - docker
+    - python-docker
+  
+  - name: add GPG docker repo key
+    apt_key:
+      url: "https://download.docker.com/linux/debian/gpg"
+      state: present
+      validate_certs: no
+    environment:
+      https_proxy: "{{ http_proxy_environnement }}"
 
-- name: installer le package docker-python
-  package:
-    name: docker-python
+  - name: install apt-transport-https as Docker repository is https
+    package:
+      name: apt-transport-https
+      state: present
+
+  - name: check jessie-backports repo are present
+    apt_repository:
+      repo: "{{item}}"
+      state: present
+    with_items:
+      - "deb [arch=amd64] https://download.docker.com/linux/debian  {{ansible_distribution_release}} stable"
+  
+  - name: run apt-update
+    apt:
+      update_cache: yes
+
+  - name: installer le package docker
+    apt:
+      name: "{{item}}"
+      state: present
+      default_release: jessie-backports
+    with_items:
+        - docker-ce
+        - python-docker
+
+  when: (ansible_distribution == "Debian")
+
+- block:
+  - name: installer le package docker
+    package:
+      name: "{{item}}"
+      state: latest
+    with_items:
+    - docker
+
+  - name: installer le package docker-python
+    package:
+      name: docker-python
+
   when: (ansible_distribution == "CentOS")
 
-- name: installer le package python-docker
-  package:
-      name: python-docker
-  when: (ansible_distribution == "Debian") 
+
 
 # OMA : add for unity
 - name: create docker group
@@ -37,13 +80,24 @@
     state: directory
     mode: "u=rw,g=r,o=r"
 
-- name: Ensure HTTP connection to docker registry
+- name: Ensure HTTP connection to docker registry (CentOS)
   lineinfile:
     dest: "/etc/sysconfig/docker"
     state: present
     backrefs: yes
     regexp: "^(.*)INSECURE_REGISTRY=(.*)$"
     line: "INSECURE_REGISTRY='--insecure-registry {{docker_registry_private}} --insecure-registry {{docker_registry_proxy}} --insecure-registry {{docker_registry_group}} --insecure-registry {{docker_registry_private_long}} --insecure-registry {{docker_registry_proxy_long}} --insecure-registry {{docker_registry_group_long}}'"
+  when: (ansible_distribution == "CentOS")
+
+- name: Ensure HTTP connection to docker registry (Debian)
+  lineinfile:
+    dest: "/etc/default/docker"
+    state: present
+    backrefs: yes
+    regexp: "^(.*)INSECURE_REGISTRY=(.*)$"
+    line: "INSECURE_REGISTRY='--insecure-registry {{docker_registry_private}} --insecure-registry {{docker_registry_proxy}} --insecure-registry {{docker_registry_group}} --insecure-registry {{docker_registry_private_long}} --insecure-registry {{docker_registry_proxy_long}} --insecure-registry {{docker_registry_group_long}}'"
+  when: (ansible_distribution == "Debian")
+
 
 - name: Ensure Login priviledges to docker registry
   template:
