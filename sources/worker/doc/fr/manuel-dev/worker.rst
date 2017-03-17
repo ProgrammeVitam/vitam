@@ -648,9 +648,8 @@ Map<String, String> objectGuidToUri
 
 sauvegarde des maps (binaryDataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
 
-
 4.6.3 Vérifier les ArchiveUnit du SIP
-=========================================
+=====================================
 Dans les cas où le SIP contient un objet numérique référencé par un groupe d'objet et qu'une unité archiviste
 référence cet objet directement (au lieu de déclarer le GOT), le résultat attendu est un statut KO au niveau de 
 l'étape STP_INGEST_CONTROL_SIP dans l'action CHECK_MANIFEST. Ce contrôle est effectué dans la fonction 
@@ -679,6 +678,14 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 				Fin Si
 			Fin Si
 		Fin Pour		
+
+4.6.4 Détails du data dans l'itemStatus retourné
+================================================
+
+Le itemStatus est mis à jour avec les objets du manifest.xml remontées pour mettre à jour evDetData.
+Il contient dans data le json de evDetData en tant que String.
+Entre autre, le evDetData contient la valeur evDetDataType à "MASTER" qui définit une action de copie de ce evDetData dans le evDetData master de l'operation.
+Les champs récupérés (s'ils existent dans le manifest) sont "evDetailReq", "evDateTimeReq", "ArchivalAgreement", "agIfTrans", "ServiceLevel".
 
 4.7 Détail du handler : IndexObjectGroupActionHandler
 -----------------------------------------------------
@@ -884,6 +891,7 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- un identifiant unique
 	-- des informations sur le service producteur (OriginatingAgency)
 	-- des informations sur le service versant (SubmissionAgency), si différent du service producteur
+   -- des informations sur le contrat (ArchivalAgreement)
 	-- date de début de l’enregistrement (Start Date)
 	-- date de fin de l’enregistrement (End Date)
 	-- date de dernière mise à jour de l’enregistrement (Last update)
