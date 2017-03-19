@@ -32,6 +32,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+
 public class VitamThreadTest {
 
     @Test
@@ -41,7 +43,7 @@ public class VitamThreadTest {
         final VitamThreadPoolExecutor executorService =
             (VitamThreadPoolExecutor) vitamThreadPoolExecutorProvider.getExecutorService();
         assertNotNull(executorService);
-        assertTrue(vitamThreadPoolExecutorProvider.getCorePoolSize() == 0);
+        assertTrue(vitamThreadPoolExecutorProvider.getCorePoolSize() == VitamConfiguration.MINIMUM_THREAD_POOL_SIZE);
         assertTrue(vitamThreadPoolExecutorProvider.getKeepAliveTime() > 0);
         assertTrue(vitamThreadPoolExecutorProvider.getMaximumPoolSize() > 0);
         assertNotNull(vitamThreadPoolExecutorProvider.getWorkQueue());

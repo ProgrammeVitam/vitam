@@ -50,99 +50,128 @@ public interface StorageClient extends BasicClient {
     /**
      * Check if the storage of objects could be done, knowing a required size
      *
-     * @param strategyId the storage strategy id
+     * @param strategyId
+     *            the storage strategy id
      * @return the capacity of the storage
-     * @throws StorageNotFoundClientException if the Server got a NotFound result
-     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageNotFoundClientException
+     *             if the Server got a NotFound result
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
      */
-    JsonNode getStorageInformation(String strategyId)
-        throws StorageNotFoundClientException, StorageServerClientException;
+    JsonNode getStorageInformation(String strategyId) throws StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Store an object available in workspace by its vitam guid
      *
-     * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
-     * @param description object description
-     * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
-     * @throws StorageNotFoundClientException if the Server got a NotFound result
-     * @throws StorageServerClientException if the Server got an internal error
+     * @param strategyId
+     *            the storage strategy id
+     * @param type
+     *            the type of object collection
+     * @param guid
+     *            vitam guid
+     * @param description
+     *            object description
+     * @throws StorageAlreadyExistsClientException
+     *             if the Server got a CONFLICT status result
+     * @throws StorageNotFoundClientException
+     *             if the Server got a NotFound result
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
      * @return the result status of object creation
      */
     StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
-        ObjectDescription description)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+            ObjectDescription description)
+            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
      * Check the existance of a tenant container in storage by its id
      *
-     * @param strategyId the storage strategy id
+     * @param strategyId
+     *            the storage strategy id
      * @return true if exist
-     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
      */
     boolean existsContainer(String strategyId) throws StorageServerClientException;
 
     /**
-     * Check the existence of an object in storage by its id and type {@link StorageCollectionType}.
+     * Check the existence of an object in storage by its id and type
+     * {@link StorageCollectionType}.
      *
-     * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
+     * @param strategyId
+     *            the storage strategy id
+     * @param type
+     *            the type of object collection
+     * @param guid
+     *            vitam guid
      * @return true if exist
-     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
      */
-    boolean exists(String strategyId, StorageCollectionType type, String guid)
-        throws StorageServerClientException;
+    boolean exists(String strategyId, StorageCollectionType type, String guid) throws StorageServerClientException;
 
     /**
-     * Delete a container in the storage offer strategy A non-empty container CANNOT be deleted !
+     * Delete a container in the storage offer strategy A non-empty container
+     * CANNOT be deleted !
      *
-     * @param strategyId the storage strategy id
+     * @param strategyId
+     *            the storage strategy id
      * @return true if deleted
-     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
      */
     boolean deleteContainer(String strategyId) throws StorageServerClientException;
 
     /**
      * Delete an object of given type in the storage offer strategy
      *
-     * @param strategyId the storage strategy id
-     * @param type the type of object collection
-     * @param guid vitam guid
-     * @param digest the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
+     * @param strategyId
+     *            the storage strategy id
+     * @param type
+     *            the type of object collection
+     * @param guid
+     *            vitam guid
+     * @param digest
+     *            the digest to be compared with
+     * @param digestAlgorithm
+     *            the digest Algorithm
      * @return true if deleted
-     * @throws StorageServerClientException if the Server got an internal error
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
      */
-    boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
-        DigestType digestAlgorithm)
-        throws StorageServerClientException;
-
+    boolean delete(String strategyId, StorageCollectionType type, String guid, String digest, DigestType digestAlgorithm)
+            throws StorageServerClientException;
 
     /**
-     * Retrieves a binary object knowing its guid as an inputStream for a specific tenant/strategy
+     * Retrieves a binary object knowing its guid as an inputStream for a
+     * specific tenant/strategy
      *
-     * @param strategyId the storage strategy id
-     * @param guid vitam guid of the object to be returned
+     * @param strategyId
+     *            the storage strategy id
+     * @param guid
+     *            vitam guid of the object to be returned
      * @param type
      * @return the object requested
-     * @throws StorageServerClientException if the Server got an internal error
-     * @throws StorageNotFoundException if the Server got a NotFound result, if the container or the object does not
-     *         exist
+     * @throws StorageServerClientException
+     *             if the Server got an internal error
+     * @throws StorageNotFoundException
+     *             if the Server got a NotFound result, if the container or the
+     *             object does not exist
      */
     Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
-        throws StorageServerClientException, StorageNotFoundException;
+            throws StorageServerClientException, StorageNotFoundException;
 
     /**
      * List object type in container
      *
-     * @param strategyId the strategy ID
-     * @param type the object type to list
+     * @param strategyId
+     *            the strategy ID
+     * @param type
+     *            the object type to list
      * @return an iterator with object list
-     * @throws StorageServerClientException thrown if the server got an internal error
+     * @throws StorageServerClientException
+     *             thrown if the server got an internal error
      */
-    VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
-        throws StorageServerClientException;
+    VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) throws StorageServerClientException;
 
 }

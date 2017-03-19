@@ -513,8 +513,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             throw new AccessInternalExecutionException(e);
         } catch (StorageClientException e) {
-            rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
+            // NO since metadata is already updated: rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             LOGGER.error(STORAGE_SERVER_EXCEPTION, e);
+            throw new AccessInternalExecutionException(STORAGE_SERVER_EXCEPTION, e);
         } catch (ContentAddressableStorageException e) {
             rollBackLogbook(logbookLifeCycleClient, logbookOperationClient, updateOpGuidStart, newQuery, idGUID);
             LOGGER.error(WORKSPACE_SERVER_EXCEPTION, e);
@@ -585,7 +586,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
         } finally {
             cleanWorkspace(requestId);
-            if (workspaceClient != null && storageClientMock == null) {
+            if (workspaceClient != null && workspaceClientMock == null) {
                 workspaceClient.close();
             }
         }

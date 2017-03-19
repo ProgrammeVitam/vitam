@@ -92,8 +92,7 @@ public class StorageDistributionImplTest {
     private static WorkspaceClient client;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void initStatic() throws StorageDriverNotFoundException {
@@ -112,10 +111,10 @@ public class StorageDistributionImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testStoreData_IllegalArguments()
-        throws StorageException, StorageObjectAlreadyExistsException {
+    public void testStoreData_IllegalArguments() throws StorageException, StorageObjectAlreadyExistsException {
         // storeData(String tenantId, String strategyId, String objectId,
-        // CreateObjectDescription createObjectDescription, DataCategory category,
+        // CreateObjectDescription createObjectDescription, DataCategory
+        // category,
         // JsonNode jsonData)
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final ObjectDescription emptyDescription = new ObjectDescription();
@@ -150,14 +149,12 @@ public class StorageDistributionImplTest {
         reset(client);
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK)
-                .entity(stream2).build());
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             // Store object
-            storedInfoResult = customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
+            storedInfoResult = customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
                     "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -182,14 +179,12 @@ public class StorageDistributionImplTest {
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK)
-                .entity(stream2).build());
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
-            storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription,
-                    DataCategory.UNIT, "testRequester");
+            storedInfoResult = customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.UNIT,
+                    "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -204,14 +199,12 @@ public class StorageDistributionImplTest {
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK)
-                .entity(stream2).build());
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
-            storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription,
-                    DataCategory.LOGBOOK, "testRequester");
+            storedInfoResult = customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.LOGBOOK,
+                    "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -226,13 +219,11 @@ public class StorageDistributionImplTest {
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK)
-                .entity(stream2).build());
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
-            storedInfoResult =
-                customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription,
+            storedInfoResult = customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription,
                     DataCategory.OBJECT_GROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
@@ -244,10 +235,9 @@ public class StorageDistributionImplTest {
         assertTrue(info.contains("ObjectGroup") && info.contains("successfully"));
 
         Digest digest = Digest.digest(new FileInputStream(PropertiesUtils.findFile("object.zip")),
-            VitamConfiguration.getDefaultDigestType());
+                VitamConfiguration.getDefaultDigestType());
         // lets delete the object on offers
-        customDistribution.deleteObject(STRATEGY_ID, objectId, digest.toString(),
-            DigestType.SHA1);
+        customDistribution.deleteObject(STRATEGY_ID, objectId, digest.toString(), DigestType.SHA1);
 
     }
 
@@ -265,18 +255,16 @@ public class StorageDistributionImplTest {
         reset(client);
 
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 6349).build())
-            .thenReturn(Response.status(Status.OK).entity(stream2).build());
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream)
+                        .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
+                .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             // Store object
-            customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
-                    "testRequester");
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
@@ -296,13 +284,10 @@ public class StorageDistributionImplTest {
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349)
-                .entity(stream).build());
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(Response.status(Status.OK)
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).entity(stream).build());
         try {
-            customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
-                    "testRequester");
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -321,13 +306,11 @@ public class StorageDistributionImplTest {
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream)
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
             // Store object
-            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
-                "testRequester");
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -348,11 +331,9 @@ public class StorageDistributionImplTest {
 
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenThrow(ContentAddressableStorageNotFoundException.class);
+                .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
-            customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
-                    "testRequester");
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageException exc) {
             // Expection
@@ -360,11 +341,9 @@ public class StorageDistributionImplTest {
 
         reset(client);
         when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenThrow(ContentAddressableStorageServerException.class);
+                .thenThrow(ContentAddressableStorageServerException.class);
         try {
-            customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
-                    "testRequester");
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
@@ -373,25 +352,20 @@ public class StorageDistributionImplTest {
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         IOUtils.closeQuietly(stream);
         reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream)
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
-            customDistribution
-                .storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT,
-                    "testRequester");
+            customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester");
             fail("Should produce exception");
         } catch (final StorageTechnicalException exc) {
             // Expection
         }
     }
 
-    private void checkInvalidArgumentException(String strategyId, String objectId,
-        ObjectDescription createObjectDescription, DataCategory category)
-        throws StorageException, StorageObjectAlreadyExistsException {
+    private void checkInvalidArgumentException(String strategyId, String objectId, ObjectDescription createObjectDescription,
+            DataCategory category) throws StorageException, StorageObjectAlreadyExistsException {
         try {
-            simpleDistribution.storeData(strategyId, objectId, createObjectDescription, category,
-                "testRequester");
+            simpleDistribution.storeData(strategyId, objectId, createObjectDescription, category, "testRequester");
             fail("Parameter should be considered invalid");
         } catch (final IllegalArgumentException exc) {
             // test OK
@@ -430,8 +404,7 @@ public class StorageDistributionImplTest {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null,
-                new AsyncResponseJunitTest());
+            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null, new AsyncResponseJunitTest());
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -442,16 +415,14 @@ public class StorageDistributionImplTest {
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT,
-            new AsyncResponseJunitTest());
+        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT, new AsyncResponseJunitTest());
     }
 
     @RunWithCustomExecutor
     @Test
     public void deleteObjectOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        customDistribution.deleteObject(STRATEGY_ID, "0", "digest",
-            DigestType.SHA1);
+        customDistribution.deleteObject(STRATEGY_ID, "0", "digest", DigestType.SHA1);
     }
 
     @RunWithCustomExecutor
@@ -495,15 +466,15 @@ public class StorageDistributionImplTest {
         FakeInputStream stream = new FakeInputStream(500, false);
         reset(client);
 
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
-            .thenReturn(Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                (long) 500).build());
+        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(
+                Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 500).build());
 
         try {
             // Store object
-            customDistribution
-                .storeData(STRATEGY_ID, "timeoutTest", createObjectDescription, DataCategory.OBJECT_GROUP,
-                    "testRequester");
+            TransferThread.setJunitMode(true);
+            customDistribution.storeData(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
+                    DataCategory.OBJECT_GROUP, "testRequester");
+            TransferThread.setJunitMode(false);
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -513,7 +484,6 @@ public class StorageDistributionImplTest {
     public void testGetStorageContainer() throws Exception {
         simpleDistribution.getStorageContainer(null);
     }
-
 
     @Test(expected = UnsupportedOperationException.class)
     public void testCreateContainer() throws Exception {

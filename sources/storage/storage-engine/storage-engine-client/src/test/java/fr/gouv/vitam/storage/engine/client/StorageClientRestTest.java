@@ -80,8 +80,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 public class StorageClientRestTest extends VitamJerseyTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     protected static final String HOSTNAME = "localhost";
     protected StorageClientRest client;
@@ -100,7 +99,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
         client = (StorageClientRest) getClient();
     }
 
-    // Define the getApplication to return your Application using the correct Configuration
+    // Define the getApplication to return your Application using the correct
+    // Configuration
     @Override
     public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
         final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
@@ -112,14 +112,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
             throw new IllegalStateException("Cannot start the application", e);
         }
 
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
+        return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
+                .setApplication(application);
     }
 
     // Define your Application class if necessary
     public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
         protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
             super(TestVitamApplicationConfiguration.class, configuration);
         }
@@ -129,6 +128,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
             resourceConfig.registerInstances(new MockResource(mock));
         }
     }
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
@@ -250,7 +250,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
         @Path("/objects/{id_object}")
         @GET
-        @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+        @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
         @Consumes(MediaType.APPLICATION_JSON)
         public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
             return expectedResponse.get();
@@ -301,9 +301,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post())
-            .thenReturn(Response.status(Response.Status.CREATED).entity(generateStoredInfoResult("idObject")).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject",
-            getDescription());
+                .thenReturn(Response.status(Response.Status.CREATED).entity(generateStoredInfoResult("idObject")).build());
+        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -311,8 +310,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject",
-            getDescription());
+        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -320,8 +318,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceAlreadyExist() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject",
-            getDescription());
+        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -329,8 +326,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject",
-            getDescription());
+        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -366,7 +362,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         final ObjectDescription description = new ObjectDescription();
         description.setWorkspaceContainerGUID("aeaaaaaaaaaam7mxaaaamakwfnzbudaaaaaq");
         description.setWorkspaceObjectURI(
-            "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
+                "SIP/content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odt");
         return description;
     }
 
@@ -454,13 +450,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.deleteContainer("idStrategy"));
         assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
         assertTrue(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
         assertTrue(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
         assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
     }
 
     @RunWithCustomExecutor
@@ -470,13 +466,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.deleteContainer("idStrategy"));
         assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
         assertFalse(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
         assertFalse(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
         assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", "digest",
-            VitamConfiguration.getDefaultDigestType()));
+                VitamConfiguration.getDefaultDigestType()));
     }
 
     @RunWithCustomExecutor
@@ -549,9 +545,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test
     public void statusExecutionWithBody() throws Exception {
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.NO_CONTENT).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.NO_CONTENT)
+                .entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
         client.checkStatus();
     }
 
@@ -591,8 +586,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
-        final InputStream stream =
-            client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS)
+        final InputStream stream = client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS)
                 .readEntity(InputStream.class);
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);

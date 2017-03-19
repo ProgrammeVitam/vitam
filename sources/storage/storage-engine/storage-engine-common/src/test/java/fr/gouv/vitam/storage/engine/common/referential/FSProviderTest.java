@@ -64,7 +64,6 @@ public class FSProviderTest {
         assertEquals("default", offerReference.getId());
     }
 
-
     @Test
     public void testGetStorageStrategy_ForceReload() throws Exception {
         final FSProvider fsProvider = new FSProvider();
@@ -105,7 +104,6 @@ public class FSProviderTest {
         assertNotNull(offer.getParameters());
         assertEquals("bob", offer.getParameters().get("user"));
     }
-
 
     @Test
     public void testGetStorageOffer_ForceReload() throws Exception {

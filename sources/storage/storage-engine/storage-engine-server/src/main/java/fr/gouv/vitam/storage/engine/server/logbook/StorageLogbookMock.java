@@ -44,7 +44,6 @@ public class StorageLogbookMock implements StorageLogbook {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookMock.class);
 
-
     @Override
     public void add(StorageLogbookParameters parameters) throws StorageException {
         try {
@@ -68,21 +67,21 @@ public class StorageLogbookMock implements StorageLogbook {
     }
 
     @Override
-    public List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId)
-        throws StorageException {
+    public List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-        throws StorageException, InvalidParseOperationException {
+            throws StorageException, InvalidParseOperationException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     /**
      * For the moment, parameters are only logged
      *
-     * @param parameters the storage logbook parameters
+     * @param parameters
+     *            the storage logbook parameters
      */
     private void logInformation(StorageLogbookParameters parameters) {
         String result;
@@ -92,7 +91,7 @@ public class StorageLogbookMock implements StorageLogbook {
             LOGGER.error("Cannot serialize parameters", e);
             result = "{}";
         }
-        LOGGER.info(result);
+        LOGGER.warn(result);
     }
 
 }

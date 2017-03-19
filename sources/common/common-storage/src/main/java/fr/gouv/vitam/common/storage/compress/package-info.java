@@ -25,6 +25,7 @@
  * accept its terms.
  */
 /**
- * Provides a factory dealing with archives in different formats for the Workspace module.
+ * Provides a factory dealing with archives in different formats for the
+ * Workspace module.
  */
 package fr.gouv.vitam.common.storage.compress;

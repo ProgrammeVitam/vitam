@@ -48,16 +48,20 @@ public class VitamArchiveStreamFactory {
     /**
      * Create an archive input stream from an archiver name and an input stream.
      *
-     * @param mediaType MediaType object {@link MediaType} the archive name, i.e. {@value #ZIP}, {@value #TAR}, or
-     *        {@value #GZIP}
-     * @param in the input stream
+     * @param mediaType
+     *            MediaType object {@link MediaType} the archive name, i.e.
+     *            {@value #ZIP}, {@value #TAR}, or {@value #GZIP}
+     * @param in
+     *            the input stream
      * @return the archive input stream
-     * @throws ArchiveException if the archiver name is not known
+     * @throws ArchiveException
+     *             if the archiver name is not known
      * @throws IOException
-     * @throws IllegalArgumentException if the archiver name or stream is null
+     * @throws IllegalArgumentException
+     *             if the archiver name or stream is null
      */
     public ArchiveInputStream createArchiveInputStream(final MediaType mediaType, final InputStream in)
-        throws ArchiveException, IOException {
+            throws ArchiveException, IOException {
 
         if (mediaType == null) {
             throw new IllegalArgumentException("archiverMediaType must not be null.");
@@ -73,11 +77,9 @@ public class VitamArchiveStreamFactory {
             case CommonMediaType.TAR:
                 return new TarArchiveInputStream(in);
             case CommonMediaType.GZIP:
-                return new TarArchiveInputStream(
-                    new GzipCompressorInputStream(in));
+                return new TarArchiveInputStream(new GzipCompressorInputStream(in));
             case CommonMediaType.BZIP2:
-                return new TarArchiveInputStream(
-                    new BZip2CompressorInputStream(in));
+                return new TarArchiveInputStream(new BZip2CompressorInputStream(in));
             default:
                 throw new ArchiveException("Archiver: " + mediaType + " not found.");
         }

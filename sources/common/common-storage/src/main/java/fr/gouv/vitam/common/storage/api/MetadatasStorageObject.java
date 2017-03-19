@@ -29,5 +29,5 @@ package fr.gouv.vitam.common.storage.api;
 import fr.gouv.vitam.common.model.MetadatasObject;
 
 public class MetadatasStorageObject extends MetadatasObject {
-    
+
 }

@@ -30,7 +30,8 @@ package fr.gouv.vitam.storage.engine.common.referential.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Represents a storage strategy (that may be mapped from Json but not exclusively)
+ * Represents a storage strategy (that may be mapped from Json but not
+ * exclusively)
  */
 public class StorageStrategy {
     private String id;

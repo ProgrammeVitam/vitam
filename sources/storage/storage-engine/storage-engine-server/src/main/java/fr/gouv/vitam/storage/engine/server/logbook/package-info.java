@@ -25,8 +25,9 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides logbook interface, factory and implementation for the Storage Engine Server module in order 
- * to log every object written on different storage offers
+ * Provides logbook interface, factory and implementation for the Storage Engine
+ * Server module in order to log every object written on different storage
+ * offers
  * 
  */
 package fr.gouv.vitam.storage.engine.server.logbook;

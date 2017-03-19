@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides the SPI implementation and configuration for the Storage Engine Server module
+ * Provides the SPI implementation and configuration for the Storage Engine
+ * Server module
  */
 package fr.gouv.vitam.storage.engine.server.spi;

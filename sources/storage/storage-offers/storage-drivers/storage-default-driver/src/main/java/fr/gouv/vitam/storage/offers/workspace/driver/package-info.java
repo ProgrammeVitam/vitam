@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides implementation of the driver for the Workspace Driver module. 
+ * Provides implementation of the driver for the Workspace Driver module.
  *
  */
 package fr.gouv.vitam.storage.offers.workspace.driver;

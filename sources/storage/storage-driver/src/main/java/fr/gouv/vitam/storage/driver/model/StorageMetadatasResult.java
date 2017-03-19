@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.MetadatasObject;
 
 public class StorageMetadatasResult extends MetadatasObject {
-    
+
     public StorageMetadatasResult(MetadatasObject object) {
         this.setObjectName(object.getObjectName());
         this.setType(object.getType());
@@ -41,7 +41,7 @@ public class StorageMetadatasResult extends MetadatasObject {
         this.setLastAccessDate(object.getLastAccessDate());
         this.setLastModifiedDate(object.getLastModifiedDate());
     }
-    
+
     /**
      * Constructor to initialize the needed parameters for get metadata results
      * 
@@ -53,13 +53,10 @@ public class StorageMetadatasResult extends MetadatasObject {
      * @param last_access_date
      * @param last_modified_date
      */
-    public StorageMetadatasResult(@JsonProperty("objectName") String object_name, 
-        @JsonProperty("type") String type, 
-        @JsonProperty("digest") String digest, 
-        @JsonProperty("file_size") long file_size, 
-        @JsonProperty("file_owner") String file_owner,
-        @JsonProperty("last_access_date") String last_access_date, 
-        @JsonProperty("last_modified_date") String last_modified_date) {
+    public StorageMetadatasResult(@JsonProperty("objectName") String object_name, @JsonProperty("type") String type,
+            @JsonProperty("digest") String digest, @JsonProperty("file_size") long file_size,
+            @JsonProperty("file_owner") String file_owner, @JsonProperty("last_access_date") String last_access_date,
+            @JsonProperty("last_modified_date") String last_modified_date) {
         super(object_name, type, digest, file_size, file_owner, last_access_date, last_modified_date);
     }
 }

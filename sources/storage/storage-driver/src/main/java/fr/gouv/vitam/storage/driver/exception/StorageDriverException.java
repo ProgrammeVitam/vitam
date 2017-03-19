@@ -30,7 +30,8 @@ package fr.gouv.vitam.storage.driver.exception;
 /**
  * Exceptions to be thrown by the storage drivers
  *
- * Note: it is intended to NOT extends VitamException in order to not have a dependency to common-public in this module
+ * Note: it is intended to NOT extends VitamException in order to not have a
+ * dependency to common-public in this module
  */
 public class StorageDriverException extends Exception {
 
@@ -45,9 +46,12 @@ public class StorageDriverException extends Exception {
     /**
      * Constructor with a message and additional info about the driver
      *
-     * @param driverInfos information about the driver (id, name, version...)
-     * @param errorCode code representing the error
-     * @param message a message to add
+     * @param driverInfos
+     *            information about the driver (id, name, version...)
+     * @param errorCode
+     *            code representing the error
+     * @param message
+     *            a message to add
      */
     public StorageDriverException(String driverInfos, ErrorCode errorCode, String message) {
         super(ERROR_MESSAGE + driverInfos + "' with message :" + message);
@@ -56,12 +60,17 @@ public class StorageDriverException extends Exception {
     }
 
     /**
-     * Constructor with a message and an original exception and additional info about the driver
+     * Constructor with a message and an original exception and additional info
+     * about the driver
      *
-     * @param driverInfos information about the driver (id, name, version...)
-     * @param errorCode code representing the error
-     * @param message the exception message
-     * @param cause the original exception
+     * @param driverInfos
+     *            information about the driver (id, name, version...)
+     * @param errorCode
+     *            code representing the error
+     * @param message
+     *            the exception message
+     * @param cause
+     *            the original exception
      */
     public StorageDriverException(String driverInfos, ErrorCode errorCode, String message, Throwable cause) {
         super(ERROR_MESSAGE + driverInfos + "' with message :" + message, cause);
@@ -70,11 +79,15 @@ public class StorageDriverException extends Exception {
     }
 
     /**
-     * Constructor with an original exception and additional info about the driver
+     * Constructor with an original exception and additional info about the
+     * driver
      *
-     * @param driverInfos information about the driver (id, name, version...)
-     * @param errorCode code representing the error
-     * @param cause the original exception
+     * @param driverInfos
+     *            information about the driver (id, name, version...)
+     * @param errorCode
+     *            code representing the error
+     * @param cause
+     *            the original exception
      */
     public StorageDriverException(String driverInfos, ErrorCode errorCode, Throwable cause) {
         super(ERROR_MESSAGE + driverInfos, cause);

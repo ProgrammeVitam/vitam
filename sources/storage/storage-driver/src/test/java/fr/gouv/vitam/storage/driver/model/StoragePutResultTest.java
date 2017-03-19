@@ -44,7 +44,6 @@ public class StoragePutResultTest {
         storagePutResult = new StoragePutResult(TENANT_ID, "object", "guid", "doi", "dhb16", 10);
     }
 
-
     @Test
     public void testGetTenantId() throws Exception {
         assertEquals(TENANT_ID, storagePutResult.getTenantId());

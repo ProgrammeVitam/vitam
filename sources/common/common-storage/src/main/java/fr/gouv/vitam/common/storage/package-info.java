@@ -25,6 +25,7 @@
  * accept its terms.
  */
 /**
- * Provides an abstract core, implementation and configuration for the common Storage module.
+ * Provides an abstract core, implementation and configuration for the common
+ * Storage module.
  */
 package fr.gouv.vitam.common.storage;

@@ -44,8 +44,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 @JsonSerialize(using = StorageLogbookParametersSerializer.class)
 public class StorageLogbookParameters {
 
-    private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY =
-        "Mandatory parameters can not be null or empty";
+    private static final String MANDATORY_PARAMETER_CAN_NOT_BE_NULL_OR_EMPTY = "Mandatory parameters can not be null or empty";
 
     private static final Set<StorageLogbookParameterName> mandatoryParameters = new HashSet<>();
 
@@ -68,10 +67,12 @@ public class StorageLogbookParameters {
     private final Map<StorageLogbookParameterName, String> mapParameters = new TreeMap<>();
 
     /**
-     * Set directly at least all mandatory parameters in the StorageLogbookParameters. This constructor checks if all
-     * mandatory parameters are set
+     * Set directly at least all mandatory parameters in the
+     * StorageLogbookParameters. This constructor checks if all mandatory
+     * parameters are set
      *
-     * @param mapParameters The initial parameters (MUST contains mandatory parameters
+     * @param mapParameters
+     *            The initial parameters (MUST contains mandatory parameters
      * @throws StorageException
      */
     public StorageLogbookParameters(Map<StorageLogbookParameterName, String> mapParameters) {
@@ -93,7 +94,8 @@ public class StorageLogbookParameters {
     /**
      * set The status of the operation
      *
-     * @param outcome the outcome
+     * @param outcome
+     *            the outcome
      * @return the StorageLogbookParameters after the parameter has been added
      */
     @JsonIgnore
@@ -113,13 +115,12 @@ public class StorageLogbookParameters {
         return StorageLogbookOutcome.valueOf(status);
     }
 
-
-
     /**
      * Check if mandatories parameters are not empty or null
      *
      * @return true if mandatories parameters are ok
-     * @throws IllegalArgumentException thrown when one parameter is empty or null
+     * @throws IllegalArgumentException
+     *             thrown when one parameter is empty or null
      */
     public boolean checkMandatoryParameters() throws IllegalArgumentException {
         for (final StorageLogbookParameterName s : mandatoryParameters) {
@@ -141,7 +142,8 @@ public class StorageLogbookParameters {
     /**
      * set The output detail message of the operation
      *
-     * @param outcomeDetailMessage the output message
+     * @param outcomeDetailMessage
+     *            the output message
      * @return the StorageLogbookParameters after the parameter has been added
      */
     @JsonIgnore
@@ -153,7 +155,8 @@ public class StorageLogbookParameters {
     /**
      * set The External Object Identifier
      *
-     * @param objectIdentifierIncome the External Object Identifier
+     * @param objectIdentifierIncome
+     *            the External Object Identifier
      * @return the StorageLogbookParameters after the parameter has been added
      */
     @JsonIgnore

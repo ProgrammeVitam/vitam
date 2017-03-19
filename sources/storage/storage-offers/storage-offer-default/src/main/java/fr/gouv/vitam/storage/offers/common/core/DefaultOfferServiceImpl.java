@@ -81,11 +81,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     private final Map<String, String> mapXCusor;
 
+    // FIXME When the server shutdown, it should be able to close the
+    // defaultStorage (Http clients)
     private DefaultOfferServiceImpl() {
         StorageConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
-                StorageConfiguration.class);
+                    StorageConfiguration.class);
         } catch (final IOException exc) {
             LOGGER.error(exc);
             throw new ExceptionInInitializerError(exc);
@@ -105,27 +107,24 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
-        throws ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
         return defaultStorage.computeObjectDigest(containerName, objectId, digestAlgorithm);
     }
 
     @Override
     public Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
-        throws ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
         final Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
         final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-        final ResponseBuilder responseBuilder =
-            Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
+        final ResponseBuilder responseBuilder = Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
         helper.writeResponse(responseBuilder);
         return response;
     }
 
-
-
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
+            ContentAddressableStorageNotFoundException {
         if (!defaultStorage.isExistingContainer(containerName)) {
             defaultStorage.createContainer(containerName);
         }
@@ -142,15 +141,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public void createFolder(String containerName, String folderName)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageNotFoundException {
+            throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
+            ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
         defaultStorage.createFolder(containerName, folderName);
     }
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
-        throws IOException, ContentAddressableStorageException {
+            throws IOException, ContentAddressableStorageException {
         // check container
         if (!defaultStorage.isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
@@ -161,8 +159,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             defaultStorage.putObject(containerName, objectId, objectPart);
             // Check digest AFTER writing in order to ensure correctness
-            final String digest = defaultStorage.computeObjectDigest(containerName,
-                objectId, getDigestAlgoFor(objectId));
+            final String digest = defaultStorage.computeObjectDigest(containerName, objectId, getDigestAlgoFor(objectId));
             // remove digest algo
             digestTypeFor.remove(objectId);
             return digest;
@@ -173,14 +170,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public boolean isObjectExist(String containerName, String objectId)
-        throws ContentAddressableStorageServerException {
+    public boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 
     @Override
     public JsonNode getCapacity(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final ObjectNode result = JsonHandler.createObjectNode();
         final ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
         result.put("usableSpace", containerInformation.getUsableSpace());
@@ -190,7 +186,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public JsonNode countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final ObjectNode result = JsonHandler.createObjectNode();
         final long objectNumber = defaultStorage.countObjects(containerName);
         result.put("objectNumber", objectNumber);
@@ -202,29 +198,27 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public boolean checkObject(String containerName, String objectId, String digest,
-        DigestType digestAlgorithm) throws ContentAddressableStorageException {
+    public boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
+            throws ContentAddressableStorageException {
         String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
     }
 
     @Override
-    public boolean checkDigest(String containerName, String idObject,
-        String digest) {
+    public boolean checkDigest(String containerName, String idObject, String digest) {
         LOGGER.error("Not yet implemented");
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public boolean checkDigestAlgorithm(String containerName, String idObject,
-        DigestType digestAlgorithm) {
+    public boolean checkDigestAlgorithm(String containerName, String idObject, DigestType digestAlgorithm) {
         LOGGER.error("Not yet implemented");
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         // TODO G1 : replace with checkObject when merged
         String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
         if (offerDigest.equals(digest)) {
@@ -236,13 +230,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageMetadatasResult getMetadatas(String containerName, String objectId) throws
-        ContentAddressableStorageException, IOException {
+    public StorageMetadatasResult getMetadatas(String containerName, String objectId)
+            throws ContentAddressableStorageException, IOException {
         return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(containerName, objectId));
     }
 
     public String createCursor(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (!defaultStorage.isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
@@ -258,8 +252,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public List<JsonNode> next(String containerName, String cursorId)
-        throws ContentAddressableStorageNotFoundException {
+    public List<JsonNode> next(String containerName, String cursorId) throws ContentAddressableStorageNotFoundException {
         String keyMap = getKeyMap(containerName, cursorId);
         if (mapXCusor.containsKey(keyMap)) {
             PageSet<? extends StorageMetadata> pageSet;

@@ -38,11 +38,10 @@ public class StorageDriverExceptionTest {
 
     @Test
     public void testGetDriverInfo() throws Exception {
-        StorageDriverException exc =
-            new StorageDriverException("drivername", StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, "message");
+        StorageDriverException exc = new StorageDriverException("drivername",
+                StorageDriverException.ErrorCode.INTERNAL_SERVER_ERROR, "message");
         exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.NOT_FOUND, exc);
-        exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.PRECONDITION_FAILED,
-            "message", exc);
+        exc = new StorageDriverException("drivername", StorageDriverException.ErrorCode.PRECONDITION_FAILED, "message", exc);
         assertEquals("drivername", exc.getDriverInfo());
     }
 }

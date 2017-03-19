@@ -43,8 +43,8 @@ public class StorageRemoveRequestTest {
 
     @BeforeClass
     public static void init() {
-        storageRemoveRequest = new StorageRemoveRequest(TENANT_ID, "object", "guid",
-            VitamConfiguration.getDefaultDigestType(), "digest_test");
+        storageRemoveRequest = new StorageRemoveRequest(TENANT_ID, "object", "guid", VitamConfiguration.getDefaultDigestType(),
+                "digest_test");
     }
 
     @Test

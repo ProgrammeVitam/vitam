@@ -39,13 +39,14 @@ import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookPara
  */
 public interface StorageLogbook {
 
-
     /**
      * Add a storage logbook entry <br>
      * <br>
      *
-     * @param parameters the entry parameters
-     * @throws StorageException if an error is encountered
+     * @param parameters
+     *            the entry parameters
+     * @throws StorageException
+     *             if an error is encountered
      */
     void add(StorageLogbookParameters parameters) throws StorageException;
 
@@ -57,30 +58,37 @@ public interface StorageLogbook {
     /**
      * Select a list of operations for a specified object
      *
-     * @param objectId the id of the object
+     * @param objectId
+     *            the id of the object
      * @return List of operations for this object Id
-     * @throws StorageException if any error is encountered
+     * @throws StorageException
+     *             if any error is encountered
      */
     List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException;
 
     /**
      * Select a list of operations for a specified objectgroup
      *
-     * @param objectGroupId the id of the object group
+     * @param objectGroupId
+     *            the id of the object group
      * @return List of operations for this object Id
-     * @throws StorageException if any error is encountered
+     * @throws StorageException
+     *             if any error is encountered
      */
     List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException;
 
     /**
      * Select a list of operations for a specified request
      *
-     * @param select the request in JsonNode format
+     * @param select
+     *            the request in JsonNode format
      * @return a List of operations
-     * @throws StorageException if any error is encountered
-     * @throws InvalidParseOperationException if the select request is not correct
+     * @throws StorageException
+     *             if any error is encountered
+     * @throws InvalidParseOperationException
+     *             if the select request is not correct
      */
     List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-        throws StorageException, InvalidParseOperationException;
+            throws StorageException, InvalidParseOperationException;
 
 }

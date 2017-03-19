@@ -43,8 +43,8 @@ public class StorageCheckRequestTest {
 
     @BeforeClass
     public static void init() {
-        storageCheckRequest = new StorageCheckRequest(TENANT_ID, "object", "guid",
-            VitamConfiguration.getDefaultDigestType(), "digest_test");
+        storageCheckRequest = new StorageCheckRequest(TENANT_ID, "object", "guid", VitamConfiguration.getDefaultDigestType(),
+                "digest_test");
     }
 
     @Test
@@ -71,7 +71,5 @@ public class StorageCheckRequestTest {
     public void testGetDigest() throws Exception {
         assertEquals("digest_test", storageCheckRequest.getDigestHashBase16());
     }
-
-
 
 }

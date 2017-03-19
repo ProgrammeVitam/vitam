@@ -32,53 +32,74 @@ import java.util.List;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
 
 /**
- * Interface use to implement DriverMapper. This object is use to persist informations about drivers and offers
- * associations.
+ * Interface use to implement DriverMapper. This object is use to persist
+ * informations about drivers and offers associations.
  */
 public interface DriverMapper {
 
     /**
      * Get persisted offers list for a driver
      *
-     * @param driverName the driver name
-     * @return offers IDs list for driverName or empty list if there is actually no association
-     * @throws StorageDriverMapperException if application cannot have information (reading error for example)
+     * @param driverName
+     *            the driver name
+     * @return offers IDs list for driverName or empty list if there is actually
+     *         no association
+     * @throws StorageDriverMapperException
+     *             if application cannot have information (reading error for
+     *             example)
      */
     List<String> getOffersFor(String driverName) throws StorageDriverMapperException;
 
     /**
      * Add one offer to a driver's offers persisted list (and persists it)
      *
-     * @param offerId the offer ID to add and persist
-     * @param driverName the driver name
-     * @throws StorageDriverMapperException if application cannot have information (writing error for example)
+     * @param offerId
+     *            the offer ID to add and persist
+     * @param driverName
+     *            the driver name
+     * @throws StorageDriverMapperException
+     *             if application cannot have information (writing error for
+     *             example)
      */
     void addOfferTo(String offerId, String driverName) throws StorageDriverMapperException;
 
     /**
      * Add list of offers to a driver's offers persisted list (and persists it)
      *
-     * @param offersIdsToAdd the offers IDs list to add and persist
-     * @param driverName the driver name
-     * @throws StorageDriverMapperException if application cannot have information (writing error for example)
+     * @param offersIdsToAdd
+     *            the offers IDs list to add and persist
+     * @param driverName
+     *            the driver name
+     * @throws StorageDriverMapperException
+     *             if application cannot have information (writing error for
+     *             example)
      */
     void addOffersTo(List<String> offersIdsToAdd, String driverName) throws StorageDriverMapperException;
 
     /**
      * Remove one offer to a driver's offers persisted list (and persists it)
      *
-     * @param offerId the offer ID to remove and persist
-     * @param driverName the driver name
-     * @throws StorageDriverMapperException if application cannot have information (writing error for example)
+     * @param offerId
+     *            the offer ID to remove and persist
+     * @param driverName
+     *            the driver name
+     * @throws StorageDriverMapperException
+     *             if application cannot have information (writing error for
+     *             example)
      */
     void removeOfferTo(String offerId, String driverName) throws StorageDriverMapperException;
 
     /**
-     * Remove list of offers to a driver's offers persisted list (and persist it)
+     * Remove list of offers to a driver's offers persisted list (and persist
+     * it)
      *
-     * @param offersIdsToRemove the offers IDs list to remove and persist
-     * @param driverName the driver name
-     * @throws StorageDriverMapperException if application cannot have information (writing error for example)
+     * @param offersIdsToRemove
+     *            the offers IDs list to remove and persist
+     * @param driverName
+     *            the driver name
+     * @throws StorageDriverMapperException
+     *             if application cannot have information (writing error for
+     *             example)
      */
     void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageDriverMapperException;
 }

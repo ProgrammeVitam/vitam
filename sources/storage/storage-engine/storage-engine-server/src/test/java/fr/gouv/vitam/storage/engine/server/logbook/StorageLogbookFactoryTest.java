@@ -42,12 +42,10 @@ public class StorageLogbookFactoryTest {
 
     @Test
     public void getStorageLogbookInstanceTest() {
-        final StorageLogbook storageLogbook =
-            StorageLogbookFactory.getInstance().getStorageLogbook();
+        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
         assertNotNull(storageLogbook);
 
-        final StorageLogbook storageLogbook2 =
-            StorageLogbookFactory.getInstance().getStorageLogbook();
+        final StorageLogbook storageLogbook2 = StorageLogbookFactory.getInstance().getStorageLogbook();
         assertNotNull(storageLogbook2);
 
         assertNotSame(storageLogbook, storageLogbook2);
@@ -55,8 +53,7 @@ public class StorageLogbookFactoryTest {
 
     @Test
     public void changeDefaultStorageLogbookTypeTest() {
-        final StorageLogbook storageLogbook =
-            StorageLogbookFactory.getInstance().getStorageLogbook();
+        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
         assertTrue(storageLogbook instanceof StorageLogbookMock);
 
         final StorageLogbookFactory.StorageLogbookType type = StorageLogbookFactory.getDefaultStorageLogbookType();

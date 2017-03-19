@@ -50,6 +50,7 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
  * Stores MetaData object group plugin.
@@ -104,8 +105,6 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
 
     }
 
-
-
     private void createMetadataFileInWorkspace(WorkerParameters params) throws VitamException {
         JsonNode jsonNode;
         final String objectName = StringUtils.substringBeforeLast(params.getObjectName(),
@@ -132,9 +131,14 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreObjectActionHandl
             throw e;
         }
         // transfer json to workspace
-        handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
-            params.getObjectName(),
-            jsonNode, true);
+        try {
+            handlerIO.transferJsonToWorkspace(StorageCollectionType.OBJECTGROUPS.getCollectionName(),
+                params.getObjectName(),
+                jsonNode, true);
+        } catch (ProcessingException e) {
+            LOGGER.error(params.getObjectName(), e);
+            throw new WorkspaceClientServerException(e);
+        }
     }
 
 

@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -52,52 +53,65 @@ import fr.gouv.vitam.workspace.api.model.ContainerInformation;
  * The ContentAddressableStorage interface.
  *
  */
-public interface ContentAddressableStorage {
-    // TODO P0 REVIEW should see null checking variable as IllegalArgumentException explicitly
+public interface ContentAddressableStorage extends VitamAutoCloseable {
+    // TODO P0 REVIEW should see null checking variable as
+    // IllegalArgumentException explicitly
 
     // Container
     /**
      * Creates a container
      *
-     * @param containerName name of container to create
+     * @param containerName
+     *            name of container to create
      *
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a container while it (containerName)
-     *         already exists
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @throws ContentAddressableStorageAlreadyExistException
+     *             Thrown when creating a container while it (containerName)
+     *             already exists
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
      */
     public void createContainer(String containerName)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
+            throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException;
 
     /**
-     * Deletes the contents of a container at its root path without deleting the container
+     * Deletes the contents of a container at its root path without deleting the
+     * container
      * <p>
-     * Note: this function will delete everything inside a container recursively.
+     * Note: this function will delete everything inside a container
+     * recursively.
      * </p>
      *
-     * @param containerName name of container to purge
+     * @param containerName
+     *            name of container to purge
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
      */
 
     public void purgeContainer(String containerName) throws ContentAddressableStorageNotFoundException;
 
-
     /**
      * Deletes everything inside a container recursively.
      *
-     * @param containerName name of the container to delete
-     * @param recursive false : deletes a container if it is empty, true : deletes everything recursively
+     * @param containerName
+     *            name of the container to delete
+     * @param recursive
+     *            false : deletes a container if it is empty, true : deletes
+     *            everything recursively
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
      */
     public void deleteContainer(String containerName, boolean recursive)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Determines if a container exists
      *
-     * @param containerName name of container
+     * @param containerName
+     *            name of container
      * @return boolean type
      * @throws ContentAddressableStorageServerException
      */
@@ -106,45 +120,58 @@ public interface ContentAddressableStorage {
     /**
      * Determines if a container exists
      *
-     * @param containerName name of container
+     * @param containerName
+     *            name of container
      * @return long number of binary objects (excluding directory markers)
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
      */
     public long countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     // folder (or directory)
 
     /**
      * Creates a folder (or a directory) marker depending on the service
      *
-     * @param containerName container to create the directory in
-     * @param folderName full path to the folder (or directory)
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when creating a directory while it already exists
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @param containerName
+     *            container to create the directory in
+     * @param folderName
+     *            full path to the folder (or directory)
+     * @throws ContentAddressableStorageAlreadyExistException
+     *             Thrown when creating a directory while it already exists
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
      */
-    void createFolder(String containerName, String folderName)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException;
+    void createFolder(String containerName, String folderName) throws ContentAddressableStorageAlreadyExistException,
+            ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Deletes a folder (or a directory) marker depending on the service
      *
-     * @param containerName container to delete the folder from
-     * @param folderName full path to the folder to delete
-     * @throws ContentAddressableStorageNotFoundException Thrown when the directory cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
+     * @param containerName
+     *            container to delete the folder from
+     * @param folderName
+     *            full path to the folder to delete
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the directory cannot be located.
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
      */
     void deleteFolder(String containerName, String folderName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Determines if a folder (or a directory) exists
      *
-     * @param containerName container where the folder resides
-     * @param folderName full path to the folder
+     * @param containerName
+     *            container where the folder resides
+     * @param folderName
+     *            full path to the folder
      * @return boolean type
      * @throws ContentAddressableStorageServerException
      */
@@ -155,200 +182,260 @@ public interface ContentAddressableStorage {
     /**
      * Adds an object representing the data at location containerName/objectName
      *
-     * @param containerName container to place the object.
-     * @param objectName fully qualified object name relative to the container.
-     * @param stream the data
+     * @param containerName
+     *            container to place the object.
+     * @param objectName
+     *            fully qualified object name relative to the container.
+     * @param stream
+     *            the data
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException
+     *             Thrown when put action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException
+     *             Thrown when object creating exists
      */
     public void putObject(String containerName, String objectName, InputStream stream)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageException;
+            throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
+            ContentAddressableStorageException;
 
     /**
-     * Retrieves an object representing the data at location containerName/objectName
+     * Retrieves an object representing the data at location
+     * containerName/objectName
      * <p>
-     * <b>WARNING</b> : use this method only if the response has to be consumed right away. If the response has to be
-     * forwarded, you should use the method {@link #getObjectAsync(String, String, AsyncResponse) getObjectAsync}
-     * instead
+     * <b>WARNING</b> : use this method only if the response has to be consumed
+     * right away. If the response has to be forwarded, you should use the
+     * method {@link #getObjectAsync(String, String, AsyncResponse)
+     * getObjectAsync} instead
      * </p>
      *
-     * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
+     * @param containerName
+     *            container where this exists.
+     * @param objectName
+     *            fully qualified name relative to the container.
      * @return the object you intended to receive
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException
+     *             Thrown when object creating exists
      */
     public Response getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
-
-    // TODO P1 : getObjectAsync should replace getObject in the future. and getObject uses should be reviewed
+    // TODO P1 : getObjectAsync should replace getObject in the future. and
+    // getObject uses should be reviewed
     /**
-     * Retrieves an object representing the data at location containerName/objectName
+     * Retrieves an object representing the data at location
+     * containerName/objectName
      *
-     * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
-     * @param asyncResponse the asyncResponse
+     * @param containerName
+     *            container where this exists.
+     * @param objectName
+     *            fully qualified name relative to the container.
+     * @param asyncResponse
+     *            the asyncResponse
      * @return the object you intended to receive
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageAlreadyExistException
+     *             Thrown when object creating exists
      */
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Deletes a object representing the data at location containerName/objectName
+     * Deletes a object representing the data at location
+     * containerName/objectName
      *
-     * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
+     * @param containerName
+     *            container where this exists.
+     * @param objectName
+     *            fully qualified name relative to the container.
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
-     *         be located in the container.
-     * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located or the blob
+     *             cannot be located in the container.
+     * @throws ContentAddressableStorageException
+     *             Thrown when delete action failed due some other failure
      */
 
     public void deleteObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Determines if an object exists
      *
-     * @param containerName container where the object resides
-     * @param objectName fully qualified name relative to the container.
+     * @param containerName
+     *            container where the object resides
+     * @param objectName
+     *            fully qualified name relative to the container.
      * @return boolean type
      * @throws ContentAddressableStorageServerException
      */
 
-    public boolean isExistingObject(String containerName, String objectName)
-        throws ContentAddressableStorageServerException;
+    public boolean isExistingObject(String containerName, String objectName) throws ContentAddressableStorageServerException;
 
     /**
-     * Retrieves recursively the uri list of object inside a folder rootFolder/subfolder/
+     * Retrieves recursively the uri list of object inside a folder
+     * rootFolder/subfolder/
      *
-     * @param containerName not null allowed container where this exists.
-     * @param folderName not null allowed fully qualified folder name relative to the container.
+     * @param containerName
+     *            not null allowed container where this exists.
+     * @param folderName
+     *            not null allowed fully qualified folder name relative to the
+     *            container.
      *
      * @return a list of URI
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
      */
     public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
-
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * create container: will be identified by GUID and extract objects and push it on the container
+     * create container: will be identified by GUID and extract objects and push
+     * it on the container
      *
-     * @param containerName : the container name (will be Guid created in ingest module)
-     * @param folderName : the folder name
-     * @param archiveType : the archive type (zip, tar, tar.gz, tar.bz2)
-     * @param inputStreamObject : SIP input stream
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located
-     * @throws ContentAddressableStorageAlreadyExistException Thrown when folder exists
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
-     * @throws ContentAddressableStorageCompressedFileException Thrown when the file is not a zip or an empty zip
+     * @param containerName
+     *            : the container name (will be Guid created in ingest module)
+     * @param folderName
+     *            : the folder name
+     * @param archiveType
+     *            : the archive type (zip, tar, tar.gz, tar.bz2)
+     * @param inputStreamObject
+     *            : SIP input stream
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located
+     * @throws ContentAddressableStorageAlreadyExistException
+     *             Thrown when folder exists
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageCompressedFileException
+     *             Thrown when the file is not a zip or an empty zip
      */
-    public void uncompressObject(String containerName, String folderName, String archiveType,
-        InputStream inputStreamObject)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageServerException, ContentAddressableStorageCompressedFileException,
-        ContentAddressableStorageException;
+    public void uncompressObject(String containerName, String folderName, String archiveType, InputStream inputStreamObject)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException,
+            ContentAddressableStorageServerException, ContentAddressableStorageCompressedFileException,
+            ContentAddressableStorageException;
 
     /**
      * compute Object Digest using a defined algorithm
      *
-     * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
-     * @param algo Digest algo
+     * @param containerName
+     *            container where this exists.
+     * @param objectName
+     *            fully qualified name relative to the container.
+     * @param algo
+     *            Digest algo
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container or the object cannot be located
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container or the object cannot be located
+     * @throws ContentAddressableStorageServerException
+     *             Thrown when internal server error happens
+     * @throws ContentAddressableStorageException
+     *             Thrown when put action failed due some other failure
      * @return the digest object as String
      */
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+            ContentAddressableStorageException;
 
     /**
      * Get container information like capacity
      *
-     * @param containerName the container name
+     * @param containerName
+     *            the container name
      * @return container information like usableSpace and usedSpace
-     * @throws ContentAddressableStorageNotFoundException thrown when storage is not available or container does not
-     *         exist
+     * @throws ContentAddressableStorageNotFoundException
+     *             thrown when storage is not available or container does not
+     *             exist
      * @throws ContentAddressableStorageServerException
      */
     ContainerInformation getContainerInformation(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
-     * Retrieves information about an object at location containerName/objectName
+     * Retrieves information about an object at location
+     * containerName/objectName
      *
-     * @param containerName container where the object is.
-     * @param objectName fully qualified name relative to the container.
+     * @param containerName
+     *            container where the object is.
+     * @param objectName
+     *            fully qualified name relative to the container.
      * @return the object informations as a JsonNode object
      *
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
+     * @throws ContentAddressableStorageNotFoundException
+     *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
      */
     public JsonNode getObjectInformation(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
-
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
      * Check object
      * 
-     * @param containerName the container name
-     * @param objectId the objectId to check
-     * @param digest the digest to be compared with
-     * @param digestAlgorithm the digest Algorithm
+     * @param containerName
+     *            the container name
+     * @param objectId
+     *            the objectId to check
+     * @param digest
+     *            the digest to be compared with
+     * @param digestAlgorithm
+     *            the digest Algorithm
      * @return true if the digest is correct
      * @throws ContentAddressableStorageException
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-        throws ContentAddressableStorageException;
+            throws ContentAddressableStorageException;
 
     /**
      * get metadata of the object
      * 
-     * @param containerName the container name
-     * @param objectId the objectId to check
+     * @param containerName
+     *            the container name
+     * @param objectId
+     *            the objectId to check
      * @return MetadatasObjectResult
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    MetadatasObject getObjectMetadatas(String containerName, String objectId) throws
-        ContentAddressableStorageException, IOException;
+    MetadatasObject getObjectMetadatas(String containerName, String objectId)
+            throws ContentAddressableStorageException, IOException;
 
     /**
      * List container (create cursor)
      *
-     * @param containerName the container name
+     * @param containerName
+     *            the container name
      * @return container listing
      * @throws ContentAddressableStorageNotFoundException
      */
-    PageSet<? extends StorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException;
+    PageSet<? extends StorageMetadata> listContainer(String containerName) throws ContentAddressableStorageNotFoundException;
 
     /**
      * List container (next on cursor)
      *
-     * @param containerName the container name
-     * @param nextMarker the last id of the list to get next
+     * @param containerName
+     *            the container name
+     * @param nextMarker
+     *            the last id of the list to get next
      * @return container listing
      * @throws ContentAddressableStorageNotFoundException
      */
     PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException;
+            throws ContentAddressableStorageNotFoundException;
 
 }
