@@ -453,7 +453,7 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(), 
-                "STP_INGEST_FINALISATION.STARTED");
+                "STP_INGEST_FINALISATION.OK");
             // checkMonitoring - meaning something has been added in the monitoring tool
             final StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
             assertNotNull(status);
