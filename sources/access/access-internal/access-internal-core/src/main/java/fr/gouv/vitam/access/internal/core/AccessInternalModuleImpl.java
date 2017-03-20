@@ -405,13 +405,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
         LogbookOperationsClient logbookOperationClient = logbookOperationClientMock;
         LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCycleClientMock;
-        if (logbookOperationClient == null) {
-            logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
-        }
-        if (logbookLifeCycleClient == null) {
-            logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
-        }
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            if (logbookOperationClient == null) {
+                logbookOperationClient = LogbookOperationsClientFactory.getInstance().getClient();
+            }
+            if (logbookLifeCycleClient == null) {
+                logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+            }
             // Create logbook operation
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID,
@@ -584,7 +584,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 throw new AccessInternalException(ARCHIVE_UNIT_NOT_FOUND);
             }
         } finally {
-            cleanWorkspace(requestId);
+            cleanWorkspace(workspaceClient, requestId);
             if (workspaceClient != null && storageClientMock == null) {
                 workspaceClient.close();
             }
@@ -683,21 +683,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
 
-    private void cleanWorkspace(final String containerName)
+    private void cleanWorkspace(final WorkspaceClient workspaceClient, final String containerName)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
         // call workspace
-        WorkspaceClient workspaceClient = workspaceClientMock;
-        try {
-            if (workspaceClient == null) {
-                workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            }
-            if (workspaceClient.isExistingContainer(containerName)) {
-                workspaceClient.deleteContainer(containerName, true);
-            }
-        } finally {
-            if (workspaceClientMock == null && workspaceClient != null) {
-                workspaceClient.close();
-            }
+        if (workspaceClient.isExistingContainer(containerName)) {
+            workspaceClient.deleteContainer(containerName, true);
         }
     }
 }

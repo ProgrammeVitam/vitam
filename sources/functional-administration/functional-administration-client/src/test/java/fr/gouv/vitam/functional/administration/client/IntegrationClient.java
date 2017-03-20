@@ -47,6 +47,8 @@ public class IntegrationClient {
             System.out.println("-------------------------------- check ok");
         } catch (final ReferentialException e) {
             System.out.println("----------------------------------check NOT ok");
+        } finally {
+            client.close();
         }
 
     }

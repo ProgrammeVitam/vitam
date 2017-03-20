@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.api.WorkerAction;
@@ -45,7 +46,7 @@ import fr.gouv.vitam.worker.core.api.WorkerAction;
     // Later on (not available now), some other methods for Input/Output arguments
  * </code></code>
  */
-public abstract class ActionHandler implements WorkerAction {
+public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable {
 
     /**
      * Check mandatory parameters
@@ -57,4 +58,8 @@ public abstract class ActionHandler implements WorkerAction {
         ParameterHelper.checkNullOrEmptyParameters(parameters);
     }
 
+    @Override
+    public void close() {
+        // nothing;
+    }
 }

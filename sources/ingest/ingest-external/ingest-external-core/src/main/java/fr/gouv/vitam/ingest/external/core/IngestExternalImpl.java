@@ -299,13 +299,12 @@ public class IngestExternalImpl implements IngestExternal {
                     .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                         VitamLogbookMessages.getCodeOp(CHECK_CONTAINER, StatusCode.OK));
 
-                try {
+                // instantiate SiegFried final
+                try (FormatIdentifier formatIdentifier =
+                        FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID)) {
                     LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
-                    // instantiate SiegFried final
-                    FormatIdentifier formatIdentifier =
-                        FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-                    // call
-                    // siegFried
+                    
+                    // call siegFried
                     final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
                     final FormatIdentifierResponse format = getFirstPronomFormat(formats);
                     if (format == null) {
