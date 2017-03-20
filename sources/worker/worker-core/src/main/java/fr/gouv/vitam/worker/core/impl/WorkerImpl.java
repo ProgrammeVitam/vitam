@@ -185,21 +185,22 @@ public class WorkerImpl implements Worker {
                 // If this is a plugin
                 if (pluginLoader.contains(handlerName)) {
 
-                    ActionHandler actionPlugin = pluginLoader.newInstance(handlerName);
-
-                    ItemStatus pluginResponse;
-                    LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
-                    boolean shouldWriteLFC = step.getDistribution().getKind().equals(DistributionKind.LIST);
-                    if (shouldWriteLFC) {
-                        LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
-                        logbookLfcClient.update(lfcParam);
-                        pluginResponse = actionPlugin.execute(workParams, handlerIO);
-                        writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse, lfcParam);
-                    } else {
-                        pluginResponse = actionPlugin.execute(workParams, handlerIO);
+                    try (ActionHandler actionPlugin = pluginLoader.newInstance(handlerName)) {
+    
+                        ItemStatus pluginResponse;
+                        LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
+                        boolean shouldWriteLFC = step.getDistribution().getKind().equals(DistributionKind.LIST);
+                        if (shouldWriteLFC) {
+                            LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
+                            logbookLfcClient.update(lfcParam);
+                            pluginResponse = actionPlugin.execute(workParams, handlerIO);
+                            writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse, lfcParam);
+                        } else {
+                            pluginResponse = actionPlugin.execute(workParams, handlerIO);
+                        }
+                        pluginResponse.setItemId(handlerName);
+                        actionResponse = getActionResponse(handlerName, pluginResponse);
                     }
-                    pluginResponse.setItemId(handlerName);
-                    actionResponse = getActionResponse(handlerName, pluginResponse);
                     // If not, this is an handler of Vitam
                 } else {
                     final ActionHandler actionHandler = getActionHandler(handlerName);

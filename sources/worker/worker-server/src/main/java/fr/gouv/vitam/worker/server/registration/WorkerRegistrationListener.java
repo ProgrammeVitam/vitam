@@ -70,9 +70,8 @@ public class WorkerRegistrationListener implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener destroyed");
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        final ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient();
-        try {
+        try (ProcessingManagementClient processingClient =
+            ProcessingManagementClientFactory.getInstance().getClient()) {
             processingClient.unregisterWorker(configuration.getWorkerFamily(),
                 String.valueOf(ServerIdentity.getInstance().getServerId()));
         } catch (final Exception e) {
