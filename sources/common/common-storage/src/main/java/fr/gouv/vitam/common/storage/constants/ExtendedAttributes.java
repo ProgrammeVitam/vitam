@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,37 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.common.storage.constants;
 
 /**
- * Storage offers provider
+ * 
+ * Enumeration of ExtendedAttributes managed by the ContentAddressableStorage
+ *
  */
-public enum StorageProvider {
-    /**
-     * File system storage offer
-     */
-    FILESYSTEM("filesystem"),
-    /**
-     * Swift storage offer (ceph or openStack)
-     */
-    SWIFT("openstack-swift"),
-    /**
-     * File system storage offer with a hashed directory structure
-     */
-    HASHFILESYSTEM("filesystem-hash");
+public enum ExtendedAttributes {
 
-    private String value;
-
-    private StorageProvider(String value) {
-        this.value = value;
+    /**
+     * This metadata contains the digest of the file in the following format : DigestType:Digest_value
+     */
+    DIGEST("vitam-digest");
+    
+    private final String key;
+    
+    private ExtendedAttributes(String key){
+        this.key = key;
     }
-
+    
     /**
-     * @return the value
+     * getter for attribute message
+     *
+     * @return key
      */
-    public String getValue() {
-        return value;
+    public String getKey() {
+        return key;
     }
-
+    
+    @Override
+    public String toString(){
+        return key;
+    }
 }

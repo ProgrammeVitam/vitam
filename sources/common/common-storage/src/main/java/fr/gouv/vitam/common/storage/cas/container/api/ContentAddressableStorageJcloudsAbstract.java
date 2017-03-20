@@ -66,9 +66,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.common.storage.ContainerInformation;
 
 /**
- * Abstract Content Addressable Storage
+ * Abstract class of CAS that contains common methods for a Jclouds backend
  */
-public abstract class ContentAddressableStorageJcloudsAbstract implements ContentAddressableStorage {
+public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAddressableStorageAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageJcloudsAbstract.class);
 
@@ -282,24 +282,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract implements Conten
     }
 
     @Override
-    public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-
-        ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
-        try (final InputStream stream = (InputStream) getObject(containerName, objectName).getEntity()) {
-            final Digest digest = new Digest(algo);
-            digest.update(stream);
-            return digest.toString();
-        } catch (final IOException e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        }
-    }
-
-    @Override
     public boolean isExistingObject(String containerName, String objectName) {
         try {
             boolean isExists = false;
@@ -379,12 +361,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract implements Conten
         return maxResults;
     }
 
-    @Override
-    public boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-            throws ContentAddressableStorageException {
-        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
-        return offerDigest.equals(digest);
-    }
 
     @Override
     public PageSet<? extends StorageMetadata> listContainer(String containerName)

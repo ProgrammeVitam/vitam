@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,37 +23,43 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.storage.constants;
+ *******************************************************************************/
+package fr.gouv.vitam.common.storage.filesystem.v2;
+
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
- * Storage offers provider
+ * Visitor to recalculate container Metadata
+ *
  */
-public enum StorageProvider {
-    /**
-     * File system storage offer
-     */
-    FILESYSTEM("filesystem"),
-    /**
-     * Swift storage offer (ceph or openStack)
-     */
-    SWIFT("openstack-swift"),
-    /**
-     * File system storage offer with a hashed directory structure
-     */
-    HASHFILESYSTEM("filesystem-hash");
-
-    private String value;
-
-    private StorageProvider(String value) {
-        this.value = value;
+public final class HashFileScanVisitor extends SimpleFileVisitor<Path> {
+    private long  nbObjects=0;
+    private long  containerBytes=0;
+    
+   
+    @Override
+    public  FileVisitResult visitFile(Path p, BasicFileAttributes bfa) throws IOException {
+        nbObjects+=1;
+        containerBytes+=Files.size(p);
+        return super.visitFile(p, bfa);
     }
 
     /**
-     * @return the value
+     * @return the nbObjects
      */
-    public String getValue() {
-        return value;
+    public long getNbObjects() {
+        return nbObjects;
     }
 
+    /**
+     * @return the containerBytes
+     */
+    public long getContainerBytes() {
+        return containerBytes;
+    }
 }

@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,37 +23,24 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.storage.constants;
+ *******************************************************************************/
+package fr.gouv.vitam.common.storage.filesystem.v2;
 
-/**
- * Storage offers provider
- */
-public enum StorageProvider {
-    /**
-     * File system storage offer
-     */
-    FILESYSTEM("filesystem"),
-    /**
-     * Swift storage offer (ceph or openStack)
-     */
-    SWIFT("openstack-swift"),
-    /**
-     * File system storage offer with a hashed directory structure
-     */
-    HASHFILESYSTEM("filesystem-hash");
+import java.io.IOException;
 
-    private String value;
+import org.junit.Before;
 
-    private StorageProvider(String value) {
-        this.value = value;
-    }
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 
-    /**
-     * @return the value
-     */
-    public String getValue() {
-        return value;
+public class HashFileSystemTest extends ContentAddressableStorageTestAbstract{
+
+    @Before
+    public void setup() throws IOException {
+        final StorageConfiguration configuration = new StorageConfiguration();
+        tempDir = tempFolder.newFolder();
+        configuration.setStoragePath(tempDir.getCanonicalPath());
+        storage = new HashFileSystem(configuration);
     }
 
 }

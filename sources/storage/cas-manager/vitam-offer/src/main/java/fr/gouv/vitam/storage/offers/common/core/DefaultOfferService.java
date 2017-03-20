@@ -288,7 +288,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageNotFoundException
      *             thrown when the container cannot be located
      */
-    List<JsonNode> next(String containerName, String cursorId) throws ContentAddressableStorageNotFoundException;
+    List<JsonNode> next(String containerName, String cursorId) throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException;
 
     /**
      * Close the cursor

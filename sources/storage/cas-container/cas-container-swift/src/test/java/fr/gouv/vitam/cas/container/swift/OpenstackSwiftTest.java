@@ -40,8 +40,8 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 public class OpenstackSwiftTest {

@@ -10,6 +10,14 @@ Le common storage est un module commun pour plusieurs modules qui consiste à g�
 
 Le Module common storage expose un ensemble des methodes qui gèrent la creation, la mise à jour , la supprission des contenaire, des repertoires et des objets, Vous trouverez ci-dessous la liste des methodes avec leur fonctions attendus.
 
+L'API principale est l'interface ContentAddressableStorage. Celle-ci a la hiérarchie de classe suivante : 
+
+- ContentAddressableStorageAbstract : classe abstraite implémentant quelques méthodes communes 
+  * HashFileSystem : implémentation d'un CAS sur FileSystem (via java.nio.*) avec une répertoire par sous-répertoire permettant un stockage d'un grand nombre d'objets (jusqu'à 500e6 objets )
+  * ContentAddressableStorageJcloudsAbstract : classe abstraite implémentant la plupart des méthodes pour une implémentation jclouds sous-jacente
+    + FileSystem : implémentation d'un CAS sur FileSystem (via jclouds) avec une répertoire à plat sous les container
+    + OpenstackSwift : classe d'implémentation permettant le stockage sur Swift (via jclouds)
+
 1.2 - Liste des méthodes :
 
 - getContainerInformation : consulter les information d'un contenaire (pour la version 0.14.0-SNAPSHOT)
@@ -202,3 +210,17 @@ Il y a deux classes qui héritent les APIs. l'une utilise SWIFT et l'autre utili
             result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
             result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         }
+
+4- Détail de l'implémentation HashFileSystem
+--------------------------------------------
+
+Particularités aux bornes de l'implémentation : 
+
+- Seuls des objets  de la forme <GUID base32> ou <GUID base32>.extension sont acceptés . En effet, il est nécessaire que la partie avant l'extension ait une longueur fixe (36 caractères dans l'implémentation actuelle du GUID
+- L'implémentation actuelle n'est pas résistante à une augmentation de la taille du GUID
+
+Logique d'implémentation
+
+- /<storage-path> : défini par configuration
+  * /container-name : sur les offres de stockage, cela est construit dans le CAS Manager par concaténation du type d'objet et du tenant . Cette configuration n'est pas la configuration cible (notamment par rapport à l'offre froide)
+    + /aaa/bbb/ccc/ddd/.../fff/ : 11 niveaux de répertoire correspondant au hachage des GUID fourni par bloc de 3 caractère et auquel on a ignoré le dernier bloc (pour permettre l'aggrégation)

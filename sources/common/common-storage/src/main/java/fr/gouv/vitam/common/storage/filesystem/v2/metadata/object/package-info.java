@@ -24,36 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.storage.constants;
-
 /**
- * Storage offers provider
+ * Manages the metadata of the object
+ *
  */
-public enum StorageProvider {
-    /**
-     * File system storage offer
-     */
-    FILESYSTEM("filesystem"),
-    /**
-     * Swift storage offer (ceph or openStack)
-     */
-    SWIFT("openstack-swift"),
-    /**
-     * File system storage offer with a hashed directory structure
-     */
-    HASHFILESYSTEM("filesystem-hash");
-
-    private String value;
-
-    private StorageProvider(String value) {
-        this.value = value;
-    }
-
-    /**
-     * @return the value
-     */
-    public String getValue() {
-        return value;
-    }
-
-}
+package fr.gouv.vitam.common.storage.filesystem.v2.metadata.object;

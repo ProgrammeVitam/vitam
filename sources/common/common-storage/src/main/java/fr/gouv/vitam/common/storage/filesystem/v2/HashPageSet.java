@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,37 +23,63 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.storage.constants;
+ *******************************************************************************/
+package fr.gouv.vitam.common.storage.filesystem.v2;
+
+import java.util.LinkedHashSet;
+
+import org.jclouds.blobstore.domain.PageSet;
+
+import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashStorageMetadata;
 
 /**
- * Storage offers provider
+ * 
+ * Implementation of Jclouds PageSet for Vitam. It is based on PageSetImpl Jclouds internal class
+ *
  */
-public enum StorageProvider {
-    /**
-     * File system storage offer
-     */
-    FILESYSTEM("filesystem"),
-    /**
-     * Swift storage offer (ceph or openStack)
-     */
-    SWIFT("openstack-swift"),
-    /**
-     * File system storage offer with a hashed directory structure
-     */
-    HASHFILESYSTEM("filesystem-hash");
+public class HashPageSet extends LinkedHashSet<HashStorageMetadata> implements PageSet<HashStorageMetadata> {
 
-    private String value;
+    private static final long serialVersionUID = 2215114445605678995L;
+    protected String marker;
 
-    private StorageProvider(String value) {
-        this.value = value;
+    /**
+     * Set the NextMarker in the PageSet
+     * @param marker
+     */
+    public void setNextMarker(String marker){
+       this.marker=marker;
     }
 
     /**
-     * @return the value
+     * {@inheritDoc}
      */
-    public String getValue() {
-        return value;
+    @Override
+    public String getNextMarker() {
+       return marker;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+       if (this == obj)
+          return true;
+       if (!super.equals(obj))
+          return false;
+       if (getClass() != obj.getClass())
+          return false;
+       HashPageSet other = (HashPageSet) obj;
+       if (marker == null) {
+          if (other.marker != null)
+             return false;
+       } else if (!marker.equals(other.marker))
+          return false;
+       return true;
+    }
+
+    @Override
+    public int hashCode() {
+       final int prime = 31;
+       int result = super.hashCode();
+       result = prime * result + ((marker == null) ? 0 : marker.hashCode());
+       return result;
+    }
 }
