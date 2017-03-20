@@ -635,10 +635,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/ingests/{objectId}/report")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public Response storeATR(@PathParam("objectId") String guid, InputStream atr) {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+                WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             LOGGER.error("storage atr internal");
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(guid);
             workspaceClient.putObject(guid, FOLDERNAME + guid + XML, atr);
 

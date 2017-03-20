@@ -168,8 +168,8 @@ public class WorkerManager {
         WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration(serverHost, serverPort);
         WorkerClientFactory.changeMode(workerClientConfiguration);
-        WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
-        try {
+        
+        try (WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient()) {
             workerClient.checkStatus();
             return true;
         } catch (Exception e) {
