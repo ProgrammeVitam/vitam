@@ -137,7 +137,7 @@ public class WorkerManager {
 
         // load to the list of WORKERS_LIST
         int index = 0;
-        while (registeredWorkerList.size() > 0 && index <= registeredWorkerList.size()) {
+        while (registeredWorkerList.size() > 0 && index < registeredWorkerList.size()) {
             JsonNode worker = registeredWorkerList.get(index);
             WorkerBean workerBean =
                 JsonHandler.getFromJsonNodeLowerCamelCase(worker.get(WORKER_INFO),
