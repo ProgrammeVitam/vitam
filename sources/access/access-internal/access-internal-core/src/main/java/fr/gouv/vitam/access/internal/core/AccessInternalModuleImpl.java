@@ -125,7 +125,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
-    private static final String METADATA_UNIT_STORAGE = "UNIT_METADATA_STORAGE";
+    private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
+    private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
     private static final String _DIFF = "$diff";
     private static final String _ID = "_id";
     private static final String RESULTS = "$results";
@@ -375,7 +376,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
-        LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd;
+        LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd, logbookOpStpParamStart, logbookOpStpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
         JsonNode jsonNode = JsonHandler.createObjectNode();
@@ -412,29 +413,34 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (logbookLifeCycleClient == null) {
                 logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             }
-            // Create logbook operation
-            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+            // Create logbook operation STP
+            logbookOpStpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID,
                 STP_UPDATE_UNIT);
-            logbookOperationClient.create(logbookOpParamStart);
+            logbookOperationClient.create(logbookOpStpParamStart);
 
-            // update logbook lifecycle
+            // Update logbook operation TASK INDEXATION
+            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.STARTED), idGUID,
+                UNIT_METADATA_UPDATE);
+            logbookOperationClient.update(logbookOpParamStart);
+
+            // update logbook lifecycle TASK INDEXATION
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
-                idGUID, STP_UPDATE_UNIT);
+                idGUID, UNIT_METADATA_UPDATE);
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // call update
             jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
 
-            // update logbook
-
+            // update logbook TASK INDEXATION
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID, STP_UPDATE_UNIT);
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idGUID, UNIT_METADATA_UPDATE);
             logbookOperationClient.update(logbookOpParamEnd);
 
-            // update global logbook lifecycle
+            // update global logbook lifecycle TASK INDEXATION
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                idGUID, STP_UPDATE_UNIT);
+                idGUID, UNIT_METADATA_UPDATE);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
@@ -443,33 +449,39 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
              * replace or update stored metadata object
              */
 
-            // Create logbook operation
+            // update logbook operation TASK STORAGE
             logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(METADATA_UNIT_STORAGE, StatusCode.STARTED),
-                idGUID, METADATA_UNIT_STORAGE);
+                VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.STARTED),
+                idGUID, UNIT_METADATA_STORAGE);
             logbookOperationClient.update(logbookOpParamStart);
 
-            // update logbook lifecycle
+            // update logbook lifecycle TASK STORAGE
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
-                idGUID, METADATA_UNIT_STORAGE);
+                idGUID, UNIT_METADATA_STORAGE);
             logbookLifeCycleClient.update(logbookLCParamStart);
 
             // update stored Metadata
             replaceStoredUnitMetadata(idUnit, requestId);
 
-
+            // update logbook operation TASK STORAGE
             logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, VitamLogbookMessages.getCodeOp(METADATA_UNIT_STORAGE, StatusCode.OK), idGUID,
-                METADATA_UNIT_STORAGE);
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idGUID,
+                UNIT_METADATA_STORAGE);
             logbookOperationClient.update(logbookOpParamEnd);
 
-            // update logbook lifecycle
+            // update logbook lifecycle TASK STORAGE
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                idGUID, METADATA_UNIT_STORAGE);
+                idGUID, UNIT_METADATA_STORAGE);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
+            
+            // update logbook operation STP
+            logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID,
+                STP_UPDATE_UNIT);
+            logbookOperationClient.update(logbookOpStpParamEnd);
 
             /**
              * Commit
