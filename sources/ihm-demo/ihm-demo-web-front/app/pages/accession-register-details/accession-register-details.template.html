@@ -55,7 +55,7 @@
               <th>Id opération</th>
               <th>Service versant</th>
               <th>Contrat</th>
-              <th>Date d'entrée</th>
+              <th>Dernière opération d'entrée</th>
               <th>Nombre d'unités archivistiques</th>
               <th>Nombre de groupes d'objets techniques</th>
               <th>Nombre d'objets</th>
@@ -66,7 +66,7 @@
               <td>{{result._id}}</td>
               <td>{{result.SubmissionAgency}}</td>
               <td>{{result.ArchivalAgreement}}</td>
-              <td>{{result.StartDate | vitamFormatDate}}</td>
+              <td>{{result.EndDate | vitamFormatDate}}</td>
               <td>Total: {{result.TotalUnits.total}}, Supprimé: {{result.TotalUnits.deleted}}, Restant: {{result.TotalUnits.remained}}</td>
               <td>Total: {{result.TotalObjectGroups.total}}, Supprimé: {{result.TotalObjectGroups.deleted}}, Restant: {{result.TotalObjectGroups.remained}}</td>
               <td>Total: {{result.TotalObjects.total}}, Supprimé: {{result.TotalObjects.deleted}}, Restant: {{result.TotalObjects.remained}}</td>
