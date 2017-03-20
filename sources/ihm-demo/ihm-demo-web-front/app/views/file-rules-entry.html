@@ -1,16 +1,16 @@
-<md-dialog aria-label="File Rules Entry" ng-cloak style="max-width:50%; max-height:800px; height:auto; width: auto;">
+<md-dialog aria-label="File Rules Entry" ng-cloak style="max-width:50%; margin-top: 100px">
     <md-toolbar>
-        <div class="md-toolbar-tools">
+        <div class="md-toolbar-tools" style="display: block; overflow: scroll">
             <h3>{{entryRulesCtrl.detail["Intitulé"]}}</h3>
             <span flex></span>
         </div>
     </md-toolbar>
     <md-dialog-content>
-        <table class="table" id="detail" align="center">
+        <table class="table" id="detail" align="center" style="margin-bottom: 0">
             <tbody>
-                <tr ng-repeat="(key, value) in entryRulesCtrl.detail"  ng-if="value != ''">
-                    <td> {{key}} </td> <td> {{ value }} </td>
-                </tr>
+            <tr ng-repeat="(key, value) in entryRulesCtrl.detail"  ng-if="value != ''">
+                <td> {{key}} </td> <td> {{ value }} </td>
+            </tr>
             </tbody>
         </table>
 
