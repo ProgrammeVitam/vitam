@@ -207,7 +207,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectsSizeInSip, 0, objectsSizeInSip);
 
         String updateDate = sdfDate.format(new Date());
-        
+
         return new AccessionRegisterDetailModel()
             .setId(params.getContainerName())
             .setOriginatingAgency(originalAgency)
@@ -219,7 +219,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             .setTotalObjectsGroups(totalObjectsGroups)
             .setTotalUnits(totalUnits)
             .setTotalObjects(totalObjects)
-            .setObjectSize(objectSize);
+            .setObjectSize(objectSize)
+            .addOperationsId(params.getContainerName());
     }
 
     @Override
