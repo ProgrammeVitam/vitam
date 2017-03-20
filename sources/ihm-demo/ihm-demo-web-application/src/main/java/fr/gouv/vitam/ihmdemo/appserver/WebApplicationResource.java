@@ -1323,7 +1323,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("login")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response login(@Context HttpHeaders headers, JsonNode object) {
+    public Response login(@Context HttpHeaders headers, @Context HttpServletRequest httpRequest,
+        JsonNode object) {
         final Subject subject = ThreadContext.getSubject();
         final String username = object.get("token").get("principal").textValue();
         final String password = object.get("token").get("credentials").textValue();
@@ -1336,16 +1337,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             subject.login(token);
+            int timeoutInSeconds = httpRequest.getSession().getMaxInactiveInterval() * 1000;
             // TODO P1 add access log
             LOGGER.info("Login success: " + username);
+            List<String> permissionsByUser = PermissionReader.filterPermission(permissions, subject);
+
+            return Response.status(Status.OK).entity(new LoginModel(username, permissionsByUser, timeoutInSeconds)).build();
         } catch (final Exception uae) {
             LOGGER.debug("Login fail: " + username);
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        List<String> permissionsByUser = PermissionReader.filterPermission(permissions, subject);
 
-        return Response.status(Status.OK).entity(new LoginModel(username, permissionsByUser)).build();
     }
 
     /**
