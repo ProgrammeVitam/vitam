@@ -49,6 +49,8 @@ Le projet se compose des sous-dossiers suivants :
 * ``sources`` : code source des composants développés dans le cadre du programme Vitam ;
 * ``rpm/vitam-product`` : packages rpm de composants externes ;
 * ``rpm/vitam-external`` : constitution du cache de dépendances vers des packages rpm éditeur ;
+* ``deb/vitam-product`` : packages deb de composants externes ;
+* ``deb/vitam-external`` : constitution du cache de dépendances vers des packages deb éditeur ;
 * ``deployment`` : scripts de déploiement ansible pour la solution Vitam ;
 * ``doc`` : documentation technique du projet ;
 * ``dev-deployment`` : environnement Docker de développement.
@@ -57,7 +59,7 @@ Le projet se compose des sous-dossiers suivants :
 Build
 =====
 
-.. tip:: Le conteneur docker présent dans le dossier ``dev-deployment`` contient les dépendances permettant de construire une version du logiciel (à l'exception de la documentation) ; son usage est abordé dans le paragraphe dédié du déploiement sur un poste de développement.
+.. tip:: Les conteneurs docker présents (CentOS et Debian) dans le dossier ``dev-deployment`` contient les dépendances permettant de construire une version du logiciel (à l'exception de la documentation) ; son usage est abordé dans le paragraphe dédié du déploiement sur un poste de développement.
 
 .. caution:: Pour construire VITAM au sein d'un environnement public, il est nécessaire de désactiver le profile maven ``vitam`` (activé par défaut) (Cf. `la documentation maven <https://maven.apache.org/guides/introduction/introduction-to-profiles.html#Deactivating_a_profile>`_).
 
@@ -83,7 +85,7 @@ Pour construire globalement les packages VITAM :
 
 .. code-block:: bash
 
-    mvn package rpm:attached-rpm install -f sources/pom.xml -P-vitam
+    mvn package rpm:attached-rpm jdeb:jdeb install -f sources/pom.xml -P-vitam
 
 Autres commandes utiles
 ***********************
@@ -110,20 +112,27 @@ Pour exécuter uniquement les tests d'intégration:
 Packages externes
 -----------------
 
-Les packages issus de composants externes sont présents dans le répertoire ``rpm``.
+Les packages issus de composants externes sont présents dans le répertoire :
+
+* ``rpm``, si déploiement CentOS
+* ``deb``, si déploiement Debian
 
 Pré-requis
 **********
 
-* rpm-build et rpmdevtools
+* rpm-build et rpmdevtools (pour CentOS)
+* dpkg-scanpackages (pour Debian)
 * golang (>= 1.6)
 * npm
 * meteor.js
 
-.. note:: Pour ces packages, la seule plate-forme de compilation possible est CentOS 7 (en raison de la dépendance vers les rpmdevtools).
+.. note:: Pour les packages rpm, la seule plate-forme de compilation possible est CentOS 7 (en raison de la dépendance vers les rpmdevtools).
 
 Instructions
 ************
+
+CentOS
+-------
 
 Pour construire les packages rpm dédiés :
 
@@ -136,6 +145,21 @@ Pour construire le cache des packages externes :
 .. code-block:: bash
 
     ./rpm/vitam-external/build_repo.sh
+
+Debian
+-------
+
+Pour construire les packages deb dédiés :
+
+.. code-block:: bash
+
+    ./deb/vitam-product/build-all.sh
+
+Pour construire le cache des packages externes :
+
+.. code-block:: bash
+
+    ./deb/vitam-external/build_repo.sh
 
 
 Documentation
@@ -163,7 +187,7 @@ Pour construire la documentation ainsi que le package du serveur de documentatio
 
 .. code-block:: bash
 
-    mvn package rpm:attached-rpm install -f doc/pom.xml -P-vitam
+    mvn package rpm:attached-rpm jdeb:jdeb install -f doc/pom.xml -P-vitam
 
 Autres commandes
 ****************
@@ -261,13 +285,25 @@ Dans la VM :
 
     createrepo -x '.git/*' .
 
-* Nettoyer le cache yum pour prendre en compte les modifications de dépôt :
+* Construire l'index du répôt deb :
+
+.. code-block:: bash
+
+    dpkg-scanpackages -m. |gzip -9c > Packages.gz
+
+* Nettoyer le cache yum (CentOS) pour prendre en compte les modifications de dépôt :
 
 .. code-block:: bash
 
     yum clean all
 
-* Puis valider la liste des rpm présents dans le dépôt local :
+* Nettoyer le cache apt (Debian) pour prendre en compte les modifications de dépôt :
+
+.. code-block:: bash
+
+    apt-get clean
+
+* Puis valider la liste des rpm présents dans le dépôt local, en CentOS :
 
 .. code-block:: bash
 
