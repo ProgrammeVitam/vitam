@@ -51,5 +51,6 @@ angular.module('ihm.demo')
           return angularDateFilter(new Date(theDate), 'dd-MM-yyyy HH:mm');
         }
       }
+      return angularDateFilter(new Date(theDate), 'dd-MM-yyyy HH:mm');
     }
   });
