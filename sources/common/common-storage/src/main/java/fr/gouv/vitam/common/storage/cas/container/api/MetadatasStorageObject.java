@@ -32,5 +32,5 @@ import fr.gouv.vitam.common.model.MetadatasObject;
  * metadata storage object
  */
 public class MetadatasStorageObject extends MetadatasObject {
-    
+
 }

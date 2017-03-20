@@ -33,48 +33,67 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
- * Driver interface that all storage offer drivers MUST implement to be discovered by the Vitam driver manager. </br>
+ * Driver interface that all storage offer drivers MUST implement to be
+ * discovered by the Vitam driver manager. </br>
  *
- * It describes all the services the storage offer MUST at least provide to the Vitam engine.
+ * It describes all the services the storage offer MUST at least provide to the
+ * Vitam engine.
  */
 
 public interface Driver {
     /**
-     * Create a connection to the distant offer service based on given service URL and optional parameters. If no
-     * connection could be made, the driver MUST throw a StorageException
+     * Create a connection to the distant offer service based on given service
+     * URL and optional parameters. If no connection could be made, the driver
+     * MUST throw a StorageException
      *
      * Regarding the parameters, they will contain keys coming from the
-     * {@link fr.gouv.vitam.storage.driver.constants.StorageDriverParameterNames} whose are generic to all driver
-     * implementation. However they can also contains driver implementation specific properties.
+     * {@link fr.gouv.vitam.storage.driver.constants.StorageDriverParameterNames}
+     * whose are generic to all driver implementation. However they can also
+     * contains driver implementation specific properties.
      *
-     * @param url URL to the offer service
-     * @param parameters the parameters needed to connect and possibly authenticate to a specific offer service.
-     * @return a connection which MUST contains all necessary parameters and initial configurations to allow further
-     *         requests to the distant offer service without needing to pass parameters/configurations.
-     * @throws StorageDriverException if any problem occurs during connection
+     * @param url
+     *            URL to the offer service
+     * @param parameters
+     *            the parameters needed to connect and possibly authenticate to
+     *            a specific offer service.
+     * @return a connection which MUST contains all necessary parameters and
+     *         initial configurations to allow further requests to the distant
+     *         offer service without needing to pass parameters/configurations.
+     * @throws StorageDriverException
+     *             if any problem occurs during connection
      */
     Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException;
 
     /**
-     * The driver MUST provide a way to check the availability of the storage offer based on URL and storage offer
-     * configuration parameters. For example it can be used to pass user and password properties in for authentication.
+     * The driver MUST provide a way to check the availability of the storage
+     * offer based on URL and storage offer configuration parameters. For
+     * example it can be used to pass user and password properties in for
+     * authentication.
      * <p>
-     * The parameters argument can also be used to pass arbitrary string tag/value pairs as connection arguments.
+     * The parameters argument can also be used to pass arbitrary string
+     * tag/value pairs as connection arguments.
      * </p>
      *
-     * @param url URL to the offer service
-     * @param parameters the parameters needed to connect and possibly authenticate to a specific offer service
-     * @return MUST return true if the distant offer service is available to accept further requests, false otherwise
-     * @throws StorageDriverException if any problem occurs during request
+     * @param url
+     *            URL to the offer service
+     * @param parameters
+     *            the parameters needed to connect and possibly authenticate to
+     *            a specific offer service
+     * @return MUST return true if the distant offer service is available to
+     *         accept further requests, false otherwise
+     * @throws StorageDriverException
+     *             if any problem occurs during request
      */
     boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException;
 
     /**
-     * The driver implementation MUST provide a constant name which SHOULD be shared accross instances of the same
-     * driver implementation. Then it is <em>strongly recommended</em> to use a static final field in your driver
+     * The driver implementation MUST provide a constant name which SHOULD be
+     * shared accross instances of the same driver implementation. Then it is
+     * <em>strongly recommended</em> to use a static final field in your driver
      * implementation.
      * <p>
-     * This name MAY be used in user interface to provide information on the driver.
+     * This name MAY be used in user interface to provide information on the
+     * driver.
      * </p>
      *
      * @return The name of the driver which SHOULD be constant
@@ -84,7 +103,8 @@ public interface Driver {
     /**
      * Retrieves the driver's major version number.
      * <p>
-     * This number MAY be used in user interface to provide information on the driver.
+     * This number MAY be used in user interface to provide information on the
+     * driver.
      * </p>
      *
      * @return this driver's major version number
@@ -94,7 +114,8 @@ public interface Driver {
     /**
      * Retrieves the driver's minor version number.
      * <p>
-     * This number MAY be used in user interface to provide information on the driver.
+     * This number MAY be used in user interface to provide information on the
+     * driver.
      * </p>
      *
      * @return this driver's minor version number

@@ -59,5 +59,4 @@ public class StorageCountResultTest {
         assertEquals(2L, storageCountResult.getNumberObjects());
     }
 
-
 }

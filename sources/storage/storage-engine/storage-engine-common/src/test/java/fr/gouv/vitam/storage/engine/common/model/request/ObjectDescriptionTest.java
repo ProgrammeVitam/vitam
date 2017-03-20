@@ -52,8 +52,7 @@ public class ObjectDescriptionTest {
 
     @Test
     public void testConstructorWithParam() throws Exception {
-        final ObjectDescription createObjectDescription =
-            new ObjectDescription("containerGUID", "objectURI");
+        final ObjectDescription createObjectDescription = new ObjectDescription("containerGUID", "objectURI");
         assertEquals("containerGUID", createObjectDescription.getWorkspaceContainerGUID());
         assertEquals("objectURI", createObjectDescription.getWorkspaceObjectURI());
     }

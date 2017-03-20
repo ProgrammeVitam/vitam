@@ -61,16 +61,17 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     }
 
     /**
-     * Convenient enum to describe the different kind of referential handled by thi provider
+     * Convenient enum to describe the different kind of referential handled by
+     * thi provider
      */
     private enum ReferentialType {
-        STRATEGY,
-        OFFER
+        STRATEGY, OFFER
     }
 
     @Override
     public StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException {
-        // TODO P1 : only 1 strategy for now, need to use this id in later implementation
+        // TODO P1 : only 1 strategy for now, need to use this id in later
+        // implementation
         if (storageStrategy != null) {
             return storageStrategy;
         }
@@ -99,7 +100,6 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
         return offer;
     }
 
-
     private void initReferentials() {
         try {
             loadReferential(ReferentialType.STRATEGY);
@@ -121,12 +121,12 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
         switch (type) {
             case STRATEGY:
                 storageStrategy = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile(STRATEGY_FILENAME),
-                    StorageStrategy.class);
+                        StorageStrategy.class);
                 break;
             case OFFER:
-                StorageOffer[] storageOffersArray = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile
-                        (OFFER_FILENAME), StorageOffer[].class);
-                storageOffers = new HashMap();
+                StorageOffer[] storageOffersArray = JsonHandler
+                        .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
+                storageOffers = new HashMap<String, StorageOffer>();
                 for (StorageOffer offer : storageOffersArray) {
                     storageOffers.put(offer.getId(), offer);
                 }
@@ -139,7 +139,8 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     /**
      * For Junit only
      *
-     * @param strategy the new strategy
+     * @param strategy
+     *            the new strategy
      */
     void setStorageStrategy(StorageStrategy strategy) {
         storageStrategy = strategy;
@@ -148,7 +149,8 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     /**
      * For Junit only
      *
-     * @param offer the new offer
+     * @param offer
+     *            the new offer
      */
     void setStorageOffer(StorageOffer offer) {
         if (offer == null) {

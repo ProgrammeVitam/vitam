@@ -52,8 +52,10 @@ public class ObjectDescription {
     /**
      * Constructor.
      *
-     * @param workspaceContainerGUID workspace container id
-     * @param workspaceObjectURI workspace object URI
+     * @param workspaceContainerGUID
+     *            workspace container id
+     * @param workspaceObjectURI
+     *            workspace object URI
      */
     public ObjectDescription(String workspaceContainerGUID, String workspaceObjectURI) {
         this.workspaceContainerGUID = workspaceContainerGUID;
@@ -117,7 +119,8 @@ public class ObjectDescription {
     }
 
     /**
-     * @param objectName the objectName to set
+     * @param objectName
+     *            the objectName to set
      *
      * @return this
      */
@@ -134,7 +137,8 @@ public class ObjectDescription {
     }
 
     /**
-     * @param type the type to set
+     * @param type
+     *            the type to set
      *
      * @return this
      */

@@ -33,8 +33,10 @@ import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 
 /**
- * Creates {@link ContentAddressableStorage} configured in a configuration file <br/>
- * Ex. to build a {@link ContentAddressableStorage} of a particular store context,
+ * Creates {@link ContentAddressableStorage} configured in a configuration file
+ * <br/>
+ * Ex. to build a {@link ContentAddressableStorage} of a particular store
+ * context,
  * 
  * <pre>
  *    storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())       
@@ -55,13 +57,14 @@ import fr.gouv.vitam.common.storage.filesystem.FileSystem;
  */
 public class StoreContextBuilder {
 
-
     /**
      * 
      * Builds {@link ContentAddressableStorage}
      * 
-     * @param configuration {@link StorageConfiguration}
-     * @return ContentAddressableStorage : by default fileSystem or openstack-swift if it is configured
+     * @param configuration
+     *            {@link StorageConfiguration}
+     * @return ContentAddressableStorage : by default fileSystem or
+     *         openstack-swift if it is configured
      */
     public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration) {
 
@@ -71,7 +74,6 @@ public class StoreContextBuilder {
             // by default file system
             return new FileSystem(configuration);
         }
-
 
     }
 

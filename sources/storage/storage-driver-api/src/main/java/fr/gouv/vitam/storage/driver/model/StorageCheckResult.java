@@ -29,7 +29,8 @@ package fr.gouv.vitam.storage.driver.model;
 import fr.gouv.vitam.common.digest.DigestType;
 
 /**
- * Holds result data that come as a result of a request to check an object on the distant storage offer
+ * Holds result data that come as a result of a request to check an object on
+ * the distant storage offer
  */
 public class StorageCheckResult extends StorageObjectResult {
 
@@ -40,15 +41,21 @@ public class StorageCheckResult extends StorageObjectResult {
     /**
      * Initialize the needed parameters for request.
      * 
-     * @param tenantId The request tenantId
-     * @param type the type The request type
-     * @param guid the object guid
-     * @param digestAlgorithm the digest Algorithm
-     * @param digestHashBase16 the digest HashBase 16
-     * @param digestMatch the digestMatch
+     * @param tenantId
+     *            The request tenantId
+     * @param type
+     *            the type The request type
+     * @param guid
+     *            the object guid
+     * @param digestAlgorithm
+     *            the digest Algorithm
+     * @param digestHashBase16
+     *            the digest HashBase 16
+     * @param digestMatch
+     *            the digestMatch
      */
-    public StorageCheckResult(Integer tenantId, String type, String guid, DigestType digestAlgorithm,
-        String digestHashBase16, boolean digestMatch) {
+    public StorageCheckResult(Integer tenantId, String type, String guid, DigestType digestAlgorithm, String digestHashBase16,
+            boolean digestMatch) {
         super(tenantId, type, guid);
         this.digestAlgorithm = digestAlgorithm;
         this.digestHashBase16 = digestHashBase16;
@@ -79,6 +86,5 @@ public class StorageCheckResult extends StorageObjectResult {
     public String getDigestHashBase16() {
         return digestHashBase16;
     }
-
 
 }

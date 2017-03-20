@@ -44,7 +44,8 @@ public class DriverManagerConfiguration {
     /**
      * Constructor
      *
-     * @param driverLocation the directory path to host drivers jar
+     * @param driverLocation
+     *            the directory path to host drivers jar
      */
     public DriverManagerConfiguration(String driverLocation) {
         this.driverLocation = driverLocation;
@@ -62,7 +63,8 @@ public class DriverManagerConfiguration {
     /**
      * Set the driver location
      *
-     * @param driverLocation the directory to host drivers jar
+     * @param driverLocation
+     *            the directory to host drivers jar
      */
     public void setDriverLocation(String driverLocation) {
         this.driverLocation = driverLocation;

@@ -58,8 +58,9 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
  * Use to register storage driver and associates it with offers.<br>
  * <br>
  *
- * Actually, it is not possible to add driver without a server restart (you can add the driver, do association with
- * offers but you have to restart the server to have the new driver).
+ * Actually, it is not possible to add driver without a server restart (you can
+ * add the driver, do association with offers but you have to restart the server
+ * to have the new driver).
  */
 
 public class DriverManager {
@@ -78,8 +79,8 @@ public class DriverManager {
             // default mapper, use changeDriverMapper
             mapper = Optional.ofNullable(FileDriverMapper.getInstance());
         } catch (final StorageDriverMapperException exc) {
-            LOGGER.warn("The driver mapper is not initialize. Association driver and offer will not be load and " +
-                "modification will not be save. Change the mapper.");
+            LOGGER.warn("The driver mapper is not initialize. Association driver and offer will not be load and "
+                    + "modification will not be save. Change the mapper.");
         }
         final URLClassLoader ucl = getUrlClassLoader();
         ServiceLoader<Driver> loadedDrivers;
@@ -110,8 +111,8 @@ public class DriverManager {
             try {
                 configuration = PropertiesUtils.readYaml(conf, DriverManagerConfiguration.class);
             } catch (final IOException exc) {
-                LOGGER.warn("cannot read configuration file for storage driver. Only use standard class loader " +
-                    "(systemClassLoader)", exc);
+                LOGGER.warn("cannot read configuration file for storage driver. Only use standard class loader "
+                        + "(systemClassLoader)", exc);
             }
             if (configuration != null) {
                 final File dir = new File(configuration.getDriverLocation());
@@ -122,8 +123,7 @@ public class DriverManager {
                         try {
                             urls[i] = fDir[i].toURI().toURL();
                         } catch (final MalformedURLException exc) {
-                            LOGGER
-                                .warn("Class loader error for {}, driver not loaded", fDir[i].getName());
+                            LOGGER.warn("Class loader error for {}, driver not loaded", fDir[i].getName());
                         }
                     }
                     ucl = new URLClassLoader(urls);
@@ -140,7 +140,8 @@ public class DriverManager {
     /**
      * Change the driver mapper
      *
-     * @param newMapper the driver mapper to use
+     * @param newMapper
+     *            the driver mapper to use
      */
     public static void changeDriverMapper(DriverMapper newMapper) {
         ParametersChecker.checkParameter("The mapper cannot be null", newMapper);
@@ -150,9 +151,12 @@ public class DriverManager {
     /**
      * Add offer to a driver
      *
-     * @param name the driver name
-     * @param offerId the offer ID to add
-     * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
+     * @param name
+     *            the driver name
+     * @param offerId
+     *            the offer ID to add
+     * @throws StorageDriverMapperException
+     *             thrown if error on driver mapper (persisting part) append
      */
     public static void addOfferToDriver(String name, String offerId) throws StorageDriverMapperException {
         for (final OfferDriverInfo driverInfo : INSTANTIATED_DRIVERS) {
@@ -167,11 +171,15 @@ public class DriverManager {
     /**
      * Add offers IDs to a driver
      *
-     * @param name the driver name
-     * @param offersIds the offers IDs list
-     * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
+     * @param name
+     *            the driver name
+     * @param offersIds
+     *            the offers IDs list
+     * @throws StorageDriverMapperException
+     *             thrown if error on driver mapper (persisting part) append
      */
-    // TODO P1 : change link direction between driver and offer and persist it differently
+    // TODO P1 : change link direction between driver and offer and persist it
+    // differently
     public static void addOffersToDriver(String name, List<String> offersIds) throws StorageDriverMapperException {
         for (final OfferDriverInfo driverInfo : INSTANTIATED_DRIVERS) {
             if (driverInfo.name.equals(name)) {
@@ -183,10 +191,13 @@ public class DriverManager {
     /**
      * Remove one offer to a driver
      *
-     * @param offerId the offer ID to remove
-     * @throws StorageDriverMapperException thrown if error on driver mapper (persisting part) append
-     * @throws StorageDriverNotFoundException thrown if the associated driver is not found (no driver / offer
-     *         association)
+     * @param offerId
+     *            the offer ID to remove
+     * @throws StorageDriverMapperException
+     *             thrown if error on driver mapper (persisting part) append
+     * @throws StorageDriverNotFoundException
+     *             thrown if the associated driver is not found (no driver /
+     *             offer association)
      */
     public static void removeOffer(String offerId) throws StorageDriverMapperException, StorageDriverNotFoundException {
         final Driver driver = getDriverFor(offerId);
@@ -203,10 +214,12 @@ public class DriverManager {
     /**
      * Get the driver for one offer
      *
-     * @param offerId required the offer ID
+     * @param offerId
+     *            required the offer ID
      * @return the associated driver
-     * @throws StorageDriverNotFoundException thrown if the associated driver is not found (no driver / offer
-     *         association)
+     * @throws StorageDriverNotFoundException
+     *             thrown if the associated driver is not found (no driver /
+     *             offer association)
      */
     public static Driver getDriverFor(String offerId) throws StorageDriverNotFoundException {
         final OfferDriverInfo driverInfo = DRIVERS_OFFERS.get(offerId);
@@ -218,15 +231,16 @@ public class DriverManager {
     }
 
     private static void addOffersToDriver(OfferDriverInfo driverInfo, List<String> offersIds)
-        throws StorageDriverMapperException {
+            throws StorageDriverMapperException {
         ParametersChecker.checkParameter("Offers id list cannot be null", offersIds);
         for (final String offerId : offersIds) {
             if (!offerIdAvailable(offerId)) {
                 DRIVERS_OFFERS.put(offerId, driverInfo);
             } else {
-                LOGGER.warn("Cannot add driver {} with name {} to the offer ID {}, offer already define" +
-                    " for another  driver name {}", driverInfo.driver, driverInfo.name, offerId,
-                    DRIVERS_OFFERS.get(offerId));
+                LOGGER.warn(
+                        "Cannot add driver {} with name {} to the offer ID {}, offer already define"
+                                + " for another  driver name {}",
+                        driverInfo.driver, driverInfo.name, offerId, DRIVERS_OFFERS.get(offerId));
             }
         }
         persistAddOffers(offersIds, driverInfo.name);
@@ -240,21 +254,18 @@ public class DriverManager {
                     DRIVERS_OFFERS.put(offerId, driverInfo);
                 }
             } catch (final StorageDriverMapperException exc) {
-                LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}",
-                    driverInfo.name, exc);
+                LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}", driverInfo.name, exc);
             }
         }
     }
 
-    private static void persistAddOffers(List<String> offersIds, String driverName)
-        throws StorageDriverMapperException {
+    private static void persistAddOffers(List<String> offersIds, String driverName) throws StorageDriverMapperException {
         if (mapper.isPresent()) {
             mapper.get().addOffersTo(offersIds, driverName);
         }
     }
 
-    private static void persistRemoveOffers(List<String> offersIds, String driverName)
-        throws StorageDriverMapperException {
+    private static void persistRemoveOffers(List<String> offersIds, String driverName) throws StorageDriverMapperException {
         if (mapper.isPresent()) {
             mapper.get().removeOffersTo(offersIds, driverName);
         }
@@ -266,9 +277,9 @@ public class DriverManager {
 
 }
 
-
 /**
- * OfferDriverInfo use to easily have driver information. Do no hesitate to add required parameters
+ * OfferDriverInfo use to easily have driver information. Do no hesitate to add
+ * required parameters
  */
 class OfferDriverInfo {
 
@@ -278,7 +289,8 @@ class OfferDriverInfo {
     /**
      * Constructor
      *
-     * @param driver the driver
+     * @param driver
+     *            the driver
      */
     OfferDriverInfo(Driver driver) {
         ParametersChecker.checkParameter("Driver cannot be null", driver);

@@ -83,16 +83,14 @@ public class DefaultOfferServiceTest {
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
 
-
     @After
     public void deleteFiles() throws Exception {
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+                StorageConfiguration.class);
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_3));
-        Files.deleteIfExists(
-            Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_DELETE));
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_DELETE));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID));
@@ -126,7 +124,7 @@ public class DefaultOfferServiceTest {
 
         // check
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+                StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -159,7 +157,7 @@ public class DefaultOfferServiceTest {
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+                StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -169,8 +167,7 @@ public class DefaultOfferServiceTest {
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
-            computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                in, true);
+            computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(), in, true);
         }
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -179,15 +176,14 @@ public class DefaultOfferServiceTest {
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
-        assertEquals(
-            offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID,
-                VitamConfiguration.getDefaultDigestType()),
-            digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+                digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
     }
 
-    // TODO activate when chunk mode is done in {@see DefaultOfferService} method createObject
+    // TODO activate when chunk mode is done in {@see DefaultOfferService}
+    // method createObject
     @Test
     @Ignore
     public void createObjectChunkTest() throws Exception {
@@ -200,7 +196,7 @@ public class DefaultOfferServiceTest {
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+                StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -222,15 +218,14 @@ public class DefaultOfferServiceTest {
                     bytes = new byte[read];
                     bb.get(bytes, 0, read);
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                        new ByteArrayInputStream(bytes), true);
+                            new ByteArrayInputStream(bytes), true);
                 } else {
                     bytes = bb.array();
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                        new ByteArrayInputStream(bytes.clone()), false);
+                            new ByteArrayInputStream(bytes.clone()), false);
                     assertEquals(computedDigest,
-                        Digest
-                            .digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
-                            .toString());
+                            Digest.digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
+                                    .toString());
                 }
                 bb.clear();
                 read = fc.read(bb);
@@ -244,10 +239,8 @@ public class DefaultOfferServiceTest {
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
-        assertEquals(
-            offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
-                VitamConfiguration.getDefaultDigestType()),
-            digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
+                VitamConfiguration.getDefaultDigestType()), digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
     }
@@ -262,8 +255,7 @@ public class DefaultOfferServiceTest {
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
 
-        final Response response = offerService.getObject(CONTAINER_PATH,
-            OBJECT_ID_2, new AsyncResponseJunitTest());
+        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2, new AsyncResponseJunitTest());
         assertNotNull(response);
     }
 
@@ -289,7 +281,7 @@ public class DefaultOfferServiceTest {
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+                StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -311,8 +303,7 @@ public class DefaultOfferServiceTest {
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
         String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true);
 
-        assertTrue(offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest,
-            VitamConfiguration.getDefaultDigestType()));
+        assertTrue(offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest, VitamConfiguration.getDefaultDigestType()));
     }
 
     public void deleteObjectTest() throws Exception {
@@ -325,36 +316,34 @@ public class DefaultOfferServiceTest {
         String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true);
 
         // check if the object has been created
-        final Response response = offerService.getObject(CONTAINER_PATH,
-            OBJECT_ID_DELETE, new AsyncResponseJunitTest());
+        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE, new AsyncResponseJunitTest());
         assertNotNull(response);
 
         try {
-            // check that if we try to delete an object with a wrong digest, we get a not found exception
-            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, "fakeDigest",
-                VitamConfiguration.getDefaultDigestType());
+            // check that if we try to delete an object with a wrong digest, we
+            // get a not found exception
+            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, "fakeDigest", VitamConfiguration.getDefaultDigestType());
             fail("Should raized an exception");
         } catch (ContentAddressableStorageNotFoundException exc) {
 
         }
 
         try {
-            // check that if we try to delete an object with the wrong digest algorithm, we get a not found exception
-            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest,
-                VitamConfiguration.getSecurityDigestType());
+            // check that if we try to delete an object with the wrong digest
+            // algorithm, we get a not found exception
+            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getSecurityDigestType());
             fail("Should raized an exception");
         } catch (ContentAddressableStorageNotFoundException exc) {
 
         }
 
-        // check that if we try to delete an object with the correct digest + algorithm, it succeeds
-        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest,
-            VitamConfiguration.getDefaultDigestType());
+        // check that if we try to delete an object with the correct digest +
+        // algorithm, it succeeds
+        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getDefaultDigestType());
 
         try {
             // check that the object has been deleted
-            offerService.getObject(CONTAINER_PATH,
-                OBJECT_ID_DELETE, new AsyncResponseJunitTest());
+            offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE, new AsyncResponseJunitTest());
             fail("Should raized an exception");
         } catch (ContentAddressableStorageNotFoundException exc) {
 
@@ -392,7 +381,7 @@ public class DefaultOfferServiceTest {
         final ObjectInit objectInit = getObjectInit(false);
         for (int i = 0; i < 150; i++) {
             offerService.initCreateObject(CONTAINER_PATH, objectInit, "object_" + i);
-            offerService.createObject(CONTAINER_PATH, "object_"+ i, new FakeInputStream(50, false), true);
+            offerService.createObject(CONTAINER_PATH, "object_" + i, new FakeInputStream(50, false), true);
         }
         String cursorId = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(cursorId);

@@ -31,16 +31,19 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
- * This interface aims at providing a set of method that are common with no concerns of the offer configuration
- * persistence implementation (ie: implementation could be Filesystem, Database...)
+ * This interface aims at providing a set of method that are common with no
+ * concerns of the offer configuration persistence implementation (ie:
+ * implementation could be Filesystem, Database...)
  */
 public interface StorageOfferProvider {
     /**
      * Retrieve an offer full configuration by its id
      *
-     * @param idOffer the id of the storage offer to retrieve
+     * @param idOffer
+     *            the id of the storage offer to retrieve
      * @return an object representation of a storage offer
-     * @throws StorageException if any unwanted technical issue happens
+     * @throws StorageException
+     *             if any unwanted technical issue happens
      */
     StorageOffer getStorageOffer(String idOffer) throws StorageException;
 }

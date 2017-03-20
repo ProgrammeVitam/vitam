@@ -28,8 +28,8 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Holds minimal needed parameters that may be needed to send a request on an object on the distant storage offer :
- * object informations.
+ * Holds minimal needed parameters that may be needed to send a request on an
+ * object on the distant storage offer : object informations.
  */
 public class StorageObjectRequest extends StorageRequest {
 
@@ -38,9 +38,12 @@ public class StorageObjectRequest extends StorageRequest {
     /**
      * Initialize the needed parameters for request on an object.
      * 
-     * @param tenantId The request tenantId
-     * @param type the type The request type
-     * @param guid the object guid
+     * @param tenantId
+     *            The request tenantId
+     * @param type
+     *            the type The request type
+     * @param guid
+     *            the object guid
      */
     public StorageObjectRequest(Integer tenantId, String type, String guid) {
         super(tenantId, type);
@@ -56,5 +59,9 @@ public class StorageObjectRequest extends StorageRequest {
         return guid;
     }
 
+    @Override
+    public String toString() {
+        return "GUID: " + guid + " " + super.toString();
+    }
 
 }

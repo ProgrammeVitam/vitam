@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -54,9 +54,11 @@ public class TryAndRetryData {
     private Map<String, Response.Status> globalOfferResult;
 
     /**
-     * Populate KO offer with offerReferences list to start a new object transfer
+     * Populate KO offer with offerReferences list to start a new object
+     * transfer
      *
-     * @param offerReferences list of offer reference
+     * @param offerReferences
+     *            list of offer reference
      */
     public void populateFromOfferReferences(List<OfferReference> offerReferences) {
         globalOfferResult = new HashMap<>();
@@ -84,7 +86,8 @@ public class TryAndRetryData {
     /**
      * Set Ok offers list
      *
-     * @param okList the ok offer list
+     * @param okList
+     *            the ok offer list
      */
     public void setOkList(List<String> okList) {
         this.okList = okList;
@@ -96,13 +99,14 @@ public class TryAndRetryData {
      * @return the KO offers list
      */
     public List<String> getKoList() {
-        return koList;
+        return new ArrayList<String>(koList);
     }
 
     /**
      * Set the KO offers list
      *
-     * @param koList the KO offers list
+     * @param koList
+     *            the KO offers list
      */
     public void setKoList(List<String> koList) {
         this.koList = koList;
@@ -120,7 +124,8 @@ public class TryAndRetryData {
     /**
      * Pass offerId fro KO offers list to OK offers list
      *
-     * @param offerId the offerId
+     * @param offerId
+     *            the offerId
      */
     public void koListToOkList(String offerId) {
         koList.remove(offerId);

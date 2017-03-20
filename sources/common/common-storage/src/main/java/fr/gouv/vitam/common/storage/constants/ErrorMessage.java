@@ -67,19 +67,16 @@ public enum ErrorMessage {
     /**
      * Container name is a mandatory parameter
      */
-    CONTAINER_NAME_IS_A_MANDATORY_PARAMETER(
-        "Container name is a mandatory parameter"),
+    CONTAINER_NAME_IS_A_MANDATORY_PARAMETER("Container name is a mandatory parameter"),
 
     /**
      * Container name and Folder name are a mandatory parameter
      */
-    CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER(
-        "Container name and Folder name are a mandatory parameter"),
+    CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER("Container name and Folder name are a mandatory parameter"),
     /**
      * Container name and Object name are a mandatory parameter
      */
-    CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER(
-        "Container name and Object name are a mandatory parameter"),
+    CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER("Container name and Object name are a mandatory parameter"),
 
     /**
      * Internal Server Error
@@ -89,8 +86,7 @@ public enum ErrorMessage {
     /**
      * Algo name is a mandatory parameter
      */
-    ALGO_IS_A_MANDATORY_PARAMETER(
-        "Digest Algo name is a mandatory parameter");
+    ALGO_IS_A_MANDATORY_PARAMETER("Digest Algo name is a mandatory parameter");
 
     private final String message;
 

@@ -32,11 +32,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  * Request response
  *
  */
-// TODO P1 : @gledroit : unused in server resource. It probably should be ? Or maybe the code should change.
+// TODO P1 : @gledroit : unused in server resource. It probably should be ? Or
+// maybe the code should change.
 public class RequestResponse {
     private JsonNode query;
     private JsonNode results;
-
 
     /**
      * @return the Result part
@@ -48,7 +48,9 @@ public class RequestResponse {
     /**
      * RequestResponse constructor
      *
-     * @param result the result of type JsonNode which will be setted for RequestResponse
+     * @param result
+     *            the result of type JsonNode which will be setted for
+     *            RequestResponse
      * @return this
      */
     public RequestResponse setResult(JsonNode result) {
@@ -66,7 +68,9 @@ public class RequestResponse {
     /**
      * RequestResponse constructor
      *
-     * @param query the query of type JsonNode which will be setted for RequestResponse
+     * @param query
+     *            the query of type JsonNode which will be setted for
+     *            RequestResponse
      * @return this
      */
     public RequestResponse setQuery(JsonNode query) {

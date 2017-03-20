@@ -64,5 +64,4 @@ public class StorageCapacityResultTest {
         assertEquals(100, storageCapacityResult.getUsedSpace());
     }
 
-
 }

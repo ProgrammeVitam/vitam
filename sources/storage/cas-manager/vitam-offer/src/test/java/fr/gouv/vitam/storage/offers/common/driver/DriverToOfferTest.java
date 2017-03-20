@@ -106,8 +106,7 @@ public class DriverToOfferTest {
     private static StorageOffer offer = new StorageOffer();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -121,9 +120,9 @@ public class DriverToOfferTest {
         RestAssured.basePath = REST_URI;
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
-        final StorageConfiguration realWorkspaceOffer =
-            PropertiesUtils.readYaml(workspaceOffer, StorageConfiguration.class);
-        // newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
+        final StorageConfiguration realWorkspaceOffer = PropertiesUtils.readYaml(workspaceOffer, StorageConfiguration.class);
+        // newWorkspaceOfferConf = File.createTempFile("test",
+        // WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         // PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
@@ -131,8 +130,7 @@ public class DriverToOfferTest {
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Wokspace Offer Application Server", e);
+            throw new IllegalStateException("Cannot start the Wokspace Offer Application Server", e);
         }
 
         driver = new DriverImpl();
@@ -152,7 +150,7 @@ public class DriverToOfferTest {
 
         // delete files
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+                StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER);
         File object = new File(container.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
@@ -173,23 +171,21 @@ public class DriverToOfferTest {
         tmp.put("trustStore-keyPath", "src/test/resources/truststore.jks");
         tmp.put("trustStore-keyPassword", "tazerty");
         offer.setParameters(tmp);
-        
+
         connection = driver.connect(offer, null);
         assertNotNull(connection);
 
         StoragePutRequest request = null;
         guid = GUIDFactory.newObjectGUID(TENANT_ID).toString();
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            final MessageDigest messageDigest =
-                MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
+            final MessageDigest messageDigest = MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid,
-                    VitamConfiguration.getDefaultDigestType().name(), digestInputStream);
+                        VitamConfiguration.getDefaultDigestType().name(), digestInputStream);
                 final StoragePutResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                final StorageConfiguration conf =
-                    PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+                final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
                         StorageConfiguration.class);
                 final File container = new File(conf.getStoragePath() + CONTAINER);
                 assertNotNull(container);
@@ -205,34 +201,33 @@ public class DriverToOfferTest {
 
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             request = new StoragePutRequest(null, DataCategory.UNIT.name(), guid,
-                VitamConfiguration.getDefaultDigestType().getName(), fin);
+                    VitamConfiguration.getDefaultDigestType().getName(), fin);
             connection.putObject(request);
             fail("Should have an exception !");
         } catch (final StorageDriverException exc) {
             // Nothing, missing tenant parameter
         }
 
-        final StorageObjectRequest getRequest =
-            new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
+        final StorageObjectRequest getRequest = new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
         connection.getObject(getRequest);
 
         // Add some objects
         for (int i = 0; i < 150; i++) {
             try (FakeInputStream fis = new FakeInputStream(50, false)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), "f" + i,
-                    VitamConfiguration.getDefaultDigestType().name(), fis);
+                        VitamConfiguration.getDefaultDigestType().name(), fis);
                 connection.putObject(request);
             }
         }
 
-        StorageListRequest listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(),
-            null, true);
+        StorageListRequest listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(), null, true);
         Response response = connection.listObjects(listRequest);
         assertNotNull(response);
         assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), response.getStatus());
         assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
 
-        listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(), response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
+        listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(),
+                response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
         response = connection.listObjects(listRequest);
         assertNotNull(response);
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());

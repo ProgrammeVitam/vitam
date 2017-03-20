@@ -37,22 +37,26 @@ public class StorageServerClientException extends StorageClientException {
     private static final long serialVersionUID = -7139657230299981622L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageServerClientException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageServerClientException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageServerClientException(String messsage, Throwable cause) {
         super(messsage, cause);

@@ -121,7 +121,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
+            LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName).build();
         } catch (Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -148,7 +148,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 containerName);
             workspace.deleteContainer(containerName, recursive);
         } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);

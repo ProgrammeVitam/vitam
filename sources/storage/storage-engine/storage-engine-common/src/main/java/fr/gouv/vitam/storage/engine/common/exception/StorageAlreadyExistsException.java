@@ -27,7 +27,8 @@
 package fr.gouv.vitam.storage.engine.common.exception;
 
 /**
- * Define a Storage Exception to be thrown when something already exists and it should not
+ * Define a Storage Exception to be thrown when something already exists and it
+ * should not
  */
 public class StorageAlreadyExistsException extends StorageException {
 
@@ -37,22 +38,26 @@ public class StorageAlreadyExistsException extends StorageException {
     private static final long serialVersionUID = 4650751256905425148L;
 
     /**
-     * @param message associated message
+     * @param message
+     *            associated message
      */
     public StorageAlreadyExistsException(String message) {
         super(message);
     }
 
     /**
-     * @param cause associated cause
+     * @param cause
+     *            associated cause
      */
     public StorageAlreadyExistsException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param messsage associated message
-     * @param cause associated cause
+     * @param messsage
+     *            associated message
+     * @param cause
+     *            associated cause
      */
     public StorageAlreadyExistsException(String messsage, Throwable cause) {
         super(messsage, cause);

@@ -28,7 +28,8 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 /**
- * Define the differents type of "object" than can be stored, retrieve or deleted from different storage offer
+ * Define the differents type of "object" than can be stored, retrieve or
+ * deleted from different storage offer
  */
 public enum DataCategory {
     /**
@@ -64,7 +65,8 @@ public enum DataCategory {
     /**
      * Constructor.
      *
-     * @param folder folder
+     * @param folder
+     *            folder
      */
     private DataCategory(String folder) {
         this.folder = folder;
@@ -79,11 +81,11 @@ public enum DataCategory {
         return folder;
     }
 
-
     /**
      * Get DataCategory from folder
      *
-     * @param folder the wanted folder
+     * @param folder
+     *            the wanted folder
      * @return the DataCategory if exists, null otherwise
      */
     public static DataCategory getByFolder(String folder) {

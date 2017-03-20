@@ -30,7 +30,8 @@ package fr.gouv.vitam.storage.driver.model;
 import java.io.InputStream;
 
 /**
- * Holds every needed parameters that may be needed to put an object on the distant storage offer.
+ * Holds every needed parameters that may be needed to put an object on the
+ * distant storage offer.
  */
 public class StoragePutRequest extends StorageObjectRequest {
 
@@ -40,11 +41,16 @@ public class StoragePutRequest extends StorageObjectRequest {
     /**
      * Initialize the needed parameters for put requests of an object.
      *
-     * @param tenantId request tenantId
-     * @param type the type
-     * @param guid the object guid
-     * @param digestAlgorithm the object digestAlgorithm
-     * @param dataStream data stream of the object to put in offer
+     * @param tenantId
+     *            request tenantId
+     * @param type
+     *            the type
+     * @param guid
+     *            the object guid
+     * @param digestAlgorithm
+     *            the object digestAlgorithm
+     * @param dataStream
+     *            data stream of the object to put in offer
      */
     public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm, InputStream dataStream) {
         super(tenantId, type, guid);
@@ -69,4 +75,10 @@ public class StoragePutRequest extends StorageObjectRequest {
     public InputStream getDataStream() {
         return dataStream;
     }
+
+    @Override
+    public String toString() {
+        return "DigestAlgo: " + digestAlgorithm + " DataStream:" + (dataStream != null) + " " + super.toString();
+    }
+
 }

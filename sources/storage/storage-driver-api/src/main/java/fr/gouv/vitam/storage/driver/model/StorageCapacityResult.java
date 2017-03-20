@@ -28,7 +28,8 @@
 package fr.gouv.vitam.storage.driver.model;
 
 /**
- * Data structure representing global result from a 'get storage container information / capacity' request
+ * Data structure representing global result from a 'get storage container
+ * information / capacity' request
  */
 public class StorageCapacityResult extends StorageResult {
 
@@ -43,13 +44,15 @@ public class StorageCapacityResult extends StorageResult {
         super(null, null);
     }
 
-
     /**
      * Initialize the needed parameters for get capacity results
      *
-     * @param tenantId The request tenantId
-     * @param usableSpace The usable space in offer
-     * @param usedSpace The used space in offer
+     * @param tenantId
+     *            The request tenantId
+     * @param usableSpace
+     *            The usable space in offer
+     * @param usedSpace
+     *            The used space in offer
      */
     public StorageCapacityResult(Integer tenantId, long usableSpace, long usedSpace) {
         // TODO : replace null with type (since a container is type_tenant)

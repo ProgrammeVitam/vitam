@@ -71,7 +71,6 @@ public class FakeDriverImplTest {
         driver.connect(offer, props);
     }
 
-
     @Test
     public void givenCorrectPropertiesThenConnect() throws Exception {
         final Properties props = new Properties();
@@ -88,21 +87,18 @@ public class FakeDriverImplTest {
 
         }
 
-        final StorageGetResult getObjectResult =
-            connect.getObject(new StorageObjectRequest(tenant, "object", "guid"));
+        final StorageGetResult getObjectResult = connect.getObject(new StorageObjectRequest(tenant, "object", "guid"));
         assertNotNull(getObjectResult);
         assertNotNull(getObjectResult.getTenantId());
         assertNotNull(getObjectResult.getType());
         assertNotNull(getObjectResult.getGuid());
         assertNotNull(getObjectResult.getObject());
-        final StoragePutRequest putObjectRequest =
-            new StoragePutRequest(tenant, "type", "guid", VitamConfiguration.getDefaultDigestType().getName(),
-                IOUtils.toInputStream("Vitam" + " test"));
+        final StoragePutRequest putObjectRequest = new StoragePutRequest(tenant, "type", "guid",
+                VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam" + " test"));
         assertNotNull(connect.putObject(putObjectRequest));
 
         try {
-            final StoragePutRequest putObjectRequest2 =
-                new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
+            final StoragePutRequest putObjectRequest2 = new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
                     IOUtils.toInputStream("Vitam test"));
             connect.putObject(putObjectRequest2);
             fail("Should raized an exception");
@@ -110,33 +106,31 @@ public class FakeDriverImplTest {
 
         }
 
-        final StoragePutRequest putObjectRequest3 =
-            new StoragePutRequest(tenant, "type", "digest_bad_test",
+        final StoragePutRequest putObjectRequest3 = new StoragePutRequest(tenant, "type", "digest_bad_test",
                 VitamConfiguration.getDefaultDigestType().getName(), IOUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
         assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
         try {
-            final StorageRemoveRequest storageRemoveRequest =
-                new StorageRemoveRequest(tenant, "type", "digest_bad_test",
+            final StorageRemoveRequest storageRemoveRequest = new StorageRemoveRequest(tenant, "type", "digest_bad_test",
                     VitamConfiguration.getDefaultDigestType(), "digest_test");
             connect.removeObject(storageRemoveRequest);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
 
         }
-        assertNotNull(connect.removeObject(new StorageRemoveRequest(tenant, "type", "guid",
-            VitamConfiguration.getDefaultDigestType(), "digest_test")));
+        assertNotNull(connect.removeObject(
+                new StorageRemoveRequest(tenant, "type", "guid", VitamConfiguration.getDefaultDigestType(), "digest_test")));
 
         assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
 
         final StorageCheckRequest storageCheckRequest = new StorageCheckRequest(2, "type", "digest_test",
-            VitamConfiguration.getDefaultDigestType(), null);
+                VitamConfiguration.getDefaultDigestType(), null);
         assertNotNull(connect.checkObject(storageCheckRequest));
 
         try {
             final StorageCheckRequest storageCheckRequest2 = new StorageCheckRequest(-1, "type", "digest_bad_test",
-                VitamConfiguration.getDefaultDigestType(), null);
+                    VitamConfiguration.getDefaultDigestType(), null);
             connect.checkObject(storageCheckRequest2);
             fail("Should raized an exception");
         } catch (final StorageDriverException e) {
