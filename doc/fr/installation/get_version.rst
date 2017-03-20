@@ -1,7 +1,7 @@
 Récupération de la version
 ##########################
 
-Se connecter sur l'URL `support <https://support.programmevitam.fr/releases/0.1.0/>`_ et récupérer :
+Se connecter sur l'URL `support <https://support.programmevitam.fr/releases/>`_ et récupérer :
 
 * le package de livraison
 * la release notes
