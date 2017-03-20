@@ -26,11 +26,13 @@ Pour configurer le déploiement, il est nécessaire de créer dans le répertoir
    :language: ini
    :linenos:
 
-Pour chaque type de "host" (lignes 2 à 176), indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
+Pour chaque type de "host", indiquer le(s) serveur(s) défini(s) pour chaque fonction. Une colocalisation de composants est possible.
+
+.. warning:: en cas de colocalisation, bien prendre en compte la taille JVM de chaque composant (VITAM : Xmx512m) pour éviter de swapper.
 
 .. note:: pour les "hosts-worker", il est possible d'ajouter, à la suite de chaque "host", 2 paramètres optionnels : capacity et workerFamily. Se référer au :term:`DEX` pour plus de précisions.
 
-Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les valeurs comme décrit :
+Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
 
 .. csv-table:: Définition des variables
    :header: "Clé", "Description","Valeur d'exemple"
@@ -59,6 +61,10 @@ Ensuite, dans la section ``hosts:vars`` (lignes 179 à 240), renseigner les vale
    "mongoclientPort","Port par lequel mongoclient est acessible","27016"
    "mongoclientDbName","Nom de la Base de donnée stockant la configuration mongoclient","mongoclient"
    "vitam_tenant_ids","Liste des tenants de plateforme","[0,1,2] ; [0] par défaut"
+   "vitam_tests_gitrepo_protocol","Protocole d'attaque du git lfs des TNR",""
+   "vitam_tests_gitrepo_baseurl","domaine du git lfs des TNR",""
+   "vitam_tests_gitrepo_url","Création de l'URL à partir des lignes précédentes",""
+   "vitam_tests_branch","Branche à récupérer sur le git lfs","master"
 
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
@@ -68,13 +74,22 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
    :linenos:
 
 
-Le fichier ``vault.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
+Le fichier ``vault-vitam.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/vault.txt
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/vault-vitam.txt
    :language: ini
    :linenos:
 
-.. note:: Si le mot de passe du fichier ``vault.yml`` est changé, ne pas oublier de le répercuter dans le fichier ``vault_pass.txt`` (et le sécuriser à l'issue de l'installation).
+.. note:: Si le mot de passe du fichier ``vault-vitam.yml`` est changé, ne pas oublier de le répercuter dans le fichier ``vault_pass.txt`` (et le sécuriser à l'issue de l'installation).
+
+
+Le fichier ``vault-extra.yml`` peut être également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient des secrets supplémentaires ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement, si le composant ihm-recette est déployé avec récupération des TNR.
+
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_vault-extra.yml
+   :language: ini
+   :linenos:
+
+.. note:: pour , utiliser le même mot de passe que ``vault-vitam.yml``.
 
 
 Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
@@ -83,7 +98,7 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 
 
 Paramétrage de mongoclient (administration mongoclient)
-======================================================
+========================================================
 
 Le package rpm vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
 Cette base de données est créée dans :term:`VITAM` durant la première installation.
@@ -103,11 +118,11 @@ Lors de la première utilisation de mongoclient, il convient de configurer les c
 
 Procédure pour configurer la connexion aux bases vitam::
  #) Cliquer sur le bouton "Connect" situé en haut de la page (l'emplacement dépend de la taille de la fenêtre)
- #) Dans la fenêtre "Connections", cliquer sur le bouton "Create New". => la fenêtre Add connection apparait contenant 4 sections : Connection, Authentication, URL, SHH
+ #) Dans la fenêtre "Connections", cliquer sur le bouton "Create New". => la fenêtre Add connection apparait contenant 4 sections : Connection, Authentication, URL, SSH
  #) Dans la section "Connection", saisir un nom à donner à la connexion dans "name", le nom ou l'ip du server mongos à cibler dans "hostname", changer éventuellement le "port", définir la base de donnée sur laquelle le client doit se connecter
  #) Dans la section "Authentication", saisir les paramètres d'autentification du compte à utiliser pour se connecter à la base configurée en section "connection"
  #) Dans la section URL, en fonction du la configuration des services, choisir cette méthode de connexion en lieu et place des autres méthodes.
- #) Dans la section "SHH", si le service mongoDB n'est accessible qu'au travers d'une connexion SSH, renseigner les paramètres de cette connexion pour accéder au serveur.
+ #) Dans la section "SSH", si le service mongoDB n'est accessible qu'au travers d'une connexion SSH, renseigner les paramètres de cette connexion pour accéder au serveur.
  #) Sauvegarder les paramètres avec le boutton "save changes"
  #) La nouvelle connexion doit apparaître avec un résumé de ses paramètres dans la fenêtre "Connections"
  #) CLiquer sur la ligne de la connexion puis cliquer sur le boutton "Connect Now" pour utiliser se connecter.
@@ -121,7 +136,7 @@ Mongoclient ne permet de gérer qu'une seule base à la fois, il est toutefois p
 Paramétrage de l'antivirus (ingest-externe)
 -------------------------------------------
 
-L'antivirus utilisé par ingest-externe est modifiable ; pour cela :
+L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; pour cela :
 
 * Créer un autre shell (dont l'extension doit être ``.sh.j2``) sous ``ansible-vitam-rpm/roles/vitam/templates/ingest-external`` ; prendre comme modèle le fichier ``scan-clamav.sh.j2``. Ce fichier est un template Jinja2, et peut donc contenir des variables qui seront interprétées lors de l'installation.
 * Modifier le fichier ``ansible-vitam-rpm/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
@@ -159,48 +174,51 @@ Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe 
 
 PKI
 ---
+Se positionner dans le répertoire ``deployment``.
+
 
 1. paramétrer le fichier ``environnements-rpm/group_vars/all/vault.yml`` et le fichier d'inventaire de la plate-forme sous ``environnements-rpm`` (se baser sur le fichier hosts.example)
 
-2. Lancer le script
+2. En absence d'une PKI, exécuter le script
 
 .. code-block:: bash
 
-   pki-generate-ca.sh
+   ./pki/scripts/generate_ca.sh
 
-En cas d'absence de PKI, il permet de générer  une PKI, ainsi que des certificats pour les échanges https entre composants. Se reporter au chapitre PKI si le client préfère utiliser sa propre PKI.
+.. note:: En cas d'absence de PKI, il permet de générer  une PKI, ainsi que des certificats pour les échanges https entre composants. Se reporter au chapitre PKI si le client préfère utiliser sa propre PKI.
 
-3. Lancer le script
-
-.. code-block:: bash
-
-   generate_certs.sh <environnement>
-
-Basé sur le contenu du fichier ``vault.yml``, ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM.
-
-3. Lancer le script
+3. Génération des certificats, si aucun n'est fourni par le client
 
 .. code-block:: bash
 
-   generate_stores.sh <environnement>
+   pki/scripts/generate_certs.sh <environnement>
 
-Basé sur le contenu du fichier ``vault.yml``, ce script  génère des stores nécessaires au bon fonctionnement de VITAM.
+.. note:: Basé sur le contenu du fichier ``vault.yml``, ce script  génère des certificats  nécessaires au bon fonctionnement de VITAM.
 
-4. Lancer le script
+3. Génération des stores Java, s'ile ne sont pas fournis par le client
 
 .. code-block:: bash
 
-   copie_fichiers_vitam.sh <environnement>
+   ./generate_stores.sh <environnement>
 
-pour recopier dans les bons répertoires d'ansiblerie les certificats et stores précédemment créés.
+.. note:: Basé sur le contenu du fichier ``vault.yml``, ce script  génère des stores nécessaires au bon fonctionnement de VITAM et les positionne au bon endroit pour le déploiement.
 
 Mise en place des repositories VITAM (optionnel)
 -------------------------------------------------
 Si gestion par VITAM des repositories CentOS spécifiques à VITAM :
 
-Editer le fichier ``environments-rpm/group_vars/all/example_repo.yml`` (sert de modèle)
+Editer le fichier ``environments-rpm/group_vars/all/repo.yml`` à partir des modèles suivants (décommenter également les lignes) :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_repo.yml
+Pour une cible de déploiement CentOS :
+
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_bootstrap_repo_centos.yml
+   :language: yaml
+   :linenos:
+
+
+Pour une cible de déploiement Debian :
+
+.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_bootstrap_repo_debian.yml
    :language: yaml
    :linenos:
 
@@ -214,6 +232,7 @@ ou
 
 ``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
+.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
 
 Déploiement
 -------------
