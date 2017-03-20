@@ -1,0 +1,100 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 223 (0xdf)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_client-storage
+        Validity
+            Not Before: Mar 15 12:18:42 2017 GMT
+            Not After : Mar 13 12:18:42 2027 GMT
+        Subject: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_client-storage
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (4096 bit)
+                Modulus:
+                    00:b3:2e:cf:55:d2:e3:b9:98:ff:ce:3c:39:fe:bc:
+                    a3:6a:51:07:21:41:bc:95:e0:d6:85:c0:40:0c:34:
+                    be:16:97:4a:ce:ca:3a:c6:28:66:f8:47:d9:aa:86:
+                    70:f8:29:a4:87:5b:c0:19:79:93:7a:58:42:36:2f:
+                    fc:37:6f:f0:87:35:f4:70:00:97:82:3e:bc:7f:c5:
+                    b8:a0:b6:00:87:7d:77:f7:bb:62:25:5c:6e:87:6a:
+                    19:c2:d9:e1:a7:2b:f0:a9:cc:2a:68:e3:45:a4:50:
+                    f6:67:84:ab:9a:76:53:18:7f:b1:de:a2:e0:04:b8:
+                    ed:a7:2e:4e:b9:a2:fa:80:02:0f:a7:36:3e:46:da:
+                    9b:27:02:e5:75:b5:4f:12:c0:7d:8a:48:d3:96:a0:
+                    1a:52:e8:d6:fe:9f:9a:7b:93:8c:41:a2:80:71:d7:
+                    2f:fa:89:38:09:fb:74:ce:6c:a1:68:a5:71:fb:6e:
+                    59:e6:35:ce:6d:7a:c4:0d:c4:04:47:13:68:05:b2:
+                    37:a5:1b:cc:32:94:c9:4b:7e:3f:09:22:3c:84:c1:
+                    7c:71:96:f9:e1:03:32:b1:2d:95:f2:6d:9e:47:4a:
+                    db:c5:02:a6:95:c4:8c:b7:2e:4a:bd:01:a8:58:04:
+                    82:8d:26:b1:77:aa:6a:1a:46:e0:97:04:fe:35:ff:
+                    15:a7:37:2e:6a:72:ca:71:c9:ec:0b:3f:c1:0a:85:
+                    4c:77:55:bd:cc:b1:9a:8d:13:2a:a5:79:43:bf:a1:
+                    6c:ae:d2:2c:bb:73:c0:e7:42:ed:d1:6f:91:bd:f2:
+                    be:d6:7f:dd:6c:98:85:ca:1e:b9:b9:24:d9:13:67:
+                    18:8d:9e:68:5b:19:68:ee:48:ca:73:b3:c0:c7:e1:
+                    df:03:9f:eb:c2:91:d5:3c:39:24:b8:cd:b8:6f:47:
+                    ca:56:fc:ca:f2:ac:e2:7c:e8:20:74:e2:94:b2:3c:
+                    d1:03:1f:60:e4:4f:fd:7d:a3:0c:e0:72:ad:1c:d5:
+                    12:3f:5d:fb:45:67:ca:09:f7:50:54:11:52:b9:90:
+                    d0:3d:47:33:c7:85:eb:a2:f8:5f:d2:3c:dd:8d:b3:
+                    46:70:4f:2b:40:9f:21:35:9e:86:6d:19:0d:bf:10:
+                    99:cb:4d:bd:78:8e:5c:9d:d9:13:73:1b:e7:4a:24:
+                    ec:ff:34:94:ec:ed:7d:dd:7f:b6:83:77:dd:ce:c4:
+                    91:a7:fe:27:05:42:d3:a6:2d:de:59:c5:6c:98:eb:
+                    a2:53:5b:27:f8:6b:f1:6e:e6:ad:38:77:28:1c:5b:
+                    5c:02:21:3f:40:e1:ba:d2:42:5e:8e:0c:e1:3b:45:
+                    1a:5f:58:ac:d2:13:f2:60:fd:f6:cd:83:31:a6:ff:
+                    74:21:93
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            Netscape Comment: 
+                CA SSL
+            X509v3 Basic Constraints: critical
+                CA:TRUE, pathlen:0
+            X509v3 Subject Key Identifier: 
+                77:36:FB:AC:E1:73:CF:36:5D:C4:7F:A4:34:3C:C8:B9:78:58:BB:90
+            X509v3 Authority Key Identifier: 
+                keyid:F5:FB:C2:23:FE:7D:3C:32:9C:5C:99:22:CC:00:93:BF:5E:3E:60:09
+                DirName:/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_client-storage
+                serial:DE
+
+            X509v3 Issuer Alternative Name: 
+                <EMPTY>
+
+            X509v3 Key Usage: 
+                Certificate Sign, CRL Sign
+            Netscape Cert Type: 
+                SSL CA
+    Signature Algorithm: sha256WithRSAEncryption
+         14:ec:38:6b:f6:8f:98:51:5e:9d:df:b1:c6:1f:48:81:20:89:
+         97:94:c7:25:a3:ef:1f:3b:3f:d5:20:60:8e:69:ba:29:ff:a6:
+         7d:6b:c3:b8:73:09:25:9f:69:07:ab:aa:c1:4b:52:c6:b6:bc:
+         5e:0c:f4:d8:4d:21:4c:e9:a6:b3
+-----BEGIN CERTIFICATE-----
+MIIEZzCCBBGgAwIBAgICAN8wDQYJKoZIhvcNAQELBQAwWDELMAkGA1UEBhMCRlIx
+DDAKBgNVBAgTA2lkZjEOMAwGA1UEBxMFcGFyaXMxDzANBgNVBAoTBlZpdGFtLjEa
+MBgGA1UEAxQRQ0FfY2xpZW50LXN0b3JhZ2UwHhcNMTcwMzE1MTIxODQyWhcNMjcw
+MzEzMTIxODQyWjBYMQswCQYDVQQGEwJGUjEMMAoGA1UECBMDaWRmMQ4wDAYDVQQH
+EwVwYXJpczEPMA0GA1UEChMGVml0YW0uMRowGAYDVQQDFBFDQV9jbGllbnQtc3Rv
+cmFnZTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALMuz1XS47mY/848
+Of68o2pRByFBvJXg1oXAQAw0vhaXSs7KOsYoZvhH2aqGcPgppIdbwBl5k3pYQjYv
+/Ddv8Ic19HAAl4I+vH/FuKC2AId9d/e7YiVcbodqGcLZ4acr8KnMKmjjRaRQ9meE
+q5p2Uxh/sd6i4AS47acuTrmi+oACD6c2PkbamycC5XW1TxLAfYpI05agGlLo1v6f
+mnuTjEGigHHXL/qJOAn7dM5soWilcftuWeY1zm16xA3EBEcTaAWyN6UbzDKUyUt+
+PwkiPITBfHGW+eEDMrEtlfJtnkdK28UCppXEjLcuSr0BqFgEgo0msXeqahpG4JcE
+/jX/Fac3LmpyynHJ7As/wQqFTHdVvcyxmo0TKqV5Q7+hbK7SLLtzwOdC7dFvkb3y
+vtZ/3WyYhcoeubkk2RNnGI2eaFsZaO5IynOzwMfh3wOf68KR1Tw5JLjNuG9Hylb8
+yvKs4nzoIHTilLI80QMfYORP/X2jDOByrRzVEj9d+0Vnygn3UFQRUrmQ0D1HM8eF
+66L4X9I83Y2zRnBPK0CfITWehm0ZDb8QmctNvXiOXJ3ZE3Mb50ok7P80lOztfd1/
+toN33c7Ekaf+JwVC06Yt3lnFbJjrolNbJ/hr8W7mrTh3KBxbXAIhP0DhutJCXo4M
+4TtFGl9YrNIT8mD99s2DMab/dCGTAgMBAAGjgfwwgfkwFQYJYIZIAYb4QgENBAgW
+BkNBIFNTTDASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBR3Nvus4XPPNl3E
+f6Q0PMi5eFi7kDCBgQYDVR0jBHoweIAU9fvCI/59PDKcXJkizACTv14+YAmhXKRa
+MFgxCzAJBgNVBAYTAkZSMQwwCgYDVQQIEwNpZGYxDjAMBgNVBAcTBXBhcmlzMQ8w
+DQYDVQQKEwZWaXRhbS4xGjAYBgNVBAMUEUNBX2NsaWVudC1zdG9yYWdlggIA3jAJ
+BgNVHRIEAjAAMAsGA1UdDwQEAwIBBjARBglghkgBhvhCAQEEBAMCAgQwDQYJKoZI
+hvcNAQELBQADQQAU7Dhr9o+YUV6d37HGH0iBIImXlMclo+8fOz/VIGCOabop/6Z9
+a8O4cwkln2kHq6rBS1LGtrxeDPTYTSFM6aaz
+-----END CERTIFICATE-----

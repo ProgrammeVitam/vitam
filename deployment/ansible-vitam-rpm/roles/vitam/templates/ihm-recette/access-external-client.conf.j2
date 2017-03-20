@@ -4,8 +4,8 @@ secure: true
 sslConfiguration :
  keystore :
   - keyPath: {{vitam_folder_conf}}/keystore_{{ vitam_component }}.p12
-    keyPassword: {{p12_ihm_recette_password}}
+    keyPassword: {{keystores.client_external.ihm_recette}}
  truststore :
-  - keyPath: {{vitam_folder_conf}}/truststore_{{vitam_component}}.jks
-    keyPassword: {{TrustStore_ihm_recette_password}}
+  - keyPath: {{vitam_folder_conf}}/truststore_{{ vitam_component }}.jks
+    keyPassword: {{truststores.client_external}}
 hostnameVerification: false

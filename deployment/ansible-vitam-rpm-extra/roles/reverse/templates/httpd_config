@@ -9,7 +9,7 @@
     # Client certificate path
     SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{environnement}}.pem
     # Client CA path
-    SSLProxyCACertificateFile /etc/{{apache_service}}/certs/ca_client_{{environnement}}.crt
+    SSLProxyCACertificatePath /etc/{{apache_service}}/ca/{{environnement}}
     # Don't check the CN of the server's certificate
     SSLProxyCheckPeerCN off
     # Don't check the hostname of the server
