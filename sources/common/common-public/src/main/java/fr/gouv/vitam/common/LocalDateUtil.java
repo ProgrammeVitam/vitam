@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common;
 
 import java.nio.file.attribute.FileTime;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +40,8 @@ import java.util.Date;
 public final class LocalDateUtil {
 
     private static final int THOUSAND = 1000;
+    
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
 
     private LocalDateUtil() {
         // empty
@@ -129,4 +132,12 @@ public final class LocalDateUtil {
         return Date.from(ldt.toInstant(ZoneOffset.UTC));
     }
 
+    /**
+     * @param date
+     * @return formatted date
+     */
+    public static final String getFormattedDate(Date date) {
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        return dateFormat.format(date);
+    }
 }
