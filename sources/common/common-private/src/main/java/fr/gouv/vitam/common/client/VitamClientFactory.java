@@ -99,6 +99,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Global configuration for Apache: Idle Monitor
      */
     static final AtomicBoolean STATIC_IDLE_MONITOR = new AtomicBoolean(false);
+
     /**
      * Global configuration for Apache: Idle Monitor
      */

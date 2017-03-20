@@ -70,19 +70,20 @@ public class WorkerRegister implements Runnable {
         }
         int nbRegisterCall = 0;
         final long delay = configuration.getRegisterDelay() * 1000;
-        final ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient();
-        boolean registerOk = false;
-        while (!registerOk && configuration.getRegisterRetry() >= nbRegisterCall) {
-            LOGGER.debug("WorkerRegister run : try register");
-            registerOk = register(processingClient);
-            nbRegisterCall++;
-            if (!registerOk) {
-                LOGGER.debug("WorkerRegister run : try register failed");
-                try {
-                    this.wait(delay);
-                } catch (final InterruptedException e) {
-                    LOGGER.error("WorkerRegister run : wait failed", e);
+        try (final ProcessingManagementClient processingClient =
+            ProcessingManagementClientFactory.getInstance().getClient()) {
+            boolean registerOk = false;
+            while (!registerOk && configuration.getRegisterRetry() >= nbRegisterCall) {
+                LOGGER.debug("WorkerRegister run : try register");
+                registerOk = register(processingClient);
+                nbRegisterCall++;
+                if (!registerOk) {
+                    LOGGER.debug("WorkerRegister run : try register failed");
+                    try {
+                        this.wait(delay);
+                    } catch (final InterruptedException e) {
+                        LOGGER.error("WorkerRegister run : wait failed", e);
+                    }
                 }
             }
         }
