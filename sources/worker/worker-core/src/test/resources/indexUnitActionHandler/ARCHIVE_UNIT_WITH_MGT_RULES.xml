@@ -1,0 +1,25 @@
+<?xml version="1.0" ?><ROOT><WORK><_up></_up></WORK><ArchiveUnit id="GUID_ARCHIVE_UNIT_PARENT">
+				<Management>
+					<AccessRule>
+					<Rule>ACC-00001</Rule>
+					<StartDate>1982-01-01</StartDate>
+					<Rule>ACC-00003</Rule>
+					<StartDate>1982-01-01</StartDate>
+			</AccessRule>
+			<StorageRule>
+                <Rule>R5</Rule>
+                <FinalAction>Copy</FinalAction>
+            </StorageRule>
+            
+            <AccessRule>
+				<Rule>ACC-00002</Rule>
+				<StartDate>1978-01-01</StartDate>
+			</AccessRule>
+				</Management>
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>XML_ID_PARENT_TO_BE_LINKED</Title>
+				</Content>
+				 
+            <_og></_og></ArchiveUnit></ROOT>
+            

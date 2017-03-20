@@ -257,6 +257,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
         String unitGuid = null;
         boolean existingUnit = false;
 
+        ObjectNode managementBloc = null;
+
         XMLEventReader reader = null;
 
         try {
@@ -285,9 +287,13 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     }
                     switch (tag) {
                         case TAG_MANAGEMENT:
-                            writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_MGT));
+                            // Start temporary save of management bloc
+                            managementBloc = JsonHandler.createObjectNode();
+                            buildManagementBloc(managementBloc, reader);
+
                             eventWritable = false;
                             contentWritable = true;
+
                             break;
                         case SedaConstants.PREFIX_OG:
                             writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
@@ -354,9 +360,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
             writer.close();
             tmpFileWriter.close();
             data = JsonHandler.getFromFile(tmpFile);
+
             // Add operation to OPS
             ((ObjectNode) data.get(ARCHIVE_UNIT)).putArray(VitamFieldsHelper.operations()).add(containerId);
 
+            // Add management bloc
+            if (managementBloc != null) {
+                ((ObjectNode) data.get(ARCHIVE_UNIT)).set(SedaConstants.PREFIX_MGT, managementBloc);
+            }
 
             if (!tmpFile.delete()) {
                 LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
@@ -395,6 +406,79 @@ public class IndexUnitActionPlugin extends ActionHandler {
             }
         }
         return archiveUnitDetails;
+    }
+
+    private void buildManagementBloc(ObjectNode managementBloc, XMLEventReader reader) throws XMLStreamException {
+
+        String currentRuleCategory = null;
+        String currentRule = null;
+        ObjectNode currentRuleObject = null;
+
+        while (true) {
+            XMLEvent event = reader.nextEvent();
+            if (event.isStartElement()) {
+                String currentTag = event.asStartElement().getName().getLocalPart();
+                switch (currentTag) {
+
+                    case SedaConstants.TAG_RULE_ACCESS:
+                    case SedaConstants.TAG_RULE_REUSE:
+                    case SedaConstants.TAG_RULE_STORAGE:
+                    case SedaConstants.TAG_RULE_APPRAISAL:
+                    case SedaConstants.TAG_RULE_CLASSIFICATION:
+                    case SedaConstants.TAG_RULE_DISSEMINATION: {
+                        currentRuleCategory = currentTag;
+                        if (!managementBloc.has(currentRuleCategory)) {
+                            managementBloc.set(currentRuleCategory, JsonHandler.createArrayNode());
+                        }
+
+                        break;
+                    }
+
+                    case SedaConstants.TAG_RULE_RULE: {
+                        if (currentRuleObject != null) {
+                            ((ArrayNode) managementBloc.get(currentRuleCategory)).add(currentRuleObject);
+                        }
+
+                        event = (XMLEvent) reader.next();
+                        currentRule = event.asCharacters().getData();
+                        currentRuleObject = JsonHandler.createObjectNode();
+                        currentRuleObject.put(currentTag, currentRule);
+                        break;
+                    }
+
+                    default:
+                        event = (XMLEvent) reader.next();
+                        if (event.isCharacters()) {
+                            if (currentRuleCategory != null && currentRuleObject != null) {
+                                currentRuleObject.put(currentTag, event.asCharacters().getData());
+                            } else {
+                                managementBloc.put(currentTag, event.asCharacters().getData());
+                            }
+                        }
+                }
+            } else if (event.isEndElement()) {
+                switch (event.asEndElement().getName().getLocalPart()) {
+
+                    case SedaConstants.TAG_RULE_ACCESS:
+                    case SedaConstants.TAG_RULE_REUSE:
+                    case SedaConstants.TAG_RULE_STORAGE:
+                    case SedaConstants.TAG_RULE_APPRAISAL:
+                    case SedaConstants.TAG_RULE_CLASSIFICATION:
+                    case SedaConstants.TAG_RULE_DISSEMINATION: {
+
+                        if (currentRuleCategory != null && currentRuleObject != null) {
+                            ((ArrayNode) managementBloc.get(currentRuleCategory)).add(currentRuleObject);
+                        }
+
+                        currentRuleCategory = null;
+                        currentRuleObject = null;
+                        break;
+                    }
+                    case SedaConstants.TAG_MANAGEMENT:
+                        return;
+                }
+            }
+        }
     }
 
     @Override
