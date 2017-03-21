@@ -83,7 +83,7 @@ abstract class AbstractCommonClient implements BasicClient {
     private final Client client;
     private final Client clientNotChunked;
     private final Random random = new Random(System.currentTimeMillis());
-    
+
     /**
      * Constructor with standard configuration
      *
@@ -178,26 +178,70 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Helper for retry request when unreachable or Connect timeout
      * 
-     * @param retry retry count
+     * @param retry
+     *            retry count
      * @param e
      *            the original ProcessingException
      * @return the original exception allowing to continue and store the last one
      * @throws ProcessingException
      */
-    private ProcessingException checkSpecificExceptionForRetry(int retry, ProcessingException e) throws ProcessingException {
+    private final ProcessingException checkSpecificExceptionForRetry(int retry, ProcessingException e)
+            throws ProcessingException {
         Throwable source = e.getCause();
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException
+                || source instanceof org.apache.http.conn.HttpHostConnectException
                 || source.getMessage().startsWith("Unable to establish route:")) {
-            LOGGER.warn("TimeoutOccurs or DNS probe error, retry: " + retry, source);
+            LOGGER.info("TimeoutOccurs or DNS probe error, retry: " + retry, source);
             try {
-                long sleep = random.nextInt(50) + 10;
+                long sleep = random.nextInt(50) + 20;
                 Thread.sleep(sleep);
             } catch (InterruptedException e1) {
+                LOGGER.warn("TimeoutOccurs or DNS probe error, retry: " + retry, source);
                 throw new ProcessingException("Interruption received", e1);
             }
             return e;
         } else {
+            LOGGER.warn("TimeoutOccurs or DNS probe error, retry: " + retry, source);
             throw e;
+        }
+    }
+
+    /**
+     * 
+     * @param httpMethod
+     * @param body
+     *            may be null
+     * @param contentType
+     *            may be null
+     * @param builder
+     * @return the final response
+     * @throws VitamClientInternalException
+     *             if retry is not possible and http call is failed
+     */
+    private final Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder)
+            throws VitamClientInternalException {
+        if (body instanceof InputStream) {
+            Entity<Object> entity = Entity.entity(body, contentType);
+            return builder.method(httpMethod, entity);
+        }
+        ProcessingException lastException = null;
+        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+            try {
+                if (body == null) {
+                    return builder.method(httpMethod);
+                } else {
+                    Entity<Object> entity = Entity.entity(body, contentType);
+                    return builder.method(httpMethod, entity);
+                }
+            } catch (ProcessingException e) {
+                lastException = checkSpecificExceptionForRetry(i, e);
+                continue;
+            }
+        }
+        if (lastException != null) {
+            throw lastException;
+        } else {
+            throw new VitamClientInternalException("Unknown error in client");
         }
     }
 
@@ -221,20 +265,7 @@ abstract class AbstractCommonClient implements BasicClient {
             MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
         try {
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
-            ProcessingException lastException = null;
-            for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-                try {
-                    return builder.method(httpMethod);
-                } catch (ProcessingException e) {
-                    lastException = checkSpecificExceptionForRetry(i, e);
-                    continue;
-                }
-            }
-            if (lastException != null) {
-                throw lastException;
-            } else {
-                throw new VitamClientInternalException("Unknown error in client");
-            }
+            return retryIfNecessary(httpMethod, null, null, builder);
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -266,8 +297,12 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
+            if (body instanceof InputStream) {
+                Entity<Object> entity = Entity.entity(body, contentType);
+                return builder.method(httpMethod, entity);
+            } else {
+                return retryIfNecessary(httpMethod, body, contentType, builder);
+            }
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -301,8 +336,12 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
-            Entity<Object> entity = Entity.entity(body, contentType);
-            return builder.method(httpMethod, entity);
+            if (body instanceof InputStream) {
+                Entity<Object> entity = Entity.entity(body, contentType);
+                return builder.method(httpMethod, entity);
+            } else {
+                return retryIfNecessary(httpMethod, body, contentType, builder);
+            }
         } catch (final ProcessingException e) {
             throw new VitamClientInternalException(e);
         }
@@ -338,11 +377,29 @@ abstract class AbstractCommonClient implements BasicClient {
                 ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             }
             final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-            ProcessingException lastException = null;
-            Entity<Object> entity = body != null ? Entity.entity(body, contentType) : null;
-            if (entity != null) {
-                return builder.async().method(httpMethod, entity, callback);
+            if (body != null) {
+                if (body instanceof InputStream) {
+                    Entity<Object> entity = Entity.entity(body, contentType);
+                    return builder.async().method(httpMethod, entity, callback);
+                } else {
+                    ProcessingException lastException = null;
+                    for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+                        try {
+                            Entity<Object> entity = Entity.entity(body, contentType);
+                            return builder.async().method(httpMethod, entity, callback);
+                        } catch (ProcessingException e) {
+                            lastException = checkSpecificExceptionForRetry(i, e);
+                            continue;
+                        }
+                    }
+                    if (lastException != null) {
+                        throw lastException;
+                    } else {
+                        throw new VitamClientInternalException("Unknown error in client");
+                    }
+                }
             } else {
+                ProcessingException lastException = null;
                 for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
                     try {
                         return builder.async().method(httpMethod, callback);
@@ -365,29 +422,51 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform an Async HTTP request to the server with full control of action on caller
      *
-     * @param httpMethod HTTP method to use for request
-     * @param path URL to request
-     * @param headers headers HTTP to add to request, may be null
-     * @param body body content of type contentType, may be null
-     * @param contentType the media type of the body to send, null if body is null
-     * @param accept asked type of response
+     * @param httpMethod
+     *            HTTP method to use for request
+     * @param path
+     *            URL to request
+     * @param headers
+     *            headers HTTP to add to request, may be null
+     * @param body
+     *            body content of type contentType, may be null
+     * @param contentType
+     *            the media type of the body to send, null if body is null
+     * @param accept
+     *            asked type of response
      * @return the response from the server as a Future
      * @throws VitamClientInternalException
      */
-    protected Future<Response> performAsyncRequest(String httpMethod, String path,
-        MultivaluedHashMap<String, Object> headers,
-        Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException {
+    protected Future<Response> performAsyncRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+            Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException {
         try {
             if (body != null) {
-                ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL,
-                    body, contentType);
+                ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
             }
             final Builder builder = buildRequest(httpMethod, path, headers, accept, getChunkedMode());
-            ProcessingException lastException = null;
-            Entity<Object> entity = body != null ? Entity.entity(body, contentType) : null;
-            if (entity != null) {
-                return builder.async().method(httpMethod, entity);
+            if (body != null) {
+                if (body instanceof InputStream) {
+                    Entity<Object> entity = Entity.entity(body, contentType);
+                    return builder.async().method(httpMethod, entity);
+                } else {
+                    ProcessingException lastException = null;
+                    for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+                        try {
+                            Entity<Object> entity = Entity.entity(body, contentType);
+                            return builder.async().method(httpMethod, entity);
+                        } catch (ProcessingException e) {
+                            lastException = checkSpecificExceptionForRetry(i, e);
+                            continue;
+                        }
+                    }
+                    if (lastException != null) {
+                        throw lastException;
+                    } else {
+                        throw new VitamClientInternalException("Unknown error in client");
+                    }
+                }
             } else {
+                ProcessingException lastException = null;
                 for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
                     try {
                         return builder.async().method(httpMethod);

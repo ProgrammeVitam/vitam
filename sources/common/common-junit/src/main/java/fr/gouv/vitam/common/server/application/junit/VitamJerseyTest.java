@@ -318,15 +318,22 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
     }
 
     /**
+     * End the application only
+     * @throws VitamApplicationServerException
+     */
+    public final void endApplication() throws VitamApplicationServerException {
+        if (response.getApplication() != null) {
+            ((VitamApplicationInterface<?, ?>) response.getApplication()).stop();
+        }
+    }
+    /**
      * End the Application.
      *
      * @throws VitamApplicationServerException stopping server exception occurred
      */
     @After
     public final void endTest() throws VitamApplicationServerException {
-        if (response.getApplication() != null) {
-            ((VitamApplicationInterface<?, ?>) response.getApplication()).stop();
-        }
+        endApplication();
         JunitHelper.getInstance().releasePort(response.getServerPort());
         if (_client != null) {
             _client.close();
