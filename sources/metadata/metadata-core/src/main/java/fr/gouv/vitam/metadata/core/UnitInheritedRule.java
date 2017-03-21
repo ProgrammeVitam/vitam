@@ -287,69 +287,99 @@ public class UnitInheritedRule {
         while (fieldNames.hasNext()) {
             String unitRuleCategory = fieldNames.next();
             ObjectNode ruleCategories = null;
-            
-            if (unitManagement.get(unitRuleCategory).has(REFNONRULEID)){
-                ArrayNode nonRefRuleId = new ArrayNode(null);
-                String ruleId = null;
-                boolean isItself = false;
-                
-                if (unitManagement.get(unitRuleCategory).get(REFNONRULEID).isArray()){
-                    nonRefRuleId = (ArrayNode) unitManagement.get(unitRuleCategory).get(REFNONRULEID);
-                } else {
-                    nonRefRuleId.add(unitManagement.get(unitRuleCategory).get(REFNONRULEID));
-                }
-                    
-                for (JsonNode id : nonRefRuleId) {
-                    String rule = id.asText();
-                    if (newRule.inheritedRule.containsKey(unitRuleCategory)){
-                        newRule.inheritedRule.get(unitRuleCategory).remove(rule);                        
-                    }
-                    if (unitManagement.get(unitRuleCategory).has(RULE)){
-                        ruleId = unitManagement.get(unitRuleCategory).get(RULE).asText();
-                        if (rule.equals(ruleId)){
-                            isItself = true;
+            if (unitManagement.get(unitRuleCategory).isArray()) {
+                for (JsonNode rule : (ArrayNode) unitManagement.get(unitRuleCategory)){
+                    if (rule.has(REFNONRULEID)) {
+
+                        ArrayNode nonRefRuleId = new ArrayNode(null);
+                        String ruleId = null;
+                        boolean isItself = false;
+
+                        if (rule.get(REFNONRULEID).isArray()){
+                            nonRefRuleId = (ArrayNode) rule.get(REFNONRULEID);
+                        } else {
+                            nonRefRuleId.add(rule.get(REFNONRULEID));
                         }
-                    }
-                }
-                
-                if (!isItself && unitManagement.get(unitRuleCategory).has(RULE)){
-                    
-                    if (unitManagement.get(unitRuleCategory).isObject()){
-                        ruleCategories = createRuleCategories((ObjectNode) unitManagement.get(unitRuleCategory), unitId);
-                        ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
-                    } else if (unitManagement.get(unitRuleCategory).isArray()){
-                        
-                        ObjectNode newCategories = JsonHandler.createObjectNode();
-                        for (JsonNode rule: (ArrayNode) unitManagement.get(unitRuleCategory)){
-                            ruleCategories = createRuleCategories((ObjectNode)rule, unitId);
+
+                        for (JsonNode id : nonRefRuleId) {
+                            String ruleID = id.asText();
+                            if (newRule.inheritedRule.containsKey(unitRuleCategory)){
+                                newRule.inheritedRule.get(unitRuleCategory).remove(ruleID);                        
+                            }
+                            if (rule.has(RULE)){
+                                ruleId = rule.get(RULE).asText();
+                                if (ruleID.equals(ruleId)){
+                                    isItself = true;
+                                }
+                            }
+                        }
+
+                        if (!isItself && rule.has(RULE)) {
+                            ObjectNode newCategories = JsonHandler.createObjectNode();
+                            ruleCategories = createRuleCategories((ObjectNode) rule, unitId);
                             newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
+                            ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
                         }
-                        ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
-                    }
-                }
-            } else if (!parentCategoryList.contains(unitRuleCategory)) {
-                if (unitManagement.get(unitRuleCategory).isObject()){
-                    ruleCategories = createRuleCategories((ObjectNode) unitManagement.get(unitRuleCategory), unitId);
-                    ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
-                } else if (unitManagement.get(unitRuleCategory).isArray()){
-                    
-                    ObjectNode newCategories = JsonHandler.createObjectNode();
-                    for (JsonNode rule: (ArrayNode) unitManagement.get(unitRuleCategory)){
-                        ruleCategories = createRuleCategories((ObjectNode)rule, unitId);
+
+                    } else if (!parentCategoryList.contains(unitRuleCategory)){
+
+                        ObjectNode newCategories = JsonHandler.createObjectNode();
+                        ruleCategories = createRuleCategories((ObjectNode) rule, unitId);
                         newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
-                    }
-                    ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
-                }
-            } else {
-                if (unitManagement.get(unitRuleCategory).isObject()){
-                    addInheritedRuleFromManagement(newRule, (ObjectNode) unitManagement.get(unitRuleCategory), unitRuleCategory, unitId);
-                } else if (unitManagement.get(unitRuleCategory).isArray()){
-                    for (JsonNode rule: (ArrayNode) unitManagement.get(unitRuleCategory)){
+                        ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
+
+                    } else {
                         addInheritedRuleFromManagement(newRule, (ObjectNode) rule, unitRuleCategory, unitId);
                     }
                 }
+            } else {
+                ObjectNode rule = (ObjectNode) unitManagement.get(unitRuleCategory);
+                if (rule.has(REFNONRULEID)) {
+
+                    ArrayNode nonRefRuleId = new ArrayNode(null);
+                    String ruleId = null;
+                    boolean isItself = false;
+
+                    if (rule.get(REFNONRULEID).isArray()){
+                        nonRefRuleId = (ArrayNode) rule.get(REFNONRULEID);
+                    } else {
+                        nonRefRuleId.add(rule.get(REFNONRULEID));
+                    }
+
+                    for (JsonNode id : nonRefRuleId) {
+                        String ruleID = id.asText();
+                        if (newRule.inheritedRule.containsKey(unitRuleCategory)){
+                            newRule.inheritedRule.get(unitRuleCategory).remove(ruleID);                        
+                        }
+                        if (rule.has(RULE)){
+                            ruleId = rule.get(RULE).asText();
+                            if (ruleID.equals(ruleId)){
+                                isItself = true;
+                            }
+                        }
+                    }
+
+                    if (!isItself && rule.has(RULE)) {
+                        ObjectNode newCategories = JsonHandler.createObjectNode();
+                        ruleCategories = createRuleCategories((ObjectNode) rule, unitId);
+                        newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
+                        ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
+                    }
+
+                } else if (!parentCategoryList.contains(unitRuleCategory)){
+
+                    ObjectNode newCategories = JsonHandler.createObjectNode();
+                    ruleCategories = createRuleCategories((ObjectNode) rule, unitId);
+                    newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
+                    ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
+
+                } else {
+                    addInheritedRuleFromManagement(newRule, (ObjectNode) rule, unitRuleCategory, unitId);
+                }
             }
+
         }
+        
         newRule.inheritedRule.putAll(ruleCategoryFromUnit);
         for (String rule : parentCategoryList){
             if (newRule.inheritedRule.containsKey(rule)){

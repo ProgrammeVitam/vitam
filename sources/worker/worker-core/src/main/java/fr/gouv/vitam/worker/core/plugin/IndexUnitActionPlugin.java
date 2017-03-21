@@ -412,6 +412,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
         String currentRuleCategory = null;
         String currentRule = null;
+        String currentValue = null;
         ObjectNode currentRuleObject = null;
 
         while (true) {
@@ -443,6 +444,40 @@ public class IndexUnitActionPlugin extends ActionHandler {
                         currentRule = event.asCharacters().getData();
                         currentRuleObject = JsonHandler.createObjectNode();
                         currentRuleObject.put(currentTag, currentRule);
+                        break;
+                    }
+                    
+                    case SedaConstants.TAG_RULE_PREVENT_INHERITANCE: {
+                        if (currentRuleObject == null) {
+                            currentRuleObject = JsonHandler.createObjectNode();
+                        }
+
+                        event = (XMLEvent) reader.next();
+                        currentValue = event.asCharacters().getData();
+                        if (currentValue.equals("true")){
+                            currentRuleObject.put(currentTag, currentValue);
+                            for (JsonNode ruleNode : (ArrayNode) managementBloc.get(currentRuleCategory)) {
+                                ((ObjectNode) ruleNode).put(currentTag, currentValue);
+                            }
+                        }
+                        break;
+                    }
+                    
+                    case SedaConstants.TAG_RULE_REF_NON_RULE_ID: {
+                        if (currentRuleObject == null) {
+                            currentRuleObject = JsonHandler.createObjectNode();
+                        }
+                        
+                        event = (XMLEvent) reader.next();
+                        currentRule = event.asCharacters().getData();
+                        if (currentRuleObject.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID) == null) {
+                            ArrayNode nonRefArray = JsonHandler.createArrayNode();
+                            nonRefArray.add(currentRule);
+                            currentRuleObject.set(SedaConstants.TAG_RULE_REF_NON_RULE_ID, nonRefArray);
+                        } else {
+                            ArrayNode nonRefArray = (ArrayNode) currentRuleObject.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID);
+                            nonRefArray.add(currentRule);
+                        }
                         break;
                     }
 
