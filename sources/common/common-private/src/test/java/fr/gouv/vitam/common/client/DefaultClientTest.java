@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -56,6 +57,7 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -344,5 +346,36 @@ public class DefaultClientTest extends VitamJerseyTest {
         } catch (final Exception e) {
             // Ignore
         }
+        // try to get the retry when unavailable host
+        endApplication();
+        try {
+            response =
+                client.performRequest(HttpMethod.GET, "/status", null, MediaType.APPLICATION_JSON_TYPE, false);
+            fail("Should generate an exception");
+        } catch (final VitamClientInternalException e) {
+            // Ignore
+            LOGGER.info(e);
+        }
+        try {
+            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null, 
+                "{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}",
+                MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, false);
+            fail("Should generate an exception");
+        } catch (final VitamClientInternalException e) {
+            // Ignore
+            LOGGER.info(e);
+        }
+        try {
+            response = client.performRequest(HttpMethod.GET, BasicClient.STATUS_URL, null, 
+                "{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}",
+                MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, true);
+            fail("Should generate an exception");
+        } catch (final VitamClientInternalException e) {
+            // Ignore
+            LOGGER.info(e);
+        }
+
     }
 }
