@@ -14,10 +14,16 @@
         "notes": "HTTPS port opened",
         "tcp": "localhost:{{ port_https }}",
 {% else %}
+        "id": "http tcp check",
+        "notes": "HTTP port opened",
+        "tcp": "localhost:{{ port_http }}",
+{% endif %}
+        "interval": "1s"
+      },
+      {
         "id": "admin status",
         "notes": "Status admin : /admin/v1/status",
-        "http": "http://localhost:{{ port_http }}/admin/v1/status",
-{% endif %}
+        "http": "http://localhost:{{ port_http_admin }}/admin/v1/status",
         "interval": "1s"
       }
 {% if vitam_component == 'worker'  %}

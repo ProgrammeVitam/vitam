@@ -92,4 +92,10 @@ public final class BenchmarkApplication extends AbstractVitamApplication<Benchma
         }
     }
 
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        // do nothing as @admin is not tested here
+        return false;
+    }
+
 }

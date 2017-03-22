@@ -167,7 +167,6 @@ public class LogbookResourceTest {
         serverPort = junitHelper.findAvailablePort();
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;

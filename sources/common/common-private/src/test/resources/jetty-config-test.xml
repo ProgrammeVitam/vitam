@@ -64,32 +64,43 @@
             <Arg><New class="org.eclipse.jetty.server.ForwardedRequestCustomizer"/></Arg>
             </Call> -->
     </New>
-    <Call name="addConnector">
+
+
+    <!-- =========================================================== -->
+    <!-- Connector for API business            			     -->
+    <!-- Attach all ContextHanlder except Admin			     -->
+    <!-- =========================================================== -->
+
+    <New id="businessConnector" class="org.eclipse.jetty.server.ServerConnector">
+        <Arg name="server"><Ref refid="Server" /></Arg>
+        <Arg name="factories">
+            <Array type="org.eclipse.jetty.server.ConnectionFactory">
+                <Item>
+                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
+                        <Arg name="config"><Ref refid="httpConfig" /></Arg>
+                    </New>
+                </Item>
+            </Array>
+        </Arg>
+        <Set name="port"><SystemProperty name="jetty.port" default="8082"/></Set>
+        <Set name="name">business</Set>
+        <Set name="idleTimeout">
+            <Property name="http.timeout" default="99999999"/><!-- 27.7 h -->
+        </Set>
+    </New>
+
+
+
+    <Call name="setConnectors">
         <Arg>
-            <New class="org.eclipse.jetty.server.ServerConnector">
-                <Arg name="server">
-                    <Ref refid="Server"/>
-                </Arg>
-                <Arg name="factories">
-                    <Array type="org.eclipse.jetty.server.ConnectionFactory">
-                        <Item>
-                            <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-                                <Arg name="config">
-                                    <Ref refid="httpConfig"/>
-                                </Arg>
-                            </New>
-                        </Item>
-                    </Array>
-                </Arg>
-                <Set name="port">
-                    <SystemProperty name="jetty.port" default="8082"/>
-                </Set>
-                <Set name="idleTimeout">
-                    <Property name="http.timeout" default="99999999"/>
-                </Set><!-- 27.7 h -->
-            </New>
+            <Array type="org.eclipse.jetty.server.ServerConnector">
+                <Item>
+                    <Ref refid="businessConnector" />
+                </Item>
+            </Array>
         </Arg>
     </Call>
+
 
     <!-- =========================================================== -->
     <!-- Set the default handler structure for the Server -->

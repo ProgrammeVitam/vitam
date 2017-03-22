@@ -114,8 +114,13 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
         // Database dependency
         serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess())
         .register(((LogbookMongoDbAccessImpl)resource.getLogbookDbAccess()).getEsClient());
-        resourceConfig.register(resource)
-            .register(new AdminStatusResource(serviceRegistry));
+        resourceConfig.register(resource);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 
 }

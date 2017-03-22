@@ -69,48 +69,53 @@ public class DownStatusResourceImplTest {
     // URI
     private static final String ADMIN_RESOURCE_URI = "/";
     private static final String ADMIN_STATUS_URI = "/admin/v1" + BasicClient.STATUS_URL;
-    private static final String TEST_CONF = "test.conf";
+    private static final String TEST_CONF = "test-multiple-connector.conf";
     private static final String TEST_RESOURCE_URI = TestApplication.TEST_RESOURCE_URI;
     private static final String TEST_STATUS_URI = TEST_RESOURCE_URI + BasicClient.STATUS_URL;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusResourceImplTest.class);
 
     private static TestApplication application;
-    private static int port;
-    private static AdminClient client;
+    private static int serverPort;
+    private static int serverAdminPort;
+
+    private static TestVitamAdminClientFactory factory;
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestApplication>() {
+        final MinimalTestVitamApplicationFactory<TestApplication> testFactory = new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-                @Override
-                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+            @Override
+            public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
                     throws IllegalStateException {
-                    TestApplication.statusService = new VitamStatusService() {
-                        @Override
-                        public boolean getResourcesStatus() {
-                            return false;
-                        }
+                TestApplication.statusService = new VitamStatusService() {
+                    @Override
+                    public boolean getResourcesStatus() {
+                        return false;
+                    }
 
-                        @Override
-                        public ObjectNode getAdminStatus() throws InvalidParseOperationException {
-                            return JsonHandler.createObjectNode();
-                        }
-                    };
-                    final TestApplication application = new TestApplication(TEST_CONF);
-                    return startAndReturn(application);
-                }
+                    @Override
+                    public ObjectNode getAdminStatus() throws InvalidParseOperationException {
+                        return JsonHandler.createObjectNode();
+                    }
+                };
+                final TestApplication application = new TestApplication(TEST_CONF);
+                return startAndReturn(application);
+            }
 
-            };
-        final StartApplicationResponse<TestApplication> response =
-            testFactory.findAvailablePortSetToApplication();
-        port = response.getServerPort();
+        };
+
+        serverAdminPort = JunitHelper.getInstance().findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
+
+
+        final StartApplicationResponse<TestApplication> response = testFactory.findAvailablePortSetToApplication();
+        serverPort = response.getServerPort();
         application = response.getApplication();
-        RestAssured.port = port;
+        RestAssured.port = serverPort;
         RestAssured.basePath = ADMIN_RESOURCE_URI;
-        final TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(port, TEST_RESOURCE_URI);
-        client = factory.getClient();
+
+        factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
         LOGGER.debug("Beginning tests");
     }
 
@@ -125,6 +130,16 @@ public class DownStatusResourceImplTest {
             return new DefaultAdminClient(this);
         }
 
+        @Override
+        public void changeResourcePath(String resourcePath) {
+            super.changeResourcePath(resourcePath);
+        }
+
+        @Override
+        public void changeServerPort(int port) {
+            super.changeServerPort(port);
+        }
+
     }
 
     @AfterClass
@@ -137,8 +152,11 @@ public class DownStatusResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        JunitHelper.getInstance().releasePort(port);
-        client.close();
+
+        TestApplication.statusService = null;
+
+        JunitHelper.getInstance().releasePort(serverPort);
+        JunitHelper.getInstance().releasePort(serverAdminPort);
     }
 
     // Status
@@ -151,13 +169,15 @@ public class DownStatusResourceImplTest {
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnServiceUnavailable() throws Exception {
 
         final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+
+        RestAssured.port = serverAdminPort;
 
         RestAssured.given()
-            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-            .when()
-            .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+                .when()
+                .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**
@@ -171,21 +191,25 @@ public class DownStatusResourceImplTest {
         com.jayway.restassured.response.Response response;
 
         final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+
+        RestAssured.port = serverAdminPort;
 
         response = RestAssured.given()
-            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-            .when()
-            .get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+                .when()
+                .get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
 
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
         assertEquals("false", result.get("status").toString());
         AdminStatusMessage message = response.as(AdminStatusMessage.class);
         assertEquals(message.getStatus(), false);
-        message = client.adminStatus();
-        assertEquals(message.getStatus(), false);
+        try (DefaultAdminClient client = factory.getClient()) {
+            message = client.adminStatus();
+            assertEquals(message.getStatus(), false);
+        }
     }
 
     // Status
@@ -197,14 +221,19 @@ public class DownStatusResourceImplTest {
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnServiceUnavailable() throws Exception {
         final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_STATUS_URI);
+                AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, TEST_STATUS_URI);
+
+        RestAssured.port = serverPort;
 
         RestAssured.given()
-            .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
-            .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
-            .when()
-            .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
-        try {
+                .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
+                .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
+                .when()
+                .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+        factory.changeServerPort(serverPort);
+        factory.changeResourcePath(TEST_RESOURCE_URI);
+
+        try (DefaultAdminClient client = factory.getClient()) {
             client.checkStatus();
             fail("Should raized an exception");
         } catch (final VitamApplicationServerException e) {

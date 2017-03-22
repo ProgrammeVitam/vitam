@@ -89,12 +89,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Global configuration for Apache: Pooling connection
      */
     static final PoolingHttpClientConnectionManager POOLING_CONNECTION_MANAGER =
-        new PoolingHttpClientConnectionManager(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+            new PoolingHttpClientConnectionManager(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
     /**
      * Global configuration for Apache: Pooling connection
      */
     static final PoolingHttpClientConnectionManager POOLING_CONNECTION_MANAGER_NOT_CHUNKED =
-        new PoolingHttpClientConnectionManager(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+            new PoolingHttpClientConnectionManager(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
     /**
      * Global configuration for Apache: Idle Monitor
      */
@@ -149,7 +149,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
-        boolean suppressHttpCompliance, boolean allowMultipart) {
+                                 boolean suppressHttpCompliance, boolean allowMultipart) {
         this(configuration, resourcePath, suppressHttpCompliance, allowMultipart, !allowMultipart);
     }
 
@@ -164,7 +164,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
-        boolean suppressHttpCompliance, boolean allowMultipart, boolean chunkedMode) {
+                                 boolean suppressHttpCompliance, boolean allowMultipart, boolean chunkedMode) {
         internalConfigure();
         initialisation(configuration, resourcePath);
         config.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, suppressHttpCompliance);
@@ -198,7 +198,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
-        boolean suppressHttpCompliance, boolean allowMultipart, boolean chunkedMode, boolean sharedMonitor) {
+                                 boolean suppressHttpCompliance, boolean allowMultipart, boolean chunkedMode, boolean sharedMonitor) {
         internalConfigure();
         initialisation(configuration, resourcePath);
         config.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, suppressHttpCompliance);
@@ -246,7 +246,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     protected void disableUseAuthorizationFilter() {
         useAuthorizationFilter = false;
     }
-    
+
     protected void enableUseAuthorizationFilter() {
         useAuthorizationFilter = true;
     }
@@ -271,8 +271,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             this.resourcePath = "/" + this.resourcePath;
         }
         serviceUrl = (clientConfiguration.isSecure() ? "https://"
-            : "http://") + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() +
-            this.resourcePath;
+                : "http://") + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() +
+                this.resourcePath;
         if (chunkedPoolingManager != null && chunkedPoolingManager != POOLING_CONNECTION_MANAGER) {
             chunkedPoolingManager.close();
         }
@@ -291,11 +291,11 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
                 throw new IllegalArgumentException("SSLConfiguration issue while reading KeyStore or TrustStore", e);
             }
             PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager(registry, null, null, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+                    VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
             setupApachePool(pool);
             chunkedPoolingManager = pool;
             pool = new PoolingHttpClientConnectionManager(registry, null, null, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+                    VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
             setupApachePool(pool);
             notChunkedPoolingManager = pool;
         } else {
@@ -304,6 +304,11 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
         config.property(ApacheClientProperties.CONNECTION_MANAGER, chunkedPoolingManager);
         configNotChunked.property(ApacheClientProperties.CONNECTION_MANAGER, notChunkedPoolingManager);
+    }
+
+    @Override
+    public void changeResourcePath(String resourcePath) {
+        initialisation(clientConfiguration, resourcePath);
     }
 
     @Override
@@ -397,13 +402,13 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     @Override
     public String toString() {
         return new StringBuilder("VitamFactory: { ")
-            .append("ServiceUrl: ").append(serviceUrl)
-            .append(", ResourcePath: ").append(resourcePath)
-            .append(", ChunkedMode: ").append(chunkedMode)
-            .append(", Configuration: { Classes: \"").append(config.getClasses())
-            .append("\", Properties: \"").append(config.getProperties())
-            .append("\" }")
-            .append(" }").toString();
+                .append("ServiceUrl: ").append(serviceUrl)
+                .append(", ResourcePath: ").append(resourcePath)
+                .append(", ChunkedMode: ").append(chunkedMode)
+                .append(", Configuration: { Classes: \"").append(config.getClasses())
+                .append("\", Properties: \"").append(config.getProperties())
+                .append("\" }")
+                .append(" }").toString();
     }
 
     @Override
@@ -421,7 +426,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             config.register(MultiPartFeature.class);
         }
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 0)
-            .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
+                .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.BUFFERED);
     }
 
     @Override
@@ -463,7 +468,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         manager.setMaxTotal(VitamConfiguration.getMaxTotalClient());
         manager.setDefaultMaxPerRoute(VitamConfiguration.getMaxClientPerHost());
         manager
-            .setValidateAfterInactivity(VitamConfiguration.getDelayValidationAfterInactivity());
+                .setValidateAfterInactivity(VitamConfiguration.getDelayValidationAfterInactivity());
     }
 
     private void startupMonitor() {
@@ -478,14 +483,14 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         // Prevent Warning on misusage of non standard Calls
         Logger.getLogger(JerseyInvocation.class.getName()).setLevel(Level.OFF);
         config.register(JacksonJsonProvider.class)
-            .register(JacksonFeature.class)
-            .register(new VitamThreadPoolExecutorProvider("Vitam"))
-            // Not supported MultiPartFeature.class
-            .property(ClientProperties.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize())
-            .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.CHUNKED)
-            .property(ClientProperties.CONNECT_TIMEOUT, VitamConfiguration.getConnectTimeout())
-            .property(ClientProperties.READ_TIMEOUT, VitamConfiguration.getReadTimeout())
-            .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
+                .register(JacksonFeature.class)
+                .register(new VitamThreadPoolExecutorProvider("Vitam"))
+                // Not supported MultiPartFeature.class
+                .property(ClientProperties.CHUNKED_ENCODING_SIZE, VitamConfiguration.getChunkSize())
+                .property(ClientProperties.REQUEST_ENTITY_PROCESSING, RequestEntityProcessing.CHUNKED)
+                .property(ClientProperties.CONNECT_TIMEOUT, VitamConfiguration.getConnectTimeout())
+                .property(ClientProperties.READ_TIMEOUT, VitamConfiguration.getReadTimeout())
+                .property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true);
     }
 
     final void commonApacheConfigure(ClientConfig config, boolean chunkedMode) {
@@ -495,10 +500,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             config.property(ApacheClientProperties.CONNECTION_MANAGER, POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
         }
         final RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient()).build();
+                .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient()).build();
         config.property(ApacheClientProperties.CONNECTION_MANAGER_SHARED, true)
-            .property(VitamClientProperties.DISABLE_AUTOMATIC_RETRIES, true)
-            .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
+                .property(VitamClientProperties.DISABLE_AUTOMATIC_RETRIES, true)
+                .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
         config.connectorProvider(new ApacheConnectorProvider());
     }
 
@@ -537,9 +542,9 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
                         factory.chunkedPoolingManager.closeExpiredConnections();
                         factory.notChunkedPoolingManager.closeExpiredConnections();
                         factory.chunkedPoolingManager.closeIdleConnections(
-                            VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
+                                VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
                         factory.notChunkedPoolingManager.closeIdleConnections(
-                            VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
+                                VitamConfiguration.getDelayValidationAfterInactivity(), TimeUnit.MILLISECONDS);
                     }
                 }
             } catch (final InterruptedException ex) {

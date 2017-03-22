@@ -25,7 +25,7 @@ Les variables attendues pour ce rôle sont :
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")
   + {{ java_args }} : arguments à passer à la JVM (valeur par défaut : "")
   + {{ port_http }} : port d'écoute du service vitam (valeur par défaut : 8082)
-  + {{ tls_active }} : activation du https
+  + {{ port_http_admin }} : port d'écoute du service admin vitam (valeur par défaut : 28082)  + {{ tls_active }} : activation du https
   + {{ days_to_delete_local }} : nombre de jours par défaut pour le job Curator de purge des vieux index
   + {{ days_to_delete_access_local }} :
   + {{ vitam_worker_capacity }} : nombre de parallélisme des threads du composant vitam-worker

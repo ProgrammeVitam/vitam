@@ -164,6 +164,7 @@
          <Set name="port">
                     <SystemProperty name="jetty.port" default="8443"/>
                 </Set>
+         <Set name="name">business</Set>
     </New>
 
     <!-- set connectors                                      -->

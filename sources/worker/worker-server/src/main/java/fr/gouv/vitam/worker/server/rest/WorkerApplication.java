@@ -142,7 +142,12 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
             // Processing dependency: optional ?
             // serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
         }
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 
 }

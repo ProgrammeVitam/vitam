@@ -103,7 +103,6 @@ public class WorkerResourceTest {
         PropertiesUtils.writeYaml(newWorkerConf, realWorker);
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         RestAssured.port = serverPort;
         RestAssured.basePath = WORKER_RESOURCE_URI;

@@ -121,7 +121,12 @@ public class ProcessManagementApplication
         // FIXME P1 worker optional register: How to do it ?
         resourceConfig
             .register(new ProcessManagementResource(getConfiguration()))
-            .register(new ProcessDistributorResource(getConfiguration()))
-            .register(new AdminStatusResource(serviceRegistry));
+            .register(new ProcessDistributorResource(getConfiguration()));
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 }

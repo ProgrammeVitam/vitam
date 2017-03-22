@@ -63,7 +63,6 @@ public class WorkerApplicationTest {
         worker = PropertiesUtils.findFile(WORKER_CONF);
         serverPort = junitHelper.findAvailablePort();
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         final WorkerConfiguration realWorker = PropertiesUtils.readYaml(worker, WorkerConfiguration.class);
         realWorker.setRegisterServerPort(serverPort).setRegisterServerHost("localhost")

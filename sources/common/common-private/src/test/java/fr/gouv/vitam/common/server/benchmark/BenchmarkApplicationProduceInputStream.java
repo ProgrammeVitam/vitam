@@ -79,4 +79,10 @@ public final class BenchmarkApplicationProduceInputStream
         resourceConfig.register(new BenchmarkResourceProduceInputStream(getConfiguration()));
     }
 
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        // do nothing as @admin is not tested here
+        return false;
+    }
+
 }

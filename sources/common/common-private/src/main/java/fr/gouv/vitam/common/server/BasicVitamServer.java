@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 public class BasicVitamServer implements VitamServer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
-        "A problem occurred while attempting to start the server";
+            "A problem occurred while attempting to start the server";
     /**
      * Default TEST ONLY Jetty config file
      */
@@ -234,9 +234,32 @@ public class BasicVitamServer implements VitamServer {
     @Override
     public int getPort() {
         if (server != null && server.isStarted()) {
-            return ((ServerConnector) server.getConnectors()[0]).getLocalPort();
+            int length = server.getConnectors().length;
+            for (int i = 0; i < length; i++) {
+                ServerConnector c = ((ServerConnector) server.getConnectors()[i]);
+                if (VitamServerInterface.BUSINESS_CONNECTOR_NAME.equals(c.getName()))
+                    return c.getLocalPort();
+            }
         }
         return port;
+    }
+
+    /**
+     * Retrieving all ports of the vitam server.</br>
+     *
+     * @return the vitam server port
+     */
+    @Override
+    public int getAdminPort() {
+        if (server != null && server.isStarted()) {
+            int length = server.getConnectors().length;
+            for (int i = 0; i < length; i++) {
+                ServerConnector c = ((ServerConnector) server.getConnectors()[i]);
+                if (VitamServerInterface.ADMIN_CONNECTOR_NAME.equals(c.getName()))
+                    return c.getLocalPort();
+            }
+        }
+        return -1;
     }
 
     /**

@@ -92,20 +92,34 @@ public class TestApplication extends AbstractVitamApplication<TestApplication, T
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         if (statusService == null) {
             if (serviceRegistry == null) {
-                resourceConfig.register(new AdminStatusResource())
-                    .register(new TestResourceImpl(getConfiguration()));
+                resourceConfig.register(new TestResourceImpl(getConfiguration()));
             } else {
-                resourceConfig.register(new AdminStatusResource(serviceRegistry))
-                    .register(new TestResourceImpl(getConfiguration()));
+                resourceConfig.register(new TestResourceImpl(getConfiguration()));
             }
         } else {
             if (serviceRegistry == null) {
-                resourceConfig.register(new AdminStatusResource(statusService))
-                    .register(new TestResourceImpl(getConfiguration(), statusService));
+                resourceConfig.register(new TestResourceImpl(getConfiguration(), statusService));
             } else {
-                resourceConfig.register(new AdminStatusResource(statusService, serviceRegistry))
-                    .register(new TestResourceImpl(getConfiguration(), statusService));
+                resourceConfig.register(new TestResourceImpl(getConfiguration(), statusService));
             }
         }
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        if (statusService == null) {
+            if (serviceRegistry == null) {
+                resourceConfig.register(new AdminStatusResource());
+            } else {
+                resourceConfig.register(new AdminStatusResource(serviceRegistry));
+            }
+        } else {
+            if (serviceRegistry == null) {
+                resourceConfig.register(new AdminStatusResource(statusService));
+            } else {
+                resourceConfig.register(new AdminStatusResource(statusService, serviceRegistry));
+            }
+        }
+        return true;
     }
 }

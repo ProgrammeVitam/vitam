@@ -157,7 +157,6 @@ public class LogbookResourceIT {
         serverPort = junitHelper.findAvailablePort();
 
         try {
-            JunitHelper.setJettyPortSystemProperty(serverPort);
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
             final List<MongoDbNode> nodes = new ArrayList<>();
             nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));

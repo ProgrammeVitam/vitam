@@ -77,8 +77,8 @@ public class AdminAutotestStatusResourceImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
 
     // URI
-    private static final String TEST_RESOURCE_URI = TestApplication.TEST_RESOURCE_URI;
-    private static final String TEST_CONF = "test.conf";
+    private static final String ADMIN_STATUS_URI = "/admin/v1";
+    private static final String TEST_CONF = "test-multiple-connector.conf";
 
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -95,8 +95,9 @@ public class AdminAutotestStatusResourceImplTest {
     private static JunitHelper junitHelper;
 
     private static int serverPort;
+    private static int serverAdminPort;
+
     private static TestApplication application;
-    private static BasicClient client;
     private static TestVitamAdminClientFactory factory;
     private static ElasticsearchTestConfiguration config = null;
 
@@ -139,13 +140,16 @@ public class AdminAutotestStatusResourceImplTest {
                 }
 
             };
+
+        serverAdminPort = junitHelper.findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
+
         final StartApplicationResponse<TestApplication> response =
             testFactory.findAvailablePortSetToApplication();
         serverPort = response.getServerPort();
+
         application = response.getApplication();
-        factory = new TestVitamAdminClientFactory(serverPort, TEST_RESOURCE_URI);
+        factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
         TestApplication.serviceRegistry.register(factory);
-        client = factory.getClient();
         LOGGER.debug("Beginning tests");
     }
 
@@ -163,8 +167,7 @@ public class AdminAutotestStatusResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        JunitHelper.getInstance().releasePort(serverPort);
-        client.close();
+        junitHelper.releasePort(serverAdminPort);
         if (config == null) {
             return;
         }
@@ -172,7 +175,6 @@ public class AdminAutotestStatusResourceImplTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
-        junitHelper.releasePort(serverPort);
     }
 
     private static class MyMongoDbAccess extends MongoDbAccess {
@@ -248,7 +250,7 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Add a fake clientFactory
         LOGGER.warn("TEST Fake client Factory KO");
-        TestApplication.serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
+        TestApplication.serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, ADMIN_STATUS_URI));
         realKO++;
         realTotal++;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

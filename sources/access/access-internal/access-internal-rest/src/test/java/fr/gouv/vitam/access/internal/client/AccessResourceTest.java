@@ -56,17 +56,16 @@ public class AccessResourceTest {
     private static final String ID = "identifier8";
 
     private static JunitHelper junitHelper;
-    private static int port;
     private static int serverPort;
 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
+        serverPort = junitHelper.findAvailablePort();
         application = new AccessInternalApplication(ACCESS_CONF);
         application.start();
-        RestAssured.port = port;
+        RestAssured.port = serverPort;
         RestAssured.basePath = ACCESS_RESOURCE_URI;
 
         LOGGER.debug("Beginning tests");

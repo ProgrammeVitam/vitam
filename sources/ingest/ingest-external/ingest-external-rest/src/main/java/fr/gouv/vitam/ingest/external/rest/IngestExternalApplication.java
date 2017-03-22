@@ -149,9 +149,14 @@ public final class IngestExternalApplication
         serviceRegistry.register(IngestInternalClientFactory.getInstance());
         // FIXME P1 Siegfried missing but different configuration...
         resourceConfig.register(resource)
-            .register(new AdminStatusResource(serviceRegistry))
             .register(SanityDynamicFeature.class)
             .register(SanityCheckerCommonFilter.class);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 
 }

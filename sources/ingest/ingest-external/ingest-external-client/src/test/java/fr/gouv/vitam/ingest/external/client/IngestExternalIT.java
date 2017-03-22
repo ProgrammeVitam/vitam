@@ -59,7 +59,6 @@ public class IngestExternalIT {
         serverPort = junitHelper.findAvailablePort();
 
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
-        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         application = new IngestExternalApplication(INGEST_EXTERNAL_CONF);
         try {

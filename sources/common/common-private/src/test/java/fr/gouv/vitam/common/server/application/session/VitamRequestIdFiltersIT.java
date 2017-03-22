@@ -84,7 +84,7 @@ public class VitamRequestIdFiltersIT {
         }
         JunitHelper.getInstance().releasePort(serverPort2);
         // Stop server 1
-        server1ClientFactory.shutdown();
+         server1ClientFactory.shutdown();
     }
 
     /**
@@ -102,8 +102,10 @@ public class VitamRequestIdFiltersIT {
      */
     @Test
     public void testServer1ToServer2RequestIdPropagation() {
-        final String propagatedId = server1ClientFactory.getClient().doRequest("callWithRequestId");
-        Assert.assertEquals("id-from-server-1", propagatedId);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId = client.doRequest("callWithRequestId");
+            Assert.assertEquals("id-from-server-1", propagatedId);
+        }
     }
 
     /**
@@ -112,8 +114,10 @@ public class VitamRequestIdFiltersIT {
     @Test
     public void testServer1ToServer2NoRequestIdSet() {
         // KWA TODO: explain a little what we do...
-        final String propagatedId = server1ClientFactory.getClient().doRequest("callWithoutRequestId");
-        Assert.assertEquals(Server2TestApplication.NO_REQUEST_ID_FOUND, propagatedId);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId = client.doRequest("callWithoutRequestId");
+            Assert.assertEquals(Server2TestApplication.NO_REQUEST_ID_FOUND, propagatedId);
+        }
     }
 
     /**
@@ -124,12 +128,16 @@ public class VitamRequestIdFiltersIT {
     public void testRequestIdCleanupBetweenRequests() {
         // KWA TODO: explain a little what we do...
         LOGGER.info("First request");
-        final String propagatedId = server1ClientFactory.getClient().doRequest("callWithRequestId");
-        Assert.assertEquals("id-from-server-1", propagatedId);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId = client.doRequest("callWithRequestId");
+            Assert.assertEquals("id-from-server-1", propagatedId);
+        }
         LOGGER.info("Second request");
-        final String propagatedId2 = server1ClientFactory.getClient().doRequest("callWithoutRequestId");
-        LOGGER.info("Assert");
-        Assert.assertEquals(Server2TestApplication.NO_REQUEST_ID_FOUND, propagatedId2);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId2 = client.doRequest("callWithoutRequestId");
+            LOGGER.info("Assert");
+            Assert.assertEquals(Server2TestApplication.NO_REQUEST_ID_FOUND, propagatedId2);
+        }
     }
 
     /**
@@ -139,8 +147,10 @@ public class VitamRequestIdFiltersIT {
     @Test
     public void testServer1ToServer2RequestIdPropagationWithThreadPool() {
         // KWA TODO: explain a little what we do...
-        final String propagatedId = server1ClientFactory.getClient().doRequest("callWithThreadPoolRequestId");
-        Assert.assertEquals("id-from-server-1-with-threadpool", propagatedId);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId = client.doRequest("callWithThreadPoolRequestId");
+            Assert.assertEquals("id-from-server-1-with-threadpool", propagatedId);
+        }
     }
 
     /**
@@ -148,8 +158,10 @@ public class VitamRequestIdFiltersIT {
      */
     @Test
     public void testServer2SetRequestIdInResponsePropagation() {
-        final String propagatedId = server1ClientFactory.getClient().doRequest("callToGetRequestIdInResponse");
-        Assert.assertEquals("id-from-server-2", propagatedId);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId = client.doRequest("callToGetRequestIdInResponse");
+            Assert.assertEquals("id-from-server-2", propagatedId);
+        }
     }
 
     @Test
@@ -157,8 +169,10 @@ public class VitamRequestIdFiltersIT {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, "header-1");
         headers.add(GlobalDataRest.X_REQUEST_ID, "header-2-should-not-be-taken");
-        final String propagatedId = server1ClientFactory.getClient().doRequest("directResponse", headers);
-        Assert.assertEquals("header-1", propagatedId);
+        try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
+            final String propagatedId = client.doRequest("directResponse", headers);
+            Assert.assertEquals("header-1", propagatedId);
+        }
     }
 
 }
