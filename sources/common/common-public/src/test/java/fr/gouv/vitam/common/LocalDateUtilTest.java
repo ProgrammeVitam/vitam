@@ -28,6 +28,7 @@ package fr.gouv.vitam.common;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,6 +110,8 @@ public class LocalDateUtilTest {
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), dt0.toEpochSecond(ZoneOffset.UTC));
         date.setTime(dt.toEpochSecond(ZoneOffset.UTC));
         assertEquals(dt.toEpochSecond(ZoneOffset.UTC), date.getTime());
+        assertTrue(LocalDateUtil.getFormattedDate(date).contains("T"));
+        assertTrue(LocalDateUtil.getFormattedDate(date).contains("+"));
     }
 
     @Test
