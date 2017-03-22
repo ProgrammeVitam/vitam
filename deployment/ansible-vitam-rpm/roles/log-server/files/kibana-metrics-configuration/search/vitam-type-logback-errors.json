@@ -3,7 +3,7 @@
   "description": "",
   "hits": 0,
   "columns": [
-    "msg_info",
+    "log_message",
     "prog_name"
   ],
   "sort": [
@@ -12,6 +12,6 @@
   ],
   "version": 1,
   "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":null,\"disabled\":true,\"index\":\"logstash-vitam*\",\"key\":\"type\",\"negate\":false,\"value\":\"logback\"},\"query\":{\"match\":{\"type\":{\"query\":\"logback\",\"type\":\"phrase\"}}}},{\"$state\":{\"store\":\"appState\"},\"bool\":{\"must\":[{\"term\":{\"err_level\":\"ERROR\"}}]},\"meta\":{\"alias\":\"errors\",\"disabled\":false,\"index\":\"logstash-vitam*\",\"key\":\"bool\",\"negate\":false,\"value\":\"{\\\"must\\\":[{\\\"term\\\":{\\\"err_level\\\":\\\"ERROR\\\"}}]}\"}}],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
+    "searchSourceJSON": "{\"index\":\"logstash-vitam*\",\"query\":{\"query_string\":{\"analyze_wildcard\":true,\"query\":\"*\"}},\"filter\":[{\"$state\":{\"store\":\"appState\"},\"meta\":{\"alias\":null,\"disabled\":true,\"index\":\"logstash-vitam*\",\"key\":\"logger\",\"negate\":false,\"value\":\"logback\"},\"query\":{\"match\":{\"logger\":{\"query\":\"logback\",\"type\":\"phrase\"}}}},{\"$state\":{\"store\":\"appState\"},\"bool\":{\"must\":[{\"term\":{\"log_level\":\"ERROR\"}}]},\"meta\":{\"alias\":\"errors\",\"disabled\":false,\"index\":\"logstash-vitam*\",\"key\":\"bool\",\"negate\":false,\"value\":\"{\\\"must\\\":[{\\\"term\\\":{\\\"log_level\\\":\\\"ERROR\\\"}}]}\"}}],\"highlight\":{\"pre_tags\":[\"@kibana-highlighted-field@\"],\"post_tags\":[\"@/kibana-highlighted-field@\"],\"fields\":{\"*\":{}},\"require_field_match\":false,\"fragment_size\":2147483647}}"
   }
 }

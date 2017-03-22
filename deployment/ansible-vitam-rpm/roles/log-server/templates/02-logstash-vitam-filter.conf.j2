@@ -8,10 +8,10 @@ filter
 
     mutate {
         # logback send 011 code for \t and 012 for \n
-        gsub => [ "message", "#011", "\t" ]
-        gsub => [ "message", "#012", "\n" ]
-        gsub => [ "message", "\t", ' ' ]
-        gsub => [ "message", "\n", '    ' ]
+        gsub => [ "message", "#011", "\t"   ]
+        gsub => [ "message", "#012", "\n"   ]
+        gsub => [ "message", "\t"  , ' '    ]
+        gsub => [ "message", "\n"  , '    ' ]
     }
 
     # --------------------------------------------------
@@ -20,12 +20,15 @@ filter
 
     # Todo move this at the end (to find vitam-* for real vitam components)
     if [input] == "syslog" {
+        mutate {
+            rename => { "logsource" => "hostname" }
+        }
         grok {
             break_on_match => false
             keep_empty_captures => true
             # If program name starts with 'vitam-', keep only the suffix
-            match => [ "program", "(?:(vitam[-._])?)(?<program>[^.]*)" ]
-            overwrite => [ "program" ]
+            match => [ "program", "(?:(vitam[-._])?)(?<vitam_component>[^.]*)" ]
+            overwrite => [ "vitam_component" ]
         }
     }
 
@@ -37,8 +40,8 @@ filter
         grok {
             break_on_match => false
             keep_empty_captures => true
-            # Fix set program to "curator"
-            match => [ "path", "(?:%{UNIXPATH:path_file})/(?<program>[^.]*)"]
+            # Fix set vitam_component to "curator"
+            match => [ "path", "(?:%{UNIXPATH:path_file})/(?<vitam_component>[^.]*)"]
         }
     }
 
@@ -46,11 +49,11 @@ filter
     # Let's parse the message depending on the program sending it
     # --------------------------------------------------
 
-    if [program] =~ "mongo" {
+    if [vitam_component] =~ "mongo" {
         grok {
             break_on_match => false
             keep_empty_captures => true
-            match => [ "message", "(?:%{GREEDYDATA:msg_info})" ]
+            match => [ "message", "(?:%{GREEDYDATA:log_message})" ]
             # "timestamp" => "Aug 19 20:09:00",
             match => [ "timestamp", "(%{MONTH:mois}%{SPACE}%{MONTHDAY:jour}%{SPACE}%{HOUR:hr}:%{MINUTE:mn}:%{SECOND:sec})" ]
         }
@@ -58,69 +61,68 @@ filter
         mutate { add_field => [ "date_msg", "%{+YYYY}-%{+MM}-%{jour} %{hr}:%{mn}:%{sec}" ] }
         mutate { replace => { timestamp => "%{date_msg}" } }
         # TODO review : either don't use the local variable date_msg, or unset it here.
-        mutate { add_field => [ "type", "mongo" ] }
+        mutate { add_field => [ "logger", "mongo" ] }
         date {
             match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss" ]
             target => [ "@timestamp" ]
         }
     }
 
-    else if [program] =~ "elasticsearch-" {
+    else if [vitam_component] =~ "elasticsearch-" {
         grok {
             match => [
-                # Todo: rename err_level to log_level
                 "message",
-                "\[%{TIMESTAMP_ISO8601:timestamp}\]%{SPACE}\[%{LOGLEVEL:err_level}(%{SPACE})?\]%{SPACE}\[(?<module_name>[^ ]*)%{SPACE}\]%{SPACE}\[(?<node_name>[^\]]*)\]%{SPACE}%{GREEDYDATA:msg_info}%{SPACE}"
+                "\[%{TIMESTAMP_ISO8601:timestamp}\]%{SPACE}\[%{LOGLEVEL:log_level}(%{SPACE})?\]%{SPACE}\[(?<elastic_module>[^ ]*)%{SPACE}\]%{SPACE}\[(?<elastic_node>[^\]]*)\]%{SPACE}%{GREEDYDATA:log_message}%{SPACE}"
             ]
             overwrite => [ "timestamp" ]
         }
-        mutate { add_field => [ "type", "elasticsearch" ] }
+        mutate { add_field => [ "logger", "elasticsearch" ] }
         date {
             match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
             target => [ "@timestamp" ]
         }
     }
 
-    else if [program] =~ "curator" {
+    else if [vitam_component] =~ "curator" {
         grok {
             match => [
                 "message",
-                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}%{LOGLEVEL:err_level}%{SPACE}(?<module_name>[^ ]*)%{SPACE}(?:%{GREEDYDATA:msg_info})"
+                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}%{LOGLEVEL:log_level}%{SPACE}(?<curator_module>[^ ]*)%{SPACE}(?:%{GREEDYDATA:log_message})"
             ]
             overwrite => [ "timestamp" ]
         }
-        mutate { add_field => { "type" => "curator" } }
+        mutate { add_field => { "logger" => "curator" } }
         date {
             match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
             target => [ "@timestamp" ]
         }
     }
 
-    else if [program] =~ "consul" {
+    else if [vitam_component] =~ "consul" {
         grok {
             break_on_match => false
             match => [
                 "message",
-                "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:err_level}\])?%{SPACE}(?<module_name>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:msg_info})"
+                "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:log_level}\])?%{SPACE}(?<consul_module>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:log_message})"
             ]
             overwrite => [ "timestamp" ]
         }
-        mutate { add_field => { "type" => "consul" } }
+        mutate { add_field => { "logger" => "consul" } }
         date {
             match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
         }
     }
-    else if [program] =~ "clamd" {
+    else if [vitam_component] =~ "clamd" {
         grok {
             break_on_match => false
             match => [
                 "message",
-                "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:err_level}\])?%{SPACE}(?<module_name>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:msg_info})"
+                "%{CONSUL_TIMESTAMP:timestamp}?%{SPACE}(\[%{LOGLEVEL:log_level}\])?%{SPACE}(?<clamd_module>[^:]*)?:?%{SPACE}(?:%{GREEDYDATA:log_message})"
             ]
             overwrite => [ "timestamp" ]
         }
-        mutate { add_field => { "type" => "clamd" } }
+        mutate { add_field => { "logger" => "clamd" } }
         date {
             match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
@@ -136,15 +138,15 @@ filter
             keep_empty_captures => true
             match => [
                 "message",
-                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<module_name>.*)\]\]%{SPACE}\[(?<request_id>.*)\]%{SPACE}%{LOGLEVEL:err_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
+                "%{TIMESTAMP_ISO8601:timestamp}%{SPACE}\[\[(?<java_thread>.*)\]\]%{SPACE}\[(?<request_id>.*)?\]%{SPACE}%{LOGLEVEL:log_level}%{SPACE}(?:%{GREEDYDATA:msg_data})"
             ]
             match => [
                 "msg_data",
-                "(?<class_name>[^\b]*)%{SPACE}-%{SPACE}(?<module_acces>[^\b]*)%{SPACE} : (?:%{GREEDYDATA:msg_info})"
+                "(?<java_class>%{JAVACLASS})%{SPACE}-%{SPACE}Caller[^%{SPACE}]+%{SPACE}at[%{SPACE}\n]+(?<java_caller>[^\s]*)%{SPACE}:%{SPACE}(?:%{JAVALOGMESSAGE:log_message})"
             ]
             overwrite => [ "timestamp" ]
         }
-        mutate { add_field => { "type" => "logback" } }
+        mutate { add_field => { "logger" => "logback" } }
         date {
             match => [ "timestamp" , "yyyy-MM-dd HH:mm:ss,SSS" ]
             target => [ "@timestamp" ]
@@ -172,7 +174,8 @@ filter
                 "msg_data",
                 "input",
                 "@version",
-                "timestamp"
+                "timestamp",
+                "program"
             ]
         }
     }
