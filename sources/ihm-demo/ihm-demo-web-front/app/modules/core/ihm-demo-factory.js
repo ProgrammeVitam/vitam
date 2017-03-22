@@ -28,6 +28,7 @@
 angular.module('core')
 .constant('IHM_URLS', {
   'IHM_DEFAULT_URL':'/uploadSIP',
+  'IHM_DEFAULT_URL_FOR_GUEST':'/archiveSearch',
   'IHM_BASE_URL':'/ihm-demo/v1/api',
   'ADMIN_ROOT': 'admin',
   'TENANTS': 'tenants',
