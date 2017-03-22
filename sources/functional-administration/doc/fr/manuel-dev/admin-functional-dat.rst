@@ -80,7 +80,32 @@ MongoDbAccess commun pour mongodb
 	  et récupérer le contenu en ArrayNode
 	- RulesManagerFileImpl.java : implémentation de base des opération sur les paramètres de référentiel de regle de gestion à partir 
 	de l'array Node générer après le parse de CSV File jusqu'à la base MongoDB.  
+	
+      Le contrôle au niveau de RulesManagerFileImpl de fichier CSV a été mis à jour .
 
+      Définition d'un référentiel valide en se basant sur les critères ci_dessous :
+      
+
+      Chaque RuleId doit être UNIQUE dans le référentiel
+        RuleType doit être dans l'énumération suivante, non sensible à la casse : (AppraisalRule, AccessRule, StorageRule, DisseminationRule, ClassificationRule, ReuseRule)
+        RuleDuration :
+           * Depuis le fichier CSV, peut être un entier positif ou nul ou "unlimited" (insensible à la casse). La valeur réelle de l'enregistrement dans la collection est laissée à la discrétion des équipes de développements (ex "-1" si on veut garder une valeur numérique)
+           * Permettre les manipulations sur des nombres (plus grand que.. plus petit que... Et calcul de date). Actuellement le champ est de type string, ce qui semble poser de nombreuses contraintes
+           
+           RuleMeasurement:
+           
+             RuleMeasurement doit être dans l'énumération suivante, non sensible à la casse : (year, month, day)
+             RuleMeasurement peut aussi avoir comme valeur, non sensible à la casse "second". Cette demande est dans l'optique de la story #740 et n'a de sens qu'à des fins de tests.
+             L'association de RuleDuration et RuleMeasurement doit être inférieure ou égale à 999 ans. (Mettre "15000 jours est donc autorisé)
+
+             L'unité de mesure (RuleMeasurement) doit être écrite en français dans l'interface, comme c'est déjà le cas actuellement : année(s), mois, jour(s), seconde(s)
+
+             Dans le cas des règles unlimited
+             - La valeur que doit renvoyer l'API lorsque la règle a une durée 'unlimited' dépend du choix de design effectué pour l'enregistrement de la valeur 'unlimited'
+             - Dans l'IHM standard, la date de fin doit être au choix marquée comme :
+             * "Illimitée (date de début inconnue)" : dans le cas où la date de fin n'est pas connue car la startDate n'est pas connue
+             * "Illimitée (règle à durée illimitée)" : dans le cas où la date de fin ne peut pas être calculée car la durée de la règle est 'unlimited'
+         
 2.2. functional-administration-accession-register
 	+ functional-administration-accession-register-api
 	+ functional-administration-accession-register-core

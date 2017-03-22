@@ -1,6 +1,6 @@
 RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
 APP-00001,AppraisalRule,Dossier individuel d’agent civil,"Durée de conservation des dossiers individuels d’agents. 
-L’échéance est calculée à partir de la date de naissance de l’agent",80,YEAR
+L’échéance est calculée à partir de la date de naissance de l’agent",15000,DAY
 APP-00002,AppraisalRule,Offres non retenues des marchés,"Durée de conservation des offres non retenues des marchés publics
 L’échéance est calculée à partir de la date de notification du marché au titulaire",5,YEAR
 APP-00003,AppraisalRule,Exécution d’un marché de services,"Durée de conservation des pièces comptables pour l’ordonnateur
@@ -18,7 +18,7 @@ ACC-00004,AccessRule,Incommunicabilité,"Durée de communicabilité applicables 
 L’échéance est calculée à partir de la date du document",999,YEAR
 ACC-00005,AccessRule,Règle vide,,100,DAY
 ACC-00006,AccessRule,Règle avec durée de 0 mois,Pour test,0,MONTH
-ACC-00007,AccessRule,Règle avec durée de 0 jour,Pour test,0,DAY
+ACC-00007,AccessRule,Règle avec durée de 0 jour,Pour test,15000,DAY
 STO-00001,StorageRule,Dossier individuel d’agent civil,"Durée de conservation dans les systèmes métiers des dossiers individuels des agents civils
 L’échéance est calculée à partir de la date où l’agent quitte l’organisation",1,YEAR
 STO-00002,StorageRule,Déclaration de revenus en ligne (impôt sur le revenu),"Durée de conservation dans les systèmes métiers des dossiers individuels des déclarations de revenus en ligne (impôt sur le revenu)

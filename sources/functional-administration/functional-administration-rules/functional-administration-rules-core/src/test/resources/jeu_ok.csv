@@ -17,7 +17,7 @@ L’échéance est calculée à partir de la date du document",25,YEAR
 ACC-00004,AccessRule,Incommunicabilité,"Durée de communicabilité applicables aux documents dont la communication est susceptible d’entraîner la diffusion d’informations permettant de concevoir, fabriquer, utiliser ou localiser des armes nucléaires, biologiques, chimiques ou toutes autres armes ayant des effets directs ou indirects de destruction d’un niveau analogue
 L’échéance est calculée à partir de la date du document",999,YEAR
 ACC-00005,AccessRule,Règle vide,,100,DAY
-ACC-00006,AccessRule,Règle avec durée de 0 mois,Pour test,0,MONTH
+ACC-00006,AccessRule,Règle avec durée de 0 MONTH,Pour test,0,MONTH
 ACC-00007,AccessRule,Règle avec durée de 0 jour,Pour test,0,DAY
 STO-00001,StorageRule,Dossier individuel d’agent civil,"Durée de conservation dans les systèmes métiers des dossiers individuels des agents civils
 L’échéance est calculée à partir de la date où l’agent quitte l’organisation",1,YEAR

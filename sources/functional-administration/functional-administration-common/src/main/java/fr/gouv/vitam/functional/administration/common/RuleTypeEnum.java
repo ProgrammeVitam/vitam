@@ -24,39 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.function.administration.rules.core;
+package fr.gouv.vitam.functional.administration.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+/**
+ * Enum for Rule Type
+ */
+public enum RuleTypeEnum {
 
-import java.io.IOException;
+    /**
+     * AppraisalRule
+     */
+    APPRAISALRULE("AppraisalRule"),
+    /**
+     * AccessRule
+     */
+    ACCESSRULE("AccessRule"),
+    /**
+     * StorageRule
+     */
+    STORAGERULE("StorageRule"),
+    /**
+     * DisseminationRule
+     */
+    DISSEMINATIONRULE("DisseminationRule"),
+    /**
+     * ClassificationRule
+     */
+    CLASSIFICATIONRULE("ClassificationRule"),
+    /**
+     * ReuseRule
+     */
+    REUSERULE("ReuseRule");
 
-import org.junit.Test;
+    private final String type;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.rules.core.RulesManagerParser;
-
-public class RulesManagerParserTest {
-    String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
-    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
-    ArrayNode jsonFileRules = null;
-
-    @Test
-    public void testFileRules() throws FileFormatException, InvalidParseOperationException, IOException {
-        jsonFileRules =
-            RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_OK));
-        assertTrue(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleId").toString().contains("CLASS-00001"));
-        assertEquals(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleMeasurement").textValue(), "YEAR");
-        assertTrue(
-            jsonFileRules.get(jsonFileRules.size() - 1).get("RuleDuration").toString().contains("10"));
+    /**
+     * Constructor
+     */
+    private RuleTypeEnum(String ruleType) {
+        type = ruleType;
     }
 
-    public void testRulesFileKO() throws FileFormatException, InvalidParseOperationException, IOException {
-        jsonFileRules =
-            RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_KO));
+    /**
+     *
+     * @return the type of the rule
+     */
+    public String getType() {
+        return type;
     }
+
 }

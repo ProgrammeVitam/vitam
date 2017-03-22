@@ -39,8 +39,8 @@ import java.util.List;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -75,8 +75,8 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 
 public class RulesManagerFileImplTest {
-    String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
-    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_Parameters.csv";
+    String FILE_TO_TEST_OK = "jeu_ok.csv";
+    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final Integer TENANT_ID = 0;
 
     File rulesFile = null;
@@ -88,10 +88,10 @@ public class RulesManagerFileImplTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";    
+    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration esConfig = null;
-    
+
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
@@ -115,7 +115,7 @@ public class RulesManagerFileImplTest {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
-        
+
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -145,7 +145,7 @@ public class RulesManagerFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testimportRulesFile() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
             // Nothing there

@@ -1,10 +1,10 @@
 RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
 APP-00001,AppraisalRule,Dossier individuel d’agent civil,"Durée de conservation des dossiers individuels d’agents. 
-L’échéance est calculée à partir de la date de naissance de l’agent",80,YEAR
+L’échéance est calculée à partir de la date de naissance de l’agent",unLimiTEd,YEAR
 APP-00002,AppraisalRule,Offres non retenues des marchés,"Durée de conservation des offres non retenues des marchés publics
 L’échéance est calculée à partir de la date de notification du marché au titulaire",5,YEAR
 APP-00003,AppraisalRule,Exécution d’un marché de services,"Durée de conservation des pièces comptables pour l’ordonnateur
-l’échéance est calculée à partir de la date de solde comptable",10,YEAR
+l’échéance est calculée à partir de la date de solde comptable",unLimiTEd,YEAR
 APP-00004,AppraisalRule,Exécution d’un marché de travaux,"Durée de conservation des dossiers d’exécution de marchés de travaux
 L’échéance est calculée à partir de la date de levée des réserves",10,YEAR
 APP-00005,AppraisalRule,Pièces comptables (comptable),"Durée de conservation des pièces comptables pour le comptable
