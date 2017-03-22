@@ -201,6 +201,6 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
 
     @Override
     public void close() {
-        // Nothing to do
+        closeContext();
     }
 }
