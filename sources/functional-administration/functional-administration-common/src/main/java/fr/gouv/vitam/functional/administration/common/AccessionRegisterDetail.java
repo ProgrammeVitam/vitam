@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.List;
+
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -52,6 +54,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final String TOTAL_OBJECTS = "TotalObjects";
     private static final String OBJECT_SIZE = "ObjectSize";
     private static final String STATUS = "Status";
+    private static final String OPERATION_IDS = "OperationIds";
     private static final String TENANT = "_tenant";
 
     /**
@@ -246,5 +249,9 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         append(STATUS, status.name());
         return this;
     }
-
+    
+    public AccessionRegisterDetail setOperationIds(String operationIds) {
+    	append(OPERATION_IDS, operationIds);
+        return this;
+	} 
 }

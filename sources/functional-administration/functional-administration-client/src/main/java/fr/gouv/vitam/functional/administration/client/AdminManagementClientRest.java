@@ -453,6 +453,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 setDeleted(model.getObjectSize().getDeleted());
             accessionRegisterDetail.setObjectSize(objectSize);
         }
+
+        if (model.getOperationsIds() != null) {
+            accessionRegisterDetail.setOperationIds(model.getOperationsIds().toString());
+        }
+
         return accessionRegisterDetail;
     }
 
