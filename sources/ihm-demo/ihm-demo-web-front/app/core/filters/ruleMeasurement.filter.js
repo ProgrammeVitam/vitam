@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,73 +23,24 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common;
-
-import java.util.Calendar;
-
-/**
- * Enum for Rule Measurement
  */
-public enum RuleMeasurementEnum {
+ 
+'use strict';
 
-    /**
-     * Month
-     */
-    MONTH("month", Calendar.MONTH),
-    /**
-     * Day
-     */
-    DAY("day", Calendar.DAY_OF_MONTH),
-    /**
-     * Year
-     */
-    YEAR("year", Calendar.YEAR),
-    /**
-     * Second
-     */
-    SECOND("second", Calendar.SECOND);
-
-    private final String type;
-    private final int calendarUnitType;
-
-
-    /**
-     * Constructor
-     */
-    private RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType) {
-        type = ruleMeasurement;
-        this.calendarUnitType = calendarUnitType;
-    }
-
-
-    /**
-     *
-     * @return the type of the measure
-     */
-    public String getType() {
-        return type;
-    }
-
-    /**
-     *
-     * @return the Calendar Unit Type
-     */
-    public int getCalendarUnitType() {
-        return calendarUnitType;
-    }
-
-    /**
-     * @param type
-     * @return the associated RuleMeasurementEnum according to parameter
-     */
-
-    public static RuleMeasurementEnum getEnumFromType(String type) {
-        for (final RuleMeasurementEnum e : values()) {
-            if (e.getType().equalsIgnoreCase(type)) {
-                return e;
-            }
-        }
-        return null;
-    }
-}
+angular.module('ihm.demo').filter('ruleMeasurementFormat', function() {
+	return function(ruleMeasurement) {
+		if (!ruleMeasurement) {
+			return "";
+		}
+		if (ruleMeasurement.toUpperCase().includes("YEAR")) {
+			return ruleMeasurement.toUpperCase().replace("YEAR","Annees");
+		} else if (ruleMeasurement.toUpperCase().includes("MONTH")) {
+			return ruleMeasurement.toUpperCase().replace("MONTH","Mois");
+		} else if (ruleMeasurement.toUpperCase().includes("SECOND")){
+			return ruleMeasurement.toUpperCase().replace("SECOND","Secondes");
+		} else if (ruleMeasurement.toUpperCase().includes("DAY")) {
+			return ruleMeasurement.toUpperCase().replace("DAY","Jours");
+		}else 
+			return  ruleMeasurement;
+	}
+});

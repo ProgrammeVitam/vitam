@@ -64,11 +64,10 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.functional.administration.common.RuleTypeEnum;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -105,16 +104,19 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static final String RULE_DESCRIPTION = "RuleDescription";
     private static final String RULE_VALUE = "RuleValue";
     private static final String RULE_TYPE = "RuleType";
+    private static final String UNLIMITED = "unlimited";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesManagerFileImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
-
     private static final String RULEID = "RuleId";
     private LogbookOperationsClient client;
-    private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
 
+    private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static String INVALIDPARAMETERS = "Invalid Parameter Value %s : %s";
     private static String NOT_SUPPORTED_VALUE = "The value %s of parameter %s is not supported";
     private static String MANDATORYRULEPARAMETERISMISSING = "The following mandatory parameters are missing %s";
+    private static int YEAR_LIMIT = 999;
+    private static int MONTH_LIMIT = YEAR_LIMIT * 12;
+    private static int DAY_LIMIT = MONTH_LIMIT * 30;
 
     /**
      * Constructor
@@ -213,15 +215,20 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         final String ruleMeasurementValue = record.get(RULE_MEASUREMENT);
 
                         checkParametersNotEmpty(ruleId, ruleType, ruleValue, ruleDuration, ruleMeasurementValue);
-                        checkRuleDurationIsInteger(ruleDuration);
+                        checkRuleDuration(ruleDuration);
                         if (ruleIdSet.contains(ruleId)) {
                             throw new FileRulesException(String.format(FILE_RULE_WITH_RULE_ID, ruleId));
                         }
                         ruleIdSet.add(ruleId);
-                        if (!contains(ruleMeasurementValue)) {
+                        if (!containsRuleMeasurement(ruleMeasurementValue)) {
                             throw new FileRulesException(
                                 String.format(NOT_SUPPORTED_VALUE, RULE_MEASUREMENT, ruleMeasurementValue));
                         }
+                        if (!containsRuleType(ruleType)) {
+                            throw new FileRulesException(
+                                String.format(NOT_SUPPORTED_VALUE, RULE_TYPE, ruleType));
+                        }
+                        checkAssociationRuleDurationRuleMeasurementLimit(record);
                     }
                 } catch (final Exception e) {
                     throw new FileRulesException(INVALID_CSV_FILE + e.getMessage());
@@ -236,6 +243,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         /* this line is reached only if temporary file is null */
         throw new FileRulesException(INVALID_CSV_FILE);
     }
+
 
     /**
      * checkifTheCollectionIsEmptyBeforeImport : Check if the Collection is empty .
@@ -281,9 +289,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @param ruleDuration
      * @throws FileRulesException
      */
-    private void checkRuleDurationIsInteger(String ruleDuration) throws FileRulesException {
+    private void checkRuleDuration(String ruleDuration) throws FileRulesException {
         try {
-            Integer.parseInt(ruleDuration);
+            if (ruleDuration.equalsIgnoreCase(UNLIMITED)) {
+                return;
+            } else {
+                int duration = Integer.parseInt(ruleDuration);
+                if (duration < 0) {
+                    throw new FileRulesException(String.format(INVALIDPARAMETERS, RULE_DURATION, ruleDuration));
+                }
+            }
         } catch (final NumberFormatException e) {
             throw new FileRulesException(String.format(INVALIDPARAMETERS, RULE_DURATION, ruleDuration));
         }
@@ -336,20 +351,57 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             record.get(RULE_MEASUREMENT) != null;
     }
 
+
+    /**
+     * Check if Rule duration associated to rule measurement respect the limit of 999 years
+     *
+     * @param record
+     * @throws FileRulesException
+     */
+    private void checkAssociationRuleDurationRuleMeasurementLimit(CSVRecord record) throws FileRulesException {
+        if (!record.get(RULE_DURATION).equalsIgnoreCase(UNLIMITED) &&
+            ((record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.YEAR.getType()) &&
+                Integer.parseInt(record.get(RULE_DURATION)) > YEAR_LIMIT) ||
+                (record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.MONTH.getType()) &&
+                    Integer.parseInt(record.get(RULE_DURATION)) > MONTH_LIMIT) ||
+                (record.get(RULE_MEASUREMENT).equalsIgnoreCase(RuleMeasurementEnum.DAY.getType()) &&
+                    Integer.parseInt(record.get(RULE_DURATION)) > DAY_LIMIT)))
+            throw new FileRulesException(
+                String.format(INVALIDPARAMETERS, RULE_DURATION, record.get(RULE_DURATION)));
+
+    }
+
+
     /**
      * Check if RuleMeasurement is included in the Enumeration
      *
      * @param test
      * @return
      */
-    private static boolean contains(String test) {
+    private static boolean containsRuleMeasurement(String test) {
         for (final RuleMeasurementEnum c : RuleMeasurementEnum.values()) {
-            if (c.getType().equals(test)) {
+            if (c.getType().equalsIgnoreCase(test)) {
                 return true;
             }
         }
         return false;
     }
+
+    /**
+     * Check if RuleType is included in the Enumeration
+     *
+     * @param test
+     * @return
+     */
+    private static boolean containsRuleType(String test) {
+        for (final RuleTypeEnum c : RuleTypeEnum.values()) {
+            if (c.getType().equalsIgnoreCase(test)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * Convert a given input stream to a file
@@ -374,12 +426,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         return (FileRules) mongoAccess.getDocumentById(id, FunctionalAdminCollections.RULES);
     }
 
+
     @Override
     public List<FileRules> findDocuments(JsonNode select) throws ReferentialException {
         try (
             final MongoCursor<VitamDocument<?>> rules = mongoAccess.findDocuments(select,
-                    FunctionalAdminCollections.RULES)) {
-              
+                FunctionalAdminCollections.RULES)) {
+
             final List<FileRules> result = new ArrayList<>();
             if (rules == null || !rules.hasNext()) {
                 throw new FileRulesNotFoundException(RULES_NOT_FOUND);

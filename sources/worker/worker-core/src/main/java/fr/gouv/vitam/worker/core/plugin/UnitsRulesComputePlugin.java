@@ -98,6 +98,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String DATE_FORMAT_PATTERN = "yyyy-MM-dd";
     private static final String AU_NOT_HAVE_RULES = "Archive unit does not have rules";
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
+    private static final String UNLIMITED_RULE_DURATION = "unlimited";
+
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_PATTERN);
 
     private HandlerIO handlerIO;
 
@@ -250,7 +253,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                             writer.add(event);
                             String ruleId = "";
                             String startDate = "";
-                            String endDateAsString = "";
+                            Date endDateAsString = null;
                             String currentRuleType = event.asStartElement().getName().getLocalPart();
 
                             boolean isNotEndRuleTag = true;
@@ -281,10 +284,11 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                                             endDateAsString =
                                                 getEndDate(startDate, ruleId, rulesResults, currentRuleType);
 
-                                            if (StringUtils.isNotBlank(endDateAsString)) {
+                                            if (endDateAsString != null) {
                                                 writer.add(eventFactory.createStartElement("", "",
                                                     SedaConstants.TAG_RULE_END_DATE));
-                                                writer.add(eventFactory.createCharacters(endDateAsString));
+                                                writer.add(eventFactory
+                                                    .createCharacters(SIMPLE_DATE_FORMAT.format(endDateAsString)));
                                                 writer.add(eventFactory.createEndElement("", "",
                                                     SedaConstants.TAG_RULE_END_DATE));
                                             }
@@ -385,28 +389,34 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         return JsonHandler.createObjectNode();
     }
 
-    private String getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
+    private Date getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
-        if (!StringUtils.isBlank(startDateString) && !StringUtils.isBlank(ruleId) &&
-            !StringUtils.isBlank(currentRuleType)) {
-            final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
-            final Date startDate = simpleDateFormat.parse(startDateString);
+
+        if (StringUtils.isBlank(startDateString)) {
+            return null;
+        }
+        if (!StringUtils.isBlank(ruleId) && !StringUtils.isBlank(currentRuleType)) {
+
+            final Date startDate = SIMPLE_DATE_FORMAT.parse(startDateString);
             final JsonNode ruleNode = getRuleNodeByID(ruleId, currentRuleType, rulesResults);
             if (checkRulesParameters(ruleNode)) {
                 final String duration = ruleNode.get(FileRules.RULEDURATION).asText();
                 final String measurement = ruleNode.get(FileRules.RULEMEASUREMENT).asText();
-                final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromMonth(measurement);
+                if (duration.equalsIgnoreCase(UNLIMITED_RULE_DURATION)) {
+                    return null;
+                }
+                final RuleMeasurementEnum ruleMeasurement =
+                    RuleMeasurementEnum.getEnumFromType(measurement);
                 final int calendarUnit = ruleMeasurement.getCalendarUnitType();
                 final Calendar cal = Calendar.getInstance();
                 cal.setTime(startDate);
                 cal.add(calendarUnit, Integer.parseInt(duration));
-                return simpleDateFormat.format(cal.getTime());
+                return cal.getTime();
             } else {
                 throw new ProcessingException(CHECKS_RULES);
             }
         }
-        return "";
-
+        return null;
     }
 
     /**
