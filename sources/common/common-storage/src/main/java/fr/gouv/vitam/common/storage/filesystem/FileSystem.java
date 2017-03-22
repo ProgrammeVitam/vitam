@@ -199,6 +199,6 @@ public class FileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public void close() {
-        // Nothing to do
+        closeContext();
     }
 }

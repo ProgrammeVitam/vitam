@@ -106,7 +106,8 @@ public class OpenstackSwift extends ContentAddressableStorageAbstract {
 
     @Override
     public void closeContext() {
-        // Nothing to do, keeping http client opened
+        // TODO Maybe keeping the client opened
+        close();
     }
 
     @Override
