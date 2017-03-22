@@ -28,18 +28,18 @@ public class UnitRuleComputeTest {
     private static final String AU4_ID = "AU4";
     
     private final static String MGT1 = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"R1\"" +
-        "    }," +
-        "    \"AccessRule\" : {" +
+        "    }]," +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"ACC-0001\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String MGT10 = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"R10\"" +
-        "    }," +
+        "    }]," +
         "    \"AccessRule\" : " +
         "    [" +
         "    {" +
@@ -52,10 +52,10 @@ public class UnitRuleComputeTest {
         "  }";
     
     private final static String MGT3 = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"R3\"," +
         "      \"PreventInheritance\" : \"true\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String MGT4 = "{" +
@@ -72,73 +72,73 @@ public class UnitRuleComputeTest {
     
     
     private final static String AU1_MGT = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"str1\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
-        "    }," +
-        "    \"AccessRule\" : {" +
+        "    }]," +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"acc1\"," +
         "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU5_MGT = "{" +
-        "    \"DissiminationRule\" : {" +
+        "    \"DissiminationRule\" : [{" +
         "      \"Rule\" : \"dis5\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU3_MGT = "{" +
-        "    \"AccessRule\" : {" +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"acc3\"," +
         "      \"FinalAction\" : \"AU3Access\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
-        "    }," +
-        "    \"DissiminationRule\" : {" +
+        "    }]," +
+        "    \"DissiminationRule\" : [{" +
         "      \"Rule\" : \"dis3\"," +
         "      \"PreventInheritance\" : \"true\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU2_MGT = "{" +
-        "    \"AccessRule\" : {" +
+        "    \"AccessRule\" : [{" +
         "      \"PreventInheritance\" : \"true\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU5_MGT_NONREF = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"str5\"" +
-        "    }," +
-        "    \"AccessRule\" : {" +
+        "    }]," +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"acc5\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU3_MGT_NONREF = "{" +
-        "    \"AccessRule\" : {" +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"acc3\"," +
         "      \"RefNonRuleId\" : \"acc3\"" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU2_MGT_NONREF = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"Rule\" : \"str2\"" +
-        "    }," +
-        "    \"AccessRule\" : {" +
+        "    }]," +
+        "    \"AccessRule\" : [{" +
         "      \"RefNonRuleId\" : [\"acc1\", \"acc404\"]" +
-        "    }" +
+        "    }]" +
         "  }";
     
     private final static String AU4_MGT_NONREF = "{" +
-        "    \"StorageRule\" : {" +
+        "    \"StorageRule\" : [{" +
         "      \"RefNonRuleId\" : [\"str1\", \"str2\", \"str5\"]" +
-        "    }" +
+        "    }]" +
         "  }";
 
     private ObjectNode node = JsonHandler.createObjectNode();

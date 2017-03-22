@@ -8,12 +8,17 @@
 			</AccessRule>
 			<StorageRule>
                 <Rule>R5</Rule>
+				<Rule>DIS-00004</Rule>
+				<RefNonRuleId>ACC-00003</RefNonRuleId>
+				<RefNonRuleId>ACC-00001</RefNonRuleId>
                 <FinalAction>Copy</FinalAction>
             </StorageRule>
             
             <AccessRule>
 				<Rule>ACC-00002</Rule>
 				<StartDate>1978-01-01</StartDate>
+				<Rule>DIS-00004</Rule>
+				<PreventInheritance>true</PreventInheritance>
 			</AccessRule>
 				</Management>
 				<Content>
