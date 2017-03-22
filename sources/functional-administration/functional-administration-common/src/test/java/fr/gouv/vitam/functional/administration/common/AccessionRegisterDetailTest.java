@@ -43,7 +43,8 @@ public class AccessionRegisterDetailTest {
             .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
-            .setTotalUnits(initialValue);
+            .setTotalUnits(initialValue)
+            .setOperationIds(id);
 
         assertEquals(id, register.get("_id"));
         assertEquals(id, register.getOriginatingAgency());

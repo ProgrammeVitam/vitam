@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.client.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
@@ -107,6 +110,12 @@ public class AccessionRegisterDetailModel {
     @JsonProperty("ObjectSize")
     private RegisterValueDetailModel ObjectSize;
 
+    /**
+     * Linked ingest operation id
+     */
+    @JsonProperty("OperationIds")
+    private List<String> operationsIds;
+    
     /**
      * Constructor without fields
      * use for jackson
@@ -305,5 +314,32 @@ public class AccessionRegisterDetailModel {
         ObjectSize = objectSize;
         return this;
     }
+    
+    public List<String> getOperationsIds() {
+		return operationsIds;
+	}
+    
+    /**
+     * Set operationIds in the model and return the updated AccessionRegisterDetailModel
+     * @param operationsIds id of linked ingest operations
+     * @return this
+     */
+    public AccessionRegisterDetailModel setOperationsIds(List<String> operationsIds) {
+		this.operationsIds = operationsIds;
+		return this;
+	}
+    
+    /**
+     * Add an operationId to the model and return the updated AccessionRegisterDetailModel
+     * @param operationsIds id of linked ingest operations that must be added
+     * @return this
+     */
+    public AccessionRegisterDetailModel addOperationsId(String operationsId) {
+    	if (operationsIds == null) {
+    		operationsIds = new ArrayList<>();
+    	}
+		operationsIds.add(operationsId);
+		return this;
+	}
 
 }
