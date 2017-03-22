@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,6 +55,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
@@ -86,12 +88,9 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 @javax.ws.rs.ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
-
-    private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
-
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
 
+    private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
 
     private static final String UNAUTHORIZED_ACTION = "Unauthorized action :";
 
@@ -539,7 +538,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 workflow.put(EXECUTION_MODE_FIELD, processWorkflow.getExecutionMode().toString());
                 workflow.put(GLOBAL_EXECUTION_STATUS_FIELD, processWorkflow.getExecutionStatus().toString());
                 workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getGlobalStatusCode().toString());
-                workflow.put(PROCESS_DATE_FIELD, processWorkflow.getProcessDate().toString());
+                workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
 
                 result.add(workflow);
             }
