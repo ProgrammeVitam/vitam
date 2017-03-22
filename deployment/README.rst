@@ -33,8 +33,8 @@ Pour le déployer :
 
 1. générer les certificats nécessaire en lançant le script :
 ``pki/scripts/generate_ca.sh``, si pas de CA fournie
-``pki/scripts/generate_certs.sh <environnement>``, si pas de certificats fournis
-``./generate_stores.sh <environnement>``
+``pki/scripts/generate_certs.sh <fichier environnement>``, si pas de certificats fournis
+``./generate_stores.sh``
 
 
 2. Si gestion par VITAM des dépots de binaires:
@@ -60,6 +60,7 @@ ou
 
 
 b. ihm-recette seulement
+
 ``ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
 (et renseigner le mot de passe demandé)
 ou
@@ -88,3 +89,9 @@ memory_opts="-Xms384m -Xmx384m"
 ``ansible-playbook ansible-vitam/vitam.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
 et
 ``ansible-playbook ansible-vitam-extra/extra.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
+
+7. Automatisation du chargement de PRONOM
+
+``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
+.. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.

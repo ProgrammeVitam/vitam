@@ -20,3 +20,5 @@ docker_registry_group_long: "vitam-prod-app-6.internet.agri:8084"
 docker_registry_hostname: "docker.programmevitam.fr"
 
 docker_credentials: "{{app_jenkins_remote_username}}:{{app_jenkins_remote_password}}"
+
+mongo_express_version: "0.38.0"
