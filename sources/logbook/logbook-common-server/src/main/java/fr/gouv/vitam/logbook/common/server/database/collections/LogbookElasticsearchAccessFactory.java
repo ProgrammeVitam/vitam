@@ -43,7 +43,7 @@ public class LogbookElasticsearchAccessFactory {
      *
      * @param configuration config of elasticsearch
      * @return the ElasticsearchAccess
-     * @throws LogbookException
+     * @throws LogbookException if error in create LogbookElasticsearchAccess
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookElasticsearchAccess create(LogbookConfiguration configuration) throws LogbookException {

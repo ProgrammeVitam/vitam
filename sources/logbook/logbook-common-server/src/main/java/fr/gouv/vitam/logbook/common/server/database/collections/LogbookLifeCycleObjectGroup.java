@@ -48,7 +48,7 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     /**
      * Constructor from LogbookLifeCycleParameters
      *
-     * @param parameters
+     * @param parameters of type LogbookLifeCycleObjectGroupParameters
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters parameters) {
@@ -59,7 +59,7 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content in format Document
      */
     public LogbookLifeCycleObjectGroup(Document content) {
         super(content);
@@ -68,7 +68,7 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content in format String
      */
     public LogbookLifeCycleObjectGroup(String content) {
         super(content);
@@ -77,7 +77,7 @@ public class LogbookLifeCycleObjectGroup extends LogbookLifeCycle<LogbookLifeCyc
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content in format JsonNode
      */
     public LogbookLifeCycleObjectGroup(JsonNode content) {
         super(content);

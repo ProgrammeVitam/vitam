@@ -38,7 +38,12 @@ public enum AdminCollections {
     /**
      * Rules Collection
      */
-    RULES("rules");
+    RULES("rules"),
+    
+    /**
+     * Ingest contracts collection
+     */
+    CONTRACTS("contracts");
 
     private String name;
 
@@ -55,7 +60,7 @@ public enum AdminCollections {
     }
 
     /**
-     * @param value
+     * @param value as String to compare
      * @return True if the name of the collection equals
      */
     public boolean compareTo(String value) {

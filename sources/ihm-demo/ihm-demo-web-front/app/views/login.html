@@ -16,7 +16,7 @@
                 </div>
                 <div class="form-group col-md-4" ng-class="{'has-error': logginError}">
                     <label for="tenantId">Tenant de la session</label>
-                    <select ng-model="tenantId">
+                    <select ng-model="tenantId" id = "tenantId">
                         <option ng-repeat='tenant in tenants' value="{{tenant}}">{{tenant}}</option>
                     </select>
                 </div>

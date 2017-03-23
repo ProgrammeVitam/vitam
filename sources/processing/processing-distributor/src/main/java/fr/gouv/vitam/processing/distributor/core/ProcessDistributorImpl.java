@@ -116,9 +116,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
     /**
      * Temporary method for distribution supporting multi-list
      * 
-     * @param workParams
-     * @param step
-     * @param operationId
+     * @param workParams of type {@link WorkerParameters}
+     * @param step the execution step 
+     * @param operationId the operation id
      * @return the final step status
      */
     @Override
@@ -294,7 +294,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
     /**
      * Add response to the current step (use for async)
      * 
-     * @param workerAsyncResponse
+     * @param workerAsyncResponse the asynchronized response
      */
     @Override
     public synchronized void callbackResponse(WorkerAsyncResponse workerAsyncResponse) {
@@ -315,9 +315,9 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
         }
         // Now notify the Distributor if it is waiting on the Running Job set to be empty
         if (workerAsyncResponse.getWorkerAsyncRequest().getCurrentRunningObjectsInStep().isEmpty()) {
-            try {
+            try {                
                 processDataAccess.updateStep(workParams.getContainerName(), workParams.getStepUniqId(), 0,
-                    true, VitamThreadUtils.getVitamSession().getTenantId());
+                    true, workerAsyncResponse.getWorkerAsyncRequest().getSession().getTenantId());
             } catch (ProcessingException | RuntimeException e) {
                 if (step.getStepResponses() != null) {
                     step.getStepResponses().increment(StatusCode.FATAL);

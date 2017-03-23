@@ -37,7 +37,7 @@ public class ContextNotFoundException extends IngestInternalException {
     private static final long serialVersionUID = 3153134957326290033L;
 
     /**
-     * @param message
+     * @param message of exception
      */
     public ContextNotFoundException(String message) {
         super(message);

@@ -52,12 +52,12 @@ public class WorkerAsyncRequest {
     /**
      * Default constructor
      * 
-     * @param descriptionStep
-     * @param callingProcess
-     * @param currentRunningObjectsInStep
-     * @param queueId
-     * @param waitingStepAllAsyncRequest
-     * @param session 
+     * @param descriptionStep the step description
+     * @param callingProcess the callback
+     * @param currentRunningObjectsInStep the current object in step
+     * @param queueId the queue id
+     * @param waitingStepAllAsyncRequest the waiting step
+     * @param session the session id
      */
     
     public WorkerAsyncRequest(DescriptionStep descriptionStep, Callbackable<WorkerAsyncResponse> callingProcess,
@@ -83,7 +83,7 @@ public class WorkerAsyncRequest {
     /**
      * call the callback at the end of the process
      * 
-     * @param workerAsyncResponse
+     * @param workerAsyncResponse of type {@link WorkerAsyncResponse}
      */
     public void callCallback(WorkerAsyncResponse workerAsyncResponse) {
         callingProcess.callbackResponse(workerAsyncResponse);

@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.client.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
@@ -59,6 +62,11 @@ public class AccessionRegisterDetailModel {
     @JsonProperty("SubmissionAgency")
     private String submissionAgency;
     // TODO date object
+    /**
+     * archival agreement identifier
+     */
+    @JsonProperty("ArchivalAgreement")
+    private String archivalAgreement;
     /**
      * end date
      */
@@ -108,6 +116,12 @@ public class AccessionRegisterDetailModel {
     private RegisterValueDetailModel ObjectSize;
 
     /**
+     * Linked ingest operation id
+     */
+    @JsonProperty("OperationIds")
+    private List<String> operationsIds;
+    
+    /**
      * Constructor without fields
      * use for jackson
      */
@@ -122,7 +136,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param id
+     * @param id value to set
      * @return this
      */
     public AccessionRegisterDetailModel setId(String id) {
@@ -138,7 +152,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param tenant
+     * @param tenant the working tenant to set
      * @return this
      */
     public AccessionRegisterDetailModel setTenant(long tenant) {
@@ -154,7 +168,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param originatingAgency
+     * @param originatingAgency value to set
      * @return this
      */
     public AccessionRegisterDetailModel setOriginatingAgency(String originatingAgency) {
@@ -170,13 +184,29 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param submissionAgency
+     * @param submissionAgency value to set
      * @return this
      */
     public AccessionRegisterDetailModel setSubmissionAgency(String submissionAgency) {
         this.submissionAgency = submissionAgency;
         return this;
     }
+
+    /**
+     * @return archivalAgreement identifier
+     */
+    public String getArchivalAgreement() {
+		return archivalAgreement;
+	}
+
+    /**
+     * Set the archivalAgreement identifier
+     * @param archivalAgreement
+     */
+    public AccessionRegisterDetailModel setArchivalAgreement(String archivalAgreement) {
+		this.archivalAgreement = archivalAgreement;
+        return this;
+	}
 
     /**
      * @return endDate
@@ -186,7 +216,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param endDate
+     * @param endDate value to set
      * @return this
      */
     public AccessionRegisterDetailModel setEndDate(String endDate) {
@@ -202,7 +232,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param startDate
+     * @param startDate value to set
      * @return this
      */
     public AccessionRegisterDetailModel setStartDate(String startDate) {
@@ -218,7 +248,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param lastUpdate
+     * @param lastUpdate value to set
      * @return this
      */
     public AccessionRegisterDetailModel setLastUpdate(String lastUpdate) {
@@ -234,7 +264,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param status
+     * @param status value to set
      * @return this
      */
     public AccessionRegisterDetailModel setStatus(AccessionRegisterStatus status) {
@@ -250,7 +280,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param totalObjectsGroups
+     * @param totalObjectsGroups value to set
      * @return this
      */
     public AccessionRegisterDetailModel setTotalObjectsGroups(RegisterValueDetailModel totalObjectsGroups) {
@@ -266,7 +296,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param totalUnits
+     * @param totalUnits value to set
      * @return this
      */
     public AccessionRegisterDetailModel setTotalUnits(RegisterValueDetailModel totalUnits) {
@@ -282,7 +312,7 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param totalObjects
+     * @param totalObjects value to set
      * @return this
      */
     public AccessionRegisterDetailModel setTotalObjects(RegisterValueDetailModel totalObjects) {
@@ -298,12 +328,39 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     * @param objectSize
+     * @param objectSize value to set
      * @return this
      */
     public AccessionRegisterDetailModel setObjectSize(RegisterValueDetailModel objectSize) {
         ObjectSize = objectSize;
         return this;
     }
+    
+    public List<String> getOperationsIds() {
+		return operationsIds;
+	}
+    
+    /**
+     * Set operationIds in the model and return the updated AccessionRegisterDetailModel
+     * @param operationsIds id of linked ingest operations
+     * @return this
+     */
+    public AccessionRegisterDetailModel setOperationsIds(List<String> operationsIds) {
+		this.operationsIds = operationsIds;
+		return this;
+	}
+    
+    /**
+     * Add an operationId to the model and return the updated AccessionRegisterDetailModel
+     * @param operationsIds id of linked ingest operations that must be added
+     * @return this
+     */
+    public AccessionRegisterDetailModel addOperationsId(String operationsId) {
+    	if (operationsIds == null) {
+    		operationsIds = new ArrayList<>();
+    	}
+		operationsIds.add(operationsId);
+		return this;
+	}
 
 }

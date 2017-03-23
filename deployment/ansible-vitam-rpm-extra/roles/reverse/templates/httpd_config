@@ -9,7 +9,7 @@
     # Client certificate path
     SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{environnement}}.pem
     # Client CA path
-    SSLProxyCACertificateFile /etc/{{apache_service}}/certs/ca_client_{{environnement}}.crt
+    SSLProxyCACertificatePath /etc/{{apache_service}}/ca/{{environnement}}
     # Don't check the CN of the server's certificate
     SSLProxyCheckPeerCN off
     # Don't check the hostname of the server
@@ -108,6 +108,12 @@
     # IHM Recette
     ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} acquire=5000 connectiontimeout=3500 timeout=600 retry=5
     ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }}
+
+    # Enable chunked mode for all requests to access-external & ingest-external
+    <LocationMatch "^/(ingest|access)-external">
+        SetEnv proxy-sendchunked 1
+        SetEnv proxy-sendcl 0
+    </LocationMatch>
 
     # External API for ingest-external
     ProxyPass /ingest-external https://{{groups['hosts-ingest-external'][0]}}:{{vitam_ingestexternal_port_https}}/ingest-external acquire=5000 connectiontimeout=3500 timeout=600 retry=5

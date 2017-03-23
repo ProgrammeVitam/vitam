@@ -60,7 +60,13 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
 
     private static final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientMock.class);
+    /**
+     * mock ingest response
+     */
     public static final String MOCK_INGEST_INTERNAL_RESPONSE_STREAM = "VITAM-Ingest Internal Client Mock Response";
+    /**
+     * identifier of execution
+     */
     public static final String ID = "identifier1";
     protected StatusCode globalStatus;
 

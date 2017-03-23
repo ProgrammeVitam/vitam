@@ -19,3 +19,6 @@ Packages.gz
 local.conf
 local.json
 *.orig
+.DS_Store
+*/functional-test/report.json
+*/functional-test/src/main/dev-resources/

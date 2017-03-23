@@ -96,7 +96,7 @@ gulp.task('build', gulpsync.sync(['build:css', 'build:assets', 'build:vendor-ass
 gulp.task('default', ['serve']);
 
 function serve() {
-  var target = 'http://143.126.93.135:80';
+  var target = 'http://localhost:8082';
 
   try {
     var customConf = require('./local.json');

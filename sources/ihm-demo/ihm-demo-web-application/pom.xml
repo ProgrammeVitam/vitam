@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ihm-demo</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.16.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ihm-demo-web-application</artifactId>
 	<name>ihm-demo-web-application</name>
@@ -53,6 +53,12 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.secnod.shiro</groupId>
+			<artifactId>shiro-jersey</artifactId>
+			<version>0.2.0</version>
 		</dependency>
 
 		<!-- Servlet API -->

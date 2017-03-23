@@ -56,7 +56,7 @@ public class IngestInternalApplication
     /**
      * Ingest Internal constructor
      *
-     * @param configuration
+     * @param configuration of the internal ingest server
      */
     public IngestInternalApplication(String configuration) {
         super(IngestInternalConfiguration.class, configuration);
@@ -105,7 +105,12 @@ public class IngestInternalApplication
             // Register Storage (ATR access)
             .register(StorageClientFactory.getInstance())
             .register(ProcessingManagementClientFactory.getInstance());
-        resourceConfig.register(resource)
-            .register(new AdminStatusResource(serviceRegistry));
+        resourceConfig.register(resource);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 }

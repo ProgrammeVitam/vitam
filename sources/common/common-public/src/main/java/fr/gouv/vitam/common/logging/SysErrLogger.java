@@ -41,11 +41,11 @@ public class SysErrLogger {
     }
 
     /**
-     * Utility method to log nothin
+     * Utility method to log nothing
      *
      * Used only in classes where VitamLogger is not allowed
      *
-     * @param throwable
+     * @param throwable to log ignore
      */
     public void ignoreLog(Throwable throwable) {
         // Nothing to do
@@ -56,7 +56,7 @@ public class SysErrLogger {
      *
      * Used only in classes where VitamLogger is not allowed
      *
-     * @param message
+     * @param message to write for error
      */
     public void syserr(String message) {
         System.err.println("ERROR " + message); // NOSONAR
@@ -76,8 +76,8 @@ public class SysErrLogger {
      *
      * Used only in classes where VitamLogger is not allowed
      *
-     * @param message
-     * @param e
+     * @param message to write for error
+     * @param e throw to write as error
      */
     public void syserr(String message, Throwable e) {
         System.err.print("ERROR " + message + ": "); // NOSONAR

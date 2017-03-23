@@ -31,8 +31,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
  * Stores MetaData Unit plugin.
@@ -78,35 +80,21 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
         final ItemStatus itemStatus = new ItemStatus(UNIT_METADATA_STORAGE);
         final String guid = StringUtils.substringBeforeLast(params.getObjectName(), ".");
         final String fileName = guid + JSON;
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            JsonNode jsonResponse = null;
-            try {
-                Select query = new Select();
-                ObjectNode constructQuery = query.getFinalSelect();
-                jsonResponse = metadataClient.selectUnitbyId(constructQuery, guid);
-                if (jsonResponse != null) {
-                    JsonNode unit = jsonResponse.get($RESULTS);
-                    // transfer json to workspace
-                    handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
-                        unit, true);
-                    // object Description
-                    final ObjectDescription description =
-                        new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(), fileName);
-                    // store metadata object from workspace
-                    storeObject(description, itemStatus);
-                    itemStatus.increment(StatusCode.OK);
-                } else {
-                    LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
-                    itemStatus.increment(StatusCode.KO);
-                }
-            } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
-                InvalidParseOperationException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
+
+        checkMandatoryIOParameter(actionDefinition);
+        try {
+            // create metadata file in workspace
+            createMetadataFileInWorkspace(params, guid, fileName, itemStatus);
+            // TODO update indexed MetaData
+
+            itemStatus.increment(StatusCode.OK);
+        } catch (ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (VitamException e) {
+            itemStatus.increment(StatusCode.FATAL);
         }
         return new ItemStatus(UNIT_METADATA_STORAGE).setItemsStatus(UNIT_METADATA_STORAGE, itemStatus);
-
     }
 
     @Override
@@ -115,6 +103,43 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
 
     }
 
-
-
+    private void createMetadataFileInWorkspace(WorkerParameters params, String guid, String fileName,
+        ItemStatus itemStatus) throws VitamException {
+        // select ArchiveUnit
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            JsonNode jsonResponse = null;
+            try {
+                SelectMultiQuery query = new SelectMultiQuery();
+                ObjectNode constructQuery = query.getFinalSelect();
+                jsonResponse = metaDataClient.selectUnitbyId(constructQuery, guid);
+                if (jsonResponse == null) {
+                    LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
+                    itemStatus.increment(StatusCode.KO);
+                    throw new ProcessingException(ARCHIVE_UNIT_NOT_FOUND);
+                }
+                JsonNode unit = jsonResponse.get($RESULTS);
+                // if result = 0 then throw Exception
+                if (unit.size() == 0) {
+                    throw new ProcessingException(ARCHIVE_UNIT_NOT_FOUND);
+                }
+                // transfer json to workspace
+                try {
+                    handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
+                        unit, true);
+                } catch (ProcessingException e) {
+                    LOGGER.error(params.getObjectName(), e);
+                    throw new WorkspaceClientServerException(e);
+                }
+                // object Description
+                final ObjectDescription description =
+                    new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(), fileName);
+                // store metadata object from workspace
+                storeObject(description, itemStatus);
+            } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
+                InvalidParseOperationException | MetaDataClientServerException e) {
+                LOGGER.error(e);
+                throw e;
+            }
+        }
+    }
 }

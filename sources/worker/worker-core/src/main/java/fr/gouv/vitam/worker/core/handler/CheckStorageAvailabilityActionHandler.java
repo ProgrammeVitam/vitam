@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.StorageInformation;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -92,7 +91,12 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
                 storageCapacityNode = storageClient.getStorageInformation(DEFAULT_STRATEGY);
             }
-
+            // TODO P1 fix getcontainerInformation in storage
+            if (storageCapacityNode == null) {
+                LOGGER.warn("storage capacity account information not found");
+                itemStatus.increment(StatusCode.OK);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
             final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
                 StorageInformation[].class);
             for (StorageInformation information : informations) {

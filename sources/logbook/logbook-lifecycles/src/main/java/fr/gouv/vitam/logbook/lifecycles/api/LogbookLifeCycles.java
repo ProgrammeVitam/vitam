@@ -83,6 +83,7 @@ public interface LogbookLifeCycles {
      * @param parameters
      * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookAlreadyExistsException
      */
     void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
         throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -95,6 +96,7 @@ public interface LogbookLifeCycles {
      * @param parameters
      * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookAlreadyExistsException
      */
     void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
         throws LogbookNotFoundException, LogbookDatabaseException,
@@ -161,7 +163,7 @@ public interface LogbookLifeCycles {
     /**
      * Select logbook LifeCycle entry by operation
      *
-     * @param idOperation
+     * @param idOperation the operation id
      * @param idLc
      * @return the Unit Logbook Lifecycle
      * @throws LogbookDatabaseException
@@ -243,12 +245,12 @@ public interface LogbookLifeCycles {
     /**
      * Create a cursor for all Unit Lifecycles from one operation
      *
-     * @param operationId
-     * @param select
-     * @param collection the collection on which the cursor creation operation will be done : Production collection
+     * @param operationId the operation id
+     * @param select the query in format JsonNode
+     * @param logbookCollection the collection on which the cursor creation operation will be done : Production collection
      *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
      * @return the X-Cursor-Id
-     * @throws LogbookDatabaseException
+     * @throws LogbookDatabaseException if the cursor is not found
      */
     public String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
         throws LogbookDatabaseException;
@@ -256,7 +258,7 @@ public interface LogbookLifeCycles {
     /**
      * Get the next available Unit Lifecycle
      *
-     * @param cursorId
+     * @param cursorId the cursor id
      * @return the next available
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
@@ -267,12 +269,12 @@ public interface LogbookLifeCycles {
     /**
      * Create a cursor for all ObjectGroup Lifecycles from one operation
      *
-     * @param operationId
-     * @param select
+     * @param operationId the operation id
+     * @param select the query to create cursor
      * @param collection the collection on which the cursor creation operation will be done : Production collection
      *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return the X-Cursor-Id
-     * @throws LogbookDatabaseException
+     * @throws LogbookDatabaseException if the cursor is not found
      */
     public String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException;
@@ -280,7 +282,7 @@ public interface LogbookLifeCycles {
     /**
      * Get the next available ObjectGroup Lifecycle
      *
-     * @param cursorId
+     * @param cursorId the cursor id 
      * @return the next available
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
@@ -291,7 +293,7 @@ public interface LogbookLifeCycles {
     /**
      * Finalize the cursor
      *
-     * @param cursorId
+     * @param cursorId the cursor id
      */
     public void finalizeCursor(String cursorId);
 
@@ -320,6 +322,7 @@ public interface LogbookLifeCycles {
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      */
     void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
@@ -329,6 +332,9 @@ public interface LogbookLifeCycles {
      * 
      * @param idOperation
      * @param idLc
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      */
     void commitUnit(String idOperation, String idLc)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
@@ -338,6 +344,9 @@ public interface LogbookLifeCycles {
      * 
      * @param idOperation
      * @param idLc
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      */
     void commitObjectGroup(String idOperation, String idLc)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
@@ -366,6 +375,8 @@ public interface LogbookLifeCycles {
      * 
      * @param unitId the unit Id
      * @return the lifeCycleStatusCode
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
      */
     LifeCycleStatusCode getUnitLifeCycleStatus(String unitId) throws LogbookDatabaseException, LogbookNotFoundException;
 
@@ -374,6 +385,8 @@ public interface LogbookLifeCycles {
      * 
      * @param objectGroupId the objectGroup Id
      * @return the lifeCycleStatusCode
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
      */
     LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
         throws LogbookDatabaseException, LogbookNotFoundException;

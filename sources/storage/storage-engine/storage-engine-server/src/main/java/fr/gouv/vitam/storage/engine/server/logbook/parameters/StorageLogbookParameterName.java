@@ -44,7 +44,8 @@ public enum StorageLogbookParameterName {
     objectIdentifier,
     /**
      * Object Group Identifier.<br>
-     * Identifier of the object group corresponding to the object written in the storage offer. <br>
+     * Identifier of the object group corresponding to the object written in the
+     * storage offer. <br>
      * For instance: Object Group GUID<br>
      */
     objectGroupIdentifier,
@@ -53,7 +54,8 @@ public enum StorageLogbookParameterName {
      */
     digest,
     /**
-     * digest Algorithm used for this object Could be for instance: "SHA-256", "SHA-512", ...
+     * digest Algorithm used for this object Could be for instance: "SHA-256",
+     * "SHA-512", ...
      */
     digestAlgorithm,
     /**
@@ -82,7 +84,8 @@ public enum StorageLogbookParameterName {
     /**
      * External Object Identifier on the current object<br>
      * <br>
-     * For instance: from Ingest, in the manifest.xml, this field is "MessageIdentifier" <br>
+     * For instance: from Ingest, in the manifest.xml, this field is
+     * "MessageIdentifier" <br>
      * <br>
      * Can be null
      */

@@ -28,7 +28,7 @@ package fr.gouv.vitam.common.database.parser.request.multiple;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
+import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,7 +56,7 @@ public class DeleteParserMultiple extends RequestParserMultiple {
 
     @Override
     protected RequestMultiple getNewRequest() {
-        return new Delete();
+        return new DeleteMultiQuery();
     }
 
     /**
@@ -76,7 +76,7 @@ public class DeleteParserMultiple extends RequestParserMultiple {
     }
 
     @Override
-    public Delete getRequest() {
-        return (Delete) request;
+    public DeleteMultiQuery getRequest() {
+        return (DeleteMultiQuery) request;
     }
 }

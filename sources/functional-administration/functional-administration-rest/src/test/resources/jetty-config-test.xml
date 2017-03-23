@@ -80,6 +80,7 @@
                     </Array>
                 </Arg>
                 <Set name="port"><SystemProperty name="jetty.port" default="8088"/></Set>
+                <Set name="name">business</Set>
             </New>
         </Arg>
     </Call>

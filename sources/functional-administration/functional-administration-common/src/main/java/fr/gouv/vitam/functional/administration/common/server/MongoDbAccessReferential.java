@@ -65,6 +65,7 @@ public interface MongoDbAccessReferential {
      *
      * @param collection collection of Mongo for insert
      * @throws DatabaseException thrown when error on delete
+     * @throws ReferentialException when error occurs
      */
     void deleteCollection(FunctionalAdminCollections collection) throws DatabaseException, ReferentialException;
 
@@ -94,6 +95,6 @@ public interface MongoDbAccessReferential {
      * @return vitam document list
      * @throws ReferentialException when error occurs
      */
-    MongoCursor<?> findDocuments(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;  
+    MongoCursor<VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;  
 
 }

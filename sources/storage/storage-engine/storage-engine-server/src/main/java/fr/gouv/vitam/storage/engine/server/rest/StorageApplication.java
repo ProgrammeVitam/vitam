@@ -52,6 +52,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     static VitamServiceRegistry serviceRegistry = null;
     static StorageResource storageResource;
+
     /**
      * StorageApplication constructor
      *
@@ -73,15 +74,17 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     /**
      * Main method to run the APPLICATION (doing start and join)
      *
-     * @param args command line parameters
-     * @throws IllegalStateException if the Vitam server cannot be launched
+     * @param args
+     *            command line parameters
+     * @throws IllegalStateException
+     *             if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, STORAGE_CONF_FILE_NAME));
-                throw new IllegalArgumentException(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    STORAGE_CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                        format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, STORAGE_CONF_FILE_NAME));
             }
             final StorageApplication application = new StorageApplication(args[0]);
             // Test if dependencies are OK
@@ -110,6 +113,11 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
         // FIXME P2 register for default offer: useful ?
         storageResource = new StorageResource(getConfiguration());
         resourceConfig.register(storageResource);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 }

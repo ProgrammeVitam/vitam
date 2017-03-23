@@ -105,7 +105,7 @@ Il est possible de cliquer sur les noeuds de l'arborecsence pour naviguer entre 
 
 Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et de gestion relatives à l'unité archivistique.
 
-Les métadonnées (excepté l'ID) peuvent être modifiées en cliquant sur le bouton "Modifier", chaque ligne pouvant ainsi être éditée.
+Les métadonnées descriptives, excepté l'ID, peuvent être modifiées en cliquant sur le bouton "Modifier", chaque ligne pouvant ainsi être éditée.
 Une fois les modifications saisies, un clic sur le bouton "Enregistrer" sauvegarde celles-ci et met à jour les métadonnées.
 Une fois les modification des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal de Cycle de Vie correspondant.
 
@@ -113,15 +113,27 @@ Une fois les modification des métadonnées effectuées, les anciennes valeurs s
 
 .. image:: images/detail_v2.jpg
 
+Si des règles de gestions s'appliquent à l'unité, alors celles ci sont listées par catégorie. Ces règles ont les attributs suivants :
+
+- Intitulé : le code affecté à la règle appliquée à cette unité
+- Date de début : d'application de la règle
+- Date de fin : d'application de la règle
+- Sort final : optionnel, dans le cas où la règle possède un sort final
+- Héritée : indique si la règle est héritée d'un de ses parents (oui) ou si la règle est déclarée directement dans cette unité (non)
+
+Lorsqu'une règle est bloquée, au travers des mécanismes de blocages totaux ou partiels, par une unité archivistique située en amont dans l'arborescence, elle n'apparaît naturellement pas dans les unités situées en dessous.
+
+.. image:: images/detail_regle_gestion.png
+
 Si des objets sont disponibles, le bloc "Groupe d'Objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées.
 
 Chaque objet est listé dans un tableau, une ligne du tableau correspondant à un objet. Les colonnes affichent les informations suivantes :
 
 - l'usage de l'objet, correspond aux utilisations de l'objet (Consultation, conservation, etc.)
 - la taille de l'objet
-- l'extention du format de l'objet
+- l'extension du format de l'objet
 - la date de dernière modification
-- le téléchargement : une îcone ("flèche bleue pointant vers le bas") pour télécharger l'objet
+- le téléchargement : une icône ("flèche bleue pointant vers le bas") pour télécharger l'objet
 
 .. image:: images/detail_v3.png
 
@@ -281,8 +293,9 @@ Pour chaque entrée, les informations suivantes sont affichées :
 
 - Identifiant de l'opération attribué par la solution logicielle VITAM (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
+- Contrat correspondant au contrat d'entrée appliqué lors du versement du SIP
 - Date d'entrée
-- nombre d'unités archivistiques
+- Nombre d'unités archivistiques
 
   - Total : Nombre d'unités archivistiques entrées dans le système
   - Supprimé : Nombre d'unités archivistiques supprimées du système

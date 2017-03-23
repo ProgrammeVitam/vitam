@@ -85,3 +85,10 @@ des buffers est rempli, puis lu en parallèle. Dès que tous les buffers sont vi
  attendent potentiellement indéfinement s'il n'y a pas de timeout.
 
 Il n'y a pas de vrai pool de threads dans cette version.
+
+Itération 16
+------------
+
+- Revue de l'architecture golbale du stockage. Mise en place du CAS MANAGER et du CAS CONTAINER.
+- Refactoring des éléments communs entre les offres et le workspace. Mise en place d'une implémentation workspace
+spécifique de stockage en mode filesystem

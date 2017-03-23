@@ -168,7 +168,8 @@ public class UnitsRulesComputePluginTest {
         reset(workspaceClient);
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
-            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY)).build());
+            .thenReturn(Response.status(Status.OK)
+                .entity(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY)).build());
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
@@ -218,14 +219,14 @@ public class UnitsRulesComputePluginTest {
         storageRule.put(FileRules.RULEDESCRIPTION, "rule description");
         storageRule.put(FileRules.RULEDURATION, "3");
         storageRule.put(FileRules.RULETYPE, "StorageRule");
-        storageRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+        storageRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MONTH.getType());
 
         final ObjectNode classificationRule = JsonHandler.createObjectNode();
         classificationRule.put(FileRules.RULEID, "ID470");
         classificationRule.put(FileRules.RULEDESCRIPTION, "rule content");
         classificationRule.put(FileRules.RULETYPE, "ClassificationRule");
         classificationRule.put(FileRules.RULEDURATION, "2");
-        classificationRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.JOURS.getType());
+        classificationRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.DAY.getType());
 
 
         final ObjectNode accessRule = JsonHandler.createObjectNode();
@@ -233,7 +234,7 @@ public class UnitsRulesComputePluginTest {
         accessRule.put(FileRules.RULEDESCRIPTION, "rule description");
         accessRule.put(FileRules.RULEDURATION, "3");
         accessRule.put(FileRules.RULETYPE, "AccessRule");
-        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MONTH.getType());
 
         final ArrayNode root1 = JsonHandler.createArrayNode();
         root1.add(classificationRule);
@@ -252,14 +253,14 @@ public class UnitsRulesComputePluginTest {
         accessRule.put(FileRules.RULEID, "ID470");
         accessRule.put(FileRules.RULEDESCRIPTION, "rule content");
         accessRule.put(FileRules.RULEDURATION, "2");
-        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.JOURS.getType());
+        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.DAY.getType());
 
 
         final ObjectNode reuseRule2 = JsonHandler.createObjectNode();
         reuseRule2.put(FileRules.RULEID, "ID019");
         reuseRule2.put(FileRules.RULEDESCRIPTION, "rule description");
         reuseRule2.put(FileRules.RULEDURATION, "3");
-        reuseRule2.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MOIS.getType());
+        reuseRule2.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MONTH.getType());
 
         final ArrayNode root1 = JsonHandler.createArrayNode();
         root1.add(accessRule);

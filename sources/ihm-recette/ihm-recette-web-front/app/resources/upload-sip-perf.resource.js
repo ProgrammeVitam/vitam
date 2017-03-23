@@ -27,13 +27,17 @@
 
 // Define resources in order to call WebApp http endpoints for soap-ui
 angular.module('core')
-  .factory('uploadSipPerfResource', function($http, IHM_URLS) {
-    var GENERATE_STAT_URL = '/stat/';
+  .factory('uploadSipPerfResource', function($http, IHM_URLS, tenantService) {
+    var GENERATE_STAT_URL = '/performances/reports';
     var UPLOAD_SELECTED_SIP_URL = '/upload/';
-    var SIP_TO_UPLOAD_URL = '/upload/fileslist';
-
+    var SIP_TO_UPLOAD_URL = '/performances/sips';
+    var SIP_TO_UPLOAD = '/performances';
+     var REPORT =   '/performances/reports/';
     var UploadSipPerfResource = {};
 
+      var getTenantHeader = function() {
+          return {headers : {'X-Tenant-Id' : tenantService.getTenant()}}
+      };
     //Get Available SIP on server for upload
     UploadSipPerfResource.getAvailableSipForUpload = function(){
       return $http.get(IHM_URLS.IHM_BASE_URL + SIP_TO_UPLOAD_URL);
@@ -44,10 +48,18 @@ angular.module('core')
       return $http.get(IHM_URLS.IHM_BASE_URL + UPLOAD_SELECTED_SIP_URL + selectedFile);
     };
 
-    // Generate INGEST statistics report
-    UploadSipPerfResource.generateIngestStatReport = function(operationId){
-      return $http.get(IHM_URLS.IHM_BASE_URL + GENERATE_STAT_URL + operationId);
-    };
+      // upload selected
+      UploadSipPerfResource.uploadSelected = function(data){
+          return $http.post(IHM_URLS.IHM_BASE_URL + SIP_TO_UPLOAD, data, getTenantHeader());
+      };
 
+      // Generate INGEST statistics report
+    UploadSipPerfResource.generateIngestStatReport = function(){
+      return $http.get(IHM_URLS.IHM_BASE_URL + GENERATE_STAT_URL);
+    };
+    UploadSipPerfResource.downloadURL = function(idOperation) {
+debugger;
+          return $http.get(IHM_URLS.IHM_BASE_URL + REPORT +   idOperation);
+      };
     return UploadSipPerfResource;
   });

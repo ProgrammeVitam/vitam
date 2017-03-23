@@ -50,7 +50,7 @@ public class IngestInternalConfiguration {
     }
 
     /**
-     * @param host
+     * @param host value to set
      * @return IngestInternalConfiguration
      */
     public IngestInternalConfiguration setHost(String host) {
@@ -66,7 +66,7 @@ public class IngestInternalConfiguration {
     }
 
     /**
-     * @param port
+     * @param port value to set
      * @return IngestExtConfiguration
      */
     public IngestInternalConfiguration setPort(int port) {

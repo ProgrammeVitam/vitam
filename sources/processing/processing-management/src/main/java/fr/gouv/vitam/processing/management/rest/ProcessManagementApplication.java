@@ -52,6 +52,9 @@ public class ProcessManagementApplication
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementApplication.class);
     private static final String CONF_FILE_NAME = "processing.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    /**
+     * server port
+     */
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.processing.port";
 
     static VitamServiceRegistry serviceRegistry = null;
@@ -59,7 +62,7 @@ public class ProcessManagementApplication
     /**
      * ProcessManagementApplication constructor
      *
-     * @param configuration
+     * @param configuration in format String
      */
     public ProcessManagementApplication(String configuration) {
         super(ServerConfiguration.class, configuration);
@@ -118,7 +121,12 @@ public class ProcessManagementApplication
         // FIXME P1 worker optional register: How to do it ?
         resourceConfig
             .register(new ProcessManagementResource(getConfiguration()))
-            .register(new ProcessDistributorResource(getConfiguration()))
-            .register(new AdminStatusResource(serviceRegistry));
+            .register(new ProcessDistributorResource(getConfiguration()));
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 }

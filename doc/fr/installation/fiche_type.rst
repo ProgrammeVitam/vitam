@@ -7,7 +7,7 @@ Fiche-type VITAM
 .. caution:: cette liste a pour but d'évoluer et s'étoffer au fur et à mesure des mises à jour des composants et du contenu des fichiers de déploiement de VITAM.
 
 .. csv-table:: Tableau récapitulatif des informations à renseigner pour VITAM
-   :header: "Nom du omposant", "Descriptif", "Valeur d'exemple","Valeur choisie","Si HA ?"
+   :header: "Nom du composant", "Descriptif", "Valeur d'exemple","Valeur choisie","Si HA ?"
    :widths: 10, 15, 10, 15, 5
 
    "IHM-demo machine","interface web","vitam-prod-app-1.internet.agri","",""

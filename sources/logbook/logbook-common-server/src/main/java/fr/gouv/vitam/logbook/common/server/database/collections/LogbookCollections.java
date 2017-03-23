@@ -61,10 +61,13 @@ public enum LogbookCollections {
 
     private VitamCollection vitamCollection;
 
+    /**
+     * id field
+     */
     public final static String ID = "_id";
 
     private LogbookCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz);
+        vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
     }
 
     /**

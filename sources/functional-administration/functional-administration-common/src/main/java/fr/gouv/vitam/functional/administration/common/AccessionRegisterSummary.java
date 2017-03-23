@@ -45,14 +45,41 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
 
     private static final long serialVersionUID = 3439757375656161919L;
 
+    /**
+     * the OriginatingAgency field of accession register
+     */
     public static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    /**
+     * the TotalUnits field of accession register
+     */
     public static final String TOTAL_UNITS = "TotalUnits";
+    /**
+     * the TotalObjectGroups field of accession register
+     */
     public static final String TOTAL_OBJECTGROUPS = "TotalObjectGroups";
+    /**
+     * the TotalObjects field of accession register
+     */
     public static final String TOTAL_OBJECTS = "TotalObjects";
+    /**
+     * the ObjectSize field of accession register
+     */
     public static final String OBJECT_SIZE = "ObjectSize";
+    /**
+     * the total field of accession register
+     */
     public static final String TOTAL = "total";
-    public static final String DELETED = "deleted";
-    public static final String REMAINED = "remained";
+    /**
+     * the creationDate field of accession register
+     */
+    public static final String DELETED = "creationDate";
+    /**
+     * the creationDate field of accession register
+     */
+    public static final String REMAINED = "creationDate";
+    /**
+     * the creationDate field of accession register
+     */
     public static final String CREATION_DATE = "creationDate";
     private static final String TENANT = "_tenant";
 
@@ -73,7 +100,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     /**
      * Constructor
      *
-     * @param document
+     * @param document in format Document to create AccessionRegisterSummary 
      */
     public AccessionRegisterSummary(Document document) {
         super(document);
@@ -82,7 +109,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param content
+     * @param content in format JsonNode to create AccessionRegisterSummary
      */
     public AccessionRegisterSummary(JsonNode content) {
         super(content);
@@ -92,7 +119,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
 
 
     /**
-     * @param content
+     * @param content in format String to create AccessionRegisterSummary
      */
     public AccessionRegisterSummary(String content) {
         super(content);
@@ -102,7 +129,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
 
 
     /**
-     * @param id
+     * @param id as String to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterSummary setId(String id) {
@@ -111,7 +138,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param orgAgency
+     * @param orgAgency as Sting to set
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setOriginatingAgency(String orgAgency) {
@@ -120,7 +147,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param totalUnits
+     * @param totalUnits to set
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setTotalUnits(RegisterValueDetailModel totalUnits) {
@@ -136,7 +163,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param totalObjectGroups
+     * @param totalObjectGroups to set
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setTotalObjectGroups(RegisterValueDetailModel totalObjectGroups) {
@@ -152,7 +179,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param total
+     * @param total to set
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setTotalObjects(RegisterValueDetailModel total) {
@@ -168,7 +195,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param objectSize
+     * @param objectSize to set
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setObjectSize(RegisterValueDetailModel objectSize) {
@@ -202,7 +229,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     }
 
     /**
-     * @param creationDate
+     * @param creationDate to set
      * @return AccessionRegisterSummary
      */
     public AccessionRegisterSummary setCreationDate(String creationDate) {

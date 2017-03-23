@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.16.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>storage</artifactId>
@@ -13,9 +13,9 @@
 
 	<packaging>pom</packaging>
 	<modules>
-		<module>storage-driver</module>
+		<module>storage-driver-api</module>
 		<module>storage-engine</module>
-		<module>storage-offers</module>
-		
+		<module>cas-manager</module>
+		<module>cas-container</module>
 	</modules>
 </project>

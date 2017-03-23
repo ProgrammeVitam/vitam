@@ -65,6 +65,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @param dbname MongoDB database name
      * @param recreate True to recreate the index
      * @param esClient Elasticsearch client
+     * @param tenants the tenant list
      */
 
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
@@ -193,7 +194,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
     /**
      * Delete Unit metadata by tenant Not check, test feature !
-     *
+     * 
+     * @param tenantIds the list of tenants
      * @throws DatabaseException thrown when error on delete
      */
     public void deleteUnitByTenant(Integer... tenantIds) throws DatabaseException {
@@ -219,7 +221,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
     /**
      * Delete Object Group metadata by Tenant Not check, test feature !
-     *
+     * 
+     * @param tenantIds the list of tenants
      * @throws DatabaseException thrown when error on delete
      */
     public void deleteObjectGroupByTenant(Integer... tenantIds) throws DatabaseException {

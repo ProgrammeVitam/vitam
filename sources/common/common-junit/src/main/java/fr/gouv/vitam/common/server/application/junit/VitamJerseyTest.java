@@ -240,7 +240,7 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
      *
      * @param factory the Client Factory to use
      *
-     * @throws VitamApplicationServerException
+     * @throws VitamApplicationServerException when starting server exception occurred
      *
      * @throws IllegalStateException if the start is incorrect
      */
@@ -301,7 +301,7 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
     /**
      * Start the Application.
      *
-     * @throws VitamApplicationServerException
+     * @throws VitamApplicationServerException when starting server exception occurred
      */
     @Before
     public final void startTest() throws VitamApplicationServerException {
@@ -311,22 +311,29 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
     /**
      * To be extended if necessary (equivalent to @Before)
      *
-     * @throws VitamApplicationServerException
+     * @throws VitamApplicationServerException when starting server exception occurred
      */
     public void beforeTest() throws VitamApplicationServerException {
         // Empty
     }
 
     /**
-     * End the Application.
-     *
+     * End the application only
      * @throws VitamApplicationServerException
      */
-    @After
-    public final void endTest() throws VitamApplicationServerException {
+    public final void endApplication() throws VitamApplicationServerException {
         if (response.getApplication() != null) {
             ((VitamApplicationInterface<?, ?>) response.getApplication()).stop();
         }
+    }
+    /**
+     * End the Application.
+     *
+     * @throws VitamApplicationServerException stopping server exception occurred
+     */
+    @After
+    public final void endTest() throws VitamApplicationServerException {
+        endApplication();
         JunitHelper.getInstance().releasePort(response.getServerPort());
         if (_client != null) {
             _client.close();
@@ -337,7 +344,7 @@ public abstract class VitamJerseyTest<A> implements VitamApplicationTestFactory<
     /**
      * To be extended if necessary (equivalent to @After)
      *
-     * @throws VitamApplicationServerException
+     * @throws VitamApplicationServerException when stopping server exception occurred
      */
     public void afterTest() throws VitamApplicationServerException {
         // Empty

@@ -161,7 +161,6 @@ public class LogBookLifeCycleUnitTest {
         serverPort = junitHelper.findAvailablePort();
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        JunitHelper.setJettyPortSystemProperty(serverPort);
 
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();

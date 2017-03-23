@@ -31,18 +31,25 @@ angular.module('ihm.demo')
   .filter('vitamFormatDate', function ($filter) {
     var angularDateFilter = $filter('date');
     return function (theDate) {
-      // test If theDate is not null or undefinied
+      // Test if date is not null nor undefined
       if (!theDate) {
-        return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+        return "";
       }
-      // test if the theDate has an acceptable format
+      // Test if date has an acceptable format
       var timestamp = Date.parse(theDate);
       if (isNaN(timestamp) == true) {
-        return angularDateFilter(theDate, 'dd-MM-yyyy HH:mm');
+        return "";
       }
-      // Test if thedate has an Standart format for  Google Chrome
-      if (!theDate.includes("+") && !theDate.endsWith("Z")) {
-        theDate = theDate + "Z";
+
+      if (theDate.indexOf("T") == -1 && theDate.indexOf(":") == -1) {
+        if (theDate.indexOf("00:00") < 0) {
+          return angularDateFilter(new Date(theDate), 'dd-MM-yyyy 00:00');
+        }
+      } else {
+        if (theDate.indexOf("+") == -1 && !theDate.endsWith("Z")){
+          theDate = theDate + "Z";
+          return angularDateFilter(new Date(theDate), 'dd-MM-yyyy HH:mm');
+        }
       }
       return angularDateFilter(new Date(theDate), 'dd-MM-yyyy HH:mm');
     }

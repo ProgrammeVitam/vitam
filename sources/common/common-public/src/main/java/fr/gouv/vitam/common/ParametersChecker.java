@@ -47,8 +47,8 @@ public final class ParametersChecker {
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
      *
-     * @param errorMessage
-     * @param parameters
+     * @param errorMessage the error message
+     * @param parameters parameters to be checked
      * @throws IllegalArgumentException if null or empty
      */
     public static final void checkParameter(String errorMessage, String... parameters) {
@@ -65,17 +65,17 @@ public final class ParametersChecker {
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
      *
-     * @param errorMessage
-     * @param parameters
+     * @param errorMessage the error message
+     * @param parameters set of parameters
      * @throws IllegalArgumentException if null or empty
      */
-    public static final void checkParameterDefault(String item, String... parameters) {
+    public static final void checkParameterDefault(String errorMessage, String... parameters) {
         if (parameters == null) {
-            throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+            throw new IllegalArgumentException(errorMessage + MANDATORY_PARAMETER);
         }
         for (final String parameter : parameters) {
             if (Strings.isNullOrEmpty(parameter) || parameter.trim().isEmpty()) {
-                throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+                throw new IllegalArgumentException(errorMessage + MANDATORY_PARAMETER);
             }
         }
     }
@@ -83,17 +83,17 @@ public final class ParametersChecker {
     /**
      * Check if any parameter are null or empty and if so, throw an IllegalArgumentException
      *
-     * @param errorMessage
-     * @param parameters
+     * @param errorMessage the error message
+     * @param parameters set of parameters
      * @throws IllegalArgumentException if null or empty
      */
-    public static final void checkParameterDefault(String item, Object... parameters) {
+    public static final void checkParameterDefault(String errorMessage, Object... parameters) {
         if (parameters == null) {
-            throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+            throw new IllegalArgumentException(errorMessage + MANDATORY_PARAMETER);
         }
         for (final Object parameter : parameters) {
             if (parameter == null) {
-                throw new IllegalArgumentException(item + MANDATORY_PARAMETER);
+                throw new IllegalArgumentException(errorMessage + MANDATORY_PARAMETER);
             }
         }
     }
@@ -101,8 +101,8 @@ public final class ParametersChecker {
     /**
      * Check if any parameter are null and if so, throw an IllegalArgumentException
      *
-     * @param errorMessage
-     * @param parameters
+     * @param errorMessage the error message
+     * @param parameters parameters to be checked
      * @throws IllegalArgumentException if null
      */
     public static final void checkParameterNullOnly(String errorMessage, String... parameters) {
@@ -119,8 +119,8 @@ public final class ParametersChecker {
     /**
      * Check if any parameter are null and if so, throw an IllegalArgumentException
      *
-     * @param errorMessage
-     * @param parameters
+     * @param errorMessage set of parameters
+     * @param parameters set parameters to be checked
      * @throws IllegalArgumentException if null
      */
     public static final void checkParameter(String errorMessage, Object... parameters) {
@@ -138,8 +138,8 @@ public final class ParametersChecker {
      * Check if an integer parameter is greater or equals to minValue
      *
      * @param name name of the variable
-     * @param variable
-     * @param minValue
+     * @param variable the value of variable to check
+     * @param minValue the min value
      */
     public static final void checkValue(String name, long variable, long minValue) {
         if (variable < minValue) {

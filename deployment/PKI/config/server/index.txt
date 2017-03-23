@@ -1,6 +1,0 @@
-V	270101164145Z		A4	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_server
-V	270101164145Z		A5	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_server_intermediate
-V	270101164146Z		A6	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=CA_timestamping_intermediate
-V	200103164150Z		A7	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=ingest-external.service.consul
-V	200103164151Z		A8	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=access-external.service.consul
-V	200103164152Z		A9	unknown	/C=FR/ST=idf/L=paris/O=Vitam./CN=logbook.service.consul

@@ -57,7 +57,7 @@ public final class AdminManagementApplication
     /**
      * AdminManagementApplication constructor
      *
-     * @param configuration
+     * @param configuration the server configuration
      */
     public AdminManagementApplication(String configuration) {
         super(AdminManagementConfiguration.class, configuration);
@@ -67,7 +67,7 @@ public final class AdminManagementApplication
      * Main method to run the APPLICATION (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException
+     * @throws IllegalStateException when cannot start server
      */
     public static void main(String[] args) {
         try {
@@ -99,7 +99,13 @@ public final class AdminManagementApplication
         final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
         serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
             .register(resource.getLogbookDbAccess());
-        resourceConfig.register(new AdminManagementResource(getConfiguration()))
-            .register(new AdminStatusResource(serviceRegistry));
+        resourceConfig.register(new AdminManagementResource(getConfiguration()));
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
+
     }
 }

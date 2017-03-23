@@ -25,6 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 /**
- * Provides the web server application and configuration for the Storage Engine Server module and the rest resources it uses.
+ * Provides the web server application and configuration for the Storage Engine
+ * Server module and the rest resources it uses.
  */
 package fr.gouv.vitam.storage.engine.server.rest;

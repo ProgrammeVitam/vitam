@@ -43,8 +43,7 @@ public class ElasticsearchAccessMetadataFactory {
      *
      * @param configuration config of elasticsearch
      * @return the ElasticsearchAccess
-     * @throws MetaDataException
-     * @throws IllegalArgumentException if argument is null
+     * @throws MetaDataException if error of creating ElasticSearchAccessMetadata 
      */
     public ElasticsearchAccessMetadata create(MetaDataConfiguration configuration) throws MetaDataException {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);

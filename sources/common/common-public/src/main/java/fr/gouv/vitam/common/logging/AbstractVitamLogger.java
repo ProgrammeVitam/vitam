@@ -254,7 +254,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
 
     /**
-     * @param o
+     * @param o the object to get its class name
      * @return the simple Class Name
      */
     public static final String simpleClassName(final Object o) {
@@ -266,7 +266,7 @@ public abstract class AbstractVitamLogger implements VitamLogger, Serializable {
     }
 
     /**
-     * @param clazz
+     * @param clazz instance of a class 
      * @return the simple Class Name
      */
     public static final String simpleClassName(final Class<?> clazz) {

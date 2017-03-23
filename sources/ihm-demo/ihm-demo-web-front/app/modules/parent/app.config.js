@@ -86,6 +86,10 @@ config(['$locationProvider' ,'$routeProvider',
       templateUrl: "views/import-FileRules.html",
       title: 'Import du Référentiel des Règles de gestion'
     }).
+    when('/admin/importContracts', {
+        templateUrl: "views/import-contracts.html",
+        title: 'Import du Référentiel des contrats'
+    }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',
       title: 'Journal des Opérations'
@@ -95,7 +99,7 @@ config(['$locationProvider' ,'$routeProvider',
       controller: 'OperationLogbookEntryController',
       title: 'Détail d\'une opération'
     }).
-    when('/lifecycle/:type/:lifecycleId/:lifecycleTitle', {
+    when('/lifecycle/:type/:lifecycleId', {
       template: '<lifecycle></lifecycle>',
       title: 'Journal du cycle de vie '
     }).

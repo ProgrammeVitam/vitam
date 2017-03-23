@@ -235,16 +235,16 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
 
 
     /**
-     * Get the url of workspace resource parameter
+     * Get the logbook Type Process
      *
-     * @return the url of workspace resource value
+     * @return the logbook Type Process
      */
     LogbookTypeProcess getLogbookTypeProcess();
 
     /**
-     * Set the url of workspace resource value
+     * Set the logbook Type Process
      *
-     * @param urlWorkspace the url of workspace resource value
+     * @param logbookTypeProcess the logbook Type Process
      * @return the current instance of WorkerParameters
      * @throws IllegalArgumentException if urlWorspace is null or empty
      */

@@ -66,41 +66,41 @@
   notify:
       - restart clamav
 
+- block:
 # cf. https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=771911
-- name: apply systemD config file for clamAV under debian
-  template:
-    src: extend.conf.j2
-    dest: /etc/systemd/system/clamav-daemon.socket.d/extend.conf
-    owner: root
-    group: root
-    mode: 0644
+  - name: apply systemD config file for clamAV under debian
+    template:
+      src: extend.conf.j2
+      dest: /etc/systemd/system/clamav-daemon.socket.d/extend.conf
+      owner: root
+      group: root
+      mode: 0644
+    
+  - name: apply systemD daemon-reload
+    command: systemctl --system daemon-reload
+
+  - name: restart clamav-daemon.socket service
+    command: systemctl restart clamav-daemon.socket
+
+  - name: restart clamav-daemon service
+    command: systemctl restart clamav-daemon.service
+
+  - name: Check if freshclam process is running
+    shell: ps aux | grep freshclam | grep -v grep
+    ignore_errors: yes
+    changed_when: false
+    register: freshclam_status
+
+  - name: download database for clamAV
+    shell: freshclam
+    ignore_errors: true
+    when: freshclam_status.stdout == ""
+    notify:
+      - restart debian_clamav
+
+  - name: force restart clamAV  
+    service:
+      name: "clamav-daemon"
+      state: restarted
+  
   when: ansible_distribution == "Debian"
-
-# systemctl --system daemon-reload
-- name: apply systemD config file for clamAV under debian 2
-  command: systemctl --system daemon-reload
-  when: ansible_distribution == "Debian"
-
-# systemctl restart clamav-daemon.socket
-- name: apply systemD config file for clamAV under debian 3
-  command: systemctl restart clamav-daemon.socket
-  when: ansible_distribution == "Debian"
-
-# systemctl restart clamav-daemon.service
-- name: apply systemD config file for clamAV under debian 4
-  command: systemctl restart clamav-daemon.service
-  when: ansible_distribution == "Debian"
-
-
-
-# FIXME : added clamav-unofficial-sigs, but needs more testing.
-# - name: update ClamAV virus database (mandatory for debian)
-#   shell: freshclam
-#   when: ansible_distribution == "Debian"
-
-- name: download database for clamAV
-  shell: freshclam
-  ignore_errors: true
-  when: ansible_distribution == "Debian"
-  notify:
-    - restart debian_clamav

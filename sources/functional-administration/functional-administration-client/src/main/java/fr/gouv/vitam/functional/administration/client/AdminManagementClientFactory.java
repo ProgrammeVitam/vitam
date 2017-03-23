@@ -54,7 +54,7 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
     /**
      * Get the WorkerClientFactory instance
      *
-     * @return the instance
+     * @return the instance of WorkerClientFactory
      */
     public static final AdminManagementClientFactory getInstance() {
         return ADMIN_MANAGEMENT_CLIENT_FACTORY;

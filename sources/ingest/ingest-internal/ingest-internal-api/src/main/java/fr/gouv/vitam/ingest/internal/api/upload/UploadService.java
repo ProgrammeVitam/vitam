@@ -42,8 +42,8 @@ public interface UploadService {
      *
      * @since 0.9.0 : support zip , tar and tar.gz archive format
      *
-     * @param partList
-     * @param xRequestId
+     * @param partList the list of data body part
+     * @param xRequestId the request id of request
      * @return Response {@link Response}
      */
     public Response uploadSipAsStream(String xRequestId, List<FormDataBodyPart> partList);

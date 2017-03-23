@@ -48,7 +48,7 @@ public class StatusMessage {
     /**
      * Constructor from ServerIdentity
      *
-     * @param serverIdentity
+     * @param serverIdentity the identity of server
      */
     public StatusMessage(ServerIdentity serverIdentity) {
         setName(serverIdentity.getName());

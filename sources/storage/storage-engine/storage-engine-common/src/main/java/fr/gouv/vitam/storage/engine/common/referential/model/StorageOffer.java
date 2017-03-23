@@ -45,7 +45,7 @@ public class StorageOffer {
     }
 
     /**
-     * @param baseUrl
+     * @param baseUrl url set to storage offer
      */
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -59,7 +59,7 @@ public class StorageOffer {
     }
 
     /**
-     * @param parameters
+     * @param parameters map of parameters set to offer
      */
     public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
@@ -73,7 +73,7 @@ public class StorageOffer {
     }
 
     /**
-     * @param id
+     * @param id to set to offer
      */
     public void setId(String id) {
         this.id = id;

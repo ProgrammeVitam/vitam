@@ -26,22 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
+import org.bson.Document;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -88,7 +93,7 @@ public class QueryToElasticsearchTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {}
 
-    private Select createSelect() {
+    private SelectMultiQuery createSelect() {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(example);
@@ -104,8 +109,12 @@ public class QueryToElasticsearchTest {
     @Test
     public void testGetCommands() {
         try {
-            final Select select = createSelect();
+            final SelectMultiQuery select = createSelect();
             final QueryBuilder queryBuilderRoot = QueryToElasticsearch.getRoots("_up", select.getRoots());
+            final List<SortBuilder> sortBuilders = QueryToElasticsearch
+                .getSorts(Document.parse(JsonHandler.unprettyPrint(select.getFilter().get("$orderby"))));
+            assertEquals(3, sortBuilders.size());
+
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
                 System.out.println(i + " = " + list.get(i).toString());

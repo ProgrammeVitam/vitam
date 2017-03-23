@@ -50,12 +50,13 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param stream
+     * @param tenantId
      * @return the status
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      * @throws AccessExternalClientServerException
      */
-    Response checkDocuments(AdminCollections documentType, InputStream stream)
+    Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException,
         AccessExternalClientException, AccessExternalClientServerException;
 
@@ -65,11 +66,12 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param stream
+     * @param tenantId
      * @return the status
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Response createDocuments(AdminCollections documentType, InputStream stream)
+    Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**
@@ -77,12 +79,13 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param select
+     * @param tenantId
      * @return the JsonNode results
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+    RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
 
     /**
@@ -90,10 +93,33 @@ public interface AdminExternalClient extends BasicClient {
      *
      * @param documentType
      * @param documentId
+     * @param tenantId
      * @return the JsonNode results
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+    RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException;
+    
+    
+    /**
+     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts elready exist in the database</li>
+     * </ul>
+     * 
+     * @param contracts as InputStream
+     * @param tenantId
+     * @return Vitam response
+     * @throws InvalidParseOperationException 
+     * @throws AccessExternalClientException 
+     */
+    RequestResponse importContracts(InputStream contracts, Integer tenantId) throws InvalidParseOperationException, AccessExternalClientException;
+    
 }

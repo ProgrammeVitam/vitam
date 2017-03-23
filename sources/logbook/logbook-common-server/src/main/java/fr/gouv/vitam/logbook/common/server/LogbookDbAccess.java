@@ -265,6 +265,7 @@ public interface LogbookDbAccess {
      *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleUnit(final String idOperation, LogbookLifeCycleUnitParameters lifecycleItem)
@@ -281,6 +282,7 @@ public interface LogbookDbAccess {
      *
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
     void updateLogbookLifeCycleObjectGroup(final String idOperation,
@@ -378,6 +380,7 @@ public interface LogbookDbAccess {
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      */
     void updateBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
@@ -392,6 +395,7 @@ public interface LogbookDbAccess {
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
      */
     void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
@@ -512,6 +516,8 @@ public interface LogbookDbAccess {
      * Creates Unit lifeCycle from a LogbookLifeCycleUnitInProcess instance
      * 
      * @param logbookLifeCycleUnitInProcess a LogbookLifeCycleUnitInProcess instance
+     * @throws LogbookAlreadyExistsException
+     * @throws LogbookDatabaseException
      */
     void createLogbookLifeCycleUnit(LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -519,7 +525,9 @@ public interface LogbookDbAccess {
     /**
      * Creates ObjectGroup lifeCycle from a LogbookLifeCycleObjectGroupInProcess instance
      * 
-     * @param logbookLifeCycleUnitInProcess
+     * @param logbookLifeCycleObjectGrouptInProcess
+     * @throws LogbookAlreadyExistsException
+     * @throws LogbookDatabaseException
      */
     void createLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGrouptInProcess)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -530,6 +538,8 @@ public interface LogbookDbAccess {
      * Updates Unit lifeCycle from a LogbookLifeCycleUnitInProcess instance
      * 
      * @param logbookLifeCycleUnitInProcess a LogbookLifeCycleUnitInProcess instance
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
      */
     void updateLogbookLifeCycleUnit(LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess)
         throws LogbookDatabaseException, LogbookNotFoundException;
@@ -538,6 +548,8 @@ public interface LogbookDbAccess {
      * Updates ObjectGroup lifeCycle from a LogbookLifeCycleObjectGroupInProcess instance
      * 
      * @param logbookLifeCycleObjectGrouptInProcess a LogbookLifeCycleObjectGroupInProcess instance
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
      */
     void updateLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGrouptInProcess)
         throws LogbookDatabaseException, LogbookNotFoundException;

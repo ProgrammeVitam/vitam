@@ -34,7 +34,7 @@
 angular.module("core").constant("_", window._);
 
 angular.module('core')
-  .service('processSearchService', function(_) {
+  .service('processSearchService', function(_, responseValidator, ITEM_PER_PAGE, LIMIT_NB_PAGES) {
     // TODO Remove the given searchScope as argument and create an inner scope for directive (Where form should be paste)
     // TODO Change me in a directive that handle display of error by an unique way
     // TODO Change me in a directive that handle display of pagination by an unique way
@@ -68,22 +68,49 @@ angular.module('core')
       }
     }
 
+    function prepareHeaders(paginationVars) {
+      headers = {'X-Limit': ITEM_PER_PAGE*LIMIT_NB_PAGES, 'X-Offset': 0};
+
+      if (!!paginationVars.limit) {
+        headers['X-Limit'] = paginationVars.limit;
+      }
+
+      if (!!paginationVars.startOffset) {
+        headers['X-Offset'] = paginationVars.startOffset;
+      }
+
+      return headers;
+    }
+
     var isInError = function(searchParams) {
       if (!searchParams.isInitalized) {
         throw new Error('Params not initialized ' + searchParams.initError);
       }
     };
 
+
     var processSearch = function(searchParams) {
       isInError(searchParams);
 
       var handleSuccessCallback = function(response) {
-        clearResults(searchParams);
+        var triggerError = false;
+
         searchParams.searchScope.error.displayMessage = false;
-        if (!searchParams.successCallback(response)) {
+        if (!responseValidator.validateReceivedResponse(response) || response.data.$hits.total === 0) {
+          triggerError = true;
+        } else {
+          searchParams.searchScope.response.data = response.data.$results;
+          searchParams.searchScope.response.totalResult = response.data.$hits.total;
+          searchParams.searchScope.pagination.resultPages = Math.ceil(searchParams.searchScope.response.totalResult / searchParams.searchScope.pagination.itemsPerPage);
+          searchParams.searchScope.pagination.currentPage = Math.floor(searchParams.searchScope.pagination.startOffset / searchParams.searchScope.pagination.itemsPerPage) + 1;
+        }
+
+        if (triggerError || !searchParams.successCallback(response)) {
+          clearResults(searchParams);
           errorCallback();
         }
       };
+
       var errorCallback = function(errorStructure) {
         // reinit scope values ?
         clearResults(searchParams);
@@ -113,7 +140,8 @@ angular.module('core')
       if (!!options && options.searchProcessError === true) {
         errorCallback(options);
       } else if (!!options && !options.searchProcessSkip) {
-        var promise = searchParams.searchFunction(options);
+        var headers = prepareHeaders(searchParams.searchScope.pagination);
+        var promise = searchParams.searchFunction(options, headers);
         promise.then(handleSuccessCallback, errorCallback);
       }
     };
@@ -122,6 +150,7 @@ angular.module('core')
       searchParams.searchScope.form = angular.copy(searchParams.initialForm);
       searchParams.searchScope.error.displayMessage = false;
       searchParams.searchScope.error.message = '';
+      searchParams.searchScope.pagination.startOffset = 0;
       if (searchParams.autoSearch) {
         processSearch(searchParams);
       } else {

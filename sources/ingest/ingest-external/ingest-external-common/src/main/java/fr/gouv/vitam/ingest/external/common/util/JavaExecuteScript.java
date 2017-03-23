@@ -55,9 +55,8 @@ public class JavaExecuteScript {
      * @param arg the file to scan
      * @param timeoutScanDelay in ms
      * @return The return value of the cmd or 3 if the execution failed
-     * @throws IngestExternalException
-     * @throws IngestExternException
-     * @throws FileNotFoundException
+     * @throws IngestExternalException if error when request to ingest external server
+     * @throws FileNotFoundException if command file not found
      */
     public static int executeCommand(String cmd, String arg, long timeoutScanDelay) throws IngestExternalException {
         int exitStatus = 3;

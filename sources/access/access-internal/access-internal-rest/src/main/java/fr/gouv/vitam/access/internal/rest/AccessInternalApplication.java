@@ -65,7 +65,7 @@ public class AccessInternalApplication
     /**
      * AccessApplication constructor
      *
-     * @param configuration
+     * @param configuration the access internal server configuration
      */
     public AccessInternalApplication(String configuration) {
         super(AccessInternalConfiguration.class, configuration);
@@ -83,7 +83,7 @@ public class AccessInternalApplication
     /**
      * runs AccessApplication server app
      *
-     * @param args
+     * @param args the arguments of configuration  to start access internal server
      */
     public static void main(String[] args) {
         try {
@@ -123,13 +123,22 @@ public class AccessInternalApplication
             // Workspace dependency
             .register(WorkspaceClientFactory.getInstance());
         if (mock != null) {
-            resourceConfig.register(new AccessInternalResourceImpl(mock))
-                .register(new AdminStatusResource());
+            resourceConfig.register(new AccessInternalResourceImpl(mock));
         } else {
             resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
-                .register(new LogbookInternalResourceImpl())
-                .register(new AdminStatusResource(serviceRegistry));
+                .register(new LogbookInternalResourceImpl());
         }
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        if (mock != null) {
+            resourceConfig.register(new AdminStatusResource());
+        } else {
+            resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        }
+
+        return true;
     }
 
     private static void setServiceRegistry(VitamServiceRegistry newServiceRegistry) {

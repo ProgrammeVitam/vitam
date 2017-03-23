@@ -48,7 +48,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.SearchQuery;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -89,7 +89,7 @@ public class QueryToMongodbTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {}
 
-    private Select createSelect() {
+    private SelectMultiQuery createSelect() {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(example);
@@ -105,7 +105,7 @@ public class QueryToMongodbTest {
     @Test
     public void testGetCommands() {
         try {
-            final Select select = createSelect();
+            final SelectMultiQuery select = createSelect();
             final Bson bsonRoot = QueryToMongodb.getRoots("_up", select.getRoots());
             final List<Query> list = select.getQueries();
             for (int i = 0; i < list.size(); i++) {
@@ -138,7 +138,7 @@ public class QueryToMongodbTest {
     public void testGetMultiRoots() throws InvalidParseOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
         request.parse(multiRootsJson);
-        final Select select = request.getRequest();
+        final SelectMultiQuery select = request.getRequest();
         final Bson bsonRoot = QueryToMongodb.getRoots("_up", select.getRoots());
         assertEquals("{ \"_up\" : { \"$in\" : [\"id0\", \"id1\"] } }", MongoDbHelper.bsonToString(bsonRoot, false));
     }
@@ -168,7 +168,7 @@ public class QueryToMongodbTest {
     public void testWildcardCase() throws InvalidParseOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
         request.parse(wildcardJson);
-        final Select select = request.getRequest();
+        final SelectMultiQuery select = request.getRequest();
         final List<Query> list = select.getQueries();
         final Bson bsonQuery = QueryToMongodb.getCommand(list.get(0));
         assertEquals("{ \"mavar14\" : { \"$regex\" : \"motMajuscule\", \"$options\" : \"\" } }",

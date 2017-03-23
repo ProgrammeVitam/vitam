@@ -41,6 +41,13 @@
     groups: vitam
   when: (ansible_distribution == "Debian" )
 
+- name: copy theme files
+  copy:
+    src: ".theme"
+    dest: "{{vitam_folder_root}}"
+    owner: "root"
+    mode: 0644
+
 - name: add configuration file for mapping on Centos # + notify httpd restart
   template:
     src: "{{item}}.j2"

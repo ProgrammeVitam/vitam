@@ -280,6 +280,9 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         }
     }
 
+    /**
+     * @param asyncResponse of type {@link AsyncResponse}
+     */
     public void setAsyncResponse(AsyncResponse asyncResponse) {
         // Before setting the new asyncResponse, resume it with conflict status
         if (this.asyncResponse != null && (!this.asyncResponse.isDone() || !this.asyncResponse.isCancelled())) {
@@ -313,6 +316,8 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             StatusCode.STARTED,
             VitamLogbookMessages.getCodeOp(step.getStepName(), StatusCode.STARTED),
             GUIDReader.getGUID(workParams.getContainerName()));
+        parameters.putParameterValue(
+            LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
         client.update(parameters);
 
         // update the process monitoring for this step
@@ -331,19 +336,21 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             workflowStatus.increment(stepResponse.getGlobalStatus());
             final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
             for (final Action action : step.getActions()) {
-                final String hanlderId = action.getActionDefinition().getActionKey();
+                final String handlerId = action.getActionDefinition().getActionKey();
                 // Each handler could have a list itself => ItemStatus
-                final ItemStatus itemStatus = stepResponse.getItemsStatus().get(hanlderId);
+                final ItemStatus itemStatus = stepResponse.getItemsStatus().get(handlerId);
                 if (itemStatus != null) {
                     final LogbookOperationParameters actionParameters =
                         LogbookParametersFactory.newLogbookOperationParameters(
                             GUIDFactory.newEventGUID(tenantId),
-                            hanlderId,
+                            handlerId,
                             GUIDReader.getGUID(workParams.getContainerName()),
                             logbookTypeProcess,
                             StatusCode.STARTED,
-                            VitamLogbookMessages.getCodeOp(hanlderId, StatusCode.STARTED),
+                            VitamLogbookMessages.getCodeOp(handlerId, StatusCode.STARTED),
                             GUIDReader.getGUID(workParams.getContainerName()));
+                    actionParameters.putParameterValue(
+                        LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(handlerId, StatusCode.STARTED));
                     helper.updateDelegate(actionParameters);
                     if (itemStatus instanceof ItemStatus) {
                         final ItemStatus actionStatus = itemStatus;
@@ -360,15 +367,18 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                             helper.updateDelegate(sublogbook);
                         }
                     }
-
+                    String itemId = null;
+                    if (!itemStatus.getItemId().equals(handlerId)) {
+                        itemId = itemStatus.getItemId();
+                    }
                     final LogbookOperationParameters sublogbook =
                         LogbookParametersFactory.newLogbookOperationParameters(
                             GUIDFactory.newEventGUID(tenantId),
-                            itemStatus.getItemId(),
+                            handlerId,
                             GUIDReader.getGUID(workParams.getContainerName()),
                             logbookTypeProcess,
                             itemStatus.getGlobalStatus(),
-                            null, " Detail= " + itemStatus.computeStatusMeterMessage(),
+                            itemId, " Detail= " + itemStatus.computeStatusMeterMessage(),
                             GUIDReader.getGUID(workParams.getContainerName()));
                     if (itemStatus.getData().get(LogbookParameterName.eventDetailData.name()) != null) {
                         eventDetailData =
@@ -412,7 +422,9 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
 
             parameters.putParameterValue(LogbookParameterName.eventIdentifier,
                 GUIDFactory.newEventGUID(tenantId).getId());
-            parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
+            parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());           
+            parameters.putParameterValue(
+                LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus()));            
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
             helper.updateDelegate(parameters);

@@ -61,9 +61,8 @@ public final class MetadataJsonResponseUtils {
      *
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
      *        can be empty
-     * @param selectRequest
-     * @param query
-     * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
+     * @param selectRequest the select request of type RequestParserMultiple
+     * @return ArrayNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)
      * @throws InvalidParseOperationException thrown when json query is not valid
@@ -94,9 +93,8 @@ public final class MetadataJsonResponseUtils {
      *
      * @param result contains final unit(s)/ObjectGroup(s) list <br>
      *        can be empty
-     * @param request
+     * @param request of type RequestParserMultiple
      * @param diff the diff map list with the unit id as key and the diff list as value
-     * @param query
      * @return JsonNode {$hits{},$context{},$result:[{_id:...,_diff:...}},...{}]} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units or ObjectGroup (can be empty)

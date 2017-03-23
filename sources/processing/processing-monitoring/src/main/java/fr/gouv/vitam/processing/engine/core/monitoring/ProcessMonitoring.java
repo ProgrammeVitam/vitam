@@ -70,7 +70,7 @@ public interface ProcessMonitoring {
      * @param tenantId Tenant identifier
      * @return map of process step
      * @throws StepsNotFoundException will be thrown when steps not found
-     * @throws WorkflowNotFoundException
+     * @throws WorkflowNotFoundException if the workflow is not found
      */
 
     public Map<String, ProcessStep> getProcessSteps(String processId, Integer tenantId)
@@ -88,8 +88,8 @@ public interface ProcessMonitoring {
     
     /**
      * Get all proccess
-     * @param tenantId
-     * @return
+     * @param tenantId the working tenant
+     * @return the list of all worflow
      */
     public List<ProcessWorkflow> getAllProcessWorkflow(Integer tenantId);
 

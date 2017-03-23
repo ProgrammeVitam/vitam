@@ -52,6 +52,14 @@
 <!-- =============================================================== -->
 <Configure id="Server" class="org.eclipse.jetty.server.Server">
 
+    <Arg name="threadpool">
+        <New id="threadpool" class="org.eclipse.jetty.util.thread.QueuedThreadPool">
+            <Arg name="minThreads" type="int">50</Arg>
+            <Arg name="maxThreads" type="int">200</Arg>
+            <Arg name="idleTimeout" type="int">60000</Arg>
+            <Set name="detailedDump">false</Set>
+        </New>
+    </Arg>
 
     <!-- =========================================================== -->
     <!-- Add shared Scheduler instance -->
@@ -111,6 +119,7 @@
                 <Set name="port">
                     <SystemProperty name="jetty.port" default="8757"/>
                 </Set>
+                <Set name="name">business</Set>
                 <Set name="idleTimeout">
                     <Property name="http.timeout" default="99999999"/>
                 </Set><!-- 27.7 h -->

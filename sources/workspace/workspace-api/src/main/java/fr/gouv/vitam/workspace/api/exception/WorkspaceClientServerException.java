@@ -48,8 +48,8 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
 
     /**
      *
-     * @param message
-     * @param cause
+     * @param message the exception message as String
+     * @param cause the cause of exception as String
      */
     public WorkspaceClientServerException(String message, Throwable cause) {
         super(message, cause);

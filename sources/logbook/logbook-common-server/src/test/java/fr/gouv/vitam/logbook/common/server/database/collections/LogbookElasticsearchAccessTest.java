@@ -51,7 +51,9 @@ import org.junit.rules.TemporaryFolder;
 
 import com.mongodb.DBObject;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -123,15 +125,19 @@ public class LogbookElasticsearchAccessTest {
                 eventType, eventIdentifierProcess, eventTypeProcess,
                 outcome, outcomeDetailMessage, eventIdentifierRequest);
         for (final LogbookParameterName name : LogbookParameterName.values()) {
-            parametersForCreation.putParameterValue(name,
-                GUIDFactory.newEventGUID(0).getId());
+            if (LogbookParameterName.eventDateTime.equals(name)) {
+                parametersForCreation.putParameterValue(name, LocalDateUtil.now().toString());
+            } else {
+                parametersForCreation.putParameterValue(name,
+                    GUIDFactory.newEventGUID(0).getId());
+            }
 
         }
 
         LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation, false);
         Map<String, String> mapIdJson = new HashMap<>();
         String id = operationForCreation.getId();
-        operationForCreation.remove(LogbookCollections.ID);
+        operationForCreation.remove(VitamDocument.ID);
         final String mongoJson =
             operationForCreation.toJson(new JsonWriterSettings(JsonMode.STRICT));
         operationForCreation.clear();
@@ -143,7 +149,7 @@ public class LogbookElasticsearchAccessTest {
         // check entry
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse elasticSearchResponse =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 10);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
 
         assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
         assertNotNull(elasticSearchResponse.getHits().getAt(0));
@@ -172,7 +178,7 @@ public class LogbookElasticsearchAccessTest {
         }
         // check entry
         SearchResponse elasticSearchResponse2 =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 10);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
         assertEquals(1, elasticSearchResponse2.getHits().getTotalHits());
         assertNotNull(elasticSearchResponse2.getHits().getAt(0));
         SearchHit hit = elasticSearchResponse2.getHits().iterator().next();
@@ -184,7 +190,7 @@ public class LogbookElasticsearchAccessTest {
         QueryBuilder filter = null;
         filter = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("_index", "logbookoperation_0"));
         SearchResponse elasticSearchResponse3 =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, filter, 0, 01);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, filter, null, 0, 01);
         assertEquals(1, elasticSearchResponse3.getHits().getTotalHits());
 
         // refresh index
@@ -195,7 +201,7 @@ public class LogbookElasticsearchAccessTest {
 
         // check post delete
         try {
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, 0, 10);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
             fail("Should have failed : IndexNotFoundException");
         } catch (LogbookException e) {}
     }

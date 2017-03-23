@@ -91,7 +91,7 @@ public class PronomParser {
      *
      * @param xmlPronom as InputStream
      * @return : the list of file format as ArrayNode
-     * @throws FileFormatException
+     * @throws FileFormatException if exception occurred when get pronom data
      */
     @SuppressWarnings("unchecked")
     public static ArrayNode getPronom(InputStream xmlPronom) throws FileFormatException {

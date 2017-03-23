@@ -32,12 +32,22 @@ package fr.gouv.vitam.common.database.collections;
 public class VitamCollectionHelper {
 
     /**
+     * getCollectionMultiTenant with collection class
+     *
+     * @param clasz a class of a unknow type
+     * @return VitamCollection
+     */
+    public static VitamCollection getCollectionMultiTenant(final Class<?> clasz) {
+        return new VitamCollection(clasz);
+    }
+    
+    /**
      * getCollection with collection class
      *
      * @param clasz a class of a unknow type
      * @return VitamCollection
      */
-    public static VitamCollection getCollection(final Class<?> clasz) {
-        return new VitamCollection(clasz);
+    public static VitamCollection getCollectionWithoutTenant(final Class<?> clasz) {
+        return new VitamCollection(clasz, false);
     }
 }

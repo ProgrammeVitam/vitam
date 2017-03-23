@@ -30,13 +30,33 @@ package fr.gouv.vitam.processing.common;
  * Display logged messages
  */
 public enum CheckObjectsNumberMessage {
-    // TODO P1 Javadoc for each
+    /**
+     * message for duplicated digital object 
+     */
     DUPLICATED_DIGITAL_OBJECT_WORKSPACE("Objet numérique dupliqué trouvé dans le SIP: "),
-    LIST_OF_UNDECLARED_DIGITAL_OBJECT("List of undeclared digital objects: "),
+    /**
+     * message for list of undeclared digital objects
+     */
+    LIST_OF_UNDECLARED_DIGITAL_OBJECT("Liste des objets numériques non déclarés: "),
+    /**
+     * massage for count digital object in sip
+     */
     COUNT_DIGITAL_OBJECT_SIP("Nombre d'objets numériques trouvés dans le SIP: "),
+    /**
+     * message for count digital object in manifest
+     */
     COUNT_DIGITAL_OBJECT_MANIFEST("Nombre d'objets numériques référencés dans le bordereau: "),
+    /**
+     * message for not found digital object in manifest
+     */
     NOT_FOUND_DIGITAL_OBJECT_MANIFEST("Objet(s) numériques non référencé(s) dans le bordereau: "),
+    /**
+     * 
+     */
     NOT_FOUND_DIGITAL_OBJECT_WORKSPACE("Objet(s) numériques non référencé(s) dans le SIP: "),
+    /**
+     * 
+     */
     COUNT_DIGITAL_OBJECT_CONSISTENT("Conformité du nombre d'objets numériques");
 
 

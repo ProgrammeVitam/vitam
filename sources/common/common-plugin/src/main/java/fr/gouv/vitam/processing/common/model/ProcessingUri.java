@@ -43,7 +43,6 @@ public class ProcessingUri {
     /**
      * Empty Constructor
      *
-     * @param uri
      */
     public ProcessingUri() {
         // empty constructor
@@ -52,8 +51,8 @@ public class ProcessingUri {
     /**
      * Constructor with prefix and path
      *
-     * @param prefix
-     * @param path
+     * @param prefix of processing uri
+     * @param path of processing uri
      */
     public ProcessingUri(String prefix, String path) {
         this(UriPrefix.valueOf(prefix), path);
@@ -62,8 +61,8 @@ public class ProcessingUri {
     /**
      * Constructor with prefix and path
      *
-     * @param prefix
-     * @param path
+     * @param prefix of processing uri
+     * @param path of processing uri
      */
     public ProcessingUri(UriPrefix prefix, String path) {
         setPrefix(prefix);
@@ -73,7 +72,7 @@ public class ProcessingUri {
     /**
      * Constructor with String
      *
-     * @param uri
+     * @param uri of processing
      */
     public ProcessingUri(String uri) {
         this(uri.split(":")[0], uri.split(":")[1]);

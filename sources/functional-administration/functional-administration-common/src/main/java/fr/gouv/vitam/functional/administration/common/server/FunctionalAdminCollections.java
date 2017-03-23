@@ -35,6 +35,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 
 /**
  * All collections in functional admin module
@@ -58,14 +59,25 @@ public enum FunctionalAdminCollections {
     /**
      * Accession Register detail Collection
      */
-    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class);
+    /**
+     * 
+     */
+    ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class),
+    
+    /**
+     * Ingest contract collection
+     * 
+     */
+    INGEST_CONTRACT(IngestContract.class);
 
     private VitamCollection vitamCollection;
-    
-    final public static String ID = "_id";
 
     private FunctionalAdminCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz);
+        if (clasz.equals(FileFormat.class)) {
+            vitamCollection = VitamCollectionHelper.getCollectionWithoutTenant(clasz);
+        } else {
+            vitamCollection = VitamCollectionHelper.getCollectionMultiTenant(clasz);
+        }
     }
 
     /**
@@ -106,6 +118,9 @@ public enum FunctionalAdminCollections {
         return vitamCollection.getCollection();
     }
 
+    public VitamCollection getVitamCollection() {
+        return vitamCollection;
+    }
 
     /**
      *

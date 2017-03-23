@@ -2,6 +2,9 @@ package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
+/**
+ * Process Context
+ */
 public class ProcessContext {
 
     /**
@@ -28,8 +31,6 @@ public class ProcessContext {
 
     /**
      * @param workFlowId the workFlowId to set
-     * @return
-     *
      * @return this
      */
     public ProcessContext setWorkFlowId(String workFlowId) {
@@ -46,8 +47,6 @@ public class ProcessContext {
 
     /**
      * @param executionContext the executionContext to set
-     * @return
-     *
      * @return this
      */
     public ProcessContext setExecutionContext(String executionContext) {

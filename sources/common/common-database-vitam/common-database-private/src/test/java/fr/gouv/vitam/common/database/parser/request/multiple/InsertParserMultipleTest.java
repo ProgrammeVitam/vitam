@@ -68,7 +68,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
@@ -143,7 +143,7 @@ public class InsertParserMultipleTest {
             assertNotNull(request1);
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
-            final Insert insert = new Insert();
+            final InsertMultiQuery insert = new InsertMultiQuery();
             insert.addRoots("id0");
             insert.addQueries(path("id1", "id2"));
             insert.addQueries(
@@ -212,7 +212,7 @@ public class InsertParserMultipleTest {
     @Test
     public void testFilterParse() {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         try {
             // empty
             request.filterParse(insert.getFilter());
@@ -257,7 +257,7 @@ public class InsertParserMultipleTest {
     @Test
     public void testDataParse() {
         final InsertParserMultiple request = new InsertParserMultiple();
-        final Insert insert = new Insert();
+        final InsertMultiQuery insert = new InsertMultiQuery();
         try {
             // empty rootNode
             request.dataParse(insert.getData());

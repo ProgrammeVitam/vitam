@@ -62,10 +62,10 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
-import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
@@ -83,7 +83,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -120,15 +119,15 @@ public class DbRequest {
     /**
      * The request should be already analyzed.
      *
-     * @param requestParser
+     * @param requestParser the RequestParserMultiple to execute
      * @param defaultStartSet the set of id from which the request should start, whatever the roots set
      * @return the Result
-     * @throws IllegalAccessException
-     * @throws InstantiationException
-     * @throws MetaDataExecutionException
-     * @throws InvalidParseOperationException
-     * @throws MetaDataAlreadyExistException
-     * @throws MetaDataNotFoundException
+     * @throws IllegalAccessException when exceute query exception
+     * @throws InstantiationException when result/request class instance exception occurred 
+     * @throws MetaDataExecutionException when select/insert/update/delete on metadata collection exception occurred
+     * @throws InvalidParseOperationException when json data exception occurred 
+     * @throws MetaDataAlreadyExistException when insert metadata exception
+     * @throws MetaDataNotFoundException when metadata not found exception
      */
     public Result execRequest(final RequestParserMultiple requestParser, final Result defaultStartSet)
         throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
@@ -193,7 +192,7 @@ public class DbRequest {
         }
         // Result contains the selection on which to act
         // Insert allow to have no result
-        if (request instanceof Insert) {
+        if (request instanceof InsertMultiQuery) {
             final Result newResult = lastInsertFilterProjection((InsertToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
@@ -213,12 +212,12 @@ public class DbRequest {
                 .addError(WHERE_PREVIOUS_RESULT_WAS + result);
             return result;
         }
-        if (request instanceof Update) {
+        if (request instanceof UpdateMultiQuery) {
             final Result newResult = lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
             }
-        } else if (request instanceof Delete) {
+        } else if (request instanceof DeleteMultiQuery) {
             final Result newResult = lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
             if (newResult != null) {
                 result = newResult;
@@ -781,7 +780,7 @@ public class DbRequest {
         throws InvalidParseOperationException, MetaDataExecutionException {
         Integer tenantId = ParameterHelper.getTenantParameter();        
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
-        final Bson update = requestToMongodb.getFinalUpdate();
+        final Bson update = requestToMongodb.getFinalUpdateActions();
         final FILTERARGS model = requestToMongodb.model();
         LOGGER.debug(
             "To Update: " + MongoDbHelper.bsonToString(roots, false) + " " + MongoDbHelper.bsonToString(update, false));
@@ -842,7 +841,6 @@ public class DbRequest {
      *
      * @throws Exception
      * 
-     * @return void
      */
     private void indexFieldsOGUpdated(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();                
@@ -875,7 +873,6 @@ public class DbRequest {
      *
      * @throws Exception
      * 
-     * @return void
      */
     private void removeOGIndexFields(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -907,7 +904,6 @@ public class DbRequest {
      *
      * @throws Exception
      * 
-     * @return boolean
      */
     private void removeUnitIndexFields(Result last) throws Exception {
         Integer tenantId = ParameterHelper.getTenantParameter();        

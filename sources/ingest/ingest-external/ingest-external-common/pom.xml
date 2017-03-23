@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ingest-external</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.16.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ingest-external-common</artifactId>
 	<name>ingest-external-common</name>
@@ -42,7 +42,7 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-storage</artifactId>
+			<artifactId>workspace-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common;
 
 import java.nio.file.attribute.FileTime;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -39,6 +40,8 @@ import java.util.Date;
 public final class LocalDateUtil {
 
     private static final int THOUSAND = 1000;
+    
+    private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
 
     private LocalDateUtil() {
         // empty
@@ -46,7 +49,7 @@ public final class LocalDateUtil {
 
     /**
      *
-     * @param localDateTime
+     * @param localDateTime in format LocalDateTime to transform
      * @return the ISO Date Time
      */
     public static final String getString(LocalDateTime localDateTime) {
@@ -62,7 +65,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param date
+     * @param date in format String to transform
      * @return the corresponding Date from date string
      * @throws IllegalArgumentException date null or empty
      */
@@ -75,7 +78,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param millis
+     * @param millis in format long to transform
      * @return the corresponding LocalDateTime in UTC
      */
     public static final LocalDateTime fromMillis(long millis) {
@@ -87,7 +90,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param ldt
+     * @param ldt in format LocalDateTime to transform
      * @return the millis in epoch
      * @throws IllegalArgumentException ldt null or empty
      */
@@ -97,7 +100,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param date
+     * @param date in format Date to transform
      * @return the corresponding LocalDateTime in UTC
      */
     public static final LocalDateTime fromDate(Date date) {
@@ -108,7 +111,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param fileTime
+     * @param fileTime in format FileTime to transform
      * @return the corresponding LocalDateTime in UTC
      */
     public static final LocalDateTime fromDate(FileTime fileTime) {
@@ -119,7 +122,7 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param ldt
+     * @param ldt in format LocalDateTime to transform
      * @return the corresponding date
      */
     public static final Date getDate(LocalDateTime ldt) {
@@ -129,4 +132,12 @@ public final class LocalDateUtil {
         return Date.from(ldt.toInstant(ZoneOffset.UTC));
     }
 
+    /**
+     * @param date
+     * @return formatted date
+     */
+    public static final String getFormattedDate(Date date) {
+        final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
+        return dateFormat.format(date);
+    }
 }

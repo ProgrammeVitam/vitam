@@ -26,92 +26,116 @@
  */
 
 angular.module('core')
-  .controller('mainViewController', function($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
-                                             $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory) {
-    $scope.showMenuBar = true;
-    $scope.credentials = usernamePasswordToken;
-    $scope.session = {};
-    $scope.tenants = ['0', '1'];
-    ihmDemoFactory.getTenants().then(function(repsonse) {
-      if (repsonse.data.length !== 0) {
-        $scope.tenants = repsonse.data;
-      }
-      $scope.tenantId = $scope.tenants[0];
-    }, function(error) {
-      console.log('Error while get tenant. Set default list : ', error);
-      $scope.tenantId = $scope.tenants[0];
-    });
+    .controller('mainViewController', function ($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
+                                                $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory) {
+        $scope.showMenuBar = true;
+        $scope.credentials = usernamePasswordToken;
+        $scope.session = {};
+        $scope.tenants = ['0', '1'];
 
-    $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
-      $scope.session.status = authVitamService.isConnect('userCredentials');
-      if (!angular.isUndefined(next.$$route) && !angular.isUndefined(next.$$route.title)) {
-        $rootScope.title = next.$$route.title;
-        //Checks lifecycle type (unit or GOT) to set right page title
-        if (!angular.isUndefined(next.params.type) && next.$$route.template.indexOf('lifecycle') > -1) {
-          if (next.params.type === 'unit') {
-            $rootScope.title += 'de l\'unité archivistique';
-          }
-          if (next.params.type === 'objectgroup') {
-            $rootScope.title += 'du groupe d\'objet';
-          }
+        if (localStorage.getItem('user')) {
+            $rootScope.user = JSON.parse(localStorage.getItem('user'));
         }
-      } else {
-        $rootScope.title = 'VITAM';
-      }
-      if ($scope.session.status != 'logged') {
-        $location.path('/login');
-      } else if ($location.path() == '/login') {
-        $location.path(IHM_URLS.IHM_DEFAULT_URL);
-      }
+        console.log($rootScope.user);
 
-    });
-
-    $rootScope.$on('$routeChangeStart', function(event, next, current) {
-      if ($location.path() != '/login') {
-        authVitamService.url = $location.path();
-      }
-    });
-
-    $scope.connectUser = function(tenantId) {
-      subject.login($scope.credentials)
-        .then(
-        function(res) {
-          authVitamService.createCookie('role', res.role);
-          authVitamService.createCookie('userCredentials', btoa(''+':'+''));
-          authVitamService.createCookie(authVitamService.COOKIE_TENANT_ID, tenantId || 0);
-          $scope.session.status = 'logged';
-          $scope.logginError = false;
-          if (authVitamService.url && authVitamService.url != '') {
-            $location.path(authVitamService.url);
-            delete authVitamService.url;
-          } else {
-            $location.path(IHM_URLS.IHM_DEFAULT_URL);
-            $translate.refresh();
-          }
-        },
-        function(err) {
-          $scope.logginError = true;
-          $scope.sessionExpire(err);
+        ihmDemoFactory.getTenants().then(function (repsonse) {
+            if (repsonse.data.length !== 0) {
+                $scope.tenants = repsonse.data;
+            }
+            $scope.tenantId = '' + $scope.tenants[0];
+        }, function (error) {
+            console.log('Error while get tenant. Set default list : ', error);
+            $scope.tenantId = '' + $scope.tenants[0];
         });
-    };
 
-    $scope.logoutUser = function() {
-      subject.logout();
-      $scope.session.status = 'notlogged';
-      delete authVitamService.url;
-      authVitamService.logout().then(function(res) {
-        $location.path('/login');
-      }, function(err) {
-        $scope.sessionExpire(err);
-        $location.path('/login');
-      });
-    };
+        $rootScope.hasPermission = function (permission) {
+            if(!$rootScope.user) {
+                return false;
+            }
+            return $rootScope.user.permissions.indexOf(permission) > -1;
+        };
 
-    $scope.sessionExpire = function(err){
-      if(err.status === 410){
-        $scope.session.status = 'notlogged';
-        $scope.statusLogin = 'Session Expire';
-        authVitamService.logout();
-      }
-    };
-  });
+        $rootScope.$on('$routeChangeSuccess', function (event, next, current) {
+            $scope.session.status = authVitamService.isConnect('userCredentials');
+            if (!angular.isUndefined(next.$$route) && !angular.isUndefined(next.$$route.title)) {
+                $rootScope.title = next.$$route.title;
+                //Checks lifecycle type (unit or GOT) to set right page title
+                if (!angular.isUndefined(next.params.type) && next.$$route.template.indexOf('lifecycle') > -1) {
+                    if (next.params.type === 'unit') {
+                        $rootScope.title += 'de l\'unité archivistique';
+                    }
+                    if (next.params.type === 'objectgroup') {
+                        $rootScope.title += 'du groupe d\'objet';
+                    }
+                }
+            } else {
+                $rootScope.title = 'VITAM';
+            }
+            if ($scope.session.status != 'logged') {
+                $location.path('/login');
+            } else if ($location.path() == '/login') {
+                $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+            }
+
+        });
+
+        $rootScope.$on('$routeChangeStart', function (event, next, current) {
+            if ($location.path() != '/login') {
+                authVitamService.url = $location.path();
+            }
+        });
+
+        $scope.connectUser = function (tenantId) {
+            subject.login($scope.credentials)
+                .then(
+                    function (res) {
+                        authVitamService.createCookie('role', res.role);
+                        authVitamService.createCookie('userCredentials', btoa('' + ':' + ''));
+                        authVitamService.createCookie(authVitamService.COOKIE_TENANT_ID, tenantId || 0);
+                        $scope.session.status = 'logged';
+                        $scope.logginError = false;
+                        $rootScope.user = {
+                            userName: res.userName,
+                            tenantId: tenantId,
+                            permissions: res.permissions
+                        };
+                        localStorage.setItem('user' ,JSON.stringify($rootScope.user));
+                        if (authVitamService.url && authVitamService.url != '') {
+                            $location.path(authVitamService.url);
+                            delete authVitamService.url;
+                        } else {
+                            $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                            $translate.refresh();
+                        }
+                    },
+                    function (err) {
+                        $scope.logginError = true;
+                        $scope.sessionExpire(err);
+                    });
+        };
+
+        $scope.logoutUser = function () {
+            subject.logout();
+            $scope.session.status = 'notlogged';
+
+            delete $rootScope.user;
+            localStorage.removeItem('user');
+
+
+            delete authVitamService.url;
+            authVitamService.logout().then(function (res) {
+                $location.path('/login');
+            }, function (err) {
+                $scope.sessionExpire(err);
+                $location.path('/login');
+            });
+        };
+
+        $scope.sessionExpire = function (err) {
+            if (err.status === 410) {
+                $scope.session.status = 'notlogged';
+                $scope.statusLogin = 'Session Expire';
+                authVitamService.logout();
+            }
+        };
+    });

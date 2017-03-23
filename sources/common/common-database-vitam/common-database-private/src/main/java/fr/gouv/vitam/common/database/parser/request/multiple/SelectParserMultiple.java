@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -63,7 +63,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
 
     @Override
     protected RequestMultiple getNewRequest() {
-        return new Select();
+        return new SelectMultiQuery();
     }
 
     /**
@@ -118,13 +118,13 @@ public class SelectParserMultiple extends RequestParserMultiple {
         }
         GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatas.NB_PROJECTIONS);
         try {
-            ((Select) request).resetUsageProjection().resetUsedProjection();
+            ((SelectMultiQuery) request).resetUsageProjection().resetUsedProjection();
             final ObjectNode node = JsonHandler.createObjectNode();
             if (rootNode.has(PROJECTION.FIELDS.exactToken())) {
                 adapter.setVarsValue(node, rootNode.path(PROJECTION.FIELDS.exactToken()));
                 ((ObjectNode) rootNode).set(PROJECTION.FIELDS.exactToken(), node);
             }
-            ((Select) request).setProjection(rootNode);
+            ((SelectMultiQuery) request).setProjection(rootNode);
         } catch (final Exception e) {
             throw new InvalidParseOperationException(
                 "Parse in error for Projection: " + rootNode, e);
@@ -132,7 +132,7 @@ public class SelectParserMultiple extends RequestParserMultiple {
     }
 
     @Override
-    public Select getRequest() {
-        return (Select) request;
+    public SelectMultiQuery getRequest() {
+        return (SelectMultiQuery) request;
     }
 }

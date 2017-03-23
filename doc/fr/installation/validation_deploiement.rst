@@ -12,14 +12,14 @@ Sécurisation du fichier ``vault_pass.txt``
 
 Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments-rpm/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
 
-Validation par ansible
-=======================
+.. Validation par ansible
+.. =======================
 
-Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
+.. Pour tester le déploiement de VITAM, il faut se placer dans le répertoire |repertoire_deploiement| et entrer la commande suivante :
 
-``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --ask-vault-pass --check``
+.. ``ansible-playbook`` |repertoire_playbook ansible| ``/vitam.yml -i`` |repertoire_inventory| ``/<ficher d'inventaire> --ask-vault-pass --check``
 
-.. note:: A l'issue du passage du playbook, les étapes doivent toutes passer en vert.
+.. .. note:: A l'issue du passage du playbook, les étapes doivent toutes passer en vert.
 
 Validation manuelle
 ===================
@@ -53,6 +53,8 @@ Validation via SoapUI
 
 Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du composant IHM-recette (menu > tests SOAP-UI).
 
+.. note:: cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
+
 .. Validation via IHM technique
 .. ============================
 
@@ -68,3 +70,21 @@ A l'issue de l'installation, puis la validation, un **administrateur fonctionnel
 - à terme, le registre des fonds a été correctement importé
 
 Les chargements sont effectués depuis l':term:`IHM` demo.
+
+Cas du référentiel PRONOM
+--------------------------
+
+Un playbook a été créé pour charger le référentiel PRONOM dans une version compatible avec celui intégré dans le composant Siegfried.
+
+Ce playbook n'est à passer que si aucun référentiel PRONOM n'a été chargé, permettant d'accélérer l'utilisation de VITAM.
+
+Si le fichier vault-password est renseigné :
+
+``ansible-playbook ansible-vitam-rpm-extra/init_pronom.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
+Sinon
+
+``ansible-playbook ansible-vitam-rpm-extra/init_pronom.yml -i environments-rpm/<fichier d'inventaire> --ask-vault-pass``
+
+.. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
+

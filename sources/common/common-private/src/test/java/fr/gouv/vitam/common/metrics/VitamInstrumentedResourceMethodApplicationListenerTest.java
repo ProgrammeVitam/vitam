@@ -83,6 +83,7 @@ public class VitamInstrumentedResourceMethodApplicationListenerTest {
                 }
 
             };
+
         final StartApplicationResponse<TestVitamApplication> response =
             testFactory.findAvailablePortSetToApplication();
 

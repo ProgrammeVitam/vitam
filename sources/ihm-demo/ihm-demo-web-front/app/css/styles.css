@@ -453,7 +453,7 @@ table {
   background-color: #eeeeee;
 }
 
-.table > tbody > tr:hover > td {
+.table.highlighted > tbody > tr:hover > td {
   background-color: #AD9FFF;
   color: black;
   cursor: pointer;
@@ -569,4 +569,8 @@ table {
 
 .table > tbody > tr > td.warningLine {
   color: #FF6600;
+}
+
+a:hover {
+ cursor:pointer;
 }

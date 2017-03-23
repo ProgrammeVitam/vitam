@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.List;
+
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +45,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final long serialVersionUID = 3439757375656161919L;
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String SUBMISSION_AGENCY = "SubmissionAgency";
+    private static final String ARCHIVALAGREEMENT = "ArchivalAgreement";
     private static final String START_DATE = "StartDate";
     private static final String END_DATE = "EndDate";
     private static final String LAST_UPDATE = "LastUpdate";
@@ -51,6 +54,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     private static final String TOTAL_OBJECTS = "TotalObjects";
     private static final String OBJECT_SIZE = "ObjectSize";
     private static final String STATUS = "Status";
+    private static final String OPERATION_IDS = "OperationIds";
     private static final String TENANT = "_tenant";
 
     /**
@@ -64,7 +68,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     /**
      * Constructor
      *
-     * @param document
+     * @param document in format Document to create AccessionRegisterDetail
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
@@ -72,7 +76,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param content
+     * @param content in format JsonNode to create AccessionRegisterDetail
      */
     public AccessionRegisterDetail(JsonNode content) {
         super(content);
@@ -80,7 +84,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param content
+     * @param content in format String to create AccessionRegisterDetail
      */
     public AccessionRegisterDetail(String content) {
         super(content);
@@ -89,14 +93,14 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     
     /**
      * 
-     * @param tenantId
+     * @param tenantId th working tenant
      */
     public AccessionRegisterDetail(Integer tenantId)  {
     	append(TENANT, tenantId);
     }
 
     /**
-     * @param id
+     * @param id to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setId(String id) {
@@ -105,7 +109,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param orgAgency
+     * @param orgAgency to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setOriginatingAgency(String orgAgency) {
@@ -114,7 +118,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param orgAgency
+     * @param orgAgency to set
      * @return String
      */
     public String getOriginatingAgency() {
@@ -122,7 +126,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param subAgency
+     * @param subAgency to set
      * @return this
      */
     public AccessionRegisterDetail setSubmissionAgency(String subAgency) {
@@ -131,7 +135,16 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param startDate
+     * @param archivalAgreement Archival Agreement id
+     * @return this
+     */
+    public AccessionRegisterDetail setArchivalAgreement(String archivalAgreement) {
+        append(ARCHIVALAGREEMENT, archivalAgreement);
+        return this;
+    }
+
+    /**
+     * @param startDate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStartDate(String startDate) {
@@ -140,7 +153,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param endDate
+     * @param endDate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setEndDate(String endDate) {
@@ -156,7 +169,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param lastUpdate
+     * @param lastUpdate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setLastUpdate(String lastUpdate) {
@@ -165,7 +178,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param totalUnits
+     * @param totalUnits to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setTotalUnits(RegisterValueDetailModel totalUnits) {
@@ -181,7 +194,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param totalObjectGroups
+     * @param totalObjectGroups to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setTotalObjectGroups(RegisterValueDetailModel totalObjectGroups) {
@@ -197,7 +210,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param total
+     * @param total to set
      * @return this
      */
     public AccessionRegisterDetail setTotalObjects(RegisterValueDetailModel total) {
@@ -213,7 +226,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param objectSize
+     * @param objectSize to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setObjectSize(RegisterValueDetailModel objectSize) {
@@ -229,12 +242,16 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param status
+     * @param status to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStatus(AccessionRegisterStatus status) {
         append(STATUS, status.name());
         return this;
     }
-
+    
+    public AccessionRegisterDetail setOperationIds(String operationIds) {
+    	append(OPERATION_IDS, operationIds);
+        return this;
+	} 
 }

@@ -68,6 +68,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         "properties : { " + LogbookMongoDbName.eventDetailData.getDbname() +
         ": { type : \"object\",  enabled : true , " +
         "properties : { " +
+        "evDetDataType: { type: \"string\", index: \"not_analyzed\" }, " +
         "LogType : { type : \"string\", index : \"not_analyzed\" }, " +
         "StartDate : { type : \"date\", index : \"analyzed\" }, " +
         "EndDate : { type : \"date\", index : \"analyzed\" }, " +
@@ -78,24 +79,31 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         "TimeStampToken : { type : \"string\", index : \"not_analyzed\" }, " +
         "NumberOfElement : { type : \"long\", index : \"analyzed\" }, " +
         "Size : { type : \"long\", index : \"analyzed\" }, " +
-        "FileName : { type : \"string\", index : \"not_analyzed\" } " +
-        " } } " + // end evDetData
+        "FileName : { type : \"string\", index : \"not_analyzed\" }, " +
+        "EvDetailReq: { type: \"string\", index: \"not_analyzed\" }, " +
+        "EvDateTimeReq: { type: \"date\", index: \"not_analyzed\" }, " +
+        "AgIfTrans: { type: \"string\", index: \"not_analyzed\" }, " +
+        "ArchivalAgreement: { type: \"string\", index: \"not_analyzed\" }, " +
+        "ServiceLevel: { type: \"string\", index: \"not_analyzed\" }" +
+        " } } " + // end eventDetailData
         ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
         ", evType : { type : \"string\", index : \"not_analyzed\" } " +
         ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
         ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
+        ", evDateTime : { type : \"date\", index : \"not_analyzed\" } " +
         " } } " + // end events
         ", evTypeProc : { type : \"string\", index : \"not_analyzed\" } " +
         ", evType : { type : \"string\", index : \"not_analyzed\" } " +
         ", outcome : { type : \"string\", index : \"not_analyzed\" } " +
         ", outDetail : { type : \"string\", index : \"not_analyzed\" } " +
+        ", evDateTime : { type : \"date\", index : \"not_analyzed\" } " +
         " } } }";
 
 
     /**
      * Constructor from LogbookOperationParameters
      *
-     * @param parameters
+     * @param parameters to create logbook operation
      * @throws IllegalArgumentException if argument is null
      */
     public LogbookOperation(LogbookOperationParameters parameters) {
@@ -141,7 +149,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format Document to create LogbookOperation
      */
     public LogbookOperation(Document content) {
         super(content);
@@ -150,7 +158,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format String to create LogbookOperation
      */
     public LogbookOperation(String content) {
         super(content);
@@ -159,7 +167,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
     /**
      * Constructor for Codec
      *
-     * @param content
+     * @param content of format JsonNode to create LogbookOperation
      */
     public LogbookOperation(JsonNode content) {
         super(content);

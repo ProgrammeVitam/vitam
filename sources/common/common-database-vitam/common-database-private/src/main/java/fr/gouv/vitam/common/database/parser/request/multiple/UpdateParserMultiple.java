@@ -49,7 +49,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameUpdateAdapter;
@@ -84,7 +84,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
 
     @Override
     protected RequestMultiple getNewRequest() {
-        return new Update();
+        return new UpdateMultiQuery();
     }
 
     /**
@@ -134,7 +134,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
                 while (iterator.hasNext()) {
                     final Entry<String, JsonNode> entry = iterator.next();
                     final Action updateAction = analyseOneAction(entry.getKey(), entry.getValue());
-                    ((Update) request).addActions(updateAction);
+                    ((UpdateMultiQuery) request).addActions(updateAction);
                 }
                 iterator = null;
             }
@@ -205,7 +205,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
     }
 
     @Override
-    public Update getRequest() {
-        return (Update) request;
+    public UpdateMultiQuery getRequest() {
+        return (UpdateMultiQuery) request;
     }
 }

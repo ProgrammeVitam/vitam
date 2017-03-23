@@ -75,18 +75,17 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      */
     public static final String RESOURCE_PATH = "/worker/v1";
     /**
-     * @param  configuration
      * Get the WorkerClientFactory instance given a configuration
      *
-     * @return the instance
+     * @param  configuration the worker client configuration
      */
     private WorkerClientFactory(WorkerClientConfiguration configuration) {
         super(configuration, RESOURCE_PATH,true,false,false);
     }
     /**
      * get Specifique workerfactory instance
-     * @param configuration
-     * @return
+     * @param configuration the worker client configuration
+     * @return an instance of WorkerClientFactory
      */
     public static final WorkerClientFactory getInstance(WorkerClientConfiguration configuration) {
         if( configuration == null ) {
@@ -120,6 +119,7 @@ public class WorkerClientFactory extends VitamClientFactory<WorkerClient> {
      * Change client configuration from a Yaml files
      *
      * @param configurationPath the path to the configuration file
+     * @return un instance of WorkerClientConfiguration
      */
     public  static final WorkerClientConfiguration changeConfigurationFile(String configurationPath) {
         WorkerClientConfiguration configuration = null;

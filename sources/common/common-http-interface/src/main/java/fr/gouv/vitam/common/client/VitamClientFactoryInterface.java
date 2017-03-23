@@ -108,6 +108,13 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
     VitamClientFactoryInterface<?> setVitamClientType(VitamClientType vitamClientType);
 
     /**
+     * Change the server resourcePath to use. Only in JUNIT
+     *
+     * @param resourcePath
+     */
+    void changeResourcePath(String resourcePath);
+
+    /**
      * Change the server port to use. Only in JUNIT
      *
      * @param port

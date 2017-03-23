@@ -38,15 +38,15 @@ public class ResultDefault extends Result {
     /**
      * Constructor
      *
-     * @param type
+     * @param type of filter 
      */
     public ResultDefault(FILTERARGS type) {
         super(type);
     }
 
     /**
-     * @param type
-     * @param collection
+     * @param type of filter
+     * @param collection as a set of collection 
      */
     public ResultDefault(FILTERARGS type, final Collection<String> collection) {
         super(type, collection);

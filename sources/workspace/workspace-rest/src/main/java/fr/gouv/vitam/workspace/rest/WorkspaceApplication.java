@@ -55,8 +55,8 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
     /**
      * WorkspaceApplication constructor
      *
-     * @param configurationFile
-     * @throws IllegalStateException
+     * @param configurationFile the configuration file
+     * @throws IllegalStateException if configuration file not found
      */
     public WorkspaceApplication(String configurationFile) {
         super(StorageConfiguration.class, configurationFile);
@@ -76,7 +76,7 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
      * runs the APPLICATION
      *
      * @param args Workspace Configuration
-     * @throws VitamApplicationServerException
+     * @throws VitamApplicationServerException if vitam server cannot be started
      * @throws Exception Thrown if something goes wrong
      */
     public static void main(String[] args) {
@@ -96,7 +96,13 @@ public class WorkspaceApplication extends AbstractVitamApplication<WorkspaceAppl
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new WorkspaceResource(getConfiguration()))
-            .register(new AdminStatusResource()).register(SanityCheckerCommonFilter.class);
+                .register(SanityCheckerCommonFilter.class);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource());
+        return true;
     }
 
 }

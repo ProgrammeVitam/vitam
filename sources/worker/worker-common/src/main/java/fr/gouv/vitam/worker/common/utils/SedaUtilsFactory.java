@@ -39,8 +39,8 @@ public class SedaUtilsFactory {
     }
 
     /**
-     * @param handlerIO
-     * @return SedaUtils
+     * @param handlerIO the HandlerIO
+     * @return SedaUtils create with handlerIO parameter
      */
     public static SedaUtils create(HandlerIO handlerIO) {
         ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);

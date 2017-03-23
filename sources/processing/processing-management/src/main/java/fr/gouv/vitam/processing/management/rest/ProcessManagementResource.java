@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,6 +55,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
@@ -86,12 +88,9 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 @javax.ws.rs.ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
-
-    private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
-
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
 
+    private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
 
     private static final String UNAUTHORIZED_ACTION = "Unauthorized action :";
 
@@ -144,8 +143,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     /**
      * Execute the process as a set of operations.
      *
+     * @param headers the Http Header of request
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @return http response
+     * @param asyncResponse {@link AsyncResponse}
      */
     @Path("operations")
     @POST
@@ -259,8 +259,8 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
-     * @return http response
-     * @throws ProcessingException
+     * @param asyncResponse {@link AsyncResponse}
+     * @throws ProcessingException if error in execute a workflow
      */
     @Path("operations/{id}")
     @POST
@@ -331,6 +331,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * get the workflow status
      *
      * @param id operation identifier
+     * @param query the query
      * @return http response
      */
     @Path("operations/{id}")
@@ -370,6 +371,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
+     * @param asyncResponse {@link AsyncResponse}
      */
     @Path("operations/{id}")
     @PUT
@@ -435,7 +437,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Interrupt the process of an operation identified by Id.
      *
      * @param id operation identifier
-     * @return http response
+     * @param asyncResponse of type {@link AsyncResponse}
      */
     @Path("operations/{id}")
     @DELETE
@@ -513,9 +515,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
 
     /**
-     * TODO add javadoc
+     * get the process workflow
      * 
-     * @return
+     * @return the workflow in response
      */
     @GET
     @Path("/operations")
@@ -533,7 +535,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 workflow.put(EXECUTION_MODE_FIELD, processWorkflow.getExecutionMode().toString());
                 workflow.put(GLOBAL_EXECUTION_STATUS_FIELD, processWorkflow.getExecutionStatus().toString());
                 workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getGlobalStatusCode().toString());
-                workflow.put(PROCESS_DATE_FIELD, processWorkflow.getProcessDate().toString());
+                workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
 
                 result.add(workflow);
             }

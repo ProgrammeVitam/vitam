@@ -60,7 +60,7 @@ import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -123,7 +123,7 @@ public class AccessInternalModuleImplTest {
     private static final String FAKE_METADATA_MULTIPLE_RESULT = "{$results:[{'_id':123}, {'_id':124}]}";
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
-    private static final Update updateQuery = new Update();
+    private static final UpdateMultiQuery updateQuery = new UpdateMultiQuery();
     private static final Integer TENANT_ID = 0;
 
     @BeforeClass
@@ -366,7 +366,7 @@ public class AccessInternalModuleImplTest {
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
             " \\\"MyBoolean\\\" : true,\"}]}"));
 
-        accessModuleImpl.updateUnitbyId(new Update().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
         // check if diff for update sent to lfc is correct
         final LogbookLifeCycleUnitParameters capture = logbookLFCUnitParametersArgsCaptor.getValue();
@@ -403,7 +403,7 @@ public class AccessInternalModuleImplTest {
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\"}]}"));
 
-        accessModuleImpl.updateUnitbyId(new Update().getFinalUpdate(), id, REQUEST_ID);
+        accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
 
         // check if diff for update sent to lfc is null
         final LogbookLifeCycleUnitParameters capture = logbookLFCUnitParametersArgsCaptor.getValue();

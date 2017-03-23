@@ -39,9 +39,9 @@ public class AccessBinaryData {
     /**
      * Constructor
      *
-     * @param filename
-     * @param mimetype
-     * @param response
+     * @param filename the file name of binary data model
+     * @param mimetype the mime type of binary data model
+     * @param response the response of binary data model
      */
     public AccessBinaryData(String filename, String mimetype, Response response) {
         super();

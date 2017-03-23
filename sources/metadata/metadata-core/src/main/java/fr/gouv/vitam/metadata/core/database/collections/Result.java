@@ -78,7 +78,7 @@ public abstract class Result {
     /**
      * Constructor for empty result
      *
-     * @param type
+     * @param type of filter
      */
     public Result(FILTERARGS type) {
         this.type = type;
@@ -87,8 +87,8 @@ public abstract class Result {
     /**
      * Constructor from a set, setting the nbResult to the size of Set
      *
-     * @param type
-     * @param collection
+     * @param type of filter
+     * @param collection the set of working collection
      */
     public Result(FILTERARGS type, Collection<String> collection) {
         this.type = type;
@@ -112,8 +112,8 @@ public abstract class Result {
     /**
      * Put from argument
      *
-     * @param from
-     * @return this
+     * @param from the Result for creating another 
+     * @return Result created 
      */
     public Result putFrom(final Result from) {
         currentIds.addAll(from.currentIds);
@@ -138,7 +138,7 @@ public abstract class Result {
     /**
      * Ad one Id to CurrentIds
      *
-     * @param id
+     * @param id the id as String adding to current result 
      * @return this
      */
     public Result addId(String id) {
@@ -186,7 +186,7 @@ public abstract class Result {
     /**
      *
      * @return the filtered list for Select operation
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException if exception occurred when getting the filter list 
      */
     public List<MetadataDocument<?>> getMetadataDocumentListFiltered() throws InvalidParseOperationException {
         final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
@@ -222,7 +222,7 @@ public abstract class Result {
     /**
      * Add one document into final result
      *
-     * @param document
+     * @param document of type MetaDataDocument adding to result 
      */
     public void addFinal(MetadataDocument<?> document) {
         if (finalResult == null) {
@@ -239,7 +239,7 @@ public abstract class Result {
     /**
      * Build the array of result
      *
-     * @param projection
+     * @param projection the project of document
      */
     public void setFinal(Bson projection) {
         final List<Document> list = new ArrayList<>(currentIds.size());
@@ -278,6 +278,9 @@ public abstract class Result {
         }
     }
     
+    /**
+     * @return boolean check if exist finalResult part   
+     */
     public boolean hasFinalResult() {
         if (finalResult == null) {
             return false;

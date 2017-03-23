@@ -41,6 +41,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private String storagePath;
     private Boolean cephMode;
     private String contextPath;
+    private boolean authentication;
 
     /**
      * @return the provider
@@ -50,7 +51,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param provider the provider to set
+     * @param provider
+     *            the provider to set
      *
      * @return this
      */
@@ -67,7 +69,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param keystoneEndPoint the keystoneEndPoint to set
+     * @param keystoneEndPoint
+     *            the keystoneEndPoint to set
      *
      * @return this
      */
@@ -84,7 +87,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftUid the tenantName to set
+     * @param swiftUid
+     *            the tenantName to set
      *
      * @return this
      */
@@ -101,7 +105,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftSubUser the userName to set
+     * @param swiftSubUser
+     *            the userName to set
      *
      * @return this
      */
@@ -118,7 +123,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param credential the credential to set
+     * @param credential
+     *            the credential to set
      *
      * @return this
      */
@@ -135,7 +141,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param storagePath the storagePath to set
+     * @param storagePath
+     *            the storagePath to set
      *
      * @return this
      */
@@ -152,7 +159,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param cephMode the cephMode to set
+     * @param cephMode
+     *            the cephMode to set
      *
      * @return this
      */
@@ -169,7 +177,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param contextPath the contextPath to set
+     * @param contextPath
+     *            the contextPath to set
      *
      * @return this
      */
@@ -178,6 +187,20 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         return this;
     }
 
+    /**
+     * @return boolean
+     */
+    public boolean isAuthentication() {
+        return authentication;
+    }
 
+    /**
+     * @param authentication to set ou unset
+     * @return StorageConfiguration
+     */
+    public StorageConfiguration setAuthentication(boolean authentication) {
+        this.authentication = authentication;
+        return this;
+    }
 
 }

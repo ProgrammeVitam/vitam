@@ -81,13 +81,14 @@ public class ItemStatus {
     }
 
     /**
-     * @param message
-     * @param itemId
-     * @param statusMeter
-     * @param globalStatus
-     * @param data
-     * @param itemsStatus
-     * @param globalExecutionStatus 
+     * @param message the message of item status
+     * @param itemId the item status id
+     * @param statusMeter the item status meter list
+     * @param globalStatus the global status code 
+     * @param data the map of data object
+     * @param itemsStatus the map of item status
+     * @param evDetailData the event detail data
+     * @param globalExecutionStatus the global workflow status
      */
     public ItemStatus(@JsonProperty("itemId") String itemId, @JsonProperty("message") String message,
         @JsonProperty("globalStatus") StatusCode globalStatus,
@@ -106,7 +107,7 @@ public class ItemStatus {
     /**
      * Constructor
      *
-     * @param itemId
+     * @param itemId the item status id
      */
     public ItemStatus(String itemId) {
         this();
@@ -174,7 +175,7 @@ public class ItemStatus {
 
     /**
      * @param statusCode the statusCode to increment
-     * @param increment
+     * @param increment adding the status code of 
      *
      * @return this
      */
@@ -190,9 +191,10 @@ public class ItemStatus {
         return this;
     }
 
-    /**
-     * @param statusCode the statusCode to increment
-     * @param increment
+    /** update global status    
+     * 
+     * @param itemStatus1 the statusCode to increment
+     * @param itemStatus2 the statusCode to increment
      *
      * @return this
      */
@@ -236,9 +238,10 @@ public class ItemStatus {
         return data;
     }
 
-    /**
-     * @param key
-     * @param value
+    /** put the data object to item status
+     * 
+     * @param key of data object maps to set to item status  
+     * @param value of data object maps to set to item status
      * @return this
      */
     public ItemStatus setData(String key, Object value) {
@@ -268,9 +271,10 @@ public class ItemStatus {
         return itemsStatus;
     }
 
-    /**
-     * @param itemId
-     * @param statusDetails
+    /** set status detail to item status 
+     * 
+     * @param itemId the item status id to set 
+     * @param statusDetails the detail of status 
      *
      * @return this
      */
@@ -301,7 +305,7 @@ public class ItemStatus {
     }
 
     /**
-     * @param compositeItemStatus
+     * @param compositeItemStatus the item status to set  
      *
      * @return this
      */
@@ -367,7 +371,8 @@ public class ItemStatus {
     }
 
     /**
-     * @param subTaskStatus the subTaskStatus to set
+     * @param taskId the task id
+     * @param taskStatus task Status
      *
      * @return this
      */
@@ -390,7 +395,7 @@ public class ItemStatus {
     /**
      * set EvDetailData
      * 
-     * @param evDetailData
+     * @param evDetailData the event data to set
      * @return this
      */
     public ItemStatus setEvDetailData(String evDetailData) {

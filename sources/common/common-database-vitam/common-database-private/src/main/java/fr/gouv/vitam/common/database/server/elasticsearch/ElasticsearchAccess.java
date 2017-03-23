@@ -30,6 +30,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -97,7 +98,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      *
      * @param clusterName the name of the Cluster
      * @param nodes the elasticsearch nodes
-     * @throws VitamException
+     * @throws VitamException when elasticseach node list is empty
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {
 
@@ -193,5 +194,27 @@ public class ElasticsearchAccess implements DatabaseConnection {
     @Override
     public String toString() {
         return clusterName;
+    }
+    
+    public final boolean addIndex(String collectionName, String mapping, String type) {
+        if (!client.admin().indices().prepareExists(collectionName).get().isExists()) {
+            try {
+                LOGGER.debug("createIndex");
+                LOGGER.debug("setMapping: " + collectionName + " type: " + type + "\n\t" + mapping);
+                final CreateIndexResponse response =
+                    client.admin().indices().prepareCreate(collectionName)
+                    .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                    .addMapping(type, mapping)
+                    .get();
+                if (!response.isAcknowledged()) {
+                    LOGGER.error(type + ":" + response.isAcknowledged());
+                    return false;
+                }
+            } catch (final Exception e) {
+                LOGGER.error("Error while set Mapping", e);
+                return false;
+            }
+        }
+        return true;
     }
 }

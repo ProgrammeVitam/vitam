@@ -63,9 +63,9 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     public static long size = 10000000L;
 
     /**
-     * Constructor IngestExternalResource
+     * Constructor BenchmarkResourceProduceInputStream
      *
-     * @param ingestExternalConfiguration
+     * @param configuration the Benchmark Configuration
      */
     public BenchmarkResourceProduceInputStream(BenchmarkConfiguration configuration) {
         LOGGER.info("init Ingest External Resource server");

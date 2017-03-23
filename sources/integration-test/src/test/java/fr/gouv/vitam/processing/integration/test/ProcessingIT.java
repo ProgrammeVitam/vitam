@@ -86,7 +86,7 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -218,6 +218,9 @@ public class ProcessingIT {
     private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";
     private static String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
     private static String SIP_MANIFEST_INCORRECT_REFERENCE = "integration-processing/KO_Reference_Unexisting.zip";
+
+    private static String SIP_FILE_KO_AU_REF_BDO = "integration-processing/SIP_KO_ArchiveUnit_ref_BDO.zip";
+    private static String SIP_BUG_2182 = "integration-processing/SIP_bug_2182.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -446,6 +449,13 @@ public class ProcessingIT {
 
             assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
+            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(), 
+                "STP_INGEST_FINALISATION.OK");
 
             // checkMonitoring - meaning something has been added in the monitoring tool
             final StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
@@ -640,7 +650,7 @@ public class ProcessingIT {
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            Select query = new Select();
+            SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
             query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
@@ -697,7 +707,7 @@ public class ProcessingIT {
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
 
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            Select query = new Select();
+            SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
             query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
@@ -1488,6 +1498,79 @@ public class ProcessingIT {
             e.printStackTrace();
             fail("should not raized an exception");
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowBug2182() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_BUG_2182);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        final Response ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
+        assertNotNull(statusCode);
+        assertEquals(StatusCode.KO, statusCode);
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowWithSIP_KO_AU_ref_BDO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_FILE_KO_AU_REF_BDO);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+
+        final Response ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
     }
 
 }

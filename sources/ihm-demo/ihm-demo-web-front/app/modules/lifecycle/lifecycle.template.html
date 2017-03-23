@@ -4,12 +4,12 @@
     <li><a href="#!/archiveSearch">Recherche d'archives</a></li>
     <li><a ng-href="#!/archiveunit/{{$ctrl.lifeCycleId}}">Détail de l'unité archivistique</a></li>
     <li ng-if="$ctrl.lifeCycleType === 'unit'">
-      <a ng-href="#!/lifecycle/unit/{{$ctrl.lifeCycleId}}/{{$ctrl.lifeCycleId}}">
+      <a ng-href="#!/lifecycle/unit/{{$ctrl.lifeCycleId}}">
         Journal du cycle de vie de l'unité archivistique
       </a>
     </li>
     <li ng-if="$ctrl.lifeCycleType === 'objectgroup'">
-      <a ng-href="#!/lifecycle/objectgroup/{{$ctrl.lifeCycleId}}/{{$ctrl.lifeCycleId}}">
+      <a ng-href="#!/lifecycle/objectgroup/{{$ctrl.lifeCycleId}}">
         Journal du cycle de vie du groupe d'objet
       </a>
     </li>
@@ -17,7 +17,7 @@
 
   <div class="panel panel-default col-md-12  dynamic-table-box">
     <a class="panel-header"  data-target="#boxLifeCycle" data-toggle="collapse">
-      <h2>JOURNAL DE CYCLE DE VIE - {{$ctrl.title}} - {{$ctrl.lifeCycleId}}</h2>
+      <h2>JOURNAL DE CYCLE DE VIE - {{archiveUnitTitle}} - {{$ctrl.lifeCycleId}}</h2>
     </a>
     <div id="boxLifeCycle" class="panel-body panel-collapse collapse in">
 
@@ -53,14 +53,16 @@
           <tbody>
             <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-repeat="result in $ctrl.lifeCycleDetails | startFrom : $ctrl.startFormat($ctrl.currentPage, $ctrl.resultPages, $ctrl.itemsPerPage) | limitTo : $ctrl.itemsPerPage">
               <td ng-repeat = "column in $ctrl.columnsToDisplay" class="{{selectStyleByStatus(result.outcomeValue)}} {{selectStyleByStepLevel(result.isStepLevelEvent)}}">
-                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <span ng-if = "column.id.toUpperCase() === 'EVTYPE'">{{ result[column.id] | translate }}</span>
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME' && column.id.toUpperCase() != 'EVTYPE'">{{ result[column.id] }}</span>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>
               </td>
               
               <td ng-repeat = "column in $ctrl.selectedObjects" class="{{selectStyleByStatus(result.outcomeValue)}} {{selectStyleByStepLevel(result.isStepLevelEvent)}}">
-                <span ng-if = "column.id.toUpperCase() != 'OUTCOME'">{{ result[column.id] }}</span>
+                <span ng-if = "column.id.toUpperCase() === 'EVTYPE'">{{ result[column.id] | translate }}</span>
+                <span ng-if = "column.id.toUpperCase() != 'OUTCOME' && column.id.toUpperCase() != 'EVTYPE'">{{ result[column.id] }}</span>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'OK'" class="material-icons">check</i>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'KO'" class="material-icons">close</i>
                 <i ng-if = "column.id.toUpperCase() == 'OUTCOME' && result[column.id].toUpperCase() == 'WARNING'" class="material-icons">warning</i>

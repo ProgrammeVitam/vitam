@@ -65,7 +65,7 @@ public abstract class LogbookDocument<E> extends Document {
     /**
      * Constructor from Json
      *
-     * @param content
+     * @param content in format String
      * @throws IllegalArgumentException if Id is not a GUID
      */
     public LogbookDocument(String content) {
@@ -76,7 +76,7 @@ public abstract class LogbookDocument<E> extends Document {
     /**
      * Constructor from Document
      *
-     * @param content
+     * @param content in format Document
      * @throws IllegalArgumentException if Id is not a GUID
      */
     public LogbookDocument(Document content) {

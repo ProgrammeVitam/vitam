@@ -185,11 +185,11 @@
     state: latest
   when: ansible_virtualization_type != 'docker'
 
-# TODO: Change owner to vitam:vitam ; apply on the next tasks
 - name: ensure Curator directories exist
   file:
     path: "{{vitam_folder_root}}/{{item}}/curator"
-    owner: root
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
     state: directory
     mode: 0755
   with_items:
@@ -203,7 +203,9 @@
   template:
     src: "{{item}}.j2"
     dest: "{{curator_conf_dir}}/{{item}}"
-    owner: logstash
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
   with_items:
     - "curator.yml"
     - "delete_index.yml"
@@ -223,30 +225,30 @@
     state: present
   when: ansible_distribution == "Debian"
 
-- name: create root crontab entry for curator for deleting old indexes
+- name: create vitam crontab entry for curator for deleting old indexes
   cron:
     name: "curator delete index "
     minute: "10"
     hour: "0"
-    user: "root"
+    user: "{{ vitam_user }}"
     job: "/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index.yml"
   when: ansible_virtualization_type != 'docker'
 
-- name: create root crontab entry for curator for closing old indexes
+- name: create vitam crontab entry for curator for closing old indexes
   cron:
     name: "curator close index"
     minute: "05"
     hour: "0"
-    user: "root"
+    user: "{{ vitam_user }}"
     job: "/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/close_index.yml"
   when: ansible_virtualization_type != 'docker'
 
-- name: create root crontab entry for curator for closing old indexes on metrics
+- name: create vitam crontab entry for curator for closing old indexes on metrics
   cron:
     name: "curator close & delete old metrics index"
     minute: "09"
     hour: "0"
-    user: "root"
+    user: "{{ vitam_user }}"
     job: "/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/metrics_index.yml"
   when: ansible_virtualization_type != 'docker'
 

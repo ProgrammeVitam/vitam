@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-engine</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.16.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-engine-server</artifactId>
 	<name>Storage Engine Server</name>
@@ -26,12 +26,12 @@
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>storage-driver</artifactId>
+			<artifactId>storage-driver-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>storage-offer-mock</artifactId>
+			<artifactId>mock-driver</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
@@ -84,7 +84,7 @@
 		</dependency>		
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>storage-default-driver</artifactId>
+			<artifactId>vitam-driver</artifactId>
 			<version>${project.version}</version>
 			<scope>runtime</scope>
 		</dependency>

@@ -3,7 +3,7 @@
 # =======================
 
 [main]
-# Objects and their properties are defined here, 
+# Objects and their properties are defined here,
 # Such as the securityManager, Realms and anything
 # else needed to build the SecurityManager
 
@@ -27,18 +27,18 @@ authc.loginUrl = /#!/login
 
 [users]
 # The 'users' section is for simple deployments
-# when you only need a small number of statically-defined 
+# when you only need a small number of statically-defined
 # set of User accounts.
 #username = password
 
-aadmin=54694c459527b1daf23eb6fcdaa6dc6f76744fbcf1aa9a7b2f7a623d572e4a23
-uuser=ce5cc8712b38ad9dae0013de1dc7356b7f83ee311925cdb89b0cb1412148d936
-gguest=1a4a3c5ac5e29d2a4556ce34f81dea65bf2919f1048ce648c31593f278b5af3e
+{% for item in vitam_users %}
+{{item.login}}={{item.password|hash('sha256')}}, {{item.role}}
+{% endfor %}
 
 [roles]
-# The 'roles' section is for simple deployments
-# when you only need a small number of statically-defined
-# roles.
+admin = *
+user = messages:*, archivesearch:*, logbook:*, ingest:*, archiveupdate:*, archiveunit:*, ingests:read, admin:formats:read, admin:rules:read, admin:accession-register:read, unitlifecycles:*, objectgrouplifecycles:*, operations:*, clear:delete, check:read
+guest = archivesearch:*, archiveunit:*, units:*, unit:*, admin:accession-register:read
 
 [urls]
 # make sure the end-user is authenticated.  If not, redirect to the 'authc.loginUrl' above,
@@ -49,4 +49,3 @@ gguest=1a4a3c5ac5e29d2a4556ce34f81dea65bf2919f1048ce648c31593f278b5af3e
 /v1/api/messages/logbook = anon
 /v1/api/tenants/ = anon
 /** = authc
-

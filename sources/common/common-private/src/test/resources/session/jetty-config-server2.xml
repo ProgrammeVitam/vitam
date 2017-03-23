@@ -84,6 +84,7 @@
                 <Set name="port">
                     <SystemProperty name="jetty.port" default="18002"/>
                 </Set>
+                <Set name="name">business</Set>
             </New>
         </Arg>
     </Call>

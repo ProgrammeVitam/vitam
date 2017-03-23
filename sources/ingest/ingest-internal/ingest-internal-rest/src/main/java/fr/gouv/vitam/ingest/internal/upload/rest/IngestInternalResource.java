@@ -224,9 +224,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the header X-Context-Id (steptoStep or not)
      * @param actionId the header X-ACTION (next,resume,..)
      * @param uploadedInputStream the stream to upload
-     * @param asyncResponse
-     * @throws InternalServerException
-     * @throws VitamClientException
+     * @param asyncResponse the asynchronized response
+     * @throws InternalServerException if request resources server exception occurred
+     * @throws VitamClientException if the server is unreachable
      *
      */
     @POST
@@ -295,11 +295,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
-     * @throws InternalServerException
-     * @throws VitamClientException
-     * @throws IngestInternalException
-     * @throws InvalidGuidOperationException
-     * @throws ProcessingException
+     * @throws InternalServerException if request resources server exception
+     * @throws VitamClientException if the server is unreachable 
+     * @throws IngestInternalException if error when request to ingest internal server
+     * @throws InvalidGuidOperationException if error when create guid
+     * @throws ProcessingException if error in workflow execution  
      */
     @Path("/operations/{id}")
     @POST
@@ -613,9 +613,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * 
      * Return the object as stream asynchronously
      * 
-     * @param objectId
-     * @param type
-     * @param asyncResponse
+     * @param objectId the object id
+     * @param type the collection type
+     * @param asyncResponse the asynchronized response 
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -627,17 +627,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param atr
-     * @param asyncResponse
+     * @param guid the object guid
+     * @param atr the inputstream ATR
+     * @return the status of the request (OK)
      */
     @POST
     @Path("/ingests/{objectId}/report")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public Response storeATR(@PathParam("objectId") String guid, InputStream atr) {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+                WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             LOGGER.error("storage atr internal");
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(guid);
             workspaceClient.putObject(guid, FOLDERNAME + guid + XML, atr);
 
@@ -689,7 +690,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
         InputStream uploadedInputStream, String contextId, String actionId) {
 
         LogbookOperationParameters parameters = null;
-        Status status;
         MediaType mediaType;
         String archiveMimeType = null;
         boolean isCompletedProcess = false;
@@ -1083,6 +1083,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             if (parameters != null) {
                 parameters.setStatus(logbookOutcome);
+
+                parameters.putParameterValue(LogbookParameterName.outcomeDetail, 
+                    VitamLogbookMessages.getOutcomeDetail(INGEST_WORKFLOW, logbookOutcome));
                 parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
                 logbookOperationsClient.update(parameters);
             }
@@ -1165,9 +1168,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * creates ProcessContext object : parse JSON file
      *
      * @param fileName filename of Json file
+     * @param contextId the context id
      * @return ProcessContext's object
-     * @throws WorkflowNotFoundException
-     * @throws ContextNotFoundException
+     * @throws WorkflowNotFoundException if there is no workflow found
+     * @throws ContextNotFoundException if context not found from file data
      */
     public ProcessContext createProcessContextObject(String fileName, String contextId)
         throws WorkflowNotFoundException, ContextNotFoundException {
@@ -1208,12 +1212,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
 
+    /**
+     * @param headers the http header for request
+     * @return Response
+     */
     @GET
     @Path("/operations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response listOperationsDetails(@Context HttpHeaders headers) {
-
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
             Response response;

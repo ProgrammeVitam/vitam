@@ -32,8 +32,6 @@ import java.util.Map;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 
-
-
 /**
  * Query helper (common to all types: SELECT, UPDATE, INSET, DELETE)
  *

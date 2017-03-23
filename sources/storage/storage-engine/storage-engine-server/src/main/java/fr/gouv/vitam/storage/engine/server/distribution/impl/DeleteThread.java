@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -32,14 +32,16 @@ import java.util.concurrent.Callable;
 
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
+import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
- * Thread to delete object on offer from its GUID
- * TODO: how to test it ???
+ * Thread to delete object on offer from its GUID TODO: how to test it ???
  */
 public class DeleteThread implements Callable<Boolean> {
 
@@ -52,9 +54,12 @@ public class DeleteThread implements Callable<Boolean> {
     /**
      * Default constructor
      *
-     * @param driver the driver for the offer
-     * @param request the remove request
-     * @param offerId the offerId
+     * @param driver
+     *            the driver for the offer
+     * @param request
+     *            the remove request
+     * @param offerId
+     *            the offerId
      */
     public DeleteThread(Driver driver, StorageRemoveRequest request, String offerId) {
         this.driver = driver;
@@ -63,13 +68,19 @@ public class DeleteThread implements Callable<Boolean> {
     }
 
     @Override
-    public Boolean call() throws Exception {
+    public Boolean call() throws StorageException, StorageDriverException, InterruptedException {
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
         final Properties parameters = new Properties();
         parameters.putAll(offer.getParameters());
-        try (Connection connection = driver.connect(offer.getBaseUrl(), parameters)) {
-            connection.removeObject(request);
+        try (Connection connection = driver.connect(offer, parameters)) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw new InterruptedException();
+            }
+            StorageRemoveResult storageRemoveResult = connection.removeObject(request);
+            if (storageRemoveResult.isObjectDeleted()) {
+                return true;
+            }
         }
-        return true;
+        return false;
     }
 }

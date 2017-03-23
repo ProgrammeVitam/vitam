@@ -65,9 +65,9 @@ public class UnitNode {
     /**
      * Build a graph of all parents
      * 
-     * @param parentMap
-     * @param allUnitNode
-     * @param rootList
+     * @param parentMap map of parent unit
+     * @param allUnitNode map a all unit
+     * @param rootList list of root
      */
     public void buildAncestors(Map<String, UnitSimplified> parentMap, 
         Map<String, UnitNode> allUnitNode, Set<String> rootList) {
@@ -112,16 +112,23 @@ public class UnitNode {
     }
 
     /**
-     * @return
+     * @return UnitSimplified
      */
     public UnitSimplified getUnit() {
         return unit;
     }
 
+    /**
+     * @return the map of all unit node 
+     */
     public Map<String, UnitNode> getAllUnitNode() {
         return allUnitNode;
     }
 
+    /**
+     * @param allUnitNode map of all unit node
+     * @return UnitNOde and allUnitNode is setted 
+     */
     public UnitNode setAllUnitNode(Map<String, UnitNode> allUnitNode) {
         this.allUnitNode = allUnitNode;
         return this;

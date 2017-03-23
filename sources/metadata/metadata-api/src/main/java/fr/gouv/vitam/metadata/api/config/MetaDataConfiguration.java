@@ -46,7 +46,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
      *
      * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
-     * @param clusterName
+     * @param clusterName cluster name 
      * @param elasticsearchNodes elasticsearch nodes
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
@@ -63,11 +63,11 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
      *
      * @param mongoDbNodes database server IP addresses and ports
      * @param dbName database name
-     * @param clusterName
+     * @param clusterName cluster name
      * @param elasticsearchNodes elasticsearch nodes
-     * @param dbAuthentication
-     * @param dbUserName
-     * @param dbPassword
+     * @param dbAuthentication if authentication mode 
+     * @param dbUserName db user name
+     * @param dbPassword db password
      */
     public MetaDataConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
         List<ElasticsearchNode> elasticsearchNodes, boolean dbAuthentication, String dbUserName, String dbPassword) {

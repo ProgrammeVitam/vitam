@@ -57,20 +57,7 @@
 
 	</div>
 
-
-	<!--Pagination -->
-	<div style="text-align: center">
-		<button class="btn btn-default btn-s"
-			ng-disabled="search.pagination.currentPage <= 1"
-			ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
-			Précédent</button>
-		<input ng-model="search.pagination.currentPage"
-			style="max-width: 40px">/{{search.pagination.resultPages}}
-		<button class="btn btn-default btn-s"
-			ng-disabled="search.pagination.currentPage >= search.pagination.resultPages"
-			ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
-			Suivant</button>
-	</div>
+	<search-pagination pagination-scope="search.pagination" search-function="getFileRules"></search-pagination>
 
 	<div class="panel panel-default col-md-12">
 		<a class="panel-header" data-target="#boxSearchResults"
@@ -84,20 +71,35 @@
 			class="panel-body panel-collapse collapse in">
 			<div class="table-responsive">
 				<div style="padding-top: 40px">
-					<table class="table ">
-						<th><button ng-click="propertyName='RuleValue'; reverse=!reverse">Intitulé</button></th>
-						<th><button ng-click="propertyName='RuleType'; reverse=!reverse">Type</button></th>
-						<th><button ng-click="propertyName='RuleDuration'; reverse=!reverse">Durée</button></th>
-						<th><button ng-click="propertyName='RuleDescription'; reverse=!reverse">Description</button></th>
-						<th><button ng-click="propertyName='RuleId'; reverse=!reverse">Identifiant</button></th>
-						</tr>
+					<table class="table highlighted">
+						
+						<th><a href="" ng-click="orderByField='RuleValue'; reverseSort = !reverseSort">Intitulé</a>
+	            <span ng-show="orderByField == 'RuleValue' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="orderByField == 'RuleValue' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+	          </th>
+						<th><a href="" ng-click="orderByField='RuleType'; reverseSort = !reverseSort">Type</a>
+	            <span ng-show="orderByField == 'RuleType' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="orderByField == 'RuleType' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+	          </th>
+						<th><a href="" ng-click="orderByField='RuleDuration'; reverseSort = !reverseSort">Durée</a>
+	            <span ng-show="orderByField == 'RuleDuration' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="orderByField == 'RuleDuration' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+	          </th>
+						<th><a href="" ng-click="orderByField='RuleDescription'; reverseSort = !reverseSort">Description</a>
+	            <span ng-show="orderByField == 'RuleDescription' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="orderByField == 'RuleDescription' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+	          </th>
+						<th><a href="" ng-click="orderByField='RuleId'; reverseSort = !reverseSort">Identifiant</a>
+	            <span ng-show="orderByField == 'RuleId' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="orderByField == 'RuleId' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+	          </th>
+
 						<tbody
-							ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage)| limitTo:search.pagination.itemsPerPage| orderBy:propertyName:reverse">
+							ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset)| limitTo:search.pagination.itemsPerPage| orderBy:orderByField:reverseSort">
 							<tr ng-click="openDialog($event, file.RuleId)">
 								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleValue}}</td>
 								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleType}}</td>
-								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleDuration.toString()+"
-									"+file.RuleMeasurement.toString()}}</td>
+								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleDuration.toString()+" "+file.RuleMeasurement.toString()| ruleMeasurementFormat}}</td>
 								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleDescription.toString()}}</td>
 								<td style="text-overflow: ellipsis; max-width: 20%">
 									{{file.RuleId.toString()}}</td>

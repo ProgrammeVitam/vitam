@@ -24,31 +24,28 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
 
 angular.module('ihm.demo')
-  .constant('ITEM_PER_PAGE', 25)
-  .constant('MAX_REQUEST_ITEM_NUMBER', 125)
-  // FIXME : Same filter than logbook-operation-controller. Do a generic filter in core/filters!
-  .filter('startFrom', function() {
-    return function (input, start) {
-      start = +start; //parse to int
-      return input.slice(start);
+  .filter('replaceDoubleQuote', function() {
+    return function (input) {
+      if (!!input) {
+        return input.replace(/\'\'/g, '\'');
+      }
+      return input;
     }
   })
-  .filter('replaceDoubleQuote', function() {
-      return function (input) {
-        if (!!input) {
-          return input.replace(/\'\'/g, '\'');
-    	}
-        return input;
-      }
-    })
-  .controller('logbookController', function($scope, $window, ihmDemoCLient, ITEM_PER_PAGE, MAX_REQUEST_ITEM_NUMBER, processSearchService, resultStartService) {
-    var header = {'X-Limit': MAX_REQUEST_ITEM_NUMBER};
+  .controller('logbookController', function($scope, $window, $filter, ihmDemoCLient, ITEM_PER_PAGE,
+                                            processSearchService, resultStartService, loadStaticValues) {
 
     $scope.startFormat = resultStartService.startFormat;
+
+    // Vars for dynamic table
+    $scope.selectedObjects = [];
+    $scope.customFields = [];
+    // $scope.columnsToDisplay = [];
+
     $scope.search = {
       form: {
         obIdIn: ''
@@ -66,19 +63,36 @@ angular.module('ihm.demo')
       }
     };
 
-    $scope.downloadObject = function(objectId, type) {
-      ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function(response) {
+    function initFields(fields) {
+      var result = [];
+      for (var i = 0, len = fields.length; i < len; i++) {
+        var fieldId = fields[i];
+        result.push({id: fieldId, label: 'ingest.logbook.displayField.' + fieldId});
+      }
+      return result;
+    }
+
+    loadStaticValues.loadFromFile().then(
+      function onSuccess(response) {
+        var config = response.data;
+        $scope.customFields = initFields(config.logbookIngestCustomFields);
+      }, function onError(error) {
+
+      });
+
+    $scope.downloadObject = function (objectId, type) {
+      ihmDemoCLient.getClient('ingests').one(objectId).one(type).get().then(function (response) {
         var a = document.createElement("a");
         document.body.appendChild(a);
 
-        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/xml' }));
+        var url = URL.createObjectURL(new Blob([response.data], {type: 'application/xml'}));
         a.href = url;
 
-        if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null) {
+        if (response.headers('content-disposition') !== undefined && response.headers('content-disposition') !== null) {
           a.download = response.headers('content-disposition').split('filename=')[1];
           a.click();
         }
-      }, function() {
+      }, function () {
         $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
           .clickOutsideToClose(true).title('Téléchargement erreur').textContent('Non disponible en téléchargement')
           .ariaLabel('Alert Dialog Demo').ok('OK'));
@@ -86,48 +100,95 @@ angular.module('ihm.demo')
     };
 
     // FIXME : Same method than logbook-operation-controller. Put it in generic service in core/services
-    $scope.goToDetails = function(id) {
+    $scope.goToDetails = function (id) {
       $window.open('#!/admin/logbookOperations/' + id);
     };
 
-    var preSearch = function() {
+    var preSearch = function () {
       var requestOptions = angular.copy($scope.search.form);
 
       requestOptions.INGEST = "all";
       requestOptions.orderby = "evDateTime";
-      if(requestOptions.obIdIn === ""){
+      if (requestOptions.obIdIn === "") {
         delete requestOptions.obIdIn;
       }
-      return [requestOptions, header];
+      return requestOptions;
     };
 
-    var successCallback = function(response) {
-      if (!response.data.$hits || !response.data.$hits.total || response.data.$hits.total == 0) {
-        return false;
-      }
-      $scope.search.response.data = response.data.$results;
-      $scope.search.response.data.map(function(item) {
+    var successCallback = function (response) {
+      $scope.search.response.data.map(function (item) {
         item.obIdIn = $scope.search.form.obIdIn;
+
+        if (!!item.evDetData) {
+          if (typeof item.evDetData === 'string') {
+            try {
+                item.evDetData = JSON.parse(item.evDetData);
+            } catch (e) {
+              console.error("Parsing error while get evDetData:", e);
+            }
+          }
+
+          // handle Date Format
+          if (!!item.evDetData.EvDateTimeReq) {
+            item.evDetData.EvDateTimeReq = $filter('vitamFormatDate')(item.evDetData.EvDateTimeReq);
+          }
+
+          // Handle multi lang comment
+          var displayableComment = '';
+          var count = 0;
+          angular.forEach(item.evDetData, function(value, key) {
+            if (key.indexOf('EvDetailReq') == 0) {
+              count ++;
+              // If its the 2nd, the first one should be enter quotes to be array format
+              if (count === 2) {
+                displayableComment = '"' + displayableComment + '"';
+              }
+
+              // If its the 2nd or more, the new value should be enter quotes to be array format
+              if (count > 1) {
+                value = '"' + value + '"';
+              }
+
+              if(key.indexOf('_') == 11) {
+                // Its a lang spe comment
+                displayableComment += (displayableComment.length===0? '': ', ') + value;
+              } else {
+                // It's the default comment, put it in first
+                displayableComment = value + (displayableComment.length===0? '': ', ') + displayableComment;
+              }
+
+            }
+          });
+
+          // If multiple comments, put in an array.
+          if (count > 1) {
+            item.evDetData.EvDetailReq = '[' + displayableComment + ']';
+          } else {
+            item.evDetData.EvDetailReq = displayableComment;
+          }
+        }
       });
-      $scope.search.pagination.currentPage = 1;
-      $scope.search.response.totalResult = response.data.$hits.total;
-      // FIXME What about X-REQUEST-ID in header ?
-      // header['X-REQUEST-ID'] = response.headers('X-REQUEST-ID');
-      $scope.search.pagination.resultPages = Math.ceil($scope.search.response.totalResult/$scope.search.pagination.itemsPerPage);
       return true;
     };
 
-    var computeErrorMessage = function() {
+    var computeErrorMessage = function () {
       return 'Il n\'y a aucun résultat pour votre recherche';
     };
 
-    var searchFunction = function(result) {
-      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(result[0], null, null, result[1]);
+    var callCustomPost = function (criteria, headers) {
+      return ihmDemoCLient.getClient('logbook').all('operations').customPOST(criteria, null, null, headers);
     };
 
-    var searchService = processSearchService.initAndServe(searchFunction, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+    var searchService = processSearchService.initAndServe(callCustomPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
     $scope.getLogbooks = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
+
+    $scope.getMessageIdentifier = function (logOperation) {
+      if (logOperation.events[0].obIdIn === null) {
+        return logOperation.events[1].obIdIn;
+      }
+      return logOperation.events[0].obIdIn;
+    };
 
   });

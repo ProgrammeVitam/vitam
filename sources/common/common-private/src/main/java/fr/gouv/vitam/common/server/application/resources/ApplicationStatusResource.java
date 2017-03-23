@@ -70,10 +70,11 @@ public class ApplicationStatusResource implements VitamResource {
      * Constructor InternalVitamResources
      *
      * @param statusService
+     * @param tenantList
      */
-    public ApplicationStatusResource(VitamStatusService statusService, List<Integer> list) {
+    public ApplicationStatusResource(VitamStatusService statusService, List<Integer> tenantList) {
         this.statusService = statusService;
-        this.tenants = list;
+        this.tenants = tenantList;
     }
 
     /**

@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>ihm-recette</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.16.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>ihm-recette-web-application</artifactId>
 	<name>ihm-recette-web-application</name>
@@ -24,12 +24,26 @@
 			<artifactId>ihm-recette-soap-ui</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-			<dependency>
+
+		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>storage-engine-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-test</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- use for cucumber assertion -->
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-private</artifactId>
@@ -128,11 +142,7 @@
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
+
 	</dependencies>
 
 	<build>

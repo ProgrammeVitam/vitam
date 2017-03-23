@@ -6,7 +6,6 @@
  xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/home/ldubois/Bureau/Vitam/BA/SEDA/formation/seda-2.0-main.xsd">
     <Comment>Comment0</Comment>
     <Date>2016-09-06T18:13:51.0</Date>
-    <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
     <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
     
     <CodeListVersions>

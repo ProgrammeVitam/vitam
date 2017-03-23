@@ -54,8 +54,12 @@ public interface ProcessManagement extends VitamAutoCloseable {
     /**
      * Initialize Workflow context
      * 
-     * @param @NotNull workParams
-     * @param @NotNull workflowId
+     * @param workParams the workParams parameter, not null
+     * @param workflowId the workflowId parameter, not null
+     * @param logbookTypeProcess 
+     * @param asyncResponse
+     * @param tenantId
+     * @return the processWorkflow
      * @throws ProcessingException
      */
     ProcessWorkflow initWorkflow(WorkerParameters workParams, String workflowId, LogbookTypeProcess logbookTypeProcess,
@@ -69,6 +73,8 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * @param workParams null not allowed
      * @param workflowId null not allowed
      * @param executionMode null not allowed
+     * @param asyncResponse
+     * @param tenantId
      * @return Response :global process response such as OK, KO, FATAL,WARNING
      * @throws WorkflowNotFoundException thrown if the workflow was not found
      * @throws ProcessingException thrown in case of a technical exception in the execution
@@ -83,7 +89,10 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * Cancels Process Workflow
      * 
      * @param operationId the operation identifier process to cancel
+     * @param asyncResponse
+     * @param tenantId
      * @return Response :global process response such as OK, KO, FATAL,WARNING
+     * @throws ProcessWorkflowNotFoundException
      * @throws ProcessingException
      * @throws WorkflowNotFoundException
      */
@@ -95,7 +104,10 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * Pauses Process workflow
      * 
      * @param operationId the operation identifier process to pause
+     * @param asyncResponse
+     * @param tenantId
      * @return Response :global process response such as OK, KO, FATAL,WARNING
+     * @throws ProcessingException
      */
     ItemStatus pauseProcessWorkFlow(String operationId, Integer tenantId, AsyncResponse asyncResponse)
         throws ProcessingException;
@@ -104,6 +116,7 @@ public interface ProcessManagement extends VitamAutoCloseable {
      * Retrieve All the workflow process for monitoring purpose The final business scope of this feature is likely to be
      * redefined, to match the future need
      * 
+     * @param tenantId
      * @return All the workflow process details
      */
     List<ProcessWorkflow> getAllWorkflowProcess(Integer tenantId);
@@ -111,6 +124,8 @@ public interface ProcessManagement extends VitamAutoCloseable {
     /**
      * TODO add java doc
      * 
+     * @param operationId
+     * @param tenantId
      * @return the workFlow process
      */
     ProcessWorkflow getWorkflowProcessById(String operationId, Integer tenantId);

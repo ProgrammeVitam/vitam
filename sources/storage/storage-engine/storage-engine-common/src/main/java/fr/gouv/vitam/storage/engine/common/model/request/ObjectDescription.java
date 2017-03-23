@@ -52,8 +52,10 @@ public class ObjectDescription {
     /**
      * Constructor.
      *
-     * @param workspaceContainerGUID workspace container id
-     * @param workspaceObjectURI workspace object URI
+     * @param workspaceContainerGUID
+     *            workspace container id
+     * @param workspaceObjectURI
+     *            workspace object URI
      */
     public ObjectDescription(String workspaceContainerGUID, String workspaceObjectURI) {
         this.workspaceContainerGUID = workspaceContainerGUID;
@@ -63,9 +65,9 @@ public class ObjectDescription {
     /**
      * Constructor with StorageCollectionType parameter
      * 
-     * @param type
-     * @param workspaceContainerGUID
-     * @param objectName
+     * @param type the collection tyoe
+     * @param workspaceContainerGUID the container guid in workspace
+     * @param objectName the object name
      */
     public ObjectDescription(StorageCollectionType type, String workspaceContainerGUID, String objectName) {
         this.type = type;
@@ -84,7 +86,7 @@ public class ObjectDescription {
     }
 
     /**
-     * @param workspaceObjectURI
+     * @param workspaceObjectURI to set
      * @return this
      */
     public ObjectDescription setWorkspaceObjectURI(String workspaceObjectURI) {
@@ -100,7 +102,7 @@ public class ObjectDescription {
     }
 
     /**
-     * @param workspaceContainerGUID
+     * @param workspaceContainerGUID to set
      * @return this
      */
     public ObjectDescription setWorkspaceContainerGUID(String workspaceContainerGUID) {
@@ -117,7 +119,8 @@ public class ObjectDescription {
     }
 
     /**
-     * @param objectName the objectName to set
+     * @param objectName
+     *            the objectName to set
      *
      * @return this
      */
@@ -134,7 +137,8 @@ public class ObjectDescription {
     }
 
     /**
-     * @param type the type to set
+     * @param type
+     *            the type to set
      *
      * @return this
      */

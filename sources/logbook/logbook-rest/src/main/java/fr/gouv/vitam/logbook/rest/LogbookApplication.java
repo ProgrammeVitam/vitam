@@ -51,6 +51,9 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookApplication.class);
     private static final String CONF_FILE_NAME = "logbook.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    /**
+     * the server port of jetty
+     */
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.logbook.port";
 
     static VitamServiceRegistry serviceRegistry = null;
@@ -58,7 +61,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     /**
      * LogbookApplication constructor
      *
-     * @param configuration
+     * @param configuration in format String
      */
     public LogbookApplication(String configuration) {
         super(LogbookConfiguration.class, configuration);
@@ -67,7 +70,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
     /**
      * LogbookApplication constructor
      *
-     * @param configuration
+     * @param configuration in format LogbookConfiguration
      */
     public LogbookApplication(LogbookConfiguration configuration) {
         super(LogbookConfiguration.class, configuration);
@@ -77,7 +80,7 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
      * Main method to run the APPLICATION (doing start and join)
      *
      * @param args command line parameters
-     * @throws IllegalStateException
+     * @throws IllegalStateException if cannot start server
      */
     public static void main(String[] args) {
         try {
@@ -111,8 +114,13 @@ public final class LogbookApplication extends AbstractVitamApplication<LogbookAp
         // Database dependency
         serviceRegistry.register((DatabaseConnection) resource.getLogbookDbAccess())
         .register(((LogbookMongoDbAccessImpl)resource.getLogbookDbAccess()).getEsClient());
-        resourceConfig.register(resource)
-            .register(new AdminStatusResource(serviceRegistry));
+        resourceConfig.register(resource);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 
 }

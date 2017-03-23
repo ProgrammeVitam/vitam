@@ -35,7 +35,7 @@ angular.module('ihm.demo')
     "KO_STATUS": 400,
     "FATAL_STATUS": 500,
     "BLANK_TEST": "BLANK_TEST",
-    "BLANK_TEST_ALERT": "Vous avez selectionné une entrée à blanc."
+    "BLANK_TEST_ALERT": "Cette opération réalise un test à blanc de versement pour contrôle du SIP, aucune donnée ne sera conservée."
   })
   .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS,
     $interval, ihmDemoFactory, authVitamService) {
@@ -44,6 +44,10 @@ angular.module('ihm.demo')
     $scope.tenantKey = 'X-Tenant-Id';
     $scope.contextIdKey = 'X-Context-Id';
     $scope.actionKey = 'X-Action';
+
+    // Default options : Resume + DefaultWorkflow
+    $scope.action = 'RESUME';
+    $scope.contextId = 'DEFAULT_WORKFLOW';
 
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {
@@ -79,7 +83,7 @@ angular.module('ihm.demo')
       }, function(error) {
         console.log("clean failed");
       });
-    };
+    }
 
     $scope.stopPromise = undefined;
     $scope.check = function(fileItem, operationIdServerAppLevel) {
@@ -89,13 +93,16 @@ angular.module('ihm.demo')
          // Every 100ms check if the operation is finished
          ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel)
          .then(function (response) {
+           fileItem.isProcessing = false;
+           fileItem.isSuccess = false;
+           fileItem.isWarning = false;
+           fileItem.isError = false;
+           fileItem.isFatalError = false;
+
            if(response.status === UPLOAD_CONSTANTS.FATAL_STATUS) {
              // stop check
              $scope.stopCheck();
-             fileItem.isProcessing = false;
-             fileItem.isSuccess = false;
-             fileItem.isWarning = false;
-             fileItem.isError = true;
+             fileItem.isFatalError = true;
 
              clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
@@ -113,31 +120,39 @@ angular.module('ihm.demo')
              if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
                fileItem.isWarning = true;
              } else {
-               fileItem.isWarning = false;
+               fileItem.isSuccess = true;
              }
-             fileItem.isSuccess = !fileItem.isWarning;
+
              downloadATR(response, response.headers);
              clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
          }, function (error) {
-             console.log('Upload failed with error : ' + error.status);
+          console.log('Upload failed with error : ' + error.status);
+           fileItem.isProcessing = false;
+           fileItem.isSuccess = false;
+           fileItem.isWarning = false;
+           fileItem.isError = false;
+           fileItem.isFatalError = false;
 
-             if(error.status !== -1){
-               $scope.stopCheck();
-               $scope.uploadFinished = true;
-               $scope.uploadLaunched = false;
-               $scope.uploadFailed = true;
+           if(error.status !== -1){
 
-               // Refresh upload status icon
-               fileItem.isProcessing = false;
-               fileItem.isSuccess = false;
-               fileItem.isWarning = false;
+             $scope.stopCheck();
+             $scope.uploadFinished = true;
+             $scope.uploadLaunched = false;
+             $scope.uploadFailed = true;
+
+             // Refresh upload status icon
+             if (500 <= error.status && error.status < 600) {
+               fileItem.isFatalError = true;
+             } else {
                fileItem.isError = true;
-               downloadATR(error, error.headers);
-               clearHistoryAfterUpload(operationIdServerAppLevel);
-               $scope.disableSelect = false;
              }
+
+             downloadATR(error, error.headers);
+             clearHistoryAfterUpload(operationIdServerAppLevel);
+             $scope.disableSelect = false;
+           }
          });
        }, 5000); // 5000 ms
     };
@@ -160,6 +175,7 @@ angular.module('ihm.demo')
     $scope.fileItem.isSuccess = false;
     $scope.fileItem.isError = false;
     $scope.fileItem.isWarning = false;
+    $scope.fileItem.isFatalError = false;
 
     $scope.startUpload = function(params){
       // Start pooling after receiving the first operationId
@@ -168,9 +184,10 @@ angular.module('ihm.demo')
       $scope.fileItem.isSuccess = false;
       $scope.fileItem.isError = false;
       $scope.fileItem.isWarning = false;
+      $scope.fileItem.isFatalError = false;
 
       $scope.check($scope.fileItem, operationIdServerAppLevel);
-    }
+    };
 
     $scope.getSize = function(bytes, precision) {
       if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
@@ -190,7 +207,23 @@ angular.module('ihm.demo')
 
     $scope.checkBlankTestChoice = function($event){
       if($scope.contextId === UPLOAD_CONSTANTS.BLANK_TEST){
-        $scope.showAlert($event, "Attention", UPLOAD_CONSTANTS.BLANK_TEST_ALERT);
+
+        var confirmDialBox = $mdDialog.confirm().parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true)
+          .title('Confirmation de test à blanc')
+          .textContent(UPLOAD_CONSTANTS.BLANK_TEST_ALERT)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .cancel('Annuler')
+          .targetEvent($event);
+
+        $mdDialog.show(confirmDialBox).then(
+          function() {
+            // Answer ok: Nothing to do
+          }, function() {
+            // Answer Cancel: Cancel the update
+            $scope.contextId = 'DEFAULT_WORKFLOW';
+          });
       }
     };
 

@@ -123,6 +123,12 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             mockLogbook = mock(ExpectedResults.class);
             resourceConfig.registerInstances(new MockRessource(mock, mockLogbook));
         }
+
+        @Override
+        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+            // do nothing as @admin is not tested here
+            return false;
+        }
     }
 
     // Define your Configuration class if necessary

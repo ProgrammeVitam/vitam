@@ -12,9 +12,9 @@
     <div id="boxSearch" class="panel-body panel-collapse collapse in">
       <!-- <div class="tab-content"> -->
       <md-tabs role="tablist" md-stretch-tabs="always" md-dynamic-height>
-        <md-tab label="Recherche simple" role="presentation" class="active" ng-click="reinitForm()">
+        <md-tab label="Recherche simple" role="presentation" class="active" ng-click="reinitForm(); advancedSearch=false;">
           <!-- * RECHERCHE SIMPLE * -->
-          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult(titleCriteria)">
+          <form role="tabpanel" class="tab-pane active" id="simpleSearch" ng-submit="getSearchResult()">
             <div class="boxSimpleSearchInput form-group col-md-12 m-t-50 m-b-25">
               <div class="input-group m-b-25">
                 <input ng-model="search.form.titleCriteria" type="text" class="form-control input-lg" ng-change="onInputChange()"/>
@@ -25,7 +25,7 @@
             </div>
           </form>
         </md-tab>
-        <md-tab label="Recherche avancée" role="presentation" class="col-md-6" ng-click="reinitForm()">
+        <md-tab label="Recherche avancée" role="presentation" class="col-md-6" ng-click="reinitForm(); advancedSearch=true;">
           <!-- * RECHERCHE AVANCEE * -->
           <form role="tabpanel" class="tab-pane active" id="complexeSearch"
                 ng-submit="getElasticSearchUnitsResult()">
@@ -89,17 +89,9 @@
 <hr />
 
 <div class="clearfix"></div>
+  <search-pagination ng-if="advancedSearch===true" pagination-scope="search.pagination" search-function="getElasticSearchUnitsResult"></search-pagination>
+  <search-pagination ng-if="advancedSearch===false" pagination-scope="search.pagination" search-function="getSearchResult"></search-pagination>
 
-  <!--Pagination -->
-  <div style="text-align: center">
-    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
-      Précédent
-    </button>
-    <input ng-model="search.pagination.currentPage" style="max-width: 40px">/{{search.pagination.resultPages}}
-    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
-      Suivant
-    </button>
-  </div>
 
 <!--
 *
@@ -113,7 +105,7 @@
   </a>
   <div id="boxSearchResults" class="panel-body panel-collapse collapse in">
     <div class="table-responsive ">
-      <table class="table">
+      <table class="table highlighted">
         <tr>
           <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
             <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
@@ -136,7 +128,7 @@
 
         <tbody ng-if="search.response.totalResult>0">
           <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)"
-              ng-repeat="result in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage)| limitTo: search.pagination.itemsPerPage | orderBy:orderByField:reverseSort">
+              ng-repeat="result in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset)| limitTo: search.pagination.itemsPerPage | orderBy:orderByField:reverseSort">
             <td>{{result._id}}</td>
             <td>{{result.Title}}</td>
             <td>{{result.TransactedDate | vitamFormatDate}}</td>

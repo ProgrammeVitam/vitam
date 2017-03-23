@@ -26,19 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -46,6 +33,14 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 public class AbstractVitamApplicationTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractVitamApplicationTest.class);
@@ -67,15 +62,28 @@ public class AbstractVitamApplicationTest {
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {
             // Do nothing
         }
+        @Override
+        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+            // do nothing as @admin is not tested here
+            return false;
+        }
     }
 
     @Test
     public final void testBuild() throws VitamApplicationServerException, FileNotFoundException {
         TestVitamApplication testVitamApplication =
             new TestVitamApplication(BenchmarkConfiguration.class, TEST_CONF_CONF);
+
+        int portBusiness = testVitamApplication.getVitamServer().getPort();
+        assertThat(portBusiness).isZero();
+
+
+        int portAdmin = testVitamApplication.getVitamServer().getAdminPort();
+        assertThat(portAdmin).isNegative();
+
         final String filename1 = testVitamApplication.getConfigFilename();
         assertTrue(filename1.equals(TEST_CONF_CONF));
-        assertNotNull(testVitamApplication.getApplicationHandler());
+        assertNotNull(testVitamApplication.getApplicationHandlers());
         final BenchmarkConfiguration configuration = testVitamApplication.getConfiguration();
         assertNotNull(configuration);
         assertEquals("jetty-config-benchmark-test.xml", configuration.getJettyConfig());
@@ -83,7 +91,7 @@ public class AbstractVitamApplicationTest {
             new TestVitamApplication(BenchmarkConfiguration.class, configuration);
         final String filename2 = testVitamApplication.getConfigFilename();
         assertNull(filename2);
-        assertNotNull(testVitamApplication.getApplicationHandler());
+        assertNotNull(testVitamApplication.getApplicationHandlers());
         final BenchmarkConfiguration configuration2 = testVitamApplication.getConfiguration();
         assertEquals(configuration, configuration2);
         assertEquals("jetty-config-benchmark-test.xml", configuration2.getJettyConfig());

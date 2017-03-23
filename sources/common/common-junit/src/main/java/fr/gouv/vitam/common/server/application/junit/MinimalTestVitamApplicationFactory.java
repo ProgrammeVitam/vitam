@@ -39,7 +39,7 @@ import fr.gouv.vitam.common.server.application.VitamApplicationInterface;
  * @param <A> Application Class
  */
 public abstract class MinimalTestVitamApplicationFactory<A extends VitamApplicationInterface<?, ?>>
-    implements VitamApplicationTestFactory<A> {
+        implements VitamApplicationTestFactory<A> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MinimalTestVitamApplicationFactory.class);
 
     /**
@@ -55,21 +55,22 @@ public abstract class MinimalTestVitamApplicationFactory<A extends VitamApplicat
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
-                "Cannot start the Benchmar Application Server", e);
+                    "Cannot start the Benchmar Application Server", e);
         }
         return new StartApplicationResponse<A>()
-            .setApplication(application)
-            .setServerPort(application.getVitamServer().getPort());
+                .setApplication(application)
+                .setServerPort(application.getVitamServer().getPort())
+                .setServerAdminPort(application.getVitamServer().getAdminPort());
     }
 
     /**
      *
      * @return the StartApplicationResponse after starting the Application
-     * @throws IllegalStateException
+     * @throws IllegalStateException when cannot start application server 
      */
     @SuppressWarnings("unchecked")
     public final StartApplicationResponse<A> findAvailablePortSetToApplication() {
         return (StartApplicationResponse<A>) JunitHelper.getInstance()
-            .findAvailablePortSetToApplication(this);
+                .findAvailablePortSetToApplication(this);
     }
 }

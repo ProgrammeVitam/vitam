@@ -37,7 +37,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
-
+    
 /**
  * Metadata client interface
  */
@@ -61,7 +61,7 @@ public interface MetaDataClient extends BasicClient {
     /**
      * Search units by select query (DSL)
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.Select} as String
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery} as String
      *        <br>
      *        Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}

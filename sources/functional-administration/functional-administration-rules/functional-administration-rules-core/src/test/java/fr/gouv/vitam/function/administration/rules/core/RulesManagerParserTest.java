@@ -29,7 +29,6 @@ package fr.gouv.vitam.function.administration.rules.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -43,7 +42,7 @@ import fr.gouv.vitam.functional.administration.rules.core.RulesManagerParser;
 
 public class RulesManagerParserTest {
     String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
-    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_Parametes.csv";
+    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     ArrayNode jsonFileRules = null;
 
     @Test
@@ -51,12 +50,11 @@ public class RulesManagerParserTest {
         jsonFileRules =
             RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_OK));
         assertTrue(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleId").toString().contains("CLASS-00001"));
-        assertEquals(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleMeasurement").textValue(), "Année");
+        assertEquals(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleMeasurement").textValue(), "YEAR");
         assertTrue(
             jsonFileRules.get(jsonFileRules.size() - 1).get("RuleDuration").toString().contains("10"));
     }
 
-    @Test(expected = FileNotFoundException.class)
     public void testRulesFileKO() throws FileFormatException, InvalidParseOperationException, IOException {
         jsonFileRules =
             RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_KO));

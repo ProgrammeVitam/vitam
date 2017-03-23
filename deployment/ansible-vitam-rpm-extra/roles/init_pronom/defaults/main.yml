@@ -1,0 +1,4 @@
+---
+# defaults file for init_pronom
+pronom_version: "V88"
+pronom_baseurl: "http://www.nationalarchives.gov.uk/documents"

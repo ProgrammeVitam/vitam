@@ -44,7 +44,7 @@
     <!-- =========================================================== -->
     <Arg name="threadpool">
         <New id="threadpool" class="org.eclipse.jetty.util.thread.QueuedThreadPool">
-            <Arg name="minThreads" type="int">10</Arg>
+            <Arg name="minThreads" type="int">50</Arg>
             <Arg name="maxThreads" type="int">200</Arg>
             <Arg name="idleTimeout" type="int">60000</Arg>
             <Set name="detailedDump">false</Set>
@@ -111,6 +111,7 @@
                 <Set name="port">
                     <SystemProperty name="jetty.workspace.port" default="8987"/>
                 </Set>
+                <Set name="name">business</Set>
                 <Set name="idleTimeout">
                     <Property name="http.timeout" default="99999999"/>
                 </Set><!-- 27.7 h -->

@@ -91,12 +91,18 @@ public class TraceabilityEvent {
     }
 
     /**
+     * @param logType         the traceability type
      * @param startDate       date of the first document
      * @param endDate         date of the last document
      * @param hash            hash of the mekle tree
+     * @param previousLogbookTraceabilityDate  the previous Logbook Traceability Date
+     * @param minusOneMonthLogbookTraceabilityDate  the minus One Month Logbook Traceability Date
+     * @param minusOneYearLogbookTraceabilityDate   the minus One Year Logbook Traceability Date
+     * @param timeStampToken  timestamp token
      * @param timeStampToken  timestamp token
      * @param numberOfElement number of document to secure
      * @param fileName        path on the archive in workspace
+     * @param size            the size
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash, 
     	byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,

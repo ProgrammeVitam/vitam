@@ -1,0 +1,46 @@
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 178 (0xb2)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_timestamping
+        Validity
+            Not Before: Mar 15 12:18:42 2017 GMT
+            Not After : Mar 13 12:18:42 2027 GMT
+        Subject: C=FR, ST=idf, L=paris, O=Vitam., CN=CA_timestamping
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (512 bit)
+                Modulus:
+                    00:f8:b8:43:91:d4:b2:8e:92:b9:9a:61:e7:75:0b:
+                    c4:9a:78:93:86:59:83:48:48:a3:de:d7:65:ac:66:
+                    6a:a7:b6:21:0d:32:7e:cc:9e:b4:96:98:87:bf:50:
+                    d2:f1:ff:17:0f:a2:6d:12:21:c9:e6:a4:75:aa:03:
+                    f1:62:6e:7a:2d
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Subject Key Identifier: 
+                A5:21:78:B3:2E:6C:91:9B:31:B5:B5:F9:60:CA:57:00:BA:A2:D6:6E
+            X509v3 Authority Key Identifier: 
+                keyid:A5:21:78:B3:2E:6C:91:9B:31:B5:B5:F9:60:CA:57:00:BA:A2:D6:6E
+
+            X509v3 Basic Constraints: 
+                CA:TRUE
+    Signature Algorithm: sha256WithRSAEncryption
+         38:42:08:81:7d:1c:cd:8e:7f:db:41:dc:50:62:0f:69:d1:25:
+         db:31:b3:ef:b3:38:8a:0e:07:5c:4f:ee:b7:d0:e7:1d:30:84:
+         b9:36:17:8f:4f:b7:dd:9c:5f:e6:a2:63:d1:80:93:51:bb:81:
+         42:bb:a6:bc:6b:5f:b5:a1:3e:dc
+-----BEGIN CERTIFICATE-----
+MIIB7jCCAZigAwIBAgICALIwDQYJKoZIhvcNAQELBQAwVjELMAkGA1UEBhMCRlIx
+DDAKBgNVBAgTA2lkZjEOMAwGA1UEBxMFcGFyaXMxDzANBgNVBAoTBlZpdGFtLjEY
+MBYGA1UEAxQPQ0FfdGltZXN0YW1waW5nMB4XDTE3MDMxNTEyMTg0MloXDTI3MDMx
+MzEyMTg0MlowVjELMAkGA1UEBhMCRlIxDDAKBgNVBAgTA2lkZjEOMAwGA1UEBxMF
+cGFyaXMxDzANBgNVBAoTBlZpdGFtLjEYMBYGA1UEAxQPQ0FfdGltZXN0YW1waW5n
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAPi4Q5HUso6SuZph53ULxJp4k4ZZg0hI
+o97XZaxmaqe2IQ0yfsyetJaYh79Q0vH/Fw+ibRIhyeakdaoD8WJuei0CAwEAAaNQ
+ME4wHQYDVR0OBBYEFKUheLMubJGbMbW1+WDKVwC6otZuMB8GA1UdIwQYMBaAFKUh
+eLMubJGbMbW1+WDKVwC6otZuMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQAD
+QQA4QgiBfRzNjn/bQdxQYg9p0SXbMbPvsziKDgdcT+630OcdMIS5NhePT7fdnF/m
+omPRgJNRu4FCu6a8a1+1oT7c
+-----END CERTIFICATE-----

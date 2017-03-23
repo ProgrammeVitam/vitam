@@ -44,11 +44,11 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
-import fr.gouv.vitam.common.database.builder.request.multiple.Insert;
+import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.AbstractParser;
@@ -367,8 +367,8 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
      * </pre>
      *
      * @param condition the condition to add
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException when invalid create query exception occurred
+     * @throws InvalidParseOperationException when invalid parse data to create query 
      */
     public void addCondition(Query condition) throws InvalidCreateOperationException, InvalidParseOperationException {
         final RequestParserMultiple newOne = RequestParserHelper.getParser(rootNode.deepCopy(), adapter);
@@ -378,13 +378,13 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         final Query newQuery = QueryHelper.and().add(query, condition);
         getRequest().getQueries().set(0, newQuery);
         if (newOne instanceof SelectParserMultiple) {
-            parse(((Select) getRequest()).getFinalSelect().deepCopy());
+            parse(((SelectMultiQuery) getRequest()).getFinalSelect().deepCopy());
         } else if (newOne instanceof InsertParserMultiple) {
-            parse(((Insert) getRequest()).getFinalInsert().deepCopy());
+            parse(((InsertMultiQuery) getRequest()).getFinalInsert().deepCopy());
         } else if (newOne instanceof UpdateParserMultiple) {
-            parse(((Update) getRequest()).getFinalUpdate().deepCopy());
+            parse(((UpdateMultiQuery) getRequest()).getFinalUpdate().deepCopy());
         } else {
-            parse(((Delete) getRequest()).getFinalDelete().deepCopy());
+            parse(((DeleteMultiQuery) getRequest()).getFinalDelete().deepCopy());
         }
         newOne.request = null;
         newOne.rootNode = null;

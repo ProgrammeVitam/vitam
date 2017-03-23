@@ -56,25 +56,24 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
 
 .. code-block:: json
     
-{ "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
- "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
+   { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+   "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
  
  
- 2.5. Persistence des workers
-------------------------------
+2.5. Persistence des workers
+----------------------------
  
  La lise de workers est persistée dans une base de données. Pour le moment, la base est un fichier de données qui contient une tableau de 
  workers en format ArrayNode et chaque worker est une élément JsonNode. Exemple ci-dessous est des données d'une liste de workers 
 
 .. code-block:: json
 
-[
-  {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
- "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 }}}, 
-     
- {"workerId": "workerId2", "workerinfo": { "name" : "workername2", "family" : "BigWorker", "capacity" : 10, "storage" : 100,
- "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 54321 } }} 
-] 
+   [
+     {"workerId": "workerId1", "workerinfo": { "name" : "workername", "family" : "DefaultWorker", "capacity" : 10, "storage" : 100,
+    "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 }}},   
+    {"workerId": "workerId2", "workerinfo": { "name" : "workername2", "family" : "BigWorker", "capacity" : 10, "storage" : 100,
+    "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 54321 } }} 
+   ]
 
 Le fichier nommé "worker.db" qui sera créé dans le /vitam/data/processing   
  
@@ -92,8 +91,8 @@ et la base sera mise à jour.
 	marshallToDB()   // mise à jour la base de la liste des workers enregistrés
 	
 	
-2.6. Désenregistrement d'un worker 
------------------------------------
+2.6. Désenregistrement d'un worker
+----------------------------------
 
 Lorsque le worker s'arrête ou se plante, ce worker doit être désenregistré. 
 
@@ -535,7 +534,10 @@ L'exécution de l'algorithme est présenté dans le code suivant :*
 4.4 Détail du handler : CheckSedaActionHandler
 ----------------------------------------------
 
-TODO
+Ce handler permet de valider la validité du manifest par rapport à un schéma XSD. 
+Il permet aussi de vérifier que les informations remplies dans ce manifest sont correctes.
+
+ - Le schéma de validation du manifest : src/main/resources/seda-vitam-2.0-main.xsd.
 
 4.4 Détail du handler : CheckStorageAvailabilityActionHandler
 -------------------------------------------------------------
@@ -644,6 +646,45 @@ Map<String, String> objectGuidToUri
     suppression     : c'est un clean en fin d'execution du handler
 
 sauvegarde des maps (binaryDataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
+
+4.6.3 Vérifier les ArchiveUnit du SIP
+=====================================
+Dans les cas où le SIP contient un objet numérique référencé par un groupe d'objet et qu'une unité archiviste
+référence cet objet directement (au lieu de déclarer le GOT), le résultat attendu est un statut KO au niveau de 
+l'étape STP_INGEST_CONTROL_SIP dans l'action CHECK_MANIFEST. Ce contrôle est effectué dans la fonction 
+checkArchiveUnitIdReference de ExtractSedaHandler.
+
+Pour ce cas, le map unitIdToGroupId contient une référence entre un unitId et groupId et ce groupId est l'id de l'objet numérique.  
+Dans le objectGroupIdToGuid, il n'existe pas de lien entre id de groupe d'objet et son guid (parce que c'est un id d'object
+numérique).
+
+On vérifie la valeur des groupIds récupérés dans binaryDataObjectIdToObjectGroupId et unitIdToGroupId. Si ils sont différents,
+il s'agit du cas abordé ci-dessus, sinon c'est celui des objects numériques sans groupe d'objet technique. Enfin, l'exception
+ArchiveUnitContainBinaryDataObjectException est déclenchée pour ExtractSeda et dans cette étape, le status KO est mise à jour 
+pour l'exécution de l'étape.
+
+L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
+	
+	Si (map unitIdToGroupId contient des valeurs)    
+		Pour (chaque élement ELEM du map unitIdToGroupId)
+			Si (la valeur guid de groupe d'object dans objectGroupIdToGuid associé à ELEM) // archiveUnit reference par BDO
+				Prendre la valeur groupId dans le maps binaryDataObjectIdToObjectGroupId associé à groupId d'ELEM
+				Si cette groupId est NULLE // ArchiveUnit réferencé BDO mais il n'existe pas un lien BDO à groupe d'objet 
+					Délencher l'exception ProcessingException					
+				Autrement
+					Si (cette groupId est différente grouId associé à ELEM)
+						Délencher l'exception ArchiveUnitContainBinaryDataObjectException
+				Fin Si
+			Fin Si
+		Fin Pour		
+
+4.6.4 Détails du data dans l'itemStatus retourné
+================================================
+
+Le itemStatus est mis à jour avec les objets du manifest.xml remontées pour mettre à jour evDetData.
+Il contient dans data le json de evDetData en tant que String.
+Entre autre, le evDetData contient la valeur evDetDataType à "MASTER" qui définit une action de copie de ce evDetData dans le evDetData master de l'operation.
+Les champs récupérés (s'ils existent dans le manifest) sont "evDetailReq", "evDateTimeReq", "ArchivalAgreement", "agIfTrans", "ServiceLevel".
 
 4.7 Détail du handler : IndexObjectGroupActionHandler
 -----------------------------------------------------
@@ -849,6 +890,7 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- un identifiant unique
 	-- des informations sur le service producteur (OriginatingAgency)
 	-- des informations sur le service versant (SubmissionAgency), si différent du service producteur
+   -- des informations sur le contrat (ArchivalAgreement)
 	-- date de début de l’enregistrement (Start Date)
 	-- date de fin de l’enregistrement (End Date)
 	-- date de dernière mise à jour de l’enregistrement (Last update)

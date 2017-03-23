@@ -183,53 +183,184 @@ public class SedaConstants {
     public static final String RULE_SEPARATOR = ";";
 
     // XML Tags used in SEDA
+    /**
+     * tag of ArchiveTransferReply
+     */
     public static final String TAG_ARCHIVE_TRANSFER_REPLY = "ArchiveTransferReply";
+    public static final String TAG_COMMENT = "Comment";
+    /**
+     * tag of Date
+     */
     public static final String TAG_DATE = "Date";
+    /**
+     * tag of ArchivalAgreement
+     */
     public static final String TAG_ARCHIVAL_AGREEMENT = "ArchivalAgreement";
-    public static final String TAG_DATA_OBJECT_PACKAGE = "DataObjectPackage";
-    public static final String TAG_DESCRIPTIVE_METADATA = "DescriptiveMetadata";
-    public static final String TAG_MANAGEMENT_METADATA = "ManagementMetadata";
-    public static final String TAG_REPLY_OUTCOME = "ReplyOutcome";
-    public static final String TAG_ARCHIVE_UNIT_LIST = "ArchiveUnitList";
-    public static final String TAG_DATA_OBJECT_LIST = "DataObjectList";
-    public static final String TAG_REPLY_CODE = "ReplyCode";
-    public static final String TAG_ARCHIVAL_AGENCY = "ArchivalAgency";
-    public static final String TAG_TRANSFERRING_AGENCY = "TransferringAgency";
-    public static final String TAG_IDENTIFIER = "Identifier";
-    public static final String TAG_MESSAGE_REQUEST_IDENTIFIER = "MessageRequestIdentifier";
-    public static final String TAG_CODE_LIST_VERSIONS = "CodeListVersions";
-    public static final String TAG_REPLY_CODE_LIST_VERSION = "ReplyCodeListVersion";
-    public static final String TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION = "MessageDigestAlgorithmCodeListVersion";
-    public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
-    public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
-    public static final String TAG_GRANT_DATE = "GrantDate";
+    /**
+     * tag of ServiceLevel
+     */
 
+    public static final String TAG_SERVICE_LEVEL = "ServiceLevel";
+    /**
+     * tag of DataObjectPackage
+     */
+    public static final String TAG_DATA_OBJECT_PACKAGE = "DataObjectPackage";
+    /**
+     * tag of DescriptiveMetadata
+     */
+    public static final String TAG_DESCRIPTIVE_METADATA = "DescriptiveMetadata";
+    /**
+     * tag of ManagementMetadata
+     */
+    public static final String TAG_MANAGEMENT_METADATA = "ManagementMetadata";
+    /**
+     * tag of ReplyOutcome
+     */
+    public static final String TAG_REPLY_OUTCOME = "ReplyOutcome";
+    /**
+     * tag of ArchiveUnitList
+     */
+    public static final String TAG_ARCHIVE_UNIT_LIST = "ArchiveUnitList";
+    /**
+     * tag of DataObjectList
+     */
+    public static final String TAG_DATA_OBJECT_LIST = "DataObjectList";
+    /**
+     * tag of ReplyCode 
+     */
+    public static final String TAG_REPLY_CODE = "ReplyCode";
+    /**
+     * tag of ArchivalAgency
+     */
+    public static final String TAG_ARCHIVAL_AGENCY = "ArchivalAgency";
+    /**
+     * tag of TransferringAgency
+     */
+    public static final String TAG_TRANSFERRING_AGENCY = "TransferringAgency";
+    /**
+     * tag of Identifier
+     */
+    public static final String TAG_IDENTIFIER = "Identifier";
+    /**
+     * tag of MessageRequestIdentifier
+     */
+    public static final String TAG_MESSAGE_REQUEST_IDENTIFIER = "MessageRequestIdentifier";
+    /**
+     * tag of CodeListVersions
+     */
+    public static final String TAG_CODE_LIST_VERSIONS = "CodeListVersions";
+    /**
+     * tag of ReplyCodeListVersion
+     */
+    public static final String TAG_REPLY_CODE_LIST_VERSION = "ReplyCodeListVersion";
+    /**
+     * tag of MessageDigestAlgorithmCodeListVersion
+     */
+    public static final String TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION = "MessageDigestAlgorithmCodeListVersion";
+    /**
+     * tag of  FileFormatCodeListVersion
+     */
+    public static final String TAG_FILE_FORMAT_CODE_LIST_VERSION = "FileFormatCodeListVersion";
+    /**
+     * tag of ArchiveTransfer
+     */
+    public static final String TAG_ARCHIVE_TRANSFER = "ArchiveTransfer";
+    /**
+     * tag of GrantDate
+     */
+    public static final String TAG_GRANT_DATE = "GrantDate";
+    /**
+     * tag of OrganizationDescriptiveMetadata
+     */
+    public static final String TAG_ORGANIZATIONDESCRIPTIVEMETADATA = "OrganizationDescriptiveMetadata";
+    /**
+     * tag of OriginatingAgencyIdentifier
+     */
     public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
+    /**
+     * tag of SubmissionAgencyIdentifier
+     */
     public static final String TAG_SUBMISSIONAGENCYIDENTIFIER = "SubmissionAgencyIdentifier";
+    /**
+     * tag of DataObjectGroupId
+     */
     public static final String TAG_DATA_OBJECT_GROUPE_ID = "DataObjectGroupId";
+    /**
+     * tag of StorageRule
+     */
     public static final String TAG_RULE_STORAGE = "StorageRule";
+    /**
+     * tag of AppraisalRule
+     */
     public static final String TAG_RULE_APPRAISAL = "AppraisalRule";
+    /**
+     * tag of AccessRule
+     */
     public static final String TAG_RULE_ACCESS = "AccessRule";
+    /**
+     * tag of DisseminationRule
+     */
     public static final String TAG_RULE_DISSEMINATION = "DisseminationRule";
+    /**
+     * tag of ReuseRule
+     */
     public static final String TAG_RULE_REUSE = "ReuseRule";
+    /**
+     * tag of ClassificationRule
+     */
     public static final String TAG_RULE_CLASSIFICATION = "ClassificationRule";
+    /**
+     * tag of Rule
+     */
     public static final String TAG_RULE_RULE = "Rule";
+    /**
+     * tag of StartDate
+     */
     public static final String TAG_RULE_START_DATE = "StartDate";
 
+    /**
+     * tag of FinalAction
+     */
     public static final String TAG_RULE_FINAL_ACTION = "FinalAction";
+    /**
+     * tag PreventInheritance
+     */
     public static final String TAG_RULE_PREVENT_INHERITANCE = "PreventInheritance";
+    /**
+     * tag of RefNonRuleId
+     */
     public static final String TAG_RULE_REF_NON_RULE_ID = "RefNonRuleId";
+    /**
+     * tag of ClassificationLevel
+     */
     public static final String TAG_RULE_CLASSIFICATION_LEVEL = "ClassificationLevel";
+    /**
+     * tag of ClassificationOwner
+     */
     public static final String TAG_RULE_CLASSIFICATION_OWNER = "ClassificationOwner";
+    /**
+     * tag of ClassificationReassessingDate
+     */
     public static final String TAG_RULE_REASSESSING_DATE = "ClassificationReassessingDate";
+    /**
+     * tag of NeedReassessingAuthorization
+     */
     public static final String TAG_RULE_NEED_REASSESSING_AUTHORIZATION = "NeedReassessingAuthorization";
+    /**
+     * tag of NeedAuthorization
+     */
     public static final String TAG_RULE_NEED_AUTHORISATION = "NeedAuthorization";
 
+    /**
+     * tag of Management
+     */
     public static final String TAG_MANAGEMENT = "Management";
 
+    // Tag's attribute used in SEDA
+    public static final String TAG_ATTRIBUTE_LANG = "lang";
     
     /**
-     * Prefix of rules will be applicatedto archive unit
+     * Prefix of rules will be applicated to archive unit
      */
     public static final String TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT = "RulesToApply";
     /**
@@ -238,25 +369,82 @@ public class SedaConstants {
     public static final String TAG_RULE_END_DATE = "EndDate";
     private static List<String> RULES_TYPE;
 
+    /**
+     * tag of Operation
+     */
     public static final String TAG_OPERATION = "Operation";
+    /**
+     * tag of Event
+     */
     public static final String TAG_EVENT = "Event";
+    /**
+     * tag of EventTyoe
+     */
     public static final String TAG_EVENT_TYPE = "EventType";
+    /**
+     * tag of EventTypeCode
+     */
     public static final String TAG_EVENT_TYPE_CODE = "EventTypeCode";
+    /**
+     * tag of EventDateTime
+     */
     public static final String TAG_EVENT_DATE_TIME = "EventDateTime";
+    /**
+     * tag of Outcome
+     */
     public static final String TAG_EVENT_OUTCOME = "Outcome";
+    /**
+     * tag of OutcomeDetail
+     */
     public static final String TAG_EVENT_OUTCOME_DETAIL = "OutcomeDetail";
+    /**
+     * tag of OutcomeDetailMessage
+     */
     public static final String TAG_EVENT_OUTCOME_DETAIL_MESSAGE = "OutcomeDetailMessage";
+    /**
+     * attribute id of archive unit
+     */
     public static final String ATTRIBUTE_ID = "id";
+    /**
+     * tag of ArchiveUnit
+     */
     public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
+    /**
+     * tag of SystemId
+     */
     public static final String TAG_ARCHIVE_SYSTEM_ID = "SystemId";
+    /**
+     * update operation
+     */
     public static final String UPDATE_OPERATION = "UpdateOperation";
+    /**
+     * tag of DataObjectGroup
+     */
     public static final String TAG_DATA_OBJECT_GROUP = "DataObjectGroup";
+    /**
+     * tag of BinaryDataObjectID
+     */
     public static final String TAG_BINARY_DATA_OBJECT_ID = "BinaryDataObjectID";
+    /**
+     * tag of BinaryDataObjectSystemId
+     */
     public static final String TAG_BINARY_DATA_OBJECT_SYSTEM_ID = "BinaryDataObjectSystemId";
 
+    /**
+     * the namespace xlink 
+     */
     public static final String NAMESPACE_XLINK = "xlink";
+    /**
+     * the namespace pr
+     */
     public static final String NAMESPACE_PR = "pr";
+    /**
+     * the namespace xsi
+     */
     public static final String NAMESPACE_XSI = "xsi";
+    /**
+     * the attribute schemaLocation
+     */
     public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";
 
     private SedaConstants() {

@@ -60,8 +60,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * }
  * </pre>
  *
- * You can change the type of the client to get. The types are define into the enum {@link StorageClientType}. Use the
- * changeDefaultClientType method to change the client type.
+ * You can change the type of the client to get. The types are define into the
+ * enum {@link StorageClientType}. Use the changeDefaultClientType method to
+ * change the client type.
  *
  */
 public class StorageClientFactory extends VitamClientFactory<StorageClient> {
@@ -111,21 +112,18 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath the path to the configuration file
+     * @param configurationPath
+     *            the path to the configuration file
      */
     static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath), ClientConfigurationImpl.class);
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationPath,
-                fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationPath);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", configurationPath);
         }
         return configuration;
     }
@@ -135,10 +133,10 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
     }
 
     /**
-     * change mode client by server url
-     * For test purpose
+     * change mode client by server url For test purpose
      *
-     * @param serviceUrl as String
+     * @param serviceUrl
+     *            as String
      */
     static final void changeMode(String serviceUrl) {
         ParametersChecker.checkParameter("Server Url can not be null", serviceUrl);

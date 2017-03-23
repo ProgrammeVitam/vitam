@@ -7,11 +7,11 @@
 
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
-        <h2>Détail de l'unité archivistique</h2>
-        <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}/{{$ctrl.archiveTitle}}" target="_blank" class="btn btn-primary" style="float:right">
-          <i class="material-icons pull-left">camera</i>
-          <span class="pull-left m-l-10">Journal de Cycle de Vie</span>
-        </a>
+      <h2>Détail de l'unité archivistique</h2>
+      <a ng-href="#!/lifecycle/unit/{{$ctrl.archiveId}}" target="_blank" class="btn btn-primary" style="float:right">
+        <i class="material-icons pull-left">camera</i>
+        <span class="pull-left m-l-10">Journal de Cycle de Vie</span>
+      </a>
     </span>
 
     <div id="boxContractsList" class="panel-collapse">
@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="text-right">
-        <button ng-if="!$ctrl.isEditMode" data-parent="#boxContractsList" ng-click="$ctrl.switchToEditMode()">
+        <button ng-if="!$ctrl.isEditMode" data-parent="#boxContractsList" ng-click="$ctrl.switchToEditMode()" ng-show="$ctrl.hasPermission('archiveupdate:units:update')">
           <i class="material-icons pull-left">create</i>
           <span>Modifier</span>
         </button>
@@ -64,11 +64,11 @@
             <div class="form-group col-md-6">
               <div class="row simple-field">
                 <display-field intercept-user-change="$ctrl.interceptUserChanges(fieldSet)" field-size="'5'"
-                               display-value="$ctrl.mainFields['StartDate'].fieldValue | vitamFormatDate"
+                               display-value="$ctrl.mainFields['StartDate'].fieldValue"
                                field-object="$ctrl.mainFields['StartDate']" edit-mode="$ctrl.isEditMode">
                 </display-field>
                 <display-field field-size="'5'" intercept-user-change="$ctrl.interceptUserChanges(fieldSet)"
-                               display-value="$ctrl.mainFields['EndDate'].fieldValue | vitamFormatDate"
+                               display-value="$ctrl.mainFields['EndDate'].fieldValue"
                                field-object="$ctrl.mainFields['EndDate']" edit-mode="$ctrl.isEditMode">
                 </display-field>
               </div>
@@ -154,8 +154,8 @@
                                 </tr>
                                 <tr class="table-row" ng-repeat="rule in ruleCategory.displayArray">
                                     <td class="whitetd">{{rule.ruleId}}</td>
-                                    <td class="whitetd">{{rule.StartDate}}</td>
-                                    <td class="whitetd">{{rule.EndDate}}</td>
+                                    <td class="whitetd">{{rule.StartDate | vitamFormatDate }}</td>
+                                    <td class="whitetd">{{rule.EndDate | vitamFormatDate }}</td>
                                     <td class="whitetd">{{rule.FinalAction}}</td>
                                     <td class="whitetd">{{checkHerited(rule.originId)}}</td>
                                     <td class="whitetd" data-toggle="tooltip" title="{{rule.originId}}"><i class="material-icons md-18">info_outline</i></td>
@@ -173,13 +173,13 @@
       *
       -->
       <span class="panel-header no-toggle">
-  			<h2>Groupe d'Objets</h2>
-  			<a ng-if = "$ctrl.archiveFields._og != null && $ctrl.archiveFields._og != undefined && $ctrl.archiveFields._og != ''"
-  			ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}/{{$ctrl.archiveTitle}}" target="_blank" class="btn btn-primary" role="button" style="float:right;margin:0px">
-  				<i class="material-icons pull-left">camera</i>
-  				<span class="pull-left m-l-10">Journal de Cycle de vie du groupe d'objets</span>
-  			</a>
-  		</span>
+        <h2>Groupe d'Objets</h2>
+        <a ng-if = "$ctrl.archiveFields._og != null && $ctrl.archiveFields._og != undefined && $ctrl.archiveFields._og != ''"
+        ng-href="#!/lifecycle/objectgroup/{{$ctrl.archiveFields._og}}" target="_blank" class="btn btn-primary" role="button" style="float:right;margin:0px">
+          <i class="material-icons pull-left">camera</i>
+          <span class="pull-left m-l-10">Journal de Cycle de vie du groupe d'objets</span>
+        </a>
+      </span>
 
       <div id="boxObjectsResults" class="panel-body">
         <div ng-repeat="(key, value) in $ctrl.technicalItems">

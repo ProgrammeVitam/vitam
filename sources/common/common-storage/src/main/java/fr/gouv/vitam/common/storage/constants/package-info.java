@@ -25,6 +25,7 @@
  * accept its terms.
  */
 /**
- * Provides classes contains constants values for the common storage Module module.
+ * Provides classes contains constants values for the common storage Module
+ * module.
  */
 package fr.gouv.vitam.common.storage.constants;

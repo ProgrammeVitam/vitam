@@ -56,7 +56,7 @@ public class LogbookOperationsClientHelper {
     /**
      * Check validity of the input and add default date and ServerIdentity
      *
-     * @param parameters
+     * @param parameters to check
      * @return the primary key
      */
     public static final String checkLogbookParameters(LogbookOperationParameters parameters) {
@@ -72,7 +72,7 @@ public class LogbookOperationsClientHelper {
     /**
      * Create a copy in order to allow reuse on client side
      *
-     * @param source
+     * @param source to copy and reuse
      * @return the copy of the source
      */
     public static final LogbookOperationParameters copy(LogbookOperationParameters source) {
@@ -126,7 +126,7 @@ public class LogbookOperationsClientHelper {
 
     /**
      *
-     * @param key
+     * @param key of element to remove
      * @return the associated finalize Delegate Queue for creation
      */
     public Queue<LogbookOperationParameters> removeCreateDelegate(String key) {
@@ -135,7 +135,7 @@ public class LogbookOperationsClientHelper {
 
     /**
      *
-     * @param key
+     * @param key of element to remove
      * @return the associated finalize Delegate Queue for update
      */
     public Queue<LogbookOperationParameters> removeUpdateDelegate(String key) {

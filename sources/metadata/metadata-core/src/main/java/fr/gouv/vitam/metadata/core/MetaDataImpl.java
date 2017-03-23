@@ -41,7 +41,6 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoWriteException;
 
 import difflib.DiffUtils;
@@ -52,11 +51,12 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -67,11 +67,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 
 /**
@@ -105,9 +103,8 @@ public class MetaDataImpl implements MetaData {
      * Get a new MetaDataImpl instance
      *
      * @param configuration of mongoDB access
-     * @param mongoDbAccessFactory
+     * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata 
      * @return a new instance of MetaDataImpl
-     * @throws IllegalArgumentException if mongoDbAccessFactory is null
      */
     public static MetaData newMetadata(MetaDataConfiguration configuration,
         MongoDbAccessMetadataFactory mongoDbAccessFactory) {
@@ -270,7 +267,7 @@ public class MetaDataImpl implements MetaData {
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             final Map<String, List<String>> diffs = new HashMap<>();
-            diffs.put(unitId, getConcernedDiffLines(getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
+            diffs.put(unitId, VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
@@ -287,46 +284,12 @@ public class MetaDataImpl implements MetaData {
     private JsonNode getUnitById(String id)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataNotFoundException {
-        final Select select = new Select();
+        final SelectMultiQuery select = new SelectMultiQuery();
         return selectUnitsById(select.getFinalSelect(), id);
     }
-
-    /**
-     * Get unified diff
-     *
-     * @param original the original value
-     * @param revised the revisited value
-     * @return unified diff (each list entry is a diff line)
-     */
-    private List<String> getUnifiedDiff(String original, String revised) {
-        final List<String> beforeList = Arrays.asList(original.split("\\n"));
-        final List<String> revisedList = Arrays.asList(revised.split("\\n"));
-
-        final Patch<String> patch = DiffUtils.diff(beforeList, revisedList);
-
-        return generateUnifiedDiff(original, revised, beforeList, patch, 1);
-    }
-
-    /**
-     * Retrieve only + and - line on diff (for logbook lifecycle) regexp = line started by + or - with at least one
-     * space after and any character
-     *
-     * @param diff the unified diff
-     * @return + and - lines for logbook lifecycle
-     */
-    private List<String> getConcernedDiffLines(List<String> diff) {
-        final List<String> result = new ArrayList<>();
-        for (final String line : diff) {
-            if (line.matches("^(\\+|-){1}\\s{1,}.*")) {
-                // remove the last character which is a ","
-                result.add(line.substring(0, line.length() - 1).replace("\"", ""));
-            }
-        }
-        return result;
-    }
     
-    private Select createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {
-        Select newSelectQuery = new Select();
+    private SelectMultiQuery createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {
+        SelectMultiQuery newSelectQuery = new SelectMultiQuery();
         String[] rootList = new String[unitList.size()];
         rootList = unitList.toArray(rootList);
         newSelectQuery.addRoots(rootList);
@@ -351,7 +314,7 @@ public class MetaDataImpl implements MetaData {
             unitId = unitNode.get(PROJECTIONARGS.ID.exactToken()).asText();
             unitParentIdList.add(unitId);
         }
-        Select newSelectQuery = createSearchParentSelect(unitParentIdList);
+        SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
         ArrayNode unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null, null);
         Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(unitParents);
         UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));

@@ -36,22 +36,22 @@ public class PluginException extends VitamException {
     private static final long serialVersionUID = -6858563195363671219L;
 
     /**
-     * @param message
+     * @param message of exception
      */
     public PluginException(String message) {
         super(message);
     }
 
     /**
-     * @param cause
+     * @param cause of exception
      */
     public PluginException(Throwable cause) {
         super(cause);
     }
 
     /**
-     * @param message
-     * @param cause
+     * @param message of exception
+     * @param cause of exception
      */
     public PluginException(String message, Throwable cause) {
         super(message, cause);

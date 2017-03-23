@@ -230,7 +230,6 @@ public class SoapUiConfig {
     }
     /**
      * @param certPass trustore that need to be used
-     * @return SoapUiConfig
      */
     public void setCertPass(String certPass) {
         this.certPass = certPass;
@@ -243,7 +242,6 @@ public class SoapUiConfig {
     }
     /**
      * @param truststore trustore that need to be used
-     * @return SoapUiConfig
      */
     public void setTrustore(String truststore) {
         this.trustFile = truststore;
@@ -256,7 +254,6 @@ public class SoapUiConfig {
     }
     /**
      * @param trustPass trustPass that need to be used
-     * @return SoapUiConfig
      */
     public void setTrustPass(String trustPass) {
         this.trustPass = trustPass;

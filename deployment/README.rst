@@ -24,59 +24,67 @@ Pour ouvrir et éditer le fichier de secrets : ``ansible-vault edit <filename>``
 Déploiement rpm
 ----------------
 
-Pour tester le déploiement de VITAM : 
+Pour tester le déploiement de VITAM :
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --check``
 
 .. note:: ce mode n'est pas recommandé
 
-Pour le déployer : 
+Pour le déployer :
 
 1. générer les certificats nécessaire en lançant le script :
-``./pki-generate-ca.sh``, si pas ed PKI
-``./generate_certs <environnement>``, si pas de certificats fournis
+``pki/scripts/generate_ca.sh``, si pas de CA fournie
+``pki/scripts/generate_certs.sh <environnement>``, si pas de certificats fournis
 ``./generate_stores.sh <environnement>``
-``./copie_fichiers_vitam.sh <environnement>``
 
 
-Si gestion par VITAM des repositories :
+2. Si gestion par VITAM des dépots de binaires:
 Editer le fichier ``environments-rpm/group_vars/all/example_repo.yml`` (sert de modèle)
 Puis lancer :
 ``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
 
 
-2. Lancer le playbook d'ansbible :
+2. Lancer le playbook d'ansible :
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
-
 (et renseigner le mot de passe demandé)
-
 ou
-
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+
 
 3. Pour déployer les extra seulement nécessaire pour le projet :
 
 a. extra complet
-
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
-
+(et renseigner le mot de passe demandé)
 ou
-
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
+
 b. ihm-recette seulement
-
 ``ansible-playbook ansible-vitam-rpm-extra/ihm-recette.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
-
+(et renseigner le mot de passe demandé)
 ou
-
 ``ansible-playbook ansible-vitam-rpm-extra/ihm-recette.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 
 4. Pour redéployer les rpm VITAM sans modification de configuration
 
 ``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
-
 et
 ``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_package_vitam``
 
-(et renseigner le mot de passe demandé)
+
+5. Pour redéployer les keystores / truststores / grantedstores uniquement
+
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
+et
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_vitam_certificates``
+
+
+6. Pour modifier uniquement la configuration JVM des composants VITAM
+
+Modifier dans environments-rpm/<fichier d'inventaire> la directive memory_opts
+Exemple:
+memory_opts="-Xms384m -Xmx384m"
+``ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``
+et
+``ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt --tags update_jvmoptions_vitam``

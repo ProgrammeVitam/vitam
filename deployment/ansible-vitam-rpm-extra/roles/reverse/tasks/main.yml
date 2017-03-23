@@ -71,6 +71,14 @@
     group: "{{apache_group}}"
     mode: 0550
 
+- name: create ca directory
+  file:
+    path: "/etc/{{apache_service}}/ca/{{environnement}}"
+    state: directory
+    owner: "root"
+    group: "{{apache_group}}"
+    mode: 0550
+
 - name: copy index resources
   copy:
     src: "{{item}}"
@@ -95,9 +103,10 @@
   notify:
      - reload apache
 
+#OMA: if problem with apache2 restart due to absent pem, manually remove on reverse the above p12 file and relaunch playbook
 - name: copy certificate
   copy:
-    src: "keystore_client.p12"
+    src: "{{inventory_dir}}/keystores/client-external/keystore_reverse.p12"
     dest: "/etc/{{apache_service}}/certs/keystore_client_{{environnement}}.p12"
     owner: "root"
     mode: 0400
@@ -107,10 +116,12 @@
 
 - name: Copy the CA
   copy:
-    src: ca_client.crt
-    dest: "/etc/{{apache_service}}/certs/ca_client_{{environnement}}.crt"
+    src: "{{inventory_dir}}/certs/client-external/ca/{{item}}"
+    dest: "/etc/{{apache_service}}/ca/{{environnement}}/{{item}}"
     owner: "root"
     mode: 0400
+  when: "{{ lookup('pipe', 'test -d {{inventory_dir}}/certs/client-external/ca/ || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{inventory_dir}}/certs/client-external/ca/ -type f -name *.crt -exec basename {} \\; || true').split('\n') }}"
 
 - name: copy httpd configuration template
   template:

@@ -7,7 +7,11 @@ staticContent: "{{ vitam_ihm_recette_static_content }}"
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 secure: true
-sipDirectory: {{vitam_folder_data}}/
+sipDirectory: {{vitam_folder_data}}/test-data
+performanceReportDirectory: {{vitam_folder_data}}/report/performance
+
+testSystemSipDirectory: {{vitam_folder_data}}/test-data/system
+testSystemReportDirectory: {{vitam_folder_data}}/report/system
 
 # Configuration MongoDB
 mongoDbNodes:

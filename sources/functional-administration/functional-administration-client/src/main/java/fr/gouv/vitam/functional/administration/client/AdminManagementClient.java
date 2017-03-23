@@ -32,9 +32,11 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
@@ -58,7 +60,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param stream as InputStream
-     * @throws ReferentialException      when import exception occurs
+     * @return the response to the request
+     * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
     Response importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
@@ -67,7 +70,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param id as String
      * @return JsonNode
-     * @throws ReferentialException           check exception occurs
+     * @throws ReferentialException check exception occurs
      * @throws InvalidParseOperationException when json exception occurs
      */
     JsonNode getFormatByID(String id) throws ReferentialException, InvalidParseOperationException;
@@ -76,9 +79,9 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param query as JsonNode
      * @return JsonNode
-     * @throws ReferentialException           when referential format exception occurs
+     * @throws ReferentialException when referential format exception occurs
      * @throws InvalidParseOperationException when json exception occurs
-     * @throws IOException                    when io data exception occurs
+     * @throws IOException when io data exception occurs
      */
     RequestResponse<FileFormatModel> getFormats(JsonNode query)
         throws ReferentialException, InvalidParseOperationException,
@@ -86,8 +89,9 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Check if rule file is well formated
-     * @param stream
-     * @return
+     * 
+     * @param stream rule file inputstream to check 
+     * @return Response
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
      */
@@ -95,9 +99,11 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * Import a the set of rules for a given tenant
-     * @param stream
-     * @throws FileRulesException                   when file rules exception occurs
-     * @throws DatabaseConflictException            when Database conflict exception occurs
+     * 
+     * @param stream rule file inputstream to import
+     * @return the response to the request
+     * @throws FileRulesException when file rules exception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
     Response importRulesFile(InputStream stream)
@@ -105,10 +111,10 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      *
-     * @param  id The rule identifier
+     * @param id The rule identifier
      * @return Rule in JsonNode format
-     * @throws FileRulesException                   when file rules exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
+     * @throws FileRulesException when file rules exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
      * @throws AdminManagementClientServerException
      */
     JsonNode getRuleByID(String id)
@@ -116,12 +122,13 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * List the rules that match the query
-     * @param query
+     * 
+     * @param query to get rule
      * @return Rules in JsonNode format
-     * @throws FileRulesException                   when file rules exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
-     * @throws IOException                          when IO Exception occurs
-     * @throws AdminManagementClientServerException
+     * @throws FileRulesException when file rules exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws IOException when IO Exception occurs
+     * @throws AdminManagementClientServerException when admin management resources not found
      */
     JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
@@ -129,9 +136,9 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     /**
      * @param register AccessionRegisterDetail
-     * @throws AccessionRegisterException           when AccessionRegisterDetailexception occurs
-     * @throws DatabaseConflictException            when Database conflict exception occurs
-     * @throws AdminManagementClientServerException
+     * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
+     * @throws AdminManagementClientServerException when  
      */
     void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
@@ -139,8 +146,8 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Get the accession register summary matching the given query
      *
-     * @param query The DSL Query as Json Node
-     * @return The AccessionregisterSummary list as a response JsonNode
+     * @param query The DSL Query as JsonNode
+     * @return instance of RequestResponse of type AccessionRegisterSummaryModel
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
@@ -156,5 +163,25 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse getAccessionRegisterDetail(JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
+
+
+    /**
+     * Import a set of contracts after passing the validation steps If all the contracts are valid, they are stored in
+     * the collection and indexed The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts elready exist in the database</li>
+     * </ul>
+     * 
+     * @param contractsToImport the contract to import
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse importContracts(ArrayNode contractsToImport)
+        throws VitamClientInternalException, InvalidParseOperationException;
 
 }

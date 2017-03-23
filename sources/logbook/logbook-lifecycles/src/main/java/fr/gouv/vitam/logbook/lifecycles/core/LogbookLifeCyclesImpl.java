@@ -79,7 +79,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     /**
      * Constructor
      *
-     * @param mongoDbAccess
+     * @param mongoDbAccess of logbook
      */
     public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;

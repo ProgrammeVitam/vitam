@@ -120,7 +120,7 @@ public final class SystemPropertyUtil {
     /**
      * Returns {@code true} if and only if the system property with the specified {@code key} exists.
      *
-     * @param key
+     * @param key as String to verify
      * @return True if the key is contained
      * @throws IllegalArgumentException key null
      */
@@ -133,7 +133,7 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to {@code null}
      * if the property access fails.
      *
-     * @param key
+     * @param key of system property to get
      * @return the property value or {@code null}
      * @throws IllegalArgumentException key null
      */
@@ -145,8 +145,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -165,8 +165,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -201,8 +201,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key the system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -235,8 +235,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -270,8 +270,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key or def null
@@ -293,8 +293,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -313,8 +313,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -333,8 +333,8 @@ public final class SystemPropertyUtil {
      * Returns the value of the Java system property with the specified {@code key}, while falling back to the specified
      * default value if the property access fails.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the property value. {@code def} if there's no such property or if an access to the specified property is
      *         not allowed.
      * @throws IllegalArgumentException key null
@@ -352,8 +352,8 @@ public final class SystemPropertyUtil {
     /**
      * Set the value of the Java system property with the specified {@code key} to the specified default value.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the ancient value.
      * @throws IllegalArgumentException key or def null
      */
@@ -374,8 +374,8 @@ public final class SystemPropertyUtil {
     /**
      * Set the value of the Java system property with the specified {@code key} to the specified default value.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the ancient value.
      * @throws IllegalArgumentException key null
      */
@@ -393,8 +393,8 @@ public final class SystemPropertyUtil {
     /**
      * Set the value of the Java system property with the specified {@code key} to the specified default value.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the ancient value.
      * @throws IllegalArgumentException key null
      */
@@ -412,8 +412,8 @@ public final class SystemPropertyUtil {
     /**
      * Set the value of the Java system property with the specified {@code key} to the specified default value.
      *
-     * @param key
-     * @param def
+     * @param key of system property
+     * @param def the default value
      * @return the ancient value.
      * @throws IllegalArgumentException key null
      */
@@ -431,7 +431,7 @@ public final class SystemPropertyUtil {
     /**
      * Remove the key of the Java system property with the specified {@code key}.
      *
-     * @param key
+     * @param key of system property
      * @throws IllegalArgumentException key null
      */
     public static void clear(String key) {

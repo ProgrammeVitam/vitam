@@ -188,6 +188,14 @@ angular.module('archive.unit')
     //************* Intercept user changes *********** //
     self.modifiedFields = [];
     self.interceptUserChanges = function interceptUserChanges(fieldSet){
+      var fieldStr = !fieldSet.fieldLabel ? fieldSet.fieldName : fieldSet.fieldLabel;
+      var isDateField = fieldStr.toUpperCase().indexOf('DATE') > -1;
+
+      if(isDateField && (fieldSet.currentFieldValue === '')){
+        fieldSet.currentFieldValue = fieldSet.fieldValue;
+        self.showAlert(null, "Erreur", "Veuillez saisir une date valide.");
+      }
+
       fieldSet.isFieldModified = fieldSet.fieldValue !== fieldSet.currentFieldValue;
     };
 
@@ -398,21 +406,62 @@ angular.module('archive.unit')
         }
         if (self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.UNIT_PRENT_LIST].length == 0) {
           var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-          for (var key in selfManagement) {
-            var translateKey = RuleUtils.translate(key);
-            var rule = selfManagement[key];
-            var displayArray = [];
-            var displayObject = {};
-            displayObject.ruleId = rule.Rule;
-            delete rule.Rule;
-            for (var detail in rule) {
-              displayObject[detail] = rule[detail];
+          if (Array.isArray(selfManagement)) {
+            selfManagement.forEach(function (element) {
+              for (var key in element) {
+                var translateKey = RuleUtils.translate(key);
+                var rule = selfManagement[key];
+                var displayArray = [];
+                var displayObject = {};
+                displayObject.ruleId = rule.Rule;
+                delete rule.Rule;
+                for (var detail in rule) {
+                  displayObject[detail] = rule[detail];
+                }
+                displayObject.originId = idField;
+                displayArray.push(displayObject);
+                displayObject = {};
+                self.ruleDisplay[translateKey] = {};
+                self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+              }
+            })
+          } else {
+            for (var key in selfManagement) {            	
+              var translateKey = RuleUtils.translate(key);
+              var rule = selfManagement[key];
+              if(angular.isArray(rule)) {
+            	  // in case we have an array of rules 
+            	  var displayArray = [];
+                  var displayObject = {};
+            	  for (var ruleKey in rule) {
+            		  var oneRule = selfManagement[key][ruleKey];	            	  
+	                  displayObject.ruleId = oneRule.Rule;
+	                  delete oneRule.Rule;              
+	                  for (var detail in oneRule) {
+	                    displayObject[detail] = oneRule[detail];
+	                  }
+	                  displayObject.originId = idField;
+	                  displayArray.push(displayObject);
+	                  displayObject = {};
+	                  self.ruleDisplay[translateKey] = {};
+	                  self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+            	  }
+              } else {
+            	  // in case we just have one rule (should not happen)
+            	  var displayArray = [];
+                  var displayObject = {};
+                  displayObject.ruleId = rule.Rule;
+                  delete rule.Rule;              
+                  for (var detail in rule) {
+                    displayObject[detail] = rule[detail];
+                  }
+                  displayObject.originId = idField;
+                  displayArray.push(displayObject);
+                  displayObject = {};
+                  self.ruleDisplay[translateKey] = {};
+                  self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+              }
             }
-            displayObject.originId = idField;
-            displayArray.push(displayObject);
-            displayObject = {};
-            self.ruleDisplay[translateKey] = {};
-            self.ruleDisplay[translateKey]['displayArray'] = displayArray;
           }
         }
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
@@ -670,5 +719,13 @@ angular.module('archive.unit')
       return treeBranchStyle;
     };
     // ********************************************************************************* //
+
+    self.hasPermission = function(permission) {
+      if (localStorage.getItem('user')) {
+          var user = JSON.parse(localStorage.getItem('user'));
+          return user && user.permissions.indexOf(permission) > -1;
+      }
+      return false;
+    }
 
   });

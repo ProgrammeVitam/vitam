@@ -238,6 +238,21 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
+    
+    /**
+     * Create a contract GUID
+     *
+     * @param tenantId tenant id between 0 and 2^30-1
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newIngestContractGUID(final int tenantId) {
+        final int type = GUIDObjectType.INGEST_CONTRACT_TYPE;
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
+    
+    
 
     /**
      *

@@ -113,6 +113,16 @@ public class ClientMockResultHelper {
         "\"RuleMeasurement\":\"Année\", " +
         "\"CreationDate\":\"2016-11-02\", " +
         "\"UpdateDate\":\"2016-11-02\"}";
+    
+    private static final String CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+            "\"_tenant\":\"0\", " +
+            "\"Name\":\"Un contrat\", " +
+            "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
+            "\"Status\":\"ACTIVE\", " +
+            "\"CreationDate\":\"2016-11-02\", " +
+            "\"LastUpdate\":\"2016-11-02\", " +
+            "\"ActivationDate\":\"2016-11-02\", " +
+            "\"DeactivationDate\":\"2016-11-02\"}]";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
         "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
@@ -302,6 +312,15 @@ public class ClientMockResultHelper {
     }
 
     /**
+    * @return a RequestResponse containing contracts json
+    * @throws InvalidParseOperationException
+    */
+   public static RequestResponse getContracts() throws InvalidParseOperationException {
+       return createReponse(CONTRACTS);
+   }
+    
+    
+    /**
      *
      * @return a default list of Formats
      * @throws InvalidParseOperationException
@@ -348,6 +367,8 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * 
+     * @param id 
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
      */

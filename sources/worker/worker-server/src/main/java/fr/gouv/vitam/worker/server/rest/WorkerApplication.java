@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.PluginException;
-import fr.gouv.vitam.processing.common.exception.PluginNotFoundException;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
@@ -66,7 +65,10 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
     /**
      * WorkerApplication constructor
      *
-     * @param configuration
+     * @param configuration the configuration file
+     * @throws FileNotFoundException if configuration file not found
+     * @throws InvalidParseOperationException if invalid parser configuration file
+     * @throws PluginException if plugin loading exception occurred
      */
     public WorkerApplication(String configuration)
         throws FileNotFoundException, PluginException, InvalidParseOperationException {
@@ -140,7 +142,12 @@ public final class WorkerApplication extends AbstractVitamApplication<WorkerAppl
             // Processing dependency: optional ?
             // serviceRegistry.register(ProcessingManagementClientFactory.getInstance());
         }
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
     }
 
 }

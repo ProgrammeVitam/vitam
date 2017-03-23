@@ -7,20 +7,23 @@ Présentation
 |  *Parent package:* **fr.gouv.vitam**
 |  *Package proposition:* **fr.gouv.vitam.storage**
 
-Itération 6
------------
-3 sous-modules dans Storage (parent).
+Itération 16
+------------
+4 sous-modules dans Storage (parent).
 
-| - storage-driver : module décrivant l'interface du driver
+| - storage-driver-api : module décrivant l'interface du driver
 | - storage-engine : module embarquant la partie core du storage (client et server)
-| - storage-offers : module embarquant les différentes offres de stockage Vitam
+| - cas-manager : module embarquant l'offre Vitam (module vitam-offer) ainsi que l'implémentation du driver pour
+cette offre (cas-manager-drivers) et de son mock pour les tests
+| - cas-container : module embraquant les implémentations spécifiques de l'offre de stockage, actuellement que
+l'implémntation swift.
 
 
 Modules - packages Storage
 --------------------------
 
 |  storage
-|     /storage-driver
+|     /storage-driver-api
 |        fr.gouv.vitam.storage.driver
 
 |     /storage-engine
@@ -34,11 +37,17 @@ Modules - packages Storage
 |        /storage-engine-common
 |           fr.gouv.vitam.storage.engine.common
 
-|     /storage-offers
-|        /storage-drivers
-|           /default-driver
+|     /cas-manager
+|        /cas-manager-driver
+|           /mock-driver
+|              fr.gouv.vitam.driver.fake
+|           /vitam-driver
 |              fr.gouv.vitam.storage.offers.workspace.driver
-|        /storage-offer-default
-|           fr.gouv.vitam.storage.offers.workspace.core
-|           fr.gouv.vitam.storage.offers.workspace.rest
+|     /cas-container
+|        /cas-container-filesystem
+|           fr.gouv.vitam.cas.container.filesystem
+|        /cas-container-swift
+|           fr.gouv.vitam.cas.container.swift
+|        /cas-container-utils
+|           fr.gouv.vitam.cas.container.utils
 

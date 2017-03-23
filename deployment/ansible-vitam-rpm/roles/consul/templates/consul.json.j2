@@ -3,9 +3,9 @@
   "node_name": "{{ansible_hostname}}",
   "log_level": "INFO",
   "enable_syslog": true,
-
-{% if inventory_hostname in groups['hosts-mongo-express'] %}
+{% if (ansible_interfaces|length > 2) or (inventory_hostname in groups['hosts-mongo-express'])  %}
   "advertise_addr": "{{ ansible_eth0["ipv4"]["address"] }}",
+
 {% endif %}
 
 {% if inventory_hostname in groups['hosts-consul-server'] %}
@@ -23,6 +23,8 @@
   "retry_join": [ "{{ groups['hosts-consul-server']|join('", "') }}" ],
   "retry_interval": "10s",
   "enable_syslog": true,
+  "disable_remote_exec": true,
+  "encrypt": "{{consul_encrypt}}",
   "ports": {
     "dns" : 53
   },

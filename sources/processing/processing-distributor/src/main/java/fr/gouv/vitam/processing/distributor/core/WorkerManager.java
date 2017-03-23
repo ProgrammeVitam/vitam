@@ -100,6 +100,9 @@ public class WorkerManager {
 
     }
 
+    /**
+     * init the worker database
+     */
     public static void initialize() {
         if (WORKKER_DB_FILE.exists()) {
             try {
@@ -134,7 +137,7 @@ public class WorkerManager {
 
         // load to the list of WORKERS_LIST
         int index = 0;
-        while (registeredWorkerList.size() > 0 && index <= registeredWorkerList.size()) {
+        while (registeredWorkerList.size() > 0 && index < registeredWorkerList.size()) {
             JsonNode worker = registeredWorkerList.get(index);
             WorkerBean workerBean =
                 JsonHandler.getFromJsonNodeLowerCamelCase(worker.get(WORKER_INFO),
@@ -168,8 +171,8 @@ public class WorkerManager {
         WorkerClientConfiguration workerClientConfiguration =
             new WorkerClientConfiguration(serverHost, serverPort);
         WorkerClientFactory.changeMode(workerClientConfiguration);
-        WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
-        try {
+        
+        try (WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient()) {
             workerClient.checkStatus();
             return true;
         } catch (Exception e) {
@@ -185,8 +188,8 @@ public class WorkerManager {
      * @param workerId : ID of the worker
      * @param workerInformation : Worker Json representation
      * @throws WorkerAlreadyExistsException : when the worker is already registered
-     * @throws ProcessingBadRequestException
-     * @throws InvalidParseOperationException
+     * @throws ProcessingBadRequestException if cannot register worker to family
+     * @throws InvalidParseOperationException if worker description is not well-formed
      */
     public static void registerWorker(String familyId, String workerId, String workerInformation)
         throws WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException {
@@ -247,7 +250,7 @@ public class WorkerManager {
      * @param workerId : ID of the worker
      * @throws WorkerFamilyNotFoundException : when the family is unknown
      * @throws WorkerNotFoundException : when the ID of the worker is unknown in the family
-     * @throws InterruptedException
+     * @throws InterruptedException if error in stopping thread
      */
     public static void unregisterWorker(String familyId, String workerId)
         throws WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException {
@@ -281,7 +284,7 @@ public class WorkerManager {
      * @param queueID : ID of the queue on which the job must be submitted
      * @param workerAsyncRequest : Asynchronous request
      * @throws ProcessingBadRequestException : if the queueID is unknown
-     * @throws InterruptedException
+     * @throws InterruptedException if error in stopping thread
      */
     public static void submitJob(WorkerAsyncRequest workerAsyncRequest)
         throws ProcessingBadRequestException, InterruptedException {

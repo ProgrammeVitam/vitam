@@ -40,8 +40,6 @@ public class RequestResponseErrorTest {
 
     private static RequestResponseError requestResponseError = new RequestResponseError();
 
-
-
     @Test
     public void testGetSetError() throws Exception {
         final VitamError vitamError = new VitamError("1");

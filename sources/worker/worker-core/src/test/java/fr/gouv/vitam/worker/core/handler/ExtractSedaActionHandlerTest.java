@@ -58,6 +58,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -68,6 +69,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -90,6 +92,8 @@ public class ExtractSedaActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SIP_ADD_LINK = "extractSedaActionHandler/addLink/SIP_Add_Link.xml";
     private static final String SIP_ADD_UNIT = "extractSedaActionHandler/addUnit/SIP_Add_Unit.xml";
+    private static final String SIP_WITHOUT_ORIGINATING_AGENCY =
+        "extractSedaActionHandler/manifestKO/originating_agency_not_set.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
@@ -316,7 +320,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
@@ -413,6 +417,46 @@ public class ExtractSedaActionHandlerTest {
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithUpdateAddUnitExtractSedaThenCheckEvDetData()
+        throws VitamException, IOException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
+        JsonNode parent = JsonHandler
+            .getFromFile(PropertiesUtils.getResourceFile("extractSedaActionHandler/addLink/_Unit_PARENT.json"));
+
+        when(metadataClient.selectUnitbyId(any(), eq("GUID_ARCHIVE_UNIT_PARENT"))).thenReturn(parent);
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        // Check master evDetData
+        String evDetDataString = (String) response.getData().get(LogbookParameterName.eventDetailData.name());
+        JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
+        assertNotNull(evDetData);
+        assertEquals("MASTER", evDetData.get("evDetDataType").asText());
+
+        // Check comment
+        assertEquals("Commentaire français", evDetData.get("EvDetailReq").asText());
+        assertEquals("Commentaire français", evDetData.get("EvDetailReq_fr").asText());
+        assertEquals("English Comment", evDetData.get("EvDetailReq_en").asText());
+        assertEquals("Deutsch Kommentare", evDetData.get("EvDetailReq_de").asText());
+
+        // Check other fields
+        assertEquals("ArchivalAgreement0", evDetData.get("ArchivalAgreement").asText());
+        assertEquals("Identifier1", evDetData.get("AgIfTrans").asText());
+        assertEquals("2016-06-23T09:45:51.0", evDetData.get("EvDateTimeReq").asText());
+    }
+    
+    
 
     @Test
     @RunWithCustomExecutor
@@ -432,4 +476,41 @@ public class ExtractSedaActionHandlerTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenSipWithAURefToBDOThenExtractKO()
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
+        FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName("ExtractSedaActionHandlerTest");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-ko-bdo-ref-group.xml"));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithOriginatingAgencyNotSetThenReadKO() throws VitamException, IOException {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl")
+            .setUrlMetadata("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName("containerName");
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_WITHOUT_ORIGINATING_AGENCY));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        action.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, action);
+
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
 }

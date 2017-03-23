@@ -1,0 +1,2 @@
+Put your server clients keystores here
+You have to create one directory per server (same name as specified in the inventory file)

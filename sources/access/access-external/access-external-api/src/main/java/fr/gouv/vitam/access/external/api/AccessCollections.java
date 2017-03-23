@@ -56,7 +56,7 @@ public enum AccessCollections {
     }
 
     /**
-     * @param value
+     * @param value as String to compare 
      * @return True if the name of the collection equals
      */
     public boolean compareTo(String value) {

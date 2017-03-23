@@ -41,12 +41,29 @@ public class FileRules extends VitamDocument<FileRules> {
 
     private static final long serialVersionUID = 2471943065920459435L;
 
+    /**
+     * the rule id
+     */
     public static final String RULEID = "RuleId";
-
+    /**
+     * the rule type
+     */
     public static final String RULETYPE = "RuleType";
+    /**
+     * the rule value
+     */
     public static final String RULEVALUE = "RuleValue";
+    /**
+     * the rule description 
+     */
     public static final String RULEDESCRIPTION = "RuleDescription";
+    /**
+     * the rule duration
+     */
     public static final String RULEDURATION = "RuleDuration";
+    /**
+     * the rule  measurement
+     */
     public static final String RULEMEASUREMENT = "RuleMeasurement";
     private static final String CREATIONDATE = "CreationDate";
     private static final String UPDATEDATE = "UpdateDate";
@@ -80,7 +97,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * Constructor
      *
-     * @param document
+     * @param document in format Document to create FileRules
      */
     public FileRules(Document document) {
         super(document);
@@ -88,7 +105,7 @@ public class FileRules extends VitamDocument<FileRules> {
     }
 
     /**
-     * @param content
+     * @param content in format JsonNode to create FileRules
      */
     public FileRules(JsonNode content) {
         super(content);
@@ -96,7 +113,7 @@ public class FileRules extends VitamDocument<FileRules> {
     }
 
     /**
-     * @param content
+     * @param content in format String to create FileRules
      */
     public FileRules(String content) {
         super(content);
@@ -105,7 +122,7 @@ public class FileRules extends VitamDocument<FileRules> {
 
     /**
      * 
-     * @param tenantId
+     * @param tenantId the working tenant
      */
     public FileRules(Integer tenantId) {
         // Empty
@@ -115,7 +132,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setRuleId
      *
-     * @param ruleId
+     * @param ruleId to set
      * @return FileRules
      */
     public FileRules setRuleId(String ruleId) {
@@ -126,7 +143,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setRuleType
      *
-     * @param ruleType
+     * @param ruleType to set
      * @return FileRules
      */
     public FileRules setRuleType(String ruleType) {
@@ -137,7 +154,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setRuleValue
      *
-     * @param ruleValue
+     * @param ruleValue to set 
      * @return FileRules
      */
     public FileRules setRuleValue(String ruleValue) {
@@ -148,7 +165,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setRuleDescription
      *
-     * @param ruleDescription
+     * @param ruleDescription to set 
      * @return FileRules
      */
 
@@ -160,7 +177,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setRuleDuration
      *
-     * @param ruleDuration
+     * @param ruleDuration to set
      * @return FileRules
      */
     public FileRules setRuleDuration(String ruleDuration) {
@@ -171,7 +188,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setRuleMeasurement
      *
-     * @param ruleMeasurement
+     * @param ruleMeasurement to set
      * @return FileRules
      */
     public FileRules setRuleMeasurement(String ruleMeasurement) {
@@ -182,7 +199,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setCreationDate
      *
-     * @param creationDate
+     * @param creationDate to set
      * @return this
      */
     public FileRules setCreationDate(String creationDate) {
@@ -193,7 +210,7 @@ public class FileRules extends VitamDocument<FileRules> {
     /**
      * setUpdateDate
      *
-     * @param updateDate
+     * @param updateDate to set
      * @return this
      */
 

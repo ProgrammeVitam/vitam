@@ -74,7 +74,9 @@
   template:
     src: "{{item}}.j2"
     dest: "{{curator_conf_dir}}/{{item}}"
-    owner: logstash
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
   with_items:
     - "delete_index_packetbeat.yml"
   delegate_to: "{{groups['hosts-log-server'][0]}}"
@@ -90,7 +92,7 @@
     name="curator purge on packetbeat"
     minute="10"
     hour="0"
-    user="root"
+    user="{{ vitam_user }}"
     job="/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/delete_index_packetbeat.yml"
   when:
     - ansible_virtualization_type != 'docker'

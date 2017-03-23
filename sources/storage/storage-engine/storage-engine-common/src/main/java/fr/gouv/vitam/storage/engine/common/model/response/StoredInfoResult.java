@@ -56,7 +56,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param id
+     * @param id of global result
      */
     public void setId(String id) {
         this.id = id;
@@ -70,7 +70,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param info
+     * @param info of result 
      */
     public void setInfo(String info) {
         this.info = info;
@@ -84,7 +84,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param objectGroupId
+     * @param objectGroupId of global result
      */
     public void setObjectGroupId(String objectGroupId) {
         this.objectGroupId = objectGroupId;
@@ -98,7 +98,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param unitIds
+     * @param unitIds of global result
      */
     public void setUnitIds(List<String> unitIds) {
         this.unitIds = unitIds;
@@ -112,7 +112,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param creationTime
+     * @param creationTime of global result
      */
     public void setCreationTime(String creationTime) {
         this.creationTime = creationTime;
@@ -126,7 +126,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param lastAccessTime
+     * @param lastAccessTime of global result
      */
     public void setLastAccessTime(String lastAccessTime) {
         this.lastAccessTime = lastAccessTime;
@@ -140,7 +140,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param lastCheckedTime
+     * @param lastCheckedTime of global result
      */
     public void setLastCheckedTime(String lastCheckedTime) {
         this.lastCheckedTime = lastCheckedTime;
@@ -154,7 +154,7 @@ public class StoredInfoResult {
     }
 
     /**
-     * @param lastModifiedTime
+     * @param lastModifiedTime of global result
      */
     public void setLastModifiedTime(String lastModifiedTime) {
         this.lastModifiedTime = lastModifiedTime;

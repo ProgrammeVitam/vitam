@@ -14,13 +14,13 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -37,11 +37,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         super(factory);
     }
 
+    // FIXME replace Response by RequestResponse
     @Override
-    public Response checkDocuments(AdminCollections documentType, InputStream stream)
+    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
@@ -58,11 +58,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
+    // FIXME replace Response by RequestResponse
     @Override
-    public Response createDocuments(AdminCollections documentType, InputStream stream)
+    public Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
@@ -80,10 +80,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select)
+    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -107,10 +106,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId)
+    public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
-        Integer tenantId = ParameterHelper.getTenantParameter();
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
@@ -130,6 +128,26 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+
+    @Override
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+        throws AccessExternalClientException {
+        // FIXME : should be replaced by createDocuments
+        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts);
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        try {
+            response = performRequest(HttpMethod.POST, AdminCollections.CONTRACTS.getName(), headers,
+                contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        }
+        return RequestResponse.parseFromResponse(response);
     }
 
 }

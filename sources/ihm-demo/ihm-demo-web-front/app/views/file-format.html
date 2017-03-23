@@ -38,16 +38,7 @@
   </div>
     <div class="clearfix"></div>
 
-  <!--Pagination -->
-  <div style="text-align: center">
-    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage <= 1" ng-click="search.pagination.currentPage=+search.pagination.currentPage-1">
-      Précédent
-    </button>
-    <input ng-model="search.pagination.currentPage" style="max-width: 40px" >/{{search.pagination.resultPages}}
-    <button class="btn btn-default btn-s" ng-disabled="search.pagination.currentPage >= search.pagination.resultPages" ng-click="search.pagination.currentPage=+search.pagination.currentPage+1">
-      Suivant
-    </button>
-  </div>
+  <search-pagination pagination-scope="search.pagination" search-function="getFileFormats"></search-pagination>
 
     <div class="panel panel-default col-md-12">
     	<a class="panel-header" data-target="#boxSearchResults" data-toggle="collapse">
@@ -61,7 +52,7 @@
       class="panel-body panel-collapse collapse in">
       <div class="table-responsive">
         <div style="padding-top: 40px">
-          <table class="table">
+          <table class="table highlighted">
             <tr>
               <th>PUID</th>
               <th>Nom de format</th>
@@ -69,7 +60,7 @@
               <th>MIME</th>
               <th>Extension</th>
             </tr>
-            <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage) | limitTo: search.pagination.itemsPerPage">
+            <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo: search.pagination.itemsPerPage">
               <tr ng-click="openDialog($event, file._id)">
                 <td style="text-overflow: ellipsis;max-width:20%" scope="row" >{{file.PUID}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Name}}</td>

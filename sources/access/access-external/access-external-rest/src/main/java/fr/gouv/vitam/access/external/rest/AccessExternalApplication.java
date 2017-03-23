@@ -77,7 +77,7 @@ public class AccessExternalApplication
     /**
      * AccessApplication constructor
      *
-     * @param configuration
+     * @param configuration the server configuration
      */
     public AccessExternalApplication(String configuration) {
         super(AccessExternalConfiguration.class, configuration);
@@ -86,7 +86,7 @@ public class AccessExternalApplication
     /**
      * runs AccessApplication server app
      *
-     * @param args
+     * @param args list of argument for configuration
      */
     public static void main(String[] args) {
         try {
@@ -116,9 +116,15 @@ public class AccessExternalApplication
         resourceConfig.register(new AccessExternalResourceImpl())
             .register(new LogbookExternalResourceImpl())
             .register(new AdminManagementExternalResourceImpl())
-            .register(new AdminStatusResource(serviceRegistry))
             .register(SanityCheckerCommonFilter.class)
             .register(SanityDynamicFeature.class);
+    }
+
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        resourceConfig.register(new AdminStatusResource(serviceRegistry));
+        return true;
+
     }
 
 

@@ -51,7 +51,7 @@ public class MarshallerObjectCache {
      *
      * @param c : class whom we want the JAXB Marshaller
      * @return The JAXB Marshaller for the class given in argument
-     * @throws JAXBException
+     * @throws JAXBException if exception when creating new instance JAXBContext 
      */
 
     public Marshaller getMarshaller(Class<?> c) throws JAXBException {

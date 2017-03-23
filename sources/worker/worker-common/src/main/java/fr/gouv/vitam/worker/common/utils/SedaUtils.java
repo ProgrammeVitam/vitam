@@ -79,7 +79,7 @@ public class SedaUtils {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
     private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
-    private static final String SEDA_VALIDATION_FILE = "seda-vitam/seda-vitam-2.0-main.xsd";
+    private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
     private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
@@ -216,7 +216,7 @@ public class SedaUtils {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final InputStream input;
         try {
-            input = checkExistenceManifest();
+            input = checkExistenceManifest();            
             if (checkMultiManifest()){
                 return CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST;
             }
@@ -501,7 +501,7 @@ public class SedaUtils {
     /**
      * @param evenReader of seda
      * @return Seda Info object
-     * @throws ProcessingException
+     * @throws ProcessingException if cannot get BinaryObject info
      */
     public SedaUtilInfo getBinaryObjectInfo(XMLEventReader evenReader)
         throws ProcessingException {
@@ -716,7 +716,7 @@ public class SedaUtils {
      *
      * @param params worker parameters
      * @return the size of the manifest
-     * @throws ProcessingException
+     * @throws ProcessingException if json seda data is null or seda does not contain size attribute 
      */
     public long getManifestSize(WorkerParameters params)
         throws ProcessingException {

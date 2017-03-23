@@ -55,10 +55,8 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
-     * @param StorageCollectionType
-     * @param params work parameters
+     * @param description the object description
      * @param itemStatus item status
-     * @param filename
      * @throws ProcessingException when error in execution
      */
     protected void storeObject(ObjectDescription description,

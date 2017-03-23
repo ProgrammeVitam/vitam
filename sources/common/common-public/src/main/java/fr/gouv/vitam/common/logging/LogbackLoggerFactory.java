@@ -48,7 +48,7 @@ public final class LogbackLoggerFactory extends VitamLoggerFactory {
 
     /**
      *
-     * @param level
+     * @param level the vitam log level
      */
     public LogbackLoggerFactory(final VitamLogLevel level) {
         super(level);

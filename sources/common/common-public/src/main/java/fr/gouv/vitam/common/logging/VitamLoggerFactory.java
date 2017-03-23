@@ -93,7 +93,7 @@ public abstract class VitamLoggerFactory {
     }
 
     /**
-     * @param level
+     * @param level the vitam log level
      */
     public VitamLoggerFactory(final VitamLogLevel level) {
         setInternalLogLevel(level);
@@ -114,7 +114,7 @@ public abstract class VitamLoggerFactory {
     /**
      * Changes the default factory.
      *
-     * @param defaultFactory
+     * @param defaultFactory instance of VitamLoggerFactory
      */
     public static void setDefaultFactory(final VitamLoggerFactory defaultFactory) {
         if (defaultFactory == null) {
@@ -126,7 +126,7 @@ public abstract class VitamLoggerFactory {
     /**
      * Creates a new logger instance with the name of the specified class.
      *
-     * @param clazz
+     * @param clazz specified class
      * @return the logger instance
      */
     public static VitamLogger getInstance(final Class<?> clazz) {
@@ -136,7 +136,7 @@ public abstract class VitamLoggerFactory {
     /**
      * Creates a new logger instance with the specified name.
      *
-     * @param name
+     * @param name to create new logger instance
      * @return the logger instance
      */
     public static VitamLogger getInstance(final String name) {
@@ -152,7 +152,7 @@ public abstract class VitamLoggerFactory {
     }
 
     /**
-     * @param level
+     * @param level the vitam log level
      */
     public static void setLogLevel(final VitamLogLevel level) {
         setInternalLogLevel(level);

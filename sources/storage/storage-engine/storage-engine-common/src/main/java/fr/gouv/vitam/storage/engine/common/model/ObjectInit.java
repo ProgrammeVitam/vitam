@@ -50,7 +50,8 @@ public class ObjectInit {
     /**
      * Set object offer ID
      *
-     * @param id the ID to set
+     * @param id
+     *            the ID to set
      */
     public void setId(String id) {
         this.id = id;
@@ -68,7 +69,8 @@ public class ObjectInit {
     /**
      * Set object size
      *
-     * @param size the object size
+     * @param size
+     *            the object size
      */
     public void setSize(long size) {
         this.size = size;
@@ -86,7 +88,8 @@ public class ObjectInit {
     /**
      * Set object type
      *
-     * @param type the object type
+     * @param type
+     *            the object type
      */
     public void setType(DataCategory type) {
         this.type = type;
@@ -104,7 +107,8 @@ public class ObjectInit {
     /**
      * Set digest algorithm
      *
-     * @param digestAlgorithm the digest algorithm
+     * @param digestAlgorithm
+     *            the digest algorithm
      */
     public void setDigestAlgorithm(DigestType digestAlgorithm) {
         this.digestAlgorithm = digestAlgorithm;

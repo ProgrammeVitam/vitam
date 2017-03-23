@@ -4,3 +4,22 @@
 </Directory>
 
 Alias /browse "{{vitam_folder_root}}"
+
+# mod_autoindex configuration : https://httpd.apache.org/docs/2.2/mod/mod_autoindex.html
+
+# INDEX OPTIONS
+IndexOptions +Charset=UTF-8 +FancyIndexing +IgnoreCase +FoldersFirst +XHTML +HTMLTable +SuppressRules +SuppressDescription +NameWidth=* +IconsAreLinks
+
+# META VIEWPORT
+IndexHeadInsert "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+
+# HIDE /.theme DIRECTORY
+IndexIgnore .htaccess /browse/.theme
+
+#
+# THEME FILES
+#
+
+HeaderName /browse/.theme/header.html
+ReadmeName /browse/.theme/footer.html
+IndexStyleSheet /browse/.theme/style.css

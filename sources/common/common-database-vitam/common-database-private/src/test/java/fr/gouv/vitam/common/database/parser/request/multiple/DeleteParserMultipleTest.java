@@ -66,7 +66,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
-import fr.gouv.vitam.common.database.builder.request.multiple.Delete;
+import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -130,7 +130,7 @@ public class DeleteParserMultipleTest {
             assertNotNull(request1);
             assertTrue("Should refuse the request since ES is not allowed",
                 request1.hasFullTextQuery());
-            final Delete delete = new Delete();
+            final DeleteMultiQuery delete = new DeleteMultiQuery();
             delete.addRoots("id0");
             delete.addQueries(path("id1", "id2"));
             delete.addQueries(
@@ -205,7 +205,7 @@ public class DeleteParserMultipleTest {
     @Test
     public void testFilterParse() {
         final DeleteParserMultiple request = new DeleteParserMultiple();
-        final Delete delete = new Delete();
+        final DeleteMultiQuery delete = new DeleteMultiQuery();
         try {
             // empty
             request.filterParse(delete.getFilter());

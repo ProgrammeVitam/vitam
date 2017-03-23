@@ -35,12 +35,17 @@ import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.BSONObject;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -112,23 +117,6 @@ public class Unit extends MetadataDocument<Unit> {
     public static final String TYPEUNIQUE = "typeunique";
 
     // TODO P1 add Nested objects or Parent/child relationships
-    /**
-     * Mapping of this Collection
-     */
-    public static final String MAPPING = "{" + TYPEUNIQUE + ": {" +
-        "properties : { " + Unit.UNITDEPTHS + " : { type : \"object\", enabled : false }, " +
-        Unit.UNITUPS + " : { type : \"string\", index : \"not_analyzed\" }, " +
-        Unit.NBCHILD + " : { type : \"long\" }," +
-        VitamLinks.UNIT_TO_UNIT.field2to1 + " : { type : \"string\", index : \"not_analyzed\" }, " +
-        VitamLinks.UNIT_TO_UNIT.field1to2 + " : { type : \"object\", enabled : false }, " +
-        VitamLinks.UNIT_TO_OBJECTGROUP.field1to2 + " : { type : \"string\", index : \"not_analyzed\" }, " +
-
-        "Title : { type : \"string\", index : \"analyzed\" }, " +
-        "Description : { type : \"string\", index : \"analyzed\" }, " +
-        "DescriptionLevel : { type : \"string\", index : \"not_analyzed\" }, " +
-        "TransactedDate : { type : \"date\", index : \"analyzed\" } " +
-
-        " } } }";
 
     /**
      * Quick projection for ID and ObjectGroup Only
@@ -251,7 +239,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Constructor from Json
      *
-     * @param content
+     * @param content of type JsonNode for building Unit 
      */
     public Unit(JsonNode content) {
         super(content);
@@ -260,7 +248,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Constructor from Document
      *
-     * @param content
+     * @param content of type Document for building Unit 
      */
     public Unit(Document content) {
         super(content);
@@ -269,7 +257,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Constructor from Json as Text
      *
-     * @param content
+     * @param content of type String for building Unit
      */
     public Unit(String content) {
         super(content);
@@ -573,9 +561,9 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Add the link (N)-N between this Unit and sub Unit (update only subUnit)
      *
-     * @param unit
-     * @return this
-     * @throws MetaDataExecutionException
+     * @param unit for adding the link 
+     * @return Unit with link added
+     * @throws MetaDataExecutionException when adding exception occurred
      */
     public Unit addUnit(final Unit unit) throws MetaDataExecutionException {
         Bson update = null;
@@ -631,9 +619,9 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Add the link (N)-N between Unit and List of sub Units (update only subUnits)
      *
-     * @param units
-     * @return this
-     * @throws MetaDataExecutionException
+     * @param units list of units for adding the link
+     * @return Unit with links added
+     * @throws MetaDataExecutionException when adding exception occurred
      */
     public Unit addUnits(final List<Unit> units) throws MetaDataExecutionException {
         Bson update = null;
@@ -709,7 +697,7 @@ public class Unit extends MetadataDocument<Unit> {
 
     /**
      *
-     * @param remove
+     * @param remove if remove the link between units
      * @return the list of UUID of Unit parents (immediate)
      */
     @SuppressWarnings("unchecked")
@@ -729,9 +717,9 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Add the link 1-N between Unit and ObjectGroup (update both Unit and ObjectGroup)
      *
-     * @param data
-     * @return this
-     * @throws MetaDataExecutionException
+     * @param data the objectgroup for adding link
+     * @return Unit with link added
+     * @throws MetaDataExecutionException when adding exception occurred
      */
     public Unit addObjectGroup(final ObjectGroup data)
         throws MetaDataExecutionException {
@@ -752,7 +740,7 @@ public class Unit extends MetadataDocument<Unit> {
 
     /**
      *
-     * @param remove
+     * @param remove if remove the link 
      * @return the ObjectGroup UUID (may return null)
      */
     public String getObjectGroupId(final boolean remove) {
@@ -766,7 +754,7 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Check if the current Unit has other Unit as immediate parent
      *
-     * @param other
+     * @param other a unit that could be immediate parent of current unit
      * @return True if immediate parent, else False (however could be a grand parent)
      */
     public boolean isImmediateParent(final String other) {

@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 public final class JdkLoggerFactory extends VitamLoggerFactory {
 
     /**
-     * @param level
+     * @param level the vitam log level
      */
     public JdkLoggerFactory(final VitamLogLevel level) {
         super(level);

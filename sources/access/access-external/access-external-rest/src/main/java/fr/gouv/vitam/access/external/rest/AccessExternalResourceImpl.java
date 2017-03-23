@@ -60,7 +60,7 @@ import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Select;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -107,7 +107,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query
      *
-     * @param queryJson
+     * @param queryJson the query to get units
      * @return Response
      */
     @GET
@@ -140,8 +140,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query with POST method
      *
-     * @param queryJson
-     * @param xhttpOverride
+     * @param queryJson the query to get units
+     * @param xhttpOverride the use of override POST method 
      * @return Response
      */
     @POST
@@ -165,7 +165,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * update units list by query
      *
-     * @param queryDsl
+     * @param queryDsl the query to update
      * @return Response
      */
     @PUT
@@ -183,7 +183,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -217,9 +217,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query based on identifier
      *
-     * @param queryJson
-     * @param xhttpOverride
-     * @param idUnit
+     * @param queryJson the query to get archive unit 
+     * @param xhttpOverride the use of override POST method
+     * @param idUnit the archive unit id
      * @return Response
      */
     @POST
@@ -244,7 +244,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * update archive units by Id with Json query
      *
-     * @param queryJson null not allowed
+     * @param queryJson the update query (null not allowed)
      * @param idUnit units identifier
      * @return a archive unit result list
      */
@@ -278,8 +278,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * check existence of an unit
      *
-     * @param idUnit
-     * @return check result
+     * @param idUnit the archive unit id
+     * @return check result response
      */
     @HEAD
     @Path("/units/{idu}")
@@ -295,8 +295,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get object group list by query and id
      *
-     * @param idObjectGroup
-     * @param queryJson
+     * @param idObjectGroup the object group id
+     * @param queryJson the query to get object
      * @return Response
      */
     @GET
@@ -327,9 +327,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
+
     /**
-     * @param idObjectGroup
-     * @return Response
+     * @param headers the http header defined parameters of request
+     * @param idObjectGroup the id object group
+     * @param query the query to get object
+     * @param asyncResponse the synchronized response 
      */
     @GET
     @Path("/objects/{ido}")
@@ -337,13 +340,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject (headers,idObjectGroup,query,asyncResponse,false) ;
+        getObject(headers, idObjectGroup, query, asyncResponse, false);
     }
 
     /**
-     * @param headers
-     * @param idObjectGroup
-     * @param queryJson
+     * @param headers the http header defined parameters of request
+     * @param idObjectGroup the id object group
+     * @param queryJson the query to get object
      * @return Response
      */
     @POST
@@ -365,9 +368,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers
-     * @param idObjectGroup
-     * @return Response
+     * @param headers the http header defined parameters of request
+     * @param idObjectGroup  the id object group
+     * @param query the query to get object
+     * @param asyncResponse the synchronized response
      */
     @POST
     @Path("/objects/{ido}")
@@ -375,15 +379,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
+        getObject(headers, idObjectGroup, query, asyncResponse, true);
     }
 
 
     /**
-     * @param headers
-     * @param idu
-     * @param query
-     * @param asyncResponse
+     * @param headers the http header defined parameters of request
+     * @param idu the id of archive unit
+     * @param query the query to get object
+     * @param asyncResponse the synchronized response
      */
     @GET
     @Path("/units/{idu}/object")
@@ -394,7 +398,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         try {
             String idObjectGroup = idObjectGroup(idu);
-            getObject(headers, idObjectGroup, query, asyncResponse,false) ;
+            getObject(headers, idObjectGroup, query, asyncResponse, false);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -416,12 +420,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
 
     /**
-     * @param headers
-     * @param idu
-     * @param query
-     * @param asyncResponse
+     * @param headers the http header defined parameters of request
+     * @param idu the id of archive unit
+     * @param query the query to get object
+     * @param asyncResponse the synchronized response
      */
-    @POST
+    @POST 
     @Path("/units/{idu}/object")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -430,7 +434,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         try {
             String idObjectGroup = idObjectGroup(idu);
-            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
+            getObject(headers, idObjectGroup, query, asyncResponse, true);
 
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -453,7 +457,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get object group list by query
      *
-     * @param queryDsl
+     * @param queryDsl the query to get list of object group
      * @return Response
      */
     @GET
@@ -468,8 +472,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     /**
-     * @param xhttpOverride
-     * @param query
+     * @param xhttpOverride the use of override POST method
+     * @param query the query to get object
      * @return Response
      */
     @POST
@@ -488,27 +492,30 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
+
     private String idObjectGroup(String idu)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        // Select  "Object from ArchiveUNit idu
+        // Select "Object from ArchiveUNit idu
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
-            Select select = new Select();
+            SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection("#object");
             result = client.selectUnitbyId(select.getFinalSelect(), idu);
             SanityChecker.checkJsonAll(result);
             return result.findValue("#object").textValue();
         }
     }
-    private void getObject( HttpHeaders headers, String idObjectGroup,
-        JsonNode query,final AsyncResponse asyncResponse, boolean post ){
+
+    private void getObject(HttpHeaders headers, String idObjectGroup,
+        JsonNode query, final AsyncResponse asyncResponse, boolean post) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, post));
     }
+
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query, boolean post) {
 
@@ -580,8 +587,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * findDocuments
      *
-     * @param select
-     * @param xhttpOverride
+     * @param select the query to find document of accession register
+     * @param xhttpOverride the use of override POST method
      * @return Response
      */
     @Path("/accession-register")
@@ -602,8 +609,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
@@ -620,7 +626,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * findDocumentByID
      *
-     * @param documentId
+     * @param documentId the document id to get
      * @return Response
      */
     @POST
@@ -637,9 +643,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * findAccessionRegisterDetail
      *
-     * @param documentId
-     * @param select
-     * @param xhttpOverride
+     * @param documentId the document id of accession register to get 
+     * @param select the query to get document
+     * @param xhttpOverride the use of override POST method
      * @return Response
      */
     @POST
@@ -664,8 +670,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
             return Response.status(Status.OK).entity(accessionRegisterDetail).build();
         } catch (final ReferentialNotFoundException e) {
-            final Status status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
         } catch (InvalidParseOperationException | UnsupportedEncodingException |
             InvalidCreateOperationException e) {
             LOGGER.error(e);
@@ -677,4 +682,5 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
+
 }

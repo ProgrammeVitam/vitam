@@ -34,7 +34,7 @@ import org.bson.conversions.Bson;
 import com.mongodb.client.model.Updates;
 
 import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.AbstractParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -44,9 +44,9 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 public class UpdateToMongodb extends RequestToMongodb {
 
     /**
-     * @param updateParser UpdateParserMultiple
+     * @param updateParser AbstractParser
      */
-    public UpdateToMongodb(UpdateParserMultiple updateParser) {
+    public UpdateToMongodb(AbstractParser<?> updateParser) {
         super(updateParser);
     }
 
@@ -56,7 +56,7 @@ public class UpdateToMongodb extends RequestToMongodb {
      * @return the orderBy MongoDB command
      * @throws InvalidParseOperationException if invalid parse operation
      */
-    public Bson getFinalUpdate() throws InvalidParseOperationException {
+    public Bson getFinalUpdateActions() throws InvalidParseOperationException {
         final List<Action> actions = requestParser.getRequest().getActions();
         final List<Bson> bactions = new ArrayList<>(actions.size());
         for (final Action action : actions) {

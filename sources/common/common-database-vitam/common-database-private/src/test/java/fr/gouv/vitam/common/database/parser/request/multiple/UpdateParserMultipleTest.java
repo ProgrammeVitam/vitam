@@ -79,7 +79,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -162,7 +162,7 @@ public class UpdateParserMultipleTest {
                 request1.hasFullTextQuery());
             assertNotEquals("Data should not be empty", 0,
                 request1.getRequest().getActions().size());
-            final Update update = new Update();
+            final UpdateMultiQuery update = new UpdateMultiQuery();
             update.addRoots("id0");
             update.addQueries(path("id1", "id2"));
             update.addQueries(
@@ -243,7 +243,7 @@ public class UpdateParserMultipleTest {
     @Test
     public void testFilterParse() {
         final UpdateParserMultiple request = new UpdateParserMultiple();
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         try {
             // empty
             request.filterParse(update.getFilter());
@@ -288,7 +288,7 @@ public class UpdateParserMultipleTest {
     @Test
     public void testActionParse() {
         final UpdateParserMultiple request = new UpdateParserMultiple();
-        final Update update = new Update();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
         try {
             // empty rootNode
             request.actionParse(JsonHandler.createArrayNode());

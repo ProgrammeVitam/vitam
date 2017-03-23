@@ -4,14 +4,10 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>0.15.0-SNAPSHOT</version>
+		<version>0.16.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-core</artifactId>
 	<name>Worker Core</name>
-
-	<properties>
-		<sonar.exclusions>file:**/generated-sources/**</sonar.exclusions>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -95,31 +91,4 @@
 			<artifactId>easystream</artifactId>
 		</dependency>
 	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.13.1</version>
-				<configuration>
-					<catalog>src/main/resources/seda-vitam.cat</catalog>
-					<strict>false</strict>
-					<plugins>
-						<plugin>
-							<groupId>org.jvnet.jaxb2_commons</groupId>
-							<artifactId>jaxb2-basics-annotate</artifactId>
-							<version>${jaxb2.version}</version>
-						</plugin>
-					</plugins>
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
 </project>

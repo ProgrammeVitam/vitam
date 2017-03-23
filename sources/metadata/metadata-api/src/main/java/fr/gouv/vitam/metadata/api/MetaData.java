@@ -29,7 +29,7 @@ package fr.gouv.vitam.metadata.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.Update;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -48,7 +48,7 @@ public interface MetaData {
      * @param insertRequest as String { $roots: roots, $query : query, $filter : multi, $data : data}
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException Throw if arguments of insert query is invalid
      * @throws MetaDataNotFoundException Throw if parent of this unit is not found
      * @throws MetaDataAlreadyExistException Throw if Unit id already exists
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
@@ -62,14 +62,14 @@ public interface MetaData {
     /**
      * Search UNITs by Select {@link Select}Query
      *
-     * @param selectQuery
+     * @param selectQuery the query of type JsonNode
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units(can be empty)
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
-     * @throws MetaDataNotFoundException
+     * @throws MetaDataNotFoundException Throw if unit by id not found
      *
      */
     public ArrayNode selectUnitsByQuery(JsonNode selectQuery)
@@ -83,15 +83,15 @@ public interface MetaData {
      * <h3>$roots:[{id:"id"}]</h3>,<br>
      * $query{}, ..}
      *
-     * @param selectQuery
-     * @param unitId
+     * @param selectQuery the select query of type JsonNode
+     * @param unitId the unit id for query
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units(can be empty)
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
-     * @throws MetaDataNotFoundException
+     * @throws MetaDataNotFoundException Throw if unit by id not found
      *
      */
     public ArrayNode selectUnitsById(JsonNode selectQuery, String unitId)
@@ -122,14 +122,14 @@ public interface MetaData {
         MetaDataNotFoundException;
 
     /**
-     * Update UNITs by Id {@link Update}Query <br>
+     * Update UNITs by Id {@link UpdateMultiQuery}Query <br>
      * for this method, the roots will be filled<br>
      * for example request :{
      * <h3>$roots:[{id:"id"}]</h3>,<br>
      * $query{}, ..}
      *
-     * @param updateQuery
-     * @param unitId
+     * @param updateQuery the update query as JsonNode
+     * @param unitId the id of Unit for query
      * @return JsonNode {$hits{},$context{},$result:[{}....{}],} <br>
      *         $context will be added later (Access)</br>
      *         $result array of units(can be empty)

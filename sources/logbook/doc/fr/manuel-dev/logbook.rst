@@ -284,4 +284,11 @@ Exemple ihm-demo-web-application
     	LogbookClient logbookClient = LogbookClientFactory.getInstance().getLogbookOperationClient();
         
         // Sélection des opérations par ID
-        result = logbookClient.selectOperationbyId(operationId);       
+        result = logbookClient.selectOperationbyId(operationId);
+        
+
+Données
+*******
+
+La recherche des logbook de type TRACEABILITY passent par ElasticSearch, il faut faire attention à ce que le requête contenant des filtres de type "OrderBy" correspondent bien a des champs définit dans le mapping de l'index Elastic : *LogbookOperation.MAPPING*.
+       

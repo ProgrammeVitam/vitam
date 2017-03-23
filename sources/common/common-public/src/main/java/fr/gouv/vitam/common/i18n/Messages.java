@@ -65,7 +65,7 @@ public class Messages {
     /**
      * Constructor using default Locale (FRENCH)
      *
-     * @param bundleName
+     * @param bundleName the bundle name
      */
     public Messages(String bundleName) {
         this(bundleName, DEFAULT_LOCALE);
@@ -74,8 +74,8 @@ public class Messages {
     /**
      * Constructor
      *
-     * @param bundleName
-     * @param locale
+     * @param bundleName the bundle name
+     * @param locale the Local object
      */
     public Messages(String bundleName, Locale locale) {
         this.bundleName = bundleName;
@@ -90,11 +90,11 @@ public class Messages {
         /**
          * Specific constructor of RessourceBundler
          *
-         * @param baseName
-         * @param locale
-         * @param format
-         * @param loader
-         * @param reload
+         * @param baseName the base name
+         * @param locale the Locale object
+         * @param format the format
+         * @param loader the class loader
+         * @param reload if reaload ot not
          */
         @Override
         public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,

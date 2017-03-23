@@ -38,6 +38,7 @@ import org.junit.Test;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class OfferDriverInfoTest {
 
@@ -67,13 +68,12 @@ public class OfferDriverInfoTest {
     class TheDriver implements Driver {
 
         @Override
-        public Connection connect(String url, Properties parameters) throws StorageDriverException {
+        public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
             return null;
         }
 
         @Override
-        public boolean isStorageOfferAvailable(String url, Properties parameters)
-            throws StorageDriverException {
+        public boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException {
             return false;
         }
 

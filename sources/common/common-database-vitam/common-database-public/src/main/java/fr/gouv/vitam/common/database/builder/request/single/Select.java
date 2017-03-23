@@ -223,23 +223,6 @@ public class Select extends RequestSingle {
         return selectGetFinalSelect();
     }
 
-    /**
-     *
-     * @return True if the projection is not restricted
-     */
-    @Override
-    public final boolean getAllProjection() {
-        return selectGetAllProjection();
-    }
-
-    /**
-     * @return the projection
-     */
-    @Override
-    public final ObjectNode getProjection() {
-        return selectGetProjection();
-    }
-
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();

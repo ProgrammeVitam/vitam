@@ -93,7 +93,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Constructor IngestExternalResource
      *
-     * @param ingestExternalConfiguration
+     * @param ingestExternalConfiguration the configuration of server resource
      *
      */
     public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
@@ -104,8 +104,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local
      *
-     * @param uploadedInputStream data input stream
-     * @param asyncResponse
+     * @param contextId the context id of upload
+     * @param action in workflow
+     * @param uploadedInputStream data input stream 
+     * @param asyncResponse the asynchronized response
+     * 
      */
     @Path("ingests")
     @POST
@@ -153,9 +156,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * 
      * Return the object as stream asynchronously
      * 
-     * @param objectId
-     * @param type
-     * @param asyncResponse
+     * @param objectId the id of object to download
+     * @param type of collection
+     * @param asyncResponse the asynchronized response
      */
     @GET
     @Path("/ingests/{objectId}/{type}")
@@ -193,11 +196,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
-     * @throws InternalServerException
-     * @throws VitamClientException
-     * @throws IngestInternalException
-     * @throws InvalidGuidOperationException
-     * @throws ProcessingException
+     * @throws InternalServerException if request resources server exception
+     * @throws VitamClientException if the server is unreachable
+     * @throws IngestInternalException if error when request to ingest internal server
+     * @throws InvalidGuidOperationException if error when create guid
+     * @throws ProcessingException if error in workflow execution
      */
     @Path("/operations/{id}")
     @POST
@@ -470,6 +473,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
 
+    /**
+     * @param headers the http header of request
+     * @return Response
+     */
     @GET
     @Path("/operations")
     @Produces(MediaType.APPLICATION_JSON)

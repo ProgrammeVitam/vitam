@@ -70,7 +70,7 @@ public class ProcessWorkflow {
     }
 
     /**
-     * @param globalStatusCode the globalStatusCode to set
+     * @param StatusCode the StatusCode to set
      *
      * @return this
      */
@@ -103,7 +103,7 @@ public class ProcessWorkflow {
     }
 
     /**
-     * @return the workflowId
+     * @return the operationId
      */
 
     public String getOperationId() {
@@ -111,7 +111,7 @@ public class ProcessWorkflow {
     }
 
     /**
-     * @param workflowId the workflowId to set
+     * @param operationId the operationId to set
      *
      * @return this
      */
@@ -209,10 +209,17 @@ public class ProcessWorkflow {
         return this;
     }
 
+    /**
+     * @return the tenant
+     */
     public Integer getTenantId() {
         return tenantId;
     }
 
+    /**
+     * @param tenantId to set
+     * @return this
+     */
     public ProcessWorkflow setTenantId(Integer tenantId) {
         this.tenantId = tenantId;
         return this;
