@@ -1,0 +1,80 @@
+{
+  "typeunique": {
+    "properties": {
+      "_nbc": {
+        "type": "long"
+      },
+      "_up": {
+        "type": "string",
+        "index": "not_analyzed"
+      },
+      "_uds": {
+        "type": "object",
+        "enabled": false
+      },
+      "_us": {
+        "type": "string"
+      },
+      "FileInfo": {
+        "properties": {
+          "Filename": {
+            "type": "string",
+            "index": "analyzed"
+          }
+        }
+      },
+      "_qualifiers": {
+        "properties": {
+          "BinaryMaster": {
+            "properties": {
+              "versions": {
+                "properties": {
+                  "FormatIdentification": {
+                    "properties": {
+                      "FormatLitteral": {
+                        "type": "string",
+                        "index": "analyzed"
+                      }
+                    }
+                  },
+                  "FileInfo": {
+                    "properties": {
+                      "Filename": {
+                        "type": "string",
+                        "index": "analyzed"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "Dissimination": {
+            "properties": {
+              "versions": {
+                "properties": {
+                  "FormatIdentification": {
+                    "properties": {
+                      "FormatLitteral": {
+                        "type": "string",
+                        "index": "analyzed"
+                      }
+                    }
+                  },
+                  "FileInfo": {
+                    "properties": {
+                      "Filename": {
+                        "type": "string",
+                        "index": "analyzed"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

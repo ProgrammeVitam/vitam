@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
@@ -65,6 +66,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -80,7 +82,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
 
-    public static final String MAPPING_UNIT_FILE = "/mapping-unit.json";
+    public static final String MAPPING_UNIT_FILE = "/unit-es-mapping.json";
+    public static final String MAPPING_OBJECT_GROUP_FILE = "/og-es-mapping.json";
 
     /**
      * @param clusterName cluster name
@@ -125,23 +128,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (!client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
-                final String mapping;
-                final String type;
-                if (collection == MetadataCollections.C_UNIT) {
-                    try (BufferedReader buffer = new BufferedReader(new InputStreamReader(Unit.class.getResourceAsStream(MAPPING_UNIT_FILE)))) {
-                        mapping = buffer.lines().collect(Collectors.joining("\n"));
-                    }
-                    type = Unit.TYPEUNIQUE;
-                }
-                else {
-                    type = ObjectGroup.TYPEUNIQUE;
-                    mapping = ObjectGroup.MAPPING;
-
-                }
+                final String mapping = getMapping(collection);
+                final String type = getTypeUnique(collection);
                 LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response = client.admin().indices()
                     .prepareCreate(getIndexName(collection, tenantId))
-                    .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                    .setSettings(default_builder)
                     .addMapping(type, mapping).get();
                 if (!response.isAcknowledged()) {
                     LOGGER.error(type + ":" + response.isAcknowledged());
@@ -834,5 +826,24 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
     private String getIndexName(final MetadataCollections collection, Integer tenantId) {
         return collection.getName().toLowerCase() + "_" + tenantId.toString();
+    }
+    
+    private String getMapping(MetadataCollections collection) throws IOException {
+        if (collection == MetadataCollections.C_UNIT) {
+            return ElasticsearchUtil.transferJsonToMapping(Unit.class.getResourceAsStream(MAPPING_UNIT_FILE));
+        }
+        else if (collection == MetadataCollections.C_OBJECTGROUP) {
+            return ElasticsearchUtil.transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
+        }
+        return "";
+    }
+    
+    private String getTypeUnique(MetadataCollections collection) {
+        if (collection.equals(MetadataCollections.C_UNIT)) {
+            return Unit.TYPEUNIQUE;
+        } else if (collection.equals(MetadataCollections.C_OBJECTGROUP)) {
+            return ObjectGroup.TYPEUNIQUE;
+        }
+        return "";
     }
 }

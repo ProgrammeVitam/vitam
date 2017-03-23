@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
+import java.io.FileNotFoundException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -34,11 +35,14 @@ import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -52,8 +56,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
     private static final int TOSECOND = 1000;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
-
-    private static final String DEFAULT_FRENCH_STOP_WORDS = "\"_french_\"";
     
     private static final String FRENCH_STOP_WORDS = "[\"vers\", \"a\", \"à\", \"afin\", \"ai\", \"ainsi\", \"après\", \"au\", \"auquel\", \"aussi\", " +
         "\"autre\", \"autres\", \"aux\", \"auxquelles\", \"auxquels\", \"avait\", \"c\", \"ça\", \"ce\", \"ceci\", \"cela\", \"celle\", \"celles\", " +
@@ -71,25 +73,10 @@ public class ElasticsearchAccess implements DatabaseConnection {
         "\"siennes\", \"siens\", \"sinon\", \"soi\", \"soit\", \"son\", \"sont\", \"sous\", \"suivant\", \"sur\", \"ta\", \"te\", \"tes\", \"tien\", " +
         "\"tienne\", \"tiennes\", \"tiens\", \"toi\", \"ton\", \"tous\", \"tout\", \"toute\", \"toutes\", \"tu\", \"un\", \"une\", \"va\", \"voici\", " +
         "\"voilà\", \"vos\", \"votre\", \"vôtre\", \"vôtres\", \"vous\", \"vu\", \"y\"]";
-    /**
-     * Default Index Configuration
-     */
-    public static final String DEFAULT_INDEX_CONFIGURATION = "{\"analysis\":{" +
-        "\"analyzer\": {" +
-        "\"default\": {\"type\":\"custom\",\"tokenizer\":\"icu_tokenizer\"," +
-        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]," +
-        "\"char_filter\": [\"dotreplace\", \"html_strip\"]}," +
-        "\"default_search\":{\"type\":\"custom\",\"tokenizer\":\"icu_tokenizer\"," +
-        "\"filter\":[\"stopwords\",\"asciifolding\",\"lowercase\",\"snowball\",\"elision\",\"worddelimiter\"]," +
-        "\"char_filter\": [\"dotreplace\", \"html_strip\"]}}," +
-        "\"char_filter\": {\"dotreplace\":{\"type\":\"pattern_replace\",\"pattern\":\"\\\\.\", \"replacement\": \" \"}}," +
-        "\"tokenizer\":{\"letter\":{\"type\":\"letter\"}}," +
-        "\"filter\":{" +
-        "\"snowball\":{\"type\":\"snowball\",\"language\":\"French\"}," +
-        "\"elision\":{\"type\":\"elision\",\"articles\":[\"l\",\"m\",\"t\",\"qu\",\"n\",\"s\",\"j\",\"d\",\"jusqu\",\"quoiqu\",\"lorsqu\",\"puisqu\"]}," +
-        "\"stopwords\":{\"type\":\"stop\",\"stopwords\":" + DEFAULT_FRENCH_STOP_WORDS + ",\"ignore_case\":true}," +
-        "\"worddelimiter\":{\"type\":\"word_delimiter\"}}}}";
+    
+    public Builder default_builder;
 
+    private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
     protected final TransportClient client;
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
@@ -116,6 +103,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         final Settings settings = getSettings();
 
         client = getClient(settings);
+        default_builder = settings();
     }
 
     /**
@@ -204,7 +192,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 LOGGER.debug("setMapping: " + collectionName + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(collectionName)
-                    .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                    .setSettings(settings())
                     .addMapping(type, mapping)
                     .get();
                 if (!response.isAcknowledged()) {
@@ -217,5 +205,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
             }
         }
         return true;
+    }
+    
+    public Builder settings(){
+        return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE, ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE));
     }
 }

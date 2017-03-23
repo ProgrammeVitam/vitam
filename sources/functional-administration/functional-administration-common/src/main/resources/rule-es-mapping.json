@@ -1,0 +1,43 @@
+{
+  "properties": {
+    "RuleType": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "RuleValue": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "RuleDescription": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "RuleDuration": {
+      "type": "long",
+      "index": "not_analyzed"
+    },
+    "_tenant": {
+      "type": "long",
+      "index": "not_analyzed"
+    },
+    "RuleId": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "RuleMeasurement": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "CreationDate": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "UpdateDate": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "Extension": {
+      "type": "string"
+    }
+  }
+}

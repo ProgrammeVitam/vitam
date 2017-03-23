@@ -1,0 +1,42 @@
+{
+  "properties": {
+    "Name": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "PUID": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "MIMEType": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "Extension": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "VersionPronom": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "CreatedDate": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "Version": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "Group": {
+      "type": "string",
+      "index" : "not_analyzed"
+    },
+    "Alert": {
+      "type": "boolean"
+    },
+    "Comment": {
+      "type": "string"
+    }
+  }
+}
