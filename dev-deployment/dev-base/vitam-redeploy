@@ -34,4 +34,4 @@ fi
 
 echo "Redeploying VITAM for environment ${VITAM_ENVIRONMENT}..."
 
-ansible-playbook deployment/ansible-vitam-rpm/vitam.yml -i deployment/environments-rpm/hosts.${VITAM_ENVIRONMENT} --tags update_package_vitam --vault-password-file deployment/vault_pass.txt -v
+ansible-playbook deployment/ansible-vitam/vitam.yml -i deployment/environments/hosts.${VITAM_ENVIRONMENT} --tags update_package_vitam --vault-password-file deployment/vault_pass.txt -v

@@ -2,15 +2,15 @@ Validation de la procédure
 ##########################
 
 .. |repertoire_deploiement| replace:: ``deployment``
-.. |repertoire_inventory| replace:: ``environments-rpm``
-.. |repertoire_playbook ansible| replace:: ``ansible-vitam-rpm``
+.. |repertoire_inventory| replace:: ``environments``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
 
 La procédure de validation est commune aux différentes méthodes d'installation.
 
 Sécurisation du fichier ``vault_pass.txt``
 ==========================================
 
-Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments-rpm/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
+Le fichier ``vault_pass.txt`` est très sensible ; il contient le mot de passe du fichier ``environments/group_vars/all/vault.yml`` qui contient les divers mots de passe de la plate-forme. A l'issue de l'installation, il est nécessaire de le sécuriser (suppression du fichier ou application d'un chmod 400).
 
 .. Validation par ansible
 .. =======================
@@ -80,11 +80,11 @@ Ce playbook n'est à passer que si aucun référentiel PRONOM n'a été chargé,
 
 Si le fichier vault-password est renseigné :
 
-``ansible-playbook ansible-vitam-rpm-extra/init_pronom.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 Sinon
 
-``ansible-playbook ansible-vitam-rpm-extra/init_pronom.yml -i environments-rpm/<fichier d'inventaire> --ask-vault-pass``
+``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --ask-vault-pass``
 
 .. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
 

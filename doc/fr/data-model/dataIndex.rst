@@ -7,7 +7,7 @@ Creation des index
 ==================
 
 Les différents index sont créés par ansible.
-Les fichiers à renseigner pour rajouter un nouvel index sont dans deployment/ansible-vitam-rpm/roles/mongo_configure/templates/init-{nom-base}-database.js.j2
+Les fichiers à renseigner pour rajouter un nouvel index sont dans deployment/ansible-vitam/roles/mongo_configure/templates/init-{nom-base}-database.js.j2
 
 Base Logbooks
 =============

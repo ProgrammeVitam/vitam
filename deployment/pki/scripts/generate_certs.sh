@@ -117,7 +117,7 @@ function generateHostCertAndStorePassphrase {
     local HOSTS_GROUP="${2}"
 
     # sed "1 d" : remove the first line
-    for SERVER in $(ansible -i ${REPERTOIRE_ROOT}/environments-rpm/hosts.${ENVIRONNEMENT} --list-hosts ${HOSTS_GROUP} ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+    for SERVER in $(ansible -i ${REPERTOIRE_ROOT}/environments/hosts.${ENVIRONNEMENT} --list-hosts ${HOSTS_GROUP} ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
         # Generate the key
         local CERT_KEY=$(generatePassphrase)
         # Create the certificate
@@ -167,7 +167,7 @@ function generateClientCertAndStorePassphrase {
                                 "${CERT_KEY}"
 }
 
-# Recopie de la CA de pki/CA vers environments-rpm/cert/cert-type/CA
+# Recopie de la CA de pki/CA vers environments/cert/cert-type/CA
 function copyCAFromPki {
     local CERT_TYPE="${1}"
 
