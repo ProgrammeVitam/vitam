@@ -133,14 +133,21 @@ localhost rs_member_id=0 shard_id=0
 
 [zone-admin:children]
 hosts-consul-server
-hosts-log-server
+log-servers
 hosts-elasticsearch-log
 hosts-mongoclient
 
 [hosts-consul-server]
 localhost
 
-[hosts-log-server]
+[log-servers:children]
+hosts-kibana
+hosts-logstash
+
+[hosts-logstash]
+localhost
+
+[hosts-kibana]
 localhost
 
 [hosts-elasticsearch-log]

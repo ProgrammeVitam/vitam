@@ -1,0 +1,14 @@
+---
+
+- name: restart logstash
+  service:
+    name: logstash
+    state: restarted
+
+- name: systemctl reload-daemon # see https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
+  command: systemctl daemon-reload
+
+- name: reload consul configuration
+  service:
+    name: vitam-consul
+    state: reloaded

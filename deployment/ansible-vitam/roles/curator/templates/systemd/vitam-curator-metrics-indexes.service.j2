@@ -1,0 +1,15 @@
+[Unit]
+Description=Close and delete old elasticsearch-log metrics indexes
+Wants=network.target
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curator --config {{curator_conf_dir}}/curator.yml {{curator_conf_dir}}/metrics_index.yml
+User=vitam
+Group=vitam
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

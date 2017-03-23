@@ -30,11 +30,16 @@
 - hosts: hosts-elasticsearch-log
   roles:
     - {role: elasticsearch-cluster, port_http: "{{elasticsearch_log_http_port}}", port_tcp: "{{elasticsearch_log_tcp_port}}", groupe: log }
+    - role: curator
 
 ### LOG SERVER INSTALLATION ###
-- hosts: hosts-log-server
+- hosts: hosts-logstash
   roles:
-    - {role: log-server, cluster_name: elasticsearch-log}
+    - role: logstash
+
+- hosts: hosts-kibana
+  roles:
+    - role: kibana
 
 ### RSYSLOG INSTALLATION ###
 # Vitam solution deployment

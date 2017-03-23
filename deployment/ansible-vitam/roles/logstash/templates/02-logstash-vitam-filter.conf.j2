@@ -33,19 +33,6 @@ filter
     }
 
     # --------------------------------------------------
-    # Special transforms for curator input (log file)
-    # --------------------------------------------------
-
-    if [input] == "curator" {
-        grok {
-            break_on_match => false
-            keep_empty_captures => true
-            # Fix set vitam_component to "curator"
-            match => [ "path", "(?:%{UNIXPATH:path_file})/(?<vitam_component>[^.]*)"]
-        }
-    }
-
-    # --------------------------------------------------
     # Let's parse the message depending on the program sending it
     # --------------------------------------------------
 

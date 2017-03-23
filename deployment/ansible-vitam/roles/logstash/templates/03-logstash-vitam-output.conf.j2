@@ -40,15 +40,10 @@ output
     # _grokparsefailure cases
     else
     {
-        # todo: remove this if ?
-        # todo: add a template (maybe different from the ones above)?
-        if [vitam_component] =~ "logback" or [vitam_component] =~ "elastic" or [vitam_component] =~ "mongo" or [vitam_component] =~ "script" or [vitam_component] =~ "elasticsearch-data" or [vitam_component] =~ "consul"
+        elasticsearch
         {
-            elasticsearch
-            {
-                index => "logstash-failure-%{+YYYY.MM.dd}"
-                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
-            }
+            index => "logstash-failure-%{+YYYY.MM.dd}"
+            hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
         }
     }
 
