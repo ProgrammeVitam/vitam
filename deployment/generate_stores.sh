@@ -216,7 +216,7 @@ fi
 ENVIRONNEMENT="${1}"
 
 TMP_P12_PASSWORD="$(generatePassphrase)"
-REPERTOIRE_KEYSTORES="${REPERTOIRE_ROOT}/environments-rpm/keystores"
+REPERTOIRE_KEYSTORES="${REPERTOIRE_ROOT}/environments/keystores"
 
 
 # Generate the server keystores

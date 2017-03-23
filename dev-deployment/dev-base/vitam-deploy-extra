@@ -34,4 +34,4 @@ fi
 
 echo "Deploying VITAM EXTRA for environment ${VITAM_ENVIRONMENT}..."
 
-ansible-playbook deployment/ansible-vitam-rpm-extra/extra.yml -i deployment/environments-rpm/hosts.${VITAM_ENVIRONMENT} --vault-password-file deployment/vault_pass.txt -v
+ansible-playbook deployment/ansible-vitam-extra/extra.yml -i deployment/environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file deployment/vault_pass.txt -v
