@@ -170,6 +170,23 @@ public class AccessStep {
     }
 
     /**
+     * Get a specific field value from a result identified by its index
+     * 
+     * @param field field name
+     * @param numResult number of the result in results
+     * @return value if found or null
+     * @throws Throwable
+     */
+    private String getValueFromResult(String field, int numResult) throws Throwable {
+        if (results.size() < numResult) {
+            Fail.fail("numResult " + numResult + " > result size " + results.size());
+        }
+        JsonNode result = Iterables.get(results, numResult);
+        result = result.get(field);
+        return result.textValue();
+    }
+
+    /**
      * check if the number of result is OK
      * 
      * @param numberOfResult number of result.
@@ -218,6 +235,28 @@ public class AccessStep {
     public void search_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON, world.getTenantId());
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+
+    /**
+     * update an archive unit according to the query define before
+     * 
+     * @throws Throwable
+     */
+    @When("^je modifie les unités archivistiques$")
+    public void update_archive_unit() throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        // get id of last result
+        String unitId = getValueFromResult("#id", 0);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().updateUnitbyId(queryJSON, unitId, world.getTenantId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
