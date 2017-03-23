@@ -42,7 +42,7 @@ public interface VitamServerInterface {
     /**
      *
      * Used get the port number of the admin connector
-     * @return the port number of the named connector @admin if exists else return null
+     * @return the port number of the named connector @admin if exists else return -1
      */
     int getAdminPort();
 
