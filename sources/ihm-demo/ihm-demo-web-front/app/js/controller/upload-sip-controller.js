@@ -35,7 +35,7 @@ angular.module('ihm.demo')
     "KO_STATUS": 400,
     "FATAL_STATUS": 500,
     "BLANK_TEST": "BLANK_TEST",
-    "BLANK_TEST_ALERT": "Vous avez selectionné une entrée à blanc."
+    "BLANK_TEST_ALERT": "Cette opération réalise un test à blanc de versement pour contrôle du SIP, aucune donnée ne sera conservée."
   })
   .controller('uploadController', function($scope, FileUploader, $mdDialog, $route, $cookies, $location, UPLOAD_CONSTANTS,
     $interval, ihmDemoFactory, authVitamService) {
@@ -196,7 +196,23 @@ angular.module('ihm.demo')
 
     $scope.checkBlankTestChoice = function($event){
       if($scope.contextId === UPLOAD_CONSTANTS.BLANK_TEST){
-        $scope.showAlert($event, "Attention", UPLOAD_CONSTANTS.BLANK_TEST_ALERT);
+
+        var confirmDialBox = $mdDialog.confirm().parent(angular.element(document.querySelector('#popupContainer')))
+          .clickOutsideToClose(true)
+          .title('Confirmation de test à blanc')
+          .textContent(UPLOAD_CONSTANTS.BLANK_TEST_ALERT)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .cancel('Annuler')
+          .targetEvent($event);
+
+        $mdDialog.show(confirmDialBox).then(
+          function() {
+            // Answer ok: Nothing to do
+          }, function() {
+            // Answer Cancel: Cancel the update
+            $scope.contextId = 'DEFAULT_WORKFLOW';
+          });
       }
     };
 
