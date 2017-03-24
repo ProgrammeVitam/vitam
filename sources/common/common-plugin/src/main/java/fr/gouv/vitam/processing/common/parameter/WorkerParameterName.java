@@ -77,5 +77,10 @@ public enum WorkerParameterName {
     /**
      * If Current Workflow status is greater or equal ko, contains the status
      */
-    workflowStatusKo;
+    workflowStatusKo,
+
+    /**
+     * The LogbookTypeProcess value used in logbookOperation
+     */
+    logBookTypeProcess;
 }
