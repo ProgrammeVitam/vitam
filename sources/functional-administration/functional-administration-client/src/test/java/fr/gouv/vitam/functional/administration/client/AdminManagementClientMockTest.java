@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -33,8 +34,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -198,10 +201,42 @@ public class AdminManagementClientMockTest {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
         RequestResponse resp = client.importContracts((ArrayNode) json);
-        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
-        Assert.assertTrue(((RequestResponseOK)resp).isOk());
-        Assert.assertEquals(1,  ((RequestResponseOK)resp).getResults().size());        
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
     }
 
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenImportAccessContracts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.importAccessContracts(new ArrayList<>());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindAccessContractsByID() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findAccessContractsByID("FakeId");
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindAccessContracts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
 
 }

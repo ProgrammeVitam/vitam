@@ -1545,7 +1545,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadRefContracts(@Context HttpHeaders headers, InputStream input) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response = adminClient.importContracts(input, getTenantId(headers));
+            RequestResponse response = adminClient.importContracts(input, getTenantId(headers), AdminCollections.CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -1559,6 +1559,101 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+
+    /**
+     * Upload Access contracts
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/accesscontracts")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:create")
+    public Response uploadAccessContracts(@Context HttpHeaders headers, InputStream input) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = adminClient.importContracts(input, getTenantId(headers), AdminCollections.ACCESS_CONTRACTS);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
+    /**
+     * Query to get Access contracts
+     *
+     * @param headers HTTP Headers
+     * @param queryDsl the query to find access contracts
+     * @return Response
+     */
+    @GET
+    @Path("/accesscontracts")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:create")
+    public Response findAccessContracts(@Context HttpHeaders headers, JsonNode queryDsl) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Query to Access contracts by id
+     *
+     * @param headers HTTP Headers
+     * @param id of the requested access contract
+     * @return Response
+     */
+    @GET
+    @Path("/accesscontracts/{id}")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:create")
+    public Response findAccessContracts(@Context HttpHeaders headers, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = adminClient.findDocumentById(AdminCollections.ACCESS_CONTRACTS, id, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
     private Integer getTenantId(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0

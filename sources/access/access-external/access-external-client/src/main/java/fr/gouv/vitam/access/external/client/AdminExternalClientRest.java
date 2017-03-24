@@ -132,22 +132,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
 
     @Override
-    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId, AdminCollections collection)
         throws AccessExternalClientException {
         // FIXME : should be replaced by createDocuments
-        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts);
+        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts, collection);
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.POST, AdminCollections.CONTRACTS.getName(), headers,
+            response = performRequest(HttpMethod.POST, collection.getName(), headers,
                 contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return RequestResponse.parseFromResponse(response);
     }
 
 }

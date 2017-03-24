@@ -178,6 +178,14 @@ public class JsonHandlerTest {
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore
         }
+
+        try {
+            JsonHandler.getFromStringAsTypeRefence("{}", null);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+
         try {
             JsonHandler.getFromStringLowerCamelCase("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
@@ -192,6 +200,12 @@ public class JsonHandlerTest {
         }
         try {
             JsonHandler.getFromFile(new File(""), null);
+            fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
+        } catch (final InvalidParseOperationException e) {// NOSONAR
+            // Ignore
+        }
+        try {
+            JsonHandler.getFromFileAsTypeRefence(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
         } catch (final InvalidParseOperationException e) {// NOSONAR
             // Ignore

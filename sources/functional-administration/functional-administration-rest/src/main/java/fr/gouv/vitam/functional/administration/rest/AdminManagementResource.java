@@ -79,7 +79,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
-import fr.gouv.vitam.functional.administration.ingest.contract.core.IngestContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 
 /**
@@ -115,12 +115,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 new DbConfigurationImpl(configuration.getMongoDbNodes(),
                     configuration.getDbName());
         }
+        /// FIXME: 3/31/17 Factories mustn't be created here !!!
         elasticsearchAccess = ElasticsearchAccessAdminFactory.create(configuration);
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    MongoDbAccess getLogbookDbAccess() {
+    MongoDbAccessAdminImpl getLogbookDbAccess() {
         return mongoAccess;
     }
 

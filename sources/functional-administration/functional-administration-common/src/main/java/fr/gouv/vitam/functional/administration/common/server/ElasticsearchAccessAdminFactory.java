@@ -70,6 +70,8 @@ public final class ElasticsearchAccessAdminFactory {
             ElasticsearchAccessFunctionalAdmin elasticsearchAccess = new ElasticsearchAccessFunctionalAdmin(clusterName, nodes);
             FunctionalAdminCollections.FORMATS.initialize(elasticsearchAccess);
             FunctionalAdminCollections.RULES.initialize(elasticsearchAccess);
+            FunctionalAdminCollections.INGEST_CONTRACT.initialize(elasticsearchAccess);
+            FunctionalAdminCollections.ACCESS_CONTRACT.initialize(elasticsearchAccess);
             return elasticsearchAccess;
         } catch (VitamException e) {
             throw new IllegalArgumentException(e);

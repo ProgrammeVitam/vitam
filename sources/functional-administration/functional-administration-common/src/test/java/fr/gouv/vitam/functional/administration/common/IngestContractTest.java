@@ -33,7 +33,7 @@ public class IngestContractTest {
         contract
             .setId(id)
             .setName(name)
-            .setDescription(description).setStatus(IngestContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ContractStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).

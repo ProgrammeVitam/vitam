@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,52 +23,55 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.access.external.api;
-
-/**
- * All collections in functional admin module
  */
-public enum AdminCollections {
-    /**
-     * Formats Collection
-     */
-    FORMATS("formats"),
+
+package fr.gouv.vitam.functional.administration.contract.api;
+
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.functional.administration.client.model.AbstractContractModel;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+
+import java.util.List;
+
+public interface ContractService<T extends AbstractContractModel> extends VitamAutoCloseable {
+
 
     /**
-     * Rules Collection
-     */
-    RULES("rules"),
-    
-    /**
-     * Ingest contracts collection
-     */
-    CONTRACTS("contracts"),
-
-    /**
-     * Access contracts collection
-     */
-    ACCESS_CONTRACTS("accesscontracts");
-
-    private String name;
-
-    private AdminCollections(final String collection) {
-        name = collection;
-    }
-
-    /**
+     * Create a collections of contracts
+     * After passing the validation steps. If all the contracts are valid, they are stored in the collection and indexed. </BR>
+     * The access contract are valid in the following situations : </BR>
+     * <ul>
+     * <li>The collection contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts already exist in the database</li>
      *
-     * @return the name of the collection
+     *
+     * @param contractModelList
+     * @return RequestResponseOK if success or VitamError
+     * @throws VitamException if in error occurs while validating contracts
      */
-    public String getName() {
-        return name;
-    }
+    public RequestResponse<T> createContracts(List<T> contractModelList) throws VitamException;
+
 
     /**
-     * @param value as String to compare
-     * @return True if the name of the collection equals
+     * Find contract by id
+     * @param id
+     * @return
      */
-    public boolean compareTo(String value) {
-        return name.equals(value);
-    }
+    public T findOne(String id) throws ReferentialException, InvalidParseOperationException;
+
+
+    /**
+     * find contract by QueryDsl
+     * @param queryDsl
+     * @return
+     */
+    public List<T> findContracts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
+
 }

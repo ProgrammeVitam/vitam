@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.core.Response;
 
@@ -38,6 +39,7 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -183,5 +185,48 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse importContracts(ArrayNode contractsToImport)
         throws VitamClientInternalException, InvalidParseOperationException;
+
+
+    /**
+     * Import a set of access contracts after passing the validation steps If all the contracts are valid, they are stored in
+     * the collection and indexed The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json have an id already set</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts Already exist in the database</li>
+     * </ul>
+     *
+     * @param accessContractModelList the list contract to import
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse importAccessContracts(List<AccessContractModel> accessContractModelList)
+            throws VitamClientInternalException, InvalidParseOperationException;
+
+
+
+    /**
+     * Find access contracts
+     * <ul>
+     * <li>By id mongo</li>
+     * <li>By the name</li>
+     * <li>By comlexe criteria</li>
+     * </ul>
+     *
+     * @param queryDsl
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse findAccessContracts(JsonNode queryDsl)
+            throws VitamClientInternalException, InvalidParseOperationException;
+
+
+    RequestResponse findAccessContractsByID(String documentId)
+            throws VitamClientInternalException, InvalidParseOperationException;
 
 }

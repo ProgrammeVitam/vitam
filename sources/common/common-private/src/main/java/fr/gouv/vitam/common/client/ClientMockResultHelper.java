@@ -49,71 +49,71 @@ public class ClientMockResultHelper {
     private static final String ID = "id0";
 
     private static final String RESULT =
-        "{\"$query\":{}," +
-            "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
-            "\"$results\":";
+            "{\"$query\":{}," +
+                    "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
+                    "\"$results\":";
 
     private static final String UNIT =
-        "{\"DescriptionLevel\":\"Item\"," +
-            "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
-            "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
-            "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
-            "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
-            "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
-            "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
-            "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
+            "{\"DescriptionLevel\":\"Item\"," +
+                    "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
+                    "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
+                    "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
+                    "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
+                    "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
+                    "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
+                    "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     private static final String LOGBOOK_OPERATION =
-        "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"Process_SIP_unitary\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"INGEST\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-            "\"agIdApp\": null," +
-            "\"agIdAppSession\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdSubm\": null," +
-            "\"agIdOrig\": null," +
-            "\"obId\": null," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": []}";
+            "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
+                    "\"evType\": \"Process_SIP_unitary\"," +
+                    "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+                    "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+                    "\"evTypeProc\": \"INGEST\"," +
+                    "\"outcome\": \"STARTED\"," +
+                    "\"outDetail\": null," +
+                    "\"outMessg\": \"SIP entry : SIP.zip\"," +
+                    "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+                    "\"agIdApp\": null," +
+                    "\"agIdAppSession\": null," +
+                    "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+                    "\"agIdSubm\": null," +
+                    "\"agIdOrig\": null," +
+                    "\"obId\": null," +
+                    "\"obIdReq\": null," +
+                    "\"obIdIn\": null," +
+                    "\"events\": []}";
 
     private static final String LOGBOOK_OPERATION_WITH_OBID =
-        "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"Process_SIP_unitary\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"INGEST\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-            "\"agIdApp\": null," +
-            "\"agIdAppSession\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdSubm\": null," +
-            "\"agIdOrig\": null," +
-            "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": []}";
+            "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
+                    "\"evType\": \"Process_SIP_unitary\"," +
+                    "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+                    "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+                    "\"evTypeProc\": \"INGEST\"," +
+                    "\"outcome\": \"STARTED\"," +
+                    "\"outDetail\": null," +
+                    "\"outMessg\": \"SIP entry : SIP.zip\"," +
+                    "\"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+                    "\"agIdApp\": null," +
+                    "\"agIdAppSession\": null," +
+                    "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+                    "\"agIdSubm\": null," +
+                    "\"agIdOrig\": null," +
+                    "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+                    "\"obIdReq\": null," +
+                    "\"obIdIn\": null," +
+                    "\"events\": []}";
 
     private static final String RULE = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-        "\"_tenant\":\"0\", " +
-        "\"RuleId\":\"APP-00005\", " +
-        "\"RuleType\":\"AppraisalRule\", " +
-        "\"RuleValue\":\"Pièces comptables (comptable)\", " +
-        "\"RuleDescription\":\"Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable\", " +
-        "\"RuleDuration\":\"6\", " +
-        "\"RuleMeasurement\":\"Année\", " +
-        "\"CreationDate\":\"2016-11-02\", " +
-        "\"UpdateDate\":\"2016-11-02\"}";
-    
+            "\"_tenant\":\"0\", " +
+            "\"RuleId\":\"APP-00005\", " +
+            "\"RuleType\":\"AppraisalRule\", " +
+            "\"RuleValue\":\"Pièces comptables (comptable)\", " +
+            "\"RuleDescription\":\"Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable\", " +
+            "\"RuleDuration\":\"6\", " +
+            "\"RuleMeasurement\":\"Année\", " +
+            "\"CreationDate\":\"2016-11-02\", " +
+            "\"UpdateDate\":\"2016-11-02\"}";
+
     private static final String CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
             "\"Name\":\"Un contrat\", " +
@@ -124,71 +124,82 @@ public class ClientMockResultHelper {
             "\"ActivationDate\":\"2016-11-02\", " +
             "\"DeactivationDate\":\"2016-11-02\"}]";
 
+    private static final String ACCESS_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+            "\"_tenant\":\"0\", " +
+            "\"Name\":\"Un contrat\", " +
+            "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
+            "\"Status\":\"ACTIVE\", " +
+            "\"OriginatingAgencies\": [\"FR_ORG_AGEC\"], " +
+            "\"CreationDate\":\"2016-11-02\", " +
+            "\"LastUpdate\":\"2016-11-02\", " +
+            "\"ActivationDate\":\"2016-11-02\", " +
+            "\"DeactivationDate\":\"2016-11-02\"}]";
+
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
-        "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
-        "\"VersionPronom\":\"84\", " +
-        "\"Version\":\"1.12\", " +
-        "\"HasPriorityOverFileFormatID\":[], " +
-        "\"MIMEType\":[], " +
-        "\"Name\":\"Microsoft Works Word Processor for DOS\", " +
-        "\"Alert\":\"false\", " +
-        "\"Extension\":[\"wps\"], " +
-        "\"PUID\":\"fmt/164\", " +
-        "\"_tenant\":\"0\"}";
+            "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
+            "\"VersionPronom\":\"84\", " +
+            "\"Version\":\"1.12\", " +
+            "\"HasPriorityOverFileFormatID\":[], " +
+            "\"MIMEType\":[], " +
+            "\"Name\":\"Microsoft Works Word Processor for DOS\", " +
+            "\"Alert\":\"false\", " +
+            "\"Extension\":[\"wps\"], " +
+            "\"PUID\":\"fmt/164\", " +
+            "\"_tenant\":\"0\"}";
 
     private static final String ACCESSION_SUMMARY = "{\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
-        "\"_tenant\": 0," +
-        "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
-        "    \"TotalObjects\": {" +
-        "    \"Total\": 12," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 12" +
-        "}," +
-        "\"TotalObjectGroups\": {" +
-        "    \"Total\": 3," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 3" +
-        "}," +
-        "\"TotalUnits\": {" +
-        "    \"Total\": 3," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 3" +
-        "}," +
-        "\"ObjectSize\": {" +
-        "    \"Total\": 1035126," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 1035126" +
-        "}," +
-        "\"creationDate\": \"2016-11-04T20:40:49.030\"}";
+            "\"_tenant\": 0," +
+            "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
+            "    \"TotalObjects\": {" +
+            "    \"Total\": 12," +
+            "    \"Deleted\": 0," +
+            "    \"Remained\": 12" +
+            "}," +
+            "\"TotalObjectGroups\": {" +
+            "    \"Total\": 3," +
+            "    \"Deleted\": 0," +
+            "    \"Remained\": 3" +
+            "}," +
+            "\"TotalUnits\": {" +
+            "    \"Total\": 3," +
+            "    \"Deleted\": 0," +
+            "    \"Remained\": 3" +
+            "}," +
+            "\"ObjectSize\": {" +
+            "    \"Total\": 1035126," +
+            "    \"Deleted\": 0," +
+            "    \"Remained\": 1035126" +
+            "}," +
+            "\"creationDate\": \"2016-11-04T20:40:49.030\"}";
 
     private static final String ACCESSION_DETAIL = "{" +
-        "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
-        "\"_tenant\": 0," +
-        "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
-        "\"SubmissionAgency\": \"FRAN_NP_005061\"," +
-        "\"EndDate\": \"2016-11-04T21:40:47.912+01:00\"," +
-        "\"StartDate\": \"2016-11-04T21:40:47.912+01:00\"," +
-        "\"Status\": \"STORED_AND_COMPLETED\"," +
-        "\"TotalObjectGroups\": {" +
-        "    \"total\": 1," +
-        "    \"deleted\": 0," +
-        "    \"remained\": 1" +
-        "}," +
-        "\"TotalUnits\": {" +
-        "    \"total\": 1," +
-        "    \"deleted\": 0," +
-        "    \"remained\": 1" +
-        "}," +
-        "\"TotalObjects\": {" +
-        "    \"total\": 4," +
-        "    \"deleted\": 0," +
-        "    \"remained\": 4" +
-        "}," +
-        "\"ObjectSize\": {" +
-        "    \"total\": 345042," +
-        "    \"deleted\": 0," +
-        "    \"remained\": 345042" +
-        "}}";
+            "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
+            "\"_tenant\": 0," +
+            "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
+            "\"SubmissionAgency\": \"FRAN_NP_005061\"," +
+            "\"EndDate\": \"2016-11-04T21:40:47.912+01:00\"," +
+            "\"StartDate\": \"2016-11-04T21:40:47.912+01:00\"," +
+            "\"Status\": \"STORED_AND_COMPLETED\"," +
+            "\"TotalObjectGroups\": {" +
+            "    \"total\": 1," +
+            "    \"deleted\": 0," +
+            "    \"remained\": 1" +
+            "}," +
+            "\"TotalUnits\": {" +
+            "    \"total\": 1," +
+            "    \"deleted\": 0," +
+            "    \"remained\": 1" +
+            "}," +
+            "\"TotalObjects\": {" +
+            "    \"total\": 4," +
+            "    \"deleted\": 0," +
+            "    \"remained\": 4" +
+            "}," +
+            "\"ObjectSize\": {" +
+            "    \"total\": 345042," +
+            "    \"deleted\": 0," +
+            "    \"remained\": 345042" +
+            "}}";
 
     private ClientMockResultHelper() {}
 
@@ -200,7 +211,7 @@ public class ClientMockResultHelper {
         final StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
             result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",")
-                .append(LOGBOOK_OPERATION);
+                    .append(LOGBOOK_OPERATION);
             if (i < 99) {
                 result.append(",");
             }
@@ -239,7 +250,7 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
+                .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
     }
 
     /**
@@ -248,7 +259,7 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookOperationWithObId() throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
+                .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
     }
 
     /**
@@ -258,9 +269,9 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
         return new RequestResponseOK()
-            .setHits(1, 0, 1)
-            .setQuery(null)
-            .addResult(s);
+                .setHits(1, 0, 1)
+                .setQuery(null)
+                .addResult(s);
     }
 
     /**
@@ -269,10 +280,12 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
-        return new RequestResponseOK()
-            .setHits(1, 0, 1)
-            .setQuery(null)
-            .addResult(JsonHandler.getFromString(s));
+        RequestResponseOK responseOK =  new RequestResponseOK()
+                .setHits(1, 0, 1)
+                .setQuery(null);
+        if (null != s)
+            responseOK.addResult(JsonHandler.getFromString(s));
+        return responseOK;
     }
 
     /**
@@ -312,14 +325,22 @@ public class ClientMockResultHelper {
     }
 
     /**
-    * @return a RequestResponse containing contracts json
-    * @throws InvalidParseOperationException
-    */
-   public static RequestResponse getContracts() throws InvalidParseOperationException {
-       return createReponse(CONTRACTS);
-   }
-    
-    
+     * @return a RequestResponse containing contracts json
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getContracts() throws InvalidParseOperationException {
+        return createReponse(CONTRACTS);
+    }
+
+
+    /**
+     * @return a RequestResponse containing access contracts json
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getAccessContracts() throws InvalidParseOperationException {
+        return createReponse(ACCESS_CONTRACTS);
+    }
+
     /**
      *
      * @return a default list of Formats
@@ -363,12 +384,12 @@ public class ClientMockResultHelper {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Disposition", "filename=\"test.txt\"");
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
     }
 
     /**
-     * 
-     * @param id 
+     *
+     * @param id
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
      */

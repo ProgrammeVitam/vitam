@@ -26,25 +26,19 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import org.bson.Document;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import org.bson.Document;
+
+import java.util.Set;
 
 /**
- * Defines an Ingest contract model for SIP transfer control. </BR>
- * It's an implementation of the SEDA specification and NF Z44022 MEDONA concerning the communication between a
- * TransferringAgency and an ArchivalAgency.
+ * Defines an Access contract model for SIP transfer control. </BR>
  * 
  */
-public class IngestContract extends VitamDocument<IngestContract> {
+public class AccessContract extends VitamDocument<AccessContract> {
 
-    /**
-     * the serial version uid
-     */
-    private static final long serialVersionUID = -3547871388720359674L;
     /**
      * the contract name
      */
@@ -57,20 +51,26 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * the contract status
      */
     public static final String STATUS = "Status";
+
     /**
-     * the creatation date of contract 
+     * the originating agencies
+     */
+    public static final String ORIGINATINGAGENCIES = "OriginatingAgencies";
+
+    /**
+     * the creatation date of contract
      */
     public static final String CREATIONDATE = "CreationDate";
     /**
-     * the last update of contract 
+     * the last update of contract
      */
     public static final String LAST_UPDATE = "LastUpdate";
     /**
-     * the activation date of contract 
+     * the activation date of contract
      */
     public static final String ACTIVATIONDATE = "ActivationDate";
     /**
-     * the desactication date of contract 
+     * the desactication date of contract
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
@@ -78,7 +78,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
     /**
      * Empty Constructor
      */
-    public IngestContract() {
+    public AccessContract() {
         // Empty
         append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
@@ -88,7 +88,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      *
      * @param document data in format Document to create contact
      */
-    public IngestContract(Document document) {
+    public AccessContract(Document document) {
         super(document);
         append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
@@ -96,7 +96,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
     /**
      * @param content in format JsonNode to create contract
      */
-    public IngestContract(JsonNode content) {
+    public AccessContract(JsonNode content) {
         super(content);
         append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
@@ -104,16 +104,16 @@ public class IngestContract extends VitamDocument<IngestContract> {
     /**
      * @param content in format String to create contract
      */
-    public IngestContract(String content) {
+    public AccessContract(String content) {
         super(content);
         append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
-     * 
+     *
      * @param tenantId the working tenant
      */
-    public IngestContract(Integer tenantId) {
+    public AccessContract(Integer tenantId) {
         append(TENANT_ID, tenantId);
     }
 
@@ -121,7 +121,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param id the id of ingest contract
      * @return AccessionRegisterDetail
      */
-    public IngestContract setId(String id) {
+    public AccessContract setId(String id) {
         append(VitamDocument.ID, id);
         return this;
     }
@@ -139,7 +139,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param name to set 
      * @return this
      */
-    public IngestContract setName(String name) {
+    public AccessContract setName(String name) {
         append(NAME, name);
         return this;
     }
@@ -157,7 +157,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param description to set to contact
      * @return this
      */
-    public IngestContract setDescription(String description) {
+    public AccessContract setDescription(String description) {
         append(DESCRIPTION, description);
         return this;
     }
@@ -185,8 +185,27 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param status to set 
      * @return this
      */
-    public IngestContract setStatus(ContractStatus status) {
+    public AccessContract setStatus(ContractStatus status) {
         append(STATUS, status.name());
+        return this;
+    }
+
+
+    /**
+     *
+     * @return collection of originating agencies
+     */
+    public Set<String> getOriginatingAgencies() {
+        return (Set<String>) get(ORIGINATINGAGENCIES);
+    }
+
+    /**
+     * Set the collection of originating agencies
+     * @param originatingAgencies
+     * @return
+     */
+    public AccessContract setOriginatingAgencies(Set<String> originatingAgencies) {
+        append(ORIGINATINGAGENCIES, originatingAgencies);
         return this;
     }
 
@@ -201,7 +220,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param creationdate to set
      * @return this
      */
-    public IngestContract setCreationdate(String creationdate) {
+    public AccessContract setCreationdate(String creationdate) {
         append(CREATIONDATE, creationdate);
         return this;
     }
@@ -217,7 +236,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param lastupdate to set 
      * @return this
      */
-    public IngestContract setLastupdate(String lastupdate) {
+    public AccessContract setLastupdate(String lastupdate) {
         append(LAST_UPDATE, lastupdate);
         return this;
     }
@@ -233,7 +252,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param activationdate to set
      * @return this
      */
-    public IngestContract setActivationdate(String activationdate) {
+    public AccessContract setActivationdate(String activationdate) {
         append(ACTIVATIONDATE, activationdate);
         return this;
     }
@@ -249,7 +268,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param deactivationdate to set
      * @return this
      */
-    public IngestContract setDeactivationdate(String deactivationdate) {
+    public AccessContract setDeactivationdate(String deactivationdate) {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
