@@ -12,14 +12,6 @@
 #   environment:
 #     http_proxy: "{{ http_proxy_environnement }}"
 
-- name: copy DROID {{pronom_version}}
-  copy:
-    src: DROID_SignatureFile_{{pronom_version}}.xml
-    dest: "/vitam/tmp/ihm-demo/DROID_SignatureFile_{{pronom_version}}.xml"
-    mode: "{{vitam_conf_permission}}"
-    owner: "{{vitam_user}}"
-    group: "{{vitam_group}}"
-
 - name: Connection to ihm-demo before uploading
   uri:
     url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/login
@@ -32,6 +24,7 @@
       accept: "application/json, text/plain, */*"
       Connection: "keep-alive"
       body_format: json
+      Host: "{{ inventory_hostname }}"
   run_once: true # only 1st account is used
   no_log: true
   register: connected
@@ -45,7 +38,8 @@
       X-Tenant-Id: "{{item}}"
       Content-Type: "application/octet-stream"
       Cookie: "{{connected.set_cookie}}"
-    body: "{{ lookup('file', '/vitam/tmp/ihm-demo/DROID_SignatureFile_{{pronom_version}}.xml') }}"
+      Host: "{{ inventory_hostname }}"
+    body: "{{ lookup('file', 'DROID_SignatureFile_{{pronom_version}}.xml') }}"
   ignore_errors: true
   run_once: true # Limit as this upload is not related to tenants
   when: connected.set_cookie != ''
