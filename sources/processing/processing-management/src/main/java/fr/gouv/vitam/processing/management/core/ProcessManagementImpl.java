@@ -40,6 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -57,6 +59,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImplFactory;
@@ -135,6 +139,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         LogbookTypeProcess logbookTypeProcess, AsyncResponse asyncResponse, Integer tenantId)
         throws ProcessingException {
 
+        // check data container and folder
+        ProcessDataManagement dataManagement = WorkspaceProcessDataManagement.getInstance();
+        dataManagement.createProcessContainer();
+        dataManagement.createFolder(String.valueOf(ServerIdentity.getInstance().getServerId()));
+
         ProcessWorkflow createdProcessWorkflow = null;
         if (StringUtils.isNotBlank(workflowId)) {
             createdProcessWorkflow =
@@ -144,6 +153,14 @@ public class ProcessManagementImpl implements ProcessManagement {
             createdProcessWorkflow =
                 processData.initProcessWorkflow(null, workParams.getContainerName(), ProcessAction.INIT,
                     LogbookTypeProcess.INGEST, tenantId);
+        }
+
+        try {
+            // TODO: create json workflow file, but immediately updated so keep this part ?)
+            dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                workParams.getContainerName(), createdProcessWorkflow);
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException(e);
         }
 
         // Create & start ProcessEngine Thread

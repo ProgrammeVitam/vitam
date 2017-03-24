@@ -1,0 +1,231 @@
+/**
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
+
+package fr.gouv.vitam.processing.data.core.management;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.common.model.Action;
+import fr.gouv.vitam.processing.common.model.ActionDefinition;
+import fr.gouv.vitam.processing.common.model.Distribution;
+import fr.gouv.vitam.processing.common.model.DistributionKind;
+import fr.gouv.vitam.processing.common.model.IOParameter;
+import fr.gouv.vitam.processing.common.model.ProcessBehavior;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.processing.common.model.UriPrefix;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class})
+public class WorkspaceProcessDataManagementTest {
+
+    private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
+    private ProcessDataManagement processDataManagement;
+
+    @Before
+    public void setUp() {
+        workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        processDataManagement = WorkspaceProcessDataManagement.getInstance();
+    }
+
+    @Test
+    public void getInstanceTest() {
+        ProcessDataManagement pdm2 = WorkspaceProcessDataManagement.getInstance();
+        assertEquals(processDataManagement, pdm2);
+    }
+
+    @Test
+    public void createContainerTestOK() throws Exception {
+        doNothing().when(workspaceClient).createContainer(anyString());
+        assertTrue(processDataManagement.createProcessContainer());
+    }
+
+    @Test
+    public void createContainerTestAlreadyExists() throws Exception {
+        doReturn(true).when(workspaceClient).isExistingContainer(anyString());
+        ProcessDataManagement pdm = WorkspaceProcessDataManagement.getInstance();
+        assertFalse(pdm.createProcessContainer());
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void createContainerTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).createContainer(anyString());
+        processDataManagement.createProcessContainer();
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void isProcessContainerExistTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).isExistingContainer
+            (anyString());
+        processDataManagement.isProcessContainerExist();
+    }
+
+    @Test
+    public void createFolderTestOK() throws Exception {
+        doNothing().when(workspaceClient).createFolder(anyString(), anyString());
+        assertTrue(processDataManagement.createFolder("folder"));
+    }
+
+    @Test
+    public void createFolderTestAlreadyExists() throws Exception {
+        doReturn(true).when(workspaceClient).isExistingFolder(anyString(), anyString());
+        assertFalse(processDataManagement.createFolder("folder"));
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void createFolderTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).createFolder(anyString(),
+            anyString());
+        processDataManagement.createFolder("folder");
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void isFolderExistsTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).isExistingFolder
+            (anyString(), anyString());
+        processDataManagement.isFolderExist("folder");
+    }
+
+    @Test
+    public void removeFolderTestOK() throws Exception {
+        doReturn(true).when(workspaceClient).isExistingFolder(anyString(), anyString());
+        doNothing().when(workspaceClient).deleteFolder(anyString(), anyString());
+        assertTrue(processDataManagement.removeFolder("folder"));
+    }
+
+    @Test
+    public void removeFolderTestAlreadyExists() throws Exception {
+        doReturn(false).when(workspaceClient).isExistingFolder(anyString(), anyString());
+        assertFalse(processDataManagement.removeFolder("folder"));
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void removeFolderTestException() throws Exception {
+        doReturn(true).when(workspaceClient).isExistingFolder(anyString(), anyString());
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).deleteFolder(anyString(),
+            anyString());
+        processDataManagement.removeFolder("folder");
+    }
+
+    @Test
+    public void persistProcessWorkflowTestOK() throws Exception {
+        doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processDataManagement.persistProcessWorkflow("folder", "async_id", processWorkflow);
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void persistProcessWorkflowTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).putObject(anyString(),
+            anyString(), anyObject());
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processDataManagement.persistProcessWorkflow("folder", "async_id", processWorkflow);
+    }
+
+    @Test
+    public void getProcessWorkflowTestOK() throws Exception {
+        doReturn(getResponseOKWithJsonStream()).when(workspaceClient).getObject(anyString(), anyString());
+        ProcessWorkflow processWorkflow = processDataManagement.getProcessWorkflow("folder", "asyncId");
+        assertNotNull(processWorkflow);
+        assertEquals(Integer.valueOf(0), processWorkflow.getTenantId());
+        assertEquals("operationId", processWorkflow.getOperationId());
+    }
+
+    private Response getResponseOKWithJsonStream() throws Exception {
+        ProcessWorkflow processWorkflow = new ProcessWorkflow();
+        processWorkflow.setTenantId(0);
+        processWorkflow.setOperationId("operationId");
+        return Response.status(Response.Status.OK).entity(new ByteArrayInputStream
+            (JsonHandler.writeAsString(processWorkflow).getBytes())).build();
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void getProcessWokflowTestKO() throws Exception {
+        doReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build()).when(workspaceClient).getObject
+            (anyString(), anyString());
+        processDataManagement.getProcessWorkflow("folder", "asyncId");
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void getProcessWorkflowTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).getObject(anyString(),
+            anyString());
+        processDataManagement.getProcessWorkflow("folder", "asyncId");
+    }
+
+    @Test
+    public void removeProcessWorkflowTestOK() throws Exception {
+        doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
+        processDataManagement.removeProcessWorkflow("folder", "asyncId");
+    }
+
+    @Test(expected = ProcessingStorageWorkspaceException.class)
+    public void removeProcessWorkflowTestException() throws Exception {
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).deleteObject(anyString(),
+            anyString());
+        processDataManagement.removeProcessWorkflow("folder", "asyncId");
+    }
+}
