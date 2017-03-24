@@ -1,7 +1,7 @@
 ---
 - hosts: hosts-ihm-recette
   roles:
-    - {role: vitam, vitam_component: ihm-recette,java_args: /vitam/conf/ihm-recette/ihm-recette.conf, port_http: "{{vitam_ihm_recette_port}}", secret_platform: "false", cluster_name: elasticsearch-data, vitam_certificate_client_type: "external" }
+    - {role: vitam, vitam_component: ihm-recette,java_args: /vitam/conf/ihm-recette/ihm-recette.conf, port_http: "{{vitam_ihm_recette_port}}", port_http_admin: "{{vitam_ihm_recette_port_admin}}", secret_platform: "false", cluster_name: elasticsearch-data, vitam_certificate_client_type: "external" }
     - ihm-recette-front
     - ihm-recette-data-sets
     - {role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url is defined) and (vitam_tests_gitrepo_url != '')}
