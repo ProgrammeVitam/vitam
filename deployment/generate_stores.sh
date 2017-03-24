@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 ######################################################################
@@ -209,15 +209,14 @@ function generateHostKeystore {
 #############################    Main    #############################
 ######################################################################
 
-if [ "$1" == "" ]; then
-    echo "This script needs to know on which environment you want to apply to !"
-    exit 1;
-fi
-ENVIRONNEMENT="${1}"
 
 TMP_P12_PASSWORD="$(generatePassphrase)"
 REPERTOIRE_KEYSTORES="${REPERTOIRE_ROOT}/environments/keystores"
 
+# Remove old keystores & servers directories
+find ${REPERTOIRE_KEYSTORES} -type f -name *.jks -exec rm -f {} \;
+find ${REPERTOIRE_KEYSTORES} -type f -name *.p12 -exec rm -f {} \;
+find ${REPERTOIRE_KEYSTORES}/server -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} \;
 
 # Generate the server keystores
 for SERVER in $(ls ${REPERTOIRE_CERTIFICAT}/server/hosts/); do

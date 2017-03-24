@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
 
@@ -117,7 +117,7 @@ function generateHostCertAndStorePassphrase {
     local HOSTS_GROUP="${2}"
 
     # sed "1 d" : remove the first line
-    for SERVER in $(ansible -i ${REPERTOIRE_ROOT}/environments/hosts.${ENVIRONNEMENT} --list-hosts ${HOSTS_GROUP} ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
+    for SERVER in $(ansible -i ${ENVIRONNEMENT_FILE} --list-hosts ${HOSTS_GROUP} ${ANSIBLE_VAULT_PASSWD}| sed "1 d"); do
         # Generate the key
         local CERT_KEY=$(generatePassphrase)
         # Create the certificate
@@ -185,16 +185,20 @@ function copyCAFromPki {
 
 # Vérification des paramètres
 if [ "${1}" == "" ]; then
-    echo "This script needs to know on which environment you want to apply to !"
-    exit 1;
+    pki_logger "ERROR" "This script needs to know on which environment you want to apply to !"
+    exit 1
 fi
 ENVIRONNEMENT="${1}"
 
-# Delete the old vault (if exists)
-pki_logger "Suppression de l'ancien vault"
-if [ -f ${VAULT_CERTS} ]; then
-    rm -f ${VAULT_CERTS}
+ENVIRONNEMENT_FILE="${1}"
+
+if [ ! -f ${ENVIRONNEMENT_FILE} ]; then
+    pki_logger "ERROR" "Cannot find environment file: ${ENVIRONNEMENT_FILE}"
+    exit 1
 fi
+
+# Purge old certificates & vault
+rm -rf ${REPERTOIRE_CERTIFICAT}/*
 
 # Copy CA
 pki_logger "Recopie des clés publiques des CA"

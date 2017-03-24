@@ -227,7 +227,7 @@ Cas de certificats inexistants
 
 .. warning:: cette étape n'est à effectuer que pour les clients ne possédant pas de certificats.
 
-Editer complètement le fichier ``environments/<inventaire>``  pour indiquer les serveurs associés à chaque service.
+Editer complètement le fichier ``environments/<fichier d'inventaire>``  pour indiquer les serveurs associés à chaque service.
 En prérequis les CA doivent être présentes.
 
 Puis, dans le répertoire de déploiement, lancer le script :
@@ -235,7 +235,7 @@ Puis, dans le répertoire de déploiement, lancer le script :
 
 .. code-block:: bash
 
-   pki/scripts/generate_certs.sh <environnement>
+   pki/scripts/generate_certs.sh <fichier d'inventaire>
 
 Ci-dessous un exemple de sortie du script :
 
@@ -477,7 +477,7 @@ Lancer le script :
 
 .. code-block:: bash
 
-   ./generate_stores.sh <environnement>
+   ./generate_stores.sh
 
 Ci-dessous un exemple de sortie du script :
 
