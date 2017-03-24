@@ -102,6 +102,7 @@ import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -1491,6 +1492,14 @@ public class ProcessingIT {
             SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
             wkrapplication = new WorkerApplication(CONFIG_WORKER_PATH);
             wkrapplication.start();
+            processManagementApplication.stop();
+            SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_PROCESSING));
+            processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+            processManagementApplication.start();
+            SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+            // Wait processing server start
+            Thread.sleep(10000);
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
