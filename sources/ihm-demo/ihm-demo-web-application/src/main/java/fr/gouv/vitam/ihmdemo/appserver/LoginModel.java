@@ -37,11 +37,15 @@ public class LoginModel {
 
     private List<String> permissions;
 
+    private long sessionTimeout;
+
     @JsonCreator
     public LoginModel(@JsonProperty("userName") String userName,
-        @JsonProperty("permissions") List<String> permissions) {
+        @JsonProperty("permissions") List<String> permissions,
+        @JsonProperty("sessionTimeout") long sessionTimeout) {
         this.userName = userName;
         this.permissions = permissions;
+        this.sessionTimeout = sessionTimeout;
     }
 
     public String getUserName() {
@@ -50,5 +54,9 @@ public class LoginModel {
 
     public List<String> getPermissions() {
         return permissions;
+    }
+
+    public long getSessionTimeout() {
+        return sessionTimeout;
     }
 }
