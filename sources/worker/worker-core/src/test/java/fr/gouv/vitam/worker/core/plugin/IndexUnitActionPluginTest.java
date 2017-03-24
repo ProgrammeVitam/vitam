@@ -83,11 +83,11 @@ public class IndexUnitActionPluginTest {
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private static final String ARCHIVE_UNIT = "archiveUnit.xml";
-    private static final String ARCHIVE_UNIT_WITH_RULES = "ARCHIVE_UNIT_TO_INDEX_WITH_RULES.xml";
-    private static final String ARCHIVE_UNIT_UPDATE_GUID_CHILD = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_CHILD.xml";
-    private static final String ARCHIVE_UNIT_UPDATE_GUID_PARENT = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_PARENT.xml";
-    private static final String ARCHIVE_UNIT_WITh_MGT_RULES = "indexUnitActionHandler/ARCHIVE_UNIT_WITH_MGT_RULES.xml";
+    private static final String ARCHIVE_UNIT = "indexUnitActionHandler/archiveUnit.json";
+    private static final String ARCHIVE_UNIT_WITH_RULES = "indexUnitActionHandler/ARCHIVE_UNIT_TO_INDEX_WITH_RULES.json";
+    private static final String ARCHIVE_UNIT_UPDATE_GUID_CHILD = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_CHILD.json";
+    private static final String ARCHIVE_UNIT_UPDATE_GUID_PARENT = "indexUnitActionHandler/GUID_ARCHIVE_UNIT_PARENT.json";
+    private static final String ARCHIVE_UNIT_WITh_MGT_RULES = "indexUnitActionHandler/ARCHIVE_UNIT_WITH_MGT_RULES.json";
     
     private final InputStream archiveUnit;
     private final InputStream archiveUnitWithRules;

@@ -82,8 +82,11 @@ public class UnitsRulesComputePluginTest {
     private AdminManagementClientFactory adminManagementClientFactory;
     private AdminManagementClient adminManagementClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private static final String ARCHIVE_UNIT_RULE = "AU_COMPUTE_ENDDATE_SAMPLE.xml";
-    private static final String ARCHIVE_UNIT_RULE_MGT_ONLY = "AU_COMPUTE_ENDDATE_SAMPLE_MANAGEMENT_ONLY.xml";
+    private static final String ARCHIVE_UNIT_RULE = "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE.json";
+    private static final String ARCHIVE_UNIT_RULE_MGT_ONLY =
+        "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE_MANAGEMENT_ONLY.json";
+    private static final String ARBO_MD_RG_COMPLEXE_ROOT = "unitsRulesComputePlugin/ARBO_MD_RG_COMPLEXE_ROOT.json";
+    private static final String AU_SIP_MGT_MD_OK1 = "unitsRulesComputePlugin/AU_SIP_MGT_MD_OK1.json";
     private final static String FAKE_URL = "http://localhost:1111";
     private InputStream archiveUnit;
     private HandlerIOImpl action;
@@ -211,42 +214,87 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
+    @Test
+    public void givenArboMdRgComplexeROOTWhenExecuteThenReturnResponseOK() throws Exception {
+        reset(adminManagementClient);
+        reset(workspaceClient);
 
-    private JsonNode getRulesInReferential() {
-        final ObjectNode storageRule = JsonHandler.createObjectNode();
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT))
+                .build());
+        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForArboMdRgComplexe());
 
-        storageRule.put(FileRules.RULEID, "ID420");
-        storageRule.put(FileRules.RULEDESCRIPTION, "rule description");
-        storageRule.put(FileRules.RULEDURATION, "3");
-        storageRule.put(FileRules.RULETYPE, "StorageRule");
-        storageRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MONTH.getType());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
-        final ObjectNode classificationRule = JsonHandler.createObjectNode();
-        classificationRule.put(FileRules.RULEID, "ID470");
-        classificationRule.put(FileRules.RULEDESCRIPTION, "rule content");
-        classificationRule.put(FileRules.RULETYPE, "ClassificationRule");
-        classificationRule.put(FileRules.RULEDURATION, "2");
-        classificationRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.DAY.getType());
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+    }
 
+    @Test
+    public void givenArchiveUnitMgtMdOk1WhenExecuteThenReturnResponseOK() throws Exception {
+        reset(adminManagementClient);
+        reset(workspaceClient);
 
-        final ObjectNode accessRule = JsonHandler.createObjectNode();
-        accessRule.put(FileRules.RULEID, "ID019");
-        accessRule.put(FileRules.RULEDESCRIPTION, "rule description");
-        accessRule.put(FileRules.RULEDURATION, "3");
-        accessRule.put(FileRules.RULETYPE, "AccessRule");
-        accessRule.put(FileRules.RULEMEASUREMENT, RuleMeasurementEnum.MONTH.getType());
+        when(workspaceClient.getObject(anyObject(), eq("Units/objectName")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1))
+                .build());
+        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForAuMgtMdOk());
 
-        final ArrayNode root1 = JsonHandler.createArrayNode();
-        root1.add(classificationRule);
-        root1.add(storageRule);
-        root1.add(accessRule);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
-        final ObjectNode rule = JsonHandler.createObjectNode();
-        rule.set("$results", root1);
-        return rule;
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
 
+    private JsonNode getRulesInReferential() {
+
+        final ArrayNode root = JsonHandler.createArrayNode();
+        root.add(createRule("ID420", "StorageRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID470", "ClassificationRule", "2", RuleMeasurementEnum.DAY.getType()));
+        root.add(createRule("ID019", "AccessRule", "3", RuleMeasurementEnum.MONTH.getType()));
+
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root);
+        return rule;
+    }
+
+    private JsonNode getRulesInReferentialForAuMgtMdOk() {
+
+        final ArrayNode root = JsonHandler.createArrayNode();
+        root.add(createRule("ID017", "StorageRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID018", "AppraisalRule", "2", RuleMeasurementEnum.DAY.getType()));
+        root.add(createRule("ID019", "AccessRule", "1", RuleMeasurementEnum.YEAR.getType()));
+        root.add(createRule("ID020", "DisseminationRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID022", "ReuseRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID024", "ClassificationRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID420", "StorageRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID450", "DisseminationRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID460", "ReuseRule", "3", RuleMeasurementEnum.MONTH.getType()));
+        root.add(createRule("ID470", "ClassificationRule", "3", RuleMeasurementEnum.MONTH.getType()));
+
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root);
+        return rule;
+    }
+
+    private JsonNode getRulesInReferentialForArboMdRgComplexe() {
+
+        final ArrayNode root = JsonHandler.createArrayNode();
+        root.add(createRule("R1", "StorageRule", "1", RuleMeasurementEnum.YEAR.getType()));
+        root.add(createRule("R6", "StorageRule", "6", RuleMeasurementEnum.YEAR.getType()));
+        root.add(createRule("ACC-00035", "AccessRule", "100", RuleMeasurementEnum.YEAR.getType()));
+
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.set("$results", root);
+        return rule;
+    }
 
     private JsonNode getRulesInReferentialPartial() {
         final ObjectNode accessRule = JsonHandler.createObjectNode();
@@ -268,6 +316,16 @@ public class UnitsRulesComputePluginTest {
 
         final ObjectNode rule = JsonHandler.createObjectNode();
         rule.set("$results", root1);
+        return rule;
+    }
+
+    private ObjectNode createRule(String ruleId, String ruleType, String ruleDuration, String ruleMeasurement) {
+        final ObjectNode rule = JsonHandler.createObjectNode();
+        rule.put(FileRules.RULEID, ruleId);
+        rule.put(FileRules.RULEDESCRIPTION, "rule description");
+        rule.put(FileRules.RULETYPE, ruleType);
+        rule.put(FileRules.RULEDURATION, ruleDuration);
+        rule.put(FileRules.RULEMEASUREMENT, ruleMeasurement);
         return rule;
     }
 }

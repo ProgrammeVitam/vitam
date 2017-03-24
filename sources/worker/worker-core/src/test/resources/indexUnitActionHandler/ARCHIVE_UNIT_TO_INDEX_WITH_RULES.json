@@ -1,0 +1,63 @@
+{
+	"_work": {
+		"_up": [],
+		"RulesToApply": "APP-00001;ACC-00001;STO-00001;DIS-00001;"
+	},
+	"ArchiveUnit": {
+		"ArchiveUnitProfile": "PresentationType",
+		"Management": {
+			"StorageRule": {
+				"Rule": "STO-00001",
+				"StartDate": "2016-01-01",
+				"EndDate": "2017-01-01",
+				"FinalAction": ""
+			},
+			"AppraisalRule": {
+				"Rule": "APP-00001",
+				"StartDate": "2016-01-01",
+				"EndDate": "2096-01-01",
+				"FinalAction": ""
+			},
+			"AccessRule": {
+				"Rule": "ACC-00001",
+				"StartDate": "2016-01-01",
+				"EndDate": "2016-01-01"
+			},
+			"DisseminationRule": {
+				"Rule": "DIS-00001",
+				"StartDate": "2016-01-01",
+				"EndDate": "2041-01-01"
+			},
+			"NeedAuthorization": "false"
+		},
+		"Content": {
+			"DescriptionLevel": "Item",
+			"Title": "Sensibilisation API",
+			"FilePlanPosition": "FilePlanPosition0",
+			"OriginatingSystemId": "OriginatingSystemId0",
+			"ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+			"OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+			"TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+			"Description": "Sensibilisation au Technical Design et à l'API Design Java et REST de la solution logicielle Vitam",
+			"Language": "fr-FR",
+			"OriginatingAgency": {
+				"Identifier": "Identifier0"
+			},
+			"SubmissionAgency": {
+				"Identifier": "Identifier1"
+			},
+			"Writer": {
+				"FirstName": "FirstName0",
+				"BirthName": "BirthName0"
+			},
+			"CreatedDate": "2016-05-05T20:45:20",
+			"TransactedDate": "2016-05-05",
+			"@xml:id": "ID029"
+		},
+		"DataObjectReference": {
+			"DataObjectGroupReferenceId": "ID006"
+		},
+		"_og": "aeaaaaaaaaw6uhq7aav6sakylcqjrnaaaaaq",
+		"_id": "aeaaaaaaaaw6uhq7aav6sakylcqjr7aaaaaq"
+	}
+}

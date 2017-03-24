@@ -101,7 +101,6 @@ import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -455,7 +454,7 @@ public class ProcessingIT {
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(), 
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
                 "STP_INGEST_FINALISATION.OK");
 
             // checkMonitoring - meaning something has been added in the monitoring tool
