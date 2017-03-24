@@ -141,6 +141,12 @@
         "element": "Units"
       },
       "actions": [
+      	{
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING"
+          }
+        },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",
@@ -197,7 +203,7 @@
         "kind": "LIST",
         "element": "Units"
       },
-      "actions": [
+      "actions": [        
         {
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",

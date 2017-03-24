@@ -48,6 +48,10 @@
 			<artifactId>xml-resolver</artifactId>
 		</dependency>
 		<dependency>
+		    <groupId>com.github.fge</groupId>
+		    <artifactId>json-schema-validator</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
