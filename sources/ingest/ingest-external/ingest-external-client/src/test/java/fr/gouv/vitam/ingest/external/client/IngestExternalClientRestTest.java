@@ -142,7 +142,12 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
             return expectedResponse.get();
         }
-
+        @Path("/operations/{id}")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
+            return expectedResponse.get();
+        }
         @Path("/operations/{id}")
         @HEAD
         @Consumes(MediaType.APPLICATION_JSON)
@@ -202,8 +207,8 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     public void givenHeadOperationStatusThenOK()
         throws Exception {
 
-        when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        assertEquals(client.getOperationStatus(ID, 0).getStatus(),200);
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        assertEquals(client.getOperationStatus(ID, 0).getStatus(),202);
 
     }
 
