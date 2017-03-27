@@ -32,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
@@ -87,6 +89,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -310,6 +313,14 @@ public class IngestInternalIT {
                 // Import Rules
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"));
+                
+                // import contract
+                File fileContracts = PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
+                List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
+
+                client.importIngestContracts(IngestContractModelList);
+   
+                
             } catch (final Exception e) {
                 LOGGER.error(e);
             }

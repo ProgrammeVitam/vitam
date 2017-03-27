@@ -75,6 +75,18 @@
         },
         {
           "action": {
+            "actionKey": "CHECK_CONTRACT_INGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
+          }
+        },        
+        {
+          "action": {
             "actionKey": "CHECK_CONSISTENCY",
             "behavior": "NOBLOCKING",
             "in": [
