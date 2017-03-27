@@ -133,6 +133,9 @@ config(['$locationProvider' ,'$routeProvider',
       $translateProvider.preferredLanguage('fr');
     }
   )
+  .config(function($httpProvider) {
+    $httpProvider.interceptors.push('HttpRequestErrorInterceptor');
+  })
   .config(['flowFactoryProvider', function (flowFactoryProvider) {
     flowFactoryProvider.defaults = {
       target: '/ihm-demo/v1/api/ingest/upload2',

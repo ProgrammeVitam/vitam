@@ -27,9 +27,11 @@
 package fr.gouv.vitam.common.server;
 
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -118,7 +120,7 @@ public class RequestIdHeaderHelper {
      * @param headers List of target HTTP headers ; required header will be added to this list.
      * @param ctx Context, or rather http message type (request or response)
      */
-    public static void putRequestIdFromSessionInHeader(MultivaluedMap<String, Object> headers, Context ctx) {
+    public static void putRequestIdFromSessionInHeader(MultivaluedMap<String, Object> headers, Context ctx, int statusCode) {
         try {
             final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
             if (requestId != null) {
@@ -132,11 +134,18 @@ public class RequestIdHeaderHelper {
                     LOGGER.debug("RequestId {} found in session and set in the {} header.", requestId, ctx);
                 }
             } else {
-                // TODO: should be warn here.
-                LOGGER.info(
-                    "No RequestId found in session (somebody should have set it) ! " +
-                        "{} header will not be set in the http {}.",
-                    GlobalDataRest.X_REQUEST_ID, ctx);
+                LOGGER.warn("No RequestId found in session (somebody should have set it) ! ");
+                
+                if (ctx.equals(Context.RESPONSE) && statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                    String newRequestId = GUIDFactory.newGUID().toString();
+
+                    if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
+                        LOGGER.warn("X_REQUEST_ID  header was already present in the headers");
+                    } else {
+                        headers.add(GlobalDataRest.X_REQUEST_ID, newRequestId);
+                    }
+                }
+
             }
         } catch (final VitamThreadAccessException e) {
             LOGGER.warn(
