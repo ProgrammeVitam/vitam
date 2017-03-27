@@ -25,6 +25,11 @@
  * accept its terms.
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
+
+import static fr.gouv.vitam.common.client.DefaultClient.staticConsumeAnyEntityAndClose;
+
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -74,8 +79,6 @@ import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalException;
-
-import java.io.InputStream;
 
 /**
  * The Ingest External Resource
@@ -129,7 +132,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
             PreUploadResume
-                preUploadResume = ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+                preUploadResume =
+                ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
             ingestExtern.upload(preUploadResume, guid);
         } catch (final Exception exc) {
             LOGGER.error(exc);
@@ -182,8 +186,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Execute the process of an operation related to the id.
      *
-     * @param headers             contain X-Action and X-Context-ID
-     * @param id                  operation identifier
+     * @param headers contain X-Action and X-Context-ID
+     * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
      * @throws InternalServerException
@@ -207,8 +211,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
             headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID));
 
         final String xContextId = headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID).get(0);
+        Response response = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            ingestInternalClient.executeOperationProcess(id, null, xContextId, null);
+            response = ingestInternalClient.executeOperationProcess(id, null, xContextId, null);
 
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
@@ -235,6 +240,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
+        } finally {
+            staticConsumeAnyEntityAndClose(response);
         }
 
         return Response.status(Status.OK).entity(resp).build();
@@ -307,7 +314,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * get the workflow status
      *
-     * @param id    operation identifier
+     * @param id operation identifier
      * @param query body
      * @return http response
      */
@@ -362,8 +369,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * Update the status of an operation.
      *
-     * @param headers       contain X-Action and X-Context-ID
-     * @param id            operation identifier
+     * @param headers contain X-Action and X-Context-ID
+     * @param id operation identifier
      * @param asyncResponse asyncResponse
      * @return http response
      */
@@ -426,6 +433,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
         Response response = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             response = ingestInternalClient.cancelOperationProcessExecution(id);
+            return Response.fromResponse(response).build();
+
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
@@ -440,7 +449,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(status))
                 .build();
 
-        } catch (InternalServerException e) {
+        } catch (InternalServerException | VitamClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
@@ -452,15 +461,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
-        } catch (VitamClientException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status))
-                .build();
+        } finally {
+            staticConsumeAnyEntityAndClose(response);
         }
-
-        return response;
     }
 
 
@@ -475,6 +478,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        } finally {
+            staticConsumeAnyEntityAndClose(response);
         }
     }
 

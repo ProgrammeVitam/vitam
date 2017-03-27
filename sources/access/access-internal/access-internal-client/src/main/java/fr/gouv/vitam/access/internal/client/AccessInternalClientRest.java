@@ -55,7 +55,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 /**
  * Access client <br>
  * <br>
- *
  */
 
 class AccessInternalClientRest extends DefaultClient implements AccessInternalClient {
@@ -190,9 +189,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 

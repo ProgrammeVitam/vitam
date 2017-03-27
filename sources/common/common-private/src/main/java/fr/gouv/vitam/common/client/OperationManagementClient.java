@@ -83,14 +83,11 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @param operationId :id of the operation
      * @param contextId :define the execution context of workflow
      * @param actionId : identify the action to be executed by the workflow(next , pause,resume)
-     * @param container: name of the container
      * @param workflow : id of the workflow
-     * @param id : operation identifier
      * @return ItemStatus response containing message and status
      * @throws VitamClientException
      * @throws InternalServerException
      * @throws BadRequestException
-     * @throws ProcessingUnauthorizeException 
      * @throws WorkflowNotFoundException
      * 
      */
