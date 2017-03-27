@@ -191,5 +191,8 @@ public class ReferentialAccessionRegisterImplTest {
         assertEquals(1, summary.size());
         final AccessionRegisterSummary item = summary.get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
+        assertEquals(1, item.getTotalObjects().getRemained());
+        assertEquals(1, item.getTotalObjects().getTotal());
+        assertEquals(0, item.getTotalObjects().getDeleted());
     }
 }
