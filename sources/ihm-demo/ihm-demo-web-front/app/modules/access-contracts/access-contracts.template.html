@@ -1,0 +1,75 @@
+<div id="global" class="container-fluid">
+	<ol class="breadcrumb">
+		<li>Administration</li>
+		<li><a href="#!/admin/accessContracts">Liste des Contrats d'accès</a></li>
+	</ol>
+
+	<div class="panel panel-default boxSearchWrapper col-md-12">
+		<a class="panel-header" href="#boxEntriesSearchForm">
+			<h2>Liste des Contrats d'accès</h2>
+		</a>
+
+		<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="getList()">
+			<div class="row">
+				<div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
+					<label for="entryName">Nom du contrat</label>
+					<input ng-model="search.form.ContractName" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+				</div>
+
+				<div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
+					<label for="entryType">Identifiant</label>
+					<input ng-model="search.form.ContractID" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+				</div>
+			</div>
+			<div>
+				<div class="col-md-2"><!-- Blank zone --></div>
+				<div class="col-md-3">
+					<button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+				</div>
+				<div class="col-md-4">
+					<button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+				</div>
+			</div>
+			<button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+				{{search.error.message}}
+			</button>
+		</form>
+	</div>
+
+	<search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
+
+	<div class="panel panel-default col-md-12 dynamic-table-box">
+		<a class="panel-header">
+			<h2> Résultats <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span></h2>
+		</a>
+
+		<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
+
+			<div class="table-responsive">
+				<table class="table highlighted">
+					<tr>
+						<th>Nom</th>
+						<th>Identifiant</th>
+						<th>Tenant(s)</th>
+						<th>Statut</th>
+						<th>Date de création</th>
+
+						<!-- Dynamic columns -->
+						<th ng-repeat="column in dynamicTable.selectedObjects">{{column.label | translate}}</th>
+					</tr>
+
+					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
+					<tr ng-click="goToDetails(log.evIdProc)">
+						<td>{{log.Name}}</td>
+						<td>{{log._id}}</td>
+						<td>{{log._tenant}}</td>
+						<td>{{log.Status}}</td>
+						<td>{{log.CreationDate | vitamFormatDate}}</td>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
+
+</div>

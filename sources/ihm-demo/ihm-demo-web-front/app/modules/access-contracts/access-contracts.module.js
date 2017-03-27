@@ -27,24 +27,5 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'accession.register.search',
-  'accession.register.details',
-  'flow',
-  'workflows',
-  'accessContracts'
-]);
+// Define the `access-contracts` module
+angular.module('accessContracts', []);
