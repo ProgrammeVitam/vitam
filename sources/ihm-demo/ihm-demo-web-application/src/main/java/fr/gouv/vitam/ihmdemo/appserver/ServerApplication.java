@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.DispatcherType;
@@ -202,7 +201,6 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
             .register(new SubjectFactory())
             .register(new AuthInjectionBinder());
     }
-
 
     @Override
     protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {

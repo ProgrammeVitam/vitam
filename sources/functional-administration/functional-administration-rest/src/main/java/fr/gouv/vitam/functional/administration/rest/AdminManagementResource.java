@@ -26,33 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -73,14 +51,21 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.common.server.*;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
-import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * FormatManagementResourceImpl implements AccessResource
@@ -89,11 +74,9 @@ import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementResource extends ApplicationStatusResource {
 
-    static final String CONTRACTS_URI = "contracts";
     private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
-    private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "The json input of contracts is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
@@ -198,7 +181,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * Find the file format detail related to a specified Id
      *
-     *
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException when transform result to json exception occurred
@@ -276,14 +258,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * check the rules file
      *
-     *
-     *
      * @param rulesStream as InputStream
      * @return Response response jersey
      * @throws IOException convert inputstream rule to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
      * @throws InvalidParseOperationException if parsing json data exception occurred
-     * @throws ReferentialException if exception occurred when create rule file manager 
+     * @throws ReferentialException if exception occurred when create rule file manager
      */
     @Path("rules/check")
     @POST
@@ -306,7 +286,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             StreamUtils.closeSilently(rulesStream);
         }
 
-        
+
     }
 
 
@@ -317,7 +297,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @return Response jersey response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException when the mongo insert throw error 
+     * @throws ReferentialException when the mongo insert throw error
      */
     @Path("rules/import")
     @POST
@@ -387,7 +367,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRulesByRuleValueQueryBuilder: build a dsl query based on a RuleId and order the result
      *
-     * @param rulesValue
+     * @param rulesId
      * @return
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
@@ -481,7 +461,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * retrieve all accession summary from accession summary collection
      *
-     * @param select as String the query to find accession register 
+     * @param select as String the query to find accession register
      * @return Response jersey Response
      * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
@@ -523,7 +503,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * retrieve accession register detail based on a given dsl query
      *
-     *
      * @param select as String the query to find the accession register
      * @return Response jersey Response
      * @throws IOException when error json occurs
@@ -564,55 +543,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
 
-
-    /**
-     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
-     * The input is invalid in the following situations : </BR>
-     * <ul>
-     * <li>The json is invalid</li>
-     * <li>The json contains 2 ore many contracts having the same name</li>
-     * <li>One or more mandatory field is missing</li>
-     * <li>A field has an invalid format</li>
-     * <li>One or many contracts elready exist in the database</li>
-     * </ul>
-     * 
-     * @param xmlPronom as InputStream
-     * @param uri the uri info
-     * @return Response jersey response
-     */
-    @Path(CONTRACTS_URI)
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
-        ParametersChecker.checkParameter(CONTRACT_JSON_IS_MANDATORY_PATAMETER, contractsToImport);
-        List<JsonNode> created = null;
-        try (IngestContractImpl ingestContract = new IngestContractImpl(mongoAccess)) {
-            SanityChecker.checkJsonAll(contractsToImport);
-            created = ingestContract.importContracts(contractsToImport);
-        } catch (InvalidParseOperationException e) {
-            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
-                .build();
-        } catch (ReferentialException refExp) {
-            LOGGER.error(refExp);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, refExp.getMessage(), null)).build();
-        } catch (Exception exp) {
-            LOGGER.error("Unexpected server error {}", exp);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
-        }
-        RequestResponseOK resp = new RequestResponseOK<>();
-        if(created != null){
-        	resp.addAllResults(created);
-        }
-        return Response.created(uri.getRequestUri().normalize()).entity(resp).build();
-    }
-
     /**
      * Construct the error following input
-     * 
+     *
      * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
      * @param code The functional error code, if absent the http code will be used instead

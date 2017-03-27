@@ -91,7 +91,6 @@ public class ContractResourceTest {
     private static final String RESULTS = "$results";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
-    private static final String ACCESS_CONTRACT_URI = "/accesscontracts";
     private static final String STATUS_URI = "/status";
 
 
@@ -207,6 +206,56 @@ public class ContractResourceTest {
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAWellFormedAccessContractJsonThenReturnCeated() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.INGEST_CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        List<String> result = given().contentType(ContentType.JSON).body("{}")
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().get(ContractResource.INGEST_CONTRACTS_URI)
+            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Name");
+
+        assertThat(result).hasSize(1).contains("aName");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractJsonWithAmissingNameReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_missingName.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.INGEST_CONTRACTS_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractsWithDuplicateNames() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_duplicate.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.INGEST_CONTRACTS_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+
     @Test
     @RunWithCustomExecutor
     public void givenAccessContractsTestWellFormedContractThenImportSuccessfully() throws Exception {
@@ -216,7 +265,7 @@ public class ContractResourceTest {
         // transform to json
         given().contentType(ContentType.JSON).body(json)
                 .header(GlobalDataRest.X_TENANT_ID, 0)
-                .when().post( ACCESS_CONTRACT_URI)
+                .when().post( ContractResource.ACCESS_CONTRACTS_URI)
                 .then().statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -231,7 +280,7 @@ public class ContractResourceTest {
         // first succefull create
         JsonPath body = given().contentType(ContentType.JSON).body(json)
                 .header(GlobalDataRest.X_TENANT_ID, 0)
-                .when().post(ACCESS_CONTRACT_URI)
+                .when().post(ContractResource.ACCESS_CONTRACTS_URI)
                 .then().statusCode(Status.CREATED.getStatusCode()).extract().body().jsonPath();
 
         List<String> names = body.get("$results.Name");
@@ -254,7 +303,7 @@ public class ContractResourceTest {
                 .header(GlobalDataRest.X_TENANT_ID, 0)
                 .body(queryDsl)
                 .when()
-                .get(ACCESS_CONTRACT_URI)
+                .get(ContractResource.ACCESS_CONTRACTS_URI)
                 .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
         names = body.get("$results.Name");
