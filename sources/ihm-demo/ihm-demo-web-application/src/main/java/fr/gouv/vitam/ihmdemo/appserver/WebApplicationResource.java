@@ -134,7 +134,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String NEW_FIELD_VALUE_KEY = "newFieldValue";
     private static final String INVALID_ALL_PARENTS_TYPE_ERROR_MSG = "The parameter \"allParents\" is not an array";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
-
+    private static final String WORKFLOW_ACTION = "NEXT";
     private static final String LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Logbook Client NOT FOUND Exception";
     private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
     private static final int COMPLETE_RESPONSE_SIZE = 3;
@@ -454,10 +454,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response
                 .status(Status.OK).entity(JsonHandler.getFromString(
                     "{\"" + GlobalDataRest.X_REQUEST_ID.toLowerCase() + "\":\"" + operationGuidFirstLevel + "\"}"))
+                .header(GlobalDataRest.X_REQUEST_ID, operationGuidFirstLevel)
                 .build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Upload failed", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .header(GlobalDataRest.X_REQUEST_ID, operationGuidFirstLevel).
+            build();
         }
     }
 
@@ -527,7 +530,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("check/{id_op}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response checkUploadOperation(@PathParam("id_op") String operationId, @Context HttpHeaders headers)
+    public Response checkUploadOperation(@PathParam("id_op") String operationId, @Context HttpHeaders headers, @QueryParam("action") String action)
         throws VitamClientException, IngestExternalException {
         // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
         // dont call VITAM backend) ?
@@ -540,7 +543,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         if (responseDetails != null) {
 
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-                String id =responseDetails.get(GUID_INDEX).toString();
+                String id = responseDetails.get(GUID_INDEX).toString();
                 Response response = client.getOperationStatus(id , tenantId);
 
                 if (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
@@ -548,6 +551,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 }
                 if (Status.fromStatusCode(response.getStatus()).equals(Status.NOT_FOUND)) {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+                }
+                //STEP BY STEP
+                if (Status.fromStatusCode(response.getStatus()).equals(Status.OK) && action.equals(WORKFLOW_ACTION)){
+                    JsonNode lastEvent = getlogBookOperationStatus(id, tenantId);
+                    // ingestExternalClient client
+                    int status = getStatus(lastEvent);
+                    return Response.status(status).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
                 if (Status.fromStatusCode(response.getStatus()).equals(Status.OK)) {
                     try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance()
