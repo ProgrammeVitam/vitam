@@ -542,7 +542,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 String id =responseDetails.get(GUID_INDEX).toString();
                 Response response = client.getOperationStatus(id , tenantId);
-                ;
+
                 if (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
@@ -613,7 +613,32 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         return 500;
     }
-
+    /**
+     * Once done, clear the Upload operation history
+     *
+     * @param operationId
+     * @return the Response
+     */
+    @Path("clear/{id_op}")
+    @GET
+    public Response clearUploadOperationHistory(@PathParam("id_op") String operationId) {
+        // TODO Need a tenantId test for checking upload (Only IHM-DEMO scope,
+        // dont call VITAM backend) ?
+        final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
+        if (responseDetails != null) {
+            // Clean up uploadRequestsStatus
+            uploadRequestsStatus.remove(operationId);
+            if (responseDetails.size() == COMPLETE_RESPONSE_SIZE) {
+                final File file = (File) responseDetails.get(ATR_CONTENT_INDEX);
+                file.delete();
+            }
+            // Cleaning process succeeded
+            return Response.status(Status.OK).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+        } else {
+            // Cleaning process failed
+            return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
+        }
+    }
     /**
      * Update Archive Units
      *
@@ -1505,4 +1530,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         return file;
     }
+
+
+
 }

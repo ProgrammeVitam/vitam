@@ -261,10 +261,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         Status status;
-        ItemStatus itemStatus = null;
-
+        ItemStatus pwork = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            itemStatus = ingestInternalClient.getOperationProcessStatus(id);
+            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, null);
 
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
@@ -273,13 +272,15 @@ public class IngestExternalResource extends ApplicationStatusResource {
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
+
         } catch (final WorkflowNotFoundException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
-            status = Status.NOT_FOUND;
+            status = Status.NO_CONTENT;
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
+
         } catch (VitamClientException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -299,7 +300,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(status))
                 .build();
         }
-        return Response.status(Status.OK).entity(itemStatus).build();
+
+        return Response.status(Status.OK).entity(pwork).build();
     }
 
     /**
@@ -312,11 +314,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
+    public Response getWorkFlowStatus(@PathParam("id") String id) {
         Status status;
         ItemStatus pwork = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, query);
+            pwork = ingestInternalClient.getOperationProcessExecutionDetails(id, null);
 
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal

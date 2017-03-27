@@ -29,6 +29,9 @@ package fr.gouv.vitam.ingest.external.client;
 import static fr.gouv.vitam.common.GlobalDataRest.X_ACTION;
 import static fr.gouv.vitam.common.GlobalDataRest.X_CONTEXT_ID;
 import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
+import static fr.gouv.vitam.common.model.ProcessExecutionStatus.CANCELLED;
+import static fr.gouv.vitam.common.model.ProcessExecutionStatus.COMPLETED;
+import static fr.gouv.vitam.common.model.ProcessExecutionStatus.FAILED;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
@@ -60,6 +63,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
@@ -313,14 +317,28 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_ACTION, id);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        ItemStatus pwok = null ;
+        Status status = Status.ACCEPTED;
         try {
             response =
-                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
+               performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
+               pwok =  response.readEntity(ItemStatus.class);
+               if (pwok == null ) {
+                  return Response.status(Status.ACCEPTED).entity(pwok).header(GlobalDataRest.X_REQUEST_ID,id).build();
+               }
+             if  (
+                     pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED)||
+                     pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
+                     pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)
+                 )
+             {
+                 status = Status.OK;
+             }
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         }
-        return Response.status(response.getStatus()).entity(response.getEntity()).header(GlobalDataRest.X_REQUEST_ID,id).build();
+        return Response.status(status).entity(pwok).header(GlobalDataRest.X_REQUEST_ID,id).build();
     }
 
 

@@ -76,13 +76,24 @@ angular.module('ihm.demo')
 
 
     // *************************************** TIMER *********************************************** //
+    function clearHistoryAfterUpload(operationIdServerAppLevel) {
+      ihmDemoFactory.cleanOperationStatus(operationIdServerAppLevel)
+      .then(function (response) {
+        console.log("clean succeeded");
+      }, function(error) {
+        console.log("clean failed");
+      });
+    }
+
     $scope.stopPromise = undefined;
     $scope.check = function(fileItem, operationIdServerAppLevel) {
        if ( angular.isDefined($scope.stopPromise) ) return;
 
        $scope.stopPromise = $interval(function() {
          // Every 100ms check if the operation is finished
-         ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel)
+         // cancel the intervale
+         $scope.stopCheck();
+         ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel,$scope.action)
          .then(function (response) {
            fileItem.isProcessing = false;
            fileItem.isSuccess = false;
@@ -90,11 +101,16 @@ angular.module('ihm.demo')
            fileItem.isError = false;
            fileItem.isFatalError = false;
 
+           if (response.status == UPLOAD_CONSTANTS.NO_CONTENT_STATUS) {
+             fileItem.isProcessing = true;
+             $scope.check($scope.fileItem, operationIdServerAppLevel);
+           }
            if(response.status === UPLOAD_CONSTANTS.FATAL_STATUS) {
              // stop check
              $scope.stopCheck();
              fileItem.isFatalError = true;
 
+             clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            } else if (response.status !== UPLOAD_CONSTANTS.NO_CONTENT_STATUS) {
              // Finished operation
@@ -105,30 +121,41 @@ angular.module('ihm.demo')
              $scope.uploadFinished = true;
              $scope.uploadLaunched = false;
              $scope.uploadFailed = false;
-             fileItem.isProcessing = false;;
+             fileItem.isProcessing = false;
+            // $scope.disableUpload = false;
+             $scope.disableSelect = false;
              if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
                fileItem.isWarning = true;
              } else {
                fileItem.isSuccess = true;
              }
 
-             downloadATR(response, response.headers);
+              if(  $scope.action === 'RESUME') {
+                downloadATR(response, response.headers);
+              }
+
+             clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
+
          }, function (error) {
           console.log('Upload failed with error : ' + error.status);
-           fileItem.isProcessing = false;
-           fileItem.isSuccess = false;
-           fileItem.isWarning = false;
-           fileItem.isError = false;
-           fileItem.isFatalError = false;
+           if(error.status == -1){
+             //try again time out (chrome)
+             $scope.check($scope.fileItem, operationIdServerAppLevel);
+            }
 
            if(error.status !== -1){
-
+             fileItem.isProcessing = false;
+             fileItem.isSuccess = false;
+             fileItem.isWarning = false;
+             fileItem.isError = false;
+             fileItem.isFatalError = false;
              $scope.stopCheck();
              $scope.uploadFinished = true;
              $scope.uploadLaunched = false;
              $scope.uploadFailed = true;
+             $scope.disableSelect = false;
 
              // Refresh upload status icon
              if (500 <= error.status && error.status < 600) {
@@ -136,8 +163,10 @@ angular.module('ihm.demo')
              } else {
                fileItem.isError = true;
              }
-
-             downloadATR(error, error.headers);
+             if(  $scope.action === 'RESUME') {
+               downloadATR(error, error.headers);
+             }
+             clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
          });
@@ -156,6 +185,7 @@ angular.module('ihm.demo')
      $scope.stopCheck();
     });
 
+
     //************************************************************************************************ //
     $scope.fileItem = {};
     $scope.fileItem.isProcessing = false;
@@ -172,10 +202,7 @@ angular.module('ihm.demo')
       $scope.fileItem.isError = false;
       $scope.fileItem.isWarning = false;
       $scope.fileItem.isFatalError = false;
-
-      if(  $scope.contextId =='DEFAULT_WORKFLOW') {
         $scope.check($scope.fileItem, operationIdServerAppLevel);
-      }
     };
 
     $scope.getSize = function(bytes, precision) {
