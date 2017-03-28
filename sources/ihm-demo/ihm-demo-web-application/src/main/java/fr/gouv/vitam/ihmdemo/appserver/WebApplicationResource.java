@@ -1705,6 +1705,38 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
 
+    /**
+     * Gets contracts
+     *
+     * @param headers HTTP Headers
+     * @param select the query
+     * @return Response
+     */
+    @POST
+    @Path("/contracts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:create")
+    public Response findDocuments(@Context HttpHeaders headers, JsonNode select) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = adminClient.findDocuments(AdminCollections.CONTRACTS, select, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                // Récupération des hits?
+                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
     private Integer getTenantId(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0
         Integer tenantId = 0;

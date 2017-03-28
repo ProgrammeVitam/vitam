@@ -96,6 +96,9 @@
   <script src="modules/access-contracts/access-contracts.module.js"></script>
   <script src="modules/access-contracts/access-contracts-controller.js"></script>
   <script src="modules/access-contracts/access-contracts-component.js"></script>
+  <script src="modules/entry-contracts/entry-contracts.module.js"></script>
+  <script src="modules/entry-contracts/entry-contracts.controller.js"></script>
+  <script src="modules/entry-contracts/entry-contracts.component.js"></script>
 
   <script src="resources/messages.resource.js"></script>
 
@@ -197,13 +200,11 @@
               <li><a href="#!/admin/formats" ng-show="hasPermission('admin:formats:read')">Référentiel des formats</a></li>
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
-              <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
               <li><a href="#!/uploadHoldingScheme" ng-show="hasPermission('rules:create')">Import de l'arbre de positionnement</a></li>
               <li><a href="#!/admin/importFileRules" ng-show="hasPermission('rules:create')">Import du Référentiel des Règles de gestion</a></li>
               <li><a href="#!/admin/importPronoun" ng-show="hasPermission('format:create')">Import du Référentiel des formats</a></li>
-              <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'entrée</a></li>
-              <li><a href="#!/admin/importAccessContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'accès</a></li>
+              <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats</a></li>
             </ul>
           </li>
           <li class="@@mainMenu2">
