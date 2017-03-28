@@ -51,6 +51,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
+import fr.gouv.vitam.storage.offers.workspace.driver.DriverFactory;
 
 /**
  * DriverManager implementation.
@@ -63,6 +64,10 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
  * to have the new driver).
  */
 
+// FIXME all DriverManaager should be redone in order to:
+// - delegate to DriverFactory the management of Drivers
+// - delegate to Drivers the Offers attached to each
+// - keeping one trace in the DriverManager of the relation between Drivers and Offers
 public class DriverManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverManager.class);
@@ -94,6 +99,7 @@ public class DriverManager {
         while (driversIterator.hasNext()) {
             final OfferDriverInfo driverInfo = new OfferDriverInfo(driversIterator.next());
             INSTANTIATED_DRIVERS.add(driverInfo);
+            DriverFactory.getInstance().addDriver(driverInfo.name);
             loadOffersIdsFor(driverInfo);
         }
     }
@@ -202,6 +208,11 @@ public class DriverManager {
     public static void removeOffer(String offerId) throws StorageDriverMapperException, StorageDriverNotFoundException {
         final Driver driver = getDriverFor(offerId);
         if (offerIdAvailable(offerId)) {
+            // FIXME the driverManager logic should be: first add drivers, then add offers
+            // Note that offers will be dynamically allocated by the driver itself but the 
+            // the DriverManager can contain also the list of offers x drivers
+            String driverName = null;
+            DriverFactory.getInstance().getDriver(driverName).removeOffer(offerId);
             DRIVERS_OFFERS.remove(offerId);
             final List<String> offersIds = new ArrayList<>();
             offersIds.add(offerId);
