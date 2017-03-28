@@ -129,23 +129,28 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Détail du Fonds'
     }).
     when('/admin/logbookOperations/:entryId', {
-      templateUrl: 'views/logbookEntry.html',
-      controller: 'logbookEntryController as entryCtrl',
-      title: 'Détail d\'une opération d\'entrée'
-    }).
-    when('/admin/workflows', {
-        template: '<workflows></workflows>',
-        title: 'Gestion des versements'
+          templateUrl: 'views/logbookEntry.html',
+          controller: 'logbookEntryController as entryCtrl',
+          title: 'Détail d\'une opération d\'entrée'
+        }).
+        when('/admin/workflows', {
+        	template: '<workflows></workflows>',
+            title: 'Gestion des versements'
+        }).
+    when('/admin/entryContracts', {
+      templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
+      controller: 'entryContractsController',
+      title: 'Contrats d\'entrée'
     }).
     when('/admin/accessContracts', {
-        templateUrl: 'modules/access-contracts/access-contracts.template.html',
-        controller: 'accessContractsController',
-        title: 'Liste des Contrats d\'accès'
+      templateUrl: 'modules/access-contracts/access-contracts.template.html',
+      controller: 'accessContractsController',
+      title: 'Liste des Contrats d\'accès'
     }).
     when('/admin/accessContracts/:id', {
-        templateUrl: 'modules/access-contracts/access-contract-single.template.html',
-        controller: 'accessContractController',
-        title: 'Détail d\'un contrat d\'accès'
+      templateUrl: 'modules/access-contracts/access-contract-single.template.html',
+      controller: 'accessContractController',
+      title: 'Détail d\'un contrat d\'accès'
     }).
     otherwise('/uploadSIP');
   }
