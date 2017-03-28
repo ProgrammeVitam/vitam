@@ -267,8 +267,16 @@ public class UnitInheritedRule {
 		while (fieldNames.hasNext()) {
 			String unitRuleCategory = fieldNames.next();
 			if (!parentCategoryList.contains(unitRuleCategory)) {
-				ObjectNode ruleCategories = createRuleCategories((ObjectNode) unitManagement.get(unitRuleCategory), unitId);
-				ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
+			    JsonNode unitCategory = unitManagement.get(unitRuleCategory);
+			    if (unitCategory.isArray()) {
+			        for (JsonNode unitRuleNode : unitCategory) {
+			            ObjectNode ruleCategories = createRuleCategories((ObjectNode) unitRuleNode, unitId);
+			            ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
+			        }
+			    } else {
+			        ObjectNode ruleCategories = createRuleCategories((ObjectNode) unitCategory, unitId);
+			        ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories); 
+			    }
 			} else {
                 JsonNode unitCategory = unitManagement.get(unitRuleCategory);
                 if (unitCategory.isArray()) {
@@ -278,6 +286,12 @@ public class UnitInheritedRule {
                             ObjectNode unitNode = createNewRuleWithOrigin((ObjectNode) unitRuleNode, unitId);
                             newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
                         }
+                    }
+                } else {
+                    String ruleId = unitCategory.get(RULE).asText();
+                    if (newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
+                        ObjectNode unitNode = createNewRuleWithOrigin((ObjectNode) unitCategory, unitId);
+                        newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
                     }
                 }
 

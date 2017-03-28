@@ -31,17 +31,7 @@ public class UnitInheritedRuleTest {
                 "\"path\":[[\"AU2\"]]}}}}}";
     
     private final static String EXPECTED_CONCAT_RESULT = "{\"inheritedRule\":" +
-        "{\"StorageRule\":" +
-            "{\"R1\":" +
-                "{\"AU1\":{" +
-                "\"FinalAction\":\"RestrictedAccess\"," +
-                "\"EndDate\":\"01/01/2019\"," +
-                "\"path\":[[\"AU1\"]]}," +
-                "\"AU3\":{" +
-                "\"FinalAction\":\"RestrictedAccess\"," +
-                "\"EndDate\":\"01/01/2019\"," +
-                "\"path\":[[\"AU3\"]]}}}," +
-        "\"AccessRule\":" +
+        "{\"AccessRule\":" +
             "{\"R2\":" +
                 "{\"AU1\":{" +
                 "\"FinalAction\":\"Access\"," +
@@ -54,17 +44,12 @@ public class UnitInheritedRuleTest {
                 "\"EndDate\":\"01/01/2019\"," +
                 "\"path\":[[\"AU3\"]]}}}}}";
     private final static String AU1_MGT = "{" +
-        "    \"StorageRule\" : {" +
-        "      \"Rule\" : \"R1\"," +
-        "      \"FinalAction\" : \"RestrictedAccess\"," +
-        "      \"EndDate\" : \"01/01/2019\"" +
-        "    }," +
-        "    \"AccessRule\" : {" +
+        "    \"AccessRule\" : [{" +
         "      \"Rule\" : \"R2\"," +
         "      \"FinalAction\" : \"Access\"," +
         "      \"StartDate\" : \"01/01/2017\"," +
         "      \"EndDate\" : \"01/01/2019\"" +
-        "    }, \"NeedAuthentication\" : false" +
+        "    }], \"NeedAuthentication\" : false" +
         "  }";
     
     private final static String AU2_MGT = "{" +
