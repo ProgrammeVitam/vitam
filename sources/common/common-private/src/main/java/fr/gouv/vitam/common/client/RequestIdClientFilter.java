@@ -50,7 +50,7 @@ public class RequestIdClientFilter implements ClientRequestFilter, ClientRespons
     @Override
     public void filter(ClientRequestContext requestContext) throws IOException {
         RequestIdHeaderHelper.putRequestIdFromSessionInHeader(requestContext.getHeaders(),
-            RequestIdHeaderHelper.Context.REQUEST);
+            RequestIdHeaderHelper.Context.REQUEST, 0);
     }
 
     /**

@@ -104,7 +104,7 @@
   <script src="core/services/process-response.service.js"></script>
   <script src="core/services/process-search.service.js"></script>
   <script src="core/filters/pagination-start.filter.js"></script>
-
+  <script src="core/factory/http-interceptor.filter.js"></script>
   <script src="services/logbook-entry-full.service.js"></script>
 
 
@@ -225,12 +225,33 @@
 
   <!-- ////////////////////////////////////////////////////////////////////////////// -->
 
-  <div class="page-container" ng-if="showMenuBar">
-    <div ng-view class="page"></div>
-  </div>
+
+
+    <div class="page-container" ng-if="showMenuBar" >
+        <div ng-view class="page"></div>
+        <div id="nvlEntree" class="modal fade">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#dc143c">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel"><span style="color:#fff">Erreur</span></h4>
+                    </div>
+                    <div class="modal-body">
+                        <h5>Une erreur interne VITAM est survenue. Merci de bien vouloir contacter le support avec l'information suivante :</h5>
+                        <h4> {{requestServerRequestId}} </h4>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
   <div class="view-container" ng-if="!showMenuBar">
     <div ng-view class="view-frame"></div>
   </div>
+
 
   <!-- ////////////////////////////////////////////////////////////////////////////// -->
 

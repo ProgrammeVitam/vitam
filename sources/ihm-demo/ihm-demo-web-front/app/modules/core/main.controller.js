@@ -44,6 +44,23 @@ angular.module('core')
         if (localStorage.getItem('user')) {
             $rootScope.user = JSON.parse(localStorage.getItem('user'));
         }
+        console.log($rootScope.user);
+        $scope.hideError = function() {
+            $rootScope.requestServerError = false;
+        };
+
+        $rootScope.$on('httpRequestError', showHttpError);
+
+        function showHttpError($event, message){
+            $scope.requestServerError = message.requestServerError;
+            if ($scope.requestServerError) {
+                $('#nvlEntree').modal('show');
+            }
+            $scope.requestServerTitle = message.requestServerTitle;
+            $scope.requestServerRequestId = message.requestServerRequestId;
+            $scope.requestServerURL = message.requestServerURL;
+
+        }
 
         ihmDemoFactory.getTenants().then(function (repsonse) {
             if (repsonse.data.length !== 0) {
