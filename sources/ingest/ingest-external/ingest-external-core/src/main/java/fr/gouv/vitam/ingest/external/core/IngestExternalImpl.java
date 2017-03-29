@@ -126,6 +126,7 @@ public class IngestExternalImpl implements IngestExternal {
         this.config = config;
 
     }
+
     @Override
     public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
         AsyncResponse asyncResponse)
@@ -280,7 +281,6 @@ public class IngestExternalImpl implements IngestExternal {
                 LOGGER.error(CAN_NOT_SCAN_VIRUS, e);
                 throw new IngestExternalException(e);
             }
-
             InputStream inputStream = null;
             boolean isFileInfected = false;
             String mimeType = "";
@@ -343,9 +343,9 @@ public class IngestExternalImpl implements IngestExternal {
 
                 // instantiate SiegFried final
                 try (FormatIdentifier formatIdentifier =
-                        FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID)) {
+                    FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID)) {
                     LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
-                    
+
                     // call siegFried
                     final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(file.toPath());
                     final FormatIdentifierResponse format = getFirstPronomFormat(formats);
@@ -437,7 +437,9 @@ public class IngestExternalImpl implements IngestExternal {
                         ingestClient.upload(inputStream, CommonMediaType.valueOf(mimeType), contextWithExecutionMode);
                     return  Response.status(Status.OK).build();
                 }
-
+                else {
+                    cancelOperation(guid);
+                }
                 return responseNoProcess;
             } catch (final VitamException e) {
                 throw new IngestExternalException(e);
@@ -464,7 +466,19 @@ public class IngestExternalImpl implements IngestExternal {
         }
     }
 
-
+    private void cancelOperation(GUID guid) throws IngestExternalException {
+        Response response = null;
+        try (IngestInternalClient ingestClient =
+            IngestInternalClientFactory.getInstance().getClient()) {
+            response = ingestClient.cancelOperationProcessExecution(guid.getId());
+        } catch (final Exception e) {
+            throw new IngestExternalException(e);
+        } finally {
+            if (null != response) {
+                response.close();
+            }
+        }
+    }
 
     /**
      * @param containerName
