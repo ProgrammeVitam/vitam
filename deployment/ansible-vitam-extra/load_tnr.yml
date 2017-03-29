@@ -1,0 +1,5 @@
+---
+- hosts: hosts-ihm-recette
+  roles:
+    - loadTNR 
+    # KWA TODO: ensure that the role is run only once

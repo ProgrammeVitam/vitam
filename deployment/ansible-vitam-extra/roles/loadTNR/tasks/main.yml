@@ -1,0 +1,16 @@
+---
+# tasks file for loadTNR
+- name: launch TNR 
+#  shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*-jar-with-dependencies.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
+  shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
+  become_user: "{{ vitam_user }}"
+  ignore_errors: true
+  args:
+    chdir: "{{TNR_conf}}"
+
+- name: get back TNR output file {{TNR_output}} 
+  fetch:
+    src: "{{ TNR_output }}"
+    dest: "{{inventory_dir}}/"
+    flat: yes
+  ignore_errors: true

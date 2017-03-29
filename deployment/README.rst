@@ -95,3 +95,11 @@ et
 ``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 .. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
+
+8. Tests TNR automatisés
+
+``ansible-playbook -i environments/hosts.local ansible-vitam-extra/load_tnr.yml --ask-vault-pass``
+
+ou
+
+``ansible-playbook -i environments/hosts.local ansible-vitam-extra/load_tnr.yml --vault-password-file vault_pass.txt``
