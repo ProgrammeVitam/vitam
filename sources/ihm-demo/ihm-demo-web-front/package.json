@@ -20,7 +20,6 @@
     "gulp-minify-html": "1.0.6",
     "gulp-ng-annotate": "2.0.0",
     "gulp-replace": "0.5.4",
-    "gulp-sourcemaps": "^1.9.1",
     "gulp-sync": "0.1.4",
     "gulp-uglify": "2.0.0",
     "gulp-zip": "3.2.0",
