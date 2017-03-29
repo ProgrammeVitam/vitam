@@ -125,6 +125,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         }
     }
 
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
@@ -262,7 +263,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
+        // FIXME : upload method not send ATR now
+        // assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
 
     }
 
@@ -305,8 +307,10 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(500, response.getStatus());
-        inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
+
+        // fixed on IT 17, upload method not sent ATR
+        // assertEquals(response.readEntity(String.class), FileUtil.readInputStream(inputStreamATR));
+
     }
 
     @Test
@@ -347,7 +351,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(500, response.getStatus());
-        assertNotNull(response.readEntity(String.class));
+        // fixed on IT 17, upload method not sent ATR
+        //assertNotNull(response.readEntity(String.class));
     }
 
     @Test
@@ -386,7 +391,8 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         final Response response = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
         assertEquals(500, response.getStatus());
-        assertNotNull(response.readEntity(String.class));
+        // fixed on IT 17, upload method not sent ATR
+        //assertNotNull(response.readEntity(String.class));
     }
 
     @Test
