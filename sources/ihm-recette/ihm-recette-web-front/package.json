@@ -38,8 +38,7 @@
     "karma-mocha-reporter": "^2.0.0",
     "karma-phantomjs-launcher": "^1.0.2",
     "protractor": "^2.5.1",
-    "shelljs": "^0.6.0",
-    "gulp-sourcemaps": "^1.9.1"
+    "shelljs": "^0.6.0"
   },
   "scripts": {
     "postinstall": "bower install",
