@@ -37,14 +37,9 @@ echo "Creating local deb repository..."
 rm -f /code/Packages.gz
 # Génération du "repository"
 dpkg-scanpackages -m . | gzip --fast > /code/Packages.gz
-#deb file:/tmp/repo ./
-#rm -rf /code/repodata
-#createrepo -x '	.git/*' .
 echo "Cleaning apt cache..."
 sudo apt-get clean
 echo "Creating apt cache..."
 sudo apt-get update
-#sudo yum --disablerepo="*" --enablerepo="local" makecache
 echo "Done ! Available rpm packages in local vitam-product repository :"
-#yum --disablerepo="*" --enablerepo="local" list available
 echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"
