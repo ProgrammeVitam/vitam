@@ -1,5 +1,6 @@
-#!/bin/sh
-if [ "$EUID" -eq 0 ]
+#!/usr/bin/env bash
+
+if [ ${EUID} -eq 0 ]
 then
 	echo "Please dont't run this script as root !"
 	exit 1
