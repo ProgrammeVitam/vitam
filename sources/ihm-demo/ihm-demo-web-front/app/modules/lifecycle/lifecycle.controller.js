@@ -29,7 +29,7 @@ angular.module('lifecycle')
   .controller('lifeCycleController', function($scope, $routeParams, $filter, ihmDemoFactory, loadStaticValues, logbookEntryFullService, resultStartService) {
     var self = this;
 
-    self.startForma = resultStartService.startFormat;
+    self.startFormat = resultStartService.startFormat;
 
     function initFields(fields) {
       var result = [];
