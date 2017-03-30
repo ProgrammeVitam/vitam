@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -249,7 +248,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         } else {
             builder.entity(entity);
         }
-        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, builder.build());
+        AsyncInputStreamHelper.asyncResponseResume(asyncResponse, builder.build());
     }
 
     /**

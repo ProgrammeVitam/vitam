@@ -193,7 +193,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                         null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response);
                 } catch (final VitamClientInternalException e) {
-                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 }
             }
@@ -225,7 +225,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                         null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response);
                 } catch (final VitamClientInternalException e) {
-                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 }
             }
@@ -257,7 +257,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                         null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response);
                 } catch (final VitamClientInternalException e) {
-                    AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 }
             }

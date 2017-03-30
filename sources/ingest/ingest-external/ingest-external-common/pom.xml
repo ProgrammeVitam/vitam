@@ -34,12 +34,6 @@
 	</build>
 
 	<dependencies>
-
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-external-api</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>workspace-common</artifactId>
