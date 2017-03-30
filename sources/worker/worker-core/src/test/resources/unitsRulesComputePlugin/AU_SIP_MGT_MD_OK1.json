@@ -1,0 +1,88 @@
+{
+  "ArchiveUnit" : {
+    "_id" : "aeaqaaaaaabtzlipaaltcak3ctsldpiaaaaq",
+    "ArchiveUnitProfile" : "PresentationType",
+    "Management" : {
+      "StorageRule" : [ {
+        "Rule" : "ID017",
+        "FinalAction" : "RestrictAccess"
+      }, {
+        "Rule" : "ID420",
+        "StartDate" : "2016-01-10",
+        "FinalAction" : "Copy",
+        "PreventInheritance" : false,
+        "RefNonRuleId" : "ID100"
+      } ],
+      "AppraisalRule" : [ {
+        "Rule" : "ID018",
+        "FinalAction" : "Keep"
+      } ],
+      "AccessRule" : [ {
+        "Rule" : "ID019"
+      } ],
+      "DisseminationRule" : [ {
+        "Rule" : "ID020"
+      }, {
+        "Rule" : "ID450",
+        "StartDate" : "2016-01-10",
+        "RefNonRuleId" : "ID100",
+        "PreventInheritance" : false
+      } ],
+      "ReuseRule" : [ {
+        "Rule" : "ID022"
+      }, {
+        "Rule" : "ID460",
+        "StartDate" : "2016-01-10",
+        "RefNonRuleId" : "ID100",
+        "PreventInheritance" : false
+      } ],
+      "ClassificationRule" : [ {
+        "Rule" : "ID024",
+        "ClassificationLevel" : "ClassificationLevel0",
+        "ClassificationOwner" : "ClassificationOwner0"
+      }, {
+        "Rule" : "ID470",
+        "StartDate" : "2016-01-10",
+        "RefNonRuleId" : "ID100",
+        "PreventInheritance" : false,
+        "ClassificationLevel" : 1,
+        "ClassificationOwner" : 2,
+        "ClassificationReassessingDate" : "2016-01-10",
+        "NeedReassessingAuthorization" : false
+      } ],
+      "NeedAuthorization" : false
+    },
+    "Content" : {
+      "@xml:id" : "ID026",
+      "DescriptionLevel" : "Item",
+      "Title" : "Sensibilisation API",
+      "FilePlanPosition" : "FilePlanPosition0",
+      "OriginatingSystemId" : "OriginatingSystemId0",
+      "ArchivalAgencyArchiveUnitIdentifier" : "ArchivalAgencyArchiveUnitIdentifier0\n                    ",
+      "OriginatingAgencyArchiveUnitIdentifier" : "OriginatingAgencyArchiveUnitIdentifier0\n                    ",
+      "TransferringAgencyArchiveUnitIdentifier" : "TransferringAgencyArchiveUnitIdentifier0\n                    ",
+      "Description" : "Sensibilisation au Technical Design\n                    ",
+      "Language" : "fr-FR",
+      "OriginatingAgency" : {
+        "Identifier" : "Identifier0"
+      },
+      "SubmissionAgency" : {
+        "Identifier" : "Identifier1"
+      },
+      "Writer" : {
+        "FirstName" : "FirstName0",
+        "BirthName" : "BirthName0"
+      },
+      "CreatedDate" : "2016-05-05T20:45:20",
+      "TransactedDate" : "2016-05-05"
+    },
+    "DataObjectReference" : {
+      "DataObjectGroupReferenceId" : "ID006"
+    },
+    "_og" : "aebaaaaaaabtzlipaaltcak3ctsldcqaaaaq"
+  },
+  "_work" : {
+    "_up" : [ ],
+    "RulesToApply" : [ "ID022;ID024;ID020;ID018;ID019;ID017;ID450;ID420;ID470;ID460;" ]
+  }
+}

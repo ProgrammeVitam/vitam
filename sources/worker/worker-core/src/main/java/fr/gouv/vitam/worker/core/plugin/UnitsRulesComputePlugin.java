@@ -30,27 +30,20 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
-
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.XMLEvent;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
@@ -60,7 +53,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -76,7 +68,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
-import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -118,8 +109,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         final long time = System.currentTimeMillis();
         handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
-        final String objectID = LogbookLifecycleWorkerHelper.getObjectID(params);
-
         try {
             calculateMaturityDate(params, itemStatus);
             itemStatus.increment(StatusCode.OK);
@@ -147,9 +136,10 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         try (InputStream inputStream =
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
             // Parse RULES in management Archive unit, and add EndDate
-            parseXmlRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException |
-            XMLStreamException e) {
+            // parseXmlRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
+            parseRulesAndUpdateEndDate(inputStream, objectName, containerId, params, itemStatus);
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
+            IOException e) {
             LOGGER.error(WORKSPACE_SERVER_ERROR);
             throw new ProcessingException(e);
         }
@@ -187,178 +177,83 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     }
 
     /**
-     *
-     * parses xml unit file and add endate
-     *
-     * @param xmlInput
+     * Check archiveUnit json file and add end date for rules.
+     * 
+     * @param input archiveUnit json file
+     * @param objectName json file name
+     * @param containerName
      * @param params
      * @param itemStatus
      * @throws IOException
-     * @throws XMLStreamException
      * @throws ProcessingException
      */
-    private void parseXmlRulesAndUpdateEndDate(InputStream xmlInput, String objectName, String containerName,
-        WorkerParameters params, ItemStatus itemStatus)
-        throws IOException, XMLStreamException, ProcessingException {
-        Set<String> rulesToApply;
-        JsonNode rulesResults = null;
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+    private void parseRulesAndUpdateEndDate(InputStream input, String objectName, String containerName,
+        WorkerParameters params, ItemStatus itemStatus) throws IOException, ProcessingException {
+
         final File fileWithEndDate = handlerIO.getNewLocalFile(AU_PREFIX_WITH_END_DATE + objectName);
-        final FileWriter tmpFileWriter = new FileWriter(fileWithEndDate);
-        final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
-        final XMLEventWriter writer = xmlOutputFactory.createXMLEventWriter(tmpFileWriter);
-        final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        XMLEventReader reader = null;
-        XMLEvent event = null;
         try {
-            reader = xmlInputFactory.createXMLEventReader(xmlInput);
-            while (true) {
-                event = reader.nextEvent();
-                if (event.isStartElement()) {
-                    switch (event.asStartElement().getName().getLocalPart()) {
-                        case SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT:
-                            writer.add(event);
 
-                            event = (XMLEvent) reader.next();
-                            writer.add(event);
-                            // list of rules
-                            if (event.isCharacters()) {
-                                rulesToApply = Sets
-                                    .newHashSet(Splitter.on(SedaConstants.RULE_SEPARATOR)
-                                        .split(event.asCharacters().getData()));
-                                if (rulesToApply == null || rulesToApply.isEmpty()) {
-                                    LOGGER.debug(AU_NOT_HAVE_RULES);
+            // Archive unit nodes
+            JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
+            JsonNode archiveUnitNode = archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
+            JsonNode workNode = archiveUnit.get(SedaConstants.PREFIX_WORK);
+            JsonNode managementNode = archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
 
-                                    if (!fileWithEndDate.delete()) {
-                                        LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-                                    }
-                                    return;
-                                }
+            // temp data
+            JsonNode rulesResults = null;
 
-                                // search ref rules
-                                rulesResults = findRulesValueQueryBuilders(rulesToApply);
-                                LOGGER.debug("rulesResults for archive unit id: " + objectName +
-                                    " && containerName is :" + containerName + " is :" + rulesResults);
-                            }
-                            // end of list
-                            event = (XMLEvent) reader.next();
-                            writer.add(event);
-                            break;
-                        case SedaConstants.TAG_RULE_ACCESS:
-                        case SedaConstants.TAG_RULE_REUSE:
-                        case SedaConstants.TAG_RULE_STORAGE:
-                        case SedaConstants.TAG_RULE_APPRAISAL:
-                        case SedaConstants.TAG_RULE_CLASSIFICATION:
-                        case SedaConstants.TAG_RULE_DISSEMINATION: {
-                            writer.add(event);
-                            String ruleId = "";
-                            String startDate = "";
-                            Date endDateAsString = null;
-                            String currentRuleType = event.asStartElement().getName().getLocalPart();
-
-                            boolean isNotEndRuleTag = true;
-                            while (isNotEndRuleTag) {
-                                event = reader.nextEvent();
-                                if (event.isStartElement()) {
-                                    switch (event.asStartElement().getName().getLocalPart()) {
-                                        case SedaConstants.TAG_RULE_RULE:
-                                            writer.add(event);
-                                            event = (XMLEvent) reader.next();
-                                            writer.add(event);
-                                            if (event.isCharacters()) {
-                                                ruleId = event.asCharacters().getData();
-                                            }
-                                            event = (XMLEvent) reader.next();
-                                            writer.add(event);
-                                            break;
-                                        case SedaConstants.TAG_RULE_START_DATE:
-                                            writer.add(event);
-                                            event = (XMLEvent) reader.next();
-                                            writer.add(event);
-                                            if (event.isCharacters()) {
-                                                startDate = event.asCharacters().getData();
-                                            }
-                                            event = (XMLEvent) reader.next();
-                                            writer.add(event);
-                                            // add End date
-                                            endDateAsString =
-                                                getEndDate(startDate, ruleId, rulesResults, currentRuleType);
-
-                                            if (endDateAsString != null) {
-                                                writer.add(eventFactory.createStartElement("", "",
-                                                    SedaConstants.TAG_RULE_END_DATE));
-                                                writer.add(eventFactory
-                                                    .createCharacters(SIMPLE_DATE_FORMAT.format(endDateAsString)));
-                                                writer.add(eventFactory.createEndElement("", "",
-                                                    SedaConstants.TAG_RULE_END_DATE));
-                                            }
-                                            break;
-
-                                        default:
-                                            writer.add(event);
-                                    }
-
-
-                                } else if (event.isEndElement()) {
-                                    switch (event.asEndElement().getName()
-                                        .getLocalPart()) {
-                                        case SedaConstants.TAG_RULE_ACCESS:
-                                        case SedaConstants.TAG_RULE_REUSE:
-                                        case SedaConstants.TAG_RULE_STORAGE:
-                                        case SedaConstants.TAG_RULE_APPRAISAL:
-                                        case SedaConstants.TAG_RULE_CLASSIFICATION:
-                                        case SedaConstants.TAG_RULE_DISSEMINATION: {
-                                            isNotEndRuleTag = false;
-                                            writer.add(event);
-                                            break;
-                                        }
-                                        default:
-                                            writer.add(event);
-                                    }
-                                } else {
-                                    writer.add(event);
-                                }
-                            }
-                            // break supported rule
-                            break;
-                        }
-
-                        default:
-                            writer.add(event);
+            // rules to apply
+            Set<String> rulesToApply = new HashSet<>();
+            if (workNode.get(SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT) != null) {
+                if (workNode.get(SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT).isArray()) {
+                    // FIXME replace with always real arrayNode
+                    ArrayNode rulesToApplyArray =
+                        (ArrayNode) workNode.get(SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT);
+                    if (rulesToApplyArray.size() > 0) {
+                        rulesToApply = Sets
+                            .newHashSet(Splitter.on(SedaConstants.RULE_SEPARATOR)
+                                .split(rulesToApplyArray.iterator().next().asText()));
                     }
-
-                } else if (event.isEndElement()) {
-
-                    if (IngestWorkflowConstants.ROOT_TAG.equals(event.asEndElement().getName().getLocalPart())) {
-                        writer.add(event);
-                        break;
-                    }
-
-                    writer.add(event);
-
                 } else {
-                    writer.add(event);
+                    rulesToApply = Sets
+                        .newHashSet(Splitter.on(SedaConstants.RULE_SEPARATOR)
+                            .split(workNode.get(SedaConstants.TAG_RULE_APPLING_TO_ROOT_ARCHIVE_UNIT).asText()));
                 }
             }
+            if (rulesToApply == null || rulesToApply.isEmpty()) {
+                LOGGER.debug(AU_NOT_HAVE_RULES);
+                return;
+            }
 
-        } catch (final Exception e) {
+            // search ref rules
+            rulesResults = findRulesValueQueryBuilders(rulesToApply);
+            LOGGER.debug("rulesResults for archive unit id: " + objectName +
+                " && containerName is :" + containerName + " is :" + rulesResults);
+
+            // update all rules
+            for (String ruleType : SedaConstants.getSupportedRules()) {
+                JsonNode ruleTypeNode = managementNode.get(ruleType);
+                if (ruleTypeNode == null || ruleTypeNode.size() == 0 ||
+                    ruleTypeNode.findValues(SedaConstants.TAG_RULE_RULE).size() == 0) {
+                    LOGGER.debug("no rules of type " + ruleType + " found");
+                    continue;
+                }
+                if (ruleTypeNode.isArray()) {
+                    ArrayNode ruleNodes = (ArrayNode) ruleTypeNode;
+                    for (JsonNode ruleNode : ruleNodes) {
+                        computeRuleNode((ObjectNode) ruleNode, rulesResults, ruleType);
+                    }
+                } else {
+                    LOGGER.debug("ruleTypeNode of type " + ruleType + " should be an array");
+                    throw new ProcessingException("ruleTypeNode should be an array");
+                }
+
+            }
+            JsonHandler.writeAsFile(archiveUnit, fileWithEndDate);
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | FileRulesException |
+            ParseException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final XMLStreamException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-            }
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (final XMLStreamException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-            }
         }
 
         // Write to workspace
@@ -374,19 +269,46 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
     }
 
+    /**
+     * Compute enddate for rule node
+     * 
+     * @param ruleNode current ruleNode from archive unit
+     * @param rulesResults rules referential
+     * @param ruleType current rule type
+     * @throws FileRulesException
+     * @throws InvalidParseOperationException
+     * @throws ProcessingException
+     * @throws ParseException
+     */
+    private void computeRuleNode(ObjectNode ruleNode, JsonNode rulesResults, String ruleType)
+        throws FileRulesException, InvalidParseOperationException, ProcessingException, ParseException {
+        String ruleId = ruleNode.get(SedaConstants.TAG_RULE_RULE).asText();
+        String startDate = "";
+        if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
+            startDate = ruleNode.get(SedaConstants.TAG_RULE_START_DATE).asText();
+        }
+        Date endDateAsString = getEndDate(startDate, ruleId, rulesResults, ruleType);
+        if (endDateAsString != null) {
+            ruleNode.put(SedaConstants.TAG_RULE_END_DATE, SIMPLE_DATE_FORMAT.format(endDateAsString));
+        }
+
+    }
+
+
     private JsonNode getRuleNodeByID(String ruleId, String ruleType, JsonNode jsonResult) {
-        if (jsonResult != null) {
+        if (jsonResult != null && !StringUtils.isBlank(ruleId) && !StringUtils.isBlank(ruleType)) {
             final ArrayNode rulesResult = (ArrayNode) jsonResult.get("$results");
             for (final JsonNode rule : rulesResult) {
-                final String ruleIdFromList = rule.get(FileRules.RULEID).asText();
-                final String ruleTypeFromList = rule.get(FileRules.RULETYPE).asText();
-                if (!StringUtils.isBlank(ruleId) && !StringUtils.isBlank(ruleType) && ruleId.equals(ruleIdFromList) &&
-                    ruleType.equals(ruleTypeFromList)) {
-                    return rule;
+                if (rule.get(FileRules.RULEID) != null && rule.get(FileRules.RULETYPE) != null) {
+                    final String ruleIdFromList = rule.get(FileRules.RULEID).asText();
+                    final String ruleTypeFromList = rule.get(FileRules.RULETYPE).asText();
+                    if (ruleId.equals(ruleIdFromList) && ruleType.equals(ruleTypeFromList)) {
+                        return rule;
+                    }
                 }
             }
         }
-        return JsonHandler.createObjectNode();
+        return null;
     }
 
     private Date getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType)

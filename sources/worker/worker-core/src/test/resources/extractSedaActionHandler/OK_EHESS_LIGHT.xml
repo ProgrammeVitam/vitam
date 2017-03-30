@@ -1,0 +1,1378 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 file:/Z:/espacePOBA/SEDA/Version_definitive_publiee/seda-2.0-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:pr="info:lc/xmlns/premis-v2" xml:id="ID1">
+    <Comment>2eme SIP</Comment>
+    <Date>2016-10-11T17:38:40</Date>
+    <MessageIdentifier>Archives versées par l'EHESS</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID9">
+            <DataObjectGroupId>ID8</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID9.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >f5d6880f323e5aa73a95cece09a66fed2ca462c60690acdbf438216981d5c7f0c6f16e879c07199bb2a45a64f73fa6466d43296e18bb3e68123a7df9a6ad97b0</MessageDigest>
+            <Size>524372</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>introduction au seda.pdf</Filename>
+                <LastModified>2015-12-04T09:02:25.713+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID13">
+            <DataObjectGroupId>ID12</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID13.xls</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >91805b760d9a54b7b8548f1eade72f2f9b9c84655332baf0bfa7b1a2511bdf3421e155b0f7901f56e79c251ad6600d796d6df96cb20062150ead6e7bf790d5e6</MessageDigest>
+            <Size>82432</Size>
+            <FormatIdentification>
+                <FormatLitteral>Microsoft Excel 97 Workbook (xls)</FormatLitteral>
+                <MimeType>application/vnd.ms-excel</MimeType>
+                <FormatId>fmt/61</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>schema_forme_tableau.xls</Filename>
+                <LastModified>2015-03-25T11:59:00.000+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID17">
+            <DataObjectGroupId>ID16</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID17.xls</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >d5afb693ad60b1990e3f8e646203e9c9e8823de7f7a1efda58e4bb1c70791a8b8a71d0d126ae16742c03e8db3995519ba64f88af0c60e9180881b4007e1c5c2a</MessageDigest>
+            <Size>74752</Size>
+            <FormatIdentification>
+                <FormatLitteral>Microsoft Excel 97 Workbook (xls)</FormatLitteral>
+                <MimeType>application/vnd.ms-excel</MimeType>
+                <FormatId>fmt/61</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>schema_forme_tableau_def.xls</Filename>
+                <LastModified>2016-06-22T13:53:52.276+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID23">
+            <DataObjectGroupId>ID22</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID23.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >808fabdf2c4a460b4d9494e288fa147279a20f7e0c7cb94ed7f7fa1f38d0603f3f3aa838007331a61c399e34ac26d1184641b57ff79ba68d7f8c8617097ffb9a</MessageDigest>
+            <Size>64785</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Note sur le story message d'erreur.odt</Filename>
+                <LastModified>2016-09-28T17:57:42.728+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID29">
+            <DataObjectGroupId>ID28</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID29.csv</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >f5f73af6569ab4616d4ed24cb68dd04953bc50ce3c5d418ef0c6ce1a00fc0883cc3f487617eb4c2db5c160e18be76e1e351bd10d608b5f7dc4c5cadae44d8811</MessageDigest>
+            <Size>5363</Size>
+            <FormatIdentification>
+                <FormatLitteral>Comma Separated Values</FormatLitteral>
+                <MimeType>text/csv</MimeType>
+                <FormatId>x-fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>jeu_donnees_OK_regles_CSV.csv</Filename>
+                <LastModified>2016-09-22T17:48:31.868+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID35">
+            <DataObjectGroupId>ID34</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID35.xml</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >2fef613bf96e3832b0afa16cff8d856941d6612ca7f923c8e6ce5918882aa59b3e3cf01938270a0fd8f03dc5276df08b5886dc67ca39eb6863be5a551387cbcc</MessageDigest>
+            <Size>2036245</Size>
+            <FormatIdentification>
+                <FormatLitteral>DROID Signature File Format</FormatLitteral>
+                <MimeType>text/xml</MimeType>
+                <FormatId>fmt/121</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>DROID_SignatureFile_V86.xml</Filename>
+                <LastModified>2016-09-15T17:32:21.295+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID41">
+            <DataObjectGroupId>ID40</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID41.ods</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >4b17aca3289564b5449c8535eb5e6edd6a5dbe47ab27f7710488d3b57afef2632dabd65258adf37878d913acb3ef0d2cfcfe9558ba539d3e372758d536794ca3</MessageDigest>
+            <Size>31029</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20160916_NP_Vitam_beta-IT08-recette-repartition-travail.ods</Filename>
+                <LastModified>2016-09-16T09:30:03.647+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID47">
+            <DataObjectGroupId>ID46</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID47.xml</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >01898c677ade183c0b0f23c465c48c138e42405ed0b819c54d550a63961c0fcec43ef58c0b5d30fbcc413c1740b0c42e4de3c051fb2dfed600f3dd6025256ee0</MessageDigest>
+            <Size>1585032</Size>
+            <FormatIdentification>
+                <FormatLitteral>DROID Signature File Format</FormatLitteral>
+                <MimeType>text/xml</MimeType>
+                <FormatId>fmt/121</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>DROID_SignatureFile_V70.xml</Filename>
+                <LastModified>2016-09-15T17:32:29.441+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID51">
+            <DataObjectGroupId>ID50</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID51.xml</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >2fef613bf96e3832b0afa16cff8d856941d6612ca7f923c8e6ce5918882aa59b3e3cf01938270a0fd8f03dc5276df08b5886dc67ca39eb6863be5a551387cbcc</MessageDigest>
+            <Size>2036245</Size>
+            <FormatIdentification>
+                <FormatLitteral>DROID Signature File Format</FormatLitteral>
+                <MimeType>text/xml</MimeType>
+                <FormatId>fmt/121</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>DROID_SignatureFile_V86.xml</Filename>
+                <LastModified>2016-09-15T17:32:21.295+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID59">
+            <DataObjectGroupId>ID58</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID59.odp</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >310ead2d7191f7837be10801269a156fd431f23ab125564ff9cf26dd7341caa6cad0fe5d0a3ca0f86d9b610697a140280b6f1f3103969bc6fb0cad9d0f14487f</MessageDigest>
+            <Size>1723544</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>20161003_NP_Vitam_beta-IT10-grooming2 -v3.odp</Filename>
+                <LastModified>2016-10-04T10:27:10.848+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID63">
+            <DataObjectGroupId>ID62</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID63.txt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >2f3f5784f146e3bfd68663c8a882586f62f8d973de8fa308784e4a845c8df389949260f4aae2c457fe87a5f5462965aaa339474e2982f98bfe6db19e0bb601b1</MessageDigest>
+            <Size>29</Size>
+            <FormatIdentification>
+                <FormatLitteral>Plain Text File</FormatLitteral>
+                <MimeType>text/plain</MimeType>
+                <FormatId>x-fmt/111</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Espace public et modes de vie.txt</Filename>
+                <LastModified>2016-10-11T15:44:09.439+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID67">
+            <DataObjectGroupId>ID66</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID67.ods</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >a91d85d3d47a1f55ad978bc41044165008092b3e5566413c72a75a691540569323ce842cef5acb6dff86c5edc316f448f43e54f2ff0e5d89fde2150e021fae28</MessageDigest>
+            <Size>10613</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Formes d’expression publique, internet et réseaux sociaux.ods</Filename>
+                <LastModified>2016-10-11T15:44:58.265+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID71">
+            <DataObjectGroupId>ID70</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID71.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >2cf3d631db3658e764e991b652a5d95ccadb57ca1ad2804e0cf22f8af0e9cf01307da8ac215c8f6a7642e49be079323e37a19ef509d35143f5ae5f155fa4e60a</MessageDigest>
+            <Size>10644</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Formuler des revendications pour la démocratie.odt</Filename>
+                <LastModified>2016-10-11T15:43:38.246+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID77">
+            <DataObjectGroupId>ID76</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID77.odp</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >a02ed1034eb7552dff7a8e1ceb75e94725d8c14d4ac9d9874e1922887f0bef348f73eebbfa0c8ba4932833f8481aec38e87bf7b30a16a0b654e76a35dafc061e</MessageDigest>
+            <Size>20407</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Mémoire, histoire et identités.odp</Filename>
+                <LastModified>2016-10-11T15:52:31.175+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID81">
+            <DataObjectGroupId>ID80</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID81.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >240c84e9fc8b3d493247ccb8627bf52b444ebc4f1b6a96e9ce61f3641b3fbf5b7c961f21535703a445c40ae24e4dfe24220440e8d9cf3a49c01d9d99cb4be5a3</MessageDigest>
+            <Size>10083</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Mémoire, histoire et identités.odt</Filename>
+                <LastModified>2016-10-11T15:52:01.537+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID85">
+            <DataObjectGroupId>ID84</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID85.odp</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >b6c74d42bf5c20735a5167a0a4591ca590a8767a02939e62bdf5ee8d787caa47b955213c45be33de510b634350036558c94812b0a8be18cbf8b4dd3177e13213</MessageDigest>
+            <Size>17609</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Violence et silence.odp</Filename>
+                <LastModified>2016-10-11T15:51:18.597+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID89">
+            <DataObjectGroupId>ID88</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID89.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >0e82389f29e742b621f49559430f88fc7e498b3058a81a9acd434b973b5fb21d6bc023507abdb7cdc6de269953f2e15899b8cfb70bb11610b3536190d4ac24fe</MessageDigest>
+            <Size>9588</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Violence et silence.odt</Filename>
+                <LastModified>2016-10-11T15:48:50.556+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID95">
+            <DataObjectGroupId>ID94</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID95.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >4c95a53fa2de1120a5db3cd40bb1e75d20e2b6ae1bf3d938258660a6d6621e58d4c93b3889d96d9db79387dc205c1a242cf3963369a3c1b83df55ac699388263</MessageDigest>
+            <Size>10530</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Espace public démocratique et information.odt</Filename>
+                <LastModified>2016-10-11T15:40:26.411+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID99">
+            <DataObjectGroupId>ID98</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID99.ods</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >cbef81b2a48b286ca541e2624c9ae79b52aa3ba887ca992a0a4da1b31685aaa511caf607aa145ffad0971ea92a719f35a4ca6dcc744f069e96ba64e7025c03f2</MessageDigest>
+            <Size>10298</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Les conditions de formation du jugement critique.ods</Filename>
+                <LastModified>2016-10-11T15:41:14.678+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID103">
+            <DataObjectGroupId>ID102</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID103.odp</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >286e3468954393e9b5c60a4a9c72aacaae62b3cb2f3f7fa8fb42085a77c8c1e87ec18775fa0d6e0207dcc779a5365796db2014a9665e567fb56f4349a82c33c0</MessageDigest>
+            <Size>19970</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Travail, politiques sociales.odp</Filename>
+                <LastModified>2016-10-11T15:42:26.692+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID109">
+            <DataObjectGroupId>ID108</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID109.ods</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >d23f51addca2b177ad0feab3c1752c47281d457511f3c2fd19f22c7c31ae05850a26757e82823574de2ce99ee1bdf673ba8745d9fa3feadf6b850a23e3d87191</MessageDigest>
+            <Size>112797</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Tableau ordonnancement_V0.9.1.ods</Filename>
+                <LastModified>2016-10-06T18:02:53.008+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID113">
+            <DataObjectGroupId>ID112</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID113.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >f56f808aefbff6fab4c76574b6f99c97169fd3723d14747a583f9fc3a40500d87aa11c1c4e056acf91be7df64e8cf699f9e91c0ef9b60eb50e6148e404679302</MessageDigest>
+            <Size>33022</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Traduction.odt</Filename>
+                <LastModified>2016-09-15T11:34:42.653+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID125">
+            <DataObjectGroupId>ID124</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID125.jpg</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >a248e78c0e4466273caccffbd0298cb04af627b01c9ce1573b4cdb425417cb72dd618743d8f188e1c60a41a3db52da650c5b86d92e7661e15a29594049c0b689</MessageDigest>
+            <Size>5653</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Photo séminaire.jpg</Filename>
+                <LastModified>2016-09-22T16:27:31.196+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID129">
+            <DataObjectGroupId>ID128</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID129.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >ecfababa12c3c040139798da39484cf81897b78c2dbb325647ec6961b822f50c59f0dc7b424e4581ed2c03ff7bfd6111699d2a180d936bfaef01cf28996a4440</MessageDigest>
+            <Size>145983</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/19</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Revue Internationale .pdf</Filename>
+                <LastModified>2016-09-22T12:34:26.180+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID133">
+            <DataObjectGroupId>ID132</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID133.odt</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >76ccfa55837f557d179440286d417797465da4b62dac9a63f31f2c2a50e6620d615533b80b0b46cba26bad1fc9f0c48a56a00ee5e96d14a34b7c0822768450c2</MessageDigest>
+            <Size>52272</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Text</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.text</MimeType>
+                <FormatId>fmt/291</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>VIEILLESSES ET VIEILLISSE.odt</Filename>
+                <LastModified>2016-09-22T16:41:04.803+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID137">
+            <DataObjectGroupId>ID136</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID137.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >44affcbf4493b9107b84683b4f6b0f401f8d69c253c0edd109d3402ed6c63f49351a78eb2fc724308e05ceab73333ef92b70d727761f8f4657696e8dddb60cd0</MessageDigest>
+            <Size>285736</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/19</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>VIEILLESSES ET VIEILLISSE.pdf</Filename>
+                <LastModified>2016-09-22T12:33:02.684+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID143">
+            <DataObjectGroupId>ID142</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID143.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >fd82abf88a841fe83e5fe5521e44ff4c58b14ea88293ce3f4e8c1801eb29f3cac3acabdfca267a6f5fda7179cdb07b4c7d3fd2fa89c896ba5717ac5520ce65bf</MessageDigest>
+            <Size>3153670</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.6 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/20</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Thèse de DUPONT Jacques.pdf</Filename>
+                <LastModified>2016-09-22T16:08:13.082+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID147">
+            <DataObjectGroupId>ID146</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID147.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >1d57ec2f3151ff035f40f77a4694a0d594193152dbe10fe280be7afb9c3d997bade138b443bebe1777f82c3515fe8488cd4834fd0545e7e2ab4e8e70513bc9bf</MessageDigest>
+            <Size>189150</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/19</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Thèse de Marie DUVAL.pdf</Filename>
+                <LastModified>2016-09-22T16:23:40.133+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID153">
+            <DataObjectGroupId>ID152</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID153.ods</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >07f173408ed97cc4782d0e010a7404136ae49e3688c750889a8bb5320bcc0fadb1c287172beee1b9e971d4b53349581844424eae628bf6bd555ec5c9ae4486a2</MessageDigest>
+            <Size>32128</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>journaux_10777.ods</Filename>
+                <LastModified>2016-10-03T10:24:48.309+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID157">
+            <DataObjectGroupId>ID156</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID157.ods</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >0b062c8aca5ac939639d60549f57103d953037fe0f647b9d3259fa49e4ebed27c391842d1506534b7d5ad15d8bcdad55cba87529d98208b9d040118b955a942c</MessageDigest>
+            <Size>38554</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Spreadsheet</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.spreadsheet</MimeType>
+                <FormatId>fmt/295</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>journaux_878_v6.ods</Filename>
+                <LastModified>2016-09-30T11:56:59.155+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID163">
+            <DataObjectGroupId>ID162</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID163.jpg</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >083acf07bcf625cefa07c1255ef6e0487abc65216383a007868fc143ea46f732dfbd1dd452a1795d009591ac01136fe3bd643af4e735b6f2ebf4f0216580f6eb</MessageDigest>
+            <Size>19099</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>0-0-0.jpg</Filename>
+                <LastModified>2015-06-19T20:00:20.000+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Ecole des Hautes Etudes en Sciences Sociales</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales</Description>
+                    <StartDate>2015-03-25T11:59:00</StartDate>
+                    <EndDate>2016-10-11T15:52:31</EndDate>
+                </Content>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID55">
+                    <ArchiveUnitRefId>ID54</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Centre d'analyse et de mathématique sociales</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales</Description>
+                    <StartDate>2015-03-25T11:59:00</StartDate>
+                    <EndDate>2016-09-28T17:57:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID7">
+                    <ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID21">
+                    <ArchiveUnitRefId>ID20</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID27">
+                    <ArchiveUnitRefId>ID26</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID33">
+                    <ArchiveUnitRefId>ID32</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID39">
+                    <ArchiveUnitRefId>ID38</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID45">
+                    <ArchiveUnitRefId>ID44</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID6">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Analyse, équations aux dérivées partielles non linéaires</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales\Analyse, équations aux
+                        dérivées partielles non linéaires</Description>
+                    <StartDate>2015-03-25T11:59:00</StartDate>
+                    <EndDate>2016-06-22T13:53:52</EndDate>
+                </Content>
+                <ArchiveUnit id="ID11">
+                    <ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID15">
+                    <ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID19">
+                    <ArchiveUnitRefId>ID18</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID10">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>introduction au seda.pdf</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Analyse, équations aux dérivées partielles non
+                        linéaires\introduction au seda.pdf</Description>
+                    <TransactedDate>2015-12-04T09:02:25</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID8</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID14">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>schema_forme_tableau.xls</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Analyse, équations aux dérivées partielles non
+                        linéaires\schema_forme_tableau.xls</Description>
+                    <TransactedDate>2015-03-25T11:59:00</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID18">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>schema_forme_tableau_def.xls</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Analyse, équations aux dérivées partielles non
+                        linéaires\schema_forme_tableau_def.xls</Description>
+                    <TransactedDate>2016-06-22T13:53:52</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID16</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID20">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Espaces géographiques et Traitement d'images - Plateforme
+                        géospatiale</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales\Espaces géographiques
+                        et Traitement d'images - Plateforme géospatiale</Description>
+                    <StartDate>2016-09-28T17:57:42</StartDate>
+                    <EndDate>2016-09-28T17:57:42</EndDate>
+                </Content>
+                <ArchiveUnit id="ID25">
+                    <ArchiveUnitRefId>ID24</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID24">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Note sur le story message d'erreur.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Espaces géographiques et Traitement d'images - Plateforme
+                        géospatiale\Note sur le story message d'erreur.odt</Description>
+                    <TransactedDate>2016-09-28T17:57:42</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID22</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID26">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Histoire des mathématiques et épistémologie</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales\Histoire des
+                        mathématiques et épistémologie</Description>
+                    <StartDate>2016-09-22T17:48:31</StartDate>
+                    <EndDate>2016-09-22T17:48:31</EndDate>
+                </Content>
+                <ArchiveUnit id="ID31">
+                    <ArchiveUnitRefId>ID30</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID30">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>jeu_donnees_OK_regles_CSV.csv</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Histoire des mathématiques et
+                        épistémologie\jeu_donnees_OK_regles_CSV.csv</Description>
+                    <TransactedDate>2016-09-22T17:48:31</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID28</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID32">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Mathématiques discrètes et Traitement des données</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales\Mathématiques
+                        discrètes et Traitement des données</Description>
+                    <StartDate>2016-09-15T17:32:21</StartDate>
+                    <EndDate>2016-09-15T17:32:21</EndDate>
+                </Content>
+                <ArchiveUnit id="ID37">
+                    <ArchiveUnitRefId>ID36</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID36">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>DROID_SignatureFile_V86.xml</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Mathématiques discrètes et Traitement des
+                        données\DROID_SignatureFile_V86.xml</Description>
+                    <TransactedDate>2016-09-15T17:32:21</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID34</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID38">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Modélisation et systèmes complexes</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales\Modélisation et
+                        systèmes complexes</Description>
+                    <StartDate>2016-09-16T09:30:03</StartDate>
+                    <EndDate>2016-09-16T09:30:03</EndDate>
+                </Content>
+                <ArchiveUnit id="ID43">
+                    <ArchiveUnitRefId>ID42</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID42">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20160916_NP_Vitam_beta-IT08-recette-repartition-travail.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Modélisation et systèmes
+                        complexes\20160916_NP_Vitam_beta-IT08-recette-repartition-travail.ods</Description>
+                    <TransactedDate>2016-09-16T09:30:03</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID40</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID44">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Systèmes dynamiques et Populations</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centre d'analyse et de mathématique sociales\Systèmes dynamiques et
+                        Populations</Description>
+                    <StartDate>2016-09-15T17:32:21</StartDate>
+                    <EndDate>2016-09-15T17:32:29</EndDate>
+                </Content>
+                <ArchiveUnit id="ID49">
+                    <ArchiveUnitRefId>ID48</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID53">
+                    <ArchiveUnitRefId>ID52</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID48">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>DROID_SignatureFile_V70.xml</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Systèmes dynamiques et
+                        Populations\DROID_SignatureFile_V70.xml</Description>
+                    <TransactedDate>2016-09-15T17:32:29</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID46</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID52">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>DROID_SignatureFile_V86.xml</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centre d'analyse et de mathématique
+                        sociales\Systèmes dynamiques et
+                        Populations\DROID_SignatureFile_V86.xml</Description>
+                    <TransactedDate>2016-09-15T17:32:21</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID50</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID54">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Centres d'Etudes des Mouvements Sociaux</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux</Description>
+                    <StartDate>2015-06-19T20:00:20</StartDate>
+                    <EndDate>2016-10-11T15:52:31</EndDate>
+                </Content>
+                <ArchiveUnit id="ID57">
+                    <ArchiveUnitRefId>ID56</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID75">
+                    <ArchiveUnitRefId>ID74</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID93">
+                    <ArchiveUnitRefId>ID92</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID107">
+                    <ArchiveUnitRefId>ID106</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID117">
+                    <ArchiveUnitRefId>ID116</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID161">
+                    <ArchiveUnitRefId>ID160</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID56">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Les formes ordinaires d’expression du politique</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Les formes ordinaires
+                        d’expression du politique</Description>
+                    <StartDate>2016-10-04T10:27:10</StartDate>
+                    <EndDate>2016-10-11T15:44:58</EndDate>
+                </Content>
+                <ArchiveUnit id="ID61">
+                    <ArchiveUnitRefId>ID60</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID65">
+                    <ArchiveUnitRefId>ID64</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID69">
+                    <ArchiveUnitRefId>ID68</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID73">
+                    <ArchiveUnitRefId>ID72</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID60">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>20161003_NP_Vitam_beta-IT10-grooming2 -v3.odp</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Les formes ordinaires d’expression du
+                        politique\20161003_NP_Vitam_beta-IT10-grooming2 -v3.odp</Description>
+                    <TransactedDate>2016-10-04T10:27:10</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID58</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID64">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Espace public et modes de vie.txt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Les formes ordinaires d’expression du politique\Espace public et
+                        modes de vie.txt</Description>
+                    <TransactedDate>2016-10-11T15:44:09</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID62</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID68">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Formes d’expression publique, internet et réseaux sociaux.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Les formes ordinaires d’expression du politique\Formes d’expression
+                        publique, internet et réseaux sociaux.ods</Description>
+                    <TransactedDate>2016-10-11T15:44:58</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID66</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID72">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Formuler des revendications pour la démocratie.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Les formes ordinaires d’expression du politique\Formuler des
+                        revendications pour la démocratie.odt</Description>
+                    <TransactedDate>2016-10-11T15:43:38</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID70</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID74">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>L’espace public démocratique et ses fractures</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\L’espace public
+                        démocratique et ses fractures</Description>
+                    <StartDate>2016-10-11T15:48:50</StartDate>
+                    <EndDate>2016-10-11T15:52:31</EndDate>
+                </Content>
+                <ArchiveUnit id="ID79">
+                    <ArchiveUnitRefId>ID78</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID83">
+                    <ArchiveUnitRefId>ID82</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID87">
+                    <ArchiveUnitRefId>ID86</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID91">
+                    <ArchiveUnitRefId>ID90</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID78">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Mémoire, histoire et identités.odp</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\L’espace public démocratique et ses fractures\Mémoire, histoire et
+                        identités.odp</Description>
+                    <TransactedDate>2016-10-11T15:52:31</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID76</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID82">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Mémoire, histoire et identités.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\L’espace public démocratique et ses fractures\Mémoire, histoire et
+                        identités.odt</Description>
+                    <TransactedDate>2016-10-11T15:52:01</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID80</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID86">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Violence et silence.odp</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\L’espace public démocratique et ses fractures\Violence et
+                        silence.odp</Description>
+                    <TransactedDate>2016-10-11T15:51:18</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID84</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID90">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Violence et silence.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\L’espace public démocratique et ses fractures\Violence et
+                        silence.odt</Description>
+                    <TransactedDate>2016-10-11T15:48:50</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID88</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID92">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Mouvements sociaux et espace démacratique</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Mouvements sociaux et
+                        espace démacratique</Description>
+                    <StartDate>2016-10-11T15:40:26</StartDate>
+                    <EndDate>2016-10-11T15:42:26</EndDate>
+                </Content>
+                <ArchiveUnit id="ID97">
+                    <ArchiveUnitRefId>ID96</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID101">
+                    <ArchiveUnitRefId>ID100</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID105">
+                    <ArchiveUnitRefId>ID104</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID96">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Espace public démocratique et information.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Mouvements sociaux et espace démacratique\Espace public démocratique
+                        et information.odt</Description>
+                    <TransactedDate>2016-10-11T15:40:26</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID94</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID100">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Les conditions de formation du jugement critique.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Mouvements sociaux et espace démacratique\Les conditions de
+                        formation du jugement critique.ods</Description>
+                    <TransactedDate>2016-10-11T15:41:14</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID98</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID104">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Travail, politiques sociales.odp</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Mouvements sociaux et espace démacratique\Travail, politiques
+                        sociales.odp</Description>
+                    <TransactedDate>2016-10-11T15:42:26</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID102</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID106">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Médias et changement social</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Médias et changement
+                        social</Description>
+                    <StartDate>2016-09-15T11:34:42</StartDate>
+                    <EndDate>2016-10-06T18:02:53</EndDate>
+                </Content>
+                <ArchiveUnit id="ID111">
+                    <ArchiveUnitRefId>ID110</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID115">
+                    <ArchiveUnitRefId>ID114</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID110">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Tableau ordonnancement_V0.9.1.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Médias et changement social\Tableau
+                        ordonnancement_V0.9.1.ods</Description>
+                    <TransactedDate>2016-10-06T18:02:53</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID108</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID114">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Traduction.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Médias et changement social\Traduction.odt</Description>
+                    <TransactedDate>2016-09-15T11:34:42</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID112</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID116">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Sociologie du Vieillissement</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Sociologie du
+                        Vieillissement</Description>
+                    <StartDate>2016-09-22T12:33:02</StartDate>
+                    <EndDate>2016-10-03T10:24:48</EndDate>
+                </Content>
+                <ArchiveUnit id="ID119">
+                    <ArchiveUnitRefId>ID118</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID151">
+                    <ArchiveUnitRefId>ID150</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID118">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Enseignement de A-M Guillemard</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Sociologie du
+                        Vieillissement\Enseignement de A-M Guillemard</Description>
+                    <StartDate>2016-09-22T12:33:02</StartDate>
+                    <EndDate>2016-09-22T16:41:04</EndDate>
+                </Content>
+                <ArchiveUnit id="ID121">
+                    <ArchiveUnitRefId>ID120</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID141">
+                    <ArchiveUnitRefId>ID140</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID120">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Séminaires, Colloques</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Sociologie du
+                        Vieillissement\Enseignement de A-M Guillemard\Séminaires,
+                        Colloques</Description>
+                    <StartDate>2016-09-22T12:33:02</StartDate>
+                    <EndDate>2016-09-22T16:41:04</EndDate>
+                </Content>
+                <ArchiveUnit id="ID123">
+                    <ArchiveUnitRefId>ID122</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID122">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Cultures et Comportements Sociaux</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Sociologie du
+                        Vieillissement\Enseignement de A-M Guillemard\Séminaires, Colloques\Cultures
+                        et Comportements Sociaux</Description>
+                    <StartDate>2016-09-22T12:33:02</StartDate>
+                    <EndDate>2016-09-22T16:41:04</EndDate>
+                </Content>
+                <ArchiveUnit id="ID127">
+                    <ArchiveUnitRefId>ID126</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID131">
+                    <ArchiveUnitRefId>ID130</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID135">
+                    <ArchiveUnitRefId>ID134</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID139">
+                    <ArchiveUnitRefId>ID138</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID126">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Photo séminaire.jpg</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A-M
+                        Guillemard\Séminaires, Colloques\Cultures et Comportements Sociaux\Photo
+                        séminaire.jpg</Description>
+                    <TransactedDate>2016-09-22T16:27:31</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID124</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID130">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Revue Internationale .pdf</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A-M
+                        Guillemard\Séminaires, Colloques\Cultures et Comportements Sociaux\Revue
+                        Internationale .pdf</Description>
+                    <TransactedDate>2016-09-22T12:34:26</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID128</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID134">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>VIEILLESSES ET VIEILLISSE.odt</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A-M
+                        Guillemard\Séminaires, Colloques\Cultures et Comportements
+                        Sociaux\VIEILLESSES ET VIEILLISSE.odt</Description>
+                    <TransactedDate>2016-09-22T16:41:04</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID132</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID138">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>VIEILLESSES ET VIEILLISSE.pdf</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A-M
+                        Guillemard\Séminaires, Colloques\Cultures et Comportements
+                        Sociaux\VIEILLESSES ET VIEILLISSE.pdf</Description>
+                    <TransactedDate>2016-09-22T12:33:02</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID136</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID140">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Thèse étudiants</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Sociologie du
+                        Vieillissement\Enseignement de A-M Guillemard\Thèse étudiants</Description>
+                    <StartDate>2016-09-22T16:08:13</StartDate>
+                    <EndDate>2016-09-22T16:23:40</EndDate>
+                </Content>
+                <ArchiveUnit id="ID145">
+                    <ArchiveUnitRefId>ID144</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID149">
+                    <ArchiveUnitRefId>ID148</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID144">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Thèse de DUPONT Jacques.pdf</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A-M Guillemard\Thèse
+                        étudiants\Thèse de DUPONT Jacques.pdf</Description>
+                    <TransactedDate>2016-09-22T16:08:13</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID142</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID148">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Thèse de Marie DUVAL.pdf</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A-M Guillemard\Thèse
+                        étudiants\Thèse de Marie DUVAL.pdf</Description>
+                    <TransactedDate>2016-09-22T16:23:40</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID146</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID150">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Enseignement de A. Touraine</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Sociologie du
+                        Vieillissement\Enseignement de A. Touraine</Description>
+                    <StartDate>2016-09-30T11:56:59</StartDate>
+                    <EndDate>2016-10-03T10:24:48</EndDate>
+                </Content>
+                <ArchiveUnit id="ID155">
+                    <ArchiveUnitRefId>ID154</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID159">
+                    <ArchiveUnitRefId>ID158</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID154">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>journaux_10777.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A.
+                        Touraine\journaux_10777.ods</Description>
+                    <TransactedDate>2016-10-03T10:24:48</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID152</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID158">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>journaux_878_v6.ods</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Sociologie du Vieillissement\Enseignement de A.
+                        Touraine\journaux_878_v6.ods</Description>
+                    <TransactedDate>2016-09-30T11:56:59</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID156</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID160">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Travaux de théorie et de méthode</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\Ecole des Hautes Etudes en Sciences
+                        Sociales\Centres d'Etudes des Mouvements Sociaux\Travaux de théorie et de
+                        méthode</Description>
+                    <StartDate>2015-06-19T20:00:20</StartDate>
+                    <EndDate>2015-06-19T20:00:20</EndDate>
+                </Content>
+                <ArchiveUnit id="ID165">
+                    <ArchiveUnitRefId>ID164</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID164">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>0-0-0.jpg</Title>
+                    <Description>Pseudo Archive Unit du fichier :C:\Users\mehdi.afnai\Desktop\Ecole
+                        des Hautes Etudes en Sciences Sociales\Centres d'Etudes des Mouvements
+                        Sociaux\Travaux de théorie et de méthode\0-0-0.jpg</Description>
+                    <TransactedDate>2015-06-19T20:00:20</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID162</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <DisseminationRule>
+                <Rule>DIS-00002</Rule>
+                <StartDate>2016-12-04</StartDate>
+            </DisseminationRule>
+            <OriginatingAgencyIdentifier>FRAN_NP_051314</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>FRAN_NP_005761</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

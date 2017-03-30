@@ -1,0 +1,255 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../../Bureau/BA/Sch%D0%92mas/seda-2.0-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
+    <Comment>Dossier d'agent Nicolas Perrin</Comment>
+    <Date>2017-02-27T17:42:07</Date>
+    <MessageIdentifier>Dossier d'agent Nicolas Perrin</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID15">
+            <DataObjectGroupId>ID14</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID15.jpg</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >294f2470f05c5a1987fcaae45075cc8aff0b6b016b28fd134c2d5d9d39aa2fff437f79a69c70817de294d6afa31ac4cd0e124705b2a0c0d269074b8a3fbe362e</MessageDigest>
+            <Size>10678</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>photographie_nicolas_perrin.jpg</Filename>
+                <LastModified>2017-02-27T17:39:05.000+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID21">
+            <DataObjectGroupId>ID20</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID21.jpg</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >294f2470f05c5a1987fcaae45075cc8aff0b6b016b28fd134c2d5d9d39aa2fff437f79a69c70817de294d6afa31ac4cd0e124705b2a0c0d269074b8a3fbe362e</MessageDigest>
+            <Size>10678</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>certificat_nicolas_perrin.jpg</Filename>
+                <LastModified>2017-02-27T17:39:05.000+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID27">
+            <DataObjectGroupId>ID26</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/ID27.jpg</Uri>
+            <MessageDigest algorithm="SHA-512"
+                >294f2470f05c5a1987fcaae45075cc8aff0b6b016b28fd134c2d5d9d39aa2fff437f79a69c70817de294d6afa31ac4cd0e124705b2a0c0d269074b8a3fbe362e</MessageDigest>
+            <Size>10678</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>acte_naissance_nicolas_perrin.jpg</Filename>
+                <LastModified>2017-02-27T17:39:05.000+01:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Management>
+                    <DisseminationRule>
+                        <Rule>DIS-00003</Rule>
+                        <StartDate>1950-01-01</StartDate>
+                    </DisseminationRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Archives Départementales</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID5">
+                    <ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID7">
+                    <ArchiveUnitRefId>ID6</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID4">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Liste des certificats de nationalités des agents</Title>
+                    <StartDate>2017-02-27T17:42:07</StartDate>
+                    <EndDate>2017-02-27T17:42:07</EndDate>
+                </Content>
+                <ArchiveUnit id="ID99">
+                    <ArchiveUnitRefId>ID18</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID6">
+                <Management>
+                    <AppraisalRule>
+                        <Rule>APP-00001</Rule>
+                        <StartDate>1975-01-01</StartDate>
+                        <FinalAction>Destroy</FinalAction>
+                    </AppraisalRule>
+                    <DisseminationRule>
+                        <Rule>DIS-00001</Rule>
+                        <StartDate>1975-01-01</StartDate>
+                    </DisseminationRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Dossier d'agent</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID9">
+                    <ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID8">
+                <Management>
+                    <DisseminationRule>
+                        <PreventInheritance>true</PreventInheritance>
+                    </DisseminationRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Nicolas Perrin</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID11">
+                    <ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID10">
+                <Management>
+                    <AppraisalRule>               
+                        <Rule>APP-00002</Rule>
+                        <StartDate>1982-01-01</StartDate>
+                        <FinalAction>Keep</FinalAction>
+                    </AppraisalRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Etat civil</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID13">
+                    <ArchiveUnitRefId>ID12</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID19">
+                    <ArchiveUnitRefId>ID18</ArchiveUnitRefId>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID25">
+                    <ArchiveUnitRefId>ID24</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Photographie</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID17">
+                    <ArchiveUnitRefId>ID16</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID16">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>photographie_nicolas_perrin.jpg</Title>
+                    <TransactedDate>2017-02-27T17:39:05</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID14</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID18">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Certificat de nationalité</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID23">
+                    <ArchiveUnitRefId>ID22</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID22">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>certificat_nicolas_perrin.jpg</Title>
+                    <TransactedDate>2017-02-27T17:39:05</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID20</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID24">
+                <Management>
+                    <AppraisalRule>
+                        <RefNonRuleId>APP-00001</RefNonRuleId>
+                        <RefNonRuleId>APP-00002</RefNonRuleId>
+                        <FinalAction>Keep</FinalAction>
+                    </AppraisalRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>Extrait d'acte de naissance</Title>
+                    <StartDate>2017-02-27T17:39:05</StartDate>
+                    <EndDate>2017-02-27T17:39:05</EndDate>
+                </Content>
+                <ArchiveUnit id="ID29">
+                    <ArchiveUnitRefId>ID28</ArchiveUnitRefId>
+                </ArchiveUnit>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID28">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>acte_naissance_nicolas_perrin.jpg</Title>
+                    <TransactedDate>2017-02-27T17:39:05</TransactedDate>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID26</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>Service_producteur</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Service_versant</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

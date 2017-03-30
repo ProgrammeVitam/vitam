@@ -1,0 +1,37 @@
+{
+  "ArchiveUnit" : {
+    "_id" : "GUID_ARCHIVE_UNIT_PARENT",
+    "ArchiveUnitProfile" : "PresentationType",
+    "Management" : {
+      "StorageRule" : [ {
+        "Rule" : "R5",
+        "FinalAction" : "RestrictAccess"
+      } ],
+      "AccessRule" : [ {
+        "Rule" : "ACC-00001",
+		"StartDate" : "1982-01-01",
+		"EndDate" : "2025-01-01"
+      }, {
+        "Rule" : "ACC-00002",
+        "StartDate" : "2016-01-10",
+		"EndDate" : "2025-01-01",
+        "FinalAction" : "Copy",
+        "PreventInheritance" : false,
+        "RefNonRuleId" : "ID100"
+      } ],
+      "NeedAuthorization" : false
+    },
+    "Content" : {
+      "@xml:id" : "ID026",
+      "DescriptionLevel" : "Item",
+      "Title" : "XML_ID_PARENT_TO_BE_LINKED",
+      "CreatedDate" : "2016-05-05T20:45:20",
+      "TransactedDate" : "2016-05-05"
+    },
+    "_og" : ""
+  },
+  "_work" : {
+    "_up" : [ ],
+    "RulesToApply" : [ "R5;ACC-00001;ACC-00002;" ]
+  }
+}

@@ -565,7 +565,7 @@ public class WorkerIT {
         } catch (final Exception e) {
             LOGGER.error("Exception while retrieving objectGroup", e);
         }
-        return unitName + ".xml";
+        return unitName + ".json";
     }
 
     private String objectGroupName() {
