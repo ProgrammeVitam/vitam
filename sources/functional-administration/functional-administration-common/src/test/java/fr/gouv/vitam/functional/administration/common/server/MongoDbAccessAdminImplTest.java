@@ -176,7 +176,7 @@ public class MongoDbAccessAdminImplTest {
 
         fileRules = new FileRules(TENANT_ID)
             .setRuleId(RULE_ID_VALUE)
-            .setRuleValue("Actes de naissance")
+            .setRuleValue(" 3D étudiants avec actes de naissance 10/10/2000 17 e siècle NFZ42020")
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("10")
@@ -273,7 +273,14 @@ public class MongoDbAccessAdminImplTest {
 
         final Select select = new Select();
         select.setQuery(and()
-            .add(match(FileRules.RULEVALUE, "acte"))
+            .add(and()
+                .add(match(FileRules.RULEVALUE, "10/10/2000"))
+                .add(match(FileRules.RULEVALUE, "3D"))
+                .add(match(FileRules.RULEVALUE, "17"))
+                .add(match(FileRules.RULEVALUE, "siecle"))
+                .add(match(FileRules.RULEVALUE, "acte"))
+                .add(match(FileRules.RULEVALUE, "42020"))
+                .add(match(FileRules.RULEVALUE, "NFZ")))
             .add(or()
                 .add(eq(FileRules.RULETYPE, REUSE_RULE))
                 .add(eq(FileRules.RULETYPE, "AccessRule"))));
