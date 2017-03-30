@@ -30,13 +30,12 @@
 echo "Building maven rpm (with parallel build)..."
 mvn -T 1C -f sources/pom.xml clean package jdeb:jdeb -DskipTests
 
-echo "Creating local yum repository..."
-rm -rf /code/repodata
-createrepo -x '.git/*' .
-echo "Cleaning up yum cache..."
-sudo yum clean all
-echo "Creating cache"
-sudo yum --disablerepo="*" --enablerepo="local" makecache
-echo "Done ! Available rpm packages in local vitam-product repository :"
-yum --disablerepo="*" --enablerepo="local" list available
+echo "Creating local deb repository..."
+rm -f /code/Packages.gz
+# Génération du "repository"
+dpkg-scanpackages -m . | gzip --fast > /code/Packages.gz
+echo "Cleaning apt cache..."
+sudo apt-get clean
+echo "Creating apt cache..."
+sudo apt-get update
 echo "Build done ! Now you can deploy VITAM: vitam-deploy [local|fulllocal]"
