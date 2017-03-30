@@ -109,6 +109,10 @@ public class Unit extends MetadataDocument<Unit> {
      * Management : { various rules per themes }
      */
     public static final String MANAGEMENT = "_mgt";
+    /**
+     * UnitType : nomal or holding scheme
+     */
+    public static final String UNIT_TYPE = "_unitType";
 
 
     /**

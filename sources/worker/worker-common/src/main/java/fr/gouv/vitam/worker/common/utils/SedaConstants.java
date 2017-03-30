@@ -88,6 +88,11 @@ public class SedaConstants {
      * Tag of BinaryDataObject
      */
     public static final String TAG_BINARY_DATA_OBJECT = "BinaryDataObject";
+    
+    /**
+     * Tag of PhysicalDataObject
+     */
+    public static final String TAG_PHYSICAL_DATA_OBJECT = "PhysicalDataObject";
 
     /**
      * Tag of FormatIdentification
@@ -446,6 +451,11 @@ public class SedaConstants {
      * the attribute schemaLocation
      */
     public static final String ATTRIBUTE_SCHEMA_LOCATION = "schemaLocation";
+    
+    /**
+     * reparing namespace property
+     */
+    public static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
 
     private SedaConstants() {
         // Empty constructor

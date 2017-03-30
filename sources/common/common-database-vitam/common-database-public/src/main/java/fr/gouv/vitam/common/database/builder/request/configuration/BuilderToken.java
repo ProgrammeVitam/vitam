@@ -576,6 +576,10 @@ public abstract class BuilderToken {
          */
         MANAGEMENT("management"),
         /**
+         * unit type bloc
+         */
+        UNITTYPE("unittype"),
+        /**
          * Unit or GOT's list of participating operations
          */
         OPERATIONS("operations");

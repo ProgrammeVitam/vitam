@@ -128,6 +128,10 @@ public class ParserTokens extends BuilderToken {
          */
         MANAGEMENT("management"),
         /**
+         * unit type bloc
+         */
+        UNITTYPE("unittype"),
+        /**
          * Unit or GOT's list of participating operations
          */
         OPERATIONS("operations");
@@ -211,6 +215,7 @@ public class ParserTokens extends BuilderToken {
                         case TENANT:
                         case MIN:
                         case MAX:
+                        case UNITTYPE:
                             return true;
                         default:
                     }

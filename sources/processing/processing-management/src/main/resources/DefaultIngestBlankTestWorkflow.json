@@ -1,5 +1,5 @@
 {
-  "id": "DefaultIngestWorkflowBlankTest",
+  "id": "DefaultIngestBlankTestWorkflow",
   "comment": "Default Ingest Workflow V6",
   "steps": [
     {

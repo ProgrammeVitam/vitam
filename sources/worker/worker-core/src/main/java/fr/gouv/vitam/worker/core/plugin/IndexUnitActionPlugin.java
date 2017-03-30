@@ -49,6 +49,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -135,7 +137,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
                 JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
 
-                final JsonNode data = archiveUnit.get(ARCHIVE_UNIT);
+                final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
                 final JsonNode work = archiveUnit.get(TAG_WORK);
                 Boolean existing = false;
                 if (work != null && work.get("_existing") != null) {
@@ -159,7 +161,11 @@ public class IndexUnitActionPlugin extends ActionHandler {
                         data.get("#id").asText());
                 } else {
                     // insert case
-                    metadataClient.insertUnit(((InsertMultiQuery) query).addData((ObjectNode) data).getFinalInsert());
+                    if (LogbookTypeProcess.HOLDING_SCHEME.equals(params.getLogbookTypeProcess())) {
+                        // if Unit is a tree
+                        data.put(VitamFieldsHelper.unitType(), UnitType.getUnitType(params.getLogbookTypeProcess()).name());
+                    }
+                    metadataClient.insertUnit(((InsertMultiQuery) query).addData(data).getFinalInsert());
                 }
                 itemStatus.increment(StatusCode.OK);
             } else {

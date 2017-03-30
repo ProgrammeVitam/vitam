@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -76,8 +77,6 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP = "OBJECT_GROUP_ID_TO_GUID_MAP_obj.json";
     private static final String OG_AU = "OG_TO_ARCHIVE_ID_MAP_obj.json";
 
-    private static final String EMPTY = "EMPTY_MAP.json";
-
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -87,7 +86,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
-        .setCurrentStep("TEST");
+        .setCurrentStep("TEST").setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
     @Before
     public void setUp() {

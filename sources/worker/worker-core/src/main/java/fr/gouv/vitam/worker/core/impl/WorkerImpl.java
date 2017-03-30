@@ -68,6 +68,7 @@ import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckNoObjectsActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
@@ -133,6 +134,7 @@ public class WorkerImpl implements Worker {
         actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
         actions.put(CheckObjectsNumberActionHandler.getId(), new CheckObjectsNumberActionHandler());
+        actions.put(CheckNoObjectsActionHandler.getId(), new CheckNoObjectsActionHandler());
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
         actions.put(CheckStorageAvailabilityActionHandler.getId(),
             new CheckStorageAvailabilityActionHandler());
@@ -249,7 +251,7 @@ public class WorkerImpl implements Worker {
                 VitamLogbookMessages.getEventTypeLfc(handlerName),
                 GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
-                LogbookTypeProcess.INGEST,
+                workParams.getLogbookTypeProcess(),
                 StatusCode.STARTED,
                 VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
                 VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
@@ -261,7 +263,7 @@ public class WorkerImpl implements Worker {
                 VitamLogbookMessages.getEventTypeLfc(handlerName),
                 GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
-                LogbookTypeProcess.INGEST,
+                workParams.getLogbookTypeProcess(),
                 StatusCode.STARTED,
                 VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
                 VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
