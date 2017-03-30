@@ -31,7 +31,9 @@ import java.io.InputStream;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 
 /**
  * IngestExtern interface
@@ -39,16 +41,29 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 public interface IngestExternal {
 
     /**
+     *
+     * @param input
+     * @param contextId
+     * @param action
+     * @param guid
+     * @param asyncResponse
+     * @return
+     */
+    public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
+        AsyncResponse asyncResponse)
+        throws IngestExternalException;
+
+
+    /**
      * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
      *
-     * @param input the file
-     * @param asyncResponse the async Response
+     * @param preUploadResume     informations returned
      * @param contextId String
-     * @param action the action type
+     * @param action    the action type
      * @return Response containing as InputStream the ArchiveTransferReply in XML format
      * @throws IngestExternalException thrown if an error occurred in workflow
      */
     // TODO P0 add the file name as param from a header
-    Response upload(InputStream input, AsyncResponse asyncResponse, String contextId, String action)
+    Response upload(PreUploadResume preUploadResume, GUID guid)
         throws IngestExternalException;
 }

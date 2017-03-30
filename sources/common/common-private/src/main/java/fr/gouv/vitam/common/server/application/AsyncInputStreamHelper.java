@@ -187,9 +187,9 @@ public class AsyncInputStreamHelper {
      * @param asyncResponse
      * @param response the fully prepared ErrorResponse
      */
-    public static void asyncResponseResume(AsyncResponse asyncResponse, Response errorResponse) {
-        ParametersChecker.checkParameter("ErrorResponse should not be null", errorResponse);
-        asyncResponse.resume(errorResponse);
+    public static void asyncResponseResume(AsyncResponse asyncResponse, Response response) {
+        ParametersChecker.checkParameter("ErrorResponse should not be null", response);
+        asyncResponse.resume(response);
     }
 
     private Response getResponseError(VitamCode vitamCode) {

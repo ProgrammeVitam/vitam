@@ -100,15 +100,8 @@ public class IngestInternalClientMockTest {
 
         final Response response = client.uploadInitialLogbook(operationList);
         assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
-        final Response response2 = client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
-        assertEquals(response2.getStatus(), Status.OK.getStatusCode());
+        client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
 
-        try {
-            assertTrue(IOUtils.contentEquals(inputstreamMockATR, response2.readEntity(InputStream.class)));
-        } catch (final IOException e) {
-            e.printStackTrace();
-            fail();
-        }
     }
 
     @Test

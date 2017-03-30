@@ -106,6 +106,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.http.util.EntityUtils;
 
 /**
  * IngestInternalResource implements UploadService
@@ -224,7 +225,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the header X-Context-Id (steptoStep or not)
      * @param actionId the header X-ACTION (next,resume,..)
      * @param uploadedInputStream the stream to upload
-     * @param asyncResponse the asynchronized response
      * @throws InternalServerException if request resources server exception occurred
      * @throws VitamClientException if the server is unreachable
      *
@@ -233,7 +233,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/ingests")
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
         @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String actionId,
@@ -253,7 +252,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
      * @param asyncResponse asyncResponse
      * @return http response
@@ -291,7 +289,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      *
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
@@ -443,6 +440,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * TODO FIXE ME HEAD METHOD no entity
      * get the operation status
      *
      * @param id operation identifier
@@ -462,6 +460,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            //TODO FIXE ME HEAD METHOD no entity
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
@@ -744,6 +743,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
                         prepareToStartProcess(uploadedInputStream, parameters, archiveMimeType, logbookOperationsClient,
                             containerGUID);
+
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             "Try to call processing...");
@@ -754,28 +754,17 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
                                 process.getWorkFlowId(), logbookTypeProcess);
 
-                        Status processStatus = Status.fromStatusCode(processResponse.getStatus());
                         ProcessExecutionStatus processExecutionStatus =
                             ProcessExecutionStatus
                                 .valueOf(processResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
                         isCompletedProcess = isCompletedProcess(processExecutionStatus);
 
-                        if (isCompletedProcess) {
-                            // Get ATR
-                            try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                                processResponse =
-                                    storageClient.getContainerAsync(DEFAULT_STRATEGY,
-                                        containerGUID.getId() + XML,
-                                        StorageCollectionType.REPORTS);
-                                processResponse.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS,
-                                    processExecutionStatus.toString());
-                            }
-                        }
+                      if(!isInitMode) {
+                          //Asynchrone
 
-
-                        final AsyncInputStreamHelper helper =
-                            new AsyncInputStreamHelper(asyncResponse, processResponse);
-                        helper.writeAsyncResponse(Response.fromResponse(processResponse), processStatus);
+                          AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                              Response.status(Status.ACCEPTED).build());
+                      }
                     } finally {
                         if (isCompletedProcess) {
                             cleanWorkspace(containerGUID.getId());
@@ -813,7 +802,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result
             } catch (final ProcessingException |
-                LogbookClientException | StorageClientException | StorageNotFoundException |
+                LogbookClientException | StorageClientException  |
                 InvalidGuidOperationException e) {
                 if (parameters != null) {
                     try {
@@ -943,8 +932,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * 
      * @param asyncResponse Async response
      * @param actionId the action to execute
-     * @param parameters logbookOperation parameters
-     * @param logbookOperationsClient a
      * @param containerGUID
      * @throws LogbookClientAlreadyExistsException
      * @throws LogbookClientBadRequestException
@@ -953,7 +940,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @throws IngestInternalException
      * @throws ProcessingException
      * @throws LogbookClientNotFoundException
-     * @throws LogbookClientBadRequestExceptionu
      * @throws LogbookClientServerException
      * @throws StorageServerClientException
      * @throws StorageNotFoundException

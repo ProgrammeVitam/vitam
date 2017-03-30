@@ -118,7 +118,7 @@ angular.module('core')
   };
 
   // Check operation status
-  dataFactory.checkOperationStatus = function(operationId){
+  dataFactory.checkOperationStatus = function(operationId, action){
 	// TODO How to set Timeout ?
     return ihmDemoCLient.getClient(IHM_URLS.CHECK_OPERATION_STATUS).all('').get(operationId);
   };
