@@ -477,7 +477,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Suspended final AsyncResponse asyncResponse, @QueryParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         }
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
@@ -535,20 +535,20 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
         } catch (StorageNotFoundException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
         } catch (StorageServerClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } catch (LogbookClientException e) {
             LOGGER.error("Logbook Client NOT FOUND Exception ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } finally {
             // clean tenantId

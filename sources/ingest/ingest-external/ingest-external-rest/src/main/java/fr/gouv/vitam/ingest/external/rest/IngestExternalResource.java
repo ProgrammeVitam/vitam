@@ -134,7 +134,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (final IngestExternalException exc) {
             LOGGER.error(exc);
             try {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR)
                         .entity(AtrKoBuilder.buildAtrKo(GUIDFactory.newRequestIdGUID(0).getId(),
                             "ArchivalAgencyToBeDefined", "TransferringAgencyToBeDefined",
@@ -143,7 +143,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
             } catch (final IngestExternalException e) {
                 // Really bad
                 LOGGER.error(e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             }
         } finally {
@@ -178,11 +178,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
             helper.writeResponse(Response.status(response.getStatus()));
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         } catch (VitamClientException e) {
             LOGGER.error("VitamClientException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
@@ -406,14 +406,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
         } catch (InternalServerException | VitamClientException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } catch (BadRequestException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         }
     }

@@ -540,7 +540,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             if (Strings.isNullOrEmpty(xTenantId)) {
                 LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED).build());
                 return;
             }
@@ -565,7 +565,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *            asynchronous response
      */
     private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
-        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+        AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
             Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
                 new VitamError(VitamCodeHelper.getCode(vitamCode))
                     .setContext(vitamCode.getService().getName())
