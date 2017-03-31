@@ -127,16 +127,21 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
     @Override
     public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action) {
-
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            Response response = client.upload(stream, tenantId, contextId, action);
-            String id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            if (!Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
+            String id;
+            Response response = null;
+            try {
+                response = client.upload(stream, tenantId, contextId, action);
+                id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                if (!Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
 
-                return response;
+                    return response;
+                }
+            } finally {
+                consumeAnyEntityAndClose(response);
             }
             while (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
-                //SLEEP
+                // SLEEP
                 try {
                     Thread.sleep(TIME_TO_SLEEP);
                 } catch (InterruptedException ex) {
@@ -152,7 +157,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
                 }
             }
-            return response;
+            return Response.fromResponse(response).build();
         } catch (final VitamException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
@@ -204,6 +209,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
+    // TODO: never call
     @Override
     public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws VitamClientException {
@@ -218,23 +224,19 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
 
                 throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
 
                 throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
 
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
 
                 throw new VitamClientInternalException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
 
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
@@ -242,6 +244,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 

@@ -94,9 +94,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
-                /* BAD_REQUEST status is more suitable when formats are not well formated */    
+                /* BAD_REQUEST status is more suitable when formats are not well formated */
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ?
+                        response.readEntity(String.class) :
+                        Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     consumeAnyEntityAndClose(response);
                     throw new ReferentialException(reason);
@@ -107,6 +109,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            // TODO : pas sur du fonctionnement avec le bufferEntity
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -123,7 +128,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ?
+                        response.readEntity(String.class) :
+                        Response.Status.BAD_REQUEST.getReasonPhrase();
                     consumeAnyEntityAndClose(response);
                     LOGGER.error(reason);
                     throw new ReferentialException(reason);
@@ -214,7 +221,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 /* BAD_REQUEST status is more suitable when rules are not well formated */
                 case BAD_REQUEST:
-                    String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    String reason = (response.hasEntity()) ?
+                        response.readEntity(String.class) :
+                        Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
                     consumeAnyEntityAndClose(response);
                     throw new FileRulesException(reason);
@@ -225,6 +234,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            // TODO : pas sur du fonctionnement avec le bufferEntity de l'appelant
+            consumeAnyEntityAndClose(response);
         }
     }
 

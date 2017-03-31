@@ -1475,6 +1475,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     throw new VitamClientException("No ArchiveTransferReply found in response from Server");
                 }
             }
+            return response;
         } catch (final ProcessingException e) {
             // if there is an unauthorized action
             LOGGER.error(e);
@@ -1488,7 +1489,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } finally {
             staticConsumeAnyEntityAndClose(response);
         }
-        return response;
     }
 
 
