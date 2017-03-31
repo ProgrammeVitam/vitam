@@ -119,6 +119,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case ALLUNITUPS:
                         // Valid for Unit
                         return Unit.UNITUPS;
+                    case UNITTYPE:
+                        // Valid for Unit
+                        return Unit.UNIT_TYPE;    
                     case MANAGEMENT:
                         // Valid for Unit
                         return Unit.MANAGEMENT + extension;

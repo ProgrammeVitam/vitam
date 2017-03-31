@@ -370,7 +370,7 @@ public class IngestExternalImpl implements IngestExternal {
                     }
                 } else {
                     responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                        isFileInfected, mimeType, endParameters);
+                        isFileInfected, mimeType, endParameters,logbookTypeProcess);
                 }
             } else {
                 // finalize end step param
@@ -378,7 +378,7 @@ public class IngestExternalImpl implements IngestExternal {
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
                 responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                    isFileInfected, mimeType, endParameters);
+                    isFileInfected, mimeType, endParameters, logbookTypeProcess);
             }
 
             try (IngestInternalClient ingestClient =
@@ -450,12 +450,12 @@ public class IngestExternalImpl implements IngestExternal {
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
-        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters)
+        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters, LogbookTypeProcess logbookTypeProcess)
         throws LogbookClientNotFoundException, IngestExternalException {
         Response responseNoProcess;
         // Add step started in the logbook
-        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
-        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED);
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.STARTED, logbookTypeProcess);
+        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.STARTED, logbookTypeProcess);
         // FIXME P1 later on real ATR KO
         String atrKo = null;
         if (isFileInfected) {
@@ -486,8 +486,8 @@ public class IngestExternalImpl implements IngestExternal {
         responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
             new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
-        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK);
-        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK);
+        addTransferNotificationLog(ingestGuid, containerName, helper, StatusCode.OK, logbookTypeProcess);
+        addStpIngestFinalisationLog(ingestGuid, containerName, helper, StatusCode.OK, logbookTypeProcess);
         // log final status PROCESS_SIP when sanity check KO or FATAL
         // in this case PROCESS_SIP inherits SANITY_CHECK Status
         startedParameters.setStatus(endParameters.getStatus());
@@ -499,14 +499,14 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private void addStpIngestFinalisationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
-        StatusCode status)
+        StatusCode status, LogbookTypeProcess logbookTypeProcess)
         throws LogbookClientNotFoundException {
         final LogbookOperationParameters stpIngestFinalisationParameters =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 STP_INGEST_FINALISATION,
                 containerName,
-                LogbookTypeProcess.INGEST,
+                logbookTypeProcess,
                 status,
                 VitamLogbookMessages.getCodeOp(STP_INGEST_FINALISATION, status),
                 containerName);
@@ -514,14 +514,14 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private void addTransferNotificationLog(GUID ingestGuid, GUID containerName, LogbookOperationsClientHelper helper,
-        StatusCode status)
+        StatusCode status, LogbookTypeProcess logbookTypeProcess)
         throws LogbookClientNotFoundException {
         final LogbookOperationParameters transferNotificationParameters =
             LogbookParametersFactory.newLogbookOperationParameters(
                 ingestGuid,
                 ATR_NOTIFICATION,
                 containerName,
-                LogbookTypeProcess.INGEST,
+                logbookTypeProcess,
                 status,
                 VitamLogbookMessages.getCodeOp(ATR_NOTIFICATION, status),
                 containerName);

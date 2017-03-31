@@ -78,11 +78,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class SedaUtils {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
-    private static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
+    public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
     private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";
-    private static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
+    
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final int VERSION_POSITION = 0;
@@ -370,7 +370,7 @@ public class SedaUtils {
         // Create the XML output factory
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
-        xmlOutputFactory.setProperty(SedaUtils.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
+        xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
         final QName binaryDataObject = new QName(SedaUtils.NAMESPACE_URI, SedaConstants.TAG_BINARY_DATA_OBJECT);
         XMLEventReader eventReader = null;

@@ -26,16 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.codec.Charsets;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -102,10 +107,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         this.serverConfig = serverConfig;
         processData = ProcessDataAccessImpl.getInstance();
         poolWorkflows = new ConcurrentHashMap<>();
-
+        
         try {
+            setWorkflow("DefaultHoldingSchemeWorkflow");
+            setWorkflow("DefaultIngestBlankTestWorkflow");
             setWorkflow("DefaultIngestWorkflow");
-            setWorkflow("DefaultIngestWorkflowBlankTest");
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }

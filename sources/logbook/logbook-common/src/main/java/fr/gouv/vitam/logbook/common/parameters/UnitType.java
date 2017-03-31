@@ -28,48 +28,25 @@
 package fr.gouv.vitam.logbook.common.parameters;
 
 /**
- * Logbook Process Type
+ * Unit Process Type
  */
-public enum LogbookTypeProcess {
+public enum UnitType {
     /**
-     * Ingest type process
+     * normal Unit type
      */
     INGEST,
     /**
-     * Audit type process
+     * holding unit type
      */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * holding unit type process
-     */
-    HOLDING_SCHEME,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST;
+    HOLDING_UNIT;
 
+    public static UnitType getUnitType(LogbookTypeProcess typeProcess) {
+        switch (typeProcess) {
+            case HOLDING_SCHEME:
+                return UnitType.HOLDING_UNIT;
+            default:
+                break;
+        }
+        return UnitType.INGEST;
+    }
 }

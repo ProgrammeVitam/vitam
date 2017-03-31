@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -95,7 +96,13 @@ public class IndexUnitActionPluginTest {
     private final InputStream archiveUnitParent;
     private final InputStream archiveUnitWithMgtRules;
     private HandlerIOImpl action;
-    private GUID guid;
+    private GUID guid = GUIDFactory.newGUID();
+
+    private final WorkerParameters params =
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
     public IndexUnitActionPluginTest() throws FileNotFoundException {
         archiveUnit = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT);
@@ -114,7 +121,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         metadataClient = mock(MetaDataClientRest.class);
-        guid = GUIDFactory.newGUID();
         action = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
@@ -133,10 +139,6 @@ public class IndexUnitActionPluginTest {
         final WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
         PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
@@ -150,10 +152,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
@@ -166,10 +164,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
@@ -182,10 +176,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
@@ -203,10 +193,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitWithRules).build());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
@@ -223,10 +209,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitChild).build());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
@@ -243,10 +225,6 @@ public class IndexUnitActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitParent).build());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
@@ -264,11 +242,6 @@ public class IndexUnitActionPluginTest {
 
         when(workspaceClient.getObject(anyObject(), eq("Units/objectName.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitWithMgtRules).build());
-
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }

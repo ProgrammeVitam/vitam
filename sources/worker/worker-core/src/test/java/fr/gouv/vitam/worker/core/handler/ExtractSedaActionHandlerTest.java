@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -112,6 +113,12 @@ public class ExtractSedaActionHandlerTest {
     private HandlerIOImpl action;
     private List<IOParameter> out;
     private static final Integer TENANT_ID = 0;
+    private final WorkerParameters params =
+        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectName("objectName.json").setCurrentStep("currentStep")
+            .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
+            .setContainerName("ExtractSedaActionHandlerTest");
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -166,11 +173,7 @@ public class ExtractSedaActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
+        
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -181,11 +184,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -201,11 +199,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestEhessWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(OK_EHESS_LIGHT);
@@ -222,11 +215,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestMercierWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(MERCIER);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -242,11 +230,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRulesWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_RULES);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -262,11 +245,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestArboRulesMDWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_ARBO_RULES_MD);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -283,11 +261,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok1.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -303,11 +276,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -323,11 +291,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok3-listBDO.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -343,11 +306,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-ok4.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -363,11 +321,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_doubleBM.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -383,11 +336,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("manifest_BM_TC.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -403,11 +351,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-bdo-orphan-err2.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -423,9 +366,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
 
@@ -444,9 +384,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-management-metadata-ok1.xml"));
 
@@ -464,9 +401,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithUpdateLinkExtractSedaThenReadSuccess()
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_LINK));
         JsonNode child = JsonHandler
@@ -490,9 +424,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadSuccess()
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         JsonNode parent = JsonHandler
@@ -513,9 +444,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithUpdateAddUnitExtractSedaThenCheckEvDetData()
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         JsonNode parent = JsonHandler
@@ -551,9 +479,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadKO()
         throws VitamException, IOException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl").setUrlMetadata("fakeUrl")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -570,11 +495,6 @@ public class ExtractSedaActionHandlerTest {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
         FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("sip-ko-bdo-ref-group.xml"));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -589,9 +509,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestWithOriginatingAgencyNotSetThenReadKO() throws VitamException, IOException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("fakeUrl")
-            .setUrlMetadata("fakeUrl").setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("containerName");
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_WITHOUT_ORIGINATING_AGENCY));
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -607,11 +524,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestInheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_RULES_INHERITENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -627,11 +539,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefIdInheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFID_RULES_INHERITENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -647,11 +554,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefnonruleidPreventinheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_PREVENTINHERITENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
@@ -667,11 +569,6 @@ public class ExtractSedaActionHandlerTest {
     public void givenManifestRefnonruleidMultiplePreventinheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("ExtractSedaActionHandlerTest");
         final InputStream seda_arborescence =
             PropertiesUtils.getResourceAsStream(SIP_REFNONRULEID_MULT_PREVENTINHERITENCE);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))

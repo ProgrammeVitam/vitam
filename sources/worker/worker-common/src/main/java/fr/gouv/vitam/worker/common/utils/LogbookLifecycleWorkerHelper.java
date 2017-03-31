@@ -114,7 +114,7 @@ public class LogbookLifecycleWorkerHelper {
      * @throws ProcessingException if logbook lfc ressouce not found
      */
     public static void updateLifeCycleForBegining(LogbookLifeCyclesClientHelper helper,
-        LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params)
+        LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, LogbookTypeProcess logbookTypeProcess)
         throws ProcessingException {
 
         try {
@@ -124,7 +124,7 @@ public class LogbookLifecycleWorkerHelper {
                 params.getContainerName());
             // TODO P2 to be passed within the parameters since multiple workflow types could exist
             logbookLifecycleParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
-                LogbookTypeProcess.INGEST.name());
+                logbookTypeProcess.name());
             helper.updateDelegate(logbookLifecycleParameters);
         } catch (final LogbookClientNotFoundException e) {
             SedaUtils.LOGGER.error(LOGBOOK_LF_RESOURCE_NOT_FOUND_EXCEPTION_MSG, e);

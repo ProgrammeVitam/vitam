@@ -45,7 +45,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -138,7 +137,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
                         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                             logbookLifecycleObjectGroupParameters,
-                            params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                            params, HANDLER_ID, params.getLogbookTypeProcess(),
                             objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
                         logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.KO,
@@ -163,7 +162,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
 
                         LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(),
                             logbookLifecycleObjectGroupParameters,
-                            params, HANDLER_ID, LogbookTypeProcess.INGEST,
+                            params, HANDLER_ID, params.getLogbookTypeProcess(),
                             objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
 
                         logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
