@@ -36,7 +36,9 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -62,6 +64,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
@@ -71,6 +74,8 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
@@ -102,6 +107,8 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
     private boolean isFirstCall = true;
     private AsyncResponse asyncResponse = null;
 
+    private ProcessDataManagement dataManagement;
+
     /**
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
@@ -111,6 +118,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         this.monitor = monitor;
         this.workParams = workParams;
         this.asyncResponse = asyncResponse;
+        dataManagement = WorkspaceProcessDataManagement.getInstance();
     }
 
     /**
@@ -190,6 +198,15 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 // then stop the process
                 if (stepResponse.shallStop(step.getBehavior().equals(ProcessBehavior.BLOCKING))) {
                     processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.FAILED, tenantId);
+                    // Delete
+                    try {
+                        dataManagement.removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                            operationId);
+                    } catch (ProcessingStorageWorkspaceException e) {
+                        LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
+                            (ServerIdentity.getInstance().getServerId()), operationId, e);
+                        // Nothing for now
+                    }
                     break;
                 }
 
@@ -248,9 +265,25 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         boolean isCancelledWorkflow = ProcessExecutionStatus.CANCELLED.equals(processWorkflow.getExecutionStatus());
 
         if (isFinalStep | isCancelledWorkflow) {
+            try {
+                dataManagement.removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                    operationId);
+            } catch (ProcessingStorageWorkspaceException e) {
+                LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
+                    (ServerIdentity.getInstance().getServerId()), operationId, e);
+            }
             // Build asyncResponse and resume it
             buildAndSendAsyncResponse(workflowStatus, asyncResponse, processWorkflow);
         } else if (isStepByStepWorkflow | isSuspendedWorkflow) {
+            try {
+                dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                    operationId, processWorkflow);
+            } catch (InvalidParseOperationException | ProcessingStorageWorkspaceException e) {
+                LOGGER.error("Cannot persist process workflow file, set status to FAILED", e);
+                processWorkflow.setExecutionStatus(ProcessExecutionStatus.FAILED);
+                workflowStatus.setGlobalExecutionStatus(ProcessExecutionStatus.FAILED);
+            }
+
             // Build asyncResponse : put ItemStatus in the body and resume it
             buildAndSendAsyncResponse(workflowStatus, asyncResponse, processWorkflow);
 

@@ -95,8 +95,7 @@ public interface ProcessDataAccess {
      * @throws StepsNotFoundException will be thrown when steps not found
      * @throws WorkflowNotFoundException if the worklow is not found
      */
-
-    public Map<String, ProcessStep> getWorkflowProcessSteps(String processId, Integer tenantId)
+    Map<String, ProcessStep> getWorkflowProcessSteps(String processId, Integer tenantId)
         throws StepsNotFoundException, WorkflowNotFoundException;
 
     /**
@@ -171,7 +170,6 @@ public interface ProcessDataAccess {
      * Gets Process Workflow by ID
      * @param processId the process id
      * @param tenantId the working tenant
-     * @param operationId : the process identifier
      * @return {@link ProcessWorkflow}
      * @throws WorkflowNotFoundException thrown when process workflow not found
      */

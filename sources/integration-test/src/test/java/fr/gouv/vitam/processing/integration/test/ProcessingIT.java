@@ -79,6 +79,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -121,7 +122,10 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.rest.MetaDataApplication;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -437,6 +441,7 @@ public class ProcessingIT {
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
@@ -1579,6 +1584,66 @@ public class ProcessingIT {
                 LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testPauseWorkflow() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+
+            ProcessDataManagement dataManagement = WorkspaceProcessDataManagement.getInstance();
+            assertNotNull(dataManagement);
+
+            assertNotNull(dataManagement.getProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                containerName));
+
+            Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
+            // Let the processing do the job
+            Thread.sleep(10000);
+            assertEquals(Status.OK.getStatusCode(), ret.getStatus());
+
+            ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
+            // Let the processing do the job
+            Thread.sleep(10000);
+            assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+
+            ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
+                containerName);
+            // Let the processing do the job
+            Thread.sleep(10000);
+            assertEquals(ProcessExecutionStatus.COMPLETED.toString(), ret.getHeaderString(GlobalDataRest
+                .X_GLOBAL_EXECUTION_STATUS));
+            boolean exc = false;
+            try {
+                dataManagement.getProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                containerName);
+            } catch (ProcessingStorageWorkspaceException e) {
+                exc = true;
+            }
+            assertTrue(exc);
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
     }
 
 }

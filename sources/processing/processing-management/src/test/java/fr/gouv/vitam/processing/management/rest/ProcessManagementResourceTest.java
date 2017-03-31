@@ -35,6 +35,11 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,7 +54,12 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class})
 public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
@@ -68,7 +78,6 @@ public class ProcessManagementResourceTest {
     private static final Integer TENANT_ID = 0;
 
     private static final String CONTEXT_ID = "INGEST";
-    
 
     @Test
     @Ignore
@@ -119,6 +128,12 @@ public class ProcessManagementResourceTest {
 
     @Test
     public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
@@ -138,6 +153,12 @@ public class ProcessManagementResourceTest {
 
     @Test
     public void shouldReturnBadRequestIfResumeNotExistingWorkflow() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
@@ -157,6 +178,12 @@ public class ProcessManagementResourceTest {
 
     @Test
     public void shouldReturnResponseUNAUTHORIZEDIfWorkflowPausedByID() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
