@@ -34,7 +34,11 @@ angular.module('ihm.demo')
     $scope.search = {
       form: {
         RuleValue: '',
-        RuleType: ['All']
+        RuleType: ['All'],
+        orderby: {
+          field: 'RuleValue',
+          sortType: 'ASC'
+        }
       }, pagination: {
         currentPage: 0,
         resultPages: 0,
@@ -63,22 +67,64 @@ angular.module('ihm.demo')
       })
     };
 
+    var getDurationValue = function(value, measurement){
+      var dayInSeconds = 24 * 3600;
+      var monthInSeconds = dayInSeconds * 30;
+      var yearInSeconds = 12 * monthInSeconds;
+      if(measurement == 'YEAR'){
+        // 1 Year == 365.25 days
+        return value * yearInSeconds;
+      } else if(measurement == 'MONTH'){
+        // 1 MONTH == 30 days
+        return value * monthInSeconds;
+      } else if(measurement == 'DAY'){
+        return value * dayInSeconds;
+      } else {
+        return value;
+      }
+    };
+
+    $scope.prepareSortField = function(field, sortType) {
+      $scope.search.form.orderby.field = field;
+      if (sortType) {
+        $scope.search.form.orderby.sortType = 'ASC';
+      } else {
+        $scope.search.form.orderby.sortType = 'DESC';
+      }
+
+      // Sort all the received data
+      $scope.search.response.data = $scope.search.response.data.sort(function (a, b) {
+        if(field == 'RuleDuration'){
+          // Calculate durationValue
+          var durationValueA = getDurationValue(a.RuleDuration, a.RuleMeasurement);
+          var durationValueB = getDurationValue(b.RuleDuration, b.RuleMeasurement);
+
+          if (sortType) {
+            return durationValueA - durationValueB;
+          } else {
+            return durationValueB - durationValueA;
+          }
+        } else {
+          if (sortType) {
+            return a[field].trim().toLowerCase().localeCompare(b[field].trim().toLowerCase());
+          } else {
+            return b[field].trim().toLowerCase().localeCompare(a[field].trim().toLowerCase());
+          }
+        }
+      });
+    };
+
     var preSearch = function() {
       var requestOptions = angular.copy($scope.search.form);
 
       requestOptions.RULES = "all";
-      requestOptions.orderby = "RuleValue";
-      if( requestOptions.RuleType)
-      {
+      if (requestOptions.RuleType) {
         requestOptions.RuleType = requestOptions.RuleType.toString();
       }
       return requestOptions;
     };
 
     var successCallback = function(response) {
-      $scope.search.response.data = $scope.search.response.data.sort(function (a, b) {
-        return a.RuleValue.toLowerCase().localeCompare(b.RuleValue.toLowerCase());
-      });
       return true;
     };
 
@@ -94,7 +140,6 @@ angular.module('ihm.demo')
     $scope.getFileRules = searchService.processSearch;
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
-
   })
   .controller('filerulesEntryController', function($scope, $mdDialog, RuleValue, ihmDemoCLient, idOperationService, $filter) {
     var self = this;

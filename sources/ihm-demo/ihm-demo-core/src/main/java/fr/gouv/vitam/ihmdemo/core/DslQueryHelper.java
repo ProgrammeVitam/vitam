@@ -107,6 +107,11 @@ public final class DslQueryHelper {
     private static final String TRACEABILITY_FIELD_ID = "FileName";
     private static final String TRACEABILITY_FIELD_LOG_TYPE = "LogType";
 
+    private static final String ASC_SORT_TYPE = "ASC";
+    private static final String SORT_TYPE_ENTRY = "sortType";
+    private static final String SORT_FIELD_ENTRY = "field";
+
+
 
     // empty constructor
     private DslQueryHelper() {
@@ -123,133 +128,141 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
-    public static JsonNode createSingleQueryDSL(Map<String, String> searchCriteriaMap)
+    @SuppressWarnings("unchecked")
+    public static JsonNode createSingleQueryDSL(Map<String, Object> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         final BooleanQuery query = and();
         BooleanQuery queryOr = null;
-        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+
+        for (final Entry<String, Object> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
-            final String searchValue = entry.getValue();
 
-            switch (searchKeys) {
-                case ORDER_BY:
-                    if (EVENT_DATE_TIME.equals(searchValue)) {
-                        select.addOrderByDescFilter(searchValue);
-                    } else {
-                        select.addOrderByAscFilter(searchValue);
-                    }
-                    break;
+            if (ORDER_BY.equalsIgnoreCase(searchKeys)) {
+                Map<String, String> sortSetting = (Map<String, String>) entry.getValue();
+                String sortField = sortSetting.get(SORT_FIELD_ENTRY);
+                String sortType = sortSetting.get(SORT_TYPE_ENTRY);
 
-                case DEFAULT_EVENT_TYPE_PROCESS:
-                    query.add(or().add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS),
-                        eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS_TEST)));
-                    break;
-
-                case OBJECT_IDENTIFIER_INCOME:
-                    query.add(eq("events.obIdIn", searchValue));
-                    break;
-
-                case FORMAT:
-                    query.add(exists(PUID));
-                    break;
-
-                case FORMAT_NAME:
-                    if (!searchValue.trim().isEmpty()) {
-                        query.add(match("Name", searchValue));
-                    }
-                    break;
-
-                case RULE_VALUE:
-                    if (!searchValue.trim().isEmpty()) {
-                        query.add(match(RULE_VALUE, searchValue));
-                    }
-                    break;
-
-                case ACCESSION_REGISTER:
-                    query.add(exists(ORIGINATING_AGENCY));
-                    break;
-
-                case ORIGINATING_AGENCY:
-                    query.add(eq(ORIGINATING_AGENCY, searchValue));
-                    break;
-
-                case RULES:
-                    query.add(exists(RULEVALUE));
-                    break;
-
-                case RULETYPE:
-                    if (searchValue.contains(ALL)) {
+                if (ASC_SORT_TYPE.equalsIgnoreCase(sortType)) {
+                    select.addOrderByAscFilter(sortField);
+                } else {
+                    select.addOrderByDescFilter(sortField);
+                }
+            } else {
+                final String searchValue = (String) entry.getValue();
+                switch (searchKeys) {
+                    case DEFAULT_EVENT_TYPE_PROCESS:
+                        query.add(or().add(eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS),
+                            eq(EVENT_TYPE_PROCESS, DEFAULT_EVENT_TYPE_PROCESS_TEST)));
                         break;
-                    }
-                    if (searchValue.contains(",")) {
-                        queryOr = or();
-                        final String[] ruleTypeArray = searchValue.split(",");
-                        for (final String s : ruleTypeArray) {
-                            queryOr.add(eq("RuleType", s));
+
+                    case OBJECT_IDENTIFIER_INCOME:
+                        query.add(eq("events.obIdIn", searchValue));
+                        break;
+
+                    case FORMAT:
+                        query.add(exists(PUID));
+                        break;
+
+                    case FORMAT_NAME:
+                        if (!searchValue.trim().isEmpty()) {
+                            query.add(match("Name", searchValue));
                         }
                         break;
-                    }
-                    if (!searchValue.isEmpty()) {
-                        query.add(eq("RuleType", searchValue));
-                    }
-                    break;
 
-                case EVENTID:
-                    if ("all".equals(searchValue)) {
-                        query.add(exists(EVENT_ID_PROCESS));
-                    } else {
-                        query.add(eq(EVENT_ID_PROCESS, searchValue));
-                    }
-                    break;
+                    case RULE_VALUE:
+                        if (!searchValue.trim().isEmpty()) {
+                            query.add(match(RULE_VALUE, searchValue));
+                        }
+                        break;
 
-                case EVENTTYPE:
-                    if (!searchValue.isEmpty()) {
+                    case ACCESSION_REGISTER:
+                        query.add(exists(ORIGINATING_AGENCY));
+                        break;
+
+                    case ORIGINATING_AGENCY:
+                        query.add(eq(ORIGINATING_AGENCY, searchValue));
+                        break;
+
+                    case RULES:
+                        query.add(exists(RULEVALUE));
+                        break;
+
+                    case RULETYPE:
+                        if (searchValue.contains(ALL)) {
+                            break;
+                        }
+                        if (searchValue.contains(",")) {
+                            queryOr = or();
+                            final String[] ruleTypeArray = searchValue.split(",");
+                            for (final String s : ruleTypeArray) {
+                                queryOr.add(eq("RuleType", s));
+                            }
+                            break;
+                        }
+                        if (!searchValue.isEmpty()) {
+                            query.add(eq("RuleType", searchValue));
+                        }
+                        break;
+
+                    case EVENTID:
                         if ("all".equals(searchValue)) {
-                            query.add(exists(EVENT_TYPE_PROCESS));
+                            query.add(exists(EVENT_ID_PROCESS));
                         } else {
-                            query.add(eq(EVENT_TYPE_PROCESS, searchValue.toUpperCase()));
+                            query.add(eq(EVENT_ID_PROCESS, searchValue));
                         }
-                    }
-                    break;
-                case DATEOPERATION:
-                    if (!searchValue.isEmpty()) {
-                        query.add(gte(EVENT_DATE_TIME, searchValue));
-                    }
-                    break;
-                case TRACEABILITY_OK:
-                    // FIXME : check if it is normal that the end event is a step event for a traceability
-                    if ("true".equals(searchValue)) {
-                        query.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
-                    }
-                    break;
-                case TRACEABILITY_ID:
-                    // FIXME : No real ID for now, search on fileName
-                    if (!searchValue.isEmpty()) {
-                        query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_ID, searchValue));
-                    }
-                    break;
-                case TRACEABILITY_LOG_TYPE:
-                    if (!searchValue.isEmpty()) {
-                        query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_LOG_TYPE, searchValue));
-                    }
-                    break;
-                case TRACEABILITY_START_DATE:
-                    if (!searchValue.isEmpty()) {
-                        query.add(gte(TRACEABILITY_EV_DET_DATA + '.' + START_DATE, searchValue));
-                    }
-                    break;
-                case TRACEABILITY_END_DATE:
-                    if (!searchValue.isEmpty()) {
-                        query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
-                    }
-                    break;
-                default:
-                    if (!searchValue.isEmpty()) {
-                        query.add(eq(searchKeys, searchValue));
-                    }
+                        break;
+
+                    case EVENTTYPE:
+                        if (!searchValue.isEmpty()) {
+                            if ("all".equals(searchValue)) {
+                                query.add(exists(EVENT_TYPE_PROCESS));
+                            } else {
+                                query.add(eq(EVENT_TYPE_PROCESS, searchValue.toUpperCase()));
+                            }
+                        }
+                        break;
+                    case DATEOPERATION:
+                        if (!searchValue.isEmpty()) {
+                            query.add(gte(EVENT_DATE_TIME, searchValue));
+                        }
+                        break;
+                    case TRACEABILITY_OK:
+                        // FIXME : check if it is normal that the end event is a step event for a traceability
+                        if ("true".equals(searchValue)) {
+                            query.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
+                        }
+                        break;
+                    case TRACEABILITY_ID:
+                        // FIXME : No real ID for now, search on fileName
+                        if (!searchValue.isEmpty()) {
+                            query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_ID, searchValue));
+                        }
+                        break;
+                    case TRACEABILITY_LOG_TYPE:
+                        if (!searchValue.isEmpty()) {
+                            query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_LOG_TYPE, searchValue));
+                        }
+                        break;
+                    case TRACEABILITY_START_DATE:
+                        if (!searchValue.isEmpty()) {
+                            query.add(gte(TRACEABILITY_EV_DET_DATA + '.' + START_DATE, searchValue));
+                        }
+                        break;
+                    case TRACEABILITY_END_DATE:
+                        if (!searchValue.isEmpty()) {
+                            query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
+                        }
+                        break;
+                    default:
+                        if (!searchValue.isEmpty()) {
+                            query.add(eq(searchKeys, searchValue));
+                        }
+                }
             }
+
+
         }
         if (queryOr != null) {
             query.add(queryOr);
@@ -317,7 +330,8 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createSelectElasticsearchDSLQuery(Map<String, String> searchCriteriaMap)
+    @SuppressWarnings("unchecked")
+    public static JsonNode createSelectElasticsearchDSLQuery(Map<String, Object> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final SelectMultiQuery select = new SelectMultiQuery();
@@ -327,63 +341,71 @@ public final class DslQueryHelper {
         String endDate = null;
         String advancedSearchFlag = "";
 
-        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+        for (final Entry<String, Object> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
-            final String searchValue = entry.getValue();
+            final Object searchValue = entry.getValue();
 
-            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+            if (searchKeys.isEmpty() || searchValue == null) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
             }
 
             // Add projection for fields prefixed by projection_
             if (searchKeys.startsWith(PROJECTION_PREFIX)) {
-                select.addUsedProjection(searchValue);
+                select.addUsedProjection((String) searchValue);
                 continue;
             }
 
             // Add order by
             if (searchKeys.equals(ORDER_BY)) {
-                select.addOrderByAscFilter(searchValue);
+                Map<String, String> sortSetting = (Map<String, String>) searchValue;
+                String sortField = sortSetting.get(SORT_FIELD_ENTRY);
+                String sortType = sortSetting.get(SORT_TYPE_ENTRY);
+                
+                if (ASC_SORT_TYPE.equalsIgnoreCase(sortType)) {
+                    select.addOrderByAscFilter(sortField);
+                } else {
+                    select.addOrderByDescFilter(sortField);
+                }
                 continue;
             }
 
             // Add root
             if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
-                select.addRoots(searchValue);
+                select.addRoots((String) searchValue);
                 continue;
             }
 
             if (searchKeys.equals(TITLE_AND_DESCRIPTION)) {
-                booleanQueries.add(match(TITLE, searchValue));
-                booleanQueries.add(match(DESCRIPTION, searchValue));
+                booleanQueries.add(match(TITLE, (String) searchValue));
+                booleanQueries.add(match(DESCRIPTION, (String) searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(UiConstants.ID.getReceivedCriteria())) {
-                andQuery.add(eq(UiConstants.ID.getResultCriteria(), searchValue));
+                andQuery.add(eq(UiConstants.ID.getResultCriteria(), (String) searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(TITLE)) {
-                andQuery.add(match(TITLE, searchValue));
+                andQuery.add(match(TITLE, (String) searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(DESCRIPTION)) {
-                andQuery.add(match(DESCRIPTION, searchValue));
+                andQuery.add(match(DESCRIPTION, (String) searchValue));
                 continue;
             }
             if (searchKeys.startsWith(START_PREFIX)) {
-                startDate = searchValue;
+                startDate = (String) searchValue;
                 continue;
             }
             if (searchKeys.startsWith(END_PREFIX)) {
-                endDate = searchValue;
+                endDate = (String) searchValue;
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(ADVANCED_SEARCH_FLAG)) {
-                advancedSearchFlag = searchValue;
+                advancedSearchFlag = (String) searchValue;
                 continue;
             }
             // By default add equals query
-            booleanQueries.add(match(searchKeys, searchValue));
+            booleanQueries.add(match(searchKeys, (String) searchValue));
         }
         // US 509:start AND end date must be filled.
         if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {

@@ -36,7 +36,11 @@ angular.module('accession.register.search')
 
     $scope.search = {
       form: {
-        serviceProducerCriteria: ''
+        serviceProducerCriteria: '',
+        orderby: {
+          field: ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD,
+          sortType: 'ASC'
+        }
       }, pagination: {
         currentPage: 0,
         resultPages: 0,
@@ -57,7 +61,7 @@ angular.module('accession.register.search')
 
     var preSearch = function() {
       var requestOptions = {};
-      requestOptions.orderby = ACCESSIONREGISTER_CONSTANTS.ORIGINATING_AGENCY_FIELD;
+      requestOptions.orderby = $scope.search.form.orderby;
 
       if(!$scope.search.form.serviceProducerCriteria){
         requestOptions[ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS] = ACCESSIONREGISTER_CONSTANTS.GET_ALL_REGISTERS;
@@ -81,4 +85,3 @@ angular.module('accession.register.search')
     $scope.onInputChange = searchService.onInputChange;
 
   });
-

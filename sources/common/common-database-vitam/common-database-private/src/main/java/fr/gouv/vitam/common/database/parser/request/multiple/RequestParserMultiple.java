@@ -199,11 +199,18 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         try {
             // Check valid variable names first
             if (rootNode.has(SELECTFILTER.ORDERBY.exactToken())) {
-                final JsonNode node = rootNode.get(SELECTFILTER.ORDERBY.exactToken());
+                final ObjectNode node = (ObjectNode) rootNode.get(SELECTFILTER.ORDERBY.exactToken());
+
                 final Iterator<String> names = node.fieldNames();
                 while (names.hasNext()) {
                     final String name = names.next();
-                    adapter.getVariableName(name);
+                    final String dbName = adapter.getVariableName(name);
+
+                    // Force update rootNode with correct dbName (replace '#' by '_')
+                    if (null != dbName) {
+                        final JsonNode value = node.remove(name);
+                        node.set(dbName, value);
+                    }
                 }
             }
 
