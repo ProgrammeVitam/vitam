@@ -1,5 +1,4 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-  <!-- bundle is required for all punchplatform archives -->
   <id>bundle</id>
   <formats>
     <format>tar.gz</format>
@@ -19,18 +18,23 @@
         <include>**/*.rpm</include>
       </includes>
     </fileSet>
+    <!-- Add all vitam-external deb --> 
+    <fileSet>
+      <directory>../deb/vitam-external/target</directory>
+      <outputDirectory>deb/vitam-external</outputDirectory>
+    </fileSet>
+    <!-- Add "native" vitam-product deb -->
+    <fileSet>
+      <directory>../deb/vitam-product/target</directory>
+      <outputDirectory>deb/vitam-product</outputDirectory>
+      <includes>
+        <include>**/*.deb</include>
+      </includes>
+    </fileSet>
     <!-- Add sources -->
     <fileSet>
       <directory>..</directory>
       <outputDirectory>sources</outputDirectory>
-<!--       <includes>
-        <include>sources/**</include>
-        <include>dev-deployment/**</include>
-        <include>integration-test/**</include>
-        <include>doc/**</include>
-        <include>rpm/**</include>
-        <include>packaging/**</include>
-      </includes> -->
       <excludes>
       	<!-- IntelliJ project files -->
       	<exclude>**/*.iml</exclude>
@@ -57,9 +61,6 @@
         <!-- Other -->
         <exclude>**/node_modules/**</exclude>
         <exclude>**/evosuite-tests/**</exclude>
-        <!-- To clean up after bêta -->
-        <exclude>pom.xml</exclude>
-        <exclude>Makefile</exclude>  
       </excludes>
     </fileSet>
     <!-- Add ansible deployment files -->
@@ -72,7 +73,7 @@
     </fileSet>
   </fileSets>
   <dependencySets>
-  	<!-- Add documentation files -->
+    <!-- Add documentation files -->
     <dependencySet>
       <outputDirectory>/doc</outputDirectory>
       <unpack>true</unpack>
@@ -86,6 +87,14 @@
       <unpack>false</unpack>
       <includes>
         <include>*:*:rpm</include>
+      </includes>
+    </dependencySet>
+    <!-- Add java-based vitam-product deb -->
+    <dependencySet>
+      <outputDirectory>/deb/vitam-product</outputDirectory>
+      <unpack>false</unpack>
+      <includes>
+        <include>*:*:deb</include>
       </includes>
     </dependencySet>
   </dependencySets>

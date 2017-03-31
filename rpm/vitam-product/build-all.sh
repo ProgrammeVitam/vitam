@@ -28,7 +28,9 @@ set -e
 #*******************************************************************************
 WORKING_FOLDER=$(dirname $0)
 
-mkdir ${WORKING_FOLDER}/target
+if [ ! -d ${WORKING_FOLDER}/target ]; then
+	mkdir ${WORKING_FOLDER}/target
+fi
 
 for item in $(ls -d ${WORKING_FOLDER}/*/ | grep -v "target" | awk -F "/" '{print $(NF-1)}'); do
 	# Need to give the target folder relatively to the base folder...
