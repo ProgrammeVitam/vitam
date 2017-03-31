@@ -114,7 +114,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return Response.fromResponse(response).build();
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new ProcessingInternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -157,7 +157,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return Response.fromResponse(response).build();
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -237,7 +237,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return Response.fromResponse(response).build();
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -287,7 +287,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return Response.fromResponse(response).build();
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);

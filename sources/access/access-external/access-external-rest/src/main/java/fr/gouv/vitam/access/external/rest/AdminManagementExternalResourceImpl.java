@@ -151,9 +151,9 @@ public class AdminManagementExternalResourceImpl {
                     resp = client.importRulesFile(document);
                 }
                 // final Status status = Status.CREATED;
-                ResponseBuilder ResponseBuilder = Response.status(resp.getStatus())
+                ResponseBuilder responseBuilder = Response.status(resp.getStatus())
                     .entity(resp.hasEntity() ? resp.getEntity() : "Successfully imported");
-                return ResponseBuilder.build();
+                return responseBuilder.build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);
                 final Status status = Status.CONFLICT;

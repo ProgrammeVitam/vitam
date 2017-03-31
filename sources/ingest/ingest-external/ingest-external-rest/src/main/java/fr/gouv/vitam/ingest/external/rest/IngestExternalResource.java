@@ -130,11 +130,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
         try {
             // TODO ? ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final IngestExternalImpl ingestExtern = new IngestExternalImpl(ingestExternalConfiguration);
-            PreUploadResume
-                preUploadResume =
-                ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
-            ingestExtern.upload(preUploadResume, guid);
+            final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
+            PreUploadResume preUploadResume =
+                ingestExternal.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
+            ingestExternal.upload(preUploadResume, guid);
         } catch (final Exception exc) {
             LOGGER.error(exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -244,7 +243,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
             staticConsumeAnyEntityAndClose(response);
         }
 
-        return Response.status(Status.OK).entity(resp).build();
+        return Response.status(Status.OK).build();
 
     }
 

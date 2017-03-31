@@ -248,11 +248,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case BAD_REQUEST:
                     String reason = (response.hasEntity()) ?  response.readEntity(String.class) : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
-                    consumeAnyEntityAndClose(response);
                     throw new FileRulesException(reason);
                 case CONFLICT:
                     LOGGER.debug(Response.Status.CONFLICT.getReasonPhrase());
-                    consumeAnyEntityAndClose(response);
                     throw new DatabaseConflictException("Collection input conflic");
                 default:
                     break;
@@ -261,6 +259,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 

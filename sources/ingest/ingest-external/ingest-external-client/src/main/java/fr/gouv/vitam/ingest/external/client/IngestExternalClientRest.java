@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_ACTION;
-import static fr.gouv.vitam.common.GlobalDataRest.X_CONTEXT_ID;
-import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
-import static fr.gouv.vitam.common.model.ProcessExecutionStatus.CANCELLED;
-import static fr.gouv.vitam.common.model.ProcessExecutionStatus.COMPLETED;
-import static fr.gouv.vitam.common.model.ProcessExecutionStatus.FAILED;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
@@ -268,21 +262,16 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                     MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
                 throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
                 throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
 
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
-
                 throw new ProcessingException(UNAUTHORIZED);
             } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-                consumeAnyEntityAndClose(response);
                 throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
             }
             return Response.fromResponse(response).build();
@@ -290,6 +279,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
 
     }
@@ -319,7 +310,11 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
             throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
         }
-        return response.readEntity(ItemStatus.class);
+        try {
+            return response.readEntity(ItemStatus.class);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override
@@ -329,30 +324,29 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_ACTION, id);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        ItemStatus pwok = null ;
+        ItemStatus pwok = null;
         Status status = Status.ACCEPTED;
         try {
             response =
-               performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
-               pwok =  response.readEntity(ItemStatus.class);
-               if (pwok == null ) {
-                  return Response.status(Status.ACCEPTED).entity(pwok).header(GlobalDataRest.X_REQUEST_ID,id).build();
-               }
-             if  (
-                     pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED)||
-                     pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
-                     pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)
-                 )
-             {
-                 status = Status.OK;
-             }
+                performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
+            pwok = response.readEntity(ItemStatus.class);
+            if (pwok == null) {
+                return Response.status(Status.ACCEPTED).entity(pwok).header(GlobalDataRest.X_REQUEST_ID, id).build();
+            }
+            if (
+                pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.COMPLETED) ||
+                    pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.CANCELLED) ||
+                    pwok.getGlobalExecutionStatus().equals(ProcessExecutionStatus.FAILED)
+                ) {
+                status = Status.OK;
+            }
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
-        return Response.status(status).entity(pwok).header(GlobalDataRest.X_REQUEST_ID,id).build();
+        return Response.status(status).entity(pwok).header(GlobalDataRest.X_REQUEST_ID, id).build();
     }
 
 
