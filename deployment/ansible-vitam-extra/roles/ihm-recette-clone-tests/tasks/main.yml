@@ -27,6 +27,9 @@
 
   - name: add GPG key
     shell: curl -L "https://packagecloud.io/github/git-lfs/gpgkey" 2> /dev/null | apt-key add -
+
+  - name: update apt cache
+    shell: apt-get update
   
   when: (ansible_distribution == "Debian" )
 
