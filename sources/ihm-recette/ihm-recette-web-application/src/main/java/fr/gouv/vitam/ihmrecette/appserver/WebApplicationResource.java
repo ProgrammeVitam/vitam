@@ -403,7 +403,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);

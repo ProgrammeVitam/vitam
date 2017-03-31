@@ -64,7 +64,12 @@ angular
           title: '',
           description: '',
           startDate: '',
-          endDate: ''
+          endDate: '',
+          orderByField: {
+            field: 'TransactedDate',
+            sortType: 'ASC'
+          },
+          searchType: ''
         }, pagination: {
           currentPage: 0,
           resultPages: 0,
@@ -79,7 +84,7 @@ angular
         }
       };
 
-      // ***************** Archive Units Details
+      // ***************** Archive Units Details ********************************** //
 
       // Display Selected Archive unit form
       $scope.displayArchiveUnitForm = function displayArchiveUnitForm($event, archiveId) {
@@ -90,7 +95,16 @@ angular
         return object !== null && object !== undefined && !angular.equals(object, "");
       };
 
-      // ***************************************************************************
+      var prepareSortField = function(field, sortType) {
+        $scope.search.form.orderByField.field = field;
+        if (sortType) {
+          $scope.search.form.orderByField.sortType = 'ASC';
+        } else {
+          $scope.search.form.orderByField.sortType = 'DESC';
+        }
+      };
+
+      // *************************************************************************** //
 
       var preSearch = function () {
         var criteriaSearch = {};
@@ -103,7 +117,7 @@ angular
           criteriaSearch.projection_id = "#id";
           criteriaSearch.projection_title = "Title";
           criteriaSearch.projection_object = "#object";
-          criteriaSearch.orderby = "TransactedDate";
+          criteriaSearch.orderby = $scope.search.form.orderByField;
           criteriaSearch.isAdvancedSearchFlag = "No";
           return criteriaSearch;
         } else {
@@ -205,7 +219,7 @@ angular
           criteriaSearch.projection_id = "#id";
           criteriaSearch.projection_title = "Title";
           criteriaSearch.projection_object = "#object";
-          criteriaSearch.orderby = "TransactedDate";
+          criteriaSearch.orderby = $scope.search.form.orderByField;
           criteriaSearch.isAdvancedSearchFlag = "Yes";
 
           return criteriaSearch;
@@ -219,4 +233,15 @@ angular
       $scope.getElasticSearchUnitsResult = elasticSearchService.processSearch;
       $scope.reinitElasticForm = elasticSearchService.processReinit;
       $scope.onElasticInputChange = elasticSearchService.onInputChange;
+
+      $scope.refreshAfterSort = function(field, sortType){
+        prepareSortField(field, sortType);
+
+        if($scope.advancedSearch){
+          return $scope.getElasticSearchUnitsResult ();
+        }else{
+          return $scope.getSearchResult();
+        }
+      };
+
     });

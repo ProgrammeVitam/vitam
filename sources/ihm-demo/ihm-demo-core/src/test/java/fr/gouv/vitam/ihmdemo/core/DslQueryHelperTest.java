@@ -109,10 +109,16 @@ public class DslQueryHelperTest {
     public void testCreateSingleQueryDSL()
         throws InvalidCreateOperationException, InvalidParseOperationException {
 
-        final HashMap<String, String> myHashMap = new HashMap();
+        final HashMap<String, Object> myHashMap = new HashMap();
         myHashMap.put("title", "Archive2");
         myHashMap.put("date", "2006-03-05");
-        myHashMap.put("orderby", "evDateTime");
+
+
+        final HashMap<String, String> sortSetting = new HashMap();
+        sortSetting.put("field", "evDateTime");
+        sortSetting.put("sortType", "DESC");
+
+        myHashMap.put("orderby", sortSetting);
         myHashMap.put("obIdIn", "name");
         myHashMap.put("INGEST", "date");
         myHashMap.put("FORMAT", "PUID");
@@ -131,7 +137,7 @@ public class DslQueryHelperTest {
     @Test
     public void testCreateSingleQueryDSLEvent()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final HashMap<String, String> myHashMap = new HashMap();
+        final HashMap<String, Object> myHashMap = new HashMap();
 
         myHashMap.put("EventID", "all");
         myHashMap.put("EventType", "all");
@@ -147,9 +153,14 @@ public class DslQueryHelperTest {
     @Test
     public void testCreateSelectElasticsearchDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
+        final Map<String, Object> queryMap = new HashMap();
         queryMap.put("titleAndDescription", "Arch");
-        queryMap.put("orderby", "date");
+        
+        final HashMap<String, String> sortSetting = new HashMap();
+        sortSetting.put("field", "date");
+        sortSetting.put("sortType", "DESC");
+        
+        queryMap.put("orderby", sortSetting);
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
@@ -166,9 +177,14 @@ public class DslQueryHelperTest {
 
     @Test
     public void testCreateSelectDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
+        final Map<String, Object> queryMap = new HashMap();
         queryMap.put("Title", "Archive2");
-        queryMap.put("orderby", "date");
+        
+        final HashMap<String, String> sortSetting = new HashMap();
+        sortSetting.put("field", "date");
+        sortSetting.put("sortType", "DESC");
+        
+        queryMap.put("orderby", sortSetting);
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         queryMap.put("isAdvancedSearchFlag", "YES");
@@ -329,7 +345,7 @@ public class DslQueryHelperTest {
     @Test
     public void testFundsRegisterDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
+        final Map<String, Object> queryMap = new HashMap();
         queryMap.put(ACCESSION_REGISTER, "");
 
         final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
@@ -341,7 +357,7 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getRoots().size() == 0);
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap2 = new HashMap();
+        final Map<String, Object> queryMap2 = new HashMap();
         queryMap2.put(ORIGINATING_AGENCY, "id01");
 
         final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
@@ -364,7 +380,7 @@ public class DslQueryHelperTest {
     @Test
     public void testRulesDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
+        final Map<String, Object> queryMap = new HashMap();
         queryMap.put(RULES, "");
 
         final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
@@ -376,7 +392,7 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getRoots().size() == 0);
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap2 = new HashMap();
+        final Map<String, Object> queryMap2 = new HashMap();
         queryMap2.put(RULETYPE, "AppraisingRule");
 
         final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
@@ -388,7 +404,7 @@ public class DslQueryHelperTest {
         assertTrue(selectParser2.getRequest().getRoots().size() == 0);
         assertTrue(selectParser2.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap3 = new HashMap();
+        final Map<String, Object> queryMap3 = new HashMap();
         queryMap3.put(RULETYPE, "AppraisingRule,test");
 
         final JsonNode selectRequest3 = DslQueryHelper.createSingleQueryDSL(queryMap3);
@@ -410,7 +426,7 @@ public class DslQueryHelperTest {
     @Test
     public void testTraceabilityDSLQuery()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> queryMap = new HashMap();
+        final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "traceability");
 
         final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
@@ -422,9 +438,14 @@ public class DslQueryHelperTest {
         assertTrue(selectParser.getRequest().getRoots().size() == 0);
         assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
 
-        final Map<String, String> queryMap2 = new HashMap();
+        final Map<String, Object> queryMap2 = new HashMap();
         queryMap2.put(EVENT_TYPE_PROCESS, "traceability");
-        queryMap2.put("orderby", "evDateTime");
+        
+        final HashMap<String, String> sortSetting = new HashMap();
+        sortSetting.put("field", "evDateTime");
+        sortSetting.put("sortType", "DESC");
+        
+        queryMap2.put("orderby", sortSetting);
         queryMap2.put("TraceabilityStartDate", "2017-01-01");
         queryMap2.put("TraceabilityEndDate", "2017-02-09");
         queryMap2.put("TraceabilityLogType", "OPERATION");

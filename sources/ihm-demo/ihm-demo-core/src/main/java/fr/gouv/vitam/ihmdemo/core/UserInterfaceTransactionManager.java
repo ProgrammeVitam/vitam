@@ -322,7 +322,7 @@ public class UserInterfaceTransactionManager {
         throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             return client.getAccessionRegisterSummary(query, tenantId);
         }
@@ -345,7 +345,7 @@ public class UserInterfaceTransactionManager {
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
 
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             return accessClient.getAccessionRegisterDetail(id, query, tenantId);
         }

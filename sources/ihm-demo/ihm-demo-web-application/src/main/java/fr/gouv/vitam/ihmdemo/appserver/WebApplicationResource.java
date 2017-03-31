@@ -223,7 +223,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteria));
-                final Map<String, String> criteriaMap = JsonHandler.getMapStringFromString(criteria);
+
+                final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
                 final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
                 result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
                     getTenantId(headers));
@@ -334,7 +335,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
@@ -722,7 +723,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
                 result = adminClient.findDocuments(AdminCollections.FORMATS, query,
                     getTenantId(headers));
@@ -1042,7 +1043,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
                 result = adminClient.findDocuments(AdminCollections.RULES, query,
                     getTenantId(headers));

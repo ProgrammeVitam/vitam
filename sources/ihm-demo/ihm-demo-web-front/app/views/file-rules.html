@@ -72,30 +72,30 @@
 			<div class="table-responsive">
 				<div style="padding-top: 40px">
 					<table class="table highlighted">
-						
-						<th><a href="" ng-click="orderByField='RuleValue'; reverseSort = !reverseSort">Intitulé</a>
-	            <span ng-show="orderByField == 'RuleValue' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-	            <span ng-show="orderByField == 'RuleValue' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+
+						<th><a href="" ng-click="reverseSort = !reverseSort; prepareSortField('RuleValue', reverseSort);">Intitulé</a>
+	            <span ng-show="search.form.orderby.field == 'RuleValue' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="search.form.orderby.field == 'RuleValue' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
 	          </th>
-						<th><a href="" ng-click="orderByField='RuleType'; reverseSort = !reverseSort">Type</a>
-	            <span ng-show="orderByField == 'RuleType' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-	            <span ng-show="orderByField == 'RuleType' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+						<th><a href="" ng-click="reverseSort = !reverseSort; prepareSortField('RuleType', reverseSort);">Type</a>
+	            <span ng-show="search.form.orderby.field == 'RuleType' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="search.form.orderby.field == 'RuleType' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
 	          </th>
-						<th><a href="" ng-click="orderByField='RuleDuration'; reverseSort = !reverseSort">Durée</a>
-	            <span ng-show="orderByField == 'RuleDuration' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-	            <span ng-show="orderByField == 'RuleDuration' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+						<th><a href="" ng-click="reverseSort = !reverseSort; prepareSortField('RuleDuration', reverseSort);">Durée</a>
+	            <span ng-show="search.form.orderby.field == 'RuleDuration' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="search.form.orderby.field == 'RuleDuration' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
 	          </th>
-						<th><a href="" ng-click="orderByField='RuleDescription'; reverseSort = !reverseSort">Description</a>
-	            <span ng-show="orderByField == 'RuleDescription' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-	            <span ng-show="orderByField == 'RuleDescription' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+						<th><a href="" ng-click="reverseSort = !reverseSort; prepareSortField('RuleDescription', reverseSort);">Description</a>
+	            <span ng-show="search.form.orderby.field == 'RuleDescription' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="search.form.orderby.field == 'RuleDescription' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
 	          </th>
-						<th><a href="" ng-click="orderByField='RuleId'; reverseSort = !reverseSort">Identifiant</a>
-	            <span ng-show="orderByField == 'RuleId' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-	            <span ng-show="orderByField == 'RuleId' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+						<th><a href="" ng-click="reverseSort = !reverseSort; prepareSortField('RuleId', reverseSort);">Identifiant</a>
+	            <span ng-show="search.form.orderby.field == 'RuleId' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+	            <span ng-show="search.form.orderby.field == 'RuleId' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
 	          </th>
 
 						<tbody
-							ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset)| limitTo:search.pagination.itemsPerPage| orderBy:orderByField:reverseSort">
+							ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset)| limitTo:search.pagination.itemsPerPage">
 							<tr ng-click="openDialog($event, file.RuleId)">
 								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleValue}}</td>
 								<td style="text-overflow: ellipsis; max-width: 20%">{{file.RuleType}}</td>

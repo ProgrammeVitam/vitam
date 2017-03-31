@@ -107,28 +107,35 @@
     <div class="table-responsive ">
       <table class="table highlighted">
         <tr>
-          <th><a href="" ng-click="orderByField='id'; reverseSort = !reverseSort">ID</a>
-            <span ng-show="orderByField == 'id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-            <span ng-show="orderByField == 'id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          <th>
+            <!-- ID -->
+            <a href="" ng-click="reverseSort = !reverseSort; refreshAfterSort('#id', reverseSort);">ID</a>
+            <span ng-show="search.form.orderByField.field == '#id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="search.form.orderByField.field == '#id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
-          <th><a href="" ng-click="orderByField='title'; reverseSort = !reverseSort">Titre</a>
-            <span ng-show="orderByField == 'title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-            <span ng-show="orderByField == 'title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          <th>
+            <!-- Titre -->
+            <a href="" ng-click="reverseSort = !reverseSort; refreshAfterSort('Title', reverseSort);">Titre</a>
+            <span ng-show="search.form.orderByField.field == 'Title' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="search.form.orderByField.field == 'Title' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
-          <th><a href="" ng-click="orderByField='date'; reverseSort = !reverseSort">Date</a>
-            <span ng-show="orderByField == 'date' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-            <span ng-show="orderByField == 'date' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          <th>
+            <!-- Date -->
+            <a href="" ng-click="reverseSort = !reverseSort; refreshAfterSort('TransactedDate', reverseSort);">Date</a>
+            <span ng-show="search.form.orderByField.field == 'TransactedDate' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="search.form.orderByField.field == 'TransactedDate' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
-
-          <th><a href="" ng-click="orderByField='og'; reverseSort = !reverseSort">Objet(s) disponible(s)</a>
-            <span ng-show="orderByField == 'og' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-            <span ng-show="orderByField == 'og' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+          <th>
+            <!-- Objet(s) disponible(s) -->
+            <a href="" ng-click="reverseSort = !reverseSort; refreshAfterSort('#object', reverseSort);">Objet(s) disponible(s)</a>
+            <span ng-show="search.form.orderByField.field == '#object' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+            <span ng-show="search.form.orderByField.field == '#object' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
           </th>
         </tr>
 
         <tbody ng-if="search.response.totalResult>0">
           <tr data-toggle="popover" data-trigger="focus" data-placement="top" ng-click="displayArchiveUnitForm($event, result._id)"
-              ng-repeat="result in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset)| limitTo: search.pagination.itemsPerPage | orderBy:orderByField:reverseSort">
+              ng-repeat="result in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset)| limitTo: search.pagination.itemsPerPage">
             <td>{{result._id}}</td>
             <td>{{result.Title}}</td>
             <td>{{result.TransactedDate | vitamFormatDate}}</td>

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
 
 angular.module('ihm.demo')
@@ -34,7 +34,11 @@ angular.module('ihm.demo')
     $scope.search = {
       form: {
         FormatName: '',
-        PUID: ''
+        PUID: '',
+        orderby: {
+          field: 'Name',
+          sortType: 'ASC'
+        }
       }, pagination: {
         currentPage: 0,
         resultPages: 0,
@@ -66,7 +70,6 @@ angular.module('ihm.demo')
     var preSearch = function() {
       var requestOptions = angular.copy($scope.search.form);
       requestOptions.FORMAT = "all";
-      requestOptions.orderby = "Name";
       return requestOptions;
     };
 

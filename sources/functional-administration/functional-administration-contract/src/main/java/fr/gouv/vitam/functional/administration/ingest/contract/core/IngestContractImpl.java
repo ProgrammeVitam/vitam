@@ -5,7 +5,6 @@ import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -40,6 +39,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.ingest.contract.core.ContractValidator.RejectionCause;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -49,9 +49,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
 public class IngestContractImpl implements VitamAutoCloseable {
 
-
-    private static final String CONTRACTS_VALIDATION_EVENT = "CONTRACTS_IMPORT_VALIDATION";
-    private static final String CONTRACTS_IMPORT_EVENT = "CONTRACTS_IMPORT";
+    private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
     private static final String ERR_INVALID_CONTRACT_FILE = "The input file structure is invalid";
     private final MongoDbAccessAdminImpl mongoAccess;
@@ -87,7 +85,9 @@ public class IngestContractImpl implements VitamAutoCloseable {
         SanityChecker.checkJsonAll(contractsToImport);
         Map<String, JsonNode> contractsToPersist = new HashMap<>();
         Map<IngestContract, RejectionCause> wrongContracts = new HashMap<>(0);
-        logStarted();
+
+        GUID logbookOperationId = logStarted();
+
         for (JsonNode contractAsJson : contractsToImport) {
             try {
                 IngestContract contractToValidate = JsonHandler.getFromJsonNode(contractAsJson, IngestContract.class);
@@ -103,17 +103,17 @@ public class IngestContractImpl implements VitamAutoCloseable {
                 }
             } catch (InvalidParseOperationException poe) {
                 // invalid contract json at parse
-                logValidationError(poe.getMessage());
+                logValidationError(logbookOperationId, poe.getMessage());
                 throw new ReferentialException(ERR_INVALID_CONTRACT_FILE);
 
             }
         }
-        if (! wrongContracts.isEmpty()) {
+        if (!wrongContracts.isEmpty()) {
             // log book + application log
             // stop
             String errorsDetails =
                 wrongContracts.values().stream().map(c -> c.getReason()).collect(Collectors.joining(","));
-            logValidationError(errorsDetails);
+            logValidationError(logbookOperationId, errorsDetails);
             throw new ReferentialException(errorsDetails);
         }
         // store if all contracts are are valid only
@@ -122,7 +122,7 @@ public class IngestContractImpl implements VitamAutoCloseable {
             // contractsToPersist.values().stream().map();
             mongoAccess.insertDocuments(JsonHandler.createArrayNode().addAll(contractsToPersist.values()),
                 FunctionalAdminCollections.INGEST_CONTRACT);
-            logSuccess();
+            logSuccess(logbookOperationId);
             return new ArrayList<>(contractsToPersist.values());
         }
         return Collections.emptyList();
@@ -148,32 +148,36 @@ public class IngestContractImpl implements VitamAutoCloseable {
     /**
      * @param errorsDetails
      */
-    private void logValidationError(String errorsDetails) {
+    private void logValidationError(GUID logbookOperationId, String errorsDetails) {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        final GUID eventId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, CONTRACTS_VALIDATION_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+            .newLogbookOperationParameters(eventId, CONTRACTS_IMPORT_EVENT, logbookOperationId,
+                LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(CONTRACTS_VALIDATION_EVENT, StatusCode.KO), eip);
-        createLogBookEntry(logbookParametersStart);
+                VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), logbookOperationId);
+        updateLogBookEntry(logbookParametersStart);
     }
 
-    private void logStarted() {
+    private GUID logStarted() {
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
             .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
         createLogBookEntry(logbookParametersStart);
+
+        return eip;
     }
 
-    private void logSuccess() {
-        final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+    private void logSuccess(GUID logbookOperationId) {
+        final GUID eventId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
-        createLogBookEntry(logbookParametersStart);
+            .newLogbookOperationParameters(eventId, CONTRACTS_IMPORT_EVENT, logbookOperationId,
+                LogbookTypeProcess.MASTERDATA,
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK),
+                logbookOperationId);
+        updateLogBookEntry(logbookParametersStart);
     }
 
     /**
@@ -186,6 +190,15 @@ public class IngestContractImpl implements VitamAutoCloseable {
             this.logBookclient.create(logbookParametersStart);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
             LogbookClientServerException e) {
+            LOGGER.error(e.getMessage());
+        }
+    }
+
+    private void updateLogBookEntry(LogbookOperationParameters logbookParametersStart) {
+        try {
+            this.logBookclient.update(logbookParametersStart);
+        } catch (LogbookClientBadRequestException |
+            LogbookClientServerException | LogbookClientNotFoundException e) {
             LOGGER.error(e.getMessage());
         }
     }
