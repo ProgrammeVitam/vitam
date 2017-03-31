@@ -1,7 +1,7 @@
 metadata-parser
 *******************
 
-Presentation
+Présentation
 ------------
 
 |  *Parent package:* **fr.gouv.vitam.metadata**
