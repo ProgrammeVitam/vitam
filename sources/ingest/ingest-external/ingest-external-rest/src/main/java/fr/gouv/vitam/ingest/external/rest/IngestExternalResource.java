@@ -391,6 +391,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
         return Response.status(Status.OK).build();
     }
 
+    // async
     private void updateOperationActionProcessAsync(final AsyncResponse asyncResponse, String operationId,
         String action) {
         Response response = null;

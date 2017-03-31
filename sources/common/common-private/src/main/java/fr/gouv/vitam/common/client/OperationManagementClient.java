@@ -99,7 +99,6 @@ public interface OperationManagementClient extends MockOrRestClient {
      * 
      * 
      * @param contextId :define the execution context of workflow
-     * @return Response response containing message and status
      * @throws VitamClientException
      * @throws VitamException
      */

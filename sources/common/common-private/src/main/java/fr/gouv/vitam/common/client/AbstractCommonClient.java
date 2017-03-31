@@ -136,7 +136,6 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             response = performRequest(HttpMethod.GET, STATUS_URL, null, MediaType.APPLICATION_JSON_TYPE, false);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            consumeAnyEntityAndClose(response);
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
             }

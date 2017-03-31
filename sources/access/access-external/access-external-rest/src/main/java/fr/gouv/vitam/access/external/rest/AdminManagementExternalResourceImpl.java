@@ -93,17 +93,19 @@ public class AdminManagementExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
+        Response response = null;
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    final Response status = client.checkFormat(document);
-                    status.bufferEntity();
-                    return Response.fromResponse(status).build();
+                    response = client.checkFormat(document);
+                    response.bufferEntity();
+                    return Response.fromResponse(response).build();
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    final Response status = client.checkRulesFile(document);
-                    return Response.fromResponse(status).build();
+                    response = client.checkRulesFile(document);
+                    response.bufferEntity();
+                    return Response.fromResponse(response).build();
                 }
                 return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, null, null)).build();
             } catch (ReferentialException ex) {

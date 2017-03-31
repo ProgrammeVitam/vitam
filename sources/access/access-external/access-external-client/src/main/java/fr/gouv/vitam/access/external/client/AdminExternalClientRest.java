@@ -47,14 +47,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                staticConsumeAnyEntityAndClose(response);
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
             return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -69,14 +68,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                staticConsumeAnyEntityAndClose(response);
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
             return response;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
         }
     }
 
