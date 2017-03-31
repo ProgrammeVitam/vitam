@@ -55,7 +55,7 @@ traits:
     responses:
       202:
         description: |
-          **UNSUPPORTED** Returns the status of ingest operation accepted
+           Returns the status of ingest operation accepted
         body:
           application/json:
             description: Ingest operation accepted
@@ -82,6 +82,33 @@ traits:
             description: Final Ingest report
             schema: IngestTypes.ArchiveTransferReply
             example: !include examples/sedaArchiveTransferReplyKO.xml
+  IngestCreationResponseAsync:
+    description: Request for an Ingest creation
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
+    body:
+      application/zip:
+        description: Body containing the SIP in ZIP format
+      application/x-tar:
+        description: Body containing the SIP in TAR format
+      application/x-gzip:
+        description: Body containing the SIP in TAR.GZ format
+      application/x-bzip2:
+        description: Body containing the SIP in TAR.BZ2 format
+    responses:
+      202:
+        description: |
+          **UNSUPPORTED** Returns the status of ingest operation accepted
+        body:
+          application/json:
+            description: Ingest operation accepted
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/ingests.json
+      500:
+        description: Returns the final result of the Ingest operation in KO status
+        body:
+          application/xml:
+            description: Final Ingest report
 
   IngestPoolingResponse:
     description: |
