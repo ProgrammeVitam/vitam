@@ -787,8 +787,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     JsonNode ruleNode = ((ArrayNode) managmentRuleTypeNode).get(indexRule);
                     if (ruleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID) != null &&
                         !ruleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).isArray()) {
-                        ruleNode =
-                            JsonHandler.createArrayNode().add(ruleNode);
+                        JsonNode refNonRuleIdNode =
+                            JsonHandler.createArrayNode().add(ruleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID));
+                        ((ObjectNode) ruleNode).set(SedaConstants.TAG_RULE_REF_NON_RULE_ID, refNonRuleIdNode);
                         ((ArrayNode) managmentRuleTypeNode).set(indexRule, ruleNode);
 
                     }
