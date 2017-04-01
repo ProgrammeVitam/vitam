@@ -30,10 +30,7 @@ package fr.gouv.vitam.common.error;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -165,6 +162,23 @@ public class VitamError extends RequestResponse {
         }
         return this;
     }
+
+
+    /**
+     * @param error one error
+     * @return the VitamError object with the list of errors is setted
+     */
+    @JsonIgnore
+    public VitamError addToErrors(VitamError error) {
+        ParametersChecker.checkParameter("error is a mandatory parameter", error);
+        if (this.errors == null) {
+            this.errors = new ArrayList<>();
+        }
+        this.errors.add(error);
+
+        return this;
+    }
+
 
     /**
      * @return the code of the VitamError object

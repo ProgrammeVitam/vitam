@@ -29,6 +29,8 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static java.lang.String.format;
 
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -97,9 +99,16 @@ public final class AdminManagementApplication
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         final AdminManagementResource resource = new AdminManagementResource(getConfiguration());
-        serviceRegistry.register(LogbookOperationsClientFactory.getInstance())
+
+        serviceRegistry
+            .register(LogbookOperationsClientFactory.getInstance())
             .register(resource.getLogbookDbAccess());
-        resourceConfig.register(new AdminManagementResource(getConfiguration()));
+
+        final MongoDbAccessReferential mongoDbAccess = resource.getLogbookDbAccess();
+
+        resourceConfig
+            .register(resource)
+            .register(new ContractResource(mongoDbAccess));
     }
 
     @Override

@@ -31,11 +31,7 @@ import com.mongodb.client.MongoDatabase;
 
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.*;
 
 /**
  * All collections in functional admin module
@@ -68,7 +64,13 @@ public enum FunctionalAdminCollections {
      * Ingest contract collection
      * 
      */
-    INGEST_CONTRACT(IngestContract.class);
+    INGEST_CONTRACT(IngestContract.class),
+
+    /**
+     * Access contract collection
+     *
+     */
+    ACCESS_CONTRACT(AccessContract.class);
 
     private VitamCollection vitamCollection;
 

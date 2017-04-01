@@ -72,7 +72,9 @@ public enum DomainName {
     /**
      * Used for: Permissions anomalies Security problems
      */
-    SECURITY("07", "Security");
+    SECURITY("07", "Security"),
+
+    VALIDATION("08", "Validation");
 
     private final String code;
     private final String name;

@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.external.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -62,6 +64,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -173,6 +176,18 @@ public class AdminManagementExternalResourceImpl {
                         status = ((VitamError) respEntity).getHttpCode();
                     }
                 }
+
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+
+                    respEntity = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<AccessContractModel>>(){}));
+                    //get response entity and http status
+                    if (respEntity != null && respEntity instanceof VitamError) {
+                        status = ((VitamError) respEntity).getHttpCode();
+                    }
+                }
+
                 // Send the http response with the entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status)
                     .entity(respEntity != null ? respEntity : "Successfully imported");
@@ -227,9 +242,15 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRules(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
+
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    RequestResponse result = client.findAccessContracts(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
+
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
-            } catch (ReferentialException | IOException e) {
+            } catch (ReferentialException | IOException | VitamClientInternalException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
@@ -271,9 +292,15 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRuleByID(documentId);
                     return Response.status(Status.OK).entity(result).build();
                 }
+
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    RequestResponse result = client.findAccessContractsByID(documentId);
+                    return Response.status(Status.OK).entity(result).build();
+                }
+
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
-            } catch (final ReferentialException e) {
+            } catch (final ReferentialException | VitamClientInternalException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();

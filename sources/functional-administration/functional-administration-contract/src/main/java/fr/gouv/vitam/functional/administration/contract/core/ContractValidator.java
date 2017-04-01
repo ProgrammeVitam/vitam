@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.ingest.contract.core;
+package fr.gouv.vitam.functional.administration.contract.core;
 
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +20,7 @@ public interface ContractValidator {
      * @return empty optional if OK, Else return the rejection cause
      */
     Optional<RejectionCause> validate(IngestContract contract, Map<String, JsonNode> contractsToPersist);
-    
+
 
     public class RejectionCause {
 
@@ -44,11 +44,11 @@ public interface ContractValidator {
             return new RejectionCause(String.format(ERR_DUPLICATE_CONTRACT , contract.toJson()));
         }
         
-        public static RejectionCause rejectWrongField(IngestContract contract, String fieldName){    
+        public static RejectionCause rejectWrongField(IngestContract contract, String fieldName){
             return new RejectionCause(String.format(ERR_INVALID_FIELD , fieldName));
         }
         
-        public static RejectionCause rejectMandatoryMissing(IngestContract contract, String fieldName){    
+        public static RejectionCause rejectMandatoryMissing(IngestContract contract, String fieldName){
             return new RejectionCause(String.format(ERR_MANDATORY_FIELD , fieldName));
         }
         

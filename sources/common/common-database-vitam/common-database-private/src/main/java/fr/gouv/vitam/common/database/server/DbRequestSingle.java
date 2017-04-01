@@ -141,7 +141,7 @@ public class DbRequestSingle {
 
 
     /**
-     * @param vitamDocumentList
+     * @param arrayNode
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */

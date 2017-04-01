@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.functional.administration.common.*;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -87,12 +88,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
-import fr.gouv.vitam.functional.administration.common.IngestContractStatus;
+import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class MongoDbAccessAdminImplTest {
@@ -386,7 +382,7 @@ public class MongoDbAccessAdminImplTest {
         String lastupdate = "10/12/2016";
         contract
             .setName(name)
-            .setDescription(description).setStatus(IngestContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ContractStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).setDeactivationdate(lastupdate);

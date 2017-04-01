@@ -1,9 +1,9 @@
 package fr.gouv.vitam.functional.administration.common;
 
 /**
- * Enum for ingest contract status 
+ * Enum for contract status
  */
-public enum IngestContractStatus {
+public enum ContractStatus {
     /**
      * status active 
      */

@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.ingest.contract.core;
+package fr.gouv.vitam.functional.administration.contract.core;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -32,11 +32,11 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
-import fr.gouv.vitam.functional.administration.common.IngestContractStatus;
+import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.ingest.contract.core.ContractValidator.RejectionCause;
+import fr.gouv.vitam.functional.administration.contract.core.ContractValidator.RejectionCause;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -210,7 +210,7 @@ public class IngestContractImpl implements VitamAutoCloseable {
                 rejection = RejectionCause.rejectMandatoryMissing(contract, IngestContract.NAME);
             }
             if (contract.getStatus() == null) {
-                contract.setStatus(IngestContractStatus.INACTIVE);
+                contract.setStatus(ContractStatus.INACTIVE);
                 // FIXME
                 String now = new Date().toString();
                 contract.setCreationdate(now);
@@ -226,15 +226,15 @@ public class IngestContractImpl implements VitamAutoCloseable {
             RejectionCause rejection = null;
             String now = LocalDateUtil.now().toString();
             if (contract.getStatus() == null) {
-                contract.setStatus(IngestContractStatus.INACTIVE);
+                contract.setStatus(ContractStatus.INACTIVE);
                 contract.setCreationdate(now);
                 contract.setDeactivationdate(now);
                 contract.setActivationdate(null);
             } else {
                 contract.setCreationdate(now);
                 contract.setDeactivationdate(null);
-                contract.setActivationdate((contract.getStatus() == IngestContractStatus.ACTIVE) ? now : null);
-                contract.setDeactivationdate((contract.getStatus() == IngestContractStatus.INACTIVE) ? now : null);
+                contract.setActivationdate((contract.getStatus() == ContractStatus.ACTIVE) ? now : null);
+                contract.setDeactivationdate((contract.getStatus() == ContractStatus.INACTIVE) ? now : null);
             }
             return (rejection == null) ? Optional.empty() : Optional.of(rejection);
         };

@@ -1,27 +1,26 @@
 package fr.gouv.vitam.access.external.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -168,6 +167,33 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @Path("/accesscontracts")
+        @POST
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importAccessContracts(InputStream contracts, @Context UriInfo uri) {
+            ParametersChecker.checkParameter("CONTRACT_JSON_IS_MANDATORY_PATAMETER", contracts);
+            return expectedResponse.post();
+        }
+
+
+        @POST
+        @Path("/accesscontracts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessContracts(JsonNode queryDsl) {
+            return expectedResponse.post();
+        }
+
+
+        @POST
+        @Path("/accesscontracts/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessContractsById(String documentId) {
+            return expectedResponse.post();
+        }
+
     }
 
     @Test
@@ -277,7 +303,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
-        RequestResponse resp = client.importContracts(fileContracts, TENANT_ID);
+        RequestResponse resp = client.importContracts(fileContracts, TENANT_ID, AdminCollections.CONTRACTS);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
@@ -298,8 +324,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             .setMessage("invalid input").setDescription("Input file of contracts is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
-        RequestResponse resp = client.importContracts(fileContracts, TENANT_ID);
+        RequestResponse resp = client.importContracts(new FakeInputStream(0, false), TENANT_ID, AdminCollections.CONTRACTS);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -309,7 +334,108 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void importContractsWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.importContracts(null, TENANT_ID);
+        client.importContracts(null, TENANT_ID, AdminCollections.CONTRACTS);
+    }
+
+
+
+    @Test()
+    @RunWithCustomExecutor
+    public void importAccessContractsWithCorrectJsonReturnCreated()
+            throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        when(mock.post()).thenReturn(
+                Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getAccessContracts())).build());
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
+        RequestResponse resp = client.importContracts(fileContracts, TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
+        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
+        Assert.assertTrue((((RequestResponseOK) resp).isOk()));
+    }
+
+    private List<Object> getAccessContracts() throws FileNotFoundException, InvalidParseOperationException {
+        InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
+        ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
+        List<Object> res = new ArrayList<>();
+        array.forEach(e -> res.add(e));
+        return res;
+    }
+
+    @Test()
+    @RunWithCustomExecutor
+    public void importAccessContractsWithIncorrectJsonReturnBadRequest()
+            throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
+                .setMessage("invalid input").setDescription("Input file of contracts is malformed");
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.importContracts(new FakeInputStream(0, false), TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
+        Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
+        Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    @RunWithCustomExecutor
+    public void importAccessContractsWithNullStreamThrowIllegalArgException()
+            throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.importContracts(null, TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
+    }
+
+
+    /**
+     *  Test that findAccessContracts is reachable and does not return elements
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientInternalException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllAccessContractsThenReturnEmpty()
+            throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException, AccessExternalClientException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse resp = client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+    }
+
+
+    /**
+     *  Test that findAccessContracts is reachable and return two elements as expected
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientInternalException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllAccessContractsThenReturnTwo()
+            throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException, AccessExternalClientException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>().addAllResults(getAccessContracts())).build());
+        RequestResponse resp = client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
+    }
+
+
+    /**
+     * Test that findAccessContractsByID is reachable
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientInternalException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAccessContractsByIdThenReturnEmpty()
+            throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException, AccessExternalClientException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse resp = client.findDocumentById(AdminCollections.ACCESS_CONTRACTS,"fakeId", TENANT_ID);
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
     }
 
 }
