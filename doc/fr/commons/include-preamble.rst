@@ -79,6 +79,9 @@ Glossaire
    RPM
      Red Hat Package Manager ; il s'agit du format de packets logiciels nativement utilisé par les distributions CentOS (entre autres)
 
+   Deb 
+     Debian ; il s'agit du format de packets logiciels nativement utilisé par les distributions Debian GNU/Linux   
+
    API
       Application Programming Interface
 
