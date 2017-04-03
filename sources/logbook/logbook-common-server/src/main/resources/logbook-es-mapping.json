@@ -1,0 +1,148 @@
+{
+  "properties": {
+    "events": {
+      "type": "object",
+      "enabled": true,
+      "properties": {
+        "evDetData": {
+          "type": "object",
+          "enabled": true,
+          "properties": {
+            "evDetDataType": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "LogType": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "StartDate": {
+              "type": "date",
+              "index": "analyzed"
+            },
+            "EndDate": {
+              "type": "date",
+              "index": "analyzed"
+            },
+            "PreviousLogbookTraceabilityDate": {
+              "type": "date",
+              "index": "analyzed"
+            },
+            "MinusOneMonthLogbookTraceabilityDate": {
+              "type": "date",
+              "index": "analyzed"
+            },
+            "MinusOneYearLogbookTraceabilityDate": {
+              "type": "date",
+              "index": "analyzed"
+            },
+            "Hash": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "TimeStampToken": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "NumberOfElement": {
+              "type": "long",
+              "index": "analyzed"
+            },
+            "Size": {
+              "type": "long",
+              "index": "analyzed"
+            },
+            "FileName": {
+              "type": "string",
+              "index": "analyzed"
+            },
+            "EvDetailReq": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "EvDateTimeReq": {
+              "type": "date",
+              "index": "analyzed"
+            },
+            "AgIfTrans": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "ArchivalAgreement": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "ServiceLevel": {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        },
+        "evTypeProc": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "evType": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "outcome": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "outDetail": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "evDateTime": {
+          "type": "date",
+          "index": "analyzed"
+        },
+        "outMessg": {
+          "type": "string",
+          "index": "analyzed"
+        },
+        "agId": {
+          "type": "string",
+          "index": "analyzed"
+        },
+        "obId": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    },
+    "evTypeProc": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "evType": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "outcome": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "outDetail": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "evDateTime": {
+      "type": "date",
+      "index": "analyzed"
+    },
+    "outMessg": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "agId": {
+      "type": "string",
+      "index": "analyzed"
+    },
+    "obId": {
+      "type": "string",
+      "index": "not_analyzed"
+    }
+  }
+}

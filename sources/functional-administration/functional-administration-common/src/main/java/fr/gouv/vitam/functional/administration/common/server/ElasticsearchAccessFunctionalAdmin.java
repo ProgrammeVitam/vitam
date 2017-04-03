@@ -26,9 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -42,6 +46,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -57,7 +62,9 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessFunctionalAdmin.class);
-
+    public static final String MAPPING_FORMAT_FILE = "/format-es-mapping.json";
+    public static final String MAPPING_RULE_FILE = "/rule-es-mapping.json";
+    
     /**
      * @param clusterName
      * @param nodes
@@ -124,7 +131,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(collection.getName().toLowerCase())
-                    .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                    .setSettings(default_builder)
                     .addMapping(type, mapping)
                     .get();
                 if (!response.isAcknowledged()) {
@@ -202,11 +209,11 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         }
     }
     
-    private String getMapping(FunctionalAdminCollections collection) {
+    private String getMapping(FunctionalAdminCollections collection) throws IOException {
         if (collection.equals(FunctionalAdminCollections.FORMATS)) {
-            return FileFormat.MAPPING;
+            return ElasticsearchUtil.transferJsonToMapping(FileFormat.class.getResourceAsStream(MAPPING_FORMAT_FILE));
         } else if (collection.equals(FunctionalAdminCollections.RULES)) {
-            return FileRules.MAPPING;
+            return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_RULE_FILE));
         }
         return "";
     }
