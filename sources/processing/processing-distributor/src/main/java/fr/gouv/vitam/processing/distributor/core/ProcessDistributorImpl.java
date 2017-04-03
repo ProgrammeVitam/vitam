@@ -236,7 +236,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                 }
             }
         } catch (InterruptedException e) { // NOSONAR ignore since cannot block here
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
         } finally {
             // Now waiting for all submitted jobs to finish
             waitEndOfStep(currentRunningObjectsInStep, waitingStepAllAsyncRequest);

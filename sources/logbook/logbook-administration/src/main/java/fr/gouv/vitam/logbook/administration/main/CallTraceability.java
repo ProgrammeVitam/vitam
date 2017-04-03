@@ -74,7 +74,8 @@ public class CallTraceability {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Application Server", e);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOGGER.error(e);
+            throw new IllegalStateException("Cannot start the Application Server", e);
         }
     }
 

@@ -36,11 +36,14 @@ import java.nio.channels.WritableByteChannel;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * This class supports Helpers on streams.
  */
 public class StreamUtils {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StreamUtils.class);
     private static final int BUFFER_SIZE = 65536;
 
     private StreamUtils() {
@@ -196,7 +199,7 @@ public class StreamUtils {
                 read += len;
             }
         } catch (final IOException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
         } finally {
             try {
                 inputStream.close();

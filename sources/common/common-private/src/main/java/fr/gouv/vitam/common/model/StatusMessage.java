@@ -30,11 +30,15 @@ import fr.gouv.vitam.common.ServerIdentityInterface;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Default Status message (at that time)
  */
 public class StatusMessage {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusMessage.class);
+    
     private String name;
     private String role;
     private int pid;
@@ -98,7 +102,7 @@ public class StatusMessage {
         try {
             return JsonHandler.writeAsString(this);
         } catch (final InvalidParseOperationException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.warn(e);
             return "unknownStatusMessage";
         }
     }

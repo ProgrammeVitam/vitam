@@ -32,11 +32,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Default Administration Status message
  */
 public class AdminStatusMessage {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminStatusMessage.class);
     private JsonNode serverIdentity;
     private boolean status;
     private ObjectNode detail;
@@ -136,7 +139,7 @@ public class AdminStatusMessage {
         try {
             return JsonHandler.writeAsString(this);
         } catch (final InvalidParseOperationException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.warn(e);
             return "unknownStatusMessage";
         }
     }

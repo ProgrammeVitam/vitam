@@ -236,7 +236,7 @@ public class JunitHelper extends ExternalResource {
                 read++;
             }
         } catch (final IOException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
         }
         try {
             inputStream.close();
