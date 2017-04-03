@@ -478,7 +478,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 try {
                     processDistributor.close();
                 } catch (final Exception exc) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+                    LOGGER.warn(exc);
                 }
             }
         }

@@ -316,7 +316,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         try {
             ParametersChecker.checkParameter("Host cannot be null", clientConfiguration.getServerHost());
         } catch (final IllegalArgumentException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
             clientConfiguration.setServerHost(TestVitamClientFactory.LOCALHOST);
         }
         this.initialisation(clientConfiguration.setServerPort(port), getResourcePath());

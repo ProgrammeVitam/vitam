@@ -47,6 +47,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -56,6 +58,7 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
  * Mock client implementation for IngestExternal
  */
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
     final int TENANT_ID = 0;
@@ -100,8 +103,8 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         try {
             pwork = ClientMockResultHelper.getItemStatus(id);
         } catch (InvalidParseOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
+            throw new BadRequestException(e.getMessage(), e);
         }
         return pwork;
     }
