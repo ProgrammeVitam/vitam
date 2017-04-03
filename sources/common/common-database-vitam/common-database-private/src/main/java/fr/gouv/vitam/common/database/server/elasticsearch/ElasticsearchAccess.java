@@ -185,7 +185,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         try (TransportClient clientCheck = getClient(getSettings())) {
             return !clientCheck.connectedNodes().isEmpty();
         } catch (final VitamException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.warn(e);
             return false;
         }
     }

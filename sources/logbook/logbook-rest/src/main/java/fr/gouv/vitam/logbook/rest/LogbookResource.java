@@ -505,7 +505,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 }
             } catch (final LogbookNotFoundException e) {
                 // Ignore
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.debug(e);
             }
             final ResponseBuilder builder =
                 Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
@@ -850,7 +850,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .addResult(JsonHandler.getFromString(result.toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)
@@ -948,7 +948,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 .build();
 
         } catch (final LogbookNotFoundException exc) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)
@@ -1029,7 +1029,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 }
             } catch (final LogbookNotFoundException | InvalidParseOperationException e) {
                 // Ignore
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.debug(e);
             }
             final ResponseBuilder builder =
                 Response.status(nb < MAX_NB_PART_ITERATOR ? Status.OK : Status.PARTIAL_CONTENT)
@@ -1379,7 +1379,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .addResult(JsonHandler.getFromString(result.get(0).toJson())))
                 .build();
         } catch (final LogbookNotFoundException exc) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+            LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
                 .entity(new RequestResponseOK()
                     .setHits(0, 0, 1)

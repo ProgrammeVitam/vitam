@@ -48,6 +48,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -58,7 +60,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  *
  */
 public class UserInterfaceTransactionManager {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UserInterfaceTransactionManager.class);
+    
     /**
      * Gets search units result
      *
@@ -179,7 +182,7 @@ public class UserInterfaceTransactionManager {
                         }
                     }
                 } catch (final IllegalStateException | ProcessingException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    LOGGER.debug(e);
                 } finally {
                     response.close();
                 }

@@ -85,7 +85,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
         } catch (final ProcessingException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
             return new AdminStatusMessage().setStatus(false);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -116,7 +116,7 @@ public class DefaultAdminClient extends AbstractCommonClient implements AdminCli
             LOGGER.error(messageText);
             throw new VitamClientException(messageText);
         } catch (final ProcessingException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.error(e);
             return message;
         } finally {
             consumeAnyEntityAndClose(response);

@@ -40,6 +40,8 @@ import com.mongodb.client.MongoDatabase;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import fr.gouv.vitam.common.server.application.configuration.DbConfiguration;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -48,7 +50,8 @@ import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
  * MongoDbAccess interface
  */
 public abstract class MongoDbAccess implements DatabaseConnection {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
+    
     private MongoClient mongoClient;
     private MongoDatabase mongoDatabase;
     private MongoDatabase mongoAdmin;
@@ -75,7 +78,7 @@ public abstract class MongoDbAccess implements DatabaseConnection {
             mongoClient.getDatabase(dbname).runCommand(new BasicDBObject("ping", "1"));
             return true;
         } catch (final MongoException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.warn(e);
             return false;
         }
     }

@@ -197,9 +197,8 @@ public class VitamServiceRegistry {
                     .setHttpCode(Status.OK.getStatusCode()).setMessage("Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
             } catch (final VitamApplicationServerException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 LOGGER.warn(
-                    "Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage());
+                    "Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage(), e);
                 sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
                     .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
