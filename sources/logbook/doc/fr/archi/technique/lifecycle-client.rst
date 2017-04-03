@@ -1,7 +1,7 @@
 Lifecycle Client
 *******************
 
-Presentation
+Présentation
 ------------
 
 |	*Parent package:* **fr.gouv.vitam.logbook**
