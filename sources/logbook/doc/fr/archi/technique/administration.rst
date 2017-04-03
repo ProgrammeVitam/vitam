@@ -1,7 +1,7 @@
 Administration
 *******************
 
-Presentation
+Présentation
 ------------
 
 |	*Package parent :* **fr.gouv.vitam.logbook**

@@ -1,7 +1,7 @@
 Storage Engine Client
 #####################
 
-Presentation
+Présentation
 ************
 
 |  *Parent package :* **fr.gouv.vitam.storage.engine**

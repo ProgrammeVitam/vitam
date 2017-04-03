@@ -1,7 +1,7 @@
 Metadata-api
 *******************
 
-Presentation
+Présentation
 ------------
 
 |  *Parent package:		* **fr.gouv.vitam.metadata**

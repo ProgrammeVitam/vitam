@@ -6,7 +6,7 @@ Sauvegarde
 
 
 Cette procédure devrait être effectuée durant la nuit.
-Les horaire indicatif de cette procédure sont compris entre 20h et 8h.
+Les horaires indicatifs de cette procédure sont compris entre 20h et 8h.
 
 .. KWA : la procédure aussi détaillé n'irait-elle pas au final dans le DEX ? A voir également, elle est décrite rapidement dans la partie "data management" de l'architecture d'exploitation
 
