@@ -221,6 +221,7 @@ public class ProcessingIT {
     private static String SIP_BORD_AU_REF_PHYS_OBJECT = "integration-processing/KO_BORD_AUrefphysobject.zip";
     private static String SIP_MANIFEST_INCORRECT_REFERENCE = "integration-processing/KO_Reference_Unexisting.zip";
     private static String SIP_BUG_2182 = "integration-processing/SIP_bug_2182.zip";
+    private static String SIP_BUG_2360 = "integration-processing/NicolasPerrinSIP.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -1542,6 +1543,58 @@ public class ProcessingIT {
         StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
         assertNotNull(statusCode);
         assertEquals(StatusCode.KO, statusCode);
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowBug2360() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_BUG_2360);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+        final Response ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                LogbookTypeProcess.INGEST.toString(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
+
+        // checkMonitoring - meaning something has been added in the monitoring tool
+        StatusCode statusCode = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
+        assertNotNull(statusCode);
+        assertEquals(StatusCode.WARNING, statusCode);
+
+
+        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        Select query = new Select();
+        query.addQueries(QueryHelper.eq("Title", "bbb Photographie").setRelativeDepthLimit(5));
+        query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
+            JsonHandler.createObjectNode()
+                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
+                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+        JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
+        
+        
+        assertNotNull(
+            result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("AppraisalRule").get("APP-00001"));
     }
     
 
