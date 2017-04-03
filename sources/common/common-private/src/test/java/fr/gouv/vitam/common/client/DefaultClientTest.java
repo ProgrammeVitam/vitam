@@ -256,7 +256,7 @@ public class DefaultClientTest extends VitamJerseyTest {
                 @Override
                 public void failed(Throwable throwable) {
                     // Failed
-                    SysErrLogger.FAKE_LOGGER.syserr("Failed Status in Async Callback", throwable);
+                    LOGGER.error("Failed Status in Async Callback", throwable);
                 }
             });
         message = future.get();
@@ -286,7 +286,7 @@ public class DefaultClientTest extends VitamJerseyTest {
                 @Override
                 public void failed(Throwable throwable) {
                     // Failed
-                    SysErrLogger.FAKE_LOGGER.syserr("Failed Status in Async Callback", throwable);
+                    LOGGER.error("Failed Status in Async Callback", throwable);
                 }
             });
         message = future.get();

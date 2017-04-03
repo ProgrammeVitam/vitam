@@ -327,7 +327,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
                 file = getFileFromWorkspace(objectName);
             } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
                 IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.debug(e);
                 file = null;
             }
             if (file != null && !file.exists()) {

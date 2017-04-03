@@ -235,7 +235,6 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(METRICS_CONF_FILE_NAME)) {
             metricsConfiguration = PropertiesUtils.readYaml(yamlIS, VitamMetricsConfiguration.class);
         } catch (final IOException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             LOGGER.warn(e.getMessage());
         }
 

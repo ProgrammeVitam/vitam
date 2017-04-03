@@ -402,7 +402,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
                 .getFinalUpdate();
         } catch (final InvalidCreateOperationException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.error(e);
+            throw new AccessInternalExecutionException("Error during adding condition of Operations", e);
         }
         LogbookOperationsClient logbookOperationClient = logbookOperationClientMock;
         LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCycleClientMock;

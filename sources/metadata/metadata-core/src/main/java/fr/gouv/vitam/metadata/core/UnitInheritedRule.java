@@ -534,7 +534,7 @@ public class UnitInheritedRule {
             try {
                 newRule.inheritedRule.put(entry.getKey(), (ObjectNode) JsonHandler.getFromString(entry.getValue().toString()));
             } catch (InvalidParseOperationException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.warn(e);
             }
         }
         return newRule;
