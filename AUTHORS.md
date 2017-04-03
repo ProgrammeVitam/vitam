@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Beta version activ development team (11/2016)
+## Release 3 active development team (03/2017)
 
 ### French government team
 
@@ -15,7 +15,7 @@
 * Jean-Séverin Lair
 * Charles Pouplin
 * Mélanie Rebours
-* Violette Rouchy-Levy
+* Marion Ville
 
 ### CDH-IT (Hit-Part) development team
 
@@ -35,7 +35,6 @@
 * Zhang Chen
 * Laurent Dubois
 * Olivier Elbhar
-* Yousri Kouki
 * Ba Tuan Ngo
 * Hoan Vu
 
@@ -46,16 +45,16 @@
 * Germain Ledroit
 * Cédric Legrand
 * Ludivine Lenoir
-* Mathilde Remy
+* Guillaume Dutey-Harispe
 
 ### Smile - HexaTeam development team
 
 * Nathanaël Attar
 * Stéphanie Bonnet
 * Jean-Eudes Couignoux
+* Djamel Hamas
 * Idrissa Manzo
 * Clément Massard
-* Bilel Ben Mustapha
 * Pierre Pavy
 
 ### Thales integration team
@@ -67,13 +66,17 @@
 
 ## Those who have gone a long (or short) way with us
 
+* Bilel Ben Mustapha
 * David Carella
 * Jérémie Charrier
 * Lourdes Fuentes-Hashimoto
 * Arnaud Gervais
+* Yousri Kouki
 * Marie Laperdrix
 * Nathalie Morin
 * Gaël Nieutin
+* Mathilde Remy
+* Violette Rouchy-Levy
 * Stéphane Saadi
 * Gwendoline Stab
 * ...
