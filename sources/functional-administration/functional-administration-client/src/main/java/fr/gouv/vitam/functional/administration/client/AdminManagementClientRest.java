@@ -59,6 +59,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AccessionRegiste
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
@@ -162,7 +163,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialException("Rules Not found ");
+                    throw new ReferentialNotFoundException("Formats Not found ");
                 default:
                     break;
             }
@@ -191,7 +192,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialException("File format error");
+                    throw new ReferentialNotFoundException("File format not found");
                 default:
                     throw new ReferentialException("Unknown error");
             }
@@ -286,7 +287,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesException("File Rules not found");
+                    throw new FileRulesNotFoundException("File Rules not found");
                 default:
                     break;
             }
@@ -315,7 +316,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesException("Rule Not found ");
+                    throw new FileRulesNotFoundException("Rule Not found ");
                 default:
                     break;
             }
