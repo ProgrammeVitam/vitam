@@ -287,7 +287,7 @@ public class UnitInheritedRule {
                             newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
                         }
                     }
-                } else {
+                } else if (unitCategory.isObject())  {
                     String ruleId = unitCategory.get(RULE).asText();
                     if (newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
                         ObjectNode unitNode = createNewRuleWithOrigin((ObjectNode) unitCategory, unitId);
