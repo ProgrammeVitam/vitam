@@ -1059,7 +1059,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
+                return Response.status(Status.OK).entity(new RequestResponseOK<>()).build();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();

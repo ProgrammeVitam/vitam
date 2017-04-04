@@ -67,6 +67,7 @@ import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
@@ -251,6 +252,9 @@ public class AdminManagementExternalResourceImpl {
                 }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
+            } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (ReferentialException | IOException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;

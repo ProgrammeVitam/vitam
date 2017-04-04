@@ -1075,7 +1075,7 @@ public class WebApplicationResourceTest {
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/rules");
     }
 
