@@ -129,18 +129,23 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Détail du Fonds'
     }).
     when('/admin/logbookOperations/:entryId', {
-          templateUrl: 'views/logbookEntry.html',
-          controller: 'logbookEntryController as entryCtrl',
-          title: 'Détail d\'une opération d\'entrée'
-        }).
-        when('/admin/workflows', {
-        	template: '<workflows></workflows>',
-            title: 'Gestion des versements'
-        }).
-    when('/admin/entryContracts', {
-      templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
-      controller: 'entryContractsController',
-      title: 'Contrats d\'entrée'
+      templateUrl: 'views/logbookEntry.html',
+      controller: 'logbookEntryController as entryCtrl',
+      title: 'Détail d\'une opération d\'entrée'
+    }).
+    when('/admin/workflows', {
+        template: '<workflows></workflows>',
+        title: 'Gestion des versements'
+    }).
+     when('/admin/entryContracts', {
+       templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
+       controller: 'entryContractsController',
+       title: 'Contrats d\'entrée'
+     }).
+    when('/admin/entryContracts/:id', {
+      templateUrl: 'modules/entry-contracts/entry-contract-single.template.html',
+      controller: 'entryContractController',
+      title: 'Détail d\'un contrat d\'entrée'
     }).
     when('/admin/accessContracts', {
       templateUrl: 'modules/access-contracts/access-contracts.template.html',
