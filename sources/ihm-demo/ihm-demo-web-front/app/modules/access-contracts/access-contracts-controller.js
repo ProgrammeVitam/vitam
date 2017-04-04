@@ -28,91 +28,100 @@
 'use strict';
 
 angular.module('ihm.demo')
-  .controller('accessContractsController', function($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues,$translate, processSearchService, resultStartService) {
+    .controller('accessContractsController', function ($scope, $mdDialog, $filter, $window, ihmDemoCLient, ITEM_PER_PAGE, loadStaticValues, $translate, processSearchService, resultStartService) {
 
-    $scope.startFormat = resultStartService.startFormat;
+        $scope.startFormat = resultStartService.startFormat;
 
-    $scope.search = {
-      form: {
-        ContractID: '',
-        ContractName: ''
-      }, pagination: {
-        currentPage: 0,
-        resultPages: 0,
-        itemsPerPage: ITEM_PER_PAGE
-      }, error: {
-        message: '',
-        displayMessage: false
-      }, response: {
-        data: [],
-        hints: {},
-        totalResult: 0
-      }
-    };
+        $scope.search = {
+            form: {
+                ContractID: '',
+                ContractName: ''
+            }, pagination: {
+                currentPage: 0,
+                resultPages: 0,
+                itemsPerPage: ITEM_PER_PAGE
+            }, error: {
+                message: '',
+                displayMessage: false
+            }, response: {
+                data: [],
+                hints: {},
+                totalResult: 0
+            }
+        };
 
-    $scope.dynamicTable = {
-      customFields: [],
-      selectedObjects: []
-    };
+        $scope.dynamicTable = {
+            customFields: [],
+            selectedObjects: []
+        };
 
-    $scope.goToDetails = function(id) {
-      $window.open('#!/admin/detailOperation/' + id)
-    };
+        $scope.goToDetails = function (id) {
+            $window.open('#!/admin/accessContracts/' + id)
+        };
 
-    function initFields(fields) {
-      var result = [];
-      for (var i = 0, len = fields.length; i<len; i++) {
-        var fieldId = fields[i];
-        result.push({
-          id: fieldId, label: 'operation.logbook.displayField.' + fieldId
-        });
-      }
-      return result;
-    }
+        function initFields(fields) {
+            var result = [];
+            for (var i = 0, len = fields.length; i < len; i++) {
+                var fieldId = fields[i];
+                result.push({
+                    id: fieldId, label: 'operation.logbook.displayField.' + fieldId
+                });
+            }
+            return result;
+        }
 
-    loadStaticValues.loadFromFile().then(
-      function onSuccess(response) {
-        var config = response.data;
-        $scope.dynamicTable.customFields = initFields(config.logbookOperationCustomFields);
-      }, function onError(error) {
+        loadStaticValues.loadFromFile().then(
+            function onSuccess(response) {
+                var config = response.data;
+                $scope.dynamicTable.customFields = initFields(config.logbookOperationCustomFields);
+            }, function onError(error) {
 
-      });
+            });
 
-    var preSearch = function() {
-      var requestOptions = angular.copy($scope.search.form);
+        var preSearch = function () {
+            var requestOptions = angular.copy($scope.search.form);
 
-      if (requestOptions.ContractName === "" || requestOptions.ContractName == undefined) {
-        requestOptions.ContractName = "all";
-      }
+            if (requestOptions.ContractName === "" || requestOptions.ContractName == undefined) {
+                requestOptions.ContractName = "all";
+            }
 
-      if (requestOptions.ContractID == "" || requestOptions.ContractID == undefined) {
-        requestOptions.ContractID = "all";
-      }
+            if (requestOptions.ContractID == "" || requestOptions.ContractID == undefined) {
+                requestOptions.ContractID = "all";
+            }
 
-      requestOptions.orderby = "evDateTime";
-      return requestOptions;
-    };
+            requestOptions.orderby = "evDateTime";
+            return requestOptions;
+        };
 
-    var successCallback = function() {
-      return true;
-    };
+        var successCallback = function () {
+            return true;
+        };
 
-    var computeErrorMessage = function() {
-      if ($scope.search.form.ContractName && $scope.search.form.ContractID) {
-        return 'Veuillez ne remplir qu\'un seul champ';
-      } else {
-        return 'Il n\'y a aucun résultat pour votre recherche';
-      }
-    };
+        var computeErrorMessage = function () {
+            if ($scope.search.form.ContractName && $scope.search.form.ContractID) {
+                return 'Veuillez ne remplir qu\'un seul champ';
+            } else {
+                return 'Il n\'y a aucun résultat pour votre recherche';
+            }
+        };
 
-    var customPost = function(criteria, headers) {
-      return ihmDemoCLient.getClient('accesscontracts').all('').post();
-    };
+        var customPost = function (criteria, headers) {
+            return ihmDemoCLient.getClient('accesscontracts').all('').post();
+        };
 
-    var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
-    $scope.getList = searchService.processSearch;
-    $scope.reinitForm = searchService.processReinit;
-    $scope.onInputChange = searchService.onInputChange;
-  });
+        var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
+        $scope.getList = searchService.processSearch;
+        $scope.reinitForm = searchService.processReinit;
+        $scope.onInputChange = searchService.onInputChange;
+    }).controller('accessContractController', function ($scope, $routeParams, ihmDemoCLient) {
+    var id = $routeParams.id;
+    ihmDemoCLient.getClient('accesscontracts').one(id).get().then(function (response) {
+        if (response.data.length !== 0) {
+            $scope.contract = response.data.$results[0];
+        }
+    }, function (error) {
+        console.log('Error while read contract with id: ' + id, error);
+    });
+});
 
 
