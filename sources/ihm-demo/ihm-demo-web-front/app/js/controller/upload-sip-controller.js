@@ -91,7 +91,9 @@ angular.module('ihm.demo')
 
        $scope.stopPromise = $interval(function() {
          // Every 100ms check if the operation is finished
-         ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel)
+         // cancel the intervale
+         $scope.stopCheck();
+         ihmDemoFactory.checkOperationStatus(operationIdServerAppLevel,$scope.action)
          .then(function (response) {
            fileItem.isProcessing = false;
            fileItem.isSuccess = false;
@@ -99,6 +101,10 @@ angular.module('ihm.demo')
            fileItem.isError = false;
            fileItem.isFatalError = false;
 
+           if (response.status == UPLOAD_CONSTANTS.NO_CONTENT_STATUS) {
+             fileItem.isProcessing = true;
+             $scope.check($scope.fileItem, operationIdServerAppLevel);
+           }
            if(response.status === UPLOAD_CONSTANTS.FATAL_STATUS) {
              // stop check
              $scope.stopCheck();
@@ -116,31 +122,40 @@ angular.module('ihm.demo')
              $scope.uploadLaunched = false;
              $scope.uploadFailed = false;
              fileItem.isProcessing = false;
-
+            // $scope.disableUpload = false;
+             $scope.disableSelect = false;
              if(response.status === UPLOAD_CONSTANTS.ACCEPTED_STATUS){
                fileItem.isWarning = true;
              } else {
                fileItem.isSuccess = true;
              }
 
-             downloadATR(response, response.headers);
+              if(  $scope.action === 'RESUME') {
+                downloadATR(response, response.headers);
+              }
+
              clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
+
          }, function (error) {
           console.log('Upload failed with error : ' + error.status);
-           fileItem.isProcessing = false;
-           fileItem.isSuccess = false;
-           fileItem.isWarning = false;
-           fileItem.isError = false;
-           fileItem.isFatalError = false;
+           if(error.status == -1){
+             //try again time out (chrome)
+             $scope.check($scope.fileItem, operationIdServerAppLevel);
+            }
 
            if(error.status !== -1){
-
+             fileItem.isProcessing = false;
+             fileItem.isSuccess = false;
+             fileItem.isWarning = false;
+             fileItem.isError = false;
+             fileItem.isFatalError = false;
              $scope.stopCheck();
              $scope.uploadFinished = true;
              $scope.uploadLaunched = false;
              $scope.uploadFailed = true;
+             $scope.disableSelect = false;
 
              // Refresh upload status icon
              if (500 <= error.status && error.status < 600) {
@@ -148,13 +163,16 @@ angular.module('ihm.demo')
              } else {
                fileItem.isError = true;
              }
-
-             downloadATR(error, error.headers);
+             if(  $scope.action === 'RESUME') {
+               downloadATR(error, error.headers);
+             }
              clearHistoryAfterUpload(operationIdServerAppLevel);
              $scope.disableSelect = false;
            }
          });
-       }, 5000); // 5000 ms
+       },
+
+         5000); // 5000 ms
     };
 
      $scope.stopCheck = function() {
@@ -168,6 +186,7 @@ angular.module('ihm.demo')
      // Make sure that the interval is destroyed too
      $scope.stopCheck();
     });
+
 
     //************************************************************************************************ //
     $scope.fileItem = {};
@@ -185,9 +204,9 @@ angular.module('ihm.demo')
       $scope.fileItem.isError = false;
       $scope.fileItem.isWarning = false;
       $scope.fileItem.isFatalError = false;
-
-      $scope.check($scope.fileItem, operationIdServerAppLevel);
+        $scope.check($scope.fileItem, operationIdServerAppLevel);
     };
+
 
     $scope.getSize = function(bytes, precision) {
       if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
@@ -204,7 +223,6 @@ angular.module('ihm.demo')
       console.log(message);
       $location.path('/login');
     }
-
     $scope.checkBlankTestChoice = function($event){
       if($scope.contextId === UPLOAD_CONSTANTS.BLANK_TEST){
 

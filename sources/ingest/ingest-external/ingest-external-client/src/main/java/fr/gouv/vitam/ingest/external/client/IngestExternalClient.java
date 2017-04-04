@@ -32,6 +32,9 @@ import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.OperationManagementClient;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
@@ -46,24 +49,55 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @param contextId
      * @param action
      * @return response
-     *
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
 
     Response upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
+
+    /**
+     * ingest upload file in  with waiting
+     * For Intern Usage
+     * TNR
+     *
+     * @param stream
+     * @param tenantId
+     * @param contextId
+     * @return response
+     * @throws IngestExternalException
+     */
+    // TODO P0 : add file name
+
+    Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
+        throws IngestExternalException;
+
     /**
      * Download object stored by ingest operation
-     * 
+     *
      * @param objectId
      * @param type
      * @param tenantId
      * @return object as stream
      * @throws IngestExternalException 
      * @throws VitamClientException
+
      */
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException;
-    
+
+    /**
+     * getOperationProcessStatus:
+     *
+     * get operation process status**
+     *
+     * @param id : operation identifier*
+     * @param tenantId
+     * @throws VitamClientException
+     * @throws InternalServerException
+     * @throws BadRequestException
+     */
+
+    Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
+
 }

@@ -56,7 +56,7 @@ public interface IngestInternalClient extends OperationManagementClient {
      * @return Response {@link Response}
      *
      */
-    Response upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException;
+    void upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException;
 
     /**
      * Create only Logbook

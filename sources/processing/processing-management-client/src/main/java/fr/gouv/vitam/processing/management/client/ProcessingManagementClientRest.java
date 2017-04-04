@@ -333,7 +333,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             consumeAnyEntityAndClose(response);
         }
     }
-
+    // TODO FIXE ME query never user
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
         throws InternalServerException, BadRequestException {

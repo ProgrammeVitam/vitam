@@ -71,15 +71,10 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     protected StatusCode globalStatus;
 
     @Override
-    public Response upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException {
+    public void upload(InputStream inputStream, MediaType archiveType, String contextId) throws VitamException {
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, inputStream, archiveType);
         StreamUtils.closeSilently(inputStream);
 
-        LOGGER.debug("Post SIP");
-
-        return new AbstractMockClient.FakeInboundResponse(Status.OK,
-            IOUtils.toInputStream(MOCK_INGEST_INTERNAL_RESPONSE_STREAM),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
@@ -109,7 +104,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     public ItemStatus getOperationProcessStatus(String id) throws VitamClientException {
         return new ItemStatus(ID);
     }
-
+    // TODO FIXE ME query never user
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query) throws VitamClientException {
         return new ItemStatus(ID);

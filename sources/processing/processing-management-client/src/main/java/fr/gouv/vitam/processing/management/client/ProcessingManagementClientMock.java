@@ -82,7 +82,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
 
-
+    // TODO FIXE ME query never user
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
         throws VitamClientException, InternalServerException, BadRequestException {
