@@ -47,20 +47,19 @@ public class ProcessStep extends Step {
      * Constructor to initialize a Process Step with a Step object
      *
      * @param step the Step object
-     * @param containerName the container name concerned by the process
-     * @param workflowId the workflow ID concerned by the process
-     * @param position the position of the step
      * @param elementToProcess number of element to process
      * @param elementProcessed number of element processed
+     * @param id the step ID
      * @throws IllegalArgumentException if the step is null
      */
-    public ProcessStep(Step step, long elementToProcess, long elementProcessed) {
+    public ProcessStep(Step step, long elementToProcess, long elementProcessed, String id) {
         ParametersChecker.checkParameter("Step could not be null", step);
         setActions(step.getActions());
         setDistribution(step.getDistribution());
         setStepName(step.getStepName());
         setBehavior(step.getBehavior());
         setWorkerGroupId(step.getWorkerGroupId());
+        this.id = id;
         this.elementProcessed = elementProcessed;
         this.elementToProcess = elementToProcess;
     }

@@ -42,15 +42,20 @@ import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.WorkFlow;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 
 /**
- * ProcessMonitoringImpl class implementing the ProcessMonitoring and using a concurrent HashMap to persist objects
+ * ProcessMonitoringImpl class implementing the ProcessMonitoring
+ * Persists processWorkflow object (to json) at each step in process/<serverId> name as <operationID>.json
+ * Remove this file at the end (completed, failed state)
  */
 public class ProcessDataAccessImpl implements ProcessDataAccess {
 
@@ -281,10 +286,6 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         }
     }
 
-    /**
-     * @param String processId
-     * @param orderedWorkflow
-     */
     private void addWorkflow(String processId, Integer tenantId, final ProcessWorkflow processWorkflow) {
         ParametersChecker.checkParameter("processId is a mandatory parameter", processId);
         // check maps
@@ -350,10 +351,27 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
     @Override
     public List<ProcessWorkflow> getAllWorkflowProcess(Integer tenantId) {
-        if (WORKFLOWS_LIST != null && WORKFLOWS_LIST.containsKey(tenantId)) {
-            return new ArrayList<ProcessWorkflow>(WORKFLOWS_LIST.get(tenantId).values());
+        // if no files, return empty list
+        if (!WORKFLOWS_LIST.containsKey(tenantId)) {
+            // TODO : Already loaded, so keep this reload to be sure ?
+            ProcessDataManagement processDataManagement = WorkspaceProcessDataManagement.getInstance();
+            try {
+                Map<String, ProcessWorkflow> processWorkflows = processDataManagement.getProcessWorkflowFor(tenantId,
+                    String.valueOf
+                    (ServerIdentity.getInstance().getServerId()));
+                if (processWorkflows.isEmpty()) {
+                    return new ArrayList<>(0);
+                }
+                WORKFLOWS_LIST.put(tenantId, processWorkflows);
+                return new ArrayList<>(processWorkflows.values());
+            } catch (ProcessingStorageWorkspaceException e) {
+                LOGGER.error("Cannot load workflow's files", e);
+                // TODO : what ?
+                return new ArrayList<>(0);
+            }
+        } else {
+            return new ArrayList<>(WORKFLOWS_LIST.get(tenantId).values());
         }
-        return new ArrayList<ProcessWorkflow>(0);
     }
 
 
@@ -384,5 +402,20 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         ParametersChecker.checkParameter("Operationid must be not null", operationId);
         ParametersChecker.checkParameter("tenantId must be not null", tenantId);
         return getProcessWorkflow(operationId, tenantId).getMessageIdentifier();
+    }
+
+    @Override
+    public void addToWorkflowList(ProcessWorkflow processWorkflow) {
+        if(ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus()) || ProcessExecutionStatus.FAILED
+            .equals(processWorkflow.getExecutionStatus())) {
+            if (WORKFLOWS_LIST.containsKey(processWorkflow.getTenantId())) {
+                WORKFLOWS_LIST.get(processWorkflow.getTenantId())
+                    .put(processWorkflow.getOperationId(), processWorkflow);
+            } else {
+                Map<String, ProcessWorkflow> processWorkflowMap = new ConcurrentHashMap<>();
+                processWorkflowMap.put(processWorkflow.getOperationId(), processWorkflow);
+                WORKFLOWS_LIST.put(processWorkflow.getTenantId(), processWorkflowMap);
+            }
+        }
     }
 }
