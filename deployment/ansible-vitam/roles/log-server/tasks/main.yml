@@ -34,10 +34,11 @@
     state: latest
   when: ansible_distribution == "CentOS"
 
-- name: Install java (prerequisite for other components)
-  package:
-    name: openjdk-8-jre
+- name: install openjdk from jessie-backports only when Debian
+  apt:
+    name: openjdk-8-jre-headless
     state: latest
+    default_release: jessie-backports
   when: ansible_distribution == "Debian"
 
 - name: Install logstash package from repo
