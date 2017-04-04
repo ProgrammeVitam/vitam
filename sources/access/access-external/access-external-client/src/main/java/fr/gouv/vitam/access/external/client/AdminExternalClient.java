@@ -63,6 +63,7 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * importDocuments
+     * Mandatory: the Caller of this function is responsible to close the Response imperatively.
      *
      * @param documentType
      * @param stream

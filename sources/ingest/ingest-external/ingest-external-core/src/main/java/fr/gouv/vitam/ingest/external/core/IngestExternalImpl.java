@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import static fr.gouv.vitam.common.client.DefaultClient.staticConsumeAnyEntityAndClose;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -61,7 +63,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -169,11 +170,14 @@ public class IngestExternalImpl implements IngestExternal {
             helper.updateDelegate(sipSanityParameters);
 
             // call ingest internal with init action (avec contextId)
+            Response response = null;
             try (IngestInternalClient ingestClient =
                 IngestInternalClientFactory.getInstance().getClient()) {
-                ingestClient.initWorkFlow(contextWithExecutionMode);
+                response = ingestClient.initWorkFlow(contextWithExecutionMode);
             } catch (VitamException e) {
                 throw new IngestExternalException(e);
+            } finally {
+                staticConsumeAnyEntityAndClose(response);
             }
 
             workspaceFileSystem =
@@ -436,8 +440,7 @@ public class IngestExternalImpl implements IngestExternal {
                     responseBuilder.header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS,
                         response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
                     return responseBuilder.build();
-                }
-                else {
+                } else {
                     cancelOperation(guid);
                 }
                 return responseNoProcess;

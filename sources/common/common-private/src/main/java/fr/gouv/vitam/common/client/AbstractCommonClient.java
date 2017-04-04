@@ -87,8 +87,7 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Constructor with standard configuration
      *
-     * @param factory
-     *            The client factory
+     * @param factory The client factory
      */
     protected AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
         clientFactory = (VitamClientFactory<?>) factory;
@@ -137,7 +136,6 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             response = performRequest(HttpMethod.GET, STATUS_URL, null, MediaType.APPLICATION_JSON_TYPE, false);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            consumeAnyEntityAndClose(response);
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
             }
@@ -149,48 +147,41 @@ abstract class AbstractCommonClient implements BasicClient {
             LOGGER.error(messageText);
             throw new VitamApplicationServerException(messageText, e);
         } finally {
-            if (response != null) {
-                response.close();
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 
     /**
      * Perform a HTTP request to the server for synchronous call using default chunked mode configured in this client
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param accept
-     *            asked type of response
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
      * @return the response from the server
      * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-            MediaType accept) throws VitamClientInternalException {
-        final boolean chunkFinalMode = getChunkedMode() && !HttpMethod.HEAD.equals(path) && !HttpMethod.OPTIONS.equals(path);
+        MediaType accept) throws VitamClientInternalException {
+        final boolean chunkFinalMode =
+            getChunkedMode() && !HttpMethod.HEAD.equals(path) && !HttpMethod.OPTIONS.equals(path);
         return performRequest(httpMethod, path, headers, accept, chunkFinalMode);
     }
 
     /**
      * Helper for retry request when unreachable or Connect timeout
-     * 
-     * @param retry
-     *            retry count
-     * @param e
-     *            the original ProcessingException
+     *
+     * @param retry retry count
+     * @param e the original ProcessingException
      * @return the original exception allowing to continue and store the last one
      * @throws ProcessingException
      */
     private final ProcessingException checkSpecificExceptionForRetry(int retry, ProcessingException e)
-            throws ProcessingException {
+        throws ProcessingException {
         Throwable source = e.getCause();
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException
-                || source instanceof org.apache.http.conn.HttpHostConnectException
-                || source.getMessage().startsWith("Unable to establish route:")) {
+            || source instanceof org.apache.http.conn.HttpHostConnectException
+            || source.getMessage().startsWith("Unable to establish route:")) {
             LOGGER.info("TimeoutOccurs or DNS probe error, retry: " + retry, source);
             try {
                 long sleep = random.nextInt(50) + 20;
@@ -207,19 +198,15 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     /**
-     * 
      * @param httpMethod
-     * @param body
-     *            may be null
-     * @param contentType
-     *            may be null
+     * @param body may be null
+     * @param contentType may be null
      * @param builder
      * @return the final response
-     * @throws VitamClientInternalException
-     *             if retry is not possible and http call is failed
+     * @throws VitamClientInternalException if retry is not possible and http call is failed
      */
     private final Response retryIfNecessary(String httpMethod, Object body, MediaType contentType, Builder builder)
-            throws VitamClientInternalException {
+        throws VitamClientInternalException {
         if (body instanceof InputStream) {
             Entity<Object> entity = Entity.entity(body, contentType);
             return builder.method(httpMethod, entity);
@@ -248,21 +235,16 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform a HTTP request to the server for synchronous call
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param accept
-     *            asked type of response
-     * @param chunkedMode
-     *            True use default client, else False use non Chunked mode client
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the response from the server
      * @throws VitamClientInternalException
      */
     protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-            MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
+        MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
         try {
             final Builder builder = buildRequest(httpMethod, path, headers, accept, chunkedMode);
             return retryIfNecessary(httpMethod, null, null, builder);
@@ -274,23 +256,18 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform a HTTP request to the server for synchronous call
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param body
-     *            body content of type contentType, may be null
-     * @param contentType
-     *            the media type of the body to send, null if body is null
-     * @param accept
-     *            asked type of response
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
+     * @param contentType the media type of the body to send, null if body is null
+     * @param accept asked type of response
      * @return the response from the server
      * @throws VitamClientInternalException
      */
-    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers, Object body,
-            MediaType contentType, MediaType accept) throws VitamClientInternalException {
+    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+        Object body,
+        MediaType contentType, MediaType accept) throws VitamClientInternalException {
         if (body == null) {
             return performRequest(httpMethod, path, headers, accept, getChunkedMode());
         }
@@ -311,25 +288,19 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform a HTTP request to the server for synchronous call
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param body
-     *            body content of type contentType, may be null
-     * @param contentType
-     *            the media type of the body to send, null if body is null
-     * @param accept
-     *            asked type of response
-     * @param chunkedMode
-     *            True use default client, else False use non Chunked mode client
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
+     * @param contentType the media type of the body to send, null if body is null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the response from the server
      * @throws VitamClientInternalException
      */
-    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers, Object body,
-            MediaType contentType, MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
+    protected Response performRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+        Object body,
+        MediaType contentType, MediaType accept, boolean chunkedMode) throws VitamClientInternalException {
         if (body == null) {
             return performRequest(httpMethod, path, headers, accept, getChunkedMode());
         }
@@ -350,27 +321,21 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform an Async HTTP request to the server with callback
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param body
-     *            body content of type contentType, may be null
-     * @param contentType
-     *            the media type of the body to send, null if body is null
-     * @param accept
-     *            asked type of response
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
+     * @param contentType the media type of the body to send, null if body is null
+     * @param accept asked type of response
      * @param callback
-     * @param <T>
-     *            the type of the Future result (generally Response)
+     * @param <T> the type of the Future result (generally Response)
      * @return the response from the server
      * @throws VitamClientInternalException
      */
-    protected <T> Future<T> performAsyncRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-            Object body, MediaType contentType, MediaType accept, InvocationCallback<T> callback)
-            throws VitamClientInternalException {
+    protected <T> Future<T> performAsyncRequest(String httpMethod, String path,
+        MultivaluedHashMap<String, Object> headers,
+        Object body, MediaType contentType, MediaType accept, InvocationCallback<T> callback)
+        throws VitamClientInternalException {
         try {
             ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, callback);
             if (body != null) {
@@ -422,23 +387,18 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform an Async HTTP request to the server with full control of action on caller
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param body
-     *            body content of type contentType, may be null
-     * @param contentType
-     *            the media type of the body to send, null if body is null
-     * @param accept
-     *            asked type of response
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
+     * @param contentType the media type of the body to send, null if body is null
+     * @param accept asked type of response
      * @return the response from the server as a Future
      * @throws VitamClientInternalException
      */
-    protected Future<Response> performAsyncRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
-            Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException {
+    protected Future<Response> performAsyncRequest(String httpMethod, String path,
+        MultivaluedHashMap<String, Object> headers,
+        Object body, MediaType contentType, MediaType accept) throws VitamClientInternalException {
         try {
             if (body != null) {
                 ParametersChecker.checkParameter(BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL, body, contentType);
@@ -514,42 +474,32 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Build a HTTP request to the server for synchronous call without Body
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param accept
-     *            asked type of response
-     * @param chunkedMode
-     *            True use default client, else False use non Chunked mode client
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
-    final Builder buildRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers, MediaType accept,
-            boolean chunkedMode) {
+    final Builder buildRequest(String httpMethod, String path, MultivaluedHashMap<String, Object> headers,
+        MediaType accept,
+        boolean chunkedMode) {
         return buildRequest(httpMethod, getServiceUrl(), path, headers, accept, chunkedMode);
     }
 
     /**
      * Build a HTTP request to the server for synchronous call without Body
      *
-     * @param httpMethod
-     *            HTTP method to use for request
-     * @param url
-     *            base url
-     * @param path
-     *            URL to request
-     * @param headers
-     *            headers HTTP to add to request, may be null
-     * @param accept
-     *            asked type of response
-     * @param chunkedMode
-     *            True use default client, else False use non Chunked mode client
+     * @param httpMethod HTTP method to use for request
+     * @param url base url
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
+     * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
     final Builder buildRequest(String httpMethod, String url, String path, MultivaluedHashMap<String, Object> headers,
-            MediaType accept, boolean chunkedMode) {
+        MediaType accept, boolean chunkedMode) {
         ParametersChecker.checkParameter(ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS, httpMethod, path, accept);
         final Builder builder = getHttpClient(chunkedMode).target(url).path(path).request().accept(accept);
         if (headers != null) {
@@ -571,7 +521,8 @@ abstract class AbstractCommonClient implements BasicClient {
 
         // add Authorization Headers (X_TIMESTAMP, X_PLATFORM_ID)
         if (clientFactory.useAuthorizationFilter()) {
-            final Map<String, String> authorizationHeaders = AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,
+            final Map<String, String> authorizationHeaders =
+                AuthorizationFilterHelper.getAuthorizationHeaders(httpMethod,
                     baseUri);
             if (authorizationHeaders.size() == 2) {
                 builder.header(GlobalDataRest.X_TIMESTAMP, authorizationHeaders.get(GlobalDataRest.X_TIMESTAMP));
@@ -609,7 +560,6 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     /**
-     *
      * @return the client chunked mode default configuration
      */
     boolean getChunkedMode() {
@@ -617,7 +567,6 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     /**
-     *
      * @return the VitamClientFactory
      */
     public VitamClientFactory<?> getVitamClientFactory() {

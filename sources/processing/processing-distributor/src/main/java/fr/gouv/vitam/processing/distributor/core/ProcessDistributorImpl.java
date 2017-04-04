@@ -38,6 +38,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -148,14 +150,21 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                     // Test regarding Unit to be indexed
                     if (ELEMENT_UNITS.equalsIgnoreCase(step.getDistribution().getElement())) {
                         // get the file to retrieve the GUID
-                        final InputStream levelFile =
-                            (InputStream) workspaceClient.getObject(workParams.getContainerName(),
-                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK).getEntity();
-                        final JsonNode levelFileJson = JsonHandler.getFromInputStream(levelFile);
-                        final Iterator<Entry<String, JsonNode>> iteratorlLevelFile = levelFileJson.fields();
+                        Response response = null;
+                        final JsonNode levelFileJson;
+                        try {
+                            response = workspaceClient.getObject(workParams.getContainerName(),
+                                UNITS_LEVEL + "/" + INGEST_LEVEL_STACK);
+                            final InputStream levelFile =
+                                (InputStream) response.getEntity();
+                            levelFileJson = JsonHandler.getFromInputStream(levelFile);
+                        } finally {
+                            workspaceClient.consumeAnyEntityAndClose(response);
+                        }
+                        final Iterator<Entry<String, JsonNode>> iteratorLevelFile = levelFileJson.fields();
 
-                        while (iteratorlLevelFile.hasNext()) {
-                            final Entry<String, JsonNode> guidFieldList = iteratorlLevelFile.next();
+                        while (iteratorLevelFile.hasNext()) {
+                            final Entry<String, JsonNode> guidFieldList = iteratorLevelFile.next();
                             final JsonNode guid = guidFieldList.getValue();
                             if (guid != null && guid.size() > 0) {
                                 for (final JsonNode _idGuid : guid) {
