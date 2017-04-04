@@ -42,11 +42,13 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * AdminManagementClient interface
@@ -168,7 +170,7 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     /**
-     * Import a set of contracts after passing the validation steps If all the contracts are valid, they are stored in
+     * Import a set of ingest contracts after passing the validation steps If all the contracts are valid, they are stored in
      * the collection and indexed The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
@@ -178,13 +180,13 @@ public interface AdminManagementClient extends MockOrRestClient {
      * <li>One or many contracts elready exist in the database</li>
      * </ul>
      * 
-     * @param contractsToImport the contract to import
+     * @param ingestContractModelList the contract to import
      * @return The server response as vitam RequestResponse
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
-    RequestResponse importContracts(ArrayNode contractsToImport)
-        throws VitamClientInternalException, InvalidParseOperationException;
+    RequestResponse importIngestContracts(List<IngestContractModel> ingestContractModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
     /**
@@ -205,7 +207,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      */
     RequestResponse importAccessContracts(List<AccessContractModel> accessContractModelList)
-            throws VitamClientInternalException, InvalidParseOperationException;
+            throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
 
@@ -222,11 +224,39 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
-    RequestResponse findAccessContracts(JsonNode queryDsl)
-            throws VitamClientInternalException, InvalidParseOperationException;
+    RequestResponse<AccessContractModel> findAccessContracts(JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
-    RequestResponse findAccessContractsByID(String documentId)
-            throws VitamClientInternalException, InvalidParseOperationException;
+    /**
+     *
+     * @param documentId
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
+     */
+    RequestResponse<AccessContractModel> findAccessContractsByID(String documentId)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
+    /**
+     *
+     * @param query
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<IngestContractModel> findIngestContracts(JsonNode query)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+
+    /**
+     *
+     * @param id
+     * @return
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
+     */
+    RequestResponse<IngestContractModel> findIngestContractsByID(String id)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 }

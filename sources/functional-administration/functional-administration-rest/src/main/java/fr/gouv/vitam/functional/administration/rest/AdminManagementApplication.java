@@ -30,6 +30,7 @@ package fr.gouv.vitam.functional.administration.rest;
 import static java.lang.String.format;
 
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import org.glassfish.jersey.server.ResourceConfig;
 
@@ -104,7 +105,7 @@ public final class AdminManagementApplication
             .register(LogbookOperationsClientFactory.getInstance())
             .register(resource.getLogbookDbAccess());
 
-        final MongoDbAccessReferential mongoDbAccess = resource.getLogbookDbAccess();
+        final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
         resourceConfig
             .register(resource)

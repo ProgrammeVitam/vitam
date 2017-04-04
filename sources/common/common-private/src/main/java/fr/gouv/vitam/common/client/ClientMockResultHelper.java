@@ -114,7 +114,7 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"UpdateDate\":\"2016-11-02\"}";
 
-    private static final String CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    private static final String INGEST_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
@@ -328,8 +328,8 @@ public class ClientMockResultHelper {
      * @return a RequestResponse containing contracts json
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getContracts() throws InvalidParseOperationException {
-        return createReponse(CONTRACTS);
+    public static RequestResponse getIngestContracts() throws InvalidParseOperationException {
+        return createReponse(INGEST_CONTRACTS);
     }
 
 

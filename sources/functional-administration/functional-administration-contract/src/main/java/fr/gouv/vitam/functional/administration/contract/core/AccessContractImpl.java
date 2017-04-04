@@ -57,7 +57,6 @@ import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.GenericContractValidator.GenericRejectionCause;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -79,11 +78,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER = "The collection of access contracts is mandatory";
 
-    private static final String CONTRACTS_VALIDATION_EVENT = "ACCESS_CONTRACTS_IMPORT_VALIDATION";
-    private static final String CONTRACTS_IMPORT_EVENT = "ACCESS_CONTRACTS_IMPORT";
+    private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
-    private static final String ERR_INVALID_CONTRACT_FILE = "The input file structure is invalid";
-    private final MongoDbAccessReferential mongoAccess;
+    private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
 
 
@@ -91,7 +88,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      *
      * @param mongoAccess MongoDB client
      */
-    public AccessContractImpl(MongoDbAccessReferential mongoAccess) {
+    public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess) {
         this.mongoAccess = mongoAccess;
         this.logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
     }
@@ -116,21 +113,22 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         ArrayNode contractsToPersist = null;
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem());
+        try {
+            for (final AccessContractModel acm : contractModelList) {
 
-        for (final AccessContractModel acm : contractModelList) {
-
-            try {
 
                 VitamError acmError = null;
                 // if a contract have and id
                 if (null != acm.getId()) {
-                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName()).getReason()));
+                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
+                        .setMessage(GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName()).getReason()));
                     continue;
                 }
 
                 // if a contract with the same name is already treated mark the current one as duplicated
                 if (contractNames.contains(acm.getName())) {
-                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(GenericRejectionCause.rejectDuplicatedEntry(acm.getName()).getReason()));
+                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
+                        .setMessage(GenericRejectionCause.rejectDuplicatedEntry(acm.getName()).getReason()));
                     continue;
                 }
 
@@ -155,28 +153,27 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     contractsToPersist.add(accessContractNode);
                 }
 
-            } catch (InvalidParseOperationException poe) {
-                // invalid contract json at parse
-                manager.logValidationError(poe.getMessage());
-                throw poe;
+
             }
 
-        }
+            if (null != error.getErrors() && !error.getErrors().isEmpty()) {
+                // log book + application log
+                // stop
+                String errorsDetails =
+                    error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+                manager.logValidationError(errorsDetails);
+                return error;
+            }
 
-        if (null != error.getErrors() && !error.getErrors().isEmpty()) {
-            // log book + application log
-            // stop
-            String errorsDetails =
-                error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-            manager.logValidationError(errorsDetails);
-            return error;
+            // at this point no exception occurred and no validation error detected
+            // persist in collection
+            // contractsToPersist.values().stream().map();
+            // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can use AccessContract at this point
+            mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.ACCESS_CONTRACT);
+        } catch (VitamException exp) {
+            manager.logFatalError(new StringBuilder("Import access contracts error > ").append(exp.getMessage()).toString());
+            throw exp;
         }
-
-        // at this point no exception occurred and no validation error detected
-        // persist in collection
-        // contractsToPersist.values().stream().map();
-        // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can use AccessContract at this point
-        mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.ACCESS_CONTRACT);
 
         manager.logSuccess();
 
@@ -196,7 +193,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         }
         JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
-        MongoCursor<VitamDocument<?>> cursor = mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT);
+        MongoCursor<VitamDocument<?>> cursor =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT);
         if (null == cursor) return null;
 
         while (cursor.hasNext()) {
@@ -210,7 +208,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     @Override
     public List<AccessContractModel> findContracts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException {
         final List<AccessContractModel> accessContractModelCollection = new ArrayList<>();
-        MongoCursor<VitamDocument<?>> cursor = mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT);
+        MongoCursor<VitamDocument<?>> cursor =
+            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT);
 
         if (null == cursor) return accessContractModelCollection;
 
@@ -257,19 +256,41 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
 
         /**
+         *
+         * Log validation error (business error)
          * @param errorsDetails
          */
         private void logValidationError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
             final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, CONTRACTS_VALIDATION_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
-                    VitamLogbookMessages.getCodeOp(CONTRACTS_VALIDATION_EVENT, StatusCode.KO), eip);
+                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
             helper.createDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
+        /**
+         * log fatal error (system or technical error)
+         * @param errorsDetails
+         * @throws VitamException
+         */
+        private void logFatalError(String errorsDetails) throws VitamException {
+            LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                    StatusCode.FATAL,
+                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.FATAL), eip);
+            helper.createDelegate(logbookParameters);
+            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+        }
+
+        /**
+         * log start process
+         * @throws VitamException
+         */
         private void logStarted() throws VitamException {
             final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
@@ -281,6 +302,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         }
 
+        /**
+         * log end success process
+         * @throws VitamException
+         */
         private void logSuccess() throws VitamException {
             final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory

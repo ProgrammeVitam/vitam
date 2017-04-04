@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -35,8 +36,11 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -44,6 +48,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -60,20 +65,100 @@ import java.util.List;
 @javax.ws.rs.ApplicationPath("webresources")
 public class ContractResource {
 
-    private static final String SELECT_IS_A_MANDATORY_PARAMETER = "select is a mandatory parameter";
+    static final String INGEST_CONTRACTS_URI = "/contracts";
+    static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
+    private static final String INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER = "The json input of ingest contracts is mandatory";
     private static final String ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER = "The json input of access contracts is mandatory";
 
-    private final MongoDbAccessReferential mongoAccess;
+    private final MongoDbAccessAdminImpl mongoAccess;
 
     /**
      *
      * @param mongoAccess
      */
-    public ContractResource(MongoDbAccessReferential mongoAccess) {
+    public ContractResource(MongoDbAccessAdminImpl mongoAccess) {
         this.mongoAccess = mongoAccess;
         LOGGER.debug("init Admin Management Resource server");
+    }
+
+
+    /**
+     * Import a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts elready exist in the database</li>
+     * </ul>
+     *
+     * @param ingestContractModelList as InputStream
+     * @param uri the uri info
+     * @return Response jersey response
+     */
+    @Path(INGEST_CONTRACTS_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response importContracts(List<IngestContractModel> ingestContractModelList, @Context UriInfo uri) {
+        ParametersChecker.checkParameter(INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER, ingestContractModelList);
+
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+            RequestResponse requestResponse =  ingestContract.createContracts(ingestContractModelList);
+
+            if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+
+                return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
+            }
+
+
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Find ingest contracts by queryDsl
+     * @param queryDsl
+     * @return
+     */
+    @GET
+    @Path(INGEST_CONTRACTS_URI)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findIngestContracts(JsonNode queryDsl) {
+
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+
+            final List<IngestContractModel> ingestContractModelList = ingestContract.findContracts(queryDsl);
+
+            return Response.status(Status.OK)
+                .entity(
+                    new RequestResponseOK().addAllResults(ingestContractModelList))
+                .build();
+
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+        }
     }
 
     /**
@@ -93,7 +178,7 @@ public class ContractResource {
      * @param uri
      * @return Response jersey response
      */
-    @Path("/accesscontracts")
+    @Path(ACCESS_CONTRACTS_URI)
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -124,10 +209,10 @@ public class ContractResource {
 
 
     /**
-     * find access contracts by querydsl
+     * find access contracts by queryDsl
      * @return
      */
-    @Path("/accesscontracts")
+    @Path(ACCESS_CONTRACTS_URI)
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

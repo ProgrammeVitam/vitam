@@ -59,7 +59,9 @@ public class AdminManagementExternalResourceImplTest {
 
     private static final String DOCUMENT_ID = "/1";
 
-    private static final String CONTRACTS_URI = "/contracts";
+    private static final String INGEST_CONTRACTS_URI = "/contracts";
+
+    private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -439,7 +441,7 @@ public class AdminManagementExternalResourceImplTest {
     }
 
     @Test
-    public void testImportContractsWithInvalidFileBadRequest() throws Exception {
+    public void testImportIngestContractsWithInvalidFileBadRequest() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
@@ -447,38 +449,112 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID").
         		setMessage("invalid input").setDescription("Input file of contracts is malformed");
-        PowerMockito.doReturn(error).when(adminCLient).importContracts(anyObject());
+        PowerMockito.doReturn(error).when(adminCLient).importIngestContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CONTRACTS_URI)
+            .when().post(INGEST_CONTRACTS_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
-    
-    
+
+
     @Test
-    public void testimportValidContractsFileReturnCreated() throws Exception {
+    public void testimportValidIngestContractsFileReturnCreated() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getContracts())).when(adminCLient).importContracts(anyObject());
+        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).importIngestContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CONTRACTS_URI)
+            .when().post(INGEST_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    public void testfindIngestContractsFile() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+
+        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).findIngestContracts(anyObject());
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when().post(INGEST_CONTRACTS_URI)
+        .then().statusCode(Status.OK.getStatusCode());
+    }
+
+
+    @Test
+    public void testImportAccessContractsWithInvalidFileBadRequest() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID").
+            setMessage("invalid input").setDescription("Input file of contracts is malformed");
+        PowerMockito.doReturn(error).when(adminCLient).importAccessContracts(anyObject());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
 
-    private List<Object> getContracts() throws FileNotFoundException, InvalidParseOperationException {
+
+    @Test
+    public void testimportValidAccessContractsFileReturnCreated() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).importAccessContracts(anyObject());
+        stream = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
+
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    public void testfindAccessContractsFile() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findAccessContracts(anyObject());
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+
+
+    private List<Object> getIngestContracts() throws FileNotFoundException, InvalidParseOperationException {
     	InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
 		ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
 		List<Object> res = new ArrayList<>();
 		array.forEach(e -> res.add(e));
 		return res;
 	}
+
+    private List<Object> getAccessContracts() throws FileNotFoundException, InvalidParseOperationException {
+        InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
+        ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
+        List<Object> res = new ArrayList<>();
+        array.forEach(e -> res.add(e));
+        return res;
+    }
 
 }

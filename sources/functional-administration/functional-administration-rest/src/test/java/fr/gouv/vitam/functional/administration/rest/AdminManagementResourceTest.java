@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -690,44 +691,4 @@ public class AdminManagementResourceTest {
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenAWellFormedContractJsonThenReturnCeated() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().post("/" + AdminManagementResource.CONTRACTS_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenContractJsonWithAmissingNameReturnBadRequest() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_missingName.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().post("/" + AdminManagementResource.CONTRACTS_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenImportContractsWithDuplicateNames() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_duplicate.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        // transform to json
-        given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().post("/" + AdminManagementResource.CONTRACTS_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-    }
-
 }
