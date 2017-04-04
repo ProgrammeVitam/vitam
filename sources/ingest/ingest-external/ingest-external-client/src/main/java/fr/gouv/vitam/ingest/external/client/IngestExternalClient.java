@@ -92,7 +92,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      * get operation process status**
      *
      * @param id : operation identifier*
-     * @return ItemStatus response containing message and status*
+     * @param tenantId
      * @throws VitamClientException
      * @throws InternalServerException
      * @throws BadRequestException

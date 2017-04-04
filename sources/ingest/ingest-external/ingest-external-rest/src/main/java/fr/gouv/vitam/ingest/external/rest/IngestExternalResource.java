@@ -135,7 +135,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
             PreUploadResume
                 preUploadResume = ingestExtern.preUploadAndResume(uploadedInputStream, contextId, action, guid, asyncResponse);
             Response response = ingestExtern.upload(preUploadResume, guid);
-
+            response.close();
         } catch (final Exception exc) {
             LOGGER.error(exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,

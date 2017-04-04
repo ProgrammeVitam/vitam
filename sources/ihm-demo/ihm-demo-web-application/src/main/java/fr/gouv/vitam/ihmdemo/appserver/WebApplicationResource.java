@@ -65,7 +65,6 @@ import javax.ws.rs.core.Response.Status;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -122,6 +121,8 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+
+import static fr.gouv.vitam.common.client.DefaultClient.staticConsumeAnyEntityAndClose;
 
 /**
  * Web Application Resource class
@@ -343,7 +344,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 result = UserInterfaceTransactionManager.selectOperation(query, tenantId);
-                Insert insertquery = new Insert();
+
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
                 // pagination
@@ -505,34 +506,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
         public void run() {
             // start the upload
             Response finalResponse = null;
-            File file = null;
 
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-                try {
-                    finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
-                    final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-                    final List<Object> finalResponseDetails = new ArrayList<>();
-                    finalResponseDetails.add(guid);
-                    finalResponseDetails.add(Status.fromStatusCode(finalResponse.getStatus()));
-                    uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
-
-                } finally {
-                    DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
-                }
+                finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
+                final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+                final List<Object> finalResponseDetails = new ArrayList<>();
+                finalResponseDetails.add(guid);
+                finalResponseDetails.add(Status.fromStatusCode(finalResponse.getStatus()));
+                uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
             } catch (IOException | VitamException e) {
                 LOGGER.error("Upload failed", e);
                 final List<Object> finalResponseDetails = new ArrayList<>();
                 finalResponseDetails.add(operationGuidFirstLevel);
                 finalResponseDetails.add(Status.INTERNAL_SERVER_ERROR);
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
-                if (file != null) {
-                    file.delete();
-                }
             } finally {
-                if (temporarSipFile != null) {
-                    temporarSipFile.delete();
-                }
+                temporarSipFile.delete();
+                staticConsumeAnyEntityAndClose(finalResponse);
             }
         }
     }
