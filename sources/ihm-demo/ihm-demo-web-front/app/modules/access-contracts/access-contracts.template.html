@@ -59,7 +59,7 @@
 					</tr>
 
 					<tbody ng-repeat="log in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo:search.pagination.itemsPerPage">
-					<tr ng-click="goToDetails(log.evIdProc)">
+					<tr ng-click="goToDetails(log._id)">
 						<td>{{log.Name}}</td>
 						<td>{{log._id}}</td>
 						<td>{{log._tenant}}</td>

@@ -142,6 +142,11 @@ config(['$locationProvider' ,'$routeProvider',
         controller: 'accessContractsController',
         title: 'Liste des Contrats d\'accès'
     }).
+    when('/admin/accessContracts/:id', {
+        templateUrl: 'modules/access-contracts/access-contract-single.template.html',
+        controller: 'accessContractController',
+        title: 'Détail d\'un contrat d\'accès'
+    }).
     otherwise('/uploadSIP');
   }
 ])
