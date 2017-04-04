@@ -198,6 +198,7 @@ public class ProcessingIT {
     private static String WORFKLOW_NAME_2 = "DefaultIngestWorkflow";
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
     private static String INGEST_TREE_WORFKLOW = "DefaultHoldingSchemeWorkflow";
+    private static String INGEST_PLAN_WORFKLOW = "DefaultFilingSchemeWorkflow";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
@@ -227,6 +228,7 @@ public class ProcessingIT {
     private static String SIP_FILE_KO_AU_REF_BDO = "integration-processing/SIP_KO_ArchiveUnit_ref_BDO.zip";
     private static String SIP_BUG_2182 = "integration-processing/SIP_bug_2182.zip";
     private static String SIP_ARBRE = "integration-processing/test_arbre.zip";
+    private static String SIP_PLAN = "integration-processing/test_plan.zip";
 
     private static ElasticsearchTestConfiguration config = null;
 
@@ -499,7 +501,7 @@ public class ProcessingIT {
             RestAssured.basePath = PROCESSING_PATH;
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(LogbookTypeProcess.HOLDING_SCHEME.name(), containerName, INGEST_TREE_WORFKLOW);
+            processingClient.initVitamProcess(LogbookTypeProcess.MASTERDATA.name(), containerName, INGEST_TREE_WORFKLOW);
             final Response ret =
                 processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
@@ -511,17 +513,50 @@ public class ProcessingIT {
 
             assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
                 ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
-            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                new fr.gouv.vitam.common.database.builder.request.single.Select();
-            selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
-            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(), 
-                "STP_INGEST_FINALISATION.OK");
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
 
-            // checkMonitoring - meaning something has been added in the monitoring tool
-            final StatusCode status = processMonitoring.getProcessWorkflowStatus(containerName, tenantId);
-            assertNotNull(status);
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowIngestPlan() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_PLAN);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, INGEST_PLAN_WORFKLOW);
+            final Response ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+            
+            assertEquals(Status.OK.getStatusCode(), ret.getStatus());
+
+            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
+                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+
+            assertEquals(ProcessExecutionStatus.COMPLETED.toString(),
+                ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");

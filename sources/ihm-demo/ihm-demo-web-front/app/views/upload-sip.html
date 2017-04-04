@@ -17,7 +17,9 @@
     			<table class="table upload">
     				<tbody>
         				<tr>
-        				  <h3>TELECHARGEMENT DU SIP</h3>
+        				  <h3 ng-if="ingestType == 'SIP'">TELECHARGEMENT DU SIP</h3>
+                          <h3 ng-if="ingestType == 'ClassificationScheme'">TELECHARGEMENT DU PLAN DE CLASSEMENT</h3>
+                          <h3 ng-if="ingestType == 'HoldingScheme'">IMPORT DE L' ARBRE DE POSITIONNEMENT</h3>
         				</tr>
         				<tr>
           					<h3>Fichier</h3>
@@ -34,9 +36,10 @@
                     <td>
                       <label for="destinationList">Destination</label>
             				  <select ng-model="ctrl.contextId" class="form-control" name="destinationList" ng-change="ctrl.checkBlankTestChoice()">
-            					    <option value="DEFAULT_WORKFLOW">Production</option>
-            					    <option value="BLANK_TEST">A blanc</option>
-                                    <option value="HOLDING_SCHEME">Importe Arbre</option>
+            					    <option ng-if="ingestType == 'SIP'" value="DEFAULT_WORKFLOW">Production</option>
+            					    <option ng-if="ingestType == 'SIP'" value="BLANK_TEST">A blanc</option>
+                                    <option ng-if="ingestType == 'HoldingScheme'" value="HOLDING_SCHEME">Production</option>
+                                    <option ng-if="ingestType == 'ClassificationScheme'" value="FILING_SCHEME">Production</option>
             				  </select>
                     </td>
 

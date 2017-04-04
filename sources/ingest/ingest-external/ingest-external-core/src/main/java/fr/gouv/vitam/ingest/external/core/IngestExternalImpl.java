@@ -34,7 +34,6 @@ import java.util.List;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.CharsetUtils;
@@ -60,7 +59,6 @@ import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.IngestExternal;
 import fr.gouv.vitam.ingest.external.api.IngestExternalOutcomeMessage;
@@ -85,12 +83,10 @@ import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
  * Implementation of IngestExtern
  */
 public class IngestExternalImpl implements IngestExternal {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
 
-
+    private static final String UNDERSCORE = "_";
     private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
-    private static final String INGEST_WORKFLOW = "PROCESS_SIP_UNITARY";
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
     private static final String ATR_NOTIFICATION = "ATR_NOTIFICATION";
@@ -140,16 +136,18 @@ public class IngestExternalImpl implements IngestExternal {
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         WorkspaceFileSystem workspaceFileSystem = null;
         Response responseNoProcess = null;
-        String contextWithExecutionMode = contextId + "_" + action;
+        String contextWithExecutionMode = contextId + UNDERSCORE + action;
+        Contexts ingestContext = Contexts.valueOf(contextId);
         // FIXME Correct logbookTypeProcess identification
-        LogbookTypeProcess logbookTypeProcess = Contexts.valueOf(contextId).getLogbookTypeProcess();
+        LogbookTypeProcess logbookTypeProcess = ingestContext.getLogbookTypeProcess();
         LogbookOperationParameters startedParameters = null;
+
         try {
 
             startedParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestGuid, INGEST_WORKFLOW, containerName,
+                ingestGuid, ingestContext.getEventType(), containerName,
                 logbookTypeProcess, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.STARTED) + " : " + ingestGuid.toString(),
+                VitamLogbookMessages.getCodeOp(ingestContext.getEventType(), StatusCode.STARTED) + " : " + ingestGuid.toString(),
                 ingestGuid);
 
             // TODO P1 should be the file name from a header
@@ -231,7 +229,8 @@ public class IngestExternalImpl implements IngestExternal {
             logbookTypeProcess,
             startedParameters,
             workspaceFileSystem,
-            contextWithExecutionMode
+            contextWithExecutionMode,
+            ingestContext.getEventType()
         );
     }
 
@@ -247,6 +246,7 @@ public class IngestExternalImpl implements IngestExternal {
         WorkspaceFileSystem workspaceFileSystem = preUploadResume.getWorkspaceFileSystem();
         LogbookOperationsClientHelper helper = preUploadResume.getHelper();
         final String contextWithExecutionMode = preUploadResume.getContextWithExecutionMode();
+        final String eventType = preUploadResume.getEventType();
         try {
             final String antiVirusScriptName = config.getAntiVirusScriptName();
             final long timeoutScanDelay = config.getTimeoutScanDelay();
@@ -412,7 +412,7 @@ public class IngestExternalImpl implements IngestExternal {
                     }
                 } else {
                     responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                        isFileInfected, mimeType, endParameters,logbookTypeProcess);
+                        isFileInfected, mimeType, endParameters,logbookTypeProcess, eventType);
                 }
             } else {
                 // finalize end step param
@@ -420,7 +420,7 @@ public class IngestExternalImpl implements IngestExternal {
                     VitamLogbookMessages.getCodeOp(INGEST_EXT, endParameters.getStatus()));
                 helper.updateDelegate(endParameters);
                 responseNoProcess = prepareEarlyAtrKo(containerName, ingestGuid, helper, startedParameters,
-                    isFileInfected, mimeType, endParameters, logbookTypeProcess);
+                    isFileInfected, mimeType, endParameters, logbookTypeProcess, eventType);
             }
 
             try (IngestInternalClient ingestClient =
@@ -474,6 +474,7 @@ public class IngestExternalImpl implements IngestExternal {
      * @param isFileInfected
      * @param mimeType
      * @param endParameters
+     * @param string 
      * @return
      * @throws LogbookClientNotFoundException
      * @throws IngestExternalException
@@ -481,7 +482,8 @@ public class IngestExternalImpl implements IngestExternal {
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,
-        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters, LogbookTypeProcess logbookTypeProcess)
+        boolean isFileInfected, String mimeType, final LogbookOperationParameters endParameters, 
+        LogbookTypeProcess logbookTypeProcess, String logbookEventType)
         throws LogbookClientNotFoundException, IngestExternalException {
         Response responseNoProcess;
         // Add step started in the logbook
@@ -513,7 +515,7 @@ public class IngestExternalImpl implements IngestExternal {
         // in this case PROCESS_SIP inherits SANITY_CHECK Status
         startedParameters.setStatus(endParameters.getStatus());
         startedParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, endParameters.getStatus()));
+            VitamLogbookMessages.getCodeOp(logbookEventType, endParameters.getStatus()));
         // update PROCESS_SIP
         helper.updateDelegate(startedParameters);
         return responseNoProcess;

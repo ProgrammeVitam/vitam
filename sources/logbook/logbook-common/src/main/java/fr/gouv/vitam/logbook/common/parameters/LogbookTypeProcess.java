@@ -64,10 +64,6 @@ public enum LogbookTypeProcess {
      */
     TRACEABILITY,
     /**
-     * holding unit type process
-     */
-    HOLDING_SCHEME,
-    /**
      * INGEST (Blank test)
      */
     INGEST_TEST;

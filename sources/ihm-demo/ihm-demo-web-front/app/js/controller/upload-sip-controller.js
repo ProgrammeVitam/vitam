@@ -45,9 +45,22 @@ angular.module('ihm.demo')
     $scope.contextIdKey = 'X-Context-Id';
     $scope.actionKey = 'X-Action';
 
+    $scope.ingestType = 'SIP';
+
     // Default options : Resume + DefaultWorkflow
     $scope.action = 'RESUME';
     $scope.contextId = 'DEFAULT_WORKFLOW';
+
+    var locationUrl = $location.url();
+    if (locationUrl.indexOf('uploadFilingsScheme') > -1) {
+      $scope.ingestType = 'ClassificationScheme';
+      $scope.contextId = 'FILING_SCHEME';
+    }
+
+    if (locationUrl.indexOf('uploadHoldingScheme') > -1) {
+      $scope.ingestType = 'HoldingScheme';
+      $scope.contextId = 'HOLDING_SCHEME';
+    }
 
     // *************************************** // modal dialog //************************************* //
     $scope.showAlert = function($event, dialogTitle, message) {

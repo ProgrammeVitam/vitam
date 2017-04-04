@@ -165,7 +165,8 @@
               <span class="pull-left m-l-10">Entrée</span>
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
-              <li><a tabindex="-1" href="#!/uploadSIP" ng-show="hasPermission('ingest:create')">Transfert</a></li>
+              <li><a tabindex="-1" href="#!/uploadSIP" ng-show="hasPermission('ingest:create')">Transfert SIP</a></li>
+              <li><a tabindex="-1" href="#!/uploadFilingsScheme" ng-show="hasPermission('ingest:create')">Transfert du plan de classement</a></li>
               <li><a href="#!/admin/logbookOperations" ng-show="hasPermission('logbook:operations:read')">Suivi des opérations d'entrée</a></li>
             </ul>
           </li>
@@ -192,6 +193,7 @@
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
+              <li><a href="#!/uploadHoldingScheme" ng-show="hasPermission('rules:create')">Import de l'arbre de positionnement</a></li>
               <li><a href="#!/admin/importFileRules" ng-show="hasPermission('rules:create')">Import du Référentiel des Règles de gestion</a></li>
               <li><a href="#!/admin/importPronoun" ng-show="hasPermission('format:create')">Import du Référentiel des formats</a></li>
               <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats</a></li>

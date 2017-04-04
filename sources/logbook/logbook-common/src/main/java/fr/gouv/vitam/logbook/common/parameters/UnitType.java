@@ -36,17 +36,19 @@ public enum UnitType {
      */
     INGEST,
     /**
+     * classification Unit type
+     */
+    CLASSIFICATION_UNIT,
+    /**
      * holding unit type
      */
     HOLDING_UNIT;
 
-    public static UnitType getUnitType(LogbookTypeProcess typeProcess) {
-        switch (typeProcess) {
-            case HOLDING_SCHEME:
-                return UnitType.HOLDING_UNIT;
-            default:
-                break;
+    public static String getUnitTypeString(String input) {
+        if (UnitType.valueOf(input) != null) {
+            return UnitType.valueOf(input).name();
+        } else {
+            return UnitType.INGEST.name();
         }
-        return UnitType.INGEST;
     }
 }

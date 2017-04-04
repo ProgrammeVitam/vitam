@@ -1,6 +1,6 @@
 {
-  "id": "DefaultIngestWorkflow",
-  "comment": "Default Ingest Workflow V6",
+  "id": "DefaultFilingSchemeWorkflow",
+  "comment": "Default Filing Scheme Workflow V6",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -71,6 +71,23 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "UNITS_RULES_COMPUTE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_STORING",
       "behavior": "BLOCKING",
       "distribution": {
@@ -85,7 +102,7 @@
              "in": [
               {
                 "name": "UnitType",
-                "uri": "VALUE:HOLDING_UNIT"
+                "uri": "VALUE:CLASSIFICATION_UNIT"
               }
             ]
           }
@@ -101,6 +118,41 @@
           "action": {
             "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
             "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ACCESSION_REGISTRATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": "SIP/manifest.xml"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ACCESSION_REGISTRATION",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "mapsUnits.file",
+                "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              },
+              {
+                "name": "mapsBDO.file",
+                "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+              },
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+              }
+            ]
           }
         }
       ]
