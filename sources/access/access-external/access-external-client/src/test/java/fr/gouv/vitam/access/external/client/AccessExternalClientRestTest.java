@@ -126,14 +126,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @POST
+        @GET
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitById(String queryDsl,
             @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
             @PathParam("id_unit") String id_unit) {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
 
         @PUT
@@ -148,7 +148,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @GET
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
-        // @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitObject(@PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.get();
         }
@@ -157,7 +157,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @POST
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
-        // @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitObject(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
             @PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.post();
@@ -178,6 +178,24 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
+            @PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/units/{id_object_group}/object")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupByUnit(@Context HttpHeaders headers,
+            @PathParam("id_object_group") String idObjectGroup, String query) {
+            return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/units/{id_object_group}/object")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupByUnitPost(@Context HttpHeaders headers,
             @PathParam("id_object_group") String idObjectGroup, String query) {
             return expectedResponse.post();
         }
@@ -264,24 +282,24 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @POST
+        @GET
         @Path("/accession-register")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegister(@PathParam("id_op") String operationId,
             @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
             throws InvalidParseOperationException {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
 
-        @POST
+        @GET
         @Path("/accession-register/{id_document}/accession-register-detail")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegisterDetail(@PathParam("id_op") String operationId,
             @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
             throws InvalidParseOperationException {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
 
     }
@@ -341,7 +359,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
      ***/
     @Test(expected = AccessExternalClientServerException.class)
     public void givenInternalServerError_whenSelectById_ThenRaiseAnExeption() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
+        when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         final String queryDsql =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
                 " $filter : { $orderby : '#id' }," +
@@ -355,7 +373,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenRessourceNotFound_whenSelectUnitById_ThenRaiseAnException()
         throws AccessExternalClientNotFoundException, AccessExternalClientServerException,
         InvalidParseOperationException {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         final String queryDsql =
             "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
                 " $filter : { $orderby : '#id' }," +
@@ -369,7 +387,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenBadRequest_whenSelectUnitById_ThenRaiseAnException()
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID);
     }
 
@@ -484,25 +502,25 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test(expected = AccessExternalClientServerException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientServerException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID);
     }
 
@@ -638,27 +656,27 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
     @Test
     public void selectAccessionExternalSumary() throws Exception {
-        when(mock.post()).thenReturn(
+        when(mock.get()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
         assertThat(client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID)).isNotNull();
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void selectAccessionExternalSumaryError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getAccessionRegisterSummary(JsonHandler.getFromString(queryDsql), TENANT_ID);
     }
 
     @Test
     public void selectAccessionExternalDetail() throws Exception {
-        when(mock.post()).thenReturn(
+        when(mock.get()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
         client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void selectAccessionExternalDetailError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID);
     }
 

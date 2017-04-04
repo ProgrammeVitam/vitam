@@ -39,9 +39,11 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.bson.Document;
@@ -543,7 +545,13 @@ public class DbRequest {
                     final Unit unit = cursor.next();
                     if (tocheck) {
                         // now check for relativeDepth > 1
-                        final Map<String, Integer> depths = unit.getDepths();
+                        final List<Document> list = unit.getDepths();
+                        Map<String, Integer> depths = new HashMap<>();
+                        for (Document document : list) {
+                            for (Entry<String, Object> entry : document.entrySet()) {
+                                depths.put(entry.getKey(), (Integer) entry.getValue());
+                            }
+                        }
                         boolean check = false;
                         for (final String pid : previous.getCurrentIds()) {
                             final Integer depth = depths.get(pid);

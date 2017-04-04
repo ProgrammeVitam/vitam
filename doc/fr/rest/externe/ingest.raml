@@ -39,14 +39,6 @@ documentation:
       - Tous les binaires dans le répertoire "/content"
     - d'autres formes pourront être implémentées dans des versions ultérieures (multipart/form-data) avec de multiples requêtes utilisant les sous-collections futures *Units* et *Objects*
 
-  /{objectId}/{type}:
-      displayName: Télécharger un objet associé au processus INGEST (ATR ou Manifest)
-      is: [ StandardTraits.StandardOptionalHeader,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-      StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-      get:
-        description:  |
-          Permet de télécharger un objet en précisant son identifiant et son type (ATR ou Manifest)
   post:
     description: |
           response : JSON asynchronous state / HTTP CODE 202 or  500 for KO
@@ -59,17 +51,35 @@ documentation:
         required: true
       X-Context-Id:
         required: false
-      X-Http-Method-Override:
-        required: false
+        description: |
+            Il indique le workflow à exécuter DefaultIngestWorkflow pour lancer le workflow INGEST (avec toutes les étapes) ou DefaultIngestWorkflowBlankTest pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT)
+        enum: [ "DefaultIngestWorkflow", "DefaultIngestWorkflowBlankTest" ]
+
+  /{objectId}/{type}:
+      displayName: IngestsType
+      description: |
+        Télécharger un objet associé au processus INGEST (ATR ou Manifest)
+      is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+      StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+      get:
+        description:  |
+          Permet de télécharger un objet en précisant son identifiant et son type (ATR ou Manifest)
 
 
 /operations:
   # root endpoint request
   displayName: Opérations
-  description: Administration des Workflows Asynchrones (opérations).
+  description: |
+    Administration des Workflows Asynchrones (opérations). Certaines opérations devraient être limitées aux seuls administrateurs car elles impactent le back-office.
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+  get:
+    description: |
+      Request that will return a listing of ingests operations
+    is: [IngestTraits.IngestListingResponse ]
+    
   /{id}:
     displayName: Operation
     is: [ StandardTraits.StandardOptionalHeader,
@@ -78,31 +88,19 @@ documentation:
     get:
       description:  |
         Permet de récupérer le statut de l'opération dont l'identifiant est passée en paramètre
-    post:
-     description: |
-       Permet de soumettre un workflow à exécuter
-     headers:
-      X-Action:
-       required: true
-       description: Il indique le mode d'exécution du workflow; RESUME pour une exécution en mode continu ou NEXT pour une exécution en mode pas à pas
-       enum: [ "RESUME", "NEXT" ]
-      X-Context-Id:
-       required: false
-       description: Il indique le workflow à exécuter DefaultIngestWorkflow pour lancer le workflow INGEST (avec toutes les étapes) ou DefaultIngestWorkflowBlankTest pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT)
-       enum: [ "DefaultIngestWorkflow", "DefaultIngestWorkflowBlankTest" ]
     put:
       description: |
        Permet de mettre à jour une opération lancée en précisant l'action à exécuter dans le header X-Action-Id; PAUSE pour la mettre en pause,
        NEXT pour exécuter l'étape suivante, RESUME pour continuer l'exécution de l'opération jusqu'au bout.
+       **Cette opération ne devrait être ouverte qu'aux administrateurs**
       headers:
        X-Action:
         required: true
         enum: [ "RESUME", "NEXT", "PAUSE" ]
-       X-Context-Id:
-        required: false
     delete:
      description: |
        Permet d'annuler un workflow lancé.
+       **Cette opération ne devrait être ouverte qu'aux administrateurs**
     head:
       description: |
         Permet d'obtenir le statut d'une opération

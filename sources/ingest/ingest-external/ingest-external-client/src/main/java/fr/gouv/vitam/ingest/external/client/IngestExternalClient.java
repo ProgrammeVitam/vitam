@@ -51,15 +51,13 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @return response
      * @throws IngestExternalException
      */
-    // TODO P0 : add file name
-
     Response upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
     /**
      * ingest upload file in  with waiting
-     * For Intern Usage
-     * TNR
+     * <br/><br/>
+     * <b>For Intern Usage: TNR only </b>
      *
      * @param stream
      * @param tenantId
@@ -67,8 +65,6 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @return response
      * @throws IngestExternalException
      */
-    // TODO P0 : add file name
-
     Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
@@ -84,6 +80,24 @@ public interface IngestExternalClient extends OperationManagementClient {
     Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException;
 
+    /**
+     * get operation process status
+     * 
+     * @param id operation identifier
+     * @param tenantId
+     * @return Response with an ItemStatus and status
+     * @throws VitamClientException
+     * @throws InternalServerException
+     * @throws BadRequestException
+     */
     Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
+
+    /**
+     * <b>NOTE: this is not intended to be exposed. Will be removes in future release<b/>
+     * <br><br/>
+     */
+    @Override
+    Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+        throws VitamClientException;
 
 }

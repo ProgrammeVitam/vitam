@@ -30,6 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -79,7 +82,7 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * checkDocument
+     * check Document before real import
      *
      * @param collection
      * @param document
@@ -174,14 +177,14 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * findDocuments
+     * find Documents
      *
      * @param collection
      * @param select
      * @return Response
      */
     @Path("/{collection}")
-    @POST
+    @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
@@ -217,15 +220,37 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * findDocumentByID
+     * find Documents
+     *
+     * @param collection
+     * @param select
+     * @param xhttpOverride
+     * @return Response
+     */
+    @Path("/{collection}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDocumentsPost(@PathParam("collection") String collection, JsonNode select,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return findDocuments(collection, select);
+    }
+
+    /**
+     * find Document By ID
      *
      * @param collection
      * @param documentId
      * @return Response
      */
-    @POST
+    @GET
     @Path("/{collection}/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME manque un DSL pour permettre une projection
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -261,19 +286,52 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
+     * find Document By ID
+     *
+     * @param collection
+     * @param documentId
+     * @param xhttpOverride
+     * @return Response
+     */
+    // FIXME manque un DSL pour permettre une projection
+    @POST
+    @Path("/{collection}/{id_document}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findDocumentByIDPost(@PathParam("collection") String collection,
+        @PathParam("id_document") String documentId,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return findDocumentByID(collection, documentId);
+    }
+
+    /**
      * Construct the error following input
      * 
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
         String aMessage =
-            (message != null && !message.trim().isEmpty() ) ? message : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+    private Response checkXHttpOverrideMethodGet(String xhttpOverride) {
+        if (xhttpOverride == null || !HttpMethod.GET.equalsIgnoreCase(xhttpOverride)) {
+            final Status status = Status.PRECONDITION_FAILED;
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            return Response.status(status).entity(status).build();
+        }
+        return null;
     }
 
 }

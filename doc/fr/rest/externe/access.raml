@@ -109,12 +109,12 @@ documentation:
       get:
         description: |
           Request that will return results composed of Objects (generally 1).
-          **SUPPORTED** 'Accept' header is 'application/octet-stream', other values are **UNSUPPORTED**.
+          **SUPPORTED** 'Accept' header is 'application/octet-stream' or 'application/json', other values are **UNSUPPORTED**.
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
       post:
         description: |
           Request that will return results composed of Objects (generally 1).
-          **SUPPORTED** 'Accept' header is 'application/octet-stream', other values are **UNSUPPORTED**.
+          **SUPPORTED** 'Accept' header is 'application/octet-stream' or 'application/json', other values are **UNSUPPORTED**.
           The request is using POST with X-Http-Method-Override: GET.
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse, StandardTraits.OverrideGet]
         headers:
@@ -153,12 +153,12 @@ documentation:
     get:
       description: |
         Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
-        **SUPPORTED** 'Accept' header is 'application/json', other values are **UNSUPPORTED**.
+        **SUPPORTED** 'Accept' header is 'application/json' or  'application/octet-stream', other values are **UNSUPPORTED**.
       is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse]
     post:
       description: |
         Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
-        **SUPPORTED** 'Accept' header is 'application/json', other values are **UNSUPPORTED**.
+        **SUPPORTED** 'Accept' header is 'application/json' or  'application/octet-stream', other values are **UNSUPPORTED**.
         The request is using POST with X-Http-Method-Override: GET.
       is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
       headers:

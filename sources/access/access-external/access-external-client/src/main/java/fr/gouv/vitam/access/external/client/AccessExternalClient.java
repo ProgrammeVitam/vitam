@@ -43,7 +43,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 public interface AccessExternalClient extends BasicClient {
 
     /**
-     * selectUnits /units
+     * select Units
      *
      * @param selectQuery
      * @param tenantId
@@ -57,7 +57,7 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException;
 
     /**
-     * selectUnitbyId GET(POST overrided) /units/{id}
+     * select Unit by Id
      *
      * @param selectQuery
      * @param unitId
@@ -72,7 +72,7 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException;
 
     /**
-     * updateUnitbyId UPDATE /units/{id}
+     * update Unit by Id
      *
      * @param updateQuery
      * @param unitId
@@ -87,8 +87,11 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException;
 
     /**
-     * getObjectAsInputStream
-     *
+     * get Binary Object As InputStream in the Response.
+     * <br/>
+     * <br/>
+     * <b>Note: the caller is responsible to close the response once the InputStream is consumed.</b>
+     * 
      * @param selectQuery
      * @param objectId
      * @param usage
@@ -104,9 +107,28 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException;
 
     /**
-     * selectObjectById
+     * select ObjectGroup By Id
      *
+     * <br/>
+     * <br/>
+     * <b>Note: the caller is responsible to close the response.</b>
+     * 
      * @param selectQuery
+     * @param objectId
+     * @param tenantId
+     * @return Json representation
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientServerException
+     * @throws AccessExternalClientNotFoundException
+     */
+    RequestResponse selectObjectById(JsonNode selectQuery, String objectId, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException;
+    
+    /**
+     * Select ObjectGroup linked to one Unit
+     * 
+     * @param selectObjectQuery
      * @param unitId
      * @param tenantId
      * @return Json representation
@@ -114,11 +136,16 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      */
-    RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
+    RequestResponse selectUnitObjectGroup(JsonNode selectObjectQuery, String unitId,
+        Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
+
     /**
-     * selectObjectById
+     * get Binary Object linked to one Unit As InputStream in the Response.
+     * <br/>
+     * <br/>
+     * <b>Note: the caller is responsible to close the response once the InputStream is consumed.</b>
      *
      * @param selectObjectQuery
      * @param unitId
@@ -135,7 +162,7 @@ public interface AccessExternalClient extends BasicClient {
         AccessExternalClientNotFoundException;
 
     /**
-     * selectOperation
+     * select Operation
      *
      * @param select
      * @param tenantId
@@ -146,7 +173,7 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse selectOperation(JsonNode select, Integer tenantId) throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * selectOperationbyId
+     * select Operation by Id
      *
      * @param processId
      * @param tenantId
@@ -157,7 +184,7 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse selectOperationbyId(String processId, Integer tenantId) throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * selectUnitLifeCycleById
+     * select UnitLifeCycle By Id
      *
      * @param idUnit
      * @param tenantId
@@ -169,7 +196,7 @@ public interface AccessExternalClient extends BasicClient {
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * selectUnitLifeCycle
+     * select UnitLifeCycle
      *
      * @param queryDsl
      * @return Json representation
@@ -180,7 +207,7 @@ public interface AccessExternalClient extends BasicClient {
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
-     * selectObjectGroupLifeCycleById
+     * select ObjectGroupLifeCycle By Id
      *
      * @param idObject
      * @param tenantId

@@ -46,7 +46,10 @@ import fr.gouv.vitam.common.model.RequestResponse;
 public interface AdminExternalClient extends BasicClient {
 
     /**
-     * checkDocuments
+     * check Documents
+     * <br/>
+     * <br/>
+     * <b>Note: the caller is responsible to close the response.</b>
      *
      * @param documentType
      * @param stream
@@ -62,8 +65,10 @@ public interface AdminExternalClient extends BasicClient {
 
 
     /**
-     * importDocuments
-     * Mandatory: the Caller of this function is responsible to close the Response imperatively.
+     * import Documents
+     * <br/>
+     * <br/>
+     * <b>Note: the caller is responsible to close the response.</b>
      *
      * @param documentType
      * @param stream
@@ -76,7 +81,7 @@ public interface AdminExternalClient extends BasicClient {
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**
-     * findDocuments
+     * find Documents
      *
      * @param documentType
      * @param select
@@ -90,7 +95,7 @@ public interface AdminExternalClient extends BasicClient {
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException;
 
     /**
-     * findDocumentById
+     * find Document By Id
      *
      * @param documentType
      * @param documentId

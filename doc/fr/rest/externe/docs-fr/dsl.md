@@ -8,14 +8,24 @@ Le DSL (Domain Specific Language) Vitam est composé de deux parties :
 Une requête est composée de plusieurs parties, et en particulier le Body qui contient un Json exprimant la requête.
 
 Elle peut être complétée par quelques valeurs dans le *Header* :
-- **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
-- **X-Valid: true** : pour une requête HEAD sur un **Object** pour vérifier la validité (check d'empreinte)
+- **X-Application-Id** : (**UNSUPPORTED**) pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
+- **X-Valid: true** : (**UNSUPPORTED**) pour une requête HEAD sur un **Object** pour vérifier la validité (check d'empreinte)
 - **X-Tenant-Id** : pour chaque requête, le tenant sur lequel doit être exécutée la requête
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour récupérer un usage et une version particulière
 - **X-Callback** (**UNSUPPORTED**) : pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
 - **X-Cursor: true** et **X-Cursor-Id** (**UNSUPPORTED**) : pour la gestion d'une requête en mode "curseur"
 - **X-Http-Method-Override** : pour permettre aux clients HTTP ne supportant pas tous les modes de la RFC 7231 (GET/PUT/DELETE avec Body)
 
+## BuilderRequest
+
+Il existe des Helpers en Java pour construire les requêtes au bon format (hors headers) dans le package **common-database-public.**
+- **Request**
+  - Multiple : fr.gouv.vitam.common.database.builder.request.multiple avec Delete, Insert, Select et Update (pour Units et Objects)
+  - Single : fr.gouv.vitam.common.database.builder.request.single avec Select (pour toutes les autres collections) ; des évolutions sont prévues pour proposer aussi les autres commandes
+- **Query** qui sont des arguments d'une Request
+  - fr.gouv.vitam.common.database.builder.query avec BooleanQuery, CompareQuery, ... et surtout le **QueryHelper** et le **VitamFieldsHelper** pour les champs protégés (commençant par un '#')
+  - dans le cas de update fr.gouv.vitam.common.database.builder.action avec AddAction, IncAction, ... et surtout le **UpdateActionHelper***
+  
 ## Units et Objects uniquement
 
 - **$roots**:
@@ -28,14 +38,19 @@ Elle peut être complétée par quelques valeurs dans le *Header* :
     - Depuis $roots, chercher les Units/Objects tel que Query[1] => liste d'identifiants[1]
     - Depuis cette liste d'identifiant, chercher les Units/Objects tel que Query[2] => liste d'identifiants[2]
     - Et ainsi de suite, la liste d'identifiants[n] de la dernière Query[n] est la liste de résultat définitive
+    - Chaque query peut spécifier une profondeur où appliquer la recherche :
+      - $depth = 0 : sur les items spécifiés (filtre sur les mêmes items, à savoir pour la première requête ceux de $roots, pour les suivantes, le résultat de la requête précédente)
+      - $depth < 0 : sur les items parents (hors les items spécifiés)
+      - $depth > 0 : sur les items enfants (hors les items spécifiés)
+      - par défaut, $depth vaut 1 (enfants immédiats)
 - **$filter**:
   - Il permet de spécifier des filtres additionnels :
     - Pour *GET* :
       - **$limit**: le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
-      - **$per_page**: le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
+      - **$per_page** (**UNSUPPORTED**) : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100)
       - **$offset**: la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
       - **$orderby: { fieldname: 1, fieldname: -1 }** : permet de définir un tri
-      - **$hint: "nocache"** permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
+      - **$hint: "nocache"** (**UNSUPPORTED**) permet de spécifier si l'on ne veut pas bénéficier du cache (cache actif par défaut)
     - Pour *POST*, *PUT* et *DELETE*
       - **$mult**: booléen où *true* signifie que l'opération peut concerner de multiples items (par défaut, positionné à *false*)
         - *POST*: les pères sélectionnés peuvent être multiples
@@ -111,7 +126,7 @@ Chaque Query dispose éventuellement d'arguments additionnels pour gérer l'arbo
 
 | Catégorie |	Opérateur |	Arguments |	Commentaire |
 | --------- | --------- | --------- | ----------- |
-| Profondeur | $depth, $exactdepth |	+ ou - n |	Permet de spécifier si la query effectue une recherche vers les racines (-) ou vers les feuilles (+) et de quelle profondeur (n), avec une profondeur relative ($depth) ou exacte ($exactdepth) |
+| Profondeur | $depth, $exactdepth |	+ ou - n |	Permet de spécifier si la query effectue une recherche vers les racines (-) ou vers les feuilles (+) et de quelle profondeur (n), avec une profondeur relative ($depth) ou exacte ($exactdepth). $depth = 0 signifie que l'on ne change pas de profondeur (mêmes objets concernés), $depth > 0 indique une recherche vers les fils uniquement, $depth < 0 indique une recherche vers les pères uniquements |
 | Collection |	$source |	units / objects |	Permet dans une succession de Query de changer de collection. Attention, la dernière Query doit respecter la collection associée à la requête |
 
 
@@ -252,10 +267,10 @@ Des champs sont protégés dans les requêtes :
   - **TextContent** pour la partie native texte (ASCII UTF8)
 
 La réponse dispose également de champs dans le *Header* :
-- **FullApiVersion** : retourne le numéro précis de la version de l'API en cours d'exécution
+- **FullApiVersion** : (**UNSUPPORTED**) retourne le numéro précis de la version de l'API en cours d'exécution
 - **X-Request-Id** : pour chaque requête, un unique identifiant est fourni en réponse
 - **X-Tenant-Id** : pour chaque requête, le tenant sur lequel a été exécutée l'opération demandée
-- **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs associés à l'opération demandée
+- **X-Application-Id** : (**UNSUPPORTED**) pour conserver la session (valeur non signifiante) dans les journaux et logs associés à l'opération demandée
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour indiquer un usage et une version particulière
 - **X-Callback** (**UNSUPPORTED**): pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
 - (**UNSUPPORTED**) Si **X-Cursor: true** a été spécifié et si la réponse nécessite l'usage d'un curseur (nombre de réponses > *$per_page*), le SAE retourne **X-Cursor-Id** et **X-Cursor-Timeout** (date de fin de validité du curseur) : pour la gestion d'une requête en mode "curseur" par le client
@@ -392,4 +407,4 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
 
 La commande *HEAD* permet de savoir pour un item donné s'il existe (retour **204**) ou pas (retour **404**).
 
-Si dans le Header est ajoutée la commande **X-Valid: true**, la commande *HEAD* vérifie si l'item (Unit ou Object) existe et s'il est conforme (audit de l'item sur la base de son empreinte). S'il n'est pas conforme mais qu'il existe, le retour est **417** (Expectation Failed).
+(**UNSUPPORTED**) Si dans le Header est ajoutée la commande **X-Valid: true**, la commande *HEAD* vérifie si l'item (Unit ou Object) existe et s'il est conforme (audit de l'item sur la base de son empreinte). S'il n'est pas conforme mais qu'il existe, le retour est **417** (Expectation Failed).

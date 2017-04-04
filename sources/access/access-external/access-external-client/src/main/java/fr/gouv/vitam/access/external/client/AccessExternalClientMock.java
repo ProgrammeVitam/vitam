@@ -49,9 +49,17 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
+    public RequestResponse selectObjectById(JsonNode selectQuery, String objectId, Integer tenantId)
         throws InvalidParseOperationException {
-        return ClientMockResultHelper.getArchiveUnitResult();
+        return ClientMockResultHelper.getObjectGroupResult();
+    }
+
+
+    @Override
+    public RequestResponse selectUnitObjectGroup(JsonNode selectObjectQuery, String unitId, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException {
+        return ClientMockResultHelper.getObjectGroupResult();
     }
 
     @Override public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,

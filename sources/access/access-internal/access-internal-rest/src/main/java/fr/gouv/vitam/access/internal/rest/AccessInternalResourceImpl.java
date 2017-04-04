@@ -76,7 +76,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
 
 
-    private static final String GET = HttpMethod.GET;
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
     private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
         "Execution of DSL Vitam from Access ongoing...";
@@ -149,8 +148,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @param idUnit identifier
      * @return an archive unit result list
      */
-
-
     @Override
     @GET
     @Path("/units/{id_unit}")

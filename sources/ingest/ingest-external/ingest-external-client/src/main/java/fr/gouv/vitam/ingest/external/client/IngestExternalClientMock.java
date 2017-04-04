@@ -28,12 +28,9 @@ package fr.gouv.vitam.ingest.external.client;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -147,8 +144,8 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
 
     @Override
     public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
-        throws InternalServerException, BadRequestException, VitamClientException {
-        return Response.status(Status.OK).build();
+        throws VitamClientException {
+        return Response.status(Status.NOT_IMPLEMENTED).build();
     }
 
     @Override

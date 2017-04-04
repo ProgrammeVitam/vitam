@@ -8,6 +8,7 @@ import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -114,16 +115,16 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         }
 
 
-        @POST
+        @GET
         @Path("{collections}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
 
 
-        @POST
+        @GET
         @Path("/{collections}/{id_document}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response findDocumentByID(@PathParam("collection") String collection,
@@ -184,7 +185,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test
     public void testFindDocuments()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
         assertEquals(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
             ClientMockResultHelper.getFormatList().toString());
     }
@@ -192,14 +193,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void testFindDocumentAccessExternalClientNotFoundException()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
     }
 
     @Test(expected = AccessExternalClientException.class)
     public void testFindDocumentAccessExternalClientException()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID);
     }
 

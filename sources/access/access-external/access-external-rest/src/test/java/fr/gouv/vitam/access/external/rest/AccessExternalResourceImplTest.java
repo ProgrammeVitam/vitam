@@ -413,7 +413,7 @@ public class AccessExternalResourceImplTest {
             .when()
             .post("/units/" + ID_UNIT)
             .then()
-            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -1292,13 +1292,13 @@ public class AccessExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI + "/" + good_id)
+            .when().get(ACCESSION_REGISTER_URI + "/" + good_id)
             .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_URI + "/" + good_id)
+            .when().get(ACCESSION_REGISTER_URI + "/" + good_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()

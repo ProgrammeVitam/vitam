@@ -148,18 +148,13 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrSelectUnits(JsonNode queryJson,
+    public Response getPostUnits(JsonNode queryJson,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        LOGGER.debug("Execution of DSL Vitam from Access ongoing...");
-        Status status;
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return getUnits(queryJson);
-        } else {
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
         }
+        return getUnits(queryJson);
     }
 
     /**
@@ -229,16 +224,12 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     public Response createOrSelectUnitById(JsonNode queryJson,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         ParametersChecker.checkParameter("unit id is required", idUnit);
-        Status status;
-        if (xhttpOverride != null && "GET".equalsIgnoreCase(xhttpOverride)) {
-            return getUnitById(queryJson, idUnit);
-        } else {
-            status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
         }
+        return getUnitById(queryJson, idUnit);
     }
 
     /**
@@ -289,7 +280,162 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).build();
+    }
+
+    /**
+     * Get the ObjectGroup linked to the unit
+     * 
+     * @param idu
+     * @param queryJson
+     * @param asyncResponse
+     * @return ObjectGroup as a Response containing a RequestResponseOK or VitamError as Body
+     */
+    @GET
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupByUnit(@PathParam("idu") String idu, JsonNode queryJson) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        JsonNode result;
+        Status status;
+        try {
+            try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+                String idObjectGroup = idObjectGroup(idu);
+                result = client.selectObjectbyId(queryJson, idObjectGroup);
+                return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
+            }
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error(e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+    }
+
+    /**
+     * Get the ObjectGroup linked to the unit
+     * 
+     * @param xhttpOverride
+     * @param idu
+     * @param queryJson
+     * @param asyncResponse
+     * @return ObjectGroup as a Response containing a RequestResponseOK or VitamError as Body
+     */
+    @POST
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectGroupByUnitPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+        @PathParam("idu") String idu, JsonNode queryJson) {
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return getObjectGroupByUnit(idu, queryJson);
+    }
+
+    /**
+     * Get the ObjectGroup binary content according to X-Qualifier and X-Version
+     * 
+     * @param headers
+     * @param idu
+     * @param query
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObject(@Context HttpHeaders headers, @PathParam("idu") String idu,
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        Status status;
+        try {
+            String idObjectGroup = idObjectGroup(idu);
+            getObject(headers, idObjectGroup, query, asyncResponse, false);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            status = Status.PRECONDITION_FAILED;
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(status).build());
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Unauthorized request Exception ", e);
+            status = Status.UNAUTHORIZED;
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(status).build());
+        } catch (final AccessInternalClientNotFoundException e) {
+            LOGGER.error("Request resources does not exits", e);
+            status = Status.NOT_FOUND;
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(status).build());
+        }
+    }
+
+    /**
+     * Get the ObjectGroup binary content according to X-Qualifier and X-Version
+     * 
+     * @param headers
+     * @param idu
+     * @param query
+     * @param asyncResponse
+     */
+    @POST
+    @Path("/units/{idu}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObjectPost(@Context HttpHeaders headers, @PathParam("idu") String idu,
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
+        if (xHttpOverride == null || !HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
+        } else {
+            getObject(headers, idu, query, asyncResponse);
+        }
+    }
+
+    /**
+     * get object group list by query
+     *
+     * @param queryDsl
+     * @return ObjectGroups as a Response containing a RequestResponseOK or VitamError as Body
+     */
+    @GET
+    @Path("/objects")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectsList(JsonNode queryDsl) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status)).build();
+    }
+
+    /**
+     * @param xhttpOverride
+     * @param query
+     * @return ObjectGroups as a Response containing a RequestResponseOK or VitamError as Body
+     */
+    @POST
+    @Path("/objects")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
+        JsonNode query) {
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return getObjectsList(query);
     }
 
     /**
@@ -297,7 +443,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      *
      * @param idObjectGroup
      * @param queryJson
-     * @return Response
+     * @return ObjectGroup as a Response containing a RequestResponseOK or VitamError as Body
      */
     @GET
     @Path("/objects/{ido}")
@@ -327,27 +473,14 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
-    /**
-     * @param headers
-     * @param idObjectGroup
-     * @param query
-     * @param asyncResponse
-     * @return Response
-     */
-    @GET
-    @Path("/objects/{ido}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        getObject (headers,idObjectGroup,query,asyncResponse,false) ;
-    }
 
     /**
+     * get object group list by query and id
+     * 
      * @param headers
      * @param idObjectGroup
      * @param queryJson
-     * @return Response
+     * @return ObjectGroup as a Response containing a RequestResponseOK or VitamError as Body
      */
     @POST
     @Path("/objects/{ido}")
@@ -355,24 +488,38 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupPost(@Context HttpHeaders headers,
         @PathParam("ido") String idObjectGroup, JsonNode queryJson) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
         final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-        if (xHttpOverride == null || !"GET".equalsIgnoreCase(xHttpOverride)) {
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } else {
-            return getObjectGroup(idObjectGroup, queryJson);
+        Response response = checkXHttpOverrideMethodGet(xHttpOverride);
+        if (response != null) {
+            return response;
         }
+        return getObjectGroup(idObjectGroup, queryJson);
     }
 
     /**
+     * Get the ObjectGroup binary content according to X-Qualifier and X-Version
+     * 
      * @param headers
      * @param idObjectGroup
      * @param query
      * @param asyncResponse
-     * @return Response
+     */
+    @GET
+    @Path("/objects/{ido}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void getObjectIdoGet(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
+        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+        getObject(headers, idObjectGroup, query, asyncResponse, false);
+    }
+
+    /**
+     * Get the ObjectGroup binary content according to X-Qualifier and X-Version
+     * 
+     * @param headers
+     * @param idObjectGroup
+     * @param query
+     * @param asyncResponse
      */
     @POST
     @Path("/objects/{ido}")
@@ -380,126 +527,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectIdoPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
         JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
+        getObject(headers, idObjectGroup, query, asyncResponse, true);
     }
 
-
-    /**
-     * @param headers
-     * @param idu
-     * @param query
-     * @param asyncResponse
-     */
-    @GET
-    @Path("/units/{idu}/object")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObject(@Context HttpHeaders headers, @PathParam("idu") String idu,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        Status status;
-        try {
-            String idObjectGroup = idObjectGroup(idu);
-            getObject(headers, idObjectGroup, query, asyncResponse,false) ;
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
-        } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.UNAUTHORIZED;
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
-        } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.error("Request resources does not exits", e);
-            status = Status.NOT_FOUND;
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
-        }
-    }
-
-
-
-    /**
-     * @param headers
-     * @param idu
-     * @param query
-     * @param asyncResponse
-     */
-    @POST
-    @Path("/units/{idu}/object")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObjectPost(@Context HttpHeaders headers, @PathParam("idu") String idu,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-        Status status;
-        try {
-            String idObjectGroup = idObjectGroup(idu);
-            getObject (headers,idObjectGroup,query,asyncResponse,true) ;
-
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
-        } catch (final AccessInternalClientServerException e) {
-            LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.UNAUTHORIZED;
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
-        } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.error("Request resources does not exits", e);
-            status = Status.NOT_FOUND;
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(status).build());
-        }
-    }
-
-    /**
-     * get object group list by query
-     *
-     * @param queryDsl
-     * @return Response
-     */
-    @GET
-    @Path("/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectsList(JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
-
-    /**
-     * @param xhttpOverride
-     * @param query
-     * @return Response
-     */
-    @POST
-    @Path("/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectListPost(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
-        JsonNode query) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status)).build();
-    }
 
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
+
     private String idObjectGroup(String idu)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        // Select  "Object from ArchiveUNit idu
+        // Select "Object from ArchiveUNit idu
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             Select select = new Select();
             select.addUsedProjection("#object");
             result = client.selectUnitbyId(select.getFinalSelect(), idu);
@@ -507,13 +550,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return result.findValue("#object").textValue();
         }
     }
-    private void getObject( HttpHeaders headers, String idObjectGroup,
-        JsonNode query,final AsyncResponse asyncResponse, boolean post ){
+
+    private void getObject(HttpHeaders headers, String idObjectGroup,
+        JsonNode query, final AsyncResponse asyncResponse, boolean post) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> asyncObjectStream(asyncResponse, headers, idObjectGroup, query, post));
     }
+
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
         JsonNode query, boolean post) {
 
@@ -526,7 +571,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     return;
                 }
                 final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
-                if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
+                if (xHttpOverride == null || !HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                         Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
                             .toString()).build());
@@ -581,27 +626,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * findDocuments
      *
      * @param select
-     * @param xhttpOverride
      * @return Response
      */
     @Path("/accession-register")
-    @POST
+    @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegister(JsonNode select,
-        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+    public Response findAccessionRegister(JsonNode select) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(status).build();
-        }
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final RequestResponse result = client.getAccessionRegister(select);
             return Response.status(Status.OK).entity(result).build();
@@ -619,6 +656,26 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * findDocuments
+     *
+     * @param select
+     * @param xhttpOverride
+     * @return Response
+     */
+    @Path("/accession-register")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findPostAccessionRegister(JsonNode select,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return findAccessionRegister(select);
+    }
+
 
 
     /**
@@ -627,9 +684,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param documentId
      * @return Response
      */
-    @POST
+    @GET
     @Path("/accession-register/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
+    // FIXME manque un DSL pour permettre une projection
     public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -637,6 +695,65 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
+
+    /**
+     * findDocumentByID
+     *
+     * @param documentId
+     * @param xhttpOverride
+     * @return Response
+     */
+    @POST
+    @Path("/accession-register/{id_document}")
+    @Produces(MediaType.APPLICATION_JSON)
+    // FIXME manque un DSL pour permettre une projection
+    public Response findPostAccessionRegisterById(@PathParam("id_document") String documentId,
+        @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return findAccessionRegisterById(documentId);
+    }
+
+
+    /**
+     * findAccessionRegisterDetail
+     *
+     * @param documentId
+     * @param select
+     * @return Response
+     */
+    @GET
+    @Path("/accession-register/{id_document}/accession-register-detail")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(select);
+            parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+            RequestResponse accessionRegisterDetail =
+                client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
+            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
+        } catch (final ReferentialNotFoundException e) {
+            LOGGER.debug(e);
+            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
+        } catch (InvalidParseOperationException | UnsupportedEncodingException |
+            InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        }
+    }
 
     /**
      * findAccessionRegisterDetail
@@ -650,34 +767,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/accession-register/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
+    public Response findPostAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select,
         @HeaderParam("X-HTTP-Method-Override") String xhttpOverride) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Response response = checkXHttpOverrideMethodGet(xhttpOverride);
+        if (response != null) {
+            return response;
+        }
+        return findAccessionRegisterDetail(documentId, select);
+    }
 
-        if (xhttpOverride == null || !"GET".equalsIgnoreCase(xhttpOverride)) {
+    private Response checkXHttpOverrideMethodGet(String xhttpOverride) {
+        if (xhttpOverride == null || !HttpMethod.GET.equalsIgnoreCase(xhttpOverride)) {
             final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status)).build();
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+            return Response.status(status).entity(status).build();
         }
-        ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            final SelectParserSingle parser = new SelectParserSingle();
-            parser.parse(select);
-            parser.addCondition(eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
-            RequestResponse accessionRegisterDetail =
-                client.getAccessionRegisterDetail(parser.getRequest().getFinalSelect());
-            return Response.status(Status.OK).entity(accessionRegisterDetail).build();
-        } catch (final ReferentialNotFoundException e) {
-            return Response.status(Status.OK).entity(new RequestResponseOK()).build();
-        } catch (InvalidParseOperationException | UnsupportedEncodingException |
-            InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (Exception e) {
-            LOGGER.error(e);
-            final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status)).build();
-        }
+        return null;
     }
 }
