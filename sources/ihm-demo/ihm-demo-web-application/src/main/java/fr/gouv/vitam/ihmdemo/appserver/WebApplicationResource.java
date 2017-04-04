@@ -55,6 +55,7 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -506,7 +507,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         public void run() {
             // start the upload
             Response finalResponse = null;
-
+            File file = null;
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
@@ -1428,7 +1429,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the object group life cycle based on its id
      *
-     * @param headers                HTTP Headers
+     * @param headers HTTP Headers
      * @param objectGroupLifeCycleId the object group id (== object group life cycle id)
      * @return the object group life cycle
      */
@@ -1578,14 +1579,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload contracts
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @POST
     @Path("/contracts")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("accesscontracts:create")
+    @RequiresPermissions("contracts:create")
     public Response uploadRefContracts(@Context HttpHeaders headers, InputStream input) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
@@ -1596,7 +1597,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -1606,30 +1607,93 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
+     * Gets contracts
+     *
+     * @param headers HTTP Headers
+     * @param select the query
+     * @return Response
+     */
+    @POST
+    @Path("/contracts")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:read")
+    public Response findDocuments(@Context HttpHeaders headers, JsonNode select) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.findDocuments(AdminCollections.CONTRACTS, select, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                // Récupération des hits?
+                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Gets contracts by name
+     *
+     * @param id if of the contract
+     * @return Response
+     */
+    @POST
+    @Path("/contracts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:read")
+    public Response findContractsById(@Context HttpHeaders headers, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.findDocumentById(AdminCollections.CONTRACTS, id, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                // Récupération des hits?
+                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+
+    /**
      * Upload Access contracts
      *
      * @param headers HTTP Headers
-     * @param input   the format file CSV
+     * @param input the format file CSV
      * @return Response
      */
     @POST
     @Path("/accesscontracts")
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("accesscontracts:read")
+    @RequiresPermissions("accesscontracts:create")
     public Response uploadAccessContracts(@Context HttpHeaders headers, InputStream input) {
-
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.importContracts(input, getTenantId(headers), AdminCollections.ACCESS_CONTRACTS);
+            RequestResponse response = adminClient.importContracts(input, getTenantId(headers), AdminCollections.ACCESS_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
-                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
-                return Response.status(Status.OK).entity(response).build();
-
+                return Response.status(Status.OK).build();
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -1643,7 +1707,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Query to get Access contracts
      *
-     * @param headers  HTTP Headers
+     * @param headers HTTP Headers
      * @param queryDsl the query to find access contracts
      * @return Response
      */
@@ -1658,12 +1722,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
             RequestResponse response =
                 adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, getTenantId(headers));
             if (response != null && response instanceof RequestResponseOK) {
+                // Récupération des hits?
                 ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
                 return Response.status(Status.OK).entity(response).build();
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
@@ -1677,50 +1742,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to Access contracts by id
      *
      * @param headers HTTP Headers
-     * @param id      of the requested access contract
+     * @param id of the requested access contract
      * @return Response
      */
-    @GET
+    @POST
     @Path("/accesscontracts/{id}")
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("contracts:create")
+    @RequiresPermissions("accesscontracts:read")
     public Response findAccessContracts(@Context HttpHeaders headers, @PathParam("id") String id) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.findDocumentById(AdminCollections.ACCESS_CONTRACTS, id, getTenantId(headers));
-            if (response != null && response instanceof RequestResponseOK) {
-                return Response.status(Status.OK).build();
-            }
-            if (response != null && response instanceof VitamError) {
-                LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-
-    /**
-     * Gets contracts
-     *
-     * @param headers HTTP Headers
-     * @param select the query
-     * @return Response
-     */
-    @POST
-    @Path("/contracts")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("contracts:create")
-    public Response findDocuments(@Context HttpHeaders headers, JsonNode select) {
-
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response = adminClient.findDocuments(AdminCollections.CONTRACTS, select, getTenantId(headers));
             if (response != null && response instanceof RequestResponseOK) {
                 // Récupération des hits?
                 ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
@@ -1728,7 +1762,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
