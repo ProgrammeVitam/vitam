@@ -101,6 +101,7 @@ public class IngestStep {
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
                         ProcessAction.RESUME.name());
+
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
