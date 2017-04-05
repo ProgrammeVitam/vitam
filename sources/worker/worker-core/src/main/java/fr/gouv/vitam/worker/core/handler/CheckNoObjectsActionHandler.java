@@ -86,13 +86,14 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        itemStatus.increment(StatusCode.OK);
         try {
             checkMandatoryIOParameter(handlerIO);
             this.handlerIO = handlerIO;
             
             if (!checkNoObjectInManifest()) {
                 itemStatus.increment(StatusCode.KO); 
+            } else {
+                itemStatus.increment(StatusCode.OK);
             }
 
         } catch (final ProcessingException e) {
@@ -154,7 +155,7 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
                     eventReader.close();
                 }
             } catch (final XMLStreamException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.warn(e);
             }
             StreamUtils.closeSilently(xmlFile);
         }
