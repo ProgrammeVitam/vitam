@@ -161,9 +161,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
                         data.get("#id").asText());
                 } else {
                     // insert case
-                    if (LogbookTypeProcess.HOLDING_SCHEME.equals(params.getLogbookTypeProcess())) {
-                        // if Unit is a tree
-                        data.put(VitamFieldsHelper.unitType(), UnitType.getUnitType(params.getLogbookTypeProcess()).name());
+                    if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()){
+                        String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
+                        data.put(VitamFieldsHelper.unitType(), unitType);
                     }
                     metadataClient.insertUnit(((InsertMultiQuery) query).addData(data).getFinalInsert());
                 }

@@ -115,6 +115,7 @@ angular
           criteriaSearch.titleAndDescription = $scope.search.form.titleCriteria;
           criteriaSearch.projection_transactdate = "TransactedDate";
           criteriaSearch.projection_id = "#id";
+          criteriaSearch.projection_unitType = "#unittype";
           criteriaSearch.projection_title = "Title";
           criteriaSearch.projection_object = "#object";
           criteriaSearch.orderby = $scope.search.form.orderByField;
@@ -217,6 +218,7 @@ angular
         if (atLeastOneValidCriteriaExists) {
           criteriaSearch.projection_transactdate = "TransactedDate";
           criteriaSearch.projection_id = "#id";
+          criteriaSearch.projection_unitType = "#unittype";
           criteriaSearch.projection_title = "Title";
           criteriaSearch.projection_object = "#object";
           criteriaSearch.orderby = $scope.search.form.orderByField;

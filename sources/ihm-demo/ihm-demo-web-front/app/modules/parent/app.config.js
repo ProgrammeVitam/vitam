@@ -52,6 +52,16 @@ config(['$locationProvider' ,'$routeProvider',
       controller: "uploadController",
       title: 'Transfert'
     }).
+    when('/uploadHoldingScheme', {
+      templateUrl: "views/upload-sip.html",
+      controller: "uploadController",
+      title: 'Transfert de l\'arbre de positionnement'
+    }).
+    when('/uploadFilingsScheme', {
+      templateUrl: "views/upload-sip.html",
+      controller: "uploadController",
+      title: 'Transfert du plan de classement'
+    }).
     when('/uploadSIP2', {
       templateUrl: "views/upload-sip-2.html",
       controller: "uploadController"

@@ -26,13 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
-import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
-
-import java.io.InputStream;
 /**
 Asynchrone exchange Model
  */
@@ -43,36 +40,60 @@ public class PreUploadResume {
     private LogbookOperationParameters startedParameters;
     private WorkspaceFileSystem workspaceFileSystem;
     private String contextWithExecutionMode;
+    private String eventType;
 
     public PreUploadResume(
         LogbookOperationsClientHelper helper,
         LogbookTypeProcess logbookTypeProcess,
         LogbookOperationParameters startedParameters,
-        WorkspaceFileSystem workspaceFileSystem, String contextWithExecutionMode) {
+        WorkspaceFileSystem workspaceFileSystem, String contextWithExecutionMode, String eventType) {
         this.helper = helper;
         this.logbookTypeProcess = logbookTypeProcess;
         this.startedParameters = startedParameters;
         this.workspaceFileSystem = workspaceFileSystem;
         this.contextWithExecutionMode = contextWithExecutionMode;
+        this.eventType = eventType;
     }
 
+    /**
+     * @return
+     */
     public LogbookTypeProcess getLogbookTypeProcess() {
         return logbookTypeProcess;
     }
 
+    /**
+     * @return
+     */
     public LogbookOperationParameters getStartedParameters() {
         return startedParameters;
     }
 
+    /**
+     * @return
+     */
     public WorkspaceFileSystem getWorkspaceFileSystem() {
         return workspaceFileSystem;
     }
 
+    /**
+     * @return
+     */
     public String getContextWithExecutionMode() {
         return contextWithExecutionMode;
     }
 
+    /**
+     * @return
+     */
     public LogbookOperationsClientHelper getHelper() {
         return helper;
+    }
+
+    /**
+     * @return
+     */
+    public String getEventType() {
+        return eventType;
     }
 }

@@ -109,6 +109,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         poolWorkflows = new ConcurrentHashMap<>();
         
         try {
+            setWorkflow("DefaultFilingSchemeWorkflow");
             setWorkflow("DefaultHoldingSchemeWorkflow");
             setWorkflow("DefaultIngestBlankTestWorkflow");
             setWorkflow("DefaultIngestWorkflow");
