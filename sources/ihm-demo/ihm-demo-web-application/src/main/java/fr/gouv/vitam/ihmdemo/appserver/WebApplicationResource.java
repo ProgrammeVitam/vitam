@@ -174,9 +174,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers   header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param criteria criteria search for units
+     * @param criteria  criteria search for units
      * @return Reponse
      */
     @POST
@@ -245,7 +245,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param headers
-     * @param unitId archive unit id
+     * @param unitId  archive unit id
      * @return archive unit details
      */
     @GET
@@ -281,9 +281,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers   header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -354,7 +354,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * @param headers
      * @param operationId id of operation
-     * @param options the queries for searching
+     * @param options     the queries for searching
      * @return Response
      */
     @POST
@@ -397,8 +397,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param request
      * @param response
-     * @param stream data input stream for the current chunk
-     * @param headers HTTP Headers containing chunk information
+     * @param stream   data input stream for the current chunk
+     * @param headers  HTTP Headers containing chunk information
      * @return Response
      */
     @Path("ingest/upload")
@@ -654,9 +654,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Update Archive Units
      *
-     * @param headers HTTP Headers
+     * @param headers   HTTP Headers
      * @param updateSet contains updated field
-     * @param unitId archive unit id
+     * @param unitId    archive unit id
      * @return archive unit details
      */
     @POST
@@ -708,9 +708,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -746,9 +746,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers HTTP Headers
+     * @param headers  HTTP Headers
      * @param formatId id of format
-     * @param options the queries for searching
+     * @param options  the queries for searching
      * @return Response
      */
     @POST
@@ -790,23 +790,26 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         Response response = null;
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient();) {
+            try {
+                response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+                switch (response.getStatusInfo().getFamily()) {
+                    case SUCCESSFUL:
+                        return Response.status(Status.OK).build();
+                    default:
+                        return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                }
+            } catch (final AccessExternalClientNotFoundException e) {
+                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+                return Response.status(Status.NOT_FOUND).build();
+            } catch (final Exception e) {
+                LOGGER.error(e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } finally {
+                //close response before input
+                adminClient.consumeAnyEntityAndClose(response);
+                StreamUtils.closeSilently(input);
             }
-        } catch (final AccessExternalClientNotFoundException e) {
-            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-            return Response.status(Status.NOT_FOUND).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } finally {
-            StreamUtils.closeSilently(input);
-            staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -814,7 +817,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload the referential format in the base
      *
      * @param headers HTTP Headers
-     * @param input the format file xml
+     * @param input   the format file xml
      * @return Response
      */
     @POST
@@ -845,7 +848,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
-     * @param headers HTTP Headers
+     * @param headers       HTTP Headers
      * @param objectGroupId the object group Id
      * @return a response containing a json with informations about usages and versions for an object group
      */
@@ -885,12 +888,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data as an input stream
      *
-     * @param headers HTTP Headers
+     * @param headers       HTTP Headers
      * @param objectGroupId the object group Id
-     * @param usage additional mandatory parameters usage
-     * @param version additional mandatory parameters version
-     * @param filename additional mandatory parameters filename
-     * @param tenantId the tenant id
+     * @param usage         additional mandatory parameters usage
+     * @param version       additional mandatory parameters version
+     * @param filename      additional mandatory parameters filename
+     * @param tenantId      the tenant id
      * @param asyncResponse will return the inputstream
      */
     @GET
@@ -908,7 +911,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data stored by ingest operation as an input stream
      *
-     * @param headers HTTP Headers
+     * @param headers       HTTP Headers
      * @param objectId
      * @param type
      * @param asyncResponse
@@ -990,9 +993,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /***** rules Management ************/
 
     /**
-     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -1064,7 +1067,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param headers HTTP Headers
-     * @param ruleId id of rule
+     * @param ruleId  id of rule
      * @param options the queries for searching
      * @return Response
      */
@@ -1128,7 +1131,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload the referential rules in the base
      *
      * @param headers HTTP Headers
-     * @param input the format file CSV
+     * @param input   the format file CSV
      * @return Response
      */
     @POST
@@ -1158,9 +1161,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Get the action registers filtered with option query
      *
-     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options the queries for searching
+     * @param options   the queries for searching
      * @return Response
      */
     @POST
@@ -1257,8 +1260,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This resource returns all paths relative to a unit
      *
-     * @param headers HTTP Headers
-     * @param unitId the unit id
+     * @param headers    HTTP Headers
+     * @param unitId     the unit id
      * @param allParents all parents unit
      * @return all paths relative to a unit
      */
@@ -1312,7 +1315,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param headers HTTP Headers
-     * @param object user credentials
+     * @param object  user credentials
      * @return Response OK if login success
      */
     @POST
@@ -1345,7 +1348,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the unit life cycle based on its id
      *
-     * @param headers HTTP Headers
+     * @param headers         HTTP Headers
      * @param unitLifeCycleId the unit id (== unit life cycle id)
      * @return the unit life cycle
      */
@@ -1373,7 +1376,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * returns the object group life cycle based on its id
      *
-     * @param headers HTTP Headers
+     * @param headers                HTTP Headers
      * @param objectGroupLifeCycleId the object group id (== object group life cycle id)
      * @return the object group life cycle
      */
@@ -1427,7 +1430,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param id      operation identifier
      * @return http response
      */
     @Path("operations/{id}")
