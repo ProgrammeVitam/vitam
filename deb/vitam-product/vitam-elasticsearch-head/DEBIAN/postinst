@@ -1,4 +1,0 @@
-#!/bin/sh
-
-systemctl enable vitam-elasticsearch-data
-systemctl start vitam-elasticsearch-data
