@@ -29,6 +29,8 @@ package fr.gouv.vitam.storage.driver;
 
 import java.util.Properties;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
@@ -40,7 +42,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
  * Vitam engine.
  */
 
-public interface Driver {
+public interface Driver extends VitamAutoCloseable {
     /**
      * Create a connection to the distant offer service based on given service
      * URL and optional parameters. If no connection could be made, the driver
@@ -86,6 +88,30 @@ public interface Driver {
      */
     boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException;
 
+    /**
+     * Remove one offer from the Driver (from DriverManager)
+     *
+     * @param offer
+     * @return True if the offer was removed, false if not existing
+     */
+    boolean removeOffer(String offer);
+
+
+    /**
+     * Add one offer to the Driver (from DriverManager)
+     *
+     * @param offerId
+     * @param offerFactory
+     * @return True if the offer was removed, false if not existing
+     */
+    boolean addOffer(String offerId, VitamClientFactory<? extends AbstractConnection> offerFactory);
+
+    /**
+     * Return true if offer exists for the driver, false else
+     * @param offerId
+     * @return
+     */
+    boolean hasOffer(String offerId);
     /**
      * The driver implementation MUST provide a constant name which SHOULD be
      * shared accross instances of the same driver implementation. Then it is

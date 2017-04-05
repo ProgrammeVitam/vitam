@@ -44,6 +44,8 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -52,7 +54,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 /**
  * Workspace Driver Implementation
  */
-public class DriverImpl implements Driver {
+public class DriverImpl extends AbstractDriver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 
     private static final String DRIVER_NAME = "WorkspaceDriver";
@@ -60,9 +62,10 @@ public class DriverImpl implements Driver {
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
 
-    static class InternalDriverFactory extends VitamClientFactory<ConnectionImpl> implements Driver {
+    static class InternalDriverFactory extends VitamClientFactory<ConnectionImpl> {
         final Properties parameters;
 
+        private ConnectionImpl connection = null;
         protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath, true, false, true, true);
             enableUseAuthorizationFilter();
@@ -71,32 +74,8 @@ public class DriverImpl implements Driver {
 
         @Override
         public ConnectionImpl getClient() {
-            return new ConnectionImpl(this, parameters);
-        }
-
-        @Override
-        public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
-            return true;
-        }
-
-        @Override
-        public String getName() {
-            return DRIVER_NAME;
-        }
-
-        @Override
-        public int getMajorVersion() {
-            return 0;
-        }
-
-        @Override
-        public int getMinorVersion() {
-            return 0;
-        }
-
-        @Override
-        public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-            throw new UnsupportedOperationException("The internal factory does not support this method");
+            if (null == connection) connection = new ConnectionImpl(DRIVER_NAME, this, parameters);
+            return connection;
         }
 
     }
@@ -118,25 +97,21 @@ public class DriverImpl implements Driver {
     }
 
     @Override
-    public ConnectionImpl connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-        final InternalDriverFactory factory = new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH,
-                parameters);
-        try {
-            final ConnectionImpl connection = factory.getClient();
-            connection.checkStatus();
-            LOGGER.debug("Check status ok");
-            return connection;
-        } catch (final VitamApplicationServerException exception) {
-            LOGGER.error("Service unavailable", exception);
-            throw new StorageDriverException(DRIVER_NAME, 
-                    exception.getMessage(), exception);
+    public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
+        if (!super.connectionFactories.containsKey(offer.getId())) {
+
+            final InternalDriverFactory factory =
+                new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH,
+                    parameters);
+            super.addOffer(offer.getId(), factory);
         }
+        return super.connect(offer, parameters);
     }
 
     /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath
+     * @param offer
      *            the path to the configuration file
      * @return ClientConfiguration
      */
@@ -155,7 +130,7 @@ public class DriverImpl implements Driver {
                 truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
 
                 configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
-                        new SSLConfiguration(keystoreList, truststoreList));
+                    new SSLConfiguration(keystoreList, truststoreList));
             } else {
                 configuration = new ClientConfigurationImpl(url.getHost(), url.getPort());
             }
