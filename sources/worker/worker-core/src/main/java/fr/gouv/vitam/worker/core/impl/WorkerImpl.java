@@ -67,6 +67,7 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckNoObjectsActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
@@ -133,6 +134,7 @@ public class WorkerImpl implements Worker {
          */
         actions.put(ExtractSedaActionHandler.getId(), new ExtractSedaActionHandler());
         actions.put(CheckSedaActionHandler.getId(), new CheckSedaActionHandler());
+        actions.put(CheckIngestContractActionHandler.getId(), new CheckIngestContractActionHandler());        
         actions.put(CheckObjectsNumberActionHandler.getId(), new CheckObjectsNumberActionHandler());
         actions.put(CheckNoObjectsActionHandler.getId(), new CheckNoObjectsActionHandler());
         actions.put(CheckVersionActionHandler.getId(), new CheckVersionActionHandler());
