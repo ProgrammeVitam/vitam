@@ -805,8 +805,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } finally {
-            StreamUtils.closeSilently(input);
+            //close response before input
             staticConsumeAnyEntityAndClose(response);
+            StreamUtils.closeSilently(input);
         }
     }
 
