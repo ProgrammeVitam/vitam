@@ -30,10 +30,10 @@
   register: connected
 
 - name: upload PRONOM
-  uri: 
+  uri:
     url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/format/upload
     method: POST
-    headers: 
+    headers:
       Connection: "keep-alive"
       X-Tenant-Id: "{{item}}"
       Content-Type: "application/octet-stream"
@@ -46,3 +46,34 @@
   with_items:
     - "{{vitam_tenant_ids|first}}"
 
+# Apparently, we cannot send json with Content-Type: application/octet-stream with uri module :(
+# - name: upload contracts
+#   uri:
+#     url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts
+#     method: POST
+#     headers:
+#       Connection: "keep-alive"
+#       X-Tenant-Id: "{{item}}"
+#       Content-Type: "application/json"
+#       Cookie: "{{connected.set_cookie}}"
+#       Host: "{{ inventory_hostname }}"
+#       Content-Type: "application/octet-stream"
+#     body: "{{ lookup('file', 'referential_contracts_ok.json') }}"
+#   ignore_errors: true
+#   when: connected.set_cookie != ''
+#   with_items:
+#     - "{{vitam_tenant_ids}}"
+
+- name: copy contracts
+  copy:
+    src: referential_contracts_ok.json
+    dest: /vitam/tmp/ihm-demo/referential_contracts_ok.json
+    owner: root
+    mode: "{{vitam_conf_permission}}"
+
+- name: upload contracts
+  command: "curl -v -X POST --data @/vitam/tmp/ihm-demo/referential_contracts_ok.json -H 'Host: {{ inventory_hostname }}' -H 'Cookie: {{connected.set_cookie}}' -H 'X-Tenant-Id: {{item}}' -H 'Content-Type: application/octet-stream' http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts 2>&1"
+  when: connected.set_cookie != ''
+  ignore_errors: true
+  with_items:
+    - "{{vitam_tenant_ids}}"
