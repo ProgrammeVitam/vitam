@@ -75,7 +75,7 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_INGEST_CONTRACT",
+            "actionKey": "CHECK_CONTRACT_INGEST",
             "behavior": "BLOCKING",
             "in": [
               {
