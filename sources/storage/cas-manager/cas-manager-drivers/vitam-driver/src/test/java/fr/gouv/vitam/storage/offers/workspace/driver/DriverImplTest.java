@@ -40,6 +40,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.Driver;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -139,17 +140,22 @@ public class DriverImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-
+        offer.setId("default");
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        DriverImpl.getInstance().connect(offer, null);
+        Driver driver = DriverImpl.getInstance();
+        driver.addOffer("default");
+        driver.connect(offer, null);
     }
 
     @Test
     public void givenCorrectUrlThenConnectResponseNoContent() throws Exception {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-
+        offer.setId("default2");
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        final Connection connection = DriverImpl.getInstance().connect(offer, null);
+        Driver driver = DriverImpl.getInstance();
+        driver.addOffer("default2");
+
+        final Connection connection = driver.connect(offer, null);
 
         assertNotNull(connection);
     }
@@ -161,7 +167,7 @@ public class DriverImplTest extends VitamJerseyTest {
 
     @Test()
     public void isStorageOfferAvailableOK() throws Exception {
-        assertEquals(true, DriverImpl.getInstance().isStorageOfferAvailable(null));
+        assertEquals(false, DriverImpl.getInstance().isStorageOfferAvailable(null));
     }
 
     @Test()

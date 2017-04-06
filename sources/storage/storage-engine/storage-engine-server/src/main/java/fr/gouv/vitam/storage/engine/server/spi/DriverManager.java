@@ -296,7 +296,9 @@ public class DriverManager {
     public static Driver getDriverFor(String offerId) throws StorageDriverNotFoundException {
         for (String driverName : drivers.keySet()) {
             final Driver driver = drivers.get(driverName);
-            if (driver.hasOffer(offerId)) return driver;
+            if (driver.hasOffer(offerId)) {
+                return driver;
+            }
         }
         LOGGER.error("No suitable driver for offer ID : " + offerId);
         throw new StorageDriverNotFoundException("No suitable driver for offer ID : " + offerId);

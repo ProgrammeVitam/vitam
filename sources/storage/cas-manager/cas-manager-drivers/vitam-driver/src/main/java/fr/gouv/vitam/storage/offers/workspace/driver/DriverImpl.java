@@ -95,6 +95,8 @@ public class DriverImpl extends AbstractDriver {
     @Override
     public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
 
+        if (null == offer) throw new IllegalArgumentException("The parameter offer is required");
+
         VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer.getId());
 
 
