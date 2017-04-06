@@ -1,6 +1,7 @@
 package fr.gouv.vitam.metadata.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
@@ -65,6 +66,11 @@ public class UnitInheritedRuleTest {
         "      \"EndDate\" : \"01/01/2019\"" +
         "    }]" +
         "  }";
+    private final static String AU5_MGT = "{" +
+        "    \"AccessRule\" : [{" +
+        "      \"PreventInheritance\" : \"true\"" +
+        "    }]" +
+        "  }";
     
     @Test
     public void testUnitRuleResult() throws Exception {
@@ -73,6 +79,10 @@ public class UnitInheritedRuleTest {
         UnitInheritedRule au3RulesResult = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(AU1_MGT), "AU3");
         assertEquals(EXPECTED_RESULT, JsonHandler.unprettyPrint(au2RulesResult));
         
+        UnitInheritedRule au5RulesResult =
+            new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(AU5_MGT), "AU5");
+        
+        assertNotNull(au5RulesResult);
         au1RulesResult.concatRule(au3RulesResult);
         assertEquals(EXPECTED_CONCAT_RESULT, JsonHandler.unprettyPrint(au1RulesResult));
         
