@@ -60,7 +60,6 @@ public class DriverImpl extends AbstractDriver {
     static class DriverClientFactory extends VitamClientFactory<ConnectionImpl> {
         final Properties parameters;
 
-        private ConnectionImpl connection = null;
         protected DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath, true, false, true, true);
             enableUseAuthorizationFilter();
@@ -69,8 +68,7 @@ public class DriverImpl extends AbstractDriver {
 
         @Override
         public ConnectionImpl getClient() {
-            if (null == connection) connection = new ConnectionImpl(DRIVER_NAME, this, parameters);
-            return connection;
+            return new ConnectionImpl(DRIVER_NAME, this, parameters);
         }
 
     }
