@@ -161,7 +161,7 @@ public class DriverImplTest extends VitamJerseyTest {
 
     @Test()
     public void isStorageOfferAvailableOK() throws Exception {
-        assertEquals(true, DriverImpl.getInstance().isStorageOfferAvailable(null, null));
+        assertEquals(true, DriverImpl.getInstance().isStorageOfferAvailable(null));
     }
 
     @Test()

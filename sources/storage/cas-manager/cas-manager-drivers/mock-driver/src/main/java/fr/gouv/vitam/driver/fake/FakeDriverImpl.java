@@ -70,8 +70,8 @@ public class FakeDriverImpl extends AbstractDriver {
     }
 
     @Override
-    public boolean isStorageOfferAvailable(String s, Properties properties) throws StorageDriverException {
-        if (properties.contains("fail")) {
+    public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
+        if (offer.getParameters().containsKey("fail")) {
             throw new StorageDriverException(getName(),
                     "Intentionaly thrown");
         }

@@ -95,10 +95,10 @@ public class DriverImpl extends AbstractDriver {
     @Override
     public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
 
+        VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer.getId());
 
-        if (connectionFactories.containsKey(offer.getId())) {
 
-            VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer.getId());
+        if (offers.contains(offer.getId())) {
 
             /*
              * The offer is registred but the factory not yet initiated
@@ -161,8 +161,24 @@ public class DriverImpl extends AbstractDriver {
     }
 
     @Override
-    public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
-        return true;
+    public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
+
+        if (null == offer) return false;
+
+        boolean hasOffer = hasOffer(offer.getId());
+        if (!hasOffer) return false;
+
+        VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer);
+
+        if (null == factory) {
+            final Properties parameters = new Properties();
+            parameters.putAll(offer.getParameters());
+
+            factory = new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
+            connectionFactories.put(offer.getId(), factory);
+        }
+
+       return  super.isStorageOfferAvailable(offer);
     }
 
     @Override

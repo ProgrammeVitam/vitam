@@ -37,18 +37,26 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * This class must be the reference to create new driver implementation compatible with vitam
+ * This class must be the reference to create new drivers implementation compatible with vitam
  */
 public abstract class AbstractDriver implements Driver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractDriver.class);
 
     protected final Map<String, VitamClientFactory<? extends  AbstractConnection>> connectionFactories = new ConcurrentHashMap<>();
+    protected final Set<String> offers = new CopyOnWriteArraySet<>();
 
     @Override
-    public boolean isStorageOfferAvailable(String offer, Properties parameters) throws StorageDriverException {
+    public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
+        if (null == offer) return false;
+
+        boolean hasOffer = hasOffer(offer.getId());
+        if (!hasOffer) return false;
+
         if (connectionFactories.containsKey(offer)) {
             try {
                 final VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer);
@@ -68,8 +76,8 @@ public abstract class AbstractDriver implements Driver {
 
     @Override
     final public boolean addOffer(String offerId) {
-        if (!connectionFactories.containsKey(offerId)) {
-            connectionFactories.put(offerId, null);
+        if (!offers.contains(offerId)) {
+            offers.add(offerId);
             return true;
         }
         return false;
@@ -77,6 +85,8 @@ public abstract class AbstractDriver implements Driver {
 
     @Override
     final public boolean removeOffer(String offer) {
+        if (offers.contains(offer)) offers.remove(offer);
+
         if (connectionFactories.containsKey(offer)) {
             final VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.remove(offer);
             factory.shutdown();
@@ -89,7 +99,7 @@ public abstract class AbstractDriver implements Driver {
 
     @Override
     final public boolean hasOffer(String offerId) {
-        return connectionFactories.containsKey(offerId);
+        return offers.contains(offerId);
     }
 
     @Override
@@ -97,6 +107,7 @@ public abstract class AbstractDriver implements Driver {
         for (Map.Entry<String, VitamClientFactory<? extends AbstractConnection>> item : connectionFactories.entrySet()) {
             item.getValue().shutdown();
         }
+        offers.clear();
         connectionFactories.clear();
     }
 }

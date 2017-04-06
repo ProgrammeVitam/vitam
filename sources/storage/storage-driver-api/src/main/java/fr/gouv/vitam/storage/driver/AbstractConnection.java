@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 
 /**
- *
+ * This class must be the reference to create new connection implementation compatible with vitam client
  */
 public abstract  class AbstractConnection extends DefaultClient implements Connection {
 

@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
@@ -147,15 +148,18 @@ public class FakeDriverImplTest {
 
     @Test
     public void isStorageOfferAvailableOK() throws Exception {
-        final Properties props = new Properties();
-        assertEquals(true, driver.isStorageOfferAvailable("s", props));
+        final StorageOffer offer = new StorageOffer();
+        offer.setParameters(new HashMap<>());
+        offer.getParameters().put("s","s");
+        assertEquals(true, driver.isStorageOfferAvailable(offer));
     }
 
     @Test(expected = StorageDriverException.class)
     public void isStorageOfferAvailableKO() throws Exception {
-        final Properties props = new Properties();
-        props.setProperty("fail", "fail");
-        assertEquals(true, driver.isStorageOfferAvailable("s", props));
+        final StorageOffer offer = new StorageOffer();
+        offer.setParameters(new HashMap<>());
+        offer.getParameters().put("fail","fail");
+        assertEquals(true, driver.isStorageOfferAvailable(offer));
     }
 
     @Test

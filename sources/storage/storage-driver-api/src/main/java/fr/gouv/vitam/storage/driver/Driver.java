@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.driver;
 
 import java.util.Properties;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
@@ -42,7 +41,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
  * Vitam engine.
  */
 
- public interface Driver extends VitamAutoCloseable {
+public interface Driver extends VitamAutoCloseable {
     /**
      * Create a connection to the distant offer service based on given service
      * URL and optional parameters. If no connection could be made, the driver
@@ -68,7 +67,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
     /**
      * The driver MUST provide a way to check the availability of the storage
-     * offer based on URL and storage offer configuration parameters. For
+     * offer based on storage offer  and configuration parameters. For
      * example it can be used to pass user and password properties in for
      * authentication.
      * <p>
@@ -76,17 +75,14 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
      * tag/value pairs as connection arguments.
      * </p>
      *
-     * @param url
-     *            URL to the offer service
-     * @param parameters
-     *            the parameters needed to connect and possibly authenticate to
-     *            a specific offer service
+     * @param offer
+     *            The information of offer service
      * @return MUST return true if the distant offer service is available to
      *         accept further requests, false otherwise
      * @throws StorageDriverException
      *             if any problem occurs during request
      */
-    boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException;
+    boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException;
 
     /**
      * Remove one offer from the Driver (from DriverManager)
@@ -111,6 +107,8 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
      * @return
      */
     boolean hasOffer(String offerId);
+
+
     /**
      * The driver implementation MUST provide a constant name which SHOULD be
      * shared accross instances of the same driver implementation. Then it is
