@@ -231,7 +231,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             createCheckDuplicateInDatabaseValidator());
 
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-
+        private GUID eip = null;
 
         private LogbookOperationsClient logBookclient;
         public AccessContractManager(LogbookOperationsClient logBookclient) {
@@ -262,13 +262,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          */
         private void logValidationError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
-            helper.createDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            helper.updateDelegate(logbookParameters);
+            logBookclient.bulkUpdate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
         /**
@@ -278,12 +277,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          */
         private void logFatalError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.FATAL), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
@@ -292,11 +290,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                    StatusCode.OK,
-                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
 
             helper.createDelegate(logbookParameters);
 
@@ -307,12 +305,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * @throws VitamException
          */
         private void logSuccess() throws VitamException {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
