@@ -1,4 +1,4 @@
-package fr.gouv.vitam.logbook.administration.core;
+package fr.gouv.vitam.logbook.common.model;
 
 /**
  * Type of logbook traceability

@@ -107,4 +107,23 @@ public enum StatusCode {
 
         return status;
     }
+
+    /**
+     * @param status
+     * @return returns the StatusCode equivalent to the given HTTP status
+     */
+    public static StatusCode parseFromHttpStatus(int status) {
+        StatusCode statusCode = StatusCode.OK;
+        if (Status.OK.getStatusCode() != status) {
+            if (Status.PARTIAL_CONTENT.getStatusCode() == status) {
+                statusCode = StatusCode.WARNING;
+            } else if (Status.INTERNAL_SERVER_ERROR.getStatusCode() == status) {
+                statusCode = StatusCode.FATAL;
+            } else {
+                statusCode = StatusCode.KO;
+            }
+        }
+
+        return statusCode;
+    }
 }

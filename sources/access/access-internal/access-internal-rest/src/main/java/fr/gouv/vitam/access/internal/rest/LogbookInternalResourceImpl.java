@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.internal.rest;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -37,23 +38,44 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -64,12 +86,22 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 @javax.ws.rs.ApplicationPath("webresources")
 public class LogbookInternalResourceImpl {
 
+    /**
+     * 
+     */
+    private static final String CHECK_LOGBOOK_OP_SECURISATION = "CHECK_LOGBOOK_OP_SECURISATION";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImpl.class);
     private static final String LOGBOOK_MODULE = "LOGBOOK";
     private static final String CODE_VITAM = "code_vitam";
-    //TODO Extract values from DSLQueryHelper
+
+    // TODO Extract values from DSLQueryHelper
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
+    private static final String DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND =
+        "DSL Query to start traceability check was not found.";
+
+    // TODO Add Enumeration of all possible WORKFLOWS
+    private static final String DEFAULT_CHECK_TRACEABILITY_WORKFLOW = "DefaultCheckTraceability";
 
     /**
      * Default Constructor
@@ -255,4 +287,102 @@ public class LogbookInternalResourceImpl {
             .setDescription(status.getReasonPhrase());
     }
 
+    /**
+     * Checks operation traceability
+     * 
+     * @param id
+     * @return
+     * @throws LogbookClientNotFoundException
+     */
+    @POST
+    @Path("/logbook/check")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkOperationTraceability(JsonNode query) throws LogbookClientNotFoundException {
+        ParametersChecker.checkParameter(DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND, query);
+        
+        // Get TenantID
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        Response response = null;
+        try (LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient();
+            ProcessingManagementClient processManagementClient =
+                ProcessingManagementClientFactory.getInstance().getClient()) {
+
+            LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+
+            // Initialize a new process
+            GUID checkOperationGUID = GUIDFactory.newOperationLogbookGUID(tenantId);
+            processManagementClient.initVitamProcess(LogbookTypeProcess.CHECK.toString(), checkOperationGUID.getId(),
+                DEFAULT_CHECK_TRACEABILITY_WORKFLOW);
+
+            // Create logbookOperation for check TRACEABILITY process
+            createOrUpdateLogbookOperation(helper, true, checkOperationGUID, StatusCode.STARTED);
+            logbookOperationsClient.bulkCreate(checkOperationGUID.getId(),
+                helper.removeCreateDelegate(checkOperationGUID.getId()));
+
+            // Run the WORKFLOW
+            response =
+                processManagementClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
+                    DEFAULT_CHECK_TRACEABILITY_WORKFLOW, LogbookTypeProcess.CHECK.toString(),
+                    ProcessAction.RESUME.getValue());
+            
+            // Add final event to logbookOperation
+            createOrUpdateLogbookOperation(helper, false, checkOperationGUID,
+                StatusCode.parseFromHttpStatus(response.getStatus()));
+            logbookOperationsClient.bulkUpdate(checkOperationGUID.getId(),
+                helper.removeUpdateDelegate(checkOperationGUID.getId()));
+
+            // Get the created logbookOperation and return the response
+            final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
+            return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();
+
+        } catch (BadRequestException | IllegalArgumentException | LogbookClientBadRequestException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext("logbook")
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+
+        } catch (InternalServerException | VitamClientException | LogbookClientException |
+            InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext("logbook")
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+
+        } catch (WorkflowNotFoundException e) {
+            LOGGER.error(e);
+            final Status status = Status.NOT_FOUND;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext("logbook")
+                .setState("code_vitam")
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
+        }
+    }
+
+    private void createOrUpdateLogbookOperation(LogbookOperationsClientHelper helper,
+        boolean isCreationMode, GUID eventIdentifier, StatusCode outcome)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        LogbookClientNotFoundException {
+
+        final LogbookOperationParameters parameters =
+            LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
+                CHECK_LOGBOOK_OP_SECURISATION, eventIdentifier, LogbookTypeProcess.CHECK, outcome,
+                VitamLogbookMessages.getCodeOp(CHECK_LOGBOOK_OP_SECURISATION, outcome), eventIdentifier);
+
+        if (isCreationMode) {
+            helper.createDelegate(parameters);
+        } else {
+            helper.updateDelegate(parameters);
+        }
+    }
 }

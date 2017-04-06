@@ -55,15 +55,56 @@ documentation:
         - response : XML synchronous ArchiveTransferReply using HTTP CODE 200 for OK, 206 for OK with Warning, 400 for KO
     is: [IngestTraits.IngestCreationResponse,IngestTraits.IngestListingResponse, StandardTraits.OverrideGet]
     headers:
-      X-Http-Method-Override:
-        required: false
+      X-Context-Id: (string)
+      description: |
+      - Il indique le type du workflow à exécuter :
+      - Soit le workflow ordinaire incluant toutes les étapes : DefaultIngestWorkflow
+      - Soit le worflow test à blanc qui exclut les étapes d'indéxation des unités archivestiques et des groupes d'objets techniques : DefaultIngestWorkflowBlankTest
 
-  /{id_async}:
-    displayName: Ingest
+      X-ACTION: (string)
+      description: |
+      - Au lancement d'un workflow, on indique désormais le mode d'exécution du workflow : en mode continu (RESUME) ou en mode pas à pas(NEXT)
+
+/operations/{id}:
+    displayName: Operations
     description: |
-      **UNSUPPORTED** Accès à une transaction d'entrée ou à son résultat.
+      Cette API permet de mettre à jour un workflow lancé.
+
     get:
-      is: [IngestTraits.IngestFinalResponse,IngestTraits.IngestPoolingResponse]
+      description: |
+      Retourne le statut d'une opération donnée
+
+      is: [IngestTraits.IngestListingResponse ]
+    put:
+      description: |
+      headers:
+        X-ACTION: (string)
+        description: |
+        - Au lancement d'un workflow, on indique désormais le mode d'exécution du workflow : en mode continu (RESUME) ou en mode pas à pas(NEXT)
+
+      is: [IngestTraits.IngestListingResponse ]
+    delete:
+      description: |
+
+      is: [IngestTraits.IngestListingResponse ]
+
+/operations:
+    displayName: Operations
+    description: |
+      Cette API permet de mettre à jour un workflow lancé.
+
+    get:
+      description: |
+
+      is: [IngestTraits.IngestListingResponse ]
+    get:
+      description: |
+
+      is: [IngestTraits.IngestListingResponse ]
+    delete:
+      description: |
+
+      is: [IngestTraits.IngestListingResponse ]
 
 /status:
   get:

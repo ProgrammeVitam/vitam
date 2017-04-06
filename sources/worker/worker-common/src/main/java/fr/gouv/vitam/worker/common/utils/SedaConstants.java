@@ -457,6 +457,11 @@ public class SedaConstants {
      */
     public static final String STAX_PROPERTY_PREFIX_OUTPUT_SIDE = "javax.xml.stream.isRepairingNamespaces";
 
+    /**
+     * TRACEABILITY path
+     */
+    public static final String TRACEABILITY_OPERATION_DIRECTORY = "traceabilityOperation";
+
     private SedaConstants() {
         // Empty constructor
     }

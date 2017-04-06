@@ -104,4 +104,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         AccessExternalClientNotFoundException {
         return ClientMockResultHelper.getAccessionRegisterDetail();
     }
+
+    @Override
+    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId)
+        throws AccessExternalClientServerException, InvalidParseOperationException {
+        return ClientMockResultHelper.checkOperationTraceability();
+    }
+
 }

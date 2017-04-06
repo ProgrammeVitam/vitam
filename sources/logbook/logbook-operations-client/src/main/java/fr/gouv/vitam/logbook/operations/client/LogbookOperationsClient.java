@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;

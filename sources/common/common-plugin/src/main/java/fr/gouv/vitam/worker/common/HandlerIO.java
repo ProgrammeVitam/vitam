@@ -16,6 +16,9 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -260,4 +263,21 @@ public interface HandlerIO extends VitamAutoCloseable {
      */
     void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete)
         throws ProcessingException;
+
+    /**
+     * @param container
+     * @param folderName
+     * @param archiveMimeType
+     * @param uploadedInputStream
+     * @throws ContentAddressableStorageException
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageAlreadyExistException
+     * @throws ContentAddressableStorageCompressedFileException
+     * @throws ContentAddressableStorageServerException
+     */
+    void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
+        InputStream uploadedInputStream)
+        throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
+        ContentAddressableStorageServerException;
 }

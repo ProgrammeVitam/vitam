@@ -26,21 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.codec.Charsets;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -85,9 +80,9 @@ public class ProcessManagementImpl implements ProcessManagement {
     private static final ProcessExecutionStatus UNAUTHORIZED_ACTION = null;
 
     private static final Map<String, List<Object>> PROCESS_MONITORS = new HashMap<>();
-    
+
     private static final int PROCESS_ENGINE_INDEX = 0;
-    
+
     private static final int MONITOR_INDEX = 1;
 
     private ServerConfiguration serverConfig;
@@ -113,6 +108,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             setWorkflow("DefaultHoldingSchemeWorkflow");
             setWorkflow("DefaultIngestBlankTestWorkflow");
             setWorkflow("DefaultIngestWorkflow");
+            setWorkflow("DefaultCheckTraceability");
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }
@@ -219,6 +215,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         ProcessEngineImpl processEngine =
             (ProcessEngineImpl) PROCESS_MONITORS.get(operationId).get(PROCESS_ENGINE_INDEX);
         processEngine.setAsyncResponse(asyncResponse);
+        processEngine.setWorkerParameters(workParams);
 
         // Change execution parameters
         processData.prepareToRelaunch(workParams.getContainerName(), executionMode, tenantId);

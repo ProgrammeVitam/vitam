@@ -29,8 +29,11 @@ package fr.gouv.vitam.processing.management.client;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.client.OperationManagementClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -81,4 +84,20 @@ public interface ProcessingManagementClient extends OperationManagementClient {
      */
     void unregisterWorker(String familyId, String workerId)
         throws ProcessingBadRequestException;
+
+    /**
+     * @param query
+     * @param workflow
+     * @param contextId
+     * @param actionId
+     * @return
+     * @throws InternalServerException
+     * @throws BadRequestException
+     * @throws WorkflowNotFoundException
+     */
+    Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query,
+        String workflow, String contextId, String actionId)
+        throws InternalServerException, BadRequestException, WorkflowNotFoundException;
+
+
 }

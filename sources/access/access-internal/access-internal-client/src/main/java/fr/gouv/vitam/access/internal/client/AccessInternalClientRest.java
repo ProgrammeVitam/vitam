@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -74,7 +75,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
+    private static final String LOGBOOK_CHECK = "/logbook/check";
     private static final Select emptySelectQuery = new Select();
+
+    private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
 
     AccessInternalClientRest(AccessInternalClientFactory factory) {
         super(factory);
@@ -375,5 +379,29 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
 
     }
+
+    @Override
+    public RequestResponse<JsonNode> checkOperationTraceability(JsonNode query) throws LogbookClientServerException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, null, query, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.info(CHECKS_OPERATION_TRACEABILITY_OK);
+                    return RequestResponse.parseFromResponse(response);
+                default:
+                    LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 
 }

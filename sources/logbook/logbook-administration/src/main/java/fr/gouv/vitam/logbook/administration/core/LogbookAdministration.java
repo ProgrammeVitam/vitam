@@ -78,6 +78,9 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -134,9 +137,7 @@ public class LogbookAdministration {
         this.workspaceClientFactory = workspaceClientFactory;
         this.tmpFolder = tmpFolder;
         formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-
         joiner = Joiner.on("").skipNulls();
-
         tmpFolder.mkdir();
     }
 

@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -71,6 +70,7 @@ import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -232,6 +232,15 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 executeAfterEachStep(workflowStatus, asyncResponse, operationId, true, tenantId);
 
                 LOGGER.info("End Workflow: " + processId.getId());
+            } else {
+                // TODO Review code
+                // All steps were done, build and send the final response
+                processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.COMPLETED, tenantId);
+
+                // Finalize step execution
+                executeAfterEachStep(workflowStatus, asyncResponse, operationId, true, tenantId);
+
+                LOGGER.info("End Workflow: " + processId.getId());
             }
         } catch (final StepsNotFoundException e) {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -324,6 +333,17 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         }
 
         this.asyncResponse = asyncResponse;
+    }
+
+    /**
+     * @param workParams add new parameters to the existing ones
+     */
+    public void setWorkerParameters(WorkerParameters workParams) {
+        for (final WorkerParameterName key : workParams.getMapParameters().keySet()) {
+            if (this.workParams.getParameterValue(key) == null) {
+                this.workParams.putParameterValue(key, workParams.getMapParameters().get(key));
+            }
+        }
     }
 
     private ItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,

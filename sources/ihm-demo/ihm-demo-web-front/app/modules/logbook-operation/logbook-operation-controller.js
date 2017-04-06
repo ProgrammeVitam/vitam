@@ -61,7 +61,7 @@ angular.module('ihm.demo')
     };
 
     $scope.goToDetails = function(id) {
-      $window.open('#!/admin/detailOperation/' + id)
+      $window.open('#!/admin/detailOperation/' + id);
     };
 
     function initFields(fields) {

@@ -157,6 +157,14 @@ config(['$locationProvider' ,'$routeProvider',
       controller: 'accessContractController',
       title: 'Détail d\'un contrat d\'accès'
     }).
+    when('/admin/traceabilityOperationSearch', {
+      template: '<traceability-operation-search></traceability-operation-search>',
+      title: 'Recherche sur les opérations de sécurisation'
+    }).
+    when('/admin/traceabilityOperationDetail/:operationId', {
+      template: '<traceability-operation-details></traceability-operation-details>',
+      title: 'Vérification d\'une opération de sécurisation'
+    }).
     otherwise('/uploadSIP');
   }
 ])

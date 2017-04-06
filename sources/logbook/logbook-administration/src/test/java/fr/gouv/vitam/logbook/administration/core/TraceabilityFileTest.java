@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import fr.gouv.vitam.common.security.merkletree.MerkleTree;
+import fr.gouv.vitam.logbook.administration.core.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;

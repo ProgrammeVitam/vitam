@@ -132,6 +132,40 @@
   <script src="pages/workflows/workflows.controller.js"></script>
   <script src="pages/workflows/workflows.component.js"></script>
 
+  <script src="resources/traceability-operation-search.resource.js"></script>
+  <script src="services/traceability-operation-search.service.js"></script>
+
+  <script src="resources/traceability-operation-download.resource.js"></script>
+  <script src="services/traceability-operation-download.service.js"></script>
+
+  <script src="services/traceability-operation-details.service.js"></script>
+  <script src="resources/traceability-operation-details.resource.js"></script>
+
+  <script src="pages/traceability-operation-search/traceability-operation-search.module.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.controller.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.component.js"></script>
+
+  <script src="pages/traceability-operation-details/traceability-operation-details.module.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.controller.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.component.js"></script>
+
+  <script src="resources/traceability-operation-search.resource.js"></script>
+  <script src="services/traceability-operation-search.service.js"></script>
+
+  <script src="resources/traceability-operation-download.resource.js"></script>
+  <script src="services/traceability-operation-download.service.js"></script>
+
+  <script src="services/traceability-operation-details.service.js"></script>
+  <script src="resources/traceability-operation-details.resource.js"></script>
+
+  <script src="pages/traceability-operation-search/traceability-operation-search.module.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.controller.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.component.js"></script>
+
+  <script src="pages/traceability-operation-details/traceability-operation-details.module.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.controller.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.component.js"></script>
+
   <script src="core/filters/date.filter.js"></script>
   <script src="core/filters/ruleMeasurement.filter.js"></script>
 
@@ -203,6 +237,8 @@
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
               <li><a href="#!/admin/entryContracts" ng-show="hasPermission('operations:read')">Contrats d'entrée</a></li>
               <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
+              <!-- TODO Add permission control -->
+              <li><a href="#!/admin/traceabilityOperationSearch">Recherche sur les opérations de sécurisation</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
               <li><a href="#!/uploadHoldingScheme" ng-show="hasPermission('rules:create')">Import de l'arbre de positionnement</a></li>
               <li><a href="#!/admin/importFileRules" ng-show="hasPermission('rules:create')">Import du Référentiel des Règles de gestion</a></li>

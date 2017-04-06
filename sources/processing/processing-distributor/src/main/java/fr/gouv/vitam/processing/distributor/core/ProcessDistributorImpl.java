@@ -183,7 +183,13 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                 }
             } else {
                 // update the number of element to process
-                objectsList.add(step.getDistribution().getElement());
+                if (step.getDistribution().getElement() == null ||
+                    step.getDistribution().getElement().trim().isEmpty()) {
+                    objectsList.add(workParams.getContainerName());
+                } else {
+                    objectsList.add(step.getDistribution().getElement());
+                }
+
                 distributeOnList(workParams, step, processId, uniqueStepId, currentRunningObjectsInStep,
                     objectsList, waitingStepAllAsyncRequest, tenantId);
             }

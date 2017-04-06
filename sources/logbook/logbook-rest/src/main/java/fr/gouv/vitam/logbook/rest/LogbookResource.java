@@ -76,7 +76,7 @@ import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.administration.core.LogbookAdministration;
-import fr.gouv.vitam.logbook.administration.core.TraceabilityException;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;

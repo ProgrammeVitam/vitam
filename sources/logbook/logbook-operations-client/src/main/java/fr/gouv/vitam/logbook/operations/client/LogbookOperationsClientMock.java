@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Queue;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -94,7 +93,8 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
     }
 
     @Override
-    public JsonNode selectOperationById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException {
+    public JsonNode selectOperationById(String id, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
@@ -169,5 +169,4 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         super.close();
         helper.clear();
     }
-
 }

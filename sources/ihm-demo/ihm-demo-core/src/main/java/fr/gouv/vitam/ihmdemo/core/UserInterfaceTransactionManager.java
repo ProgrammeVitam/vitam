@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -354,4 +353,21 @@ public class UserInterfaceTransactionManager {
         }
     }
 
+
+    /**
+     * Starts a Verification process based on a given DSLQuery
+     * 
+     * @param query DSLQuery to execute
+     * @param tenantId Tenant Id
+     * @return A RequestResponse contains the created logbookOperation for verification process
+     * @throws AccessExternalClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @SuppressWarnings("unchecked")
+    public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, Integer tenantId)
+        throws AccessExternalClientServerException, InvalidParseOperationException {
+        try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
+            return accessClient.checkTraceabilityOperation(query, tenantId);
+        }
+    }
 }

@@ -82,5 +82,23 @@ public enum WorkerParameterName {
     /**
      * The LogbookTypeProcess value used in logbookOperation
      */
-    logBookTypeProcess;
+    logBookTypeProcess,
+    /**
+     * Request to be executed by the logbook module
+     */
+    logbookRequest,
+    /**
+     * Start operation date
+     * 
+     */
+    startDate,
+    /**
+     * End operation date
+     */
+    endDate,
+
+    /**
+     * hash of root
+     */
+    hashRoot;
 }

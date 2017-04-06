@@ -201,6 +201,19 @@ public class ClientMockResultHelper {
             "    \"remained\": 345042" +
             "}}";
 
+
+
+    private static final String TRACEABILITY_OPERATION =
+        "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
+            " {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-03-02T12:46:25.618\",\"EndDate\":\"2017-03-02T14:22:34.811\"" +
+            ",\"Hash\":\"obu+Z7+M7JlaY5ney0dDNTzmWr4+r6Cf3GtwMrLKpCLIL7Bjqty8kfUNSGNQ9qlzO3YE7+zRdC2o/S+uUOJM4g==\"," +
+            "\"TimeStampToken\":\"MIIEZzAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIETAYJKoZIhvcNAQcCoIIEPTCCBDkCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAMcCUdvY+87OSgJw3slg+aHgTt+j+UcybWmhG0G9wL7A0NE8eUO8JFJRD81Gb4wTu12AealKzWeUoLczLWRhACQIBARgPMjAxNzAzMDIxNDIyMzVaMYIDnjCCA5oCAQEwTzBKMQswCQYDVQQGEwJGUjEPMA0GA1UECBMGRnJhbmNlMQ4wDAYDVQQHEwVQQXJpczENMAsGA1UEChMERXRhdDELMAkGA1UECxMCRVQCAQEwDQYJYIZIAWUDBAIDBQCgggEgMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMTcwMzAyMTQyMjM1WjAtBgkqhkiG9w0BCTQxIDAeMA0GCWCGSAFlAwQCAwUAoQ0GCSqGSIb3DQEBDQUAME8GCSqGSIb3DQEJBDFCBECDgiYpV3Bd/9ckq0Nq+zm/TmPWO3rCt33o+cKA8DI5L9EGiEV2GtjO0z4jnw08/iZ3chanYRrR8hJk4u4Fmqk4MGQGCyqGSIb3DQEJEAIvMVUwUzBRME8wCwYJYIZIAWUDBAIDBEACrDhLC92Gcm2mclJwDuLADobFbVWY5HASuT8FL0/1nNexkoSVnVclwr0VkxJgmVAxa+g8ecGbwLzDs8vbT9AYMA0GCSqGSIb3DQEBDQUABIICABBtgwv5dZJhWu050wXM27HGZF6yFaU6AOPjjUIQccbly1nw/Sebg2xRenMv+jxAm8bAdW3eBPNrSa1iJKGLmgfYZuxIwt5AluzVuvTH2t1j08XSMmDQpilhN6Bx9dOS3aClNm89ZVygmdUz6N9HGmxZh1yis80SxD6jDjhnuK6R+xpmdmL6HIDzHa5mjOCbD1lXtr5tWWR+1K9Axv4qoLADlrUKmpCdbnfUBgVdbWJnJBcW6WoQXDpTD/JbV/m2s/yzK7FDt+IpERwVZGqiZF9WwzgX9AFJ352tFWWj+KhqfFN8UgfPKD5aCo6V5T+vMlkodiV+0XQBPKdcPBoo8PJtiCR5sFlJHbQ0qGwQq6P/06ApvrXOFKz434CkCGTbZLKVEHTs1SqgZuAg54bR6GbifOheVojOhWDFEMEXlnpD7PjCYscL9U83H92Iosr4rJhvYwSYbahmU7W1RlUP4cHy8nUYwvUO54ehYMcKcZ4idG4nbUfVYy8lClYruKG0rVcwWu3TZxeSaLePYRZwaeXJ00p36SttyZTLeN4rZatePQc/ff856jvKqDlDZlXIyhOcYCXot5xHFlv+zKZhB71uOv/XvqqmZFhentmkZFYK+qi2tH+Tahar2f3b4RJo+bm235g/v1rIvKQKe8rjkemgPIG7RzkCnss2SGIpfW5h\"," +
+            "\"NumberOfElement\":4," +
+            "\"FileName\":\"0_LogbookOperation_20170302_142234.zip\"," +
+            "\"Size\":41807}";
+
+
+
     private ClientMockResultHelper() {}
 
     /**
@@ -258,8 +271,8 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookOperationWithObId() throws InvalidParseOperationException {
-        return JsonHandler
-                .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
+        return JsonHandler.getFromString(
+            RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
     }
 
     /**
@@ -395,6 +408,26 @@ public class ClientMockResultHelper {
      */
     public static ItemStatus getItemStatus(String id) throws InvalidParseOperationException {
         return new ItemStatus(id);
+    }
+
+    /**
+     * @return a default operation traceability
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getOperationTraceabilityDetails()
+        throws InvalidParseOperationException {
+        return createReponse(TRACEABILITY_OPERATION);
+    }
+
+    /**
+     * @throws InvalidParseOperationException
+     * 
+     */
+    public static RequestResponse checkOperationTraceability() throws InvalidParseOperationException {
+
+        return createReponse(TRACEABILITY_OPERATION);
+
+
     }
 
 }
