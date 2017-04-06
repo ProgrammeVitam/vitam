@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -93,10 +94,10 @@ public class FakeDriverImpl extends AbstractDriver {
         return 0;
     }
 
-    class ConnectionImpl extends DefaultClient implements Connection {
+    class ConnectionImpl extends AbstractConnection {
 
         ConnectionImpl() {
-            super(new TestVitamClientFactory<DefaultClient>(1324, "/chemin/"));
+            super("FakeDriverName", new TestVitamClientFactory<AbstractConnection>(1324, "/chemin/"));
         }
 
         @Override
