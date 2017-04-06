@@ -117,7 +117,7 @@ angular.module('entryContracts')
     })
     .controller('entryContractController', function ($scope, $routeParams, ihmDemoCLient) {
         var id = $routeParams.id;
-        ihmDemoCLient.getClient('contracts').one(id).post().then(function (response) {
+        ihmDemoCLient.getClient('contracts').one(id).get().then(function (response) {
             if (response.data.length !== 0) {
                 $scope.contract = response.data.$results[0];
             }
