@@ -113,7 +113,11 @@ public class UnitInheritedRule {
                 ObjectNode newCategories = JsonHandler.createObjectNode();
                 for (JsonNode rule : (ArrayNode) unitManagement.get(fieldName)) {
                     ObjectNode ruleCategories = createRuleCategories((ObjectNode) rule, unitId);
-                    newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
+                    String ruleId = "";
+                    if (rule.get(RULE) != null) {
+                        ruleId = rule.get(RULE).asText();
+                    }
+                    newCategories.set(ruleId, ruleCategories.get(ruleId));
                 }
                 inheritedRule.put(fieldName, newCategories);
             }
