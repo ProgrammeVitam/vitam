@@ -122,7 +122,11 @@ public class UnitInheritedRule {
                 ObjectNode newCategories = JsonHandler.createObjectNode();
                 for (JsonNode rule: (ArrayNode) unitManagement.get(fieldName)){
                     ObjectNode ruleCategories = createRuleCategories((ObjectNode)rule, unitId);
-                    newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
+                    String ruleId = "";
+                    if (rule.has(RULE)) {
+                        ruleId = rule.get(RULE).asText();
+                    }
+                    newCategories.set(ruleId, ruleCategories.get(ruleId));
                 }
                 inheritedRule.put(fieldName, newCategories);
             }
@@ -321,7 +325,7 @@ public class UnitInheritedRule {
                             ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
                         }
 
-                    } else if (!parentCategoryList.contains(unitRuleCategory)){
+                    } else if (!parentCategoryList.contains(unitRuleCategory) && rule.has(RULE)){
 
                         ObjectNode newCategories = JsonHandler.createObjectNode();
                         ruleCategories = createRuleCategories((ObjectNode) rule, unitId);
