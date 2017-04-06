@@ -25,6 +25,12 @@
         },
         {
           "action": {
+            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_MANIFEST",
             "behavior": "BLOCKING",
             "out": [

@@ -25,6 +25,12 @@
         },
         {
           "action": {
+            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
+            "behavior": "NOBLOCKING"
+          }
+        },
+        {
+          "action": {
             "actionKey": "CHECK_MANIFEST",
             "behavior": "BLOCKING",
             "out": [
@@ -63,6 +69,18 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_CONTRACT_INGEST",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "globalSEDAParameters.file",
+                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
             ]
           }
