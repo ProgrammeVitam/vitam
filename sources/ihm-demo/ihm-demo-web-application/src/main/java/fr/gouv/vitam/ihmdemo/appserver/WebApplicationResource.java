@@ -74,6 +74,8 @@ import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -1874,10 +1876,42 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return a response containing the file name stream
      */
     @GET
-    @Path("/traceability/{filename}")
+    @Path("/traceability/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("filename") String fileName) {
+    public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse) {
 
-        return null;
+        // Check parameters
+        ParametersChecker.checkParameter("Operation Id should be filled", operationId);
+
+        // Get tenantId from headers
+        Integer tenantId = getTenantId(headers);
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId));
+    }
+
+    private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
+        Integer tenantId) {
+
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+
+            Response response = client.downloadTraceabilityOperationFile(operationId, tenantId);
+
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                helper.writeResponse(
+                    Response.ok().header("Content-Disposition", response.getHeaderString("Content-Disposition")));
+            } else {
+                helper.writeResponse(Response.status(response.getStatus()));
+            }
+        } catch (IllegalArgumentException exc) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+        } catch (AccessExternalClientServerException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        }
     }
 }

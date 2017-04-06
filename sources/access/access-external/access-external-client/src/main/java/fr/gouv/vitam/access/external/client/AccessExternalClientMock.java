@@ -111,4 +111,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         return ClientMockResultHelper.checkOperationTraceability();
     }
 
+    @Override
+    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
+        throws AccessExternalClientServerException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
 }

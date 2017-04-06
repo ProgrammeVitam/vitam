@@ -127,4 +127,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         return ClientMockResultHelper.checkOperationTraceability();
     }
 
+    @Override
+    public Response downloadTraceabilityFile(String operationId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
 }

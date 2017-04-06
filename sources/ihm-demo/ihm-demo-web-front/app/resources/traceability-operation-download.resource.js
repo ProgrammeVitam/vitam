@@ -38,7 +38,7 @@ angular.module('core').factory(
 		'downloadTraceabilityOperationResource',
 		function($http, IHM_URLS) {
 
-			var Download_operation_ROOT = '/logbooks';
+			var Download_operation_ROOT = '/traceability';
 			var downloadOperationResource = {};
 
 			/**

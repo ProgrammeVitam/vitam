@@ -422,7 +422,7 @@ public class LogbookInternalResourceImpl {
 
             // Check if it a traceability operation
             if (!LogbookTypeProcess.TRACEABILITY.equals(LogbookTypeProcess.valueOf(operationType))) {
-                // More than operation found return BAD_REQUEST response
+                // It wasn't a traceability operation
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
                 return;
             }
