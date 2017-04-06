@@ -28,11 +28,10 @@
 'use strict';
 
 angular.module('ihm.demo')
-.controller('accessContractsController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
+.controller('importAccessContractsController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
 	$scope.mustShow = false;
 
 	var serviceURI = "/ihm-demo/v1/api/accesscontracts";
-
 	var uploader = $scope.uploader = new FileUploader({
     url : serviceURI,
     headers: {

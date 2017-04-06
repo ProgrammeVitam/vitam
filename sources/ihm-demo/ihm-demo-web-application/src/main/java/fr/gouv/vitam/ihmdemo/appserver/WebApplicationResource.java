@@ -1623,7 +1623,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             RequestResponse response =
                 adminClient.importContracts(input, getTenantId(headers), AdminCollections.ACCESS_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
-                return Response.status(Status.OK).build();
+                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                return Response.status(Status.OK).entity(response).build();
+
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
@@ -1645,9 +1647,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param queryDsl the query to find access contracts
      * @return Response
      */
-    @GET
+    @POST
     @Path("/accesscontracts")
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:read")
     public Response findAccessContracts(@Context HttpHeaders headers, JsonNode queryDsl) {
@@ -1656,7 +1658,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             RequestResponse response =
                 adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, getTenantId(headers));
             if (response != null && response instanceof RequestResponseOK) {
-                return Response.status(Status.OK).build();
+                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                return Response.status(Status.OK).entity(response).build();
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
