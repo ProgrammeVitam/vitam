@@ -203,7 +203,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             createCheckDuplicateInDatabaseValidator());
 
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-
+        private GUID eip = null;
 
         private LogbookOperationsClient logBookclient;
         public IngestContractManager(LogbookOperationsClient logBookclient) {
@@ -233,12 +233,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          */
         private void logValidationError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
@@ -249,12 +248,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          */
         private void logFatalError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.FATAL), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
@@ -264,11 +262,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                    StatusCode.OK,
-                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
 
             helper.createDelegate(logbookParameters);
 
@@ -279,12 +277,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          * @throws VitamException
          */
         private void logSuccess() throws VitamException {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
