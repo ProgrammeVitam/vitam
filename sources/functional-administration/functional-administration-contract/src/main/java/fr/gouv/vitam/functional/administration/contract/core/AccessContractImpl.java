@@ -75,16 +75,13 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
-
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER = "The collection of access contracts is mandatory";
-
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
-
-
     /**
+     * Constructor
      *
      * @param mongoAccess MongoDB client
      */
@@ -98,7 +95,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     @Override
     public RequestResponse<AccessContractModel> createContracts(List<AccessContractModel> contractModelList) throws
         VitamException {
-
         ParametersChecker.checkParameter(ACCESS_CONTRACT_IS_MANDATORY_PATAMETER, contractModelList);
 
         if (contractModelList.isEmpty()) {
@@ -113,7 +109,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         ArrayNode contractsToPersist = null;
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem());
+
         try {
+
             for (final AccessContractModel acm : contractModelList) {
 
 
@@ -267,7 +265,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
             helper.updateDelegate(logbookParameters);
-            logBookclient.bulkUpdate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
         /**
@@ -284,6 +282,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
+
 
         /**
          * log start process
@@ -381,6 +380,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             };
         }
     }
+
 
     @Override
     public void close() {
