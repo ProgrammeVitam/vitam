@@ -26,24 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.driver.fake;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -52,36 +35,36 @@ import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.storage.driver.AbstractDriver;
 import fr.gouv.vitam.storage.driver.Connection;
-import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
-import fr.gouv.vitam.storage.driver.model.StorageGetResult;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
-import fr.gouv.vitam.storage.driver.model.StorageListRequest;
-import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
-import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
-import fr.gouv.vitam.storage.driver.model.StoragePutResult;
-import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
-import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.driver.model.*;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Driver implementation for test only
  */
-public class FakeDriverImpl implements Driver {
+public class FakeDriverImpl extends AbstractDriver {
 
     @Override
     public Connection connect(StorageOffer offer, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
-            throw new StorageDriverException(getName(), 
-                    "Intentionaly thrown");
+            throw new StorageDriverException(getName(),
+                "Intentionaly thrown");
         }
         return new ConnectionImpl();
     }
@@ -89,7 +72,7 @@ public class FakeDriverImpl implements Driver {
     @Override
     public boolean isStorageOfferAvailable(String s, Properties properties) throws StorageDriverException {
         if (properties.contains("fail")) {
-            throw new StorageDriverException(getName(), 
+            throw new StorageDriverException(getName(),
                     "Intentionaly thrown");
         }
         return true;
@@ -120,8 +103,8 @@ public class FakeDriverImpl implements Driver {
         public StorageCapacityResult getStorageCapacity(Integer tenantId) throws StorageDriverException {
             Integer fakeTenant = -1;
             if (fakeTenant.equals(tenantId)) {
-                throw new StorageDriverException("driverInfo", 
-                        "ExceptionTest");
+                throw new StorageDriverException("driverInfo",
+                    "ExceptionTest");
             }
 
             final StorageCapacityResult result = new StorageCapacityResult(tenantId, 1000000, 99999);
@@ -137,15 +120,15 @@ public class FakeDriverImpl implements Driver {
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
 
             return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
-                    new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                            MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
+                new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         }
 
         @Override
         public StoragePutResult putObject(StoragePutRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
-                        objectRequest.getGuid(), "different_digest_hash", 0);
+                    objectRequest.getGuid(), "different_digest_hash", 0);
             }
             if ("retry_test".equals(objectRequest.getGuid())) {
                 throw new StorageDriverException(getName(), "retry_test");
@@ -154,7 +137,7 @@ public class FakeDriverImpl implements Driver {
                     final byte[] bytes = IOUtils.toByteArray(objectRequest.getDataStream());
                     final MessageDigest messageDigest = MessageDigest.getInstance(objectRequest.getDigestAlgorithm());
                     return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
-                            objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)), bytes.length);
+                        objectRequest.getGuid(), BaseXx.getBase16(messageDigest.digest(bytes)), bytes.length);
                 } catch (NoSuchAlgorithmException | IOException e) {
                     throw new StorageDriverException(getName(), "Digest or Storage Put in error", e);
                 }
@@ -164,12 +147,12 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageRemoveResult removeObject(StorageRemoveRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
-                throw new StorageDriverException("removeObject", 
-                        "ExceptionTest");
+                throw new StorageDriverException("removeObject",
+                    "ExceptionTest");
 
             } else {
                 return new StorageRemoveResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
-                        objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(), true);
+                    objectRequest.getDigestAlgorithm(), objectRequest.getDigestHashBase16(), true);
             }
         }
 
@@ -181,11 +164,11 @@ public class FakeDriverImpl implements Driver {
         @Override
         public StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException {
             if ("digest_bad_test".equals(request.getGuid())) {
-                throw new StorageDriverException("checkObject", 
-                        "ExceptionTest");
+                throw new StorageDriverException("checkObject",
+                    "ExceptionTest");
             }
             return new StorageCheckResult(request.getTenantId(), request.getType(), request.getGuid(),
-                    request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
+                request.getDigestAlgorithm(), request.getDigestHashBase16(), true);
         }
 
         @Override
@@ -198,7 +181,7 @@ public class FakeDriverImpl implements Driver {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
             try (VitamRequestIterator<ObjectNode> iterator = new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator",
-                    ObjectNode.class, null, null)) {
+                ObjectNode.class, null, null)) {
                 final RequestResponseOK response = new RequestResponseOK();
                 final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
                 final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);

@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -68,7 +69,6 @@ import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl.InternalDriverFactory;
 
 /**
  * Workspace Connection Implementation
@@ -105,7 +105,7 @@ public class ConnectionImpl extends AbstractConnection {
      * @param factory
      * @param parameters
      */
-    public ConnectionImpl(String driverName, InternalDriverFactory factory, Properties parameters) {
+    public ConnectionImpl(String driverName, VitamClientFactoryInterface<? extends AbstractConnection> factory, Properties parameters) {
         super(driverName, factory);
         this.parameters = parameters;
     }

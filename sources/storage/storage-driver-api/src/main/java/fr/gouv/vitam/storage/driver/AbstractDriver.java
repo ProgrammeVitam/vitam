@@ -47,29 +47,6 @@ public abstract class AbstractDriver implements Driver {
 
     protected final Map<String, VitamClientFactory<? extends  AbstractConnection>> connectionFactories = new ConcurrentHashMap<>();
 
-
-    @Override
-    public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-        if (connectionFactories.containsKey(offer)) {
-            try {
-                final VitamClientFactory<? extends  AbstractConnection> factory = connectionFactories.get(offer.getId());
-                AbstractConnection connection = factory.getClient();
-                connection.checkStatus();
-                LOGGER.debug("Check status ok");
-                return connection;
-            } catch (final VitamApplicationServerException exception) {
-                LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offer.getId(), exception);
-                throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
-                    exception.getMessage(), exception);
-            }
-        }
-        LOGGER.error("Driver {} has no Offer named {}", getName(), offer.getId());
-        StorageNotFoundException exception =
-            new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offer.getId());
-        throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
-            exception.getMessage(), exception);
-    }
-
     @Override
     public boolean isStorageOfferAvailable(String offer, Properties parameters) throws StorageDriverException {
         if (connectionFactories.containsKey(offer)) {
@@ -90,7 +67,16 @@ public abstract class AbstractDriver implements Driver {
 
 
     @Override
-    public boolean removeOffer(String offer) {
+    final public boolean addOffer(String offerId) {
+        if (!connectionFactories.containsKey(offerId)) {
+            connectionFactories.put(offerId, null);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    final public boolean removeOffer(String offer) {
         if (connectionFactories.containsKey(offer)) {
             final VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.remove(offer);
             factory.shutdown();
@@ -100,17 +86,9 @@ public abstract class AbstractDriver implements Driver {
         return false;
     }
 
-    @Override
-    public boolean addOffer(String offerId, VitamClientFactory<? extends AbstractConnection> offerFactory) {
-        if (!connectionFactories.containsKey(offerId)) {
-            connectionFactories.put(offerId, offerFactory);
-        }
-
-        return false;
-    }
 
     @Override
-    public boolean hasOffer(String offerId) {
+    final public boolean hasOffer(String offerId) {
         return connectionFactories.containsKey(offerId);
     }
 

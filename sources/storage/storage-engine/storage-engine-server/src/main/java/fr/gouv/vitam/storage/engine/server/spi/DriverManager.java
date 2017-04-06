@@ -105,7 +105,7 @@ public class DriverManager {
             try {
                 final List<String> offersIds = mapper.get().getOffersFor(driver.getClass().getName());
                 for (final String offerId : offersIds) {
-                    driver.addOffer(offerId, factory);
+                    driver.addOffer(offerId);
                 }
             } catch (final StorageDriverMapperException exc) {
                 LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}", driver.getClass().getName(), exc);
@@ -117,7 +117,7 @@ public class DriverManager {
         throws StorageDriverMapperException {
         ParametersChecker.checkParameter("Offers id list cannot be null", offersIds);
         for (final String offerId : offersIds) {
-            boolean done = driver.addOffer(offerId, factory);
+            boolean done = driver.addOffer(offerId);
             if (!done) {
                 LOGGER.warn(
                     "Cannot add to the driver {} with name {} the offer ID {}, offer already define",

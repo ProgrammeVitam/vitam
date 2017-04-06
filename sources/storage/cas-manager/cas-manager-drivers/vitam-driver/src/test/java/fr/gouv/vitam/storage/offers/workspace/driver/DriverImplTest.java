@@ -39,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.Connection;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -148,7 +149,8 @@ public class DriverImplTest extends VitamJerseyTest {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
 
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
-        final ConnectionImpl connection = DriverImpl.getInstance().connect(offer, null);
+        final Connection connection = DriverImpl.getInstance().connect(offer, null);
+
         assertNotNull(connection);
     }
 

@@ -54,6 +54,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.Connection;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -105,7 +107,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     protected static final String DEFAULT_GUID = "GUID";
     private static JunitHelper junitHelper;
     private static int tenant;
-    private static ConnectionImpl connection;
+    private static AbstractConnection connection;
     private static StorageOffer offer = new StorageOffer();
 
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
@@ -126,7 +128,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
 
         try {
-            connection = DriverImpl.getInstance().connect(offer, null);
+            connection = (AbstractConnection)DriverImpl.getInstance().connect(offer, null);
         } catch (final StorageDriverException e) {
             throw new VitamApplicationServerException(e);
         }

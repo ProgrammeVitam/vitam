@@ -26,30 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.*;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.AbstractDriver;
+import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
-import fr.gouv.vitam.common.client.configuration.SSLKey;
-import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.storage.driver.AbstractConnection;
-import fr.gouv.vitam.storage.driver.AbstractDriver;
-import fr.gouv.vitam.storage.driver.Connection;
-import fr.gouv.vitam.storage.driver.Driver;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
  * Workspace Driver Implementation
@@ -62,11 +57,11 @@ public class DriverImpl extends AbstractDriver {
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
 
-    static class InternalDriverFactory extends VitamClientFactory<ConnectionImpl> {
+    static class DriverClientFactory extends VitamClientFactory<ConnectionImpl> {
         final Properties parameters;
 
         private ConnectionImpl connection = null;
-        protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
+        protected DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath, true, false, true, true);
             enableUseAuthorizationFilter();
             this.parameters = parameters;
@@ -96,17 +91,41 @@ public class DriverImpl extends AbstractDriver {
         return DRIVER_IMPL;
     }
 
+
     @Override
     public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-        if (!super.connectionFactories.containsKey(offer.getId())) {
 
-            final InternalDriverFactory factory =
-                new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH,
-                    parameters);
-            super.addOffer(offer.getId(), factory);
+
+        if (connectionFactories.containsKey(offer.getId())) {
+
+            VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer.getId());
+
+            /*
+             * The offer is registred but the factory not yet initiated
+             */
+            if (null == factory) {
+                factory = new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
+                connectionFactories.put(offer.getId(), factory);
+            }
+
+            try {
+                final AbstractConnection connection = factory.getClient();
+                connection.checkStatus();
+                LOGGER.debug("Check status ok");
+                return connection;
+            } catch (final VitamApplicationServerException exception) {
+                LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offer.getId(), exception);
+                throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
+                    exception.getMessage(), exception);
+            }
         }
-        return super.connect(offer, parameters);
+        LOGGER.error("Driver {} has no Offer named {}", getName(), offer.getId());
+        StorageNotFoundException exception =
+            new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offer.getId());
+        throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
+            exception.getMessage(), exception);
     }
+
 
     /**
      * Change client configuration from a Yaml files

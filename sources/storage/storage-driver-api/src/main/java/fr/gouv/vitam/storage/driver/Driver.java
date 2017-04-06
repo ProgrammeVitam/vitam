@@ -42,7 +42,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
  * Vitam engine.
  */
 
-public interface Driver extends VitamAutoCloseable {
+ public interface Driver extends VitamAutoCloseable {
     /**
      * Create a connection to the distant offer service based on given service
      * URL and optional parameters. If no connection could be made, the driver
@@ -53,7 +53,7 @@ public interface Driver extends VitamAutoCloseable {
      * whose are generic to all driver implementation. However they can also
      * contains driver implementation specific properties.
      *
-     * @param url
+     * @param offer
      *            URL to the offer service
      * @param parameters
      *            the parameters needed to connect and possibly authenticate to
@@ -101,10 +101,9 @@ public interface Driver extends VitamAutoCloseable {
      * Add one offer to the Driver (from DriverManager)
      *
      * @param offerId
-     * @param offerFactory
      * @return True if the offer was removed, false if not existing
      */
-    boolean addOffer(String offerId, VitamClientFactory<? extends AbstractConnection> offerFactory);
+    boolean addOffer(String offerId);
 
     /**
      * Return true if offer exists for the driver, false else

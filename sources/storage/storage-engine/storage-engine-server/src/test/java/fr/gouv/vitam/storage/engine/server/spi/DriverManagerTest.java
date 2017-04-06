@@ -52,8 +52,7 @@ import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
  * implemented in two externals projects, with maven packaging to jar. They only
  * implements the driver interface (and they absolutely do nothing, as fake
  * driver
- * {@link fr.gouv.vitam.storage.engine.server.spi.OfferDriverInfoTest.TheDriver}
- * in {@link OfferDriverInfoTest}). Also don't forget to make the file to
+ * Also don't forget to make the file to
  * declare the implementation to the {@link java.util.ServiceLoader} in the
  * META-INF/services directory.
  *

@@ -36,18 +36,21 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 public abstract  class AbstractConnection extends DefaultClient implements Connection {
 
     private String driverName;
+
     /**
      * Constructor using given scheme (http)
-     *
+     * @param driverName the name of the driver
      * @param factory The client factory
      */
-    public AbstractConnection(String driverName, VitamClientFactoryInterface<?> factory) {
+    public AbstractConnection(String driverName, VitamClientFactoryInterface<? extends AbstractConnection> factory) {
         super(factory);
-        if (null == driverName) throw new IllegalArgumentException("The parameter driverName is requied");
+        if (null == driverName)
+            throw new IllegalArgumentException("The parameter driverName is requied");
         this.driverName = driverName;
     }
 
     public String getDriverName() {
         return driverName;
     }
+
 }
