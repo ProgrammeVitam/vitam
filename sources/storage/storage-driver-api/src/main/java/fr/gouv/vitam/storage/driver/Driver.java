@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.driver;
 
 import java.util.Properties;
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
@@ -40,7 +41,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
  * Vitam engine.
  */
 
-public interface Driver {
+public interface Driver extends VitamAutoCloseable {
     /**
      * Create a connection to the distant offer service based on given service
      * URL and optional parameters. If no connection could be made, the driver
@@ -51,7 +52,7 @@ public interface Driver {
      * whose are generic to all driver implementation. However they can also
      * contains driver implementation specific properties.
      *
-     * @param url
+     * @param offer
      *            URL to the offer service
      * @param parameters
      *            the parameters needed to connect and possibly authenticate to
@@ -66,7 +67,7 @@ public interface Driver {
 
     /**
      * The driver MUST provide a way to check the availability of the storage
-     * offer based on URL and storage offer configuration parameters. For
+     * offer based on storage offer  and configuration parameters. For
      * example it can be used to pass user and password properties in for
      * authentication.
      * <p>
@@ -74,17 +75,39 @@ public interface Driver {
      * tag/value pairs as connection arguments.
      * </p>
      *
-     * @param url
-     *            URL to the offer service
-     * @param parameters
-     *            the parameters needed to connect and possibly authenticate to
-     *            a specific offer service
+     * @param offer
+     *            The information of offer service
      * @return MUST return true if the distant offer service is available to
      *         accept further requests, false otherwise
      * @throws StorageDriverException
      *             if any problem occurs during request
      */
-    boolean isStorageOfferAvailable(String url, Properties parameters) throws StorageDriverException;
+    boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException;
+
+    /**
+     * Remove one offer from the Driver (from DriverManager)
+     *
+     * @param offer
+     * @return True if the offer was removed, false if not existing
+     */
+    boolean removeOffer(String offer);
+
+
+    /**
+     * Add one offer to the Driver (from DriverManager)
+     *
+     * @param offerId
+     * @return True if the offer was removed, false if not existing
+     */
+    boolean addOffer(String offerId);
+
+    /**
+     * Return true if offer exists for the driver, false else
+     * @param offerId
+     * @return
+     */
+    boolean hasOffer(String offerId);
+
 
     /**
      * The driver implementation MUST provide a constant name which SHOULD be

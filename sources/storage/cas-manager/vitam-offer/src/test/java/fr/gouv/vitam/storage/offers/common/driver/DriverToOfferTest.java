@@ -171,7 +171,10 @@ public class DriverToOfferTest {
         tmp.put("trustStore-keyPath", "src/test/resources/truststore.jks");
         tmp.put("trustStore-keyPassword", "tazerty");
         offer.setParameters(tmp);
+        offer.setId("Default");
 
+        driver.addOffer("Default");
+        
         connection = driver.connect(offer, null);
         assertNotNull(connection);
 

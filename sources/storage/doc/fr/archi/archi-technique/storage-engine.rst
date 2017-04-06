@@ -147,7 +147,7 @@ Son nom est l'interface implémentée par le driver précédé de son package.
 
 Exemple::
 
-    fr.gouv.vitam.storage.driver.VitamDriver
+    fr.gouv.vitam.storage.driver.Driver
 
 Où VitamDriver est l'interface implémentée.
 
@@ -159,7 +159,7 @@ Exemple::
 
 Où VitamDriverImpl est l'implémentation du driver.
 
-Voici le fichier : :download:`fr.gouv.vitam.storage.driver.VitamDriver <samples/fr.gouv.vitam.storage.driver.VitamDriver>`
+Voici le fichier : :download:`fr.gouv.vitam.storage.driver.Driver <samples/fr.gouv.vitam.storage.driver.Driver>`
 
 | Le jar sera déposé via une interface graphique dans un répertoire défini dans le fichier de configuration driver-location.conf avec la clef **driverLocation**. Actuellement il faut le déposer manuellement.
 | Le paramétrage des offres se fera également via une interface graphique.

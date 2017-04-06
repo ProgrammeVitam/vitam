@@ -26,6 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.configuration.*;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.AbstractDriver;
+import fr.gouv.vitam.storage.driver.Connection;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -33,26 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
-import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
-import fr.gouv.vitam.common.client.configuration.SSLKey;
-import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.storage.driver.Connection;
-import fr.gouv.vitam.storage.driver.Driver;
-import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-
 /**
  * Workspace Driver Implementation
  */
-public class DriverImpl implements Driver {
+public class DriverImpl extends AbstractDriver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImpl.class);
 
     private static final String DRIVER_NAME = "WorkspaceDriver";
@@ -60,10 +57,11 @@ public class DriverImpl implements Driver {
 
     private static final DriverImpl DRIVER_IMPL = new DriverImpl();
 
-    static class InternalDriverFactory extends VitamClientFactory<ConnectionImpl> implements Driver {
+    static class DriverClientFactory extends VitamClientFactory<ConnectionImpl> {
         final Properties parameters;
 
-        protected InternalDriverFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
+        private ConnectionImpl connection = null;
+        protected DriverClientFactory(ClientConfiguration configuration, String resourcePath, Properties parameters) {
             super(configuration, resourcePath, true, false, true, true);
             enableUseAuthorizationFilter();
             this.parameters = parameters;
@@ -71,32 +69,8 @@ public class DriverImpl implements Driver {
 
         @Override
         public ConnectionImpl getClient() {
-            return new ConnectionImpl(this, parameters);
-        }
-
-        @Override
-        public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
-            return true;
-        }
-
-        @Override
-        public String getName() {
-            return DRIVER_NAME;
-        }
-
-        @Override
-        public int getMajorVersion() {
-            return 0;
-        }
-
-        @Override
-        public int getMinorVersion() {
-            return 0;
-        }
-
-        @Override
-        public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-            throw new UnsupportedOperationException("The internal factory does not support this method");
+            if (null == connection) connection = new ConnectionImpl(DRIVER_NAME, this, parameters);
+            return connection;
         }
 
     }
@@ -117,26 +91,48 @@ public class DriverImpl implements Driver {
         return DRIVER_IMPL;
     }
 
+
     @Override
-    public ConnectionImpl connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
-        final InternalDriverFactory factory = new InternalDriverFactory(changeConfigurationFile(offer), RESOURCE_PATH,
-                parameters);
-        try {
-            final ConnectionImpl connection = factory.getClient();
-            connection.checkStatus();
-            LOGGER.debug("Check status ok");
-            return connection;
-        } catch (final VitamApplicationServerException exception) {
-            LOGGER.error("Service unavailable", exception);
-            throw new StorageDriverException(DRIVER_NAME, 
+    public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
+
+        if (null == offer) throw new IllegalArgumentException("The parameter offer is required");
+
+        VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer.getId());
+
+
+        if (offers.contains(offer.getId())) {
+
+            /*
+             * The offer is registred but the factory not yet initiated
+             */
+            if (null == factory) {
+                factory = new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
+                connectionFactories.put(offer.getId(), factory);
+            }
+
+            try {
+                final AbstractConnection connection = factory.getClient();
+                connection.checkStatus();
+                LOGGER.debug("Check status ok");
+                return connection;
+            } catch (final VitamApplicationServerException exception) {
+                LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offer.getId(), exception);
+                throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
                     exception.getMessage(), exception);
+            }
         }
+        LOGGER.error("Driver {} has no Offer named {}", getName(), offer.getId());
+        StorageNotFoundException exception =
+            new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offer.getId());
+        throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
+            exception.getMessage(), exception);
     }
+
 
     /**
      * Change client configuration from a Yaml files
      *
-     * @param configurationPath
+     * @param offer
      *            the path to the configuration file
      * @return ClientConfiguration
      */
@@ -155,7 +151,7 @@ public class DriverImpl implements Driver {
                 truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
 
                 configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
-                        new SSLConfiguration(keystoreList, truststoreList));
+                    new SSLConfiguration(keystoreList, truststoreList));
             } else {
                 configuration = new ClientConfigurationImpl(url.getHost(), url.getPort());
             }
@@ -167,8 +163,24 @@ public class DriverImpl implements Driver {
     }
 
     @Override
-    public boolean isStorageOfferAvailable(String configurationPath, Properties parameters) throws StorageDriverException {
-        return true;
+    public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
+
+        if (null == offer) return false;
+
+        boolean hasOffer = hasOffer(offer.getId());
+        if (!hasOffer) return false;
+
+        VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer);
+
+        if (null == factory) {
+            final Properties parameters = new Properties();
+            parameters.putAll(offer.getParameters());
+
+            factory = new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
+            connectionFactories.put(offer.getId(), factory);
+        }
+
+       return  super.isStorageOfferAvailable(offer);
     }
 
     @Override
