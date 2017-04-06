@@ -1645,7 +1645,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param id if of the contract
      * @return Response
      */
-    @POST
+    @GET
     @Path("/contracts/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -1745,7 +1745,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param id of the requested access contract
      * @return Response
      */
-    @POST
+    @GET
     @Path("/accesscontracts/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
