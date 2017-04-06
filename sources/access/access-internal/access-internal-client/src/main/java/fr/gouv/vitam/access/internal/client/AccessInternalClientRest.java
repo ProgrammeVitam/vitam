@@ -40,7 +40,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -71,12 +70,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String BLANK_OBJECT_GROUP_ID = "object identifier should be filled";
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
+    private static final String BLANK_TRACEABILITY_OPERATION_ID = "traceability operation identifier should be filled";
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
-    private static final String LOGBOOK_CHECK = "/logbook/check";
-    private static final Select emptySelectQuery = new Select();
+    private static final String LOGBOOK_CHECK = "/traceability/check";
 
     private static final String CHECKS_OPERATION_TRACEABILITY_OK = "Checks operation traceability is OK";
 
@@ -381,7 +380,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> checkOperationTraceability(JsonNode query) throws LogbookClientServerException {
+    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query) throws LogbookClientServerException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, null, query, MediaType.APPLICATION_JSON_TYPE,
@@ -403,5 +402,44 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
+
+    @Override
+    public Response downloadTraceabilityFile(String operationId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+
+        ParametersChecker.checkParameter(BLANK_TRACEABILITY_OPERATION_ID, operationId);
+
+        Response response = null;
+
+        Status status = Status.BAD_REQUEST;
+        try {
+            response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", null, null,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case INTERNAL_SERVER_ERROR:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR);
+                case NOT_FOUND:
+                    throw new AccessInternalClientNotFoundException(status.getReasonPhrase());
+                case BAD_REQUEST:
+                    throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+                case OK:
+                    break;
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new AccessInternalClientServerException(
+                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+            }
+            return response;
+        } catch (final VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            if (status != Status.OK) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
 
 }

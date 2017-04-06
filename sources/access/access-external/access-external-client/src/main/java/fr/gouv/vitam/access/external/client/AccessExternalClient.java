@@ -233,6 +233,8 @@ public interface AccessExternalClient extends BasicClient {
         throws AccessExternalClientServerException, InvalidParseOperationException;
 
 
+    Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
+        throws AccessExternalClientServerException;
 }
 
 

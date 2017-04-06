@@ -245,8 +245,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
-        JsonNode query,
-        boolean post) {
+        JsonNode query, boolean post) {
 
         if (post) {
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {

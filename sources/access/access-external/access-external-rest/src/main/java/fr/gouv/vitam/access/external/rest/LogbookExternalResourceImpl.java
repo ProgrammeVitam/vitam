@@ -33,14 +33,18 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -56,6 +60,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -332,16 +338,14 @@ public class LogbookExternalResourceImpl {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
-
-
     /**
-     * Checks operation traceability
+     * Checks a traceability operation
      * 
-     * @param id
-     * @return
+     * @param query the DSLQuery used to find the traceability operation to validate
+     * @return The verification report == the logbookOperation
      */
     @POST
-    @Path("/logbook/check")
+    @Path("/traceability/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkOperationTraceability(JsonNode query) {
@@ -351,7 +355,7 @@ public class LogbookExternalResourceImpl {
 
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-            RequestResponse<JsonNode> result = client.checkOperationTraceability(query);
+            RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
 
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -371,8 +375,47 @@ public class LogbookExternalResourceImpl {
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         }
+    }
 
+    @GET
+    @Path("/traceability/{idOperation}/content")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadTraceabilityFile(@PathParam("idOperation") String operationId,
+        final AsyncResponse asyncResponse) {
 
+        ParametersChecker.checkParameter("Traceability operation should be filled", operationId);
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> downloadTraceabilityOperationFile(operationId, asyncResponse));
+    }
+
+    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
+
+        AsyncInputStreamHelper helper;
+
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+
+            final Response response = client.downloadTraceabilityFile(operationId);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder =
+                Response.status(Status.OK)
+                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                    .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientServerException | AccessInternalClientNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse =
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                    .toString()).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        }
     }
 }

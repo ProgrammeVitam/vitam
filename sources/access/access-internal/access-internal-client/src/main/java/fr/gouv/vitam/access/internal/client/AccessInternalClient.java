@@ -178,8 +178,16 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @return Response
      * @throws LogbookClientServerException
      */
-    RequestResponse<JsonNode> checkOperationTraceability(JsonNode query)
+    RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
         throws LogbookClientServerException, InvalidParseOperationException;
+
+    /**
+     * @param fileName
+     * @return
+     */
+    Response downloadTraceabilityFile(String operationId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException;
 
 
 }

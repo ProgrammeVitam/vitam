@@ -30,7 +30,7 @@ angular.module('core')
   .factory('traceabilityOperationResource', function(ihmDemoCLient) {
 
     var TRACEABILITY_OPERATION_DETAIL = '/logbook/operations';
-    var CHECK_TRACEABILITY_OPERATION = '/logbook/check';
+    var CHECK_TRACEABILITY_OPERATION = '/traceability/check';
     var traceabilityOperationResource = {};
 
 

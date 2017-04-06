@@ -56,7 +56,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -1823,7 +1822,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return TRACEABILITY check process : the logbookOperation created during this process
      */
     @POST
-    @Path("/logbook/check")
+    @Path("/traceability/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkOperationTraceability(@Context HttpHeaders headers, String operationCriteria) {
@@ -1864,5 +1863,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         }
+    }
+
+
+    /**
+     * Download the Traceability Operation file
+     * 
+     * @param headers request headers
+     * @param fileName the file name to download
+     * @return a response containing the file name stream
+     */
+    @GET
+    @Path("/traceability/{filename}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("filename") String fileName) {
+
+        return null;
     }
 }

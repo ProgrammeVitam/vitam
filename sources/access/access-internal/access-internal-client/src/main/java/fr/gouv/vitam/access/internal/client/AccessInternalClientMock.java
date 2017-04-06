@@ -123,7 +123,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @SuppressWarnings("unchecked")
     @Override
-    public RequestResponse<JsonNode> checkOperationTraceability(JsonNode query) throws InvalidParseOperationException {
+    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query) throws InvalidParseOperationException {
         return ClientMockResultHelper.checkOperationTraceability();
     }
 

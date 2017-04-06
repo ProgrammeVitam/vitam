@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -114,7 +115,14 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             }
 
             operationToCheck = new LogbookOperation(foundOperation.get(0));
-        } catch (InvalidParseOperationException | LogbookClientException e) {
+            String operationType = (String) operationToCheck.get(LogbookMongoDbName.eventTypeProcess.getDbname());
+
+            // check if it a traceability operation
+            if (!LogbookTypeProcess.TRACEABILITY.equals(LogbookTypeProcess.valueOf(operationType))) {
+                itemStatus.increment(StatusCode.KO);
+                return itemStatus;
+            }
+        } catch (InvalidParseOperationException | LogbookClientException | IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
             itemStatus.increment(StatusCode.FATAL);
             return itemStatus;
