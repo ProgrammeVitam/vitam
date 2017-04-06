@@ -1618,22 +1618,28 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contracts:read")
-    public Response findDocuments(@Context HttpHeaders headers, JsonNode select) {
+    public Response findDocuments(@Context HttpHeaders headers, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.findDocuments(AdminCollections.CONTRACTS, select, getTenantId(headers));
-            if (response != null && response instanceof RequestResponseOK) {
-                // Récupération des hits?
-                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
-                return Response.status(Status.OK).entity(response).build();
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse response =
+                    adminClient.findDocuments(AdminCollections.CONTRACTS, query, getTenantId(headers));
+                if (response != null && response instanceof RequestResponseOK) {
+                    // Récupération des hits?
+                    ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-            if (response != null && response instanceof VitamError) {
-                LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
-            }
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final Exception e) {
+        }
+        catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
@@ -1716,22 +1722,27 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:read")
-    public Response findAccessContracts(@Context HttpHeaders headers, JsonNode queryDsl) {
+    public Response findAccessContract(@Context HttpHeaders headers, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, getTenantId(headers));
-            if (response != null && response instanceof RequestResponseOK) {
-                // Récupération des hits?
-                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
-                return Response.status(Status.OK).entity(response).build();
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse response =
+                    adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, query, getTenantId(headers));
+                if (response != null && response instanceof RequestResponseOK) {
+                    // Récupération des hits?
+                    ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-            if (response != null && response instanceof VitamError) {
-                LOGGER.error(response.toString());
-                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
-            }
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final Exception e) {
+        }catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }

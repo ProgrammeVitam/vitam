@@ -89,7 +89,7 @@ angular.module('entryContracts')
                 requestOptions.ContractID = "all";
             }
 
-            requestOptions.orderby = "evDateTime";
+            //requestOptions.orderby = "evDateTime";
             return requestOptions;
         };
 
@@ -106,7 +106,7 @@ angular.module('entryContracts')
         };
 
         var customPost = function (criteria, headers) {
-            return ihmDemoCLient.getClient('contracts').all('').post();
+            return ihmDemoCLient.getClient('contracts').all('').post(criteria);
         };
 
         var searchService = processSearchService.initAndServe(customPost, preSearch, successCallback, computeErrorMessage, $scope.search, true);
