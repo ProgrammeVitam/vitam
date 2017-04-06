@@ -65,6 +65,7 @@ public class DriverManagerTest {
     private static final String MON_MODULE_DRIVER_MON_DRIVER = "mon.module.driver.MonDriver";
     private static final String THE_DRIVER_THE_DRIVER = "the.driver.TheDriver";
     private static final String OFFER_1 = "DriverManagerTestoffer1";
+    private static final String OFFER_2 = "DriverManagerTestoffer2";
     private static final String OFFER_3 = "DriverManagerTestoffer3";
     private static final String OFFER_4 = "DriverManagerTestoffer4";
 
@@ -74,7 +75,7 @@ public class DriverManagerTest {
         Files.deleteIfExists(Paths.get(THE_DRIVER_THE_DRIVER));
     }
 
-    @Test
+    @Test(expected = StorageDriverMapperException.class)
     public void addOfferAndRetrieveDriverTest() throws Exception {
         DriverManager.addOfferToDriver(MON_MODULE_DRIVER_MON_DRIVER, OFFER_1);
         Driver driver = DriverManager.getDriverFor(OFFER_1);
@@ -90,13 +91,10 @@ public class DriverManagerTest {
     @Test
     public void addOffersAndretriveDriverTest() throws Exception {
         final List<String> offers = new ArrayList<>();
-        offers.add(OFFER_1);
-        offers.add("DriverManagerTestoffer2");
-        offers.add(OFFER_3);
-        offers.add(OFFER_4);
+        offers.add("addOffersAndretriveDriverTest");
         DriverManager.addOffersToDriver(MON_MODULE_DRIVER_MON_DRIVER, offers);
 
-        final Driver driver = DriverManager.getDriverFor(OFFER_4);
+        final Driver driver = DriverManager.getDriverFor("addOffersAndretriveDriverTest");
         assertNotNull(driver);
     }
 

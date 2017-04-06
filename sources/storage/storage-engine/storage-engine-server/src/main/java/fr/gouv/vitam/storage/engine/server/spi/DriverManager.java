@@ -234,31 +234,55 @@ public class DriverManager {
      *             thrown if error on driver mapper (persisting part) append
      */
     public static void addOfferToDriver(String name, String offerId) throws StorageDriverMapperException {
-        final List<String> offersIds = new ArrayList<>();
-        offersIds.add(offerId);
-        addOffersToDriver(name, offersIds);
+
+        Driver selectedDriver = null;
+        for (String driverName : drivers.keySet()) {
+            final Driver driver = drivers.get(driverName);
+            if (driver.hasOffer(offerId) && !driverName.equals(name)) {
+                throw new StorageDriverMapperException("The offer "+offerId+" already attached to the driver "+driverName+" => can't attach offer to the driver "+name);
+            }
+
+            if (driverName.equals(name)) {
+                selectedDriver = driver;
+            }
+        }
+
+        if (null != selectedDriver) {
+            List<String> list = new ArrayList<>();
+            list.add(offerId);
+            addOffersToDriver(selectedDriver, list);
+        }
+
     }
 
+
     /**
-     * Add offers IDs to a driver
+     * Add offer to a driver
      *
      * @param name
      *            the driver name
-     * @param offersIds
-     *            the offers IDs list
+     * @param offerIds
+     *            the offer ID to add
      * @throws StorageDriverMapperException
      *             thrown if error on driver mapper (persisting part) append
      */
-    // TODO P1 : change link direction between driver and offer and persist it
-    // differently
-    public static void addOffersToDriver(String name, List<String> offersIds) throws StorageDriverMapperException {
-        final Driver driver = drivers.get(name);
+    public static void addOffersToDriver(String name, List<String> offerIds) throws StorageDriverMapperException {
 
-        if (null != driver)  {
-            addOffersToDriver(driver, offersIds);
-        } else {
-            throw new StorageDriverMapperException("Driver "+name+" not registred");
+        for (String driverName : drivers.keySet()) {
+            final Driver driver = drivers.get(driverName);
+            for (final String s : offerIds) {
+                if (driver.hasOffer(s) && !driverName.equals(name)) {
+                    throw new StorageDriverMapperException(
+                        "The offer " + s + " already attached to the driver " + driverName +
+                            " => can't attach offer to the driver " + name);
+                }
+            }
+            if (driverName.equals(name)) {
+                addOffersToDriver(driver, offerIds);
+                break;
+            }
         }
+
     }
 
     /**
