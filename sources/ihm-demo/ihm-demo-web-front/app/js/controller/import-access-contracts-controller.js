@@ -28,11 +28,10 @@
 'use strict';
 
 angular.module('ihm.demo')
-.controller('contractsController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
+.controller('importAccessContractsController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
 	$scope.mustShow = false;
 
-	var serviceURI = "/ihm-demo/v1/api/contracts";
-
+	var serviceURI = "/ihm-demo/v1/api/accesscontracts";
 	var uploader = $scope.uploader = new FileUploader({
     url : serviceURI,
     headers: {
@@ -42,6 +41,7 @@ angular.module('ihm.demo')
     },
     disableMultipart: true
   });
+
     // FILTERS
     uploader.filters.push({
         name: 'customFilter',
@@ -49,6 +49,7 @@ angular.module('ihm.demo')
             return this.queue.length < 10;
         }
     });
+
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
     	console.info('onSuccessItem', fileItem, response, status, headers);
 

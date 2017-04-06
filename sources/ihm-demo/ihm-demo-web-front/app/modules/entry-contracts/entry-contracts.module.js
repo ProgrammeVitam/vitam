@@ -27,57 +27,5 @@
 
 'use strict';
 
-angular.module('ihm.demo')
-.controller('contractsController', function($scope, FileUploader, $mdDialog, $route, authVitamService){
-	$scope.mustShow = false;
-
-	var serviceURI = "/ihm-demo/v1/api/contracts";
-
-	var uploader = $scope.uploader = new FileUploader({
-    url : serviceURI,
-    headers: {
-      'content-type': 'application/octet-stream',
-      'accept' : 'application/json',
-      'X-Tenant-Id': authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID)
-    },
-    disableMultipart: true
-  });
-    // FILTERS
-    uploader.filters.push({
-        name: 'customFilter',
-        fn: function(item, options) {
-            return this.queue.length < 10;
-        }
-    });
-    uploader.onSuccessItem = function(fileItem, response, status, headers) {
-    	console.info('onSuccessItem', fileItem, response, status, headers);
-
-    	if (uploader.queue[0].url == serviceURI) {
-    		var confirm = $mdDialog.confirm()
-    			.title('Les contrats ont bien été importés')
-    			.ok("Fermer");
-    		$mdDialog.show(confirm).then(function(){ $route.reload() });
-    	}
-    };
-
-    uploader.onErrorItem = function(fileItem, response, status, headers) {
-    	console.info('onErrorItem', fileItem, response, status, headers);
-    	if (uploader.queue[0].url == serviceURI) {
-    		var confirm = $mdDialog.confirm()
-    		            	.title('Echec de l\'import du fichier.')
-    		            	.ok("Fermer");
-    		$mdDialog.show(confirm).then(function(){ $route.reload()});
-       }
-    };
-
-    $scope.uploadAction = function() {
-		uploader = $scope.uploader;
-		uploader.queue[0].url = serviceURI;
-		uploader.queue[0].upload();
-	}
-
-    function cancelAction() {
-    	console.log('Canceled');
-    	$route.reload();
-    }
-});
+// Define the `entryContracts` module
+angular.module('entryContracts', ['core']);

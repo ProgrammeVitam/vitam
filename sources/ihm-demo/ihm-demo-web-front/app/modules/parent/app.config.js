@@ -100,6 +100,10 @@ config(['$locationProvider' ,'$routeProvider',
         templateUrl: "views/import-contracts.html",
         title: 'Import du Référentiel des contrats'
     }).
+    when('/admin/importAccessContracts', {
+        templateUrl: "views/import-access-contracts.html",
+        title: 'Import des contrats d\'accès'
+    }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',
       title: 'Journal des Opérations'
@@ -125,14 +129,34 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Détail du Fonds'
     }).
     when('/admin/logbookOperations/:entryId', {
-          templateUrl: 'views/logbookEntry.html',
-          controller: 'logbookEntryController as entryCtrl',
-          title: 'Détail d\'une opération d\'entrée'
-        }).
-        when('/admin/workflows', {
-        	template: '<workflows></workflows>',
-            title: 'Gestion des versements'
-        }).
+      templateUrl: 'views/logbookEntry.html',
+      controller: 'logbookEntryController as entryCtrl',
+      title: 'Détail d\'une opération d\'entrée'
+    }).
+    when('/admin/workflows', {
+        template: '<workflows></workflows>',
+        title: 'Gestion des versements'
+    }).
+     when('/admin/entryContracts', {
+       templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
+       controller: 'entryContractsController',
+       title: 'Contrats d\'entrée'
+     }).
+    when('/admin/entryContracts/:id', {
+      templateUrl: 'modules/entry-contracts/entry-contract-single.template.html',
+      controller: 'entryContractController',
+      title: 'Détail d\'un contrat d\'entrée'
+    }).
+    when('/admin/accessContracts', {
+      templateUrl: 'modules/access-contracts/access-contracts.template.html',
+      controller: 'accessContractsController',
+      title: 'Liste des Contrats d\'accès'
+    }).
+    when('/admin/accessContracts/:id', {
+      templateUrl: 'modules/access-contracts/access-contract-single.template.html',
+      controller: 'accessContractController',
+      title: 'Détail d\'un contrat d\'accès'
+    }).
     otherwise('/uploadSIP');
   }
 ])

@@ -67,6 +67,8 @@ public final class DslQueryHelper {
     private static final String EVENT_TYPE_PROCESS = "evTypeProc";
     private static final String ALL = "All";
     private static final String EVENT_ID_PROCESS = "evIdProc";
+    private static final String CONTRACT_ID = "ContractID";
+    private static final String CONTRACT_NAME = "ContractName";
     private static final String DESCRIPTION = "Description";
     private static final String TITLE = "Title";
     private static final String EVENT_DATE_TIME = "evDateTime";
@@ -253,6 +255,22 @@ public final class DslQueryHelper {
                     case TRACEABILITY_END_DATE:
                         if (!searchValue.isEmpty()) {
                             query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
+                        }
+                        break;
+                    case CONTRACT_NAME:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("Name"));
+                        }
+                        else  if (!searchValue.isEmpty()) {
+                            query.add(eq("Name", searchValue));
+                        }
+                        break;
+
+                    case CONTRACT_ID:
+                        if ("all".equals(searchValue)) {
+                            query.add(exists("#id"));
+                        } else {
+                            query.add(eq("#id", searchValue));
                         }
                         break;
                     default:

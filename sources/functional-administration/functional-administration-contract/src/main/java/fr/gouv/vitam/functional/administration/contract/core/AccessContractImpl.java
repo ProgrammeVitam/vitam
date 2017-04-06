@@ -75,16 +75,13 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
-
     private static final String ACCESS_CONTRACT_IS_MANDATORY_PATAMETER = "The collection of access contracts is mandatory";
-
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
-
-
     /**
+     * Constructor
      *
      * @param mongoAccess MongoDB client
      */
@@ -98,7 +95,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     @Override
     public RequestResponse<AccessContractModel> createContracts(List<AccessContractModel> contractModelList) throws
         VitamException {
-
         ParametersChecker.checkParameter(ACCESS_CONTRACT_IS_MANDATORY_PATAMETER, contractModelList);
 
         if (contractModelList.isEmpty()) {
@@ -113,7 +109,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         ArrayNode contractsToPersist = null;
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem());
+
         try {
+
             for (final AccessContractModel acm : contractModelList) {
 
 
@@ -231,7 +229,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             createCheckDuplicateInDatabaseValidator());
 
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-
+        private GUID eip = null;
 
         private LogbookOperationsClient logBookclient;
         public AccessContractManager(LogbookOperationsClient logBookclient) {
@@ -262,12 +260,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          */
         private void logValidationError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
@@ -278,25 +275,25 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          */
         private void logFatalError(String errorsDetails) throws VitamException {
             LOGGER.error("There validation errors on the input file {}", errorsDetails);
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.FATAL), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
+
 
         /**
          * log start process
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                    StatusCode.OK,
-                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
 
             helper.createDelegate(logbookParameters);
 
@@ -307,12 +304,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * @throws VitamException
          */
         private void logSuccess() throws VitamException {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
-            helper.createDelegate(logbookParameters);
+            helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
@@ -384,6 +380,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             };
         }
     }
+
 
     @Override
     public void close() {
