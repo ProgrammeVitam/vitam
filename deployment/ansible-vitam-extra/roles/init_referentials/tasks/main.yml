@@ -72,7 +72,7 @@
     mode: "{{vitam_conf_permission}}"
 
 - name: upload contracts
-  command: "curl -v -X POST --data @/vitam/tmp/ihm-demo/referential_contracts_ok.json -H 'Host: {{ inventory_hostname }}' -H 'Cookie: {{connected.set_cookie}}' -H 'X-Tenant-Id: {{item}}' -H 'Content-Type: application/octet-stream' http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts 2>&1"
+  command: "curl -v -X POST --data @/vitam/tmp/ihm-demo/referential_contracts_ok.json -H 'Host: {{ inventory_hostname }}' -H 'Cookie: {{connected.set_cookie}}' -H 'X-Tenant-Id: {{item}}' -H 'Content-Type: application/octet-stream' http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts"
   when: connected.set_cookie != ''
   ignore_errors: true
   with_items:
