@@ -1,7 +1,10 @@
    <div id="global" class="container-fluid" >
     		<ol class="breadcrumb">
-                <li>Entrée</li>
-                <li><a href="#!/uploadSIP">Transfert</a></li>
+                <li ng-if="ingestType == 'HoldingScheme'">Administration</li>
+                <li ng-if="ingestType != 'HoldingScheme'">Entrée</li>
+                <li ng-if="ingestType == 'SIP'"><a href="#!/uploadSIP">Transfert SIP</a></li>
+                <li ng-if="ingestType == 'HoldingScheme'"><a href="#!/uploadHoldingScheme">Import de l'arbre de positionnement</a></li>
+                <li ng-if="ingestType == 'ClassificationScheme'"><a href="#!/uploadFilingsScheme">Transfert du plan de classement</a></li>
             </ol>
 
 	 <!-- ////////////////////////////////////////////////////////////////////////////// -->
