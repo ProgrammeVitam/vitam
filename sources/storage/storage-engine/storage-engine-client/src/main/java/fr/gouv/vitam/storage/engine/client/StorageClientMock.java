@@ -62,19 +62,21 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 class StorageClientMock extends AbstractMockClient implements StorageClient {
     static final String MOCK_POST_RESULT = "{\"_id\": \"{id}\",\"status\": \"OK\"}";
     static final String MOCK_INFOS_RESULT = "{\"offerId\": \"offer1\",\"usableSpace\": 838860800}";
-    static final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " + "838860800},"
-            + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800}]}";
-    static final String MOCK_GET_FILE_CONTENT = "Vitam test of long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long "
-            + "long long long long long long long long long long long long long long long long long long long long file";
+    static final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
+        "838860800}," + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800}]}";
+    static final String MOCK_INFOS_EMPTY_RESULT_ARRAY = "{\"capacities\": []}";
+    static final String MOCK_GET_FILE_CONTENT =
+        "Vitam test of long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long " +
+            "long long long long long long long long long long long long long long long long long long long long file";
 
     @Override
     public JsonNode getStorageInformation(String strategyId)
@@ -86,10 +88,11 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         try {
-            if (tenantId == -1){
+            if (tenantId == -1) {
                 return null;
-            }
-            else {
+            } else if (tenantId == -2) {
+                return JsonHandler.getFromString(MOCK_INFOS_EMPTY_RESULT_ARRAY);
+            } else {
                 return JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY);
             }
         } catch (final InvalidParseOperationException e) {
@@ -99,8 +102,8 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
 
     @Override
     public StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
-            ObjectDescription description)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        ObjectDescription description)
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         return generateStoredInfoResult(guid);
     }
 
@@ -110,8 +113,9 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest, DigestType digestAlgorithm)
-            throws StorageServerClientException {
+    public boolean delete(String strategyId, StorageCollectionType type, String guid, String digest,
+        DigestType digestAlgorithm)
+        throws StorageServerClientException {
         return true;
     }
 
@@ -121,7 +125,8 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public boolean exists(String strategyId, StorageCollectionType type, String guid) throws StorageServerClientException {
+    public boolean exists(String strategyId, StorageCollectionType type, String guid)
+        throws StorageServerClientException {
         return true;
     }
 
@@ -136,14 +141,14 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
 
     @Override
     public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
-            throws StorageServerClientException, StorageNotFoundException {
+        throws StorageServerClientException, StorageNotFoundException {
         return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
     public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
-            throws StorageServerClientException {
+        throws StorageServerClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CURSOR, true);
         return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);
