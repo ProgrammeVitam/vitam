@@ -89,7 +89,9 @@ angular.module('ihm.demo')
                 requestOptions.ContractID = "all";
             }
 
-            //requestOptions.orderby = "evDateTime";
+          requestOptions.orderby = {
+            field: 'Name', sortType: 'ASC'
+          };
             return requestOptions;
         };
 
