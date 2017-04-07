@@ -47,8 +47,6 @@ angular.module('core').factory(
 			 */
 			searchOperationResource.result = function(options) {
 				return ihmDemoCLient.getClient('').all(TRACEABILITY_OPERATION_DETAIL).post(options);
-				// return $http.post(IHM_URLS.IHM_BASE_URL
-				// 	+ Search_operation_ROOT, options, {'headers' : {'X-HTTP-Method-Override' : 'GET','X-Tenant-Id' : '1'}});
 			};
 
 			return searchOperationResource;

@@ -1885,6 +1885,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter("Operation Id should be filled", operationId);
 
         // Get tenantId from headers
+        
         Integer tenantId = getTenantId(headers);
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId));

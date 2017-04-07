@@ -45,22 +45,6 @@
           }
         }
       ]
-    },
-    {
-      "workerGroupId": "DefaultWorker",
-      "stepName": "STP_VERIFY_STAMP",
-      "behavior": "BLOCKING",
-      "distribution": {
-        "kind": "REF"
-      },
-      "actions": [
-        {
-          "action": {
-            "actionKey": "VERIFY_STAMP",
-            "behavior": "BLOCKING"
-          }
-        }
-      ]
     }
   ]
 }

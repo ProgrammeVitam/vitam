@@ -533,7 +533,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
 
             response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", headers, null,
-                null, MediaType.APPLICATION_JSON_TYPE);
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -547,7 +547,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
-            consumeAnyEntityAndClose(response);
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
         }
     }
 

@@ -126,8 +126,22 @@ angular
             });
       };
 
+      //************************* Download Operation ******************** //
+
+      var successDownloadTraceabilityFile = function(response) {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream', responseType: 'arraybuffer'}));
+        a.href = url;
+
+        if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+          a.download = response.headers('content-disposition').split('filename=')[1];
+          a.click();
+        }
+      };
+
       $scope.ctrl.downloadOperation = function(objectId) {
-        $window.open(downloadTraceabilityOperationService.getLogbook(objectId));
+        downloadTraceabilityOperationService.getLogbook(objectId, successDownloadTraceabilityFile);
       };
 
       $scope.ctrl.reinitTab = function() {
