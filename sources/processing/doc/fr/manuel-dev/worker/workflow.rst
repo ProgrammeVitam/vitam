@@ -132,6 +132,18 @@ Un Workflow est défini en JSON avec la structure suivante :
                ]
              }
            },
+		   {
+             "action": {
+               "actionKey": "CHECK_CONTRACT_INGEST",
+               "behavior": "BLOCKING",
+               "in": [
+                 {
+                   "name": "globalSEDAParameters.file",
+                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+                 }
+               ]
+             }
+           }           
            {
              "action": {
                "actionKey": "CHECK_CONSISTENCY",
@@ -356,13 +368,16 @@ Un Workflow est défini en JSON avec la structure suivante :
     - List Workspace GUID/SIP/content/
     - CheckObjectsNumber Comparaison des 2 nombres et des URI
 
-  - CHECK_CONSISTENCY :
+
+  - CHECK_MANIFEST :
     - Extraction BinaryDataObject de manifest.xml / MAP des Id BDO / Génération GUID
     - Extraction ArchiveUnit de manifest.xml / MAP des id AU / Génération GUID
     - Contrôle des références dans les AU des Id BDO
     - Stockage dans Workspace des BDO et AU
 
-  - CHECK_CONSISTENCY_POST : vérification de la cohérence objet/unit
+  - CHECK_CONTRACT_INGEST : Vérification de la présence et contrôle du contrat d'entrée 
+  
+  - CHECK_CONSISTENCY : vérification de la cohérence objet/unit
 
 - **Step 2** - STP_OG_CHECK_AND_TRANSFORME : Check Objects Compliance du SIP / distribution sur LIST GUID/BinaryDataObject
 
