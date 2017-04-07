@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.MediaType;
@@ -55,11 +58,13 @@ import fr.gouv.vitam.processing.common.exception.ProcessingInternalServerExcepti
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 
 /**
  * Processing Management Client
  */
 class ProcessingManagementClientRest extends DefaultClient implements ProcessingManagementClient {
+
     private static final String ERR_CONTAINER_IS_MANDATORY = "Container is mandatory";
     private static final String ERR_WORKFLOW_IS_MANDATORY = "Workflow is mandatory";
     private static final String PROCESSING_INTERNAL_SERVER_ERROR = "Processing Internal Server Error";
@@ -87,6 +92,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
+    @Deprecated
     public Response executeVitamProcess(String container, String workflow, String actionId)
         throws BadRequestException, WorkflowNotFoundException,
         ProcessingException {
@@ -453,6 +459,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
+    @Deprecated
     public Response initWorkFlow(String contextId) throws InternalServerException, BadRequestException {
         Response response = null;
         ParametersChecker.checkParameter("Params cannot be null", contextId);
@@ -498,5 +505,54 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         return Response.fromResponse(response).build();
     }
 
+
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Response executeCheckTraceabilityWorkFlow(String checkOperationId,
+        JsonNode query, String workflow, String contextId, String actionId)
+        throws InternalServerException, BadRequestException, WorkflowNotFoundException {
+
+        ParametersChecker.checkParameter(BLANK_OPERATION_ID, checkOperationId);
+        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
+        ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
+        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
+
+
+        Response response = null;
+        try {
+            // Add extra parameters to start correctly the check process
+            Map<String, String> checkExtraParams = new HashMap<>();
+            checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
+            ProcessingEntry processingEntry = new ProcessingEntry(checkOperationId, workflow);
+            processingEntry.setExtraParams(checkExtraParams);
+
+            response =
+                performRequest(HttpMethod.POST, OPERATION_URI + "/" + checkOperationId,
+                    getDefaultHeaders(contextId, actionId), processingEntry, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                throw new NotAuthorizedException(ILLEGAL_ARGUMENT);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
+            }
+
+            // Return the created verification logbookOperation
+            return Response.fromResponse(response).build();
+        } catch (final javax.ws.rs.ProcessingException e) {
+            LOGGER.error(e);
+            throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
+            throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 
 }

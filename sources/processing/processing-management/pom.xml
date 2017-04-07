@@ -24,6 +24,13 @@
 			<artifactId>processing-engine</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-operations</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>

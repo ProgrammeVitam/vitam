@@ -50,7 +50,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookType;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -68,8 +67,8 @@ import fr.gouv.vitam.worker.core.api.Worker;
 import fr.gouv.vitam.worker.core.handler.AccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckIngestContractActionHandler;
-import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckNoObjectsActionHandler;
+import fr.gouv.vitam.worker.core.handler.CheckObjectUnitConsistencyActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckObjectsNumberActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.CheckStorageAvailabilityActionHandler;
@@ -78,8 +77,11 @@ import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
+import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
 import fr.gouv.vitam.worker.core.handler.TransferNotificationActionHandler;
+import fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler;
+import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -148,11 +150,23 @@ public class WorkerImpl implements Worker {
             new TransferNotificationActionHandler());
         actions.put(DummyHandler.getId(), new DummyHandler());
 
-        actions.put(CommitLifeCycleUnitActionHandler.getId(), new CommitLifeCycleUnitActionHandler());
-        actions.put(CommitLifeCycleObjectGroupActionHandler.getId(), new CommitLifeCycleObjectGroupActionHandler());
+        actions.put(CommitLifeCycleUnitActionHandler.getId(),
+            new CommitLifeCycleUnitActionHandler());
+        actions.put(CommitLifeCycleObjectGroupActionHandler.getId(),
+            new CommitLifeCycleObjectGroupActionHandler());
 
         actions.put(RollBackActionHandler.getId(),
             new RollBackActionHandler());
+
+        actions.put(VerifyMerkleTreeActionHandler.getId(),
+            new VerifyMerkleTreeActionHandler());
+
+        actions.put(PrepareTraceabilityCheckProcessActionHandler.getId(),
+            new PrepareTraceabilityCheckProcessActionHandler());
+
+        actions.put(VerifyTimeStampActionHandler.getId(),
+            new VerifyTimeStampActionHandler());
+
     }
 
     @Override

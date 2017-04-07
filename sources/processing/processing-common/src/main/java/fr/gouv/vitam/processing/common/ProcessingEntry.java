@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.common;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,6 +45,9 @@ public class ProcessingEntry {
 
     @JsonProperty("workflow")
     private final String workflow;
+
+    private Map<String, String> extraParams;
+
 
     /**
      * ProcessingEntry constructor
@@ -73,5 +78,19 @@ public class ProcessingEntry {
     @JsonIgnore
     public String getWorkflow() {
         return workflow;
+    }
+
+    /**
+     * @return the extra parameters used to create a process entry
+     */
+    public Map<String, String> getExtraParams() {
+        return extraParams;
+    }
+
+    /**
+     * @return the extra parameters used to create a process entry
+     */
+    public void setExtraParams(Map<String, String> extraParams) {
+        this.extraParams = extraParams;
     }
 }

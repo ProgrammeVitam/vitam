@@ -35,6 +35,7 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
 
     private String urlMetaData;
     private String urlWorkspace;
+    private String urlProcessing;
 
     /**
      * AccessConfiguration empty constructor for YAMLFactory
@@ -87,6 +88,23 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
      */
     public AccessInternalConfiguration setUrlWorkspace(String urlWorkspace) {
         this.urlWorkspace = urlWorkspace;
+        return this;
+    }
+
+    /**
+     * @return the urlProcessing
+     */
+    public String getUrlProcessing() {
+        return urlProcessing;
+    }
+
+    /**
+     * @param urlProcessing the urlProcessing to set
+     *
+     * @return this
+     */
+    public AccessInternalConfiguration setUrlProcessing(String urlProcessing) {
+        this.urlProcessing = urlProcessing;
         return this;
     }
 

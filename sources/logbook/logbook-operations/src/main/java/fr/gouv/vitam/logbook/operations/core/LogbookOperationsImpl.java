@@ -165,5 +165,4 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
         return Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
     }
-
 }

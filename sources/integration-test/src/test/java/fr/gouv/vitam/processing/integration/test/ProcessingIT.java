@@ -1190,8 +1190,10 @@ public class ProcessingIT {
         RestAssured.basePath = PROCESSING_PATH;
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName, WORFKLOW_NAME);
+
         final Response ret =
-            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME, LogbookTypeProcess.INGEST.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         // check conformity in warning state
         // File format warning state

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -55,7 +56,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -63,9 +63,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.Iterables;
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.common.client.DefaultClient;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -73,8 +70,12 @@ import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.api.ErrorMessage;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -83,9 +84,11 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -123,14 +126,13 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
-import static fr.gouv.vitam.common.client.DefaultClient.staticConsumeAnyEntityAndClose;
-
 /**
  * Web Application Resource class
  */
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     private static final String BAD_REQUEST_EXCEPTION_MSG = "Bad request Exception";
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
@@ -437,7 +439,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             String contextId = headers.getHeaderString(GlobalDataRest.X_CONTEXT_ID);
             String action = headers.getHeaderString(GlobalDataRest.X_ACTION);
-
             if (currentChunkIndex == 1) {
                 // GUID operation (Server Application level)
                 operationGuidFirstLevel = GUIDFactory.newGUID().getId();
@@ -524,7 +525,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
             } finally {
                 temporarSipFile.delete();
-                staticConsumeAnyEntityAndClose(finalResponse);
+                DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
             }
         }
     }
@@ -1557,15 +1558,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-
             return ingestExternalClient.cancelOperationProcessExecution(id);
-            // ItemStatus itemStatus =
-            // ingestExternalClient.cancelOperationProcessExecution(id);
-            //
-            // // TODO check null value
-            // return Response.status(Status.OK)
-            // .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalExecutionStatus().toString())
-            // .build();
         } catch (InternalServerException | VitamClientException | ProcessingException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -1798,6 +1791,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return tenantId;
     }
 
+
+
     private File downloadAndSaveATR(String guid, Integer tenantId)
         throws VitamClientException, IngestExternalException {
         File file = null;
@@ -1819,5 +1814,104 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
         }
         return file;
+    }
+
+    /**
+     * Starts a TRACEABILITY check process
+     * 
+     * @param headers default headers received from Front side (TenantId, user ...)
+     * @param operationCriteria a DSLQuery to find the TRACEABILITY operation to verify
+     * @return TRACEABILITY check process : the logbookOperation created during this process
+     */
+    @POST
+    @Path("/traceability/check")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response checkOperationTraceability(@Context HttpHeaders headers, String operationCriteria) {
+
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, operationCriteria);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(operationCriteria));
+
+            // Get tenantId value
+            Integer tenantIdHeader = getTenantId(headers);
+
+            // Prepare DSLQuery base don the received criteria
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(operationCriteria);
+            final JsonNode dslQuery = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            // Start check process
+            RequestResponse<JsonNode> result =
+                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery, tenantIdHeader);
+
+            // By default the returned status is different from the result of the verification process because we are
+            // returning the report
+            return Response.status(Status.OK).entity(result).build();
+
+        } catch (AccessExternalClientServerException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.VITAM.getName())
+                .setState(CODE_VITAM)
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.VITAM.getName())
+                .setState(CODE_VITAM)
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
+        }
+    }
+
+
+    /**
+     * Download the Traceability Operation file
+     * 
+     * @param headers request headers
+     * @param fileName the file name to download
+     * @return a response containing the file name stream
+     */
+    @GET
+    @Path("/traceability/{idOperation}/content")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
+        @Suspended final AsyncResponse asyncResponse) {
+
+        // Check parameters
+        ParametersChecker.checkParameter("Operation Id should be filled", operationId);
+
+        // Get tenantId from headers
+        Integer tenantId = getTenantId(headers);
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId));
+    }
+
+    private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
+        Integer tenantId) {
+
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+
+            Response response = client.downloadTraceabilityOperationFile(operationId, tenantId);
+
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                helper.writeResponse(
+                    Response.ok().header("Content-Disposition", response.getHeaderString("Content-Disposition")));
+            } else {
+                helper.writeResponse(Response.status(response.getStatus()));
+            }
+        } catch (IllegalArgumentException exc) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+        } catch (AccessExternalClientServerException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        }
     }
 }

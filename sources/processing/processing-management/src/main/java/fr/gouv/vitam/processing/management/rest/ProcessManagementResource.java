@@ -87,12 +87,22 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
 @javax.ws.rs.ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
+
+    /**
+     * 
+     */
+    private static final String CHECK_TRACEABILITY = "CHECK_TRACEABILITY";
+
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResource.class);
+
 
     private static final String ERR_OPERATION_ID_IS_MANDATORY = "The operation identifier is mandatory";
 
     private static final String UNAUTHORIZED_ACTION = "Unauthorized action :";
 
+
+    private static final String DEFAULT_CHECK_TRACEABILITY = "DefaultCheckTraceability";
     private static final String PROCESS_ID_FIELD = "operation_id";
     private static final String PROCESS_TYPE_FIELD = "processType";
     private static final String EXECUTION_MODE_FIELD = "executionMode";
@@ -139,93 +149,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
         processMonitoring = ProcessMonitoringImpl.getInstance();
     }
 
-    /**
-     * Execute the process as a set of operations.
-     *
-     * @param headers the Http Header of request
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param asyncResponse {@link AsyncResponse}
-     */
-    @Path("operations")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public void executeVitamProcess(@Context HttpHeaders headers, ProcessingEntry process,
-        @Suspended final AsyncResponse asyncResponse) {
-
-        ParametersChecker.checkParameter("process Entry  is a mandatory parameter", process);
-        ParametersChecker.checkParameter("actionId is a mandatory parameter",
-            headers.getRequestHeader(GlobalDataRest.X_ACTION));
-
-        final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
-        ProcessAction action = ProcessAction.getProcessAction(xAction);
-        ParametersChecker.checkParameter("ProcessAction  is a mandatory parameter",
-            action);
-
-        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-
-        ItemStatus resp = null;
-        ProcessManagement processManagement = processManagementMock;
-        final WorkerParameters workParams = WorkerParametersFactory.newWorkerParameters().setContainerName(process
-            .getContainer()).setUrlMetadata(config.getUrlMetadata()).setUrlWorkspace(config.getUrlWorkspace());
-
-        try {
-            runningWorkflows.incrementAndGet();
-            if (processManagement == null) {
-                processManagement = new ProcessManagementImpl(config); // NOSONAR mock management
-            }
-            resp = processManagement.submitWorkflow(workParams, process.getWorkflow(), action, asyncResponse, tenantId);
-        } catch (WorkflowNotFoundException e) {
-            // if workflow or handler not found
-            LOGGER.error(e);
-            this.asyncResponse(asyncResponse, Status.NOT_FOUND, null);
-            return;
-        } catch (final IllegalArgumentException e) {
-            // if the entry argument if illegal
-            LOGGER.error(e);
-            this.asyncResponse(asyncResponse, Status.PRECONDITION_FAILED, null);
-            return;
-        } catch (final ProcessingException e) {
-            // if there is an unauthorized action
-            LOGGER.error(e);
-            this.asyncResponse(asyncResponse, Status.UNAUTHORIZED, null);
-            return;
-        } finally {
-            runningWorkflows.decrementAndGet();
-            if (processManagementMock == null && processManagement != null) {
-                processManagement.close();
-            }
-
-        }
-        this.asyncResponse(asyncResponse, getStatusFrom(resp), resp);
-    }
-
-    /**
-     * Update the process executions.
-     *
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
-     * @param headers contain X-Action and X-Context-ID
-     * @return http response
-     */
-    @Path("operations")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateVitamProcess(@Context HttpHeaders headers, ProcessingEntry process) {
-        return Response.status(Status.NOT_IMPLEMENTED).build();
-    }
-
-    private Status getStatusFrom(ItemStatus response) {
-        switch (response.getGlobalStatus()) {
-            case KO:
-                return Status.BAD_REQUEST;
-            case FATAL:
-                return Status.INTERNAL_SERVER_ERROR;
-            default:
-                return Status.OK;
-        }
-    }
-
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setContext("ingest")
@@ -265,12 +188,12 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public void executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
-        ProcessingEntry process, @Suspended final AsyncResponse asyncResponse) {
+    public void executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id, ProcessingEntry process,
+        @Suspended final AsyncResponse asyncResponse) {
 
         ParametersChecker.checkParameter(ERR_OPERATION_ID_IS_MANDATORY, id);
         ParametersChecker.checkParameter(ERR_PROCESS_INPUT_ISMANDATORY, process);
-        
+
         final WorkerParameters workParams = WorkerParametersFactory.newWorkerParameters().setContainerName(process
             .getContainer()).setUrlMetadata(config.getUrlMetadata()).setUrlWorkspace(config.getUrlWorkspace());
 
@@ -306,6 +229,11 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 case NEXT:
                 case RESUME:
                     // Start the process
+                    // Add extraParameters to workParams
+                    if (process.getExtraParams() != null && !process.getExtraParams().isEmpty()) {
+                        workParams.setMap(process.getExtraParams());
+                    }
+
                     resp = processManagement.submitWorkflow(workParams, null, action, asyncResponse, tenantId);
                     break;
 
