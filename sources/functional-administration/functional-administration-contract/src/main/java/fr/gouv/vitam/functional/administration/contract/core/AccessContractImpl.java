@@ -67,6 +67,10 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.bson.conversions.Bson;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -168,9 +172,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             // contractsToPersist.values().stream().map();
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can use AccessContract at this point
             mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.ACCESS_CONTRACT);
-        } catch (VitamException exp) {
-            manager.logFatalError(new StringBuilder("Import access contracts error > ").append(exp.getMessage()).toString());
-            throw exp;
+        } catch (Exception exp) {
+            String err = new StringBuilder("Import access contracts error > ").append(exp.getMessage()).toString();
+            manager.logFatalError(err);
+            return new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err);
         }
 
         manager.logSuccess();
@@ -322,14 +327,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
                     rejection = GenericRejectionCause.rejectMandatoryMissing(AccessContract.NAME);
                 }
-                if (contract.getStatus() == null) {
-                    contract.setStatus(ContractStatus.INACTIVE.name());
-                    // FIXME
-                    String now = new Date().toString();
-                    contract.setCreationdate(now);
-                    contract.setDeactivationdate(now);
-                    contract.setActivationdate(null);
-                }
 
                 if (contract.getOriginatingAgencies() == null || contract.getOriginatingAgencies().isEmpty()) {
                     rejection = GenericRejectionCause.rejectMandatoryMissing(AccessContract.ORIGINATINGAGENCIES);
@@ -346,18 +343,57 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         private static GenericContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericRejectionCause rejection = null;
+                DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE.ofPattern("dd/MM/yyyy");
+
+
                 String now = LocalDateUtil.now().toString();
-                if (contract.getStatus() == null) {
+                boolean statusWasNull = false;
+                if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
                     contract.setStatus(ContractStatus.INACTIVE.name());
-                    contract.setCreationdate(now);
-                    contract.setDeactivationdate(now);
-                    contract.setActivationdate(null);
-                } else {
-                    contract.setCreationdate(now);
-                    contract.setDeactivationdate(null);
-                    contract.setActivationdate((contract.getStatus() == ContractStatus.ACTIVE.name()) ? now : null);
-                    contract.setDeactivationdate((contract.getStatus() == ContractStatus.INACTIVE.name()) ? now : null);
+                    statusWasNull = true;
                 }
+
+
+                try {
+                    if (contract.getCreationdate() == null || contract.getCreationdate().isEmpty()) {
+                        contract.setCreationdate(now);
+                    } else {
+                        contract.setCreationdate(
+                            LocalDate.parse(contract.getCreationdate(), formatter).atStartOfDay().toString());
+                    }
+
+                } catch (Exception e) {
+                    LOGGER.error("Error access contract parse dates", e);
+                    rejection = GenericRejectionCause.rejectMandatoryMissing("Creationdate");
+                }
+                try {
+                    if (contract.getActivationdate() == null || contract.getActivationdate().isEmpty()) {
+                        contract.setActivationdate(now);
+                    } else {
+                        contract.setActivationdate(
+                            LocalDate.parse(contract.getActivationdate(), formatter).atStartOfDay().toString());
+
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Error access contract parse dates", e);
+                    rejection = GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
+                }
+                try {
+
+                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().isEmpty()) {
+
+                    } else {
+
+                        contract.setDeactivationdate(
+                            LocalDate.parse(contract.getDeactivationdate(), formatter).atStartOfDay().toString());
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Error access contract parse dates", e);
+                    rejection = GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
+                }
+
+                contract.setLastupdate(now);
+
                 return (rejection == null) ? Optional.empty() : Optional.of(rejection);
             };
         }
