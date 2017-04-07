@@ -143,41 +143,37 @@
                     <div class="panel-heading">
                       <b>{{categoryId}}</b>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body" style="background-color: #FFFFFF">
                         <div class="table-responsive">
-                            <table class="table" ng-show="exitRule(ruleCategory.displayArray)">
-                                <thead>
+                            <table class="table highlighted" ng-show="exitRule(ruleCategory.displayArray)" style="background-color: #FFFFFF">
                                   <tr>
                                     <th>Identifiant</th>
                                     <th>Date de Début</th>
                                     <th>Date de Fin</th>
                                     <th>Héritée</th>
+                                    <th ng-if="hasSortFinal(categoryId)">Sort Final</th>
                                     <th>&nbsp;</th>
                                   </tr>
-                                </thead>
 
-                                <tbody ng-repeat="rule in ruleCategory.displayArray">
+                                <tbody ng-repeat="rule in ruleCategory.displayArray" >
                                   <tr class="table-row" ng-if="rule.ruleId" style="cursor: pointer;" ng-click="toggleDetail($index, rule)">
-                                      <td class="whitetd" width="20%">{{rule.ruleId}}</td>
-                                      <td class="whitetd" width="20%">{{defineStartDate(rule.StartDate | vitamFormatDate) }}</td>
-                                      <td class="whitetd" width="20%">{{defineEndDate(rule.StartDate | vitamFormatDate , rule.EndDate | vitamFormatDate )}}</td>
-                                      <td class="whitetd" width="20%">{{checkHerited(rule.originId)}}</td>
-                                      <td class="whitetd" width="20%">
+                                      <td width="20%" style="background-color: #FFFFFF">{{rule.ruleId}}</td>
+                                      <td width="20%" style="background-color: #FFFFFF">{{defineStartDate(rule.StartDate | vitamFormatDate) }}</td>
+                                      <td width="20%" style="background-color: #FFFFFF">{{defineEndDate(rule.StartDate | vitamFormatDate , rule.EndDate | vitamFormatDate )}}</td>
+                                      <td width="20%" style="background-color: #FFFFFF">{{checkHerited(rule.originId)}}</td>
+                                      <td ng-if="hasSortFinal(categoryId)" style="background-color: #FFFFFF">{{rule.FinalAction}}</td>
+                                      <td style="background-color: #FFFFFF">
                                         <span ng-show="!checkUpOrDown(rule)" class="glyphicon glyphicon-chevron-down"></span>
                                         <span ng-show="checkUpOrDown(rule)" class="glyphicon glyphicon-chevron-up"></span>
                                       </td>
                                   </tr>
 
-                                  <tr class="extra-row" id="{{rule.ruleId}}" ng-show="displayRule[rule.ruleId]">
-                                    <td colspan="5">
+                                  <tr class="extra-row" ng-show="displayRule[rule.ruleId]">
+                                    <td colspan="6" style="background-color: #eeeeee; cursor: default;">
                                       <div class="form-group col-md-12" max-width="100%">
                                         <label style="display: inline">Hérité de : </label>
                                         <a href={{getSourcePath(rule)}} ng-show="checkSource(rule.originId)">{{title[rule.ruleId]}}</a>
                                         <span ng-show="!checkSource(rule.originId)">{{title[rule.ruleId]}}</span>
-                                      </div>
-                                      <div class="form-group col-md-12" ng-if="rule.FinalAction">
-                                        <label style="display: inline">Sort Final : </label>
-                                        <span>{{rule.FinalAction}}</span>
                                       </div>
                                       <div class="form-group col-md-12" ng-if="rule.ClassificationLevel">
                                         <label style="display: inline">Niveau de la classification : </label>
