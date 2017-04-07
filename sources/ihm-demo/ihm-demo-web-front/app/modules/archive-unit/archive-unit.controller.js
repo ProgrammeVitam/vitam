@@ -413,6 +413,11 @@ angular.module('archive.unit')
             return false;
         }
     };
+    $scope.hasSortFinal = function(c){
+        if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
+            return true;
+        } else return false;
+    };
     self.displayArchiveDetails = function(){
       self.mainFields={};
       if(self.archiveFields == null || self.archiveFields == undefined){
