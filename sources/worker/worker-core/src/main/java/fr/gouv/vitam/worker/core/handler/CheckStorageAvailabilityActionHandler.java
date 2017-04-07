@@ -99,18 +99,24 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             }
             final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
                 StorageInformation[].class);
-            for (StorageInformation information : informations) {
-                ItemStatus is = new ItemStatus(information.getOfferId());
-                // Useful information ?
-                is.setData("offerId", information.getOfferId());
-                // if usable space not specified getUsableSpace() return -1
-                if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
-                    is.increment(StatusCode.OK);
-                } else {
-                    is.increment(StatusCode.KO);
-                }
-                itemStatus.setItemsStatus(information.getOfferId(), is);
+            if (informations.length > 0) {
+                for (StorageInformation information : informations) {
+                    ItemStatus is = new ItemStatus(information.getOfferId());
+                    // Useful information ?
+                    is.setData("offerId", information.getOfferId());
+                    // if usable space not specified getUsableSpace() return -1
+                    if (information.getUsableSpace() >= totalSizeToBeStored || information.getUsableSpace() == -1) {
+                        is.increment(StatusCode.OK);
+                    } else {
+                        is.increment(StatusCode.KO);
+                    }
+                    itemStatus.setItemsStatus(information.getOfferId(), is);
 
+                }
+            } else {
+                LOGGER.warn("No information found for offers");
+                itemStatus.increment(StatusCode.OK);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
 
         } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
@@ -118,7 +124,7 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        return itemStatus;
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
