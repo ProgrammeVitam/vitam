@@ -160,17 +160,17 @@
     ProxyPassReverse  /mongo-express http://{{groups['hosts-mongo-express'][0]}}:8081/mongo-express
     {% endif %}
 
-    {% if groups['hosts-log-server']|length >0 %}
+    {% if groups['hosts-kibana']|length >0 %}
     # Kibana
-    ProxyPass /app/kibana http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    ProxyPassReverse /app/kibana http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/app/kibana
-    ProxyPass /api/status http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    ProxyPassReverse /api/status http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/api/status
-    ProxyPass /bundles http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
-    ProxyPassReverse /bundles http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/bundles
+    ProxyPass /app/kibana http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/app/kibana acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse /app/kibana http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/app/kibana
+    ProxyPass /api/status http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/api/status acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse /api/status http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/api/status
+    ProxyPass /bundles http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/bundles acquire=5000 connectiontimeout=3500 timeout=50 retry=5
+    ProxyPassReverse /bundles http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/bundles
     # Needed as it conflicts with Elasticsearch reverse proxy
-    ProxyPass /elasticsearch http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/elasticsearch
-    ProxyPassReverse /elasticsearch http://{{groups['hosts-log-server'][0]}}:{{vitam_kibana_port}}/elasticsearch
+    ProxyPass /elasticsearch http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/elasticsearch
+    ProxyPassReverse /elasticsearch http://{{groups['hosts-kibana'][0]}}:{{vitam_kibana_port}}/elasticsearch
     {% endif %}
 
     {% if groups['library']|length >0 %}

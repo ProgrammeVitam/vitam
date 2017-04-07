@@ -1,0 +1,153 @@
+---
+
+#### Logstash installation ####
+
+- name: Install java (prerequisite for other components)
+  yum:
+    name: java-1.8.0
+    state: latest
+  when: ansible_distribution == "CentOS"
+
+- name: install openjdk from jessie-backports only when Debian
+  apt:
+    name: openjdk-8-jre-headless
+    state: latest
+    default_release: jessie-backports
+  when: ansible_distribution == "Debian"
+
+- name: Install logstash package from repo
+  package:
+    name: logstash-all-plugins
+    state: latest
+  notify:
+    - restart logstash
+
+- name: Enable logstash
+  service:
+    name: logstash
+    enabled: yes
+  notify:
+    - restart logstash
+
+## Logstash configuration
+
+- name: Ensure logstash directories exist
+  file:
+    path: "{{vitam_folder_root}}/{{item}}/logstash"
+    owner: logstash
+    state: directory
+    mode: "{{vitam_folder_permission}}"
+  with_items:
+    - data
+    - log
+    - conf
+    - lib
+  notify:
+    - restart logstash
+
+- name: ensure json conf extra  directory exists
+  file:
+    path: "{{logstash_confextra_dir}}"
+    owner: logstash
+    state: directory
+    mode: "{{vitam_folder_permission}}"
+  notify:
+    - restart logstash
+
+# TODO: Check if useful, else remove.
+- name: create conf subdir for logstash (useless)
+  file:
+    path: /opt/logstash/conf
+    state: directory
+    owner: logstash
+    mode: 0755
+
+- name: copy default logstash file (preferIPv4)
+  template:
+    src: logstash.j2
+    dest: /etc/default/logstash
+    owner: root
+    mode: 0644
+  notify:
+    - restart logstash
+
+# FIXME : find a more proper solution later for this on Debian
+- name: ensure /etc/sysyconfig exists on Debian
+  file:
+    path: /etc/sysconfig
+    state: directory
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_distribution == "Debian"
+
+- name: configure logstash sysconfig file
+  template:
+    src: logstash_sysconfig.j2
+    dest: /etc/sysconfig/logstash
+    owner: root
+    mode: 0664
+  notify:
+    - restart logstash
+
+- name: configure logstash parser
+  template:
+    src: "{{item}}.j2"
+    dest: "{{logstash_conf_dir}}/{{item}}"
+    owner: logstash
+    mode: "{{ vitam_conf_permission }}"
+  with_items:
+    - "01-logstash-vitam-input.conf"
+    - "02-logstash-vitam-filter.conf"
+    - "03-logstash-vitam-output.conf"
+  notify:
+    - restart logstash
+
+- name: add json extra conf
+  template:
+    src: "{{item}}.j2"
+    dest: "{{logstash_confextra_dir}}/{{item}}"
+    owner: logstash
+  with_items:
+    - "elasticsearch-template.json"
+  notify:
+    - restart logstash
+
+- name: add vitam patterns conf
+  template:
+    src: "vitam-patterns.j2"
+    dest: "/opt/logstash/vendor/bundle/jruby/1.9/gems/logstash-patterns-core-2.0.5/patterns/vitam"
+    owner: logstash
+  notify:
+    - restart logstash
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{consul_folder_conf}}"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-{{ item }}.json.j2"
+    dest: "{{consul_folder_conf}}/service-{{ item }}.json"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items:
+    - logstash
+  notify:
+   - reload consul configuration
+
+- name: Ensure consul service is started
+  service:
+    name: "vitam-consul"
+    state: started
+
+- name: Ensure logstash service is started
+  service:
+    name: "logstash"
+    state: started

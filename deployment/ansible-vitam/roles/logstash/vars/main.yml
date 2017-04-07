@@ -1,10 +1,6 @@
 ---
-# vars file for log-server
 
 logstash_log_dir: "{{vitam_folder_root}}/log/logstash"
 logstash_conf_dir: "{{vitam_folder_root}}/conf/logstash"
 logstash_confextra_dir: "{{logstash_conf_dir}}/extra"
 logstash_data_dir: "{{vitam_folder_root}}/data/logstash"
-
-curator_conf_dir: "{{vitam_folder_root}}/conf/curator"
-curator_log_dir: "{{vitam_folder_root}}/log/curator"

@@ -137,7 +137,13 @@ hosts-mongoclient
 [hosts-consul-server]
 localhost
 
-[hosts-log-server]
+[log-servers:children]
+hosts-kibana
+hosts-logstash
+
+[hosts-logstash]
+
+[hosts-kibana]
 
 [hosts-elasticsearch-log]
 
