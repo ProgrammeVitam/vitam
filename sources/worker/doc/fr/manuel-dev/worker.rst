@@ -119,6 +119,7 @@ Dans la partie Core, sont présents les différents Handlers nécessaires pour e
 - CheckStorageAvailabilityActionHandler
 - CheckVersionActionHandler
 - ExtractSedaActionHandler
+- CheckIngestContractActionHandler
 - IndexObjectGroupActionHandler
 - IndexUnitActionHandler
 - StoreObjectGroupActionHandler
@@ -901,6 +902,46 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
 	-- status (ItemStatus)
 
+4.13 Détail du handler : CheckIngestContractHandler
+-------------------------------------------------------
+
+4.13.1 Description
+==================
+
+CheckIngestContractHandler permet de vérifier la présence et contrôler le contrat d'entrée  
+du SIP à télécharger. 
+
+4.13.2 Détail des données utilisées
+===================================
+ globalSEDAParameters.json
+ Ce handler prend ce fichier comme le parametre d'entrée. Le fichier contient des données gobales sur l'ensemble des 
+ parametrès du bordereau et il a été généré à l'étape de l'ExtractSedeActionHandler (CHECK_MANIFEST).    
+
+4.13.3 exécution
+================
+
+Le handler cherche d'abord dans globalSEDAParameters.json le nom du contrat déclaré dans le SIP associé au balise <ArchivalAgreement>. 
+Si il n'y as pas de déclaration de contrat d'entrée, le handler retourne le status OK. Si il y a un déclaration de contrat, une liste 
+des opérations suivantes sera effectué : 
+	- recherche du contrat d'entrée déclaré dans la référentiel de contrat  
+	- vérification de contrat : 
+			si le contrat non trouvé ou contrat trouvé mais en status INACTIVE, le handler retourne le status KO
+			si le contrat trouvé et en status ACTIVE, le handler retourne le status OK
+   																 
+   																 
+L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:	
+	Si (il y as pas de déclaration de contrat)
+		handler retourne OK
+	Autrement
+		recherche du contrat dans la base via le client AdminManagementClient
+		Si (contrat nou trouvé OU contrat trouvé mais INACTIVE)
+			 handler retourne KO
+		Autrement 
+		    handler retourne OK
+		Fin Si
+	Fin Si
+
+	
 5. Worker-common
 ****************
 
