@@ -28,6 +28,8 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.ingest.external.core.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.ingest.external.core.Contexts.HOLDING_SCHEME;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -91,6 +93,42 @@ public class IngestStep {
             Response response =
                 world.getIngestClient()
                     .uploadAndWaitAtr(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+            String operationId = response.getHeaderString(X_REQUEST_ID);
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
+    }
+    
+    /**
+     * call vitam to upload the plan
+     * @throws IOException
+     * @throws IngestExternalException
+     */
+    @When("^je télécharge le plan")
+    public void upload_this_plan() throws IOException, IngestExternalException {
+        Path sip = Paths.get(world.getBaseDirectory(), fileName);
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            Response response =
+                world.getIngestClient()
+                    .uploadAndWaitAtr(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
+            String operationId = response.getHeaderString(X_REQUEST_ID);
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
+    }
+    
+    /**
+     * call vitam to upload the tree
+     * @throws IOException
+     * @throws IngestExternalException
+     */
+    @When("^je télécharge l'arbre")
+    public void upload_this_tree() throws IOException, IngestExternalException {
+        Path sip = Paths.get(world.getBaseDirectory(), fileName);
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            Response response =
+                world.getIngestClient()
+                    .uploadAndWaitAtr(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
