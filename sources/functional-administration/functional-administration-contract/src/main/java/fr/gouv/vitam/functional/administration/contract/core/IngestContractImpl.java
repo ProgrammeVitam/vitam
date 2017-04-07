@@ -168,9 +168,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can use IngestContract at this point
             mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.INGEST_CONTRACT);
 
-        } catch (VitamException exp) {
-            manager.logFatalError(new StringBuilder("Import ingest contracts error > ").append(exp.getMessage()).toString());
-            throw exp;
+        } catch (Exception exp) {
+            String err = new StringBuilder("Import ingest contracts error > ").append(exp.getMessage()).toString();
+            manager.logFatalError(err);
+            return new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err);
         }
 
         manager.logSuccess();
