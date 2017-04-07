@@ -146,7 +146,19 @@ Contrôle du SIP (STP_INGEST_CONTROL_SIP)
       - KO : Une récursivité a été détectée dans l'arborescence des ArchiveUnits (CHECK_MANIFEST.KO=Échec de contrôle du bordereau)
 
       - FATAL : la vérification de la cohérence du bordereau n'a pas pu être réalisée suite à une erreur système, e.g. les journaux de cycle de vie n'ont pas pu être créés (CHECK_MANIFEST.FATAL=Erreur fatale lors de contrôle du bordereau)
+      
 
+  * Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
+
+    + **Règle** : vérifier le contrat d'entrée déclaré dans le SIP par rapport la référentiel de contrants d'entrée importée dans le system. 
+
+    + **Type** : bloquant.
+
+    + **Statuts** :
+
+      - OK : s'il y a pas de contrat déclaré dans le SIP OU le contrat d'entrée déclaré est validé (contrat trouvé dans la référentiel de contrat et en status ACTIVE)
+
+      - KO : si le contrat déclaré est invalide (contrat non trouvé dans la référentiel de contrat OU contrat trouvé mais en status INACTIVE)
 
   * Vérification de la cohérence entre objets, groupes d'objets et unités archivistiques (CHECK_CONSISTENCY)
 
@@ -461,6 +473,18 @@ Il décrit le processus d'entrée (hors Ingest externe) pour entrer un SIP, inde
                ]
              }
            },
+		   {
+             "action": {
+               "actionKey": "CHECK_CONTRACT_INGEST",
+               "behavior": "BLOCKING",
+               "in": [
+                 {
+                   "name": "globalSEDAParameters.file",
+                   "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+                 }
+               ]
+             }
+           },                      
            {
              "action": {
                "actionKey": "CHECK_CONSISTENCY",
@@ -721,6 +745,12 @@ D'une façon synthétique, le workflow est décrit de cette façon :
     + Création de l'arbre d'ordre d'indexation,
 
     + Extraction des métadonnées contenues dans le bloc ManagementMetadata du manifeste pour le calcul des règles de gestion.
+
+  * CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
+
+    + Recherche le nom de contrat d'entrée dans le SIP,
+    
+    + Vérification de la validité de contrat par rapport la référentiel de contrats importée dans le système
 
 
   * CHECK_CONSISTENCY (CheckObjectUnitConsistencyActionHandler.java) :
