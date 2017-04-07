@@ -80,6 +80,8 @@ Pour la commande HEAD, ces Qualifiers peuvent être spécifiés pour préciser s
 
 ### Structuration des métadonnées
 
+**A noter: la structuration va changer dans la prochaine release**
+
 La structuration d'un Object est la suivante :
 ```json
   {

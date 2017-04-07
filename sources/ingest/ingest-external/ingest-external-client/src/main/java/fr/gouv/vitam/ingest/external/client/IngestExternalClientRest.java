@@ -44,16 +44,19 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
@@ -73,6 +76,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final int TIME_TO_SLEEP = 1000; // Tree seconds
+    private static final String CODE_VITAM = "code_vitam";
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -164,6 +168,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
+    @Override
     public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
         throws IngestExternalException {
 
@@ -209,44 +214,13 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
-    // TODO: never call
     @Override
     public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws VitamClientException {
-        ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        try {
-            response =
-                performRequest(HttpMethod.POST, OPERATION_URI + "/" + operationId, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-
-                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-
-                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-
-                throw new VitamClientInternalException(UNAUTHORIZED);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-
-                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-            }
-            return Response.fromResponse(response).build();
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        final Status status = Status.NOT_IMPLEMENTED;
+        return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
     // use with async : do not close the answer.
@@ -519,5 +493,10 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext("INGEST_EXTERNAL")
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 }

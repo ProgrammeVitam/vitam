@@ -266,120 +266,120 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RULES_URI + DOCUMENT_ID)
+            .when().get(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(RULES_URI + DOCUMENT_ID)
+            .when().get(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(RULES_URI + DOCUMENT_ID)
+            .when().get(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RULES_URI)
+            .when().get(RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(RULES_URI)
+            .when().get(RULES_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(RULES_URI)
+            .when().get(RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(WRONG_URI + DOCUMENT_ID)
+            .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(WRONG_URI + DOCUMENT_ID)
+            .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(WRONG_URI + DOCUMENT_ID)
+            .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(WRONG_URI)
+            .when().get(WRONG_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(WRONG_URI)
+            .when().get(WRONG_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(WRONG_URI)
+            .when().get(WRONG_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
@@ -400,14 +400,14 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
@@ -418,14 +418,14 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }

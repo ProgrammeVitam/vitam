@@ -63,6 +63,27 @@ public class ClientMockResultHelper {
             "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
             "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
+    private static final String OBJECTGROUP =
+  "{ \"_id\": \"aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba\",  \"_tenant\": 0,  \"_profil\": \"Text\",  " +
+  "\"FileInfo\": { \"Filename\": \"Filename0\",   \"CreatingApplicationName\": \"CreatingApplicationName0\",   " +
+  " \"CreatingApplicationVersion\": \"CreatingApplicationVersion0\", " +
+  "\"DateCreatedByApplication\": \"2006-05-04T18:13:51.0\", \"CreatingOs\": \"CreatingOs0\", " +
+  "\"CreatingOsVersion\": \"CreatingOsVersion0\", \"LastModified\": \"2006-05-04T18:13:51.0\"  }, " +
+  " \"_qualifiers\": { \"BinaryMaster\": {   \"nb\": 1,   \"versions\": [  { " +
+  "   \"_id\": \"ID009\", \"DataObjectGroupId\": \"aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba\", " +
+  "   \"DataObjectVersion\": \"BinaryMaster\",  " +
+  "  \"MessageDigest\": \"e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a\"," +
+  " \"Size\": \"226224\", \"FormatIdentification\": {   \"FormatLitteral\": \"FormatLitteral0\", " +
+  "  \"MimeType\": \"MimeType0\",   \"FormatId\": \"FormatId0\",   \"Encoding\": \"Encoding0\"  " +
+  "  }, \"FileInfo\": {   \"Filename\": \"Filename0\",  " +
+  " \"CreatingApplicationName\": \"CreatingApplicationName0\",   " +
+  "\"CreatingApplicationVersion\": \"CreatingApplicationVersion0\", " +
+  "  \"DateCreatedByApplication\": \"2006-05-04T18:13:51.0\",   \"CreatingOs\": \"CreatingOs0\", " +
+  "  \"CreatingOsVersion\": \"CreatingOsVersion0\",   \"LastModified\": \"2006-05-04T18:13:51.0\" }, " +
+  "   \"Metadata\": {   \"Text\": \"\\n \" },   " +
+  " \"OtherMetadata\": \"\\n   \"  }   ] }  }, " +
+  " \"_up\": [ \"aeaaaaaaaaaam7mxaaaamakwkuhqtgaaaabq\",\r\n \"aeaaaaaaaaaam7mxaaaamakwkuhqt5iaaacq\"  ],  \"_nbc\": 1}";
+    
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
             "\"evType\": \"Process_SIP_unitary\"," +
@@ -238,7 +259,8 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookOperationWithObId() throws InvalidParseOperationException {
         return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
+            .getFromString(
+                RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
     }
 
     /**
@@ -337,6 +359,14 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * @return a default ObjectGroup result
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getObjectGroupResult() throws InvalidParseOperationException {
+        return createReponse(OBJECTGROUP);
+    }
+
+    /**
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
      */
@@ -349,7 +379,7 @@ public class ClientMockResultHelper {
 
     /**
      * 
-     * @param id 
+     * @param id
      * @return a default ArchiveUnit result
      * @throws InvalidParseOperationException
      */

@@ -173,11 +173,13 @@ public class IngestExternalImpl implements IngestExternal {
             Response response = null;
             try (IngestInternalClient ingestClient =
                 IngestInternalClientFactory.getInstance().getClient()) {
-                response = ingestClient.initWorkFlow(contextWithExecutionMode);
+                try {
+                    response = ingestClient.initWorkFlow(contextWithExecutionMode);
+                } finally {
+                    ingestClient.consumeAnyEntityAndClose(response);
+                }
             } catch (VitamException e) {
                 throw new IngestExternalException(e);
-            } finally {
-                staticConsumeAnyEntityAndClose(response);
             }
 
             workspaceFileSystem =

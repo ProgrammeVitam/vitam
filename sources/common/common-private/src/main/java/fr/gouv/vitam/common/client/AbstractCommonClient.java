@@ -121,11 +121,15 @@ abstract class AbstractCommonClient implements BasicClient {
                     StreamUtils.closeSilently((InputStream) object);
                 }
             }
-        } catch (final IllegalStateException | ProcessingException e) {
+        } catch (final Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         } finally {
             if (response != null) {
-                response.close();
+                try {
+                    response.close();
+                } catch (Exception e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
             }
         }
     }

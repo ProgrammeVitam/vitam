@@ -3,6 +3,8 @@ package fr.gouv.vitam.access.external.client;
 import java.io.InputStream;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -83,10 +85,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.POST, documentType.getName(), headers,
+            response = performRequest(HttpMethod.GET, documentType.getName(), headers,
                 select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -105,14 +106,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
+    // FIXME manque un DSL pour permettre une projection
     public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         try {
-            response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
+            response = performRequest(HttpMethod.GET, documentType.getName() + "/" + documentId, headers,
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {

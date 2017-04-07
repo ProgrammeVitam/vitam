@@ -22,10 +22,10 @@ public interface OperationManagementClient extends MockOrRestClient {
     /**
      * getOperationProcessStatus:
      * 
-     * get operation process status**
+     * get operation process status
      * 
-     * @param id : operation identifier*
-     * @return ItemStatus response containing message and status*
+     * @param id : operation identifier
+     * @return ItemStatus response containing message and status
      * @throws VitamClientException
      * @throws InternalServerException
      * @throws BadRequestException

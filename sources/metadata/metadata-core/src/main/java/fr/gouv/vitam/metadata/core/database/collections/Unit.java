@@ -39,8 +39,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -51,6 +53,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
@@ -326,54 +329,65 @@ public class Unit extends MetadataDocument<Unit> {
             }
             // UNITDEPTHS
             @SuppressWarnings("unchecked")
-            final HashMap<String, Integer> vtDepths =
-                (HashMap<String, Integer>) vt.remove(UNITDEPTHS);
+            final ArrayList<Document> vtDepths =
+                (ArrayList<Document>) vt.remove(UNITDEPTHS);
             @SuppressWarnings("unchecked")
-            HashMap<String, Integer> depthLevels =
-                (HashMap<String, Integer>) get(UNITDEPTHS);
+            ArrayList<Document> depthLevels =
+                (ArrayList<Document>) get(UNITDEPTHS);
             if (depthLevels == null) {
-                depthLevels = new HashMap<>();
+                depthLevels = new ArrayList<>();
             }
-            final BasicDBObject vtDepthLevels = new BasicDBObject();
+            final ArrayList<Document> vtDepthLevels = new ArrayList<>();
+            final Set<String> unitParents = new HashSet<>();
             if (vtDepths != null) {
                 // remove all not in current but in vt as already updated, for
                 // the others compare vt with current
-                for (final String unit : vtDepths.keySet()) {
-                    final Integer pastval = vtDepths.get(unit);
-                    final Integer newval = depthLevels.get(unit);
-                    if (newval != null) {
-                        if (pastval > newval) {
-                            // to be remotely updated
-                            vtDepthLevels.append(unit, newval);
-                        } else {
-                            // to be remotely updated
-                            vtDepthLevels.append(unit, pastval);
-                            // update only locally
-                            depthLevels.put(unit, pastval);
+                for (Document document : vtDepths) {
+                    for (Entry<String, Object> entry : document.entrySet()) {
+                        String unit = entry.getKey();
+                        Integer pastval = (Integer) entry.getValue();
+                        for (Document document2 : depthLevels) {
+                            if (document2.containsKey(unit)) {
+                                final Integer newval = document2.getInteger(unit);
+                                if (newval != null) {
+                                    if (pastval > newval) {
+                                        // to be remotely updated
+                                        pastval = newval;
+                                        vtDepthLevels.add(document2);
+                                        unitParents.add(unit);
+                                    } else {
+                                        // update only locally
+                                        document2.append(unit, pastval);
+                                    }
+                                } else {
+                                    // to be remotely updated
+                                    vtDepthLevels.add(document);
+                                    unitParents.add(unit);
+                                    // update only locally
+                                    document2.append(unit, pastval);
+                                }
+                            }
                         }
-                    } else {
-                        // to be remotely updated
-                        vtDepthLevels.append(unit, pastval);
-                        // update only locally
-                        depthLevels.put(unit, pastval);
                     }
                 }
                 // now add into remote update from current, but only non
                 // existing in vt (already done)
-                for (final String unit : depthLevels.keySet()) {
+                for (final Document document : depthLevels) {
                     // remove by default
-                    final Integer srcobj = vtDepths.get(unit);
-                    final Integer obj = depthLevels.get(unit);
-                    if (srcobj == null) {
-                        // to be remotely updated
-                        vtDepthLevels.append(unit, obj);
+                    for (Entry<String, Object> entry : document.entrySet()) {
+                        String unit = entry.getKey();
+                        Integer pastval = (Integer) entry.getValue();
+                        if (! unitParents.contains(unit)) {
+                            // to be remotely updated
+                            vtDepthLevels.add(document);
+                        }
                     }
                 }
                 // Update locally
                 append(UNITDEPTHS, depthLevels);
             }
             if (!vtDepthLevels.isEmpty()) {
-                upd = new BasicDBObject(UNITDEPTHS, vtDepthLevels);
+                upd = new BasicDBObject().append(UNITDEPTHS, vtDepthLevels);
                 listset.add(upd);
             }
             // Compute UNITUPS
@@ -460,8 +474,7 @@ public class Unit extends MetadataDocument<Unit> {
 
         // addAll to temporary ArrayList
         @SuppressWarnings("unchecked")
-        final ArrayList<Document> vtDomaineLevels =
-            (ArrayList<Document>) get(UNITDEPTHS);
+        final ArrayList<Document> vtDomaineLevels = (ArrayList<Document>) get(UNITDEPTHS);
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
 
         // must compute depth from parent
@@ -502,12 +515,12 @@ public class Unit extends MetadataDocument<Unit> {
      * @return the map of parent units with depth
      */
     @SuppressWarnings("unchecked")
-    public Map<String, Integer> getDepths() {
-        final Map<String, Integer> map = (Map<String, Integer>) get(UNITDEPTHS);
-        if (map == null) {
-            return SingletonUtils.singletonMap();
+    public List<Document> getDepths() {
+        final List<Document> vtDomaineLevels = (ArrayList<Document>) get(UNITDEPTHS);
+        if (vtDomaineLevels == null) {
+            return SingletonUtils.singletonList();
         }
-        return map;
+        return vtDomaineLevels;
     }
 
     /**
@@ -515,12 +528,15 @@ public class Unit extends MetadataDocument<Unit> {
      * @return the max depth of this node from existing parents
      */
     public int getMaxDepth() {
-        final Map<String, Integer> map = getDepths();
+        final List<Document> list = getDepths();
         int depth = 0;
-        if (map != null) {
-            for (final Integer integer : map.values()) {
-                if (depth < integer) {
-                    depth = integer;
+        if (list != null) {
+            for (final Document doc : list) {
+                for (Entry<String, Object> item : doc.entrySet()) {
+                    final Integer integer = (Integer) item.getValue();
+                    if (depth < integer) {
+                        depth = integer;
+                    }
                 }
             }
         }
@@ -534,12 +550,15 @@ public class Unit extends MetadataDocument<Unit> {
      * @return the min depth of this node from existing parents
      */
     public int getMinDepth() {
-        final Map<String, Integer> map = getDepths();
+        final List<Document> list = getDepths();
         int depth = this.getInteger(MINDEPTH, GlobalDatasParser.MAXDEPTH);
-        if (map != null) {
-            for (final Integer integer : map.values()) {
-                if (depth > integer) {
-                    depth = integer;
+        if (list != null) {
+            for (final Document doc : list) {
+                for (Entry<String, Object> item : doc.entrySet()) {
+                    final Integer integer = (Integer) item.getValue();
+                    if (depth > integer) {
+                        depth = integer;
+                    }
                 }
             }
         }
@@ -758,8 +777,15 @@ public class Unit extends MetadataDocument<Unit> {
      * @return True if immediate parent, else False (however could be a grand parent)
      */
     public boolean isImmediateParent(final String other) {
-        final Map<String, Integer> depth = getDepths();
-        return depth.get(other) == 1;
+        final List<Document> list = getDepths();
+        if (list != null) {
+            for (final Document doc : list) {
+                if (doc.containsKey(other)) {
+                    return doc.getInteger(other) == 1;
+                }
+            }
+        }
+        return false;
     }
 
     /**
