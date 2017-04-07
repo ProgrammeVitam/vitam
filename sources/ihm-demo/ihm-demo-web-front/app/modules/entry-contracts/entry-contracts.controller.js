@@ -88,8 +88,9 @@ angular.module('entryContracts')
             if (requestOptions.ContractID == "" || requestOptions.ContractID == undefined) {
                 requestOptions.ContractID = "all";
             }
-
-            //requestOptions.orderby = "evDateTime";
+            requestOptions.orderby = {
+              field: 'Name', sortType: 'ASC'
+            };
             return requestOptions;
         };
 

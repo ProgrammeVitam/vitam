@@ -63,7 +63,7 @@
 						<td>{{log.Name}}</td>
 						<td>{{log._id}}</td>
 						<td>{{log.Description}}</td>
-						<td>{{log.Status}}</td>
+						<td>{{log.Status | StrReplace }}</td>
 						<td>{{log.ActivationDate | vitamFormatDate}}</td>
 						<td>{{log.DeactivationDate | vitamFormatDate}}</td>
 						<td>{{log.CreationDate | vitamFormatDate}}</td>
