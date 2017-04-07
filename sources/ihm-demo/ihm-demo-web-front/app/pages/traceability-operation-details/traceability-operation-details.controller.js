@@ -28,7 +28,7 @@
 // Define controller for traceability.operation.details
 angular.module('traceability.operation.details')
   .controller('traceabilityOperationDetailsController', function($scope, $routeParams, traceabilityOperationDetailsService,
-    traceabilityOperationResource, responseValidator) {
+    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService, $window) {
 
       // Traceability operation to check
       $scope.traceabilityOperationId = $routeParams.operationId;
@@ -77,6 +77,23 @@ angular.module('traceability.operation.details')
 
       $scope.runTraceabilityVerificationProcess = function() {
         traceabilityOperationDetailsService.runTraceabilityVerificationProcess($scope.traceabilityOperationId, successCheckOperationCallback);
+      };
+
+      // ************Download operation file ****************** //
+      var successDownloadTraceabilityFile = function(response) {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream', responseType: 'arraybuffer'}));
+        a.href = url;
+
+        if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
+          a.download = response.headers('content-disposition').split('filename=')[1];
+          a.click();
+        }
+      };
+
+      $scope.downloadOperation = function() {
+        downloadTraceabilityOperationService.getLogbook($scope.traceabilityOperationId, successDownloadTraceabilityFile);
       };
 
       // Start by getting details for the selected operation

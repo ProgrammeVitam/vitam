@@ -38,8 +38,12 @@ angular.module('core').service('downloadTraceabilityOperationService',
 		function(downloadTraceabilityOperationResource) {
 			var downloadOperationService = this;
 
-			downloadOperationService.getLogbook = function(idOperation) {
-				return downloadTraceabilityOperationResource.result(idOperation);
+			downloadOperationService.getLogbook = function(idOperation, successCallbackFunction) {
+				return downloadTraceabilityOperationResource.result(idOperation).then(function(response) {
+	        successCallbackFunction(response);
+	      }, function (error) {
+	        return error;
+	      })
 			};
 
 		});
