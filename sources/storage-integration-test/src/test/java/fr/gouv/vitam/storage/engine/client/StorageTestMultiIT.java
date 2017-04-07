@@ -27,14 +27,10 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
-import fr.gouv.vitam.storage.logbook.StorageLogbookService;
-import fr.gouv.vitam.storage.logbook.StorageLogbookServiceImpl;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -56,6 +52,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -68,7 +65,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -89,7 +85,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 import junit.framework.TestCase;
-import org.junit.rules.TemporaryFolder;
 
 public class StorageTestMultiIT {
     private static final int NB_MULTIPLE_THREADS = 50;
@@ -307,6 +302,7 @@ public class StorageTestMultiIT {
         ExecutorService executor = new VitamThreadPoolExecutor(NB_MULTIPLE_THREADS);
         List<Future<Boolean>> list = new ArrayList<Future<Boolean>>(NB_MULTIPLE_THREADS);
         List<FullTest> listFullTest = new ArrayList<FullTest>(NB_MULTIPLE_THREADS);
+        Thread.sleep(100);
         // initialize Workspace
         try {
             workspaceClient.createContainer(CONTAINER);
@@ -314,11 +310,13 @@ public class StorageTestMultiIT {
             // nothing
         }
         LOGGER.info("START creation of {} files in Workspace", NB_MULTIPLE_THREADS);
+        List<GUID> workspaceGUIDs = new ArrayList<>(NB_MULTIPLE_THREADS);
         for (int i = 0; i < NB_MULTIPLE_THREADS; i++) {
             GUID requestId = GUIDFactory.newRequestIdGUID(0);
             VitamThreadUtils.getVitamSession().setRequestId(requestId);
             VitamThreadUtils.getVitamSession().setTenantId(0);
             GUID objectId = GUIDFactory.newObjectGUID(0);
+            workspaceGUIDs.add(objectId);
             try {
                 try (FakeInputStream fis = new FakeInputStream(size, false)) {
                     workspaceClient.putObject(CONTAINER, objectId.getId(), fis);
@@ -327,10 +325,58 @@ public class StorageTestMultiIT {
                 LOGGER.error("During populate size: " + size, e1);
                 assert (false);
             }
-            listFullTest.add(new FullTest(requestId, objectId));
+            listFullTest.add(new FullTest(requestId, objectId, objectId));
         }
+        LOGGER.warn("START creation of {} parallel storage clients", NB_MULTIPLE_THREADS);
+        // FIXME change to 10, 10000 for Java Mission Control benchmark
         Thread.sleep(10);
-        LOGGER.info("START creation of {} parallel storage clients", NB_MULTIPLE_THREADS);
+        long start1 = System.nanoTime();
+        // Launch Storage tests in parallel
+        for (FullTest fullTest : listFullTest) {
+            list.add(executor.submit(fullTest));
+        }
+        Thread.sleep(100);
+        executor.shutdown();
+        LOGGER.info("WAITING for end of {} parallel storage clients", NB_MULTIPLE_THREADS);
+        if (!executor.awaitTermination(600000, TimeUnit.MILLISECONDS)) {
+            LOGGER.warn("Timeout: {}", 600000);
+            assertTrue("TIMEOUT", false);
+        }
+        // Waiting for each request to end
+        int ok1 = 0;
+        int ko1 = 0;
+        for (Future<Boolean> future : list) {
+            try {
+                if (future.get() != true) {
+                    ko1++;
+                } else {
+                    ok1++;
+                }
+            } catch (ExecutionException | InterruptedException | CancellationException e) {
+                LOGGER.error(e);
+                ko1++;
+            }
+        }
+        long stop1 = System.nanoTime();
+        LOGGER.info("END of {} parallel storage clients", NB_MULTIPLE_THREADS);
+        LOGGER.warn("Step 1 OK: {} KO: {} in {} s", ok1, ko1, ((stop1 - start1) / 1000000000));
+        executor.shutdownNow();
+        assertTrue("BAD WRITE " + ok1 + " : " + ko1, ko1 == 0);
+
+        // Retry with other GUID
+        executor = new VitamThreadPoolExecutor(NB_MULTIPLE_THREADS);
+        list.clear();
+        listFullTest.clear();
+        for (GUID objectId : workspaceGUIDs) {
+            GUID requestId = GUIDFactory.newRequestIdGUID(0);
+            VitamThreadUtils.getVitamSession().setRequestId(requestId);
+            VitamThreadUtils.getVitamSession().setTenantId(0);
+            listFullTest.add(new FullTest(requestId, objectId, GUIDFactory.newObjectGUID(0)));
+        }
+        // FIXME change to 10, 10000 for Java Mission Control benchmark
+        Thread.sleep(10);
+        LOGGER.warn("START creation of {} parallel storage clients", NB_MULTIPLE_THREADS);
+        long start2 = System.nanoTime();
         // Launch Storage tests in parallel
         for (FullTest fullTest : listFullTest) {
             list.add(executor.submit(fullTest));
@@ -357,9 +403,12 @@ public class StorageTestMultiIT {
                 ko++;
             }
         }
+        long stop2 = System.nanoTime();
         LOGGER.info("END of {} parallel storage clients", NB_MULTIPLE_THREADS);
-        executor.shutdownNow();
-        LOGGER.warn("OK: {} KO: {}", ok, ko);
+        LOGGER.warn("Step 1 OK: {} KO: {} in {} s", ok1, ko1, ((stop1 - start1) / 1000000000));
+        LOGGER.warn("Step 2 OK: {} KO: {} in {} s", ok, ko, ((stop2 - start2) / 1000000000));
+        // FIXME change to 10, 100000 for Java Mission Control benchmark
+        Thread.sleep(10);
         assertTrue("BAD WRITE " + ok + " : " + ko, ko == 0);
         // Cleaning
         try {
@@ -373,10 +422,12 @@ public class StorageTestMultiIT {
     private static class FullTest implements Callable<Boolean> {
         private final GUID requestId;
         private final GUID objectId;
+        private final GUID storageId;
 
-        public FullTest(GUID requestId, GUID objectId) {
+        public FullTest(GUID requestId, GUID objectId, GUID storageId) {
             this.requestId = requestId;
             this.objectId = objectId;
+            this.storageId = storageId;
         }
 
         public Boolean call() {
@@ -386,17 +437,16 @@ public class StorageTestMultiIT {
             description.setWorkspaceContainerGUID(CONTAINER);
             description.setWorkspaceObjectURI(objectId.getId());
             try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, objectId.getId(), description);
+                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, storageId.getId(), description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
                 return false;
             }
-
+            Response response = null;
             try {
-                Response response = storageClient.getContainerAsync("default", objectId.getId(), StorageCollectionType.OBJECTS);
+                response = storageClient.getContainerAsync("default", storageId.getId(), StorageCollectionType.OBJECTS);
                 final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                 if (status == Status.OK && response.hasEntity()) {
-                    StreamUtils.closeSilently((InputStream) response.getEntity());
                     return true;
                 } else {
                     LOGGER.error("Error: " + status.getReasonPhrase());
@@ -405,6 +455,8 @@ public class StorageTestMultiIT {
             } catch (StorageServerClientException | StorageNotFoundException e) {
                 LOGGER.error("Size: " + size, e);
                 return false;
+            } finally {
+                storageClient.consumeAnyEntityAndClose(response);
             }
         }
     }
@@ -436,8 +488,7 @@ public class StorageTestMultiIT {
             }
         }
 
-        try {
-            VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT);
+        try (VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.OBJECT)) {
             TestCase.assertNotNull(result);
             int count = 0;
             while (result.hasNext()) {
@@ -445,7 +496,6 @@ public class StorageTestMultiIT {
                 TestCase.assertNotNull(result.next());
             }
             TestCase.assertEquals(150, count);
-
         } catch (StorageServerClientException exc) {
             Assert.fail("Should not raize an exception");
         }

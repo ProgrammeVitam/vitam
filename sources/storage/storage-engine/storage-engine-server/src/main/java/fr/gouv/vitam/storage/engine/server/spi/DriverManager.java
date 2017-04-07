@@ -34,6 +34,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
 
@@ -70,8 +73,6 @@ public class DriverManager {
      */
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<>();
 
-    //private static final Map<String, OfferDriverInfo> DRIVERS_OFFERS = Collections.synchronizedMap(new HashMap<>());
-
     private static final String DRIVER_MANAGER_CONF_FILE = "driver-location.conf";
 
     private static Optional<DriverMapper> mapper;
@@ -105,9 +106,12 @@ public class DriverManager {
             try {
                 final List<String> offersIds = mapper.get().getOffersFor(driver.getClass().getName());
                 for (final String offerId : offersIds) {
-                    driver.addOffer(offerId);
+                    StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId);
+                    final Properties parameters = new Properties();
+                    parameters.putAll(offer.getParameters());
+                    driver.addOffer(offer, parameters);
                 }
-            } catch (final StorageDriverMapperException exc) {
+            } catch (final StorageException exc) {
                 LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}", driver.getClass().getName(), exc);
             }
         }
@@ -117,7 +121,16 @@ public class DriverManager {
         throws StorageDriverMapperException {
         ParametersChecker.checkParameter("Offers id list cannot be null", offersIds);
         for (final String offerId : offersIds) {
-            boolean done = driver.addOffer(offerId);
+            boolean done;
+            try {
+                StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId);
+                final Properties parameters = new Properties();
+                parameters.putAll(offer.getParameters());
+                done = driver.addOffer(offer, parameters);
+            } catch (StorageException e) {
+                LOGGER.error(e);
+                throw new StorageDriverMapperException(e);
+            }
             if (!done) {
                 LOGGER.warn(
                     "Cannot append to the driver {} with name {} the offer ID {}, offer already define",

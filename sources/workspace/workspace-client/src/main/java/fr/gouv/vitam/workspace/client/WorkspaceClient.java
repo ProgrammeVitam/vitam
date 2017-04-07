@@ -446,7 +446,7 @@ public class WorkspaceClient extends DefaultClient {
                             ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                     } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
                         "application/json".equals(response.getHeaderString("Content-Type"))) {
-                        LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                        LOGGER.warn(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                         throw new ContentAddressableStorageZipException(
                             ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                     } else {

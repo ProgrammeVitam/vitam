@@ -27,19 +27,17 @@
 
 package fr.gouv.vitam.storage.driver;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class must be the reference to create new drivers implementation compatible with vitam
@@ -47,48 +45,56 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public abstract class AbstractDriver implements Driver {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractDriver.class);
 
-    protected final Map<String, VitamClientFactory<? extends  AbstractConnection>> connectionFactories = new ConcurrentHashMap<>();
-    protected final Set<String> offers = new CopyOnWriteArraySet<>();
+    protected final Map<String, VitamClientFactoryInterface<? extends  AbstractConnection>> connectionFactories = new ConcurrentHashMap<>();
 
     @Override
-    public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
-        if (null == offer) return false;
+    public boolean isStorageOfferAvailable(String offerId) throws StorageDriverException {
+        try {
+            ParametersChecker.checkParameter("StorageId Cannot be null", offerId);
+        } catch (IllegalArgumentException e) {
+            LOGGER.info(e);
+            return false;
+        }
 
-        boolean hasOffer = hasOffer(offer.getId());
-        if (!hasOffer) return false;
-
-        if (connectionFactories.containsKey(offer)) {
+        if (connectionFactories.containsKey(offerId)) {
             try {
-                final VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer);
-                final AbstractConnection connection = factory.getClient();
-                connection.checkStatus();
+                final VitamClientFactoryInterface<? extends AbstractConnection> factory = connectionFactories.get(offerId);
+                try (final AbstractConnection connection = factory.getClient()) {
+                    connection.checkStatus();
+                }
                 LOGGER.debug("Check status ok");
                 return true;
             } catch (final VitamApplicationServerException exception) {
-                LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offer, exception);
+                LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offerId, exception);
                 return false;
             }
         }
-        LOGGER.error("Driver {} has no Offer named {}", getName(), offer);
+        LOGGER.error("Driver {} has no Offer named {}", getName(), offerId);
         return false;
     }
 
 
     @Override
-    final public boolean addOffer(String offerId) {
-        if (!offers.contains(offerId)) {
-            offers.add(offerId);
-            return true;
+    public final boolean addOffer(StorageOffer offer, Properties parameters) {
+        if (!connectionFactories.containsKey(offer.getId())) {
+            connectionFactories.put(offer.getId(), addInternalOfferAsFactory(offer, parameters));
         }
         return false;
     }
 
+    /**
+     * This method must be implemented in the final Driver Implementation to add the ClientFactory to the driver
+     * 
+     * @param offer
+     * @param parameters
+     * @return true if added
+     */
+    protected abstract VitamClientFactoryInterface<AbstractConnection> addInternalOfferAsFactory(StorageOffer offer, Properties parameters);
+    
     @Override
-    final public boolean removeOffer(String offer) {
-        if (offers.contains(offer)) offers.remove(offer);
-
+    public final boolean removeOffer(String offer) {
         if (connectionFactories.containsKey(offer)) {
-            final VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.remove(offer);
+            final VitamClientFactoryInterface<? extends AbstractConnection> factory = connectionFactories.remove(offer);
             factory.shutdown();
             return true;
         }
@@ -98,16 +104,15 @@ public abstract class AbstractDriver implements Driver {
 
 
     @Override
-    final public boolean hasOffer(String offerId) {
-        return offers.contains(offerId);
+    public final boolean hasOffer(String offerId) {
+        return connectionFactories.containsKey(offerId);
     }
 
     @Override
     public void close() {
-        for (Map.Entry<String, VitamClientFactory<? extends AbstractConnection>> item : connectionFactories.entrySet()) {
+        for (Map.Entry<String, VitamClientFactoryInterface<? extends AbstractConnection>> item : connectionFactories.entrySet()) {
             item.getValue().shutdown();
         }
-        offers.clear();
         connectionFactories.clear();
     }
 }

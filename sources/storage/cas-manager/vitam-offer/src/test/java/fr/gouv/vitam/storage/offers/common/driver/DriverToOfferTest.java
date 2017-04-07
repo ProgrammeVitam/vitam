@@ -174,9 +174,9 @@ public class DriverToOfferTest {
         offer.setParameters(tmp);
         offer.setId("Default");
 
-        driver.addOffer("Default");
+        driver.addOffer(offer, null);
         
-        connection = driver.connect(offer, null);
+        connection = driver.connect(offer.getId());
         assertNotNull(connection);
 
         StoragePutRequest request = null;

@@ -96,6 +96,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
     private static final String DIGEST_IS_A_MANDATORY_PARAMETER = "Digest is a mandatory parameter";
 
+    @SuppressWarnings("unused")
     private final Properties parameters;
 
     /**

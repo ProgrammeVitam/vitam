@@ -134,7 +134,7 @@ public class DriverImplTest extends VitamJerseyTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullUrlThenRaiseAnException() throws Exception {
-        DriverImpl.getInstance().connect(null, null);
+        DriverImpl.getInstance().connect(null);
     }
 
     @Test(expected = StorageDriverException.class)
@@ -143,8 +143,8 @@ public class DriverImplTest extends VitamJerseyTest {
         offer.setId("default");
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         Driver driver = DriverImpl.getInstance();
-        driver.addOffer("default");
-        driver.connect(offer, null);
+        driver.addOffer(offer, null);
+        driver.connect(offer.getId());
     }
 
     @Test
@@ -153,9 +153,9 @@ public class DriverImplTest extends VitamJerseyTest {
         offer.setId("default2");
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         Driver driver = DriverImpl.getInstance();
-        driver.addOffer("default2");
+        driver.addOffer(offer, null);
 
-        final Connection connection = driver.connect(offer, null);
+        final Connection connection = driver.connect(offer.getId());
 
         assertNotNull(connection);
     }

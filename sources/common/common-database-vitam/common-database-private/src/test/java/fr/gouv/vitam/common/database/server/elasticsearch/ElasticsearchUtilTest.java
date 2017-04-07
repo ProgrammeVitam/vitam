@@ -5,8 +5,8 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.yaml.snakeyaml.introspector.PropertyUtils;
 
-import com.fasterxml.jackson.dataformat.yaml.snakeyaml.introspector.PropertyUtils;
 
 public class ElasticsearchUtilTest {
 
