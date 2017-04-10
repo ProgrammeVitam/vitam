@@ -5,6 +5,7 @@ Général
 *******
 
 L'extraction du bordereau SEDA tranforme le fichier manifest.xml en plusieurs fichiers contenant les informations du manifest, les définitions des Archives Units et des Groupes d'Objets Techniques, ainsi que la structure des objets.
+Dans des étapes utlérieures, les fichiers OG et Unit extraits sont indexés en base lors de l'indexation.
 
 Workspace avant extraction :
 ============================
@@ -18,7 +19,7 @@ containerId/SIP
 containerId/SIP/Content/
 containerId/SIP/manifest.xml
 containerId/Units
-containerId/Units/AU_GUID.xml
+containerId/Units/AU_GUID.json
 containerId/Uits/...
 containerId/ObjectGroup
 containerId/ObjectGroup/GOT_GUID.json
@@ -60,22 +61,25 @@ Algorithme
 
       3. Sauvegarde des ArchiveUnit dans workspace depuis manifest.xml (GUID/Units/GUID) (SedaUtils->writeArchiveUnitToWorkspace)
 
-      4. L'autre worker va chercher les ObjectGroups dans workspace puis indexer dans metadata (SedaUtils->indexObjectGroup)
-
-      5. L'autre worker va traduire Unit XML -> Json puis indexer dans metadata  (SedaUtils->indexArchiveUnit)
-
-
 3. Journalisation de fin de l'action extraction SEDA (fait par le Distributeur)
 
-Algorithme d'update
-===================
+4. Indexation
+
+      1. Lors de l'indexation des OGs, le worker va chercher les ObjectGroups dans workspace puis le worker se charge d'indexer dans metadata (SedaUtils->indexObjectGroup)
+
+      2. Lors de l'indexation des Units, le worker va chercher dans le workspace, et le handler se charge de nettoyer et préparer les Units puis indexer dans metadata (SedaUtils->indexArchiveUnit)
+
+5. Journalisation de fin de l'action d'indexation (fait par le Distributeur)
+
+Algorithme d'update pour l'extract SEDA
+=======================================
 
 Après la création de l'Archives Unit temporaire extraite du manifest.xml si une balise *<SystemId>EXISTING_GUID</SystemId>* a été rencontrée les traitement suivant sont fait :
 * l'Archive Unit existant est récupéré en base à partir du EXISTING_GUID fourni dans le fichier, si il n'est pas trouvé l'extraction est arrêtée
-* un nouveau fichier d'archive temporaire *EXISTING_GUID.xml* est créé à partir du fichier extrait (*GUID.xml*) en changeant l'attribut d'id de la balise *<ArchiveUnit id="GUID">...</ArchiveUnit>*
-* l'ancien fichier *GUID.xml* est supprimé
+* un nouveau fichier d'archive temporaire *EXISTING_GUID.json* est créé à partir du fichier extrait (*GUID.json*) en changeant modifiant d'id l'objet *"ArchiveUnit":{ "_id":"GUID", ...}*
+* l'ancien fichier *GUID.json* est supprimé
 * le nouveau guid *EXISTING_GUID* remplace l'ancien *GUID* dans la données temporaires d'extraction (correspondance des Id VITAM/SEDA, liste des GUID de unit extrait) et ajouté dans la liste des GUID existants
 * préparation du lifecycle de l'archive unit spécifique à la mise à jour (*message à définir*)
 
 Lors de la finalisation de l'extraction des units, si le unit est déclaré comme pré-existant on ajoute :
-* on ajoute une balise *<existing>true</existing>* dans la balise *<work>...</work>* pour indiquer aux prochaines étapes que l'archive unit manipulé est une mise à jour
+* on ajoute une valeur *"existing":true* dans l'objet *_work: {...}* pour indiquer aux prochaines étapes que l'archive unit manipulé est une mise à jour
