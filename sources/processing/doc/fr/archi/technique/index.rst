@@ -9,4 +9,4 @@ Architecture Technique
    processing-dat.rst
    storage.rst
    check-availability.rst
-   seda-extraction.rst
+   seda-check.rst
