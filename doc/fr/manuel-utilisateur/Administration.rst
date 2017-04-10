@@ -304,10 +304,10 @@ Les sous-menus permettant d'accéder aux interfaces de recherche et d’import d
 
 .. image:: images/CONTRACTS_Menu.png
 
-Contrats d'Entrée
-----------------
+Contrats d'entrée
+-----------------
 
-**Importer un contrat d'Entrée**
+**Importer un contrat d'entrée**
 
 Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'entrée".
 
@@ -334,7 +334,7 @@ Une fenêtre modale indique alors soit :
 
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
-**Rechercher un contrat d'Entrée**
+**Rechercher un contrat d'entrée**
 
 Pour accéder à la recherche de contrats d'entrée, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrée".
 
@@ -358,7 +358,7 @@ En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée d
 
 .. image:: images/CONTRACTS_ingest_contract_search.png
 
-**Détail d'un contrat d'Entrée**
+**Détail d'un contrat d'entrée**
 
 La page "Détail d'un contrat d'entrée" contient les informations suivantes :
 
@@ -372,3 +372,74 @@ La page "Détail d'un contrat d'entrée" contient les informations suivantes :
 * Date de désactivation
 
 .. image:: images/CONTRACTS_ingest_contract_detail.png
+
+Contrats d'accès
+-----------------
+---
+
+**Importer un contrat d'accès**
+
+Pour importer un contrat d'accès, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'accès".
+
+.. image:: images/CONTRACTS_Menu_import_acess.png
+
+Les contrats d'accès sont des fichiers JSON constitués des champs suivants :
+
+* Name : nom du contrat (obligatoire)
+* Description : description du contrat (obligatoire)
+* Status : statut du contrat. ACTIVE ou INACTIVE
+* CreationDate : date de dernière mise à jour du contrat. Doit être contribué sous la forme JJ/MM/AAAA
+* ActivationDate : date d'activation du contrat. Doit être contribué sous la forme JJ/MM/AAAA
+* "OriginatingAgencies": tableau contenant le(s) service(s) producteur(s) pour le(s)quel(s) le détenteur du contrat peut accéder aux unités archivistiques (obligatoire)
+
+
+Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+
+.. image:: images/CONTRACTS_access_contract_import.png
+
+Une fenêtre modale indique alors soit :
+
+* Les contrats ont bien été importés
+* Échec de l'import du fichier. Ceci peut être causé par :
+	* le fait que les contrats mentionnés existent déjà pour le tenant
+	* le fait que le fichier JSON est invalide
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+**Rechercher un contrat d'accès**
+
+Pour accéder à la recherche de contrats d'accès, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'accès".
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'accès disponibles dans la solution logicielle Vitam.
+* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats. 
+  
+Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Nom
+* Identifiant
+* Description
+* Tenant
+* Statut
+* Date de création
+  
+En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'accès dans un nouvel onglet.
+
+.. image:: images/CONTRACTS_access_contract_search.png
+
+**Détail d'un contrat d'accès**
+
+La page "Détail d'un contrat d'accès" contient les informations suivantes :
+
+* ID
+* Nom
+* Description
+* Date de création
+* Statut
+* Service producteur
+* Date d'activation
+* Date de mise à jour
+* Date de désactivation
+
+.. image:: images/CONTRACTS_acces_contract_detail.png
