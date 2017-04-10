@@ -902,7 +902,7 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
 	-- status (ItemStatus)
 
-4.13 Détail du handler : CheckIngestContractHandler
+4.13 Détail du handler : CheckIngestContractActionHandler
 -------------------------------------------------------
 
 4.13.1 Description
@@ -940,6 +940,24 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 		    handler retourne OK
 		Fin Si
 	Fin Si
+
+
+4.14 Détail du handler : CheckNoObjectsActionHandler
+-------------------------------------------------------
+
+4.14.1 Description
+==================
+
+CheckNoObjectsActionHandler permet de vérifier s'il y a des objects numériques dans le SIP à verser dans le système.  
+
+4.14.2 Détail des données utilisées
+===================================
+Le handler prend ce fichier manifest extrait du WORKSPACE comme le parametre d'entrée. 
+
+4.14.3 exécution
+================
+Le fichier manifest sera lu pour vérifier s'il y a des TAG "BinaryDataObject" ou "PhysicalDataObject".
+S'il en y a, le handler retourne KO, sinon OK.
 
 	
 5. Worker-common

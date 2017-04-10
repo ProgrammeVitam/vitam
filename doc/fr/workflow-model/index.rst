@@ -11,6 +11,7 @@ Sommaire
 
    workflow.rst
    workflow-tree.rst
+   workflow-plan.rst
    
 .. only:: latex
 

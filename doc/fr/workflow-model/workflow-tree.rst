@@ -10,16 +10,16 @@ l'implémentation mise en place pour celui-ci dans la version V1 de cette soluti
 Processus d'entrée d'un arbre (vision métier)
 =============================================
 
-Le processus d'entrée d'un arbre est la même logique que le workflow d'entrée d'un SIP:    
+Le processus d'entrée d'un arbre est identique au workflow d'entrée d'un SIP:    
 
- - Un workflow-tree est un processus composé d’étapes et elles-mêmes composées d’une liste d’actions
+ - Un workflow-tree est un processus composé d’étapes elles-mêmes composées d’une liste d’actions
 
-- Chaque étape, chaque action peuvent avoir les statuts suivants : OK, KO, Warning, FATAL
+- Chaque étape, chaque action peut avoir les statuts suivants : OK, KO, Warning, FATAL
 
 - Chaque action peut avoir les modèles d'éxécutions : Bloquant ou Non bloquant
 
-Dans ce workflow, il se compose au différents étapes et actions du workflows d'un SIP. Les sections suivants présentent 
-la structure de ce workflow et des actions qui n'ont pas encore abordé pour workflow d'entrée SIP.
+Ce workflow se compose des différentes étapes et actions propres à celui d'un upload de SIP. 
+Les sections suivantes présentent également sa structure et des actions non encore abordées pour celui de l'entrée d'un SIP.
 
 Le processus d'entrée débute lors du lancement du chargement d'un Submission Information Package dans la solution Vitam. De plus, toutes les étapes et actions sont journalisées dans le journal des opérations.
 Les étapes et actions associées ci-dessous décrivent le processus d'entrée (clé et description de la clé associée dans le journal des opérations) tel qu'implémenté dans la version bêta de la solution logicielle :
@@ -32,7 +32,7 @@ Contrôle du SIP (STP_INGEST_CONTROL_SIP)
   
   * Vérification d'existe d'objets (CHECK_NO_OBJECT)
 
-    + **Règle** : vérifier s'il y a d'un objet numérique dans le manifest.xml de l'abre
+    + **Règle** : vérifier s'il y a d'un objet numérique dans le manifest.xml de l'arbre
 
     + **Type** : bloquant.
 
@@ -67,7 +67,7 @@ Structure du Workflow d'un arbre (Implémenté en V1)
 ========================================
 
 Le workflow actuel mis en place dans la solution Vitam est défini dans le fichier "DefaultHoldingSchemeWorkflow.json".
-Il décrit le processus d'entrée pour entrer un arbre, indexer les métadonnées et stocker les objets contenues dans l'abre.
+Il décrit le processus d'entrée pour téléchager un arbre, indexer les métadonnées et stocker les objets contenus dans l'arbre.
 
 .. code-block:: json
 
@@ -264,7 +264,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
   * CHECK_SEDA (CheckSedaActionHandler.java) :
 
-  * CHECK_NO_OBJECT (CheckNoObjectsActionHandler.java) : vérifier s'il y a d'un objet numérique dans le manifest.xml de l'abre
+  * CHECK_NO_OBJECT (CheckNoObjectsActionHandler.java) : vérifier s'il y a d'un objet numérique dans le manifest.xml de l'arbre
   
   * CHECK_MANIFEST_OBJECTNUMBER (CheckObjectsNumberActionHandler.java) :
 

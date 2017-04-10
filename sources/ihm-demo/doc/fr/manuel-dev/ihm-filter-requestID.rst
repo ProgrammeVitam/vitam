@@ -3,7 +3,7 @@ IHM Filter for X-Request-ID
 
 Description 
 ===========
-En cas d'erreur technique, depuis le IHM demo, nous pouvons trouver le X-Request-ID affiche dans un popup. 
+En cas d'erreur technique, depuis le IHM demo, nous pouvons trouver le X-Request-ID affiché dans un popup. 
 Le code d'erreur a une valeur 500 renvoyé par les APIs externes. 
 
 Côté serveur 
