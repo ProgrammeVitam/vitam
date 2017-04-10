@@ -69,7 +69,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      */
     // TODO P0 : add file name
 
-    Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
+    Response uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
     /**

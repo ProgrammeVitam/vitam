@@ -32,7 +32,6 @@ import static fr.gouv.vitam.ingest.external.core.Contexts.FILING_SCHEME;
 import static fr.gouv.vitam.ingest.external.core.Contexts.HOLDING_SCHEME;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -44,6 +43,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -87,12 +88,13 @@ public class IngestStep {
      * @throws IngestExternalException
      */
     @When("^je télécharge le SIP")
-    public void upload_this_sip() throws IOException, IngestExternalException {
+    public void upload_this_sip() throws IOException, IngestExternalException, IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             Response response =
                 world.getIngestClient()
-                    .uploadAndWaitAtr(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
+                        ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
@@ -110,7 +112,7 @@ public class IngestStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             Response response =
                 world.getIngestClient()
-                    .uploadAndWaitAtr(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
@@ -128,7 +130,7 @@ public class IngestStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             Response response =
                 world.getIngestClient()
-                    .uploadAndWaitAtr(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
@@ -194,4 +196,15 @@ public class IngestStep {
         }
     }
 
+    /**
+     * check if the atr is available
+     */
+    @Then("je peux télécharger son ATR")
+    public void download_atr() throws IngestExternalException, IOException {
+       Response response = world.getIngestClient().downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS,world.getTenantId());
+        InputStream inputStream = response.readEntity(InputStream.class);
+        assertThat(inputStream).isNotNull();
+        StreamUtils.closeSilently(inputStream);
+        world.getIngestClient().consumeAnyEntityAndClose(response);
+    }
 }
