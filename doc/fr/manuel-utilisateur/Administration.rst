@@ -288,3 +288,87 @@ Le détail d'une règle de gestion est composé des informations suivantes :
 - Date de dernière modification
 
 Un clic sur le bouton "Fermer" ou hors de la fenêtre "modale" referme celle-ci.
+
+Contrats
+========
+
+Les contrats permettent de gérer les droits donnés aux utilisateurs et applications. Deux types de contrats sont disponibles dans la solution logicielle Vitam :
+
+* Contrats d'entrée
+* Contrats d'accès
+
+Accès au menus de gestion des contrats
+--------------------------------------
+
+Les sous-menus permettant d'accéder aux interfaces de recherche et d’import de contrat sont disponibles dans le menu "Administration".
+
+.. image:: images/CONTRACTS_Menu.png
+
+Contrats d'Entrée
+----------------
+
+**Importer un contrat d'Entrée**
+
+Pour importer un contrat d'entrée, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer un contrat d'entrée".
+
+.. image:: images/CONTRACTS_Menu_import_ingest.png
+
+Les contrats d'entrée sont des fichiers JSON constitués des champs suivants :
+
+* Name : nom du contrat (obligatoire)
+* Description : description du contrat (obligatoire)
+* Status : statut du contrat. ACTIVE ou INACTIVE
+* CreationDate : date de dernière mise à jour du contrat. Doit être contribué sous la forme JJ/MM/AAAA
+* ActivationDate : date d'activation du contrat. Doit être contribué sous la forme JJ/MM/AAAA
+
+Il sélectionne ensuite le fichier à importer en cliquant sur "parcourir", puis clique sur "importer" pour lancer l'opération.
+
+.. image:: images/CONTRACTS_ingest_contract_import.png
+
+Une fenêtre modale indique alors soit :
+
+* Les contrats ont bien été importés
+* Échec de l'import du fichier. Ceci peut être causé par :
+	* le fait que les contrats mentionnés existent déjà pour le tenant
+	* le fait que le fichier JSON est invalide
+
+Cette opération est journalisée et disponible dans le Journal des Opérations.
+
+**Rechercher un contrat d'Entrée**
+
+Pour accéder à la recherche de contrats d'entrée, l'utilisateur clique sur le menu "Administration", puis sur le sous-menu "Contrat d'entrée".
+
+La page affiche un formulaire de recherche composé des champs suivants :
+
+* Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'entrée disponibles dans la solution logicielle Vitam.
+* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats. 
+  
+Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
+
+* Nom
+* Identifiant
+* Description
+* Statut
+* Date d'activation
+* Date de désactivation
+* Date de création
+* Date modification
+  
+En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée dans un nouvel onglet.
+
+.. image:: images/CONTRACTS_ingest_contract_search.png
+
+**Détail d'un contrat d'Entrée**
+
+La page "Détail d'un contrat d'entrée" contient les informations suivantes :
+
+* ID
+* Nom
+* Description
+* Date de création
+* Statut
+* Date d'activation
+* Date de mise à jour
+* Date de désactivation
+
+.. image:: images/CONTRACTS_ingest_contract_detail.png
