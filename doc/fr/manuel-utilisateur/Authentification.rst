@@ -80,7 +80,15 @@ Menus disponibles en vue guest :
 Déconnexion
 ===========
 
+Déconnexion manuelle
+--------------------
+
 Depuis n'importe quelle page de Vitam, l'utilisateur a la possibilité de se déconnecter de l'application.
 Pour cela, il clique sur le bouton symbolisant une roue située en haut à droite de la page en cours, puis sur le sous menu "Déconnexion". Le système clos la session de l'utilisateur, et la page d'authentification s'affiche de nouveau.
 
 .. image:: images/menu_deconnexion.png
+
+Déconnexion automatique
+-----------------------
+
+L'utilisateur est automatiquement déconnecté et redirigé vers la page d'authentification après 30 minutes d’inactivité.
