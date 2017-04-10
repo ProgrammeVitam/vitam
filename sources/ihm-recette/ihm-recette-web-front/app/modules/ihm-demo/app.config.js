@@ -45,10 +45,6 @@ module('ihm.demo').
         template: '<admin-home></admin-home>',
         title: 'Administration des collections'
       }).
-      when('/soapUi', {
-        template: '<soap-ui></soap-ui>',
-        title: 'Tests SOAP-UI'
-      }).
       when('/operationTraceability', {
           template: '<operation-traceability></operation-traceability>',
           title: 'Génération journal des opérations sécurisé'

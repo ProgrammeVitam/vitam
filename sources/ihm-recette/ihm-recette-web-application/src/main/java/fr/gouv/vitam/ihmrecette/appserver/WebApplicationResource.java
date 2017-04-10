@@ -27,8 +27,6 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -86,8 +84,6 @@ import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
-import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -108,31 +104,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String RESULTS_FIELD = "$results";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     /**
-     * field of VitamResponseError 
+     * field of VitamResponseError
      */
     public static final String IHM_RECETTE = "IHM_RECETTE";
     private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
-    // FIXME : replace the boolean by a static timestamp updated by the soap ui
-    // thread
-    private static volatile boolean soapUiRunning = false;
-    private static final String DEFAULT_CONTEXT = "defaultContext";
-    private static final String DEFAULT_EXECUTION_MODE = "defaultExecutionMode";
-
-    protected static boolean isSoapUiRunning() {
-        return soapUiRunning;
-    }
-
-    private static void setSoapUiRunning(boolean soapUiRunning) {
-        WebApplicationResource.soapUiRunning = soapUiRunning;
-    }
 
     // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
     private static final Integer TENANT_ID = 0;
 
     /**
      * Constructor
-     * @param tenants list of working tenant 
+     * 
+     * @param tenants list of working tenant
      *
      */
     public WebApplicationResource(List<Integer> tenants) {
@@ -224,79 +208,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * Launch soap UI test
-     *
-     * @return the response status (no entity)
-     */
-    @GET
-    @Path("/soapui/launch")
-    public synchronized Response launchSoapUiTests() {
-        if (!WebApplicationResource.isSoapUiRunning()) {
-            WebApplicationResource.setSoapUiRunning(true);
-            VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> soapUiAsync());
-            return Response.status(Status.OK).build();
-        } else {
-            return Response.status(Status.BAD_REQUEST).build();
-        }
-    }
-
-    /**
-     * FIXME : use a better way to launch SOAP UI in another thread to manager responses
-     */
-    private void soapUiAsync() {
-        final SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
-        try {
-            soapUi.launchTests();
-        } catch (final FileNotFoundException e) {
-            LOGGER.error("Soap ui script description file not found", e);
-        } catch (final IOException e) {
-            LOGGER.error("Can not read SOAP-UI script input file or write report", e);
-        } catch (final InterruptedException e) {
-            LOGGER.error("Error while SOAP UI script execution", e);
-        }
-        WebApplicationResource.setSoapUiRunning(false);
-    }
-
-    /**
-     * Check if soap UI test is running
-     *
-     * @return the response status (no entity)
-     */
-    @GET
-    @Path("/soapui/running")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response soapUiTestsRunning() {
-        return Response.status(Status.OK)
-            .entity(JsonHandler.createObjectNode().put("result", WebApplicationResource.soapUiRunning)).build();
-    }
-
-    /**
-     * get last SOAP-UI tests results as Json Node
-     *
-     * @return the result as json if Status is OK.
-     */
-    @GET
-    @Path("/soapui/result")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getSoapUiTestsResults() {
-        final SoapUiClient soapUi = SoapUiClientFactory.getInstance().getClient();
-        JsonNode result = null;
-
-        try {
-            result = soapUi.getLastTestReport();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("The reporting json can't be create", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-        return Response.status(Status.OK).entity(result).build();
-    }
-
-
-
-    /**
      * @param xTenantId the tenant id
      * @return the response of the request
-     * @throws LogbookClientServerException if logbook internal resources exception occurred 
+     * @throws LogbookClientServerException if logbook internal resources exception occurred
      */
     @POST
     @Path("/operations/traceability")
@@ -349,9 +263,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * this method is used to request logbook with the Vitam DSL
      *
-     * @param headers   header containing the pagination for logbook
+     * @param headers header containing the pagination for logbook
      * @param sessionId using for pagination
-     * @param options   JSON object representing the Vitam DSL query
+     * @param options JSON object representing the Vitam DSL query
      * @return Response
      */
     @GET
@@ -465,7 +379,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param operationId the operation id 
+     * @param operationId the operation id
      * @param asyncResponse the asynchronized response
      * @param xTenantId the tenant id
      */
@@ -488,7 +402,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * This method exist only to download a file with a browser
      *
      * @param operationId the operation id
-     * @param asyncResponse the asynchronized response 
+     * @param asyncResponse the asynchronized response
      * @param tenantId the working tenant
      */
     @GET

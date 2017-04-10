@@ -27,7 +27,7 @@
 
 'use strict';
 
-// Register `soapUi` component, along with its associated controller and template
+// Register `functional.test` component, along with its associated controller and template
 angular.
   module('functional.test').
   component('functionalTest', {

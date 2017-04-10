@@ -229,8 +229,6 @@ dns_servers=
 
 #	LOG level defined in logback files ; can be a value in "ERROR","WARN","INFO","DEBUG","TRACE". Recommended value is "WARN"
 log_level=
-# FOr SoapUI files tests
-web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
 
 # For reverse proxy use
 reverse_proxy_port=80

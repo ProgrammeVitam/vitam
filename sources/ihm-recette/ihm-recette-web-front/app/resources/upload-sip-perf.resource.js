@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-// Define resources in order to call WebApp http endpoints for soap-ui
+// Define resources in order to call WebApp http endpoints for uploadSipPerfResource
 angular.module('core')
   .factory('uploadSipPerfResource', function($http, IHM_URLS, tenantService) {
     var GENERATE_STAT_URL = '/performances/reports';
