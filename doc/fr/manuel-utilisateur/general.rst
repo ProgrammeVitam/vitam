@@ -45,7 +45,7 @@ Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affich
 Affichage des dates et heures
 -----------------------------
 
-Les dates et heures sont affichées au format JJ-MM-AAAA HH:mm. 
+Les dates et heures sont affichées au format JJ-MM-AAAA HH:mm.
 
 Ci-après un exemple
 
@@ -58,7 +58,7 @@ Dans le cas où aucune heure n'est renseignée dans l'enregistrement, il est par
 Titre des pages
 ---------------
 
-Les titre des pages, visibles sur les onglets des navigateurs, sont composés différement sur IHM démo et IHM recette. 
+Les titre des pages, visibles sur les onglets des navigateurs, sont composés différement sur IHM démo et IHM recette.
 
 Sur IHM démo, le titre des pages est celui du dernier noeud du fil d'Ariane. Par exemple :
 
@@ -74,3 +74,10 @@ Sur IHM recette, le titre des pages est celui du dernier noeud du fil d'Ariane, 
 - Recette - Administration des collections
 
 .. image:: images/titre_IHM_recette.png
+
+Gestion des erreurs techniques
+------------------------------
+
+En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
+
+.. image:: images/error_popup.png
