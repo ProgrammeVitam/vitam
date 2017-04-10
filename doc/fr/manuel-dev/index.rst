@@ -21,6 +21,7 @@ Sommaire
 
    include/_toc.rst
    parallisation_tests.rst
+   plugin-icu-elasticsearch.rst
 
 
 ####################################################

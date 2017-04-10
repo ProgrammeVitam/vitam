@@ -328,11 +328,9 @@ Il décrit le processus d'entrée pour télécharger un plan, indexer les métad
 D'une façon synthétique, le workflow est décrit de cette façon :
 
 
-.. figure:: images/Workflow_Plan.jpg
-  :align: center
-  :height: 22 cm
-
-  Diagramme d'état / transitions du workflow d'un plan
+##############################################
+# Image diagramme workflow-plan sera ajouté
+##############################################
 
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check d'plan
