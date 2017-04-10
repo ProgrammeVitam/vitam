@@ -130,7 +130,7 @@ localhost rs_member_id=0 shard_id=0
 
 [zone-admin:children]
 hosts-consul-server
-hosts-log-server
+log-servers
 hosts-elasticsearch-log
 hosts-mongoclient
 
