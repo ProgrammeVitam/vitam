@@ -30,7 +30,7 @@
               <td>{{numberOfElement}}</td>
               <td>{{digestAlgorithm}}</td>
               <td>{{fileName}}</td>
-              <td>{{fileSize}}</td>
+              <td>{{fileSize | filterSize}}</td>
             </tr>
           </table>
 
@@ -48,7 +48,7 @@
         </div>
       </div>
     </div>
-    <button class="btn btn-primary center-block" ng-click="runTraceabilityVerificationProcess()">
+    <button ng-show="hasPermission('traceability:check:create')" class="btn btn-primary center-block" ng-click="runTraceabilityVerificationProcess()">
       <i class="material-icons pull-left">play_arrow</i>
       <span>Lancer la vérification</span>
     </button>
@@ -65,9 +65,8 @@
      <div ng-repeat = "report in reports">
       <logbook-entry-table id="report.evIdProc"></logbook-entry-table>
 
-      <!-- Download traceability file -->
-      <!-- TODO : the button is added but without enabling download process  -->
-        <button class="btn btn-primary center-block" ng-click="downloadOperation()">
+        <!-- Download traceability file -->
+        <button ng-show="hasPermission('traceability:content:read')" class="btn btn-primary center-block" ng-click="downloadOperation()">
           <i class="material-icons">file_download</i>
           <span>Télécharger</span>
         </button>

@@ -94,7 +94,7 @@
 						<th>Type de journal sécurisé</th>
 						<th>Date de début</th>
 						<th>Date de fin</th>
-						<th>Télecharger</th>
+						<th ng-show="ctrl.hasPermission('traceability:content:read')" >Télécharger</th>
 					</tr>
 
 					<tbody ng-init="logDetails=log.events[log.events.length-1].evDetData" ng-click="ctrl.goToDetails(log.evIdProc)"
@@ -103,7 +103,7 @@
 						<td>{{logDetails.LogType}}</td>
 						<td>{{logDetails.StartDate | vitamFormatDate}}</td>
 						<td>{{logDetails.EndDate | vitamFormatDate}}</td>
-						<td>
+						<td ng-show="ctrl.hasPermission('traceability:content:read')">
 							<a href="" ng-click="ctrl.downloadOperation(log.evIdProc)">
 								<i class="material-icons">file_download</i>
 							</a>

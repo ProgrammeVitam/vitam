@@ -1827,6 +1827,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/traceability/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("traceability:check:create")
     public Response checkOperationTraceability(@Context HttpHeaders headers, String operationCriteria) {
 
         try {
@@ -1878,6 +1879,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/traceability/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("traceability:content:read")
     public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
         @Suspended final AsyncResponse asyncResponse) {
 
