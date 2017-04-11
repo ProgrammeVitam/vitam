@@ -32,6 +32,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -41,6 +43,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 
 /**
  * Test for access operation client
@@ -131,6 +134,29 @@ public class AccessInternalClientMockTest {
         final InputStream stream2 = IOUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
+    }
+
+    @Test
+    public void givenMockExistsWhenCheckTraceabilityThenReturnOK() throws Exception {
+        AccessInternalClientFactory.changeMode(null);
+
+        final AccessInternalClient client =
+            AccessInternalClientFactory.getInstance().getClient();
+        assertNotNull(client);
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        final RequestResponse requestResponse = client.checkTraceabilityOperation(queryJson);
+        assertNotNull(requestResponse);
+    }
+
+    @Test
+    public void givenMockExistsWhenDownloadTraceabilityFileThenReturnOK() throws Exception {
+        AccessInternalClientFactory.changeMode(null);
+
+        final AccessInternalClient client =
+            AccessInternalClientFactory.getInstance().getClient();
+        assertNotNull(client);
+        final Response response = client.downloadTraceabilityFile("OP_ID");
+        assertNotNull(response);
     }
 
 }

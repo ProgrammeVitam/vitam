@@ -35,7 +35,7 @@
 // Define resources in order to call WebApp http endpoints for download
 // Logbook
 angular.module('core').factory('downloadTraceabilityOperationResource',
-		function(ihmDemoCLient, IHM_URLS) {
+		function(IHM_URLS, $http) {
 
 			var Download_operation_ROOT = '/traceability/';
 			var downloadOperationResource = {};
@@ -46,7 +46,7 @@ angular.module('core').factory('downloadTraceabilityOperationResource',
 			 * @returns {HttpPromise} The promise returned by the http call
 			 */
 			downloadOperationResource.result = function(idOperation) {
-				return ihmDemoCLient.getClient(Download_operation_ROOT).one(idOperation).one('content').get();
+				return $http.get(IHM_URLS.IHM_BASE_URL + Download_operation_ROOT + idOperation + "/content", {responseType: 'arraybuffer'});
 			};
 
 			return downloadOperationResource;

@@ -20,6 +20,8 @@ import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -34,6 +36,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AccessInternalClientFactory.class})
 public class LogbookExternalResourceImplTest {
+
+    private static final String TRACEABILITY_OPERATION_ID = "op_id";
 
     private static final String ACCESS_CONF = "access-external-test.conf";
 
@@ -55,6 +59,11 @@ public class LogbookExternalResourceImplTest {
 
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
+
+    private static final String CHECK_TRACEABILITY_OPERATION_URI = "traceability/check";
+    private static final String TRACEABILITY_OPERATION_BASE_URI = "traceability/";
+    private static final String TRACEABILITY_OPERATION_CONTENT_URI = "/content";
+
 
     private static final String MOCK_SELECT_RESULT = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
         "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -120,6 +129,14 @@ public class LogbookExternalResourceImplTest {
             .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
         PowerMockito.when(accessInternalClient.selectOperationById(good_id, JsonHandler.getFromString(request)))
             .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
+
+        // Mock AccessInternal response for check TRACEABILITY operation request
+        PowerMockito.when(accessInternalClient.checkTraceabilityOperation(JsonHandler.getFromString(request)))
+            .thenReturn(ClientMockResultHelper.checkOperationTraceability());
+
+        // Mock AccessInternal response for download TRACEABILITY operation request
+        PowerMockito.when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
+            .thenReturn(ClientMockResultHelper.getObjectStream());
 
     }
 
@@ -626,5 +643,23 @@ public class LogbookExternalResourceImplTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    public void testCheckTraceabilityOperation() throws InvalidParseOperationException {
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
 
+    @Test
+    public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID + TRACEABILITY_OPERATION_CONTENT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
 }

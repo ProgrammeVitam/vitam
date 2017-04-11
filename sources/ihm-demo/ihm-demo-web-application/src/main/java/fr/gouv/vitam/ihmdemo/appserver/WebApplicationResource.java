@@ -1836,7 +1836,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // Get tenantId value
             Integer tenantIdHeader = getTenantId(headers);
 
-            // Prepare DSLQuery base don the received criteria
+            // Prepare DSLQuery based on the received criteria
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(operationCriteria);
             final JsonNode dslQuery = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
@@ -1872,7 +1872,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Download the Traceability Operation file
      * 
      * @param headers request headers
-     * @param fileName the file name to download
+     * @param operationId the TRACEABILITY operation identifier
      * @return a response containing the file name stream
      */
     @GET
@@ -1894,9 +1894,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
         Integer tenantId) {
 
+        Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
 
-            Response response = client.downloadTraceabilityOperationFile(operationId, tenantId);
+            response = client.downloadTraceabilityOperationFile(operationId, tenantId);
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
 

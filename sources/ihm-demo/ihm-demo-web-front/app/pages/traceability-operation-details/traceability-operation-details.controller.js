@@ -28,7 +28,7 @@
 // Define controller for traceability.operation.details
 angular.module('traceability.operation.details')
   .controller('traceabilityOperationDetailsController', function($scope, $routeParams, traceabilityOperationDetailsService,
-    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService, $window) {
+    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService) {
 
       // Traceability operation to check
       $scope.traceabilityOperationId = $routeParams.operationId;
@@ -83,7 +83,7 @@ angular.module('traceability.operation.details')
       var successDownloadTraceabilityFile = function(response) {
         var a = document.createElement("a");
         document.body.appendChild(a);
-        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream', responseType: 'arraybuffer'}));
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'octet/stream'}));
         a.href = url;
 
         if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
