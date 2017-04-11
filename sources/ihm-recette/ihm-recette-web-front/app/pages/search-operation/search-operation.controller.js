@@ -92,7 +92,7 @@ angular
         }
 
         $scope.ctrl.searchOptions.EventType = 'traceability';
-        $scope.ctrl.searchOptions.orderby = "evDateTime";
+        $scope.ctrl.searchOptions.orderby = { field: 'evDateTime', sortType: 'DESC' };
         $scope.ctrl.searchOptions.TraceabilityOk = "true";
         searchOperationService
           .getOperations(

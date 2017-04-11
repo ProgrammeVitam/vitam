@@ -60,6 +60,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
  * Logbook operation REST client
  */
 class LogbookOperationsClientRest extends DefaultClient implements LogbookOperationsClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientRest.class);
     private static final String OPERATIONS_URL = "/operations";
     private static final String TRACEABILITY_URI = "/operations/traceability";
@@ -148,6 +149,9 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error("Illegal Entry Parameter");
                 throw new LogbookClientException("Request procondition failed");
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+                throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
 
             return JsonHandler.getFromString(response.readEntity(String.class));
@@ -316,6 +320,4 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         }
 
     }
-
-
 }

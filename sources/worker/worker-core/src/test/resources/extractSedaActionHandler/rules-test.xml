@@ -1,0 +1,150 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" xml:id="ID1">
+	<Comment>Jeu de test avec règles de gestion OK</Comment>
+	<Date>2016-12-16T17:01:38</Date>
+	<MessageIdentifier>SIP passant déclarant des règles de gestion</MessageIdentifier>
+	<ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+	<CodeListVersions>
+		<ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+		<MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+		<MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+		<EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+		<FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+		<CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+		<DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+		<StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+		<AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+		<AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+		<DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+		<ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+		<ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+		<AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+		<RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+	</CodeListVersions>
+	<DataObjectPackage xml:id="ID2">
+		<BinaryDataObject id="ID7">
+			<DataObjectGroupId>ID6</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID7.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">7f3ce13b418339cb20218473ddcbc6d308f094ff9e3dd86526e124b216c267a8f46ffa21cc5e4b646ffea725aa75b6dbd1d203331c47110a10ec293383736645</MessageDigest>
+			<Size>996183</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/19</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>OAIS_dpctw14-02.pdf</Filename>
+				<LastModified>2014-12-07T09:52:56.000+01:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<BinaryDataObject id="ID13">
+			<DataObjectGroupId>ID12</DataObjectGroupId>
+			<DataObjectVersion>BinaryMaster</DataObjectVersion>
+			<Uri>Content/ID13.pdf</Uri>
+			<MessageDigest algorithm="SHA-512">283827d12876af7da450b13918bba23942f0d8f70f8b92ccff1e1cde1657a6cf86783539b2dac4d47b817fba6cc7a13ba511f1049e0c10ebf19f1e56f586444b</MessageDigest>
+			<Size>1903749</Size>
+			<FormatIdentification>
+				<FormatLitteral>Acrobat PDF 1.6 - Portable Document Format</FormatLitteral>
+				<MimeType>application/pdf</MimeType>
+				<FormatId>fmt/20</FormatId>
+			</FormatIdentification>
+			<FileInfo>
+				<Filename>Suspendisse condimentum</Filename>
+				<LastModified>2012-06-20T18:58:18.000+02:00</LastModified>
+			</FileInfo>
+		</BinaryDataObject>
+		<DescriptiveMetadata>
+			<ArchiveUnit id="ID3">
+				<Management>
+                    <AppraisalRule>
+						<Rule>APP-00001</Rule>
+						<StartDate>1982-09-01</StartDate>
+						<FinalAction>Keep</FinalAction>
+					</AppraisalRule>
+					<AccessRule>
+                        <Rule>ACC-00002</Rule>
+                    </AccessRule>
+                </Management>
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Oxford Street et Piccadily Circus</Title>
+					<StartDate>2012-06-20T18:58:18</StartDate>
+					<EndDate>2014-12-07T09:52:56</EndDate>
+				</Content>
+				<ArchiveUnit id="ID5">
+					<ArchiveUnitRefId>ID4</ArchiveUnitRefId>
+				</ArchiveUnit>
+				<ArchiveUnit id="ID11">
+					<ArchiveUnitRefId>ID10</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID4">
+				<Management>
+                    <DisseminationRule>
+                        <Rule>DIS-00001</Rule>
+                        <StartDate>2008-07-14</StartDate>
+                    </DisseminationRule>
+                </Management>
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Oxford Street</Title>
+					<StartDate>2014-12-07T09:52:56</StartDate>
+					<EndDate>2014-12-07T09:52:56</EndDate>
+				</Content>
+				<ArchiveUnit id="ID9">
+					<ArchiveUnitRefId>ID8</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID8">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Donec rutrum pharetra neque</Title>
+					<TransactedDate>2014-12-07T09:52:56</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID10">
+				<Content>
+					<DescriptionLevel>RecordGrp</DescriptionLevel>
+					<Title>Piccadily Circus</Title>
+					<StartDate>2012-06-20T18:58:18</StartDate>
+					<EndDate>2012-06-20T18:58:18</EndDate>
+				</Content>
+				<ArchiveUnit id="ID15">
+					<ArchiveUnitRefId>ID14</ArchiveUnitRefId>
+				</ArchiveUnit>
+			</ArchiveUnit>
+			<ArchiveUnit id="ID14">
+				<Content>
+					<DescriptionLevel>Item</DescriptionLevel>
+					<Title>Proin non libero erat</Title>
+					<TransactedDate>2012-06-20T18:58:18</TransactedDate>
+				</Content>
+				<DataObjectReference>
+					<DataObjectGroupReferenceId>ID12</DataObjectGroupReferenceId>
+				</DataObjectReference>
+			</ArchiveUnit>
+		</DescriptiveMetadata>
+		<ManagementMetadata>
+            <AccessRule>
+                <Rule>ACC-00002</Rule>
+                <StartDate>2010-12-31</StartDate>
+            </AccessRule>
+			<ReuseRule>
+                <Rule>REU-00001</Rule>
+                <StartDate>2016-02-29</StartDate>
+            </ReuseRule>
+			<OriginatingAgencyIdentifier>EEEEEE</OriginatingAgencyIdentifier>
+			<SubmissionAgencyIdentifier>FFFFFF</SubmissionAgencyIdentifier>
+		</ManagementMetadata>
+	</DataObjectPackage>
+	<ArchivalAgency>
+		<Identifier>Identifier4</Identifier>
+	</ArchivalAgency>
+	<TransferringAgency>
+		<Identifier>Identifier5</Identifier>
+	</TransferringAgency>
+</ArchiveTransfer>

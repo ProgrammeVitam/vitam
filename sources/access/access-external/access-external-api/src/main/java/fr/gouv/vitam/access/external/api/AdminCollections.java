@@ -43,7 +43,12 @@ public enum AdminCollections {
     /**
      * Ingest contracts collection
      */
-    CONTRACTS("contracts");
+    CONTRACTS("contracts"),
+
+    /**
+     * Access contracts collection
+     */
+    ACCESS_CONTRACTS("accesscontracts");
 
     private String name;
 

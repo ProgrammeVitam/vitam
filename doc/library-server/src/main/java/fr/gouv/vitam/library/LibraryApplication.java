@@ -142,4 +142,10 @@ public class LibraryApplication extends AbstractVitamApplication<LibraryApplicat
         // Nothing
     }
 
+    @Override
+    protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
+        // Nothing
+        return false;
+    }
+
 }

@@ -158,7 +158,7 @@ public interface LogbookOperations {
 
 
     /**
-
+     * 
      * @return the last valid traceability operation
      * @throws InvalidCreateOperationException
      * @throws LogbookNotFoundException
@@ -168,6 +168,4 @@ public interface LogbookOperations {
     LogbookOperation findLastTraceabilityOperationOK()
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException;
-
-
 }

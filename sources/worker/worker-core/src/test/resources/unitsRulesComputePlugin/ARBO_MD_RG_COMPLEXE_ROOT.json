@@ -1,0 +1,28 @@
+{
+  "ArchiveUnit" : {
+    "_id" : "aeaqaaaaaabtzlipab6rcak3cpcz7cqaaaaq",
+    "Management" : {
+      "StorageRule" : [ {
+        "Rule" : "R1",
+        "StartDate" : "2017-01-01",
+        "FinalAction" : "RestrictAccess"
+      }, {
+        "Rule" : "R6",
+        "StartDate" : "2021-01-01"
+      } ],
+      "AccessRule" : [ {
+        "Rule" : "ACC-00035",
+        "StartDate" : "2020-01-01"
+      } ]
+    },
+    "Content" : {
+      "DescriptionLevel" : "RecordGrp",
+      "Title" : "AU1"
+    },
+    "_og" : ""
+  },
+  "_work" : {
+    "_up" : [ ],
+    "RulesToApply" : [ "R1;ACC-00035;R6;" ]
+  }
+}

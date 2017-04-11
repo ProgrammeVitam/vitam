@@ -49,6 +49,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
+    private static final String LOGBOOK_CHECK = "/traceability/check";
     private static final Select emptySelectQuery = new Select();
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
@@ -495,5 +496,63 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId)
+        throws AccessExternalClientServerException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+
+            response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, headers, query, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return RequestResponse.parseFromResponse(response);
+                default:
+                    LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
+                    throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
+        throws AccessExternalClientServerException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+
+            response = performRequest(HttpMethod.GET, "traceability/" + operationId + "/content", headers, null,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return response;
+                default:
+                    LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
+                    throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
+
+
 
 }

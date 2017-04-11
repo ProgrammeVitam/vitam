@@ -47,6 +47,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -56,6 +58,7 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
  * Mock client implementation for IngestExternal
  */
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
     final int TENANT_ID = 0;
@@ -70,9 +73,21 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         }
         StreamUtils.closeSilently(stream);
 
-        return new AbstractMockClient.FakeInboundResponse(Status.OK,
-            IOUtils.toInputStream(MOCK_INGEST_EXTERNAL_RESPONSE_STREAM),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, getDefaultHeaders(FAKE_X_REQUEST_ID, tenantId));
+        return Response.status(Status.ACCEPTED)
+            .header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .build();
+    }
+
+    @Override
+    public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
+        throws IngestExternalException {
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return upload(stream, tenantId, contextId, action);
     }
 
     /**
@@ -89,8 +104,13 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId) throws IngestExternalException {
+    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+        throws IngestExternalException {
         return ClientMockResultHelper.getObjectStream();
+    }
+
+    @Override public Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException {
+        return Response.status(Status.OK).build();
     }
 
     @Override
@@ -100,11 +120,12 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         try {
             pwork = ClientMockResultHelper.getItemStatus(id);
         } catch (InvalidParseOperationException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error(e);
+            throw new BadRequestException(e.getMessage(), e);
         }
         return pwork;
     }
+    // TODO FIXE ME query never user
 
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)

@@ -38,6 +38,10 @@ angular.module('core')
     VitamStartFormat.startFormat = function(currentPage, resultPages, itemsPerPage, startOffset) {
       var start = 0;
 
+      if (!startOffset) {
+        startOffset = 0;
+      }
+
       if(currentPage > 0 && currentPage <= resultPages){
         start= (currentPage - 1) * itemsPerPage - startOffset;
       }

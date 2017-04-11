@@ -147,5 +147,26 @@ public class CheckStorageAvailabilityActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+    
+    // This test checks that if empty informations is returned by the getStorageInformation (sthg like {\"capacities\": []}), then we get an OK status, and a WARN log is displayed
+    @RunWithCustomExecutor
+    @Test
+    public void givenProblemWithOffersCheckStorageExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(-2);
+        final SedaUtils sedaUtils = mock(SedaUtils.class);
+        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
+        
+        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
+       
+        assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+    
 
 }

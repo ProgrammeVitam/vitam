@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -33,8 +34,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.functional.administration.common.exception.*;
+import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,10 +60,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 
 public class AdminManagementClientMockTest {
@@ -190,18 +190,70 @@ public class AdminManagementClientMockTest {
 
         }
     }
-    
+
     @Test
     @RunWithCustomExecutor
-    public void givenClientMockWhenImportContracts() throws Exception {
+    public void givenClientMockWhenImportIngestContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        RequestResponse resp = client.importContracts((ArrayNode) json);
-        Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
-        Assert.assertTrue(((RequestResponseOK)resp).isOk());
-        Assert.assertEquals(1,  ((RequestResponseOK)resp).getResults().size());        
+        RequestResponse resp = client.importIngestContracts(new ArrayList<>());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
     }
 
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindIngestContractsByFakeID() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findIngestContractsByID("FakeId");
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+        throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindIngestContracts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findIngestContracts(JsonHandler.createObjectNode());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenImportAccessContracts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.importAccessContracts(new ArrayList<>());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
+
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindAccessContractsByFakeID() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findAccessContractsByID("FakeId");
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+        throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenfindAccessContracts() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(((RequestResponseOK)resp).isOk());
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+    }
 
 }

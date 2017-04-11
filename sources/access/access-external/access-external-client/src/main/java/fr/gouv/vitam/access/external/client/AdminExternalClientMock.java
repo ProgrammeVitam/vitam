@@ -64,9 +64,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse importContracts(InputStream contracts, Integer tenantId)
+    public RequestResponse importContracts(InputStream contracts, Integer tenantId, AdminCollections collection)
         throws InvalidParseOperationException {
-        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getContracts().toJsonNode());
+        if (AdminCollections.ACCESS_CONTRACTS.equals(collection))
+            return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
+        else
+            return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
+
     }
 
 }

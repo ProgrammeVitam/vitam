@@ -106,6 +106,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.http.util.EntityUtils;
 
 /**
  * IngestInternalResource implements UploadService
@@ -224,7 +225,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the header X-Context-Id (steptoStep or not)
      * @param actionId the header X-ACTION (next,resume,..)
      * @param uploadedInputStream the stream to upload
-     * @param asyncResponse the asynchronized response
      * @throws InternalServerException if request resources server exception occurred
      * @throws VitamClientException if the server is unreachable
      *
@@ -233,7 +233,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Path("/ingests")
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
         @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String actionId,
@@ -253,7 +252,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
      * @param asyncResponse asyncResponse
      * @return http response
@@ -291,7 +289,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      *
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
@@ -443,6 +440,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     /**
+     * TODO FIXE ME HEAD METHOD no entity
      * get the operation status
      *
      * @param id operation identifier
@@ -462,6 +460,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             // if the entry argument if illegal
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            //TODO FIXE ME HEAD METHOD no entity
             return Response.status(status)
                 .entity(getErrorEntity(status))
                 .build();
@@ -663,7 +662,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             if (documentType == StorageCollectionType.MANIFESTS || documentType == StorageCollectionType.REPORTS) {
                 objectId += XML;
             } else {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.METHOD_NOT_ALLOWED).build());
                 return;
             }
@@ -673,15 +672,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
             helper.writeResponse(Response.status(Status.OK));
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.BAD_REQUEST).build());
         } catch (StorageNotFoundException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND).build());
         } catch (StorageServerClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
@@ -727,7 +726,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             process.getWorkFlowId());
 
                         // Successful initialization
-                        AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                        AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                             Response.status(Status.ACCEPTED).build());
                     }
                 } else {
@@ -744,6 +743,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
                         prepareToStartProcess(uploadedInputStream, parameters, archiveMimeType, logbookOperationsClient,
                             containerGUID);
+
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             "Try to call processing...");
@@ -754,28 +754,17 @@ public class IngestInternalResource extends ApplicationStatusResource {
                             startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
                                 process.getWorkFlowId(), logbookTypeProcess);
 
-                        Status processStatus = Status.fromStatusCode(processResponse.getStatus());
                         ProcessExecutionStatus processExecutionStatus =
                             ProcessExecutionStatus
                                 .valueOf(processResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
                         isCompletedProcess = isCompletedProcess(processExecutionStatus);
 
-                        if (isCompletedProcess) {
-                            // Get ATR
-                            try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                                processResponse =
-                                    storageClient.getContainerAsync(DEFAULT_STRATEGY,
-                                        containerGUID.getId() + XML,
-                                        StorageCollectionType.REPORTS);
-                                processResponse.getHeaders().add(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS,
-                                    processExecutionStatus.toString());
-                            }
-                        }
+                      if(!isInitMode) {
+                          //Asynchrone
 
-
-                        final AsyncInputStreamHelper helper =
-                            new AsyncInputStreamHelper(asyncResponse, processResponse);
-                        helper.writeAsyncResponse(Response.fromResponse(processResponse), processStatus);
+                          AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                              Response.status(Status.ACCEPTED).build());
+                      }
                     } finally {
                         if (isCompletedProcess) {
                             cleanWorkspace(containerGUID.getId());
@@ -795,7 +784,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final ContentAddressableStorageException e) {
                 if (parameters != null) {
@@ -807,13 +796,13 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
                 // FIXME P1 in particular Processing Exception could it be a "normal error" ?
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result
             } catch (final ProcessingException |
-                LogbookClientException | StorageClientException | StorageNotFoundException |
+                LogbookClientException | StorageClientException  |
                 InvalidGuidOperationException e) {
                 if (parameters != null) {
                     try {
@@ -826,14 +815,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
                 }
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } catch (final IngestInternalException | IllegalArgumentException | VitamClientException |
                 BadRequestException | InternalServerException e) {
                 // if an IngestInternalException is thrown, that means logbook has already been updated (with a fatal
                 // State)
                 LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.INTERNAL_SERVER_ERROR).build());
             } finally {
                 if (logbookOperationsClient != null) {
@@ -943,8 +932,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * 
      * @param asyncResponse Async response
      * @param actionId the action to execute
-     * @param parameters logbookOperation parameters
-     * @param logbookOperationsClient a
      * @param containerGUID
      * @throws LogbookClientAlreadyExistsException
      * @throws LogbookClientBadRequestException
@@ -953,7 +940,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @throws IngestInternalException
      * @throws ProcessingException
      * @throws LogbookClientNotFoundException
-     * @throws LogbookClientBadRequestExceptionu
      * @throws LogbookClientServerException
      * @throws StorageServerClientException
      * @throws StorageNotFoundException
@@ -971,7 +957,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             Response updateResponse = processingClient.updateOperationActionProcess(actionId, containerGUID.getId());
 
             if (Status.UNAUTHORIZED.getStatusCode() == updateResponse.getStatus()) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.UNAUTHORIZED).build());
                 return;
             }
@@ -1029,13 +1015,13 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         } catch (IngestInternalException | IllegalArgumentException | InternalServerException | VitamClientException |
             BadRequestException e) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } finally {
             if (processingClient != null) {

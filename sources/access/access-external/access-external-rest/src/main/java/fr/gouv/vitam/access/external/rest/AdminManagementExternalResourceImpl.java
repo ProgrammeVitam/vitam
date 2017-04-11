@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.external.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -55,16 +57,19 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 /**
  * Admin Management External Resource Implement
@@ -87,8 +92,8 @@ public class AdminManagementExternalResourceImpl {
     /**
      * checkDocument
      *
-     * @param collection the working collection top check document 
-     * @param document the document to check 
+     * @param collection the working collection top check document
+     * @param document the document to check
      * @return Response
      */
     @Path("/{collection}")
@@ -128,7 +133,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * Import a referential document
-     * 
+     *
      * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param collection target collection type
      * @param document inputStream representing the data to import
@@ -157,7 +162,7 @@ public class AdminManagementExternalResourceImpl {
                 if (AdminCollections.RULES.compareTo(collection)) {
                     resp = client.importRulesFile(document);
                 }
-                //get response entity 
+                //get response entity
                 if (resp != null) {
                     status = resp.getStatus();
                     if (resp.hasEntity()) {
@@ -167,12 +172,24 @@ public class AdminManagementExternalResourceImpl {
                 if (AdminCollections.CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
-                    respEntity = client.importContracts((ArrayNode) json);
+                    respEntity = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<IngestContractModel>>(){}));
                     //get response entity and http status
                     if (respEntity != null && respEntity instanceof VitamError) {
                         status = ((VitamError) respEntity).getHttpCode();
                     }
                 }
+
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+
+                    respEntity = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<AccessContractModel>>(){}));
+                    //get response entity and http status
+                    if (respEntity != null && respEntity instanceof VitamError) {
+                        status = ((VitamError) respEntity).getHttpCode();
+                    }
+                }
+
                 // Send the http response with the entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status)
                     .entity(respEntity != null ? respEntity : "Successfully imported");
@@ -186,9 +203,6 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            } catch (VitamClientInternalException e) {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
@@ -227,8 +241,20 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRules(select);
                     return Response.status(Status.OK).entity(result).build();
                 }
+                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                    RequestResponse<IngestContractModel> contracts = client.findIngestContracts(select);
+                    return Response.status(Status.OK).entity(contracts.toJsonNode()).build();
+                }
+
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    RequestResponse result = client.findAccessContracts(select);
+                    return Response.status(Status.OK).entity(result).build();
+                }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
+            } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (ReferentialException | IOException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
@@ -271,8 +297,21 @@ public class AdminManagementExternalResourceImpl {
                     final JsonNode result = client.getRuleByID(documentId);
                     return Response.status(Status.OK).entity(result).build();
                 }
+                if (AdminCollections.CONTRACTS.compareTo(collection)) {
+                    RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
+                    return Response.status(Status.OK).entity(requestResponse).build();
+                }
+
+                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
+                    RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
+                    return Response.status(Status.OK).entity(requestResponse).build();
+                }
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, null, null)).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
@@ -291,7 +330,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * Construct the error following input
-     * 
+     *
      * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
      * @param code The functional error code, if absent the http code will be used instead

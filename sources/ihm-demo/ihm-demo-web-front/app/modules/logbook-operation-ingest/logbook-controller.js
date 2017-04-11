@@ -48,7 +48,11 @@ angular.module('ihm.demo')
 
     $scope.search = {
       form: {
-        obIdIn: ''
+        obIdIn: '',
+        orderby: {
+          field: 'evDateTime',
+          sortType: 'DESC'
+        }
       }, pagination: {
         currentPage: 0,
         resultPages: 0,
@@ -108,7 +112,6 @@ angular.module('ihm.demo')
       var requestOptions = angular.copy($scope.search.form);
 
       requestOptions.INGEST = "all";
-      requestOptions.orderby = "evDateTime";
       if (requestOptions.obIdIn === "") {
         delete requestOptions.obIdIn;
       }

@@ -227,7 +227,7 @@ Cas de certificats inexistants
 
 .. warning:: cette étape n'est à effectuer que pour les clients ne possédant pas de certificats.
 
-Editer complètement le fichier ``environments-rpm/<inventaire>``  pour indiquer les serveurs associés à chaque service.
+Editer complètement le fichier ``environments/<fichier d'inventaire>``  pour indiquer les serveurs associés à chaque service.
 En prérequis les CA doivent être présentes.
 
 Puis, dans le répertoire de déploiement, lancer le script :
@@ -235,7 +235,7 @@ Puis, dans le répertoire de déploiement, lancer le script :
 
 .. code-block:: bash
 
-   pki/scripts/generate_certs.sh <environnement>
+   pki/scripts/generate_certs.sh <fichier d'inventaire>
 
 Ci-dessous un exemple de sortie du script :
 
@@ -253,7 +253,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ................................................................................................................................................++
     .........................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/server/hosts/localhost/ingest-external.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/server/hosts/localhost/ingest-external.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA server...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
@@ -275,7 +275,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ..........++
     ...................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/server/hosts/localhost/access-external.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/server/hosts/localhost/access-external.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA server...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
@@ -298,7 +298,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     .....................++
     ........++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/server/hosts/localhost/storage-offer-default.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/server/hosts/localhost/storage-offer-default.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA server...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/server/ca-config
@@ -322,7 +322,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     .........................................................................................................++
     ...........++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/timestamping/vitam/logbook.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/timestamping/vitam/logbook.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec CA timestamping...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/timestamping/ca-config
@@ -346,7 +346,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ....++
     ........++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/client-external/clients/ihm-demo/ihm-demo.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-external/clients/ihm-demo/ihm-demo.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-external...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
@@ -369,7 +369,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     .......................................................................++
     ...............................................................................................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/client-external/clients/ihm-recette/ihm-recette.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-external/clients/ihm-recette/ihm-recette.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-external...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
@@ -392,7 +392,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ...............................++
     .................................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/client-external/clients/reverse/reverse.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-external/clients/reverse/reverse.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-external...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/client-external/ca-config
@@ -415,7 +415,7 @@ Ci-dessous un exemple de sortie du script :
     Generating a 4096 bit RSA private key
     ...........++
     ..........................................................................................++
-    writing new private key to '/home/nico/git/vitam/deployment/environments-rpm/certs/client-storage/clients/storage-engine/storage-engine.key'
+    writing new private key to '/home/nico/git/vitam/deployment/environments/certs/client-storage/clients/storage-engine/storage-engine.key'
     -----
     [INFO] [generate_certs.sh] Generation du certificat signé avec client-storage...
     Using configuration from /home/nico/git/vitam/deployment/pki/config/client-storage/ca-config
@@ -477,7 +477,7 @@ Lancer le script :
 
 .. code-block:: bash
 
-   ./generate_stores.sh <environnement>
+   ./generate_stores.sh
 
 Ci-dessous un exemple de sortie du script :
 

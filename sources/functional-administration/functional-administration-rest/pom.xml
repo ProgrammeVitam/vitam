@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>functional-administration</artifactId>
-		<version>0.16.0-SNAPSHOT</version>
+		<version>0.17.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>functional-administration-rest</artifactId>
 	<name>functional-administration-rest</name>
@@ -58,6 +58,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
 			<groupId>ru.yandex.qatools.embed</groupId>
 			<artifactId>embedded-services</artifactId>
 			<scope>test</scope>
@@ -87,6 +92,10 @@
 			<groupId>org.jhades</groupId>
 			<artifactId>jhades</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
 		</dependency>
 	</dependencies>
 

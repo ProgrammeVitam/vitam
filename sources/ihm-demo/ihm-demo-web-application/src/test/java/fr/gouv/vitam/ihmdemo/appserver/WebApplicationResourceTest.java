@@ -66,9 +66,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.secnod.shiro.jersey.AuthInjectionBinder;
-import org.secnod.shiro.jersey.AuthorizationFilterFeature;
-import org.secnod.shiro.jersey.SubjectFactory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -242,7 +239,7 @@ public class WebApplicationResourceTest {
     public void testLogbookResultRemainingExceptions()
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
 
-        final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
+        final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
@@ -287,7 +284,7 @@ public class WebApplicationResourceTest {
     public void testArchiveSearchResultDslQueryHelperExceptions()
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
-        final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
+        final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
@@ -302,7 +299,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testArchiveSearchResultAccessExternalClientServerException() throws AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
+        final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
@@ -322,7 +319,7 @@ public class WebApplicationResourceTest {
     public void testArchiveSearchResultAccessExternalClientNotFoundException()
         throws AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
+        final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
@@ -341,7 +338,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testArchiveSearchResultRemainingExceptions() throws AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> searchCriteriaMap = JsonHandler.getMapStringFromString(OPTIONS);
+        final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
         PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
@@ -1078,7 +1075,7 @@ public class WebApplicationResourceTest {
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
-            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/rules");
     }
 

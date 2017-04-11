@@ -26,32 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLEventFactory;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLEventWriter;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import de.odysseus.staxon.json.JsonXMLConfig;
-import de.odysseus.staxon.json.JsonXMLConfigBuilder;
-import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -60,15 +43,14 @@ import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -90,9 +72,9 @@ public class IndexUnitActionPlugin extends ActionHandler {
     private static final String HANDLER_PROCESS = "INDEXATION";
 
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
+    private static final String TAG_WORK = "_work";
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
-    private static final String FILE_COULD_NOT_BE_DELETED_MSG = "File could not be deleted";
 
     private HandlerIO handlerIO;
 
@@ -116,16 +98,16 @@ public class IndexUnitActionPlugin extends ActionHandler {
         checkMandatoryParameters(params);
         handlerIO = param;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_PROCESS);
-        
-            try {        
-                indexArchiveUnit(params, itemStatus);
-            } catch(final IllegalArgumentException e){
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.KO);
-            } catch (final ProcessingException e) {
-                LOGGER.error(e);
-                itemStatus.increment(StatusCode.FATAL);
-            }
+
+        try {
+            indexArchiveUnit(params, itemStatus);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingException e) {
+            LOGGER.error(e);
+            itemStatus.increment(StatusCode.FATAL);
+        }
 
         return new ItemStatus(HANDLER_PROCESS).setItemsStatus(HANDLER_PROCESS, itemStatus);
 
@@ -153,10 +135,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
             if (response != null) {
                 input = (InputStream) response.getEntity();
 
-                final Map<String, Object> archiveDetailsRequiredForIndex =
-                    convertArchiveUnitToJson(input, containerId, objectName);
-                final JsonNode data = ((JsonNode) archiveDetailsRequiredForIndex.get("data")).get(ARCHIVE_UNIT);
-                final Boolean existing = (Boolean) archiveDetailsRequiredForIndex.get("existing");
+                JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
+
+                final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
+                final JsonNode work = archiveUnit.get(TAG_WORK);
+                Boolean existing = false;
+                if (work != null && work.get("_existing") != null) {
+                    existing = work.get("_existing").asBoolean();
+                }
 
                 if (existing) {
                     query = new UpdateMultiQuery();
@@ -164,18 +150,22 @@ public class IndexUnitActionPlugin extends ActionHandler {
                     query = new InsertMultiQuery();
                 }
                 // Add _up to archive unit json object
-                if (archiveDetailsRequiredForIndex.get("up") != null) {
-                    final ArrayNode parents = (ArrayNode) archiveDetailsRequiredForIndex.get("up");
+                if (work.get("_up") != null) {
+                    final ArrayNode parents = (ArrayNode) work.get("_up");
                     query.addRoots(parents);
                 }
                 if (Boolean.TRUE.equals(existing)) {
                     // update case
                     computeExistingData(data, query);
                     metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
-                        (String) archiveDetailsRequiredForIndex.get("id"));
+                        data.get("#id").asText());
                 } else {
                     // insert case
-                    metadataClient.insertUnit(((InsertMultiQuery) query).addData((ObjectNode) data).getFinalInsert());
+                    if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty()){
+                        String unitType = UnitType.getUnitTypeString((String) handlerIO.getInput(0));
+                        data.put(VitamFieldsHelper.unitType(), unitType);
+                    }
+                    metadataClient.insertUnit(((InsertMultiQuery) query).addData(data).getFinalInsert());
                 }
                 itemStatus.increment(StatusCode.OK);
             } else {
@@ -184,7 +174,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             }
 
         } catch (final MetaDataNotFoundException e) {
-            LOGGER.error("Unit references a non existing unit "+ query != null ? query.toString() : "");
+            LOGGER.error("Unit references a non existing unit " + query != null ? query.toString() : "");
             throw new IllegalArgumentException(e);
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Internal Server Error", e);
@@ -193,7 +183,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             LOGGER.error("Workspace Server Error");
             throw new ProcessingException(e);
         } catch (IllegalArgumentException e) {
-            LOGGER.error("Illegal Argument Exception for "+ query != null ? query.toString() : "");
+            LOGGER.error("Illegal Argument Exception for " + query != null ? query.toString() : "");
             throw e;
         } finally {
             handlerIO.consumeAnyEntityAndClose(response);
@@ -229,6 +219,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
         }
     }
 
+
     /**
      * Convert xml archive unit to json node for insert/update.
      * 
@@ -239,281 +230,57 @@ public class IndexUnitActionPlugin extends ActionHandler {
      * @throws InvalidParseOperationException exception while reading temporary json file
      * @throws ProcessingException exception while reading xml file
      */
-    private Map<String, Object> convertArchiveUnitToJson(InputStream input, String containerId, String objectName)
+    // FIXME do we need to create a new file or not ?
+    private JsonNode prepareArchiveUnitJson(InputStream input, String containerId, String objectName)
         throws InvalidParseOperationException, ProcessingException {
         ParametersChecker.checkParameter("Input stream is a mandatory parameter", input);
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
-        final File tmpFile = handlerIO.getNewLocalFile(GUIDFactory.newGUID().toString());
-        FileWriter tmpFileWriter = null;
-        final XMLEventFactory eventFactory = XMLEventFactory.newInstance();
-        final JsonXMLConfig config = new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
-            .namespaceDeclarations(false).build();
 
-        JsonNode data = null;
-        String parentsList = null;
-        final Map<String, Object> archiveUnitDetails = new HashMap<>();
+        JsonNode archiveUnit = JsonHandler.getFromInputStream(input);
+        ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
+        ObjectNode workNode = (ObjectNode) archiveUnit.get(TAG_WORK);
 
-        String unitGuid = null;
-        boolean existingUnit = false;
+        // replace _id by #id
+        archiveUnitNode.set("#id", archiveUnitNode.get("_id"));
+        archiveUnitNode.remove("_id");
 
-        ObjectNode managementBloc = null;
 
-        XMLEventReader reader = null;
-
-        try {
-            tmpFileWriter = new FileWriter(tmpFile);
-            reader = XMLInputFactory.newInstance().createXMLEventReader(input);
-
-            final XMLEventWriter writer = new JsonXMLOutputFactory(config).createXMLEventWriter(tmpFileWriter);
-            boolean contentWritable = true;
-            while (true) {
-                final XMLEvent event = reader.nextEvent();
-                boolean eventWritable = true;
-                if (event.isStartElement()) {
-                    final StartElement startElement = event.asStartElement();
-                    final Iterator<?> it = startElement.getAttributes();
-                    final String tag = startElement.getName().getLocalPart();
-                    if (it.hasNext() && !TAG_CONTENT.equals(tag) && contentWritable) {
-                        writer.add(eventFactory.createStartElement("", "", tag));
-
-                        if (ARCHIVE_UNIT.equals(tag)) {
-                            unitGuid = ((Attribute) it.next()).getValue();
-                            writer.add(eventFactory.createStartElement("", "", "#id"));
-                            writer.add(eventFactory.createCharacters(unitGuid));
-                            writer.add(eventFactory.createEndElement("", "", "#id"));
-                        }
-                        eventWritable = false;
-                    }
-                    switch (tag) {
-                        case TAG_MANAGEMENT:
-                            // Start temporary save of management bloc
-                            managementBloc = JsonHandler.createObjectNode();
-                            buildManagementBloc(managementBloc, reader);
-
-                            eventWritable = false;
-                            contentWritable = true;
-
-                            break;
-                        case SedaConstants.PREFIX_OG:
-                            writer.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_OG));
-                            writer.add(eventFactory.createCharacters(reader.getElementText()));
-                            writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
-                            eventWritable = false;
-                            break;
-                        case IngestWorkflowConstants.UP_FIELD:
-                            final XMLEvent upsEvent = reader.nextEvent();
-                            if (!upsEvent.isEndElement() && upsEvent.isCharacters()) {
-                                parentsList = upsEvent.asCharacters().getData();
-                            }
-                            eventWritable = false;
-                            break;
-                        case TAG_CONTENT:
-                        case IngestWorkflowConstants.ROOT_TAG:
-                        case IngestWorkflowConstants.WORK_TAG:
-                            eventWritable = false;
-                            break;
-                        case IngestWorkflowConstants.EXISTING_TAG:
-                            eventWritable = false;
-                            existingUnit = Boolean.parseBoolean(reader.getElementText());
-                            break;
-                        case IngestWorkflowConstants.RULES:
-                            reader.nextEvent();
-                            eventWritable = false;
-                            break;
-                    }
-                }
-
-                if (event.isEndElement()) {
-                    final EndElement endElement = event.asEndElement();
-                    final String tag = endElement.getName().getLocalPart();
-
-                    switch (tag) {
-                        case ARCHIVE_UNIT:
-                        case IngestWorkflowConstants.ROOT_TAG:
-                        case IngestWorkflowConstants.WORK_TAG:
-                        case IngestWorkflowConstants.UP_FIELD:
-                        case IngestWorkflowConstants.EXISTING_TAG:
-                        case IngestWorkflowConstants.RULES:
-                            eventWritable = false;
-                            break;
-                        case TAG_CONTENT:
-                            eventWritable = false;
-                            contentWritable = false;
-                            break;
-                        case TAG_MANAGEMENT:
-                            writer.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_MGT));
-                            eventWritable = false;
-                            break;
-
-                    }
-                }
-
-                if (event.isEndDocument()) {
-                    writer.add(event);
-                    break;
-                }
-                if (eventWritable && contentWritable) {
-                    writer.add(event);
-                }
+        // transform _up to real array
+        JsonNode upNode = workNode.get("_up");
+        if (upNode != null && upNode.isArray() && ((ArrayNode) upNode).size() > 0) {
+            // FIXME remove the ugly array ["GUID-GUID-GUID"] in extractSedaHandler
+            final JsonNode firstUpNode = ((ArrayNode) upNode).iterator().next();
+            final String[] parentsGuid = firstUpNode.asText().split(IngestWorkflowConstants.UPS_SEPARATOR);
+            final ArrayNode parentsArray = JsonHandler.createArrayNode();
+            for (final String parent : parentsGuid) {
+                parentsArray.add(parent);
             }
-            writer.close();
-            tmpFileWriter.close();
-            data = JsonHandler.getFromFile(tmpFile);
-
-            // Add operation to OPS
-            ((ObjectNode) data.get(ARCHIVE_UNIT)).putArray(VitamFieldsHelper.operations()).add(containerId);
-
-            // Add management bloc
-            if (managementBloc != null) {
-                ((ObjectNode) data.get(ARCHIVE_UNIT)).set(SedaConstants.PREFIX_MGT, managementBloc);
-            }
-
-            if (!tmpFile.delete()) {
-                LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
-            }
-
-            // Prepare archive unit details required for index process
-            archiveUnitDetails.put("data", data);
-
-            // Add parents GUIDs
-            if (parentsList != null) {
-                final String[] parentsGuid = parentsList.split(IngestWorkflowConstants.UPS_SEPARATOR);
-                final ArrayNode parentsArray = JsonHandler.createArrayNode();
-                for (final String parent : parentsGuid) {
-                    parentsArray.add(parent);
-                }
-                archiveUnitDetails.put("up", parentsArray);
-            }
-
-            archiveUnitDetails.put("existing", existingUnit);
-            archiveUnitDetails.put("id", unitGuid);
-
-        } catch (final XMLStreamException e) {
-            LOGGER.debug("Can not read input stream");
-            throw new ProcessingException(e);
-        } catch (final IOException e) {
-            LOGGER.debug("Closing stream error");
-            throw new ProcessingException(e);
-        } finally {
-            StreamUtils.closeSilently(input);
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (final XMLStreamException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-            }
+            workNode.set("_up", parentsArray);
         }
-        return archiveUnitDetails;
-    }
 
-    private void buildManagementBloc(ObjectNode managementBloc, XMLEventReader reader) throws XMLStreamException {
+        // replace Management by _mgt
+        archiveUnitNode.set(SedaConstants.PREFIX_MGT, archiveUnitNode.get(TAG_MANAGEMENT));
+        archiveUnitNode.remove(TAG_MANAGEMENT);
 
-        String currentRuleCategory = null;
-        String currentRule = null;
-        String currentValue = null;
-        ObjectNode currentRuleObject = null;
-
-        while (true) {
-            XMLEvent event = reader.nextEvent();
-            if (event.isStartElement()) {
-                String currentTag = event.asStartElement().getName().getLocalPart();
-                switch (currentTag) {
-
-                    case SedaConstants.TAG_RULE_ACCESS:
-                    case SedaConstants.TAG_RULE_REUSE:
-                    case SedaConstants.TAG_RULE_STORAGE:
-                    case SedaConstants.TAG_RULE_APPRAISAL:
-                    case SedaConstants.TAG_RULE_CLASSIFICATION:
-                    case SedaConstants.TAG_RULE_DISSEMINATION: {
-                        currentRuleCategory = currentTag;
-                        if (!managementBloc.has(currentRuleCategory)) {
-                            managementBloc.set(currentRuleCategory, JsonHandler.createArrayNode());
-                        }
-
-                        break;
-                    }
-
-                    case SedaConstants.TAG_RULE_RULE: {
-                        if (currentRuleObject != null) {
-                            ((ArrayNode) managementBloc.get(currentRuleCategory)).add(currentRuleObject);
-                        }
-
-                        event = (XMLEvent) reader.next();
-                        currentRule = event.asCharacters().getData();
-                        currentRuleObject = JsonHandler.createObjectNode();
-                        currentRuleObject.put(currentTag, currentRule);
-                        break;
-                    }
-                    
-                    case SedaConstants.TAG_RULE_PREVENT_INHERITANCE: {
-                        if (currentRuleObject == null) {
-                            currentRuleObject = JsonHandler.createObjectNode();
-                        }
-
-                        event = (XMLEvent) reader.next();
-                        currentValue = event.asCharacters().getData();
-                        if (currentValue.equals("true")){
-                            currentRuleObject.put(currentTag, currentValue);
-                            for (JsonNode ruleNode : (ArrayNode) managementBloc.get(currentRuleCategory)) {
-                                ((ObjectNode) ruleNode).put(currentTag, currentValue);
-                            }
-                        }
-                        break;
-                    }
-                    
-                    case SedaConstants.TAG_RULE_REF_NON_RULE_ID: {
-                        if (currentRuleObject == null) {
-                            currentRuleObject = JsonHandler.createObjectNode();
-                        }
-                        
-                        event = (XMLEvent) reader.next();
-                        currentRule = event.asCharacters().getData();
-                        if (currentRuleObject.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID) == null) {
-                            ArrayNode nonRefArray = JsonHandler.createArrayNode();
-                            nonRefArray.add(currentRule);
-                            currentRuleObject.set(SedaConstants.TAG_RULE_REF_NON_RULE_ID, nonRefArray);
-                        } else {
-                            ArrayNode nonRefArray = (ArrayNode) currentRuleObject.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID);
-                            nonRefArray.add(currentRule);
-                        }
-                        break;
-                    }
-
-                    default:
-                        event = (XMLEvent) reader.next();
-                        if (event.isCharacters()) {
-                            if (currentRuleCategory != null && currentRuleObject != null) {
-                                currentRuleObject.put(currentTag, event.asCharacters().getData());
-                            } else {
-                                managementBloc.put(currentTag, event.asCharacters().getData());
-                            }
-                        }
-                }
-            } else if (event.isEndElement()) {
-                switch (event.asEndElement().getName().getLocalPart()) {
-
-                    case SedaConstants.TAG_RULE_ACCESS:
-                    case SedaConstants.TAG_RULE_REUSE:
-                    case SedaConstants.TAG_RULE_STORAGE:
-                    case SedaConstants.TAG_RULE_APPRAISAL:
-                    case SedaConstants.TAG_RULE_CLASSIFICATION:
-                    case SedaConstants.TAG_RULE_DISSEMINATION: {
-
-                        if (currentRuleCategory != null && currentRuleObject != null) {
-                            ((ArrayNode) managementBloc.get(currentRuleCategory)).add(currentRuleObject);
-                        }
-
-                        currentRuleCategory = null;
-                        currentRuleObject = null;
-                        break;
-                    }
-                    case SedaConstants.TAG_MANAGEMENT:
-                        return;
-                }
-            }
+        // remove Content tag and move its content in ArchiveUnit
+        ObjectNode content = (ObjectNode) archiveUnitNode.get(TAG_CONTENT);
+        Iterator<String> contentFieldNames = content.fieldNames();
+        while (contentFieldNames.hasNext()) {
+            String fieldName = contentFieldNames.next();
+            archiveUnitNode.set(fieldName, content.get(fieldName));
         }
+        archiveUnitNode.remove(TAG_CONTENT);
+
+        // remove DataObjectReference
+        // FIXME is it normal to have this TAG "DataObjectReference" after ExtractSeda since "_og" contains the guids
+        archiveUnitNode.remove("DataObjectReference");
+
+        // add #operations
+        archiveUnitNode.putArray(VitamFieldsHelper.operations()).add(containerId);
+
+        return archiveUnit;
+
     }
 
     @Override

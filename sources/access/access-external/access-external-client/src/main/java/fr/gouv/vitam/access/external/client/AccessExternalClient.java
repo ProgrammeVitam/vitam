@@ -117,6 +117,7 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
+
     /**
      * selectObjectById
      *
@@ -223,6 +224,17 @@ public interface AccessExternalClient extends BasicClient {
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
+    /**
+     * @param query
+     * @throws AccessExternalClientServerException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId)
+        throws AccessExternalClientServerException, InvalidParseOperationException;
+
+
+    Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
+        throws AccessExternalClientServerException;
 }
 
 

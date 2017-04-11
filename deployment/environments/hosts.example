@@ -1,0 +1,269 @@
+# Group definition ; DO NOT MODIFY
+[hosts]
+
+# Group definition ; DO NOT MODIFY
+[hosts:children]
+vitam
+reverse
+library
+hosts-mongo-express
+
+
+########### Tests environments specifics ###########
+
+# EXTRA : Front reverse-proxy (test environments ONLY) ; add machine name after
+[reverse]
+# optional : after machine, if this machine is different from VITAM machines, you can specify another become user
+# Example
+# vitam-centos-01.vitam ansible_ssh_user=centos
+
+########### Extra VITAM applications ###########
+
+[library]
+# TODO: Put here servers where this service will be deployed : library
+
+[hosts-mongo-express]
+# TODO: Put here servers where this service will be deployed : mongo-express
+
+[elasticsearch:children] # EXTRA : elasticsearch
+hosts-elasticsearch-data
+hosts-elasticsearch-log
+
+########### VITAM services ###########
+
+# Group definition ; DO NOT MODIFY
+[vitam:children]
+zone-external
+zone-access
+zone-applicative
+zone-storage
+zone-data
+zone-admin
+
+
+##### Zone externe
+
+
+[zone-external:children]
+hosts-ihm-demo
+
+[hosts-ihm-demo]
+# TODO: Put here servers where this service will be deployed : ihm-demo
+
+
+##### Zone access
+
+# Group definition ; DO NOT MODIFY
+[zone-access:children]
+hosts-ingest-external
+hosts-access-external
+
+[hosts-ingest-external]
+# TODO: Put here servers where this service will be deployed : ingest-external
+
+
+[hosts-access-external]
+# TODO: Put here servers where this service will be deployed : access-external
+
+
+##### Zone applicative
+
+# Group definition ; DO NOT MODIFY
+[zone-applicative:children]
+hosts-ingest-internal
+hosts-processing
+hosts-worker
+hosts-access-internal
+hosts-metadata
+hosts-functional-administration
+hosts-logbook
+hosts-workspace
+hosts-storage-engine
+
+[hosts-logbook]
+# TODO: Put here servers where this service will be deployed : logbook
+
+
+[hosts-workspace]
+# TODO: Put here servers where this service will be deployed : workspace
+
+
+[hosts-ingest-internal]
+# TODO: Put here servers where this service will be deployed : ingest-internal
+
+
+[hosts-access-internal]
+# TODO: Put here servers where this service will be deployed : access-internal
+
+
+[hosts-metadata]
+# TODO: Put here servers where this service will be deployed : metadata
+
+
+[hosts-functional-administration]
+# TODO: Put here servers where this service will be deployed : functional-administration
+
+
+[hosts-processing]
+# TODO: Put here servers where this service will be deployed : processing
+
+
+[hosts-storage-engine]
+# TODO: Put here servers where this service will be deployed : storage-engine
+
+
+[hosts-worker]
+# TODO: Put here servers where this service will be deployed : worker
+# Optional parameter after each host : vitam_worker_capacity=<integer> ; please refer to your infrastructure for defining this number ; default is 1
+
+
+##### Zone storage
+
+[zone-storage:children] # DO NOT MODIFY
+hosts-storage-offer-default
+
+
+[hosts-storage-offer-default]
+# TODO: Put here servers where this service will be deployed : storage-offer-default
+# LIMIT : only 1 offer per machine and 1 machine per offer
+# Additional params for openstack-swift
+# hostname-offre-1.vitam vitam_keystone_auth_url=http://hostname-rados-gw:port/auth/1.0 vitam_swift_subuser=subuser vitam_swift_uid=tenant$user vitam_provider_offer=openstack-swift
+# for filesystem
+# hostname-offre-2.vitam vitam_provider_offer=filesystem
+
+
+##### Zone data
+
+# Group definition ; DO NOT MODIFY
+[zone-data:children]
+hosts-elasticsearch-data
+mongo_common
+
+
+[hosts-elasticsearch-data]
+# TODO: Put here servers where this service will be deployed : elasticsearch-data cluster
+
+
+# Group definition ; DO NOT MODIFY
+[mongo_common:children]
+mongos
+mongoc
+mongod
+
+[mongos]
+# TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
+# Example : vitam-iaas-mongos-01.int shard_id=0
+
+[mongoc]
+# TODO: Put here servers where this service will be deployed : mongoc cluster
+
+
+[mongod] # mongod declaration ; add machines name after ; add after shard_id=0 & rs_member_id=<increasing number, starting from 0, for each line>
+# TODO: Put here servers where this service will be deployed : mongod cluster ; add after name shard_id=0
+# Example : vitam-iaas-db-01.int rs_member_id=0 shard_id=0
+# Example : vitam-iaas-db-02.int rs_member_id=1 shard_id=0
+# Example : vitam-iaas-db-03.int rs_member_id=2 shard_id=0
+
+###### Zone admin
+
+# Group definition ; DO NOT MODIFY
+[zone-admin:children]
+hosts-consul-server
+log-servers
+hosts-elasticsearch-log
+hosts-mongoclient
+
+[hosts-consul-server]
+# TODO: Put here servers where this service will be deployed : consul
+
+
+[log-servers:children]
+hosts-kibana
+hosts-logstash
+
+[hosts-logstash]
+# TODO: Put here servers where this service will be deployed : logstash
+
+[hosts-kibana]
+# TODO: Put here servers where this service will be deployed : kibana
+
+[hosts-elasticsearch-log]
+# TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
+
+[hosts-mongoclient]
+# TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
+# Example : vitam-iaas-mongos-01.int shard_id=0
+
+########### Global vars ###########
+
+[hosts:vars]
+# Declare user for ansible on target machines
+ansible_ssh_user=
+
+# Can target user become as root ? ; true is required by VITAM (usage of a sudoer is mandatory)
+ansible_become=true
+
+# Environment (defines consul environment name ; in extra on homepage)
+environnement=
+
+# EXTRA : FQDN of the front reverse-proxy ; used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
+vitam_reverse_external_dns=
+
+# Version that has to be deployed (defined in the release note)
+# Example: package_version=0.9.0-RC1*
+package_version=
+
+# Configuration for Curator
+#	Days before deletion on log management cluster; 365 for production environment
+days_to_delete=
+
+#	Days before closing "old" indexes on log management cluster; 30 for production environment
+days_to_close=
+
+#	Days before deletion for topbeat index only on log management cluster; 365 for production environment
+days_to_delete_topbeat=
+
+# Related to Consul ; apply in a table your DNS server(s)
+# Example : dns_servers=["8.8.8.8","8.8.4.4"]
+dns_servers=
+
+#	LOG level defined in logback files ; can be a value in "ERROR","WARN","INFO","DEBUG","TRACE". Recommended value is "WARN"
+log_level=
+# FOr SoapUI files tests
+web_dir_soapui_tests=http://vitam-prod-ldap-1.internet.agri:8083/webdav
+
+# For reverse proxy use
+reverse_proxy_port=80
+
+# For metrics
+# curator job : days before closing
+days_to_close_metrics=7
+# curator job : days before deleting
+days_to_delete_metrics=30
+# Installation ClamAV ? true/false
+installation_clamav=true
+
+# cas de l'appel au webDAV pour récupérer les jeux de tests
+http_proxy_environnement=
+
+vitam_tenant_ids=[0,1,2]
+
+# ces paramètres peuvent être soit globaux, ici, soit ajoutés après chaque partition hébergeant une offre de stockage
+
+# useless now as it is declared in [hosts-storage-offer-default]
+# vitam_provider_offer=openstack-swift
+# URL d'authentification si openstack-swift
+# vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
+# subUser pour swift
+# vitam_swift_subuser=
+# Nom du tenant associé (concaténation tenant$user ; le mot de passe est renseigné dans vault.yml sous la directive vitam_keystone_passwd )
+# vitam_swift_uid=
+
+# Pour les Tests de Non-Regression (en git LFS), si URL et branche définies, récupération des jeux de tests
+vitam_swift_uid=
+
+# Git LFS for TNR
+vitam_tests_gitrepo_protocol=https
+vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
+vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
+vitam_tests_branch=master

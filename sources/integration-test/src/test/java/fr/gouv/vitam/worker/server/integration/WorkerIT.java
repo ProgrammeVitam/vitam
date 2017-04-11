@@ -77,6 +77,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookApplication;
@@ -547,6 +548,7 @@ public class WorkerIT {
         descriptionStep.getWorkParams().setUrlMetadata(METADATA_URL);
         descriptionStep.getWorkParams().setUrlWorkspace(WORKSPACE_URL);
         descriptionStep.getWorkParams().setObjectName("SIP/manifest.xml");
+        descriptionStep.getWorkParams().setLogbookTypeProcess(LogbookTypeProcess.INGEST);
         return descriptionStep;
     }
 
@@ -565,7 +567,7 @@ public class WorkerIT {
         } catch (final Exception e) {
             LOGGER.error("Exception while retrieving objectGroup", e);
         }
-        return unitName + ".xml";
+        return unitName + ".json";
     }
 
     private String objectGroupName() {

@@ -26,9 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -43,6 +47,7 @@ import org.elasticsearch.search.sort.SortBuilder;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -54,6 +59,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
+    public static final String MAPPING_LOGBOOK_OPERATION_FILE = "/logbook-es-mapping.json";
 
     /**
      * @param clusterName cluster name
@@ -100,12 +106,12 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         if (!client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
-                final String mapping = LogbookOperation.MAPPING;
+                final String mapping = getMapping();
                 final String type = LogbookOperation.TYPEUNIQUE;
                 LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(getIndexName(collection, tenantId))
-                        .setSettings(Settings.builder().loadFromSource(DEFAULT_INDEX_CONFIGURATION))
+                        .setSettings(default_builder)
                         .addMapping(type, mapping)
                         .get();
                 if (!response.isAcknowledged()) {
@@ -231,5 +237,9 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
     private String getIndexName(final LogbookCollections collection, Integer tenantId) {
         return collection.getName().toLowerCase() + "_" + tenantId.toString();
+    }
+    
+    private String getMapping() throws IOException{
+        return ElasticsearchUtil.transferJsonToMapping(LogbookOperation.class.getResourceAsStream(MAPPING_LOGBOOK_OPERATION_FILE));
     }
 }

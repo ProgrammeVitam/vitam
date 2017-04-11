@@ -52,6 +52,16 @@ config(['$locationProvider' ,'$routeProvider',
       controller: "uploadController",
       title: 'Transfert'
     }).
+    when('/uploadHoldingScheme', {
+      templateUrl: "views/upload-sip.html",
+      controller: "uploadController",
+      title: 'Transfert de l\'arbre de positionnement'
+    }).
+    when('/uploadFilingsScheme', {
+      templateUrl: "views/upload-sip.html",
+      controller: "uploadController",
+      title: 'Transfert du plan de classement'
+    }).
     when('/uploadSIP2', {
       templateUrl: "views/upload-sip-2.html",
       controller: "uploadController"
@@ -90,6 +100,10 @@ config(['$locationProvider' ,'$routeProvider',
         templateUrl: "views/import-contracts.html",
         title: 'Import du Référentiel des contrats'
     }).
+    when('/admin/importAccessContracts', {
+        templateUrl: "views/import-access-contracts.html",
+        title: 'Import des contrats d\'accès'
+    }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',
       title: 'Journal des Opérations'
@@ -115,14 +129,42 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Détail du Fonds'
     }).
     when('/admin/logbookOperations/:entryId', {
-          templateUrl: 'views/logbookEntry.html',
-          controller: 'logbookEntryController as entryCtrl',
-          title: 'Détail d\'une opération d\'entrée'
-        }).
-        when('/admin/workflows', {
-        	template: '<workflows></workflows>',
-            title: 'Gestion des versements'
-        }).
+      templateUrl: 'views/logbookEntry.html',
+      controller: 'logbookEntryController as entryCtrl',
+      title: 'Détail d\'une opération d\'entrée'
+    }).
+    when('/admin/workflows', {
+        template: '<workflows></workflows>',
+        title: 'Gestion des versements'
+    }).
+     when('/admin/entryContracts', {
+       templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
+       controller: 'entryContractsController',
+       title: 'Contrats d\'entrée'
+     }).
+    when('/admin/entryContracts/:id', {
+      templateUrl: 'modules/entry-contracts/entry-contract-single.template.html',
+      controller: 'entryContractController',
+      title: 'Détail d\'un contrat d\'entrée'
+    }).
+    when('/admin/accessContracts', {
+      templateUrl: 'modules/access-contracts/access-contracts.template.html',
+      controller: 'accessContractsController',
+      title: 'Liste des Contrats d\'accès'
+    }).
+    when('/admin/accessContracts/:id', {
+      templateUrl: 'modules/access-contracts/access-contract-single.template.html',
+      controller: 'accessContractController',
+      title: 'Détail d\'un contrat d\'accès'
+    }).
+    when('/admin/traceabilityOperationSearch', {
+      template: '<traceability-operation-search></traceability-operation-search>',
+      title: 'Recherche sur les opérations de sécurisation'
+    }).
+    when('/admin/traceabilityOperationDetail/:operationId', {
+      template: '<traceability-operation-details></traceability-operation-details>',
+      title: 'Vérification d\'une opération de sécurisation'
+    }).
     otherwise('/uploadSIP');
   }
 ])
@@ -133,6 +175,9 @@ config(['$locationProvider' ,'$routeProvider',
       $translateProvider.preferredLanguage('fr');
     }
   )
+  .config(function($httpProvider) {
+    $httpProvider.interceptors.push('HttpRequestErrorInterceptor');
+  })
   .config(['flowFactoryProvider', function (flowFactoryProvider) {
     flowFactoryProvider.defaults = {
       target: '/ihm-demo/v1/api/ingest/upload2',

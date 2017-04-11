@@ -57,6 +57,8 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * JSON handler using Json format
@@ -65,6 +67,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  *
  */
 public final class JsonHandler {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JsonHandler.class);
     private static final String OBJECT = "object";
     /**
      * Default JsonFactory
@@ -204,6 +207,24 @@ public final class JsonHandler {
         }
     }
 
+
+    /**
+     *
+     * @param value to transform
+     * @param clasz the instance of target class
+     * @return the object of type clasz
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static final <T> T getFromStringAsTypeRefence(final String value, final TypeReference<T> clasz)
+            throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("value or class", value, clasz);
+            return OBJECT_MAPPER.readValue(value, clasz);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
     /**
      *
      * @param value in format String to transform
@@ -269,6 +290,23 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("File or class", file, clasz);
             return OBJECT_MAPPER.readValue(file, clasz);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    /**
+     *
+     * @param file to transform
+     * @param valueTypeRef the type reference of target class
+     * @return the corresponding object
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static final <T> T getFromFileAsTypeRefence(File file, TypeReference valueTypeRef)
+            throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("File or class", file, valueTypeRef);
+            return OBJECT_MAPPER.readValue(file, valueTypeRef);
         } catch (final IOException | IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -368,7 +406,7 @@ public final class JsonHandler {
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
                 .writeValueAsString(object);
         } catch (final JsonProcessingException | IllegalArgumentException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.info(e);
             return "{}";
         }
     }
@@ -383,7 +421,7 @@ public final class JsonHandler {
             ParametersChecker.checkParameter(OBJECT, object);
             return OBJECT_MAPPER_UNPRETTY.writeValueAsString(object);
         } catch (final JsonProcessingException | IllegalArgumentException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.info(e);
             return "{}";
         }
     }
@@ -398,7 +436,7 @@ public final class JsonHandler {
             ParametersChecker.checkParameter(OBJECT, object);
             return OBJECT_MAPPER_LOWER_CAMEL_CASE.writeValueAsString(object);
         } catch (final JsonProcessingException | IllegalArgumentException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
             return "{}";
         }
     }

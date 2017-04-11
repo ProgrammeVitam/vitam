@@ -15,14 +15,40 @@
     
     "BLANK_TEST_RESUME" : 
     { 
-        "workFlowId" : "DefaultIngestWorkflowBlankTest", 
+        "workFlowId" : "DefaultIngestBlankTestWorkflow", 
         "executionContext" : "resume",
         "logbookTypeProcess" : "INGEST_TEST"
     },
      "BLANK_TEST_NEXT" : 
     { 
-        "workFlowId" : "DefaultIngestWorkflowBlankTest", 
+        "workFlowId" : "DefaultIngestBlankTestWorkflow", 
         "executionContext" : "next",
         "logbookTypeProcess" : "INGEST_TEST"
+    },
+    
+    "HOLDING_SCHEME_RESUME" : 
+    { 
+        "workFlowId" : "DefaultHoldingSchemeWorkflow", 
+        "executionContext" : "resume",
+        "logbookTypeProcess" : "MASTERDATA"
+    },
+     "HOLDING_SCHEME_NEXT" : 
+    { 
+        "workFlowId" : "DefaultHoldingSchemeWorkflow", 
+        "executionContext" : "next",
+        "logbookTypeProcess" : "MASTERDATA"
+    },
+    
+    "FILING_SCHEME_RESUME" : 
+    { 
+        "workFlowId" : "DefaultFilingSchemeWorkflow", 
+        "executionContext" : "resume",
+        "logbookTypeProcess" : "INGEST"
+    },
+     "FILING_SCHEME_NEXT" : 
+    { 
+        "workFlowId" : "DefaultFilingSchemeWorkflow", 
+        "executionContext" : "next",
+        "logbookTypeProcess" : "INGEST"
     }
 }

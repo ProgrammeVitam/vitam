@@ -26,45 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.Instant;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -77,26 +42,37 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
-import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
-import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
-import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
-import fr.gouv.vitam.storage.driver.model.StorageGetResult;
-import fr.gouv.vitam.storage.driver.model.StorageListRequest;
-import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
-import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
-import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
-import fr.gouv.vitam.storage.driver.model.StoragePutResult;
-import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
-import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.driver.model.*;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.ws.rs.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.Instant;
+import java.util.Random;
+
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ConnectionImplTest extends VitamJerseyTest {
 
@@ -105,11 +81,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
     protected static final String DEFAULT_GUID = "GUID";
     private static JunitHelper junitHelper;
     private static int tenant;
-    private static ConnectionImpl connection;
+    private static AbstractConnection connection;
     private static StorageOffer offer = new StorageOffer();
 
     private static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     private static final String TYPE = "object";
+    private static Driver driver;
 
     public ConnectionImplTest() {
         super(new TestVitamClientFactory(8080, "/offer/v1", mock(Client.class)));
@@ -119,14 +96,17 @@ public class ConnectionImplTest extends VitamJerseyTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         tenant = Instant.now().getNano();
+        driver = DriverImpl.getInstance();
     }
 
     @Override
     public void beforeTest() throws VitamApplicationServerException {
+        String offerId = "default"+ new Random().nextDouble();
+        offer.setId(offerId);
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-
+        driver.addOffer(offerId);
         try {
-            connection = DriverImpl.getInstance().connect(offer, null);
+            connection = (AbstractConnection)driver.connect(offer, null);
         } catch (final StorageDriverException e) {
             throw new VitamApplicationServerException(e);
         }
@@ -145,12 +125,12 @@ public class ConnectionImplTest extends VitamJerseyTest {
             throw new IllegalStateException("Cannot start the application", e);
         }
         return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
-                .setApplication(application);
+            .setApplication(application);
     }
 
     // Define your Application class if necessary
     public final class AbstractApplication
-            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
+        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
         protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
             super(TestVitamApplicationConfiguration.class, configuration);
         }
@@ -195,8 +175,8 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @HEAD
         @Path("/objects/{type}/{id:.+}")
         public Response headObject(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-                @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
-                @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
+            @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
             return expectedResponse.head();
         }
 
@@ -234,7 +214,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         @Path("/objects/{type}/{id:.+}/metadatas")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-                @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
             return expectedResponse.get();
         }
 
@@ -321,13 +301,13 @@ public class ConnectionImplTest extends VitamJerseyTest {
         final StoragePutRequest request = getPutObjectRequest(true, true, true, true, true);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(7)).build());
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(7)).build());
         final StoragePutResult result = connection.putObject(request);
         assertNotNull(result);
         assertNotNull(result.getDistantObjectId());
@@ -338,15 +318,15 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void putBigObjectWithRequestOk() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(1, DataCategory.OBJECT.getFolder(), "GUID",
-                DigestType.MD5.getName(), new FakeInputStream(2097152, true));
+            DigestType.MD5.getName(), new FakeInputStream(2097152, true));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build());
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build());
         final StoragePutResult result = connection.putObject(request);
         assertNotNull(result);
         assertNotNull(result.getDistantObjectId());
@@ -357,15 +337,15 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void putBigObject2WithRequestOk() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.getFolder(), "GUID",
-                DigestType.MD5.getName(), new FakeInputStream(2201507, true));
+            DigestType.MD5.getName(), new FakeInputStream(2201507, true));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
-                .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build());
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(4)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(5)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(6)).build());
         final StoragePutResult result = connection.putObject(request);
         assertNotNull(result);
         assertNotNull(result.getDistantObjectId());
@@ -378,10 +358,10 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void putBigObjectWithRequestInternalError() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.name(), "GUID",
-                DigestType.MD5.getName(), new FakeInputStream(2097152, true));
+            DigestType.MD5.getName(), new FakeInputStream(2097152, true));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-                .thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            .thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         connection.putObject(request);
     }
 
@@ -391,10 +371,10 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test(expected = StorageDriverException.class)
     public void putBigObjectWithBadRequestDuringTransfert() throws Exception {
         final StoragePutRequest request = new StoragePutRequest(0, DataCategory.OBJECT.name(), "GUID", DigestType.MD5.getName(),
-                new FakeInputStream(2095104, true));
+            new FakeInputStream(2095104, true));
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(getPostObjectResult(-1)).build());
         when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-                .thenReturn(Response.status(Status.BAD_REQUEST).build());
+            .thenReturn(Response.status(Status.BAD_REQUEST).build());
         connection.putObject(request);
     }
 
@@ -451,7 +431,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     @Test
     public void getStorageCapacityOK() throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.OK).header("X-Usable-Space", "1000").header("X-Used-Space", "1000")
-                .header(GlobalDataRest.X_TENANT_ID, tenant).build());
+            .header(GlobalDataRest.X_TENANT_ID, tenant).build());
         // TODO check result
         final StorageCapacityResult result = connection.getStorageCapacity(tenant);
         assertNotNull(result);
@@ -465,13 +445,13 @@ public class ConnectionImplTest extends VitamJerseyTest {
         when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         connection.getStorageCapacity(0);
     }
-    
+
     @Test(expected = StorageDriverNotFoundException.class)
     public void getStorageCapacityNotFoundException() throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         connection.getStorageCapacity(0);
     }
-    
+
     @Test(expected = StorageDriverPreconditionFailedException.class)
     public void getStorageCapacityPreconditionFailedException() throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.BAD_REQUEST).build());
@@ -716,7 +696,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     }
 
     private StoragePutRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid, boolean putTenantId,
-            boolean putType) throws Exception {
+        boolean putType) throws Exception {
         FileInputStream stream = null;
         String digest = null;
         String guid = null;
@@ -742,7 +722,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     }
 
     private StorageCheckRequest getStorageCheckRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
-            boolean putTenantId, boolean putType) throws Exception {
+        boolean putTenantId, boolean putType) throws Exception {
         DigestType digestType = null;
         String digest = null;
         String guid = null;
@@ -785,7 +765,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     private JsonNode getStorageCapacityResult() throws IOException {
         final ObjectMapper mapper = new ObjectMapper();
         final JsonNode result = mapper
-                .readTree("{\"tenantId\":\"1" + "\",\"usableSpace\":\"100000\"," + "\"usedSpace\":\"100000\"}");
+            .readTree("{\"tenantId\":\"1" + "\",\"usableSpace\":\"100000\"," + "\"usedSpace\":\"100000\"}");
         return result;
     }
 
@@ -880,7 +860,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
     }
 
     private StorageRemoveRequest getStorageRemoveRequest(boolean putDigestType, boolean putDigestA, boolean putGuid,
-            boolean putTenantId, boolean putType) throws Exception {
+        boolean putTenantId, boolean putType) throws Exception {
         DigestType digestType = null;
         String digest = null;
         String guid = null;
@@ -927,7 +907,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
         assertNotNull(result);
 
     }
-    
+
     @Test(expected = StorageDriverNotFoundException.class)
     public void getObjectMetadataTestTestNotFound() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
@@ -935,7 +915,7 @@ public class ConnectionImplTest extends VitamJerseyTest {
             new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         connection.getMetadatas(request);
     }
-    
+
     @Test(expected = StorageDriverException.class)
     public void getObjectMetadataTestInternalServerError() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());

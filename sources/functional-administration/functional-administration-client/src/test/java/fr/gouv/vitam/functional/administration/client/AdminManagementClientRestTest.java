@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +49,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Rule;
@@ -77,6 +83,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
 public class AdminManagementClientRestTest extends VitamJerseyTest {
 
@@ -139,10 +146,13 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return false;
         }
     }
+
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
     }
+
 
     @Path("/adminmanagement/v1")
     public static class MockResource {
@@ -264,8 +274,34 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response importContracts(ArrayNode contractsToImport, @Context UriInfo uri) {
-           return expectedResponse.post();
+            return expectedResponse.post();
         }
+
+        @GET
+        @Path("/contracts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findContracts(@Context UriInfo uri) {
+            return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/accesscontracts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importAccessContracts(List<AccessContractModel> accessContractModelList) {
+
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/accesscontracts")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAccessContracts(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
     }
 
 
@@ -359,7 +395,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
     /**
-     * @param select
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws DatabaseConflictException
@@ -385,7 +420,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     }
 
     /**
-     * @param select
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws DatabaseConflictException
@@ -433,7 +467,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
     }
 
-    /** Accession Register Detail **/
+    /**
+     * Accession Register Detail
+     **/
 
     @Test
     public void getAccessionRegisterDetail()
@@ -456,7 +492,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         client.getAccessionRegisterDetail(JsonHandler.getFromString(QUERY));
     }
 
-    /** Accession Register Summary **/
+    /**
+     * Accession Register Summary
+     **/
     @Test
     public void getAccessionRegisterSummary()
         throws Exception {
@@ -478,25 +516,168 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         client.getAccessionRegister(JsonHandler.getFromString(QUERY));
     }
 
-    @Test()
+    @Test
     @RunWithCustomExecutor
-    public void importContractsWithCorrectJsonReturnCreated()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException {
-        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
+    public void importIngestContractsWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        JsonNode json = JsonHandler.getFromFile(fileContracts);
-        RequestResponse resp = client.importContracts((ArrayNode) json);
-        Assert.assertTrue(resp instanceof RequestResponseOK);
-        Assert.assertTrue(((RequestResponseOK)resp).getResults().get(0) instanceof IngestContractModel);
+
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<IngestContractModel>().addAllResults(getIngestContracts())).build());
+        RequestResponse resp = client.importIngestContracts(new ArrayList<>());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(IngestContractModel.class);
     }
-    
-    private List<Object> getContracts() throws FileNotFoundException, InvalidParseOperationException {
-    	InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
-		ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
-		List<Object> res = new ArrayList<>();
-		array.forEach(e -> res.add(e));
-		return res;
-	}
+
+
+    /**
+     *  Test that findIngestContracts is reachable and does not return elements
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllIngestContractsThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<IngestContractModel>()).build());
+        RequestResponse resp = client.findIngestContracts(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+    }
+
+
+    /**
+     *  Test that findIngestContracts is reachable and return two elements as expected
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllIngestContractsThenReturnTwo()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<IngestContractModel>().addAllResults(getIngestContracts())).build());
+        RequestResponse resp = client.findIngestContracts(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(IngestContractModel.class);
+    }
+
+
+    /**
+     * Test that findIngestContractsByID is reachable
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void findIngestContractsByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<IngestContractModel>()).build());
+        RequestResponse resp = client.findIngestContractsByID("fakeId");
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void importAccessContractsWithCorrectJsonReturnCreated()
+            throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<AccessContractModel>().addAllResults(getAccessContracts())).build());
+        RequestResponse resp = client.importAccessContracts(new ArrayList<>());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(AccessContractModel.class);
+    }
+
+
+    /**
+     *  Test that findAccessContracts is reachable and does not return elements
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllAccessContractsThenReturnEmpty()
+            throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<AccessContractModel>()).build());
+        RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+    }
+
+
+    /**
+     *  Test that findAccessContracts is reachable and return two elements as expected
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllAccessContractsThenReturnTwo()
+            throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<AccessContractModel>().addAllResults(getAccessContracts())).build());
+        RequestResponse resp = client.findAccessContracts(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(AccessContractModel.class);
+    }
+
+
+    /**
+     * Test that findAccessContractsByID is reachable
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void findAccessContractsByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<AccessContractModel>()).build());
+        RequestResponse resp = client.findAccessContractsByID("fakeId");
+    }
+
+
+    private List<AccessContractModel> getAccessContracts() throws FileNotFoundException, InvalidParseOperationException {
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>(){});
+    }
+
+    private List<IngestContractModel> getIngestContracts() throws FileNotFoundException, InvalidParseOperationException {
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
+    }
 
 }

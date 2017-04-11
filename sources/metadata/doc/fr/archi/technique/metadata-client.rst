@@ -1,7 +1,7 @@
 Operation Client
 *******************
 
-Presentation
+Présentation
 ------------
 
 |  *Parent package:* **fr.gouv.vitam.metadata**

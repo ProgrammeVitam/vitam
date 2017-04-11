@@ -1,0 +1,9 @@
+[Unit]
+Description=Close old elasticsearch-log indexes
+
+[Timer]
+OnCalendar=*-*-* 00:10:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target

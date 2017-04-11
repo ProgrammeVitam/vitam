@@ -141,7 +141,7 @@ public class DbRequestSingle {
 
 
     /**
-     * @param vitamDocumentList
+     * @param arrayNode
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
@@ -159,7 +159,7 @@ public class DbRequestSingle {
     }
 
     /**
-     * @param collection
+     * @param vitamDocumentList
      * @param vitamDocumentList
      * @throws DatabaseException 
      * @throws DatabaseException if error occurs
@@ -189,7 +189,6 @@ public class DbRequestSingle {
      * Add a set of entries in the ElasticSearch index. <br>
      * Used in reload from scratch.
      *
-     * @param collection
      * @param mapIdJson
      * @return the listener on bulk insert
      */
@@ -228,7 +227,6 @@ public class DbRequestSingle {
     }
 
     /**
-     * @param collection
      * @param parser
      * @return
      * @throws InvalidParseOperationException 
@@ -265,7 +263,6 @@ public class DbRequestSingle {
     }
 
     /**
-     * @param collection
      * @param parser
      * @return the Closeable MongoCursor on the find request based on the given collection
      * @throws InvalidParseOperationException when query is not correct
@@ -301,13 +298,11 @@ public class DbRequestSingle {
 
     /**
      *
-     * @param collection
-     * @param type
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
      * @param filter
      * @return a structure as ResultInterface
-     * @throws MetaDataExecutionException
+     * @throws DatabaseException
      */
     private final SearchResponse search(final QueryBuilder query,
         final QueryBuilder filter) throws DatabaseException {
@@ -329,12 +324,11 @@ public class DbRequestSingle {
     }
 
     /**
-     * @param collection domain of request
      * @param condition where condition
      * @param actions update
-     * @param nb nb of item to update
+     * @param isMultiple nb of item to update
      * @return the UpdateResult on the update request based on the given collection
-     * @throws MetaDataExecutionException
+     * @throws DatabaseException
      */
     private final UpdateResult updateMongoDb(final Bson condition, final Bson actions, final boolean isMultiple)
         throws DatabaseException {
@@ -418,8 +412,7 @@ public class DbRequestSingle {
     /**
      * Delete one index
      *
-     * @param collection
-     * @throws DatabaseException 
+     * @throws DatabaseException
      */
     private final void deleteIndex() throws DatabaseException {
         final Client client = vitamCollection.getEsClient().getClient();
@@ -439,7 +432,7 @@ public class DbRequestSingle {
     /**
      * Delete one index
      *
-     * @param collection
+     * @param id
      * @throws DatabaseException 
      */
     private final void deleteEntry(String id) throws DatabaseException {

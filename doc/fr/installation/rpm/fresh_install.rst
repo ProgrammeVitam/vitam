@@ -3,8 +3,8 @@ Procédure de première installation
 
 
 .. |repertoire_deploiement| replace:: ``deployment``
-.. |repertoire_inventory| replace:: ``environments-rpm``
-.. |repertoire_playbook ansible| replace:: ``ansible-vitam-rpm``
+.. |repertoire_inventory| replace:: ``environments``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
 
 Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans le sous-répertoire |repertoire_deploiement| . Ils consistent en 2 parties :
 
@@ -22,7 +22,7 @@ Informations "plate-forme"
 
 Pour configurer le déploiement, il est nécessaire de créer dans le répertoire |repertoire_inventory| un nouveau fichier d'inventaire à nommer ``hosts.<environnement>`` ( où <environnement> sera utilisé par la suite ) comportant les informations suivantes :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/hosts.example
+.. literalinclude:: ../../../../deployment/environments/hosts.example
    :language: ini
    :linenos:
 
@@ -69,14 +69,14 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/all
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/all
    :language: yaml
    :linenos:
 
 
 Le fichier ``vault-vitam.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/vault-vitam.txt
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.txt
    :language: ini
    :linenos:
 
@@ -85,7 +85,7 @@ Le fichier ``vault-vitam.yml`` est également présent sous |repertoire_inventor
 
 Le fichier ``vault-extra.yml`` peut être également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient des secrets supplémentaires ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement, si le composant ihm-recette est déployé avec récupération des TNR.
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_vault-extra.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_vault-extra.yml
    :language: ini
    :linenos:
 
@@ -138,8 +138,8 @@ Paramétrage de l'antivirus (ingest-externe)
 
 L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; pour cela :
 
-* Créer un autre shell (dont l'extension doit être ``.sh.j2``) sous ``ansible-vitam-rpm/roles/vitam/templates/ingest-external`` ; prendre comme modèle le fichier ``scan-clamav.sh.j2``. Ce fichier est un template Jinja2, et peut donc contenir des variables qui seront interprétées lors de l'installation.
-* Modifier le fichier ``ansible-vitam-rpm/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
+* Créer un autre shell (dont l'extension doit être ``.sh.j2``) sous ``ansible-vitam/roles/vitam/templates/ingest-external`` ; prendre comme modèle le fichier ``scan-clamav.sh.j2``. Ce fichier est un template Jinja2, et peut donc contenir des variables qui seront interprétées lors de l'installation.
+* Modifier le fichier ``ansible-vitam/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
 
 
 Ce script shell doit respecter le contrat suivant :
@@ -207,18 +207,18 @@ Mise en place des repositories VITAM (optionnel)
 -------------------------------------------------
 Si gestion par VITAM des repositories CentOS spécifiques à VITAM :
 
-Editer le fichier ``environments-rpm/group_vars/all/repo.yml`` à partir des modèles suivants (décommenter également les lignes) :
+Editer le fichier ``environments/group_vars/all/repo.yml`` à partir des modèles suivants (décommenter également les lignes) :
 
 Pour une cible de déploiement CentOS :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_bootstrap_repo_centos.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_bootstrap_repo_centos.yml
    :language: yaml
    :linenos:
 
 
 Pour une cible de déploiement Debian :
 
-.. literalinclude:: ../../../../deployment/environments-rpm/group_vars/all/example_bootstrap_repo_debian.yml
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_bootstrap_repo_debian.yml
    :language: yaml
    :linenos:
 
@@ -226,11 +226,11 @@ Ce fichier permet de définir une liste de repositories. Décommenter et adapter
 
 Pour mettre en place ces repositories sur les machines cibles, lancer la commande :
 
-``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire>  --ask-vault-pass``
+``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass``
 
 ou
 
-``ansible-playbook ansible-vitam-rpm-extra/bootstrap.yml -i environments-rpm/<fichier d'inventaire> --vault-password-file vault_pass.txt``
+``ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire> --vault-password-file vault_pass.txt``
 
 .. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
 
@@ -241,7 +241,7 @@ Une fois l'étape de PKI effectuée avec succès, le déploiement est à réalis
 
 .. code-block:: bash
 
-   ansible-playbook ansible-vitam-rpm/vitam.yml -i environments-rpm/<ficher d'inventaire> --vault-password-file vault_pass.txt
+   ansible-playbook ansible-vitam/vitam.yml -i environments/<ficher d'inventaire> --vault-password-file vault_pass.txt
 
 Extra
 ------
@@ -254,7 +254,7 @@ Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette
 
 .. code-block:: bash
 
-   ansible-playbook ansible-vitam-rpm-extra/ihm-recette.yml -i environments-rpm/<ficher d'inventaire> --vault-password-file vault_pass.txt
+   ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --vault-password-file vault_pass.txt
 
 
 2. extra complet
@@ -271,7 +271,7 @@ Ce playbook permet d'installer :
 
 .. code-block:: bash
 
-   ansible-playbook ansible-vitam-rpm-extra/extra.yml -i environments-rpm/<ficher d'inventaire> --vault-password-file vault_pass.txt
+   ansible-playbook ansible-vitam-extra/extra.yml -i environments/<ficher d'inventaire> --vault-password-file vault_pass.txt
 
 Import automatique d'objets dans Kibana
 =========================================
@@ -282,7 +282,7 @@ Il peut être utile de vouloir automatiquement importer dans l'outil de visualis
 2. Créer ses dashboards puis sauvegarder.
 3. Aller dans l'onglets **Settings** puis **Objects**.
 4. Sélectionner les composants à exporter puis cliquer sur le bouton **Export**. (ou bien cliquer sur **Export Everything** pour tout exporter).
-5. Copier le/les fichier(s) *.json* téléchargés à l'emplacement ``deployment\ansible-vitam-rpm\roles\log-server\files\kibana-objects``.
+5. Copier le/les fichier(s) *.json* téléchargés à l'emplacement ``deployment\ansible-vitam\roles\log-server\files\kibana-objects``.
 6. Les composants sont prêts à être importés automatique lors du prochain déploiement.
 
 Pour éviter d'avoir à recréer les "index-pattern" définis dans l'onglet **Settings** de Kibana, ceux-ci aussi sont pris en charge par le système de déploiement automatique. En revanche ils ne sont pas exportables, il est donc nécessaire de créer à la main le fichier *.json* correspondant. Pour ce faire :
@@ -290,5 +290,5 @@ Pour éviter d'avoir à recréer les "index-pattern" définis dans l'onglet **Se
 1. Faire une requête GET sur l'url suivante ``http://<ip-elasticsearch-log>/.kibana/index-pattern/_search``.
 2. Récupérer le contenu au format JSON et extraire le contenu de la clé **hits.hits** (qui doit être un tableau).
 3. Copier ce tableau dans un fichier.
-4. Copier le fichier créé à l'étape 3 dans l'emplacement ``deployment\ansible-vitam-rpm\roles\log-server\files\kibana-objects``.
+4. Copier le fichier créé à l'étape 3 dans l'emplacement ``deployment\ansible-vitam\roles\log-server\files\kibana-objects``.
 5. Les index-pattern sont prêts à être importés.

@@ -1,0 +1,19 @@
+{
+	"_work": {
+		"_up": [ ],
+		"_existing": "true"
+	},
+	"ArchiveUnit": {
+		"Management": {
+			"UpdateOperation": {
+				"SystemId": "GUID_ARCHIVE_UNIT_PARENT"
+			}
+		},
+		"Content": {
+			"DescriptionLevel": "Item",
+			"Title": "XML_ID_PARENT_TO_BE_LINKED"
+		},
+		"_og": "",
+		"_id": "GUID_ARCHIVE_UNIT_PARENT"
+	}
+}

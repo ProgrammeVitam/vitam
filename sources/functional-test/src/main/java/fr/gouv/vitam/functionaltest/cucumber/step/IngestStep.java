@@ -90,7 +90,7 @@ public class IngestStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             Response response =
                 world.getIngestClient()
-                    .upload(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                    .uploadAndWaitAtr(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();

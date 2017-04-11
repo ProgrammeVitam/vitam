@@ -96,7 +96,11 @@ public enum VitamCode {
             "identifier %s implementation not found"),
     WORKER_FORMAT_IDENTIFIER_TECHNICAL_INTERNAL_ERROR(ServiceName.WORKER, DomainName.IO, "02",
         Status.INTERNAL_SERVER_ERROR,
-        "Format identifier internal error");
+        "Format identifier internal error"),
+
+    CONTRACT_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "08",
+        Status.BAD_REQUEST,
+        "Request validation error");
 
     private final ServiceName service;
     private final DomainName domain;

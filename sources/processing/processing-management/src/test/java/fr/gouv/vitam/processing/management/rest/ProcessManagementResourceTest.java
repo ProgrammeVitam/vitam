@@ -35,6 +35,12 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,10 +52,19 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, ProcessDistributorImplFactory.class})
 public class ProcessManagementResourceTest {
 
     private static final String DATA_URI = "/processing/v1";
@@ -68,7 +83,6 @@ public class ProcessManagementResourceTest {
     private static final Integer TENANT_ID = 0;
 
     private static final String CONTEXT_ID = "INGEST";
-    
 
     @Test
     @Ignore
@@ -119,25 +133,56 @@ public class ProcessManagementResourceTest {
 
     @Test
     public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {
+
+        // Mock WorkspaceClientFactory + WorkspaceClient
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
+        PowerMockito.mockStatic(ProcessDistributorImplFactory.class);
+        ProcessDistributorImplFactory processDistributorImplFactory =
+            PowerMockito.mock(ProcessDistributorImplFactory.class);
+        ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
+
+        ItemStatus itemStatus = new ItemStatus();
+        itemStatus.increment(StatusCode.OK);
+
+        Mockito.when(processDistributorImplFactory.getDefaultDistributor()).thenReturn(processDistributorImpl);
+        Mockito.when(processDistributorImpl.distribute(Mockito.anyObject(), Mockito.anyObject(), Mockito.anyObject()))
+            .thenReturn(itemStatus);
+
+
         final GUID processId = GUIDFactory.newGUID();
+        final String operationByIdURI = OPERATION_URI + "/" + processId.getId();
+
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
-            .post(OPERATION_ID_URI).then()
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
+            .post(operationByIdURI).then()
             .statusCode(Status.OK.getStatusCode());
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.START.getValue(),
+            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
                 GlobalDataRest.X_REQUEST_ID, processId, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(CONTAINER_NAME, EXITS_WORKFLOW_ID)).when()
-            .post(OPERATION_URI).then()
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
+            .post(operationByIdURI).then()
             .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void shouldReturnBadRequestIfResumeNotExistingWorkflow() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
@@ -157,6 +202,12 @@ public class ProcessManagementResourceTest {
 
     @Test
     public void shouldReturnResponseUNAUTHORIZEDIfWorkflowPausedByID() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)

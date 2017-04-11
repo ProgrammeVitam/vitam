@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.client;
 
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -35,9 +36,16 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -45,16 +53,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
-import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.*;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
@@ -76,7 +81,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
     private static final String ACCESSION_REGISTER_GET_DOCUMENT_URL = "/accession-register/document";
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
-    private static final String CONTRACTS_URI = "/contracts";
+    private static final String INGEST_CONTRACTS_URI = "/contracts";
+    private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -157,7 +163,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialException("Rules Not found ");
+                    throw new ReferentialNotFoundException("Formats Not found ");
                 default:
                     break;
             }
@@ -186,7 +192,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialException("File format error");
+                    throw new ReferentialNotFoundException("File format not found");
                 default:
                     throw new ReferentialException("Unknown error");
             }
@@ -281,7 +287,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesException("File Rules not found");
+                    throw new FileRulesNotFoundException("File Rules not found");
                 default:
                     break;
             }
@@ -310,7 +316,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     break;
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new FileRulesException("Rule Not found ");
+                    throw new FileRulesNotFoundException("Rule Not found ");
                 default:
                     break;
             }
@@ -462,20 +468,196 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse importContracts(ArrayNode contractsToImport)
-        throws VitamClientInternalException, InvalidParseOperationException {
-        ParametersChecker.checkParameter("The input contracts json is mandatory", contractsToImport);
+    public RequestResponse importIngestContracts(List<IngestContractModel> ingestContractModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input ingest contracts json is mandatory", ingestContractModelList);
         Response response = null;
-        response = performRequest(HttpMethod.POST, CONTRACTS_URI, null,
-            contractsToImport, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
-            false);
-        final Status status = Status.fromStatusCode(response.getStatus());
-        if (status == Status.CREATED) {
-            LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                IngestContractModel.class);
+
+        try {
+            response = performRequest(HttpMethod.POST, INGEST_CONTRACTS_URI, null,
+                ingestContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (status == Status.CREATED) {
+                LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    IngestContractModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return RequestResponse.parseFromResponse(response);
+    }
+
+    @Override
+    public RequestResponse importAccessContracts(List<AccessContractModel> accessContractModelList)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+
+        ParametersChecker.checkParameter("The input access contracts json is mandatory", accessContractModelList);
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, ACCESS_CONTRACTS_URI, null,
+                    accessContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                    false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (status == Status.CREATED) {
+                LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        AccessContractModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+
+    public RequestResponse<AccessContractModel> findAccessContracts(JsonNode queryDsl)
+            throws InvalidParseOperationException, AdminManagementClientServerException {
+
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, ACCESS_CONTRACTS_URI, null, queryDsl,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        AccessContractModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+
+    @Override
+    public RequestResponse<AccessContractModel> findAccessContractsByID(String documentId)
+            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        Response response = null;
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq("#id", documentId));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+
+            response = performRequest(HttpMethod.GET, ACCESS_CONTRACTS_URI, null, queryDsl,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<AccessContractModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        AccessContractModel.class);
+
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Access contract not found with id: " + documentId);
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> findIngestContracts(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, INGEST_CONTRACTS_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    IngestContractModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+
+    public RequestResponse<IngestContractModel> findIngestContractsByID(String documentId)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        Response response = null;
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq("#id", documentId));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+            response = performRequest(HttpMethod.GET, INGEST_CONTRACTS_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<IngestContractModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    IngestContractModel.class);
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Ingest contract not found with id: " + documentId);
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
 }

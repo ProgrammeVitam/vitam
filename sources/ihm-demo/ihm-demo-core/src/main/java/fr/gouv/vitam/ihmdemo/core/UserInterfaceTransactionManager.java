@@ -47,7 +47,8 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -58,7 +59,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  *
  */
 public class UserInterfaceTransactionManager {
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UserInterfaceTransactionManager.class);
+    
     /**
      * Gets search units result
      *
@@ -179,7 +181,7 @@ public class UserInterfaceTransactionManager {
                         }
                     }
                 } catch (final IllegalStateException | ProcessingException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                    LOGGER.debug(e);
                 } finally {
                     response.close();
                 }
@@ -322,7 +324,7 @@ public class UserInterfaceTransactionManager {
         throws LogbookClientException, InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             return client.getAccessionRegisterSummary(query, tenantId);
         }
@@ -345,10 +347,27 @@ public class UserInterfaceTransactionManager {
         AccessExternalClientNotFoundException, InvalidCreateOperationException {
 
         try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
-            final Map<String, String> optionsMap = JsonHandler.getMapStringFromString(options);
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             return accessClient.getAccessionRegisterDetail(id, query, tenantId);
         }
     }
 
+
+    /**
+     * Starts a Verification process based on a given DSLQuery
+     * 
+     * @param query DSLQuery to execute
+     * @param tenantId Tenant Id
+     * @return A RequestResponse contains the created logbookOperation for verification process
+     * @throws AccessExternalClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @SuppressWarnings("unchecked")
+    public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, Integer tenantId)
+        throws AccessExternalClientServerException, InvalidParseOperationException {
+        try (AccessExternalClient accessClient = AccessExternalClientFactory.getInstance().getClient()) {
+            return accessClient.checkTraceabilityOperation(query, tenantId);
+        }
+    }
 }

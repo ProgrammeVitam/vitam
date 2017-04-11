@@ -66,7 +66,7 @@ public class RequestIdContainerFilter implements ContainerRequestFilter, Contain
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
         throws IOException {
         RequestIdHeaderHelper.putRequestIdFromSessionInHeader(responseContext.getHeaders(),
-            RequestIdHeaderHelper.Context.RESPONSE);
+            RequestIdHeaderHelper.Context.RESPONSE, responseContext.getStatus());
     }
 
 }

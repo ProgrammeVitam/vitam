@@ -1,0 +1,79 @@
+<div id="global" class="container-fluid" >
+  <ol class="breadcrumb">
+    <li>Administration</li>
+    <li><a href="#!/admin/journalOperations">Journal des Opérations</a></li>
+    <li><a ng-href="#!/admin/traceabilityOperationDetail/{{traceabilityOperationId}}">Vérification de l'opération de sécurisation</a></li>
+  </ol>
+
+  <div class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+        <h2>Vérification de l'opération de sécurisation - {{traceabilityOperationId}}</h2>
+    </span>
+
+    <!-- Détail de l'opération de sécurisation -->
+    <div class="panel-body panel-collapse collapse in">
+    <div class="table-responsive">
+      <div class="form-group col-md-12">
+        <div class="table-responsive">
+          <table class="table">
+            <tr>
+              <th>Date de début</th>
+              <th>Date de fin</th>
+              <th>Nombre d'opérations</th>
+              <th>Algorithme de hashage</th>
+              <th>Nom du fichier</th>
+              <th>Taille du fichier</th>
+            </tr>
+            <tr>
+              <td>{{startDate}}</td>
+              <td>{{endDate}}</td>
+              <td>{{numberOfElement}}</td>
+              <td>{{digestAlgorithm}}</td>
+              <td>{{fileName}}</td>
+              <td>{{fileSize}}</td>
+            </tr>
+          </table>
+
+          <table class="table">
+            <tr>
+              <td><b>Hash de l'arbre de Merkle : </b> {{hash}}</td>
+            </tr>
+          </table>
+
+          <table class="table">
+            <tr>
+              <td><b>Timestamp Token : </b> {{timeStampToken}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary center-block" ng-click="runTraceabilityVerificationProcess()">
+      <i class="material-icons pull-left">play_arrow</i>
+      <span>Lancer la vérification</span>
+    </button>
+  </div>
+ </div>
+
+  <!-- Show Verification Report  -->
+  <div ng-if = "showCheckReport" class="panel panel-default col-md-12">
+    <span class="panel-header no-toggle">
+        <h2>Rapport de vérification</h2>
+    </span>
+    <div class="panel-body panel-collapse collapse in">
+    <!-- Display Verification operation details (logbookOperation) -->
+     <div ng-repeat = "report in reports">
+      <logbook-entry-table id="report.evIdProc"></logbook-entry-table>
+
+      <!-- Download traceability file -->
+      <!-- TODO : the button is added but without enabling download process  -->
+        <button class="btn btn-primary center-block" ng-click="downloadOperation()">
+          <i class="material-icons">file_download</i>
+          <span>Télécharger</span>
+        </button>
+    </div>
+    </div>
+  </div>
+
+
+</div>

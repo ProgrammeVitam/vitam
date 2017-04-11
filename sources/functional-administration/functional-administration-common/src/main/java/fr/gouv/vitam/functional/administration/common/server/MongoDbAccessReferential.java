@@ -95,6 +95,7 @@ public interface MongoDbAccessReferential {
      * @return vitam document list
      * @throws ReferentialException when error occurs
      */
-    MongoCursor<VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;  
+    MongoCursor<? extends VitamDocument<?>> findDocuments(JsonNode select, FunctionalAdminCollections collection)
+        throws ReferentialException;
 
 }

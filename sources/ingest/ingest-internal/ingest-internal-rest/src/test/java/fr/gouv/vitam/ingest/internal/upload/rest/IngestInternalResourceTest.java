@@ -295,7 +295,7 @@ public class IngestInternalResourceTest {
             .headers(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId(), GlobalDataRest.X_ACTION, ProcessAction.START,
                 GlobalDataRest.X_CONTEXT_ID, START_CONTEXT)
             .body(inputStream).contentType(CommonMediaType.ZIP)
-            .then().statusCode(Status.OK.getStatusCode())
+            .then().statusCode(Status.ACCEPTED.getStatusCode())
             .when().post(INGEST_URL);
 
         RestAssured.given().header(GlobalDataRest.X_REQUEST_ID, ingestGuid.getId())

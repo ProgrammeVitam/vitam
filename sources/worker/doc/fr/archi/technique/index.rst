@@ -7,6 +7,7 @@ Architecture Technique
 
    introduction.rst
    server.rst
+   seda-extraction-indexation.rst
    notification-atr-ok.rst
    notification-atr-ko.rst
    worker-plugin.rst

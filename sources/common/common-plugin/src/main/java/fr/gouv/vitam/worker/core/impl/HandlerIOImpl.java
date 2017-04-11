@@ -48,7 +48,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -60,6 +59,9 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -327,7 +329,7 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
                 file = getFileFromWorkspace(objectName);
             } catch (final ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
                 IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                LOGGER.debug(e);
                 file = null;
             }
             if (file != null && !file.exists()) {
@@ -447,6 +449,28 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             throw new ProcessingException("Invalid parse Exception: " + file, e);
         }
 
+    }
 
+    @Override
+    public void unzipInputStreamOnWorkspace(String container, final String folderName,
+        final String archiveMimeType, final InputStream uploadedInputStream)
+        throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
+        ContentAddressableStorageServerException {
+
+        if (container == null) {
+            container = this.containerName;
+        }
+        LOGGER.debug("Try to push stream to workspace...");
+
+        // call workspace
+        if (!client.isExistingContainer(container)) {
+            client.createContainer(container);
+            client.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
+        } else {
+            throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
+        }
+
+        LOGGER.debug(" -> push compressed file to workspace finished");
     }
 }

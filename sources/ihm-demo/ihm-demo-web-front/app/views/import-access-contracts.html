@@ -1,0 +1,30 @@
+<div id="global" class="container-fluid" ng-controller="importAccessContractsController">
+	<ol class="breadcrumb">
+		<li>Administration</li>
+        <li><a href="#!/admin/importAccessContracts">Import des contrats d'accès</a></li>
+    </ol>
+
+	<div class="panel panel-default col-md-12">
+    <a class="panel-header" data-toggle="collapse">
+      <h2>Import des contrats d'accèss</h2>
+    </a>
+
+    <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
+    	<div class="col-md-4">
+           	<div class="form-group">
+				<label for="InputFile">Fichier</label>
+				<input id="InputFile" placeholder="Sélect. fichiers" class="form-control-file" type="file" ng-model="FileInput" nv-file-select="" uploader="uploader">
+				<small class="text-muted">Fichier .json uniquement</small>
+            </div>
+		</div>
+		<div class="text-left">
+			<button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="uploadAction()">
+				<i class="material-icons pull-left">file_download</i>
+				<span>Importer</span>
+			</button>
+		</div>
+		<hr>
+    </div>
+
+    </div>
+</div>

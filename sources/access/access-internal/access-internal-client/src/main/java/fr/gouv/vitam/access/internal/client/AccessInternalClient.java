@@ -34,7 +34,9 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * Access client interface
@@ -132,7 +134,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperationById(String processId, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectOperationById(String processId, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectUnitLifeCycleById
@@ -143,7 +146,8 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectUnitLifeCycleById
@@ -166,4 +170,24 @@ public interface AccessInternalClient extends MockOrRestClient {
      */
     JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * Checks operation traceability
+     * 
+     * @param query to be executed
+     * @return Response
+     * @throws LogbookClientServerException
+     */
+    RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
+        throws LogbookClientServerException, InvalidParseOperationException;
+
+    /**
+     * @param fileName
+     * @return
+     */
+    Response downloadTraceabilityFile(String operationId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException;
+
+
 }

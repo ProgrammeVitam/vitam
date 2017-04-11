@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.functional.administration.common.*;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -87,12 +88,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.FileFormat;
-import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
-import fr.gouv.vitam.functional.administration.common.IngestContractStatus;
+import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class MongoDbAccessAdminImplTest {
@@ -176,7 +172,7 @@ public class MongoDbAccessAdminImplTest {
 
         fileRules = new FileRules(TENANT_ID)
             .setRuleId(RULE_ID_VALUE)
-            .setRuleValue("Actes de naissance")
+            .setRuleValue(" 3D étudiants avec actes de naissance 10/10/2000 17 e siècle NFZ42020")
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("10")
@@ -273,7 +269,14 @@ public class MongoDbAccessAdminImplTest {
 
         final Select select = new Select();
         select.setQuery(and()
-            .add(match(FileRules.RULEVALUE, "acte"))
+            .add(and()
+                .add(match(FileRules.RULEVALUE, "10/10/2000"))
+                .add(match(FileRules.RULEVALUE, "3D"))
+                .add(match(FileRules.RULEVALUE, "17"))
+                .add(match(FileRules.RULEVALUE, "siecle"))
+                .add(match(FileRules.RULEVALUE, "acte"))
+                .add(match(FileRules.RULEVALUE, "42020"))
+                .add(match(FileRules.RULEVALUE, "NFZ")))
             .add(or()
                 .add(eq(FileRules.RULETYPE, REUSE_RULE))
                 .add(eq(FileRules.RULETYPE, "AccessRule"))));
@@ -379,7 +382,7 @@ public class MongoDbAccessAdminImplTest {
         String lastupdate = "10/12/2016";
         contract
             .setName(name)
-            .setDescription(description).setStatus(IngestContractStatus.ACTIVE)
+            .setDescription(description).setStatus(ContractStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).setDeactivationdate(lastupdate);

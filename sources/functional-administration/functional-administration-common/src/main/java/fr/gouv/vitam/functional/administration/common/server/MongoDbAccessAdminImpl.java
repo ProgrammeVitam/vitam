@@ -32,6 +32,8 @@ import static com.mongodb.client.model.Filters.and;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.FindIterable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -66,8 +68,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 /**
  * MongoDbAccess Implement for Admin
  */
-public class MongoDbAccessAdminImpl extends MongoDbAccess
-implements MongoDbAccessReferential {
+public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
 
@@ -130,6 +131,7 @@ implements MongoDbAccessReferential {
         }
     }
 
+    @VisibleForTesting
     @Override
     public VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
         throws ReferentialException {

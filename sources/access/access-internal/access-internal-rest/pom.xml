@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>access-internal</artifactId>
-		<version>0.16.0-SNAPSHOT</version>
+		<version>0.17.0-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>access-internal-rest</artifactId>
@@ -187,6 +187,11 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>access-internal-api</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>processing-management-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

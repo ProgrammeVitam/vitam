@@ -82,7 +82,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     }
 
 
-
+    // TODO FIXE ME query never user
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query)
         throws VitamClientException, InternalServerException, BadRequestException {
@@ -207,8 +207,16 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
     @Override
     public Response listOperationsDetails() {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO Add a list of operations to response
+        return Response.ok().build();
+    }
+
+    @Override
+    public Response executeCheckTraceabilityWorkFlow(String checkOperationId, JsonNode query, String workflow,
+        String contextId, String actionId)
+        throws InternalServerException, BadRequestException, WorkflowNotFoundException {
+        // TODO Add headers to response
+        return Response.ok().build();
     }
 
 

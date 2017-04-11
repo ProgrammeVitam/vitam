@@ -96,7 +96,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorImpl.class);
     private static final String UNITS_LEVEL = "UnitsLevel";
-    private static final String XML_EXTENSION = ".xml";
+    private static final String JSON_EXTENSION = ".json";
     private static final String EXCEPTION_MESSAGE =
         "runtime exceptions thrown by the Process distributor during runnig...";
     private static final String INGEST_LEVEL_STACK = "ingestLevelStack.json";
@@ -160,7 +160,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                             if (guid != null && guid.size() > 0) {
                                 for (final JsonNode _idGuid : guid) {
                                     // include the GUID in the new URI
-                                    objectsList.add(_idGuid.asText() + XML_EXTENSION);
+                                    objectsList.add(_idGuid.asText() + JSON_EXTENSION);
                                 }
                                 distributeOnList(workParams, step, processId, uniqueStepId,
                                     currentRunningObjectsInStep, objectsList, waitingStepAllAsyncRequest, tenantId);
@@ -183,7 +183,13 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                 }
             } else {
                 // update the number of element to process
-                objectsList.add(step.getDistribution().getElement());
+                if (step.getDistribution().getElement() == null ||
+                    step.getDistribution().getElement().trim().isEmpty()) {
+                    objectsList.add(workParams.getContainerName());
+                } else {
+                    objectsList.add(step.getDistribution().getElement());
+                }
+
                 distributeOnList(workParams, step, processId, uniqueStepId, currentRunningObjectsInStep,
                     objectsList, waitingStepAllAsyncRequest, tenantId);
             }
@@ -236,7 +242,7 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
                 }
             }
         } catch (InterruptedException e) { // NOSONAR ignore since cannot block here
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
         } finally {
             // Now waiting for all submitted jobs to finish
             waitEndOfStep(currentRunningObjectsInStep, waitingStepAllAsyncRequest);

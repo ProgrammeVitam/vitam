@@ -42,7 +42,6 @@ angular.module('ihm.demo')
     },
     disableMultipart: true
   });
-
     // FILTERS
     uploader.filters.push({
         name: 'customFilter',
@@ -50,7 +49,6 @@ angular.module('ihm.demo')
             return this.queue.length < 10;
         }
     });
-
     uploader.onSuccessItem = function(fileItem, response, status, headers) {
     	console.info('onSuccessItem', fileItem, response, status, headers);
 

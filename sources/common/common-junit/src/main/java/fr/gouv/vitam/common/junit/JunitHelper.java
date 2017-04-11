@@ -35,11 +35,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.elasticsearch.Version;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.node.Node;
+import org.elasticsearch.node.internal.InternalSettingsPreparer;
+import org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin;
 import org.elasticsearch.transport.BindTransportException;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.TemporaryFolder;
@@ -259,7 +264,7 @@ public class JunitHelper extends ExternalResource {
                 read++;
             }
         } catch (final IOException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.debug(e);
         }
         try {
             inputStream.close();
@@ -375,22 +380,23 @@ public class JunitHelper extends ExternalResource {
         try {
             config.elasticsearchHome = tempFolder.newFolder();
             final Settings settings = Settings.settingsBuilder()
-                    .put("http.enabled", true)
-                    .put("discovery.zen.ping.multicast.enabled", false)
-                    .put("transport.tcp.port", config.tcpPort)
-                    .put("http.port", config.httpPort)
-                    .put("path.home", config.elasticsearchHome.getCanonicalPath())
-                    .put("transport.tcp.connect_timeout", "1s")
-                    .put("transport.profiles.tcp.connect_timeout", "1s")
-                    .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
-                    .build();
+                .put("http.enabled", true)
+                .put("discovery.zen.ping.multicast.enabled", false)
+                .put("transport.tcp.port", config.tcpPort)
+                .put("http.port", config.httpPort)
+                .put("node.client", false)
+                .put("cluster.name", clusterName)
+                .put("path.home", config.elasticsearchHome.getCanonicalPath())
+                .put("plugin.types", "org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin.class")
+                .put("plugin.mandatory", "analysis-icu")
+                .put("transport.tcp.connect_timeout", "1s")
+                .put("transport.profiles.tcp.connect_timeout", "1s")
+                .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / 1000 + "s")
+                .build();
 
-            config.node = nodeBuilder()
-                    .settings(settings)
-                    .client(false)
-                    .clusterName(clusterName)
-                    .node();
-
+            config.node = new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), Version.CURRENT,
+                Collections.singletonList(AnalysisICUPlugin.class));
+            
             config.node.start();
         } catch (BindTransportException | IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -474,4 +480,5 @@ public class JunitHelper extends ExternalResource {
             junitHelper.releasePort(config.httpPort);
         }
     }
+    
 }

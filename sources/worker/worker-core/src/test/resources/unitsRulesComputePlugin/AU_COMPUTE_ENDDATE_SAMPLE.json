@@ -1,0 +1,63 @@
+{
+	"ArchiveUnit": {
+		"ArchiveUnitProfile": "PresentationType",
+		"Management": {
+			"StorageRule": [ {
+				"Rule": "ID420",
+				"StartDate": "2016-01-10",
+				"FinalAction": "Copy",
+				"PreventInheritance": "false",
+				"RefNonRuleId": "ID100"
+			} ],
+			"ClassificationRule": [ {
+				"Rule": "ID470",
+				"StartDate": "2016-01-10",
+				"RefNonRuleId": "ID100",
+				"PreventInheritance": "false",
+				"ClassificationLevel": "1",
+				"ClassificationOwner": "2",
+				"ClassificationReassessingDate": "2016-01-10",
+				"NeedReassessingAuthorization": "false"
+			} ],
+			"AccessRule": [ {
+				"Rule": "ID019",
+				"StartDate": "2016-01-10",
+				"RefNonRuleId": "ID100",
+				"PreventInheritance": "false"
+			} ]
+		},
+		"Content": {
+			"DescriptionLevel": "Item",
+			"Title": "Sensibilisation API",
+			"FilePlanPosition": "FilePlanPosition0",
+			"OriginatingSystemId": "OriginatingSystemId0",
+			"ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+			"OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+			"TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+			"Description": "Sensibilisation au Technical Design",
+			"Language": "fr-FR",
+			"OriginatingAgency": {
+				"Identifier": "Identifier0"
+			},
+			"SubmissionAgency": {
+				"Identifier": "Identifier1"
+			},
+			"Writer": {
+				"FirstName": "FirstName0",
+				"BirthName": "BirthName0"
+			},
+			"CreatedDate": "2016-05-05T20:45:20",
+			"TransactedDate": "2016-05-05",
+			"@xml:id": "ID026"
+		},
+		"DataObjectReference": {
+			"DataObjectGroupReferenceId": "ID006"
+		},
+		"_og": "aeaaaaaaaaaaaaababqaqakx7mxioyyaaaaq",
+		"_id": "aeaaaaaaaaaaaaababqaqakx7mxipdqaaaaq"
+	},
+	"_work": {
+		"RulesToApply": "ID420;ID470;ID019",
+		"_up": ""
+	}
+}

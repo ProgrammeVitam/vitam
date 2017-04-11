@@ -1,0 +1,113 @@
+---
+
+#### Kibana installation ####
+
+- name: Install kibana package from repo
+  package:
+    name: kibana
+    state: latest
+  notify:
+    - systemctl reload-daemon
+    - restart kibana
+
+- name: Add kibana autostart at boot
+  service:
+    name: kibana
+    enabled: yes
+  notify:
+    - restart kibana
+
+- name: Configure Kibana connection to elasticsearch
+  replace:
+    dest: /opt/kibana/config/kibana.yml
+    regexp: '^# elasticsearch\.url:.*$'
+    replace: "elasticsearch.url: \"http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}\""
+  notify:
+    - restart kibana
+
+#### Consul configuration ####
+
+- name: Ensure consul config dir is OK
+  file:
+    path: "{{consul_folder_conf}}"
+    state: directory
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+
+- name: Deploy consul agent service declaration
+  template:
+    src: "service-{{ item }}.json.j2"
+    dest: "{{consul_folder_conf}}/service-{{ item }}.json"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  with_items:
+    - kibana
+  notify:
+   - reload consul configuration
+
+#### Kibana dashboards configuration ####
+
+- name: load dashboards into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
+    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+
+### elasticsearch log configuration and kibana configuration ###
+- name: load vitam metrics template in Elasticsearch Log
+  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: "http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metrics_template"
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/metrics.template.json') }}"
+    body_format: json
+    status_code: 200,201
+
+- name: load dashboards into Elasticsearch log .kibana index
+  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    method: PUT
+    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body_format: json
+    status_code: 200, 201
+  with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ index_pattern_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+  vars:
+    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
+    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
+    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+
+# TODO Get Kibana version dynamically and put it in the URL
+- name: set jersey-metrics-vitam-* as kibana default index pattern
+  when: "{{ (groups['hosts-kibana'] | length) > 0}}"
+  run_once: true
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.1'
+    method: PUT
+    body: '{"defaultIndex": "metrics-vitam-jersey-*"}'
+    body_format: json
+    status_code: 200, 201
+
+- name: Ensure consul service is started
+  service:
+    name: "vitam-consul"
+    state: started
+
+- name: Ensure kibana service is started
+  service:
+    name: "kibana"
+    state: started

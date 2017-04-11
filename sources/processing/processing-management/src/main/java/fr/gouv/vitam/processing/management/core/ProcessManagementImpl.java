@@ -40,6 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -57,6 +59,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.utils.ProcessPopulator;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImpl;
 import fr.gouv.vitam.processing.engine.core.ProcessEngineImplFactory;
@@ -76,9 +80,9 @@ public class ProcessManagementImpl implements ProcessManagement {
     private static final ProcessExecutionStatus UNAUTHORIZED_ACTION = null;
 
     private static final Map<String, List<Object>> PROCESS_MONITORS = new HashMap<>();
-    
+
     private static final int PROCESS_ENGINE_INDEX = 0;
-    
+
     private static final int MONITOR_INDEX = 1;
 
     private ServerConfiguration serverConfig;
@@ -98,10 +102,13 @@ public class ProcessManagementImpl implements ProcessManagement {
         this.serverConfig = serverConfig;
         processData = ProcessDataAccessImpl.getInstance();
         poolWorkflows = new ConcurrentHashMap<>();
-
+        
         try {
+            setWorkflow("DefaultFilingSchemeWorkflow");
+            setWorkflow("DefaultHoldingSchemeWorkflow");
+            setWorkflow("DefaultIngestBlankTestWorkflow");
             setWorkflow("DefaultIngestWorkflow");
-            setWorkflow("DefaultIngestWorkflowBlankTest");
+            setWorkflow("DefaultCheckTraceability");
         } catch (final WorkflowNotFoundException e) {
             LOGGER.error(WORKFLOW_NOT_FOUND_MESSAGE, e);
         }
@@ -135,6 +142,11 @@ public class ProcessManagementImpl implements ProcessManagement {
         LogbookTypeProcess logbookTypeProcess, AsyncResponse asyncResponse, Integer tenantId)
         throws ProcessingException {
 
+        // check data container and folder
+        ProcessDataManagement dataManagement = WorkspaceProcessDataManagement.getInstance();
+        dataManagement.createProcessContainer();
+        dataManagement.createFolder(String.valueOf(ServerIdentity.getInstance().getServerId()));
+
         ProcessWorkflow createdProcessWorkflow = null;
         if (StringUtils.isNotBlank(workflowId)) {
             createdProcessWorkflow =
@@ -144,6 +156,14 @@ public class ProcessManagementImpl implements ProcessManagement {
             createdProcessWorkflow =
                 processData.initProcessWorkflow(null, workParams.getContainerName(), ProcessAction.INIT,
                     LogbookTypeProcess.INGEST, tenantId);
+        }
+
+        try {
+            // TODO: create json workflow file, but immediately updated so keep this part ?)
+            dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                workParams.getContainerName(), createdProcessWorkflow);
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException(e);
         }
 
         // Create & start ProcessEngine Thread
@@ -187,7 +207,7 @@ public class ProcessManagementImpl implements ProcessManagement {
 
         ProcessWorkflow processWorkflow = processData.getProcessWorkflow(operationId, tenantId);
         if (processWorkflow.getExecutionStatus().ordinal() > ProcessExecutionStatus.PAUSE.ordinal()) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
             throw new ProcessingException(UNAUTHORIZED_ACTION + processWorkflow.getExecutionStatus().toString());
         }
 
@@ -195,6 +215,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         ProcessEngineImpl processEngine =
             (ProcessEngineImpl) PROCESS_MONITORS.get(operationId).get(PROCESS_ENGINE_INDEX);
         processEngine.setAsyncResponse(asyncResponse);
+        processEngine.setWorkerParameters(workParams);
 
         // Change execution parameters
         processData.prepareToRelaunch(workParams.getContainerName(), executionMode, tenantId);
@@ -217,7 +238,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         try {
             ProcessWorkflow processWorkflow = processData.getProcessWorkflow(operationId, tenantId);
             if (processWorkflow.getExecutionStatus().ordinal() > ProcessExecutionStatus.PAUSE.ordinal()) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.UNAUTHORIZED).build());
                 throw new ProcessingException(UNAUTHORIZED_ACTION + processWorkflow.getExecutionStatus().toString());
             }
@@ -227,7 +248,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                 processWorkflow.getExecutionStatus().ordinal() == ProcessExecutionStatus.PAUSE.ordinal();
             processWorkflow = processData.cancelProcessWorkflow(operationId, tenantId);
             if (isSuspendedWorkflow) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.OK)
                         .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.CANCELLED)
                         .build());
@@ -250,7 +271,7 @@ public class ProcessManagementImpl implements ProcessManagement {
                 .setGlobalExecutionStatus(processWorkflow.getExecutionStatus());
 
         } catch (WorkflowNotFoundException e) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.NOT_FOUND).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
             throw e;
         }
     }
@@ -260,7 +281,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         throws ProcessingException {
         ProcessWorkflow processWorkflow = processData.getProcessWorkflow(operationId, tenantId);
         if (processWorkflow.getExecutionStatus().ordinal() >= ProcessExecutionStatus.PAUSE.ordinal()) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
             throw new ProcessingException(UNAUTHORIZED_ACTION + processWorkflow.getExecutionStatus().toString());
         }
 

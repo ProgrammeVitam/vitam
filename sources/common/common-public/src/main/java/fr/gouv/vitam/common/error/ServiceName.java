@@ -92,7 +92,13 @@ public enum ServiceName {
     /**
      * Used for workspace error
      */
-    WORKSPACE("11", "Workspace");
+    WORKSPACE("11", "Workspace"),
+
+    /**
+     * Used for Functional Administration error
+     */
+    FUNCTIONAL_ADMINISTRATION("12", "Functional_Administration");
+
 
     private final String code;
     private final String name;

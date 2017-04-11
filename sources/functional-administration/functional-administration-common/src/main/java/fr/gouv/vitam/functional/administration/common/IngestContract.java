@@ -167,13 +167,13 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * Get the contract status
      * @return status of ingest contact
      */
-    public IngestContractStatus getStatus() {
+    public ContractStatus getStatus() {
         String status = getString(STATUS);
         if (status == null) {
             return null;
         }
         try {
-            return IngestContractStatus.valueOf(status);
+            return ContractStatus.valueOf(status);
         } catch (IllegalArgumentException exp) {
             // no value corresponds to this status => corrupted state
             return null;
@@ -185,7 +185,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param status to set 
      * @return this
      */
-    public IngestContract setStatus(IngestContractStatus status) {
+    public IngestContract setStatus(ContractStatus status) {
         append(STATUS, status.name());
         return this;
     }

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -112,6 +113,7 @@ public class AccessInternalApplication
 
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
+        ProcessingManagementClientFactory.changeConfigurationUrl(getConfiguration().getUrlProcessing());
         setServiceRegistry(new VitamServiceRegistry());
         // Logbook dependency
         serviceRegistry.register(LogbookLifeCyclesClientFactory.getInstance())
@@ -120,6 +122,8 @@ public class AccessInternalApplication
             .register(MetaDataClientFactory.getInstance())
             // Storage dependency
             .register(StorageClientFactory.getInstance())
+            // processing management
+            .register(ProcessingManagementClientFactory.getInstance())
             // Workspace dependency
             .register(WorkspaceClientFactory.getInstance());
         if (mock != null) {

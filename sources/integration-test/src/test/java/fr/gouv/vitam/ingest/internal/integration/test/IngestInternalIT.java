@@ -32,6 +32,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 
@@ -87,6 +89,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -310,6 +313,14 @@ public class IngestInternalIT {
                 // Import Rules
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"));
+                
+                // import contract
+                File fileContracts = PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
+                List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
+
+                client.importIngestContracts(IngestContractModelList);
+   
+                
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -387,8 +398,8 @@ public class IngestInternalIT {
             //init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-            assertEquals(200, response.getStatus());
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -487,11 +498,8 @@ public class IngestInternalIT {
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         final Response response2 = client.uploadInitialLogbook(params);
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-        final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-        assertNotNull(response);
-        // FIXME in error but not for good reason (Logbook issue)
-        assertEquals(500, response.getStatus());
-        assertNotNull(response.getEntity());
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
     }
 
     @RunWithCustomExecutor
@@ -530,10 +538,7 @@ public class IngestInternalIT {
             
             //init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-
-            // Warning during format identification (SIP with MD5)
-            assertEquals(206, response.getStatus());
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -593,10 +598,8 @@ public class IngestInternalIT {
 
 
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
-            // Warning during format identification (SIP with MD5)
-            assertEquals(206, response.getStatus());
 
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
@@ -657,11 +660,10 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             
             assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
-            final Response response = client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
-
-            // Warning during format identification (SIP with MD5)
-            assertEquals(206, response.getStatus());
-
+           client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+            //TODO FIXE ME Normaly call ingest external wich set Global resquet-ID
+            //WAITING Ingest
+            Thread.sleep(10000);
             // Try to check AU
             final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery select = new SelectMultiQuery();

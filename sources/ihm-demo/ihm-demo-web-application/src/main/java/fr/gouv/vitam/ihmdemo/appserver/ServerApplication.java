@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.servlet.DispatcherType;
@@ -62,6 +61,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.RequestIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
@@ -134,6 +134,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
         final ResourceConfig resourceConfig = new ResourceConfig();
         resourceConfig.register(JacksonJsonProvider.class)
             .register(JacksonFeature.class)
+            .register(RequestIdContainerFilter.class)
             // Register a Generic Exception Mapper
             .register(new GenericExceptionMapper());
 
@@ -200,7 +201,6 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
             .register(new SubjectFactory())
             .register(new AuthInjectionBinder());
     }
-
 
     @Override
     protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {

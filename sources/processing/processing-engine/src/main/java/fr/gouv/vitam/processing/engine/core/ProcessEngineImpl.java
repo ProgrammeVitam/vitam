@@ -36,13 +36,14 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -62,15 +63,19 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
 import fr.gouv.vitam.processing.common.model.Action;
 import fr.gouv.vitam.processing.common.model.ProcessBehavior;
 import fr.gouv.vitam.processing.common.model.ProcessResponse;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
@@ -102,6 +107,8 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
     private boolean isFirstCall = true;
     private AsyncResponse asyncResponse = null;
 
+    private ProcessDataManagement dataManagement;
+
     /**
      * ProcessEngineImpl constructor populate also the workflow to the pool of workflow
      */
@@ -111,6 +118,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         this.monitor = monitor;
         this.workParams = workParams;
         this.asyncResponse = asyncResponse;
+        dataManagement = WorkspaceProcessDataManagement.getInstance();
     }
 
     /**
@@ -130,7 +138,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 isFirstCall = false;
 
                 // TODO rename this method
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, Response.ok().build());
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.ok().build());
                 synchronized (monitor) {
                     monitor.wait();
                 }
@@ -138,12 +146,12 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             startWorkflow(workParams);
         } catch (WorkflowNotFoundException e) {
             LOGGER.error(RUNTIME_EXCEPTION_MESSAGE, e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         } catch (InterruptedException e) {
             LOGGER.error(RUNTIME_EXCEPTION_MESSAGE, e);
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         }
     }
@@ -190,6 +198,15 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 // then stop the process
                 if (stepResponse.shallStop(step.getBehavior().equals(ProcessBehavior.BLOCKING))) {
                     processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.FAILED, tenantId);
+                    // Delete
+                    try {
+                        dataManagement.removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                            operationId);
+                    } catch (ProcessingStorageWorkspaceException e) {
+                        LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
+                            (ServerIdentity.getInstance().getServerId()), operationId, e);
+                        // Nothing for now
+                    }
                     break;
                 }
 
@@ -215,9 +232,18 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 executeAfterEachStep(workflowStatus, asyncResponse, operationId, true, tenantId);
 
                 LOGGER.info("End Workflow: " + processId.getId());
+            } else {
+                // TODO Review code
+                // All steps were done, build and send the final response
+                processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.COMPLETED, tenantId);
+
+                // Finalize step execution
+                executeAfterEachStep(workflowStatus, asyncResponse, operationId, true, tenantId);
+
+                LOGGER.info("End Workflow: " + processId.getId());
             }
         } catch (final StepsNotFoundException e) {
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.NOT_FOUND).build());
         } catch (final Exception e) {
             processResponse.setStatus(StatusCode.FATAL);
@@ -248,9 +274,25 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         boolean isCancelledWorkflow = ProcessExecutionStatus.CANCELLED.equals(processWorkflow.getExecutionStatus());
 
         if (isFinalStep | isCancelledWorkflow) {
+            try {
+                dataManagement.removeProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                    operationId);
+            } catch (ProcessingStorageWorkspaceException e) {
+                LOGGER.error("cannot delete workflow file for serverID {} and asyncID {}", String.valueOf
+                    (ServerIdentity.getInstance().getServerId()), operationId, e);
+            }
             // Build asyncResponse and resume it
             buildAndSendAsyncResponse(workflowStatus, asyncResponse, processWorkflow);
         } else if (isStepByStepWorkflow | isSuspendedWorkflow) {
+            try {
+                dataManagement.persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+                    operationId, processWorkflow);
+            } catch (InvalidParseOperationException | ProcessingStorageWorkspaceException e) {
+                LOGGER.error("Cannot persist process workflow file, set status to FAILED", e);
+                processWorkflow.setExecutionStatus(ProcessExecutionStatus.FAILED);
+                workflowStatus.setGlobalExecutionStatus(ProcessExecutionStatus.FAILED);
+            }
+
             // Build asyncResponse : put ItemStatus in the body and resume it
             buildAndSendAsyncResponse(workflowStatus, asyncResponse, processWorkflow);
 
@@ -287,10 +329,21 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         // Before setting the new asyncResponse, resume it with conflict status
         if (this.asyncResponse != null && (!this.asyncResponse.isDone() || !this.asyncResponse.isCancelled())) {
             Response currentResponse = Response.status(Status.CONFLICT).build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(this.asyncResponse, currentResponse);
+            AsyncInputStreamHelper.asyncResponseResume(this.asyncResponse, currentResponse);
         }
 
         this.asyncResponse = asyncResponse;
+    }
+
+    /**
+     * @param workParams add new parameters to the existing ones
+     */
+    public void setWorkerParameters(WorkerParameters workParams) {
+        for (final WorkerParameterName key : workParams.getMapParameters().keySet()) {
+            if (this.workParams.getParameterValue(key) == null) {
+                this.workParams.putParameterValue(key, workParams.getMapParameters().get(key));
+            }
+        }
     }
 
     private ItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
@@ -445,7 +498,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                 try {
                     processDistributor.close();
                 } catch (final Exception exc) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(exc);
+                    LOGGER.warn(exc);
                 }
             }
         }

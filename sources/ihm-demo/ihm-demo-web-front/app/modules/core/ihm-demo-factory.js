@@ -118,7 +118,7 @@ angular.module('core')
   };
 
   // Check operation status
-  dataFactory.checkOperationStatus = function(operationId){
+  dataFactory.checkOperationStatus = function(operationId, action){
 	// TODO How to set Timeout ?
     return ihmDemoCLient.getClient(IHM_URLS.CHECK_OPERATION_STATUS).all('').get(operationId);
   };
@@ -233,9 +233,16 @@ angular.module('core')
       COOKIE_TENANT_ID: COOKIE_TENANT_ID
     };
   })
-  .factory('redirectInterceptor', function($q, $location, $cookies) {
+  .factory('redirectInterceptor', function($q, $location, $cookies, $rootScope) {
     return  {
       'response':function(response){
+        if ($rootScope.user) {
+          localStorage.setItem('reset-timeout', Math.random());
+          $rootScope.restartTimeout();
+        } else {
+          $location.path('/login');
+        }
+
         if (typeof response.data === 'string' && response.data.indexOf("PROGRAMME VITAM")>-1) {
           $location.path('/login');
           $cookies.remove('userCredentials');

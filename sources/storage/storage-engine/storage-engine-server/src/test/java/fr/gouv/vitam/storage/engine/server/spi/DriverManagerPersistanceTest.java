@@ -66,7 +66,9 @@ public class DriverManagerPersistanceTest {
         offersDriver1.add("DriverManagerPersistanceTestoffer4");
 
         DriverManager.addOffersToDriver(MON_MODULE_DRIVER_MON_DRIVER, offersDriver1);
+
         final Driver driver1 = DriverManager.getDriverFor(OFFER_1);
+
         assertNotNull(driver1);
 
         final List<String> offersDriver2 = new ArrayList<>();

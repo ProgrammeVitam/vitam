@@ -1,0 +1,63 @@
+{
+	"ArchiveUnit": {
+		"Management": {
+			"StorageRule": {
+				"Rule": "Rule0",
+        		"StartDate" : "2021-01-01",
+				"FinalAction": "RestrictAccess"
+			},
+			"AppraisalRule": {
+				"Rule": "Rule2",
+				"FinalAction": "Keep"
+			},
+			"AccessRule": {
+				"Rule": "Rule4"
+			},
+			"DisseminationRule": {
+				"Rule": "Rule6"
+			},
+			"ReuseRule": [
+				{
+					"Rule": "Rule8"
+				},
+				{
+					"Rule": "Rule9"
+				}
+			],
+			"ClassificationRule": [
+				{
+					"Rule": "Rule10",
+					"ClassificationLevel": "ClassificationLevel0",
+					"ClassificationOwner": "ClassificationOwner0"
+				},
+				{
+					"Rule": "Rule11",
+					"ClassificationLevel": "ClassificationLevel0",
+					"ClassificationOwner": "ClassificationOwner0"
+				}
+			],
+			"NeedAuthorization": false
+		},
+		"Content": {
+			"DescriptionLevel": "Item",
+			"Title": "Annuaire_projet",
+			"FilePlanPosition": "FilePlanPosition0",
+			"SystemId": "019",
+			"OriginatingSystemId": "OriginatingSystemId0",
+			"ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+			"OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+			"TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+			"Description": "annuaire du projet de solution\n\t\t\tlogicielle Vitam",
+			"Type": "Type0",
+			"TransactedDate": "2016-04-25"
+		},
+		"DataObjectReference": {
+			"DataObjectReferenceId": "ID018"
+		},
+		"_id": "ID019G"
+	},
+  "_work" : {
+    "_up" : [ ],
+    "RulesToApply" : [ "Rule0;Rule;Rule4;Rule6;Rule8;Rule9,Rule10;Rule11;" ]
+  }
+}

@@ -55,6 +55,7 @@
   <script src="js/controller/admin-controller.js"></script>
   <script src="js/controller/import-pronoun-controller.js"></script>
   <script src="js/controller/import-contracts-controller.js"></script>
+  <script src="js/controller/import-access-contracts-controller.js"></script>
   <script src="modules/file-rules/filerules-component.js"></script>
   <script src="modules/file-rules/filerules-controller.js"></script>
   <script src="js/controller/import-rulesfile-controller.js"></script>
@@ -92,6 +93,13 @@
   <script src="modules/accession-register-search/accession-register-search.controller.js"></script>
   <script src="modules/accession-register-search/accession-register-search.component.js"></script>
 
+  <script src="modules/access-contracts/access-contracts.module.js"></script>
+  <script src="modules/access-contracts/access-contracts-controller.js"></script>
+  <script src="modules/access-contracts/access-contracts-component.js"></script>
+  <script src="modules/entry-contracts/entry-contracts.module.js"></script>
+  <script src="modules/entry-contracts/entry-contracts.controller.js"></script>
+  <script src="modules/entry-contracts/entry-contracts.component.js"></script>
+
   <script src="resources/messages.resource.js"></script>
 
   <script src="pages/accession-register-details/accession-register-details.module.js"></script>
@@ -104,7 +112,7 @@
   <script src="core/services/process-response.service.js"></script>
   <script src="core/services/process-search.service.js"></script>
   <script src="core/filters/pagination-start.filter.js"></script>
-
+  <script src="core/factory/http-interceptor.filter.js"></script>
   <script src="services/logbook-entry-full.service.js"></script>
 
 
@@ -124,7 +132,42 @@
   <script src="pages/workflows/workflows.controller.js"></script>
   <script src="pages/workflows/workflows.component.js"></script>
 
+  <script src="resources/traceability-operation-search.resource.js"></script>
+  <script src="services/traceability-operation-search.service.js"></script>
+
+  <script src="resources/traceability-operation-download.resource.js"></script>
+  <script src="services/traceability-operation-download.service.js"></script>
+
+  <script src="services/traceability-operation-details.service.js"></script>
+  <script src="resources/traceability-operation-details.resource.js"></script>
+
+  <script src="pages/traceability-operation-search/traceability-operation-search.module.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.controller.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.component.js"></script>
+
+  <script src="pages/traceability-operation-details/traceability-operation-details.module.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.controller.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.component.js"></script>
+
+  <script src="resources/traceability-operation-search.resource.js"></script>
+  <script src="services/traceability-operation-search.service.js"></script>
+
+  <script src="resources/traceability-operation-download.resource.js"></script>
+  <script src="services/traceability-operation-download.service.js"></script>
+
+  <script src="services/traceability-operation-details.service.js"></script>
+  <script src="resources/traceability-operation-details.resource.js"></script>
+
+  <script src="pages/traceability-operation-search/traceability-operation-search.module.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.controller.js"></script>
+  <script src="pages/traceability-operation-search/traceability-operation-search.component.js"></script>
+
+  <script src="pages/traceability-operation-details/traceability-operation-details.module.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.controller.js"></script>
+  <script src="pages/traceability-operation-details/traceability-operation-details.component.js"></script>
+
   <script src="core/filters/date.filter.js"></script>
+  <script src="core/filters/replace.filter.js"></script>
   <script src="core/filters/ruleMeasurement.filter.js"></script>
 
   <!-- FIXME Find better way to fix it -->
@@ -165,7 +208,8 @@
               <span class="pull-left m-l-10">Entrée</span>
             </button>
             <ul class="dropdown-menu" role="menu" aria-labelledby="Entree">
-              <li><a tabindex="-1" href="#!/uploadSIP" ng-show="hasPermission('ingest:create')">Transfert</a></li>
+              <li><a tabindex="-1" href="#!/uploadSIP" ng-show="hasPermission('ingest:create')">Transfert SIP</a></li>
+              <li><a tabindex="-1" href="#!/uploadFilingsScheme" ng-show="hasPermission('ingest:create')">Transfert du plan de classement</a></li>
               <li><a href="#!/admin/logbookOperations" ng-show="hasPermission('logbook:operations:read')">Suivi des opérations d'entrée</a></li>
             </ul>
           </li>
@@ -191,10 +235,16 @@
               <li><a href="#!/admin/formats" ng-show="hasPermission('admin:formats:read')">Référentiel des formats</a></li>
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
+              <li><a href="#!/admin/entryContracts" ng-show="hasPermission('operations:read')">Contrats d'entrée</a></li>
+              <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
+              <!-- TODO Add permission control -->
+              <li><a href="#!/admin/traceabilityOperationSearch">Recherche sur les opérations de sécurisation</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
+              <li><a href="#!/uploadHoldingScheme" ng-show="hasPermission('rules:create')">Import de l'arbre de positionnement</a></li>
               <li><a href="#!/admin/importFileRules" ng-show="hasPermission('rules:create')">Import du Référentiel des Règles de gestion</a></li>
               <li><a href="#!/admin/importPronoun" ng-show="hasPermission('format:create')">Import du Référentiel des formats</a></li>
-              <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats</a></li>
+              <li><a href="#!/admin/importContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'entrée</a></li>
+              <li><a href="#!/admin/importAccessContracts" ng-show="hasPermission('contracts:create')">Import des contrats d'accès</a></li>
             </ul>
           </li>
           <li class="@@mainMenu2">
@@ -225,12 +275,33 @@
 
   <!-- ////////////////////////////////////////////////////////////////////////////// -->
 
-  <div class="page-container" ng-if="showMenuBar">
-    <div ng-view class="page"></div>
-  </div>
+
+
+    <div class="page-container" ng-if="showMenuBar" >
+        <div ng-view class="page"></div>
+        <div id="nvlEntree" class="modal fade">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="background:#dc143c">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel"><span style="color:#fff">Erreur</span></h4>
+                    </div>
+                    <div class="modal-body">
+                        <h5>Une erreur interne VITAM est survenue. Merci de bien vouloir contacter le support avec l'information suivante :</h5>
+                        <h4> {{requestServerRequestId}} </h4>
+                    </div>
+                    <div class="clearfix"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
   <div class="view-container" ng-if="!showMenuBar">
     <div ng-view class="view-frame"></div>
   </div>
+
 
   <!-- ////////////////////////////////////////////////////////////////////////////// -->
 

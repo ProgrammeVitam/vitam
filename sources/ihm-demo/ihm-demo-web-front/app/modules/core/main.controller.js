@@ -26,17 +26,41 @@
  */
 
 angular.module('core')
-    .controller('mainViewController', function ($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
-                                                $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory) {
+    .controller('mainViewController', function ($rootScope, $scope, $window, $location, $translate, IHM_URLS, authVitamService,
+                                                $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory,
+                                                $timeout) {
         $scope.showMenuBar = true;
         $scope.credentials = usernamePasswordToken;
         $scope.session = {};
         $scope.tenants = ['0', '1'];
 
+        $window.addEventListener('storage', function(event) {
+            if (event.key === 'reset-timeout') {
+                $rootScope.restartTimeout();
+                localStorage.removeItem('reset-timeout');
+            }
+        })
+
         if (localStorage.getItem('user')) {
             $rootScope.user = JSON.parse(localStorage.getItem('user'));
         }
         console.log($rootScope.user);
+        $scope.hideError = function() {
+            $rootScope.requestServerError = false;
+        };
+
+        $rootScope.$on('httpRequestError', showHttpError);
+
+        function showHttpError($event, message){
+            $scope.requestServerError = message.requestServerError;
+            if ($scope.requestServerError) {
+                $('#nvlEntree').modal('show');
+            }
+            $scope.requestServerTitle = message.requestServerTitle;
+            $scope.requestServerRequestId = message.requestServerRequestId;
+            $scope.requestServerURL = message.requestServerURL;
+
+        }
 
         ihmDemoFactory.getTenants().then(function (repsonse) {
             if (repsonse.data.length !== 0) {
@@ -97,7 +121,8 @@ angular.module('core')
                         $rootScope.user = {
                             userName: res.userName,
                             tenantId: tenantId,
-                            permissions: res.permissions
+                            permissions: res.permissions,
+                            sessionTimeout: res.sessionTimeout
                         };
                         localStorage.setItem('user' ,JSON.stringify($rootScope.user));
                         if (authVitamService.url && authVitamService.url != '') {
@@ -123,6 +148,7 @@ angular.module('core')
 
 
             delete authVitamService.url;
+            $timeout.cancel($rootScope.restartTimeoutPromise);
             authVitamService.logout().then(function (res) {
                 $location.path('/login');
             }, function (err) {
@@ -137,5 +163,11 @@ angular.module('core')
                 $scope.statusLogin = 'Session Expire';
                 authVitamService.logout();
             }
+        };
+
+        $rootScope.restartTimeout = function() {
+          var timeoutTime = $rootScope.user.sessionTimeout;
+          $timeout.cancel($rootScope.restartTimeoutPromise);
+          $rootScope.restartTimeoutPromise = $timeout($scope.logoutUser, timeoutTime);
         };
     });

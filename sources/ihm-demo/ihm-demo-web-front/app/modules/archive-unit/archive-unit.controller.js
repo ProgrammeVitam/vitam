@@ -367,6 +367,57 @@ angular.module('archive.unit')
     $scope.checkHerited = function(originId) {
       return (originId == self.archiveId) ? 'non' : 'oui';
     };
+    $scope.checkSource = function(originId) {
+      return (originId == self.archiveId) ? false : true;
+    };
+    $scope.defineStartDate = function(s){
+      if (!s){
+        return "Inconnue";
+      } else return s.slice(0,10);
+    };
+    $scope.defineEndDate = function(s,e){
+      if (!s && !e){
+        return "Inconnue";
+      } else if (s && !e) {
+        return "Durée illimitée"
+      } return e.slice(0,10);
+    };
+    $scope.exitRule = function(array){
+        for (var i = 0; i < array.length; i++){
+            if (array[i]["ruleId"])
+                return true;
+        }
+        return false;
+    }
+    $scope.title = {};
+    $scope.displayRule = {};
+    $scope.toggleDetail = function($index, rule) {
+      $scope.activePosition = $scope.activePosition == $index ? -1 : $index;
+      $scope.displayRule[rule.ruleId] = !$scope.displayRule[rule.ruleId] ;
+
+      if (!$scope.title[rule.ruleId]) {
+          ihmDemoFactory.getArchiveUnitDetails(rule.originId)
+              .then(function (response) {
+                  $scope.title[rule.ruleId] = response.data.$results[0].Title;
+              });
+      }
+
+    };
+    $scope.getSourcePath = function(rule) {
+      return "#!/archiveunit/" + rule.path[0][0];
+    };
+    $scope.checkUpOrDown = function(rule){
+        if ($scope.displayRule[rule.ruleId]) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+    $scope.hasSortFinal = function(c){
+        if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
+            return true;
+        } else return false;
+    };
     self.displayArchiveDetails = function(){
       self.mainFields={};
       if(self.archiveFields == null || self.archiveFields == undefined){
@@ -378,9 +429,90 @@ angular.module('archive.unit')
         var idField = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.ID_KEY];
 
         var inheritedRule = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.INHERITED_RULE_LABEL];
+        var management = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.INHERITED_RULE_LABEL];
 
+        $scope.preventInheritance = {};
+
+        $scope.refNonId = {};
+        for (var key in management) {
+            var translateKey = RuleUtils.translate(key);
+            var currentRef = [];
+            var tf = false;
+            for (var n in management[key]) {
+              var refArray = management[key][n]["RefNonRuleId"];
+              for (var ref in refArray) {
+                currentRef.push(refArray[ref]);
+              }
+              if (!tf) {
+                  var tf = management[key][n]["PreventInheritance"];
+              }
+            }
+            if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
+                $scope.refNonId[translateKey] = currentRef;
+            }
+            $scope.preventInheritance[translateKey] = tf;
+        }
+
         self.ruleDisplay = {};
+          var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+          if (Array.isArray(selfManagement)) {
+              selfManagement.forEach(function (element) {
+                  for (var key in element) {
+                      var translateKey = RuleUtils.translate(key);
+                      var rule = selfManagement[key];
+                      var displayArray = [];
+                      var displayObject = {};
+                      displayObject.ruleId = rule.Rule;
+                      delete rule.Rule;
+                      for (var detail in rule) {
+                          displayObject[detail] = rule[detail];
+                      }
+                      displayObject.originId = idField;
+                      displayArray.push(displayObject);
+                      displayObject = {};
+                      self.ruleDisplay[translateKey] = {};
+                      self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+                  }
+              })
+          } else {
+              for (var key in selfManagement) {
+                  var translateKey = RuleUtils.translate(key);
+                  var rule = selfManagement[key];
+                  if(angular.isArray(rule)) {
+                      // in case we have an array of rules
+                      var displayArray = [];
+                      var displayObject = {};
+                      for (var ruleKey in rule) {
+                          var oneRule = selfManagement[key][ruleKey];
+                          displayObject.ruleId = oneRule.Rule;
+                          delete oneRule.Rule;
+                          for (var detail in oneRule) {
+                              displayObject[detail] = oneRule[detail];
+                          }
+                          displayObject.originId = idField;
+                          displayArray.push(displayObject);
+                          displayObject = {};
+                          self.ruleDisplay[translateKey] = {};
+                          self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+                      }
+                  } else {
+                      // in case we just have one rule (should not happen)
+                      var displayArray = [];
+                      var displayObject = {};
+                      displayObject.ruleId = rule.Rule;
+                      delete rule.Rule;
+                      for (var detail in rule) {
+                          displayObject[detail] = rule[detail];
+                      }
+                      displayObject.originId = idField;
+                      displayArray.push(displayObject);
+                      displayObject = {};
+                      self.ruleDisplay[translateKey] = {};
+                      self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+                  }
+              }
+          }
         for (var key in inheritedRule) {
           var translateKey = RuleUtils.translate(key);
           var rule = inheritedRule[key];
@@ -396,6 +528,7 @@ angular.module('archive.unit')
                 for (var detail in originDetail) {
                   displayObject[detail] = originDetail[detail];
                 }
+
                 displayArray.push(displayObject);
                 displayObject = {};
               }
@@ -403,66 +536,6 @@ angular.module('archive.unit')
           }
           self.ruleDisplay[translateKey] = self.ruleDisplay[translateKey] ? self.ruleDisplay[translateKey] : {};
           self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-        }
-        if (self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.UNIT_PRENT_LIST].length == 0) {
-          var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-          if (Array.isArray(selfManagement)) {
-            selfManagement.forEach(function (element) {
-              for (var key in element) {
-                var translateKey = RuleUtils.translate(key);
-                var rule = selfManagement[key];
-                var displayArray = [];
-                var displayObject = {};
-                displayObject.ruleId = rule.Rule;
-                delete rule.Rule;
-                for (var detail in rule) {
-                  displayObject[detail] = rule[detail];
-                }
-                displayObject.originId = idField;
-                displayArray.push(displayObject);
-                displayObject = {};
-                self.ruleDisplay[translateKey] = {};
-                self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-              }
-            })
-          } else {
-            for (var key in selfManagement) {            	
-              var translateKey = RuleUtils.translate(key);
-              var rule = selfManagement[key];
-              if(angular.isArray(rule)) {
-            	  // in case we have an array of rules 
-            	  var displayArray = [];
-                  var displayObject = {};
-            	  for (var ruleKey in rule) {
-            		  var oneRule = selfManagement[key][ruleKey];	            	  
-	                  displayObject.ruleId = oneRule.Rule;
-	                  delete oneRule.Rule;              
-	                  for (var detail in oneRule) {
-	                    displayObject[detail] = oneRule[detail];
-	                  }
-	                  displayObject.originId = idField;
-	                  displayArray.push(displayObject);
-	                  displayObject = {};
-	                  self.ruleDisplay[translateKey] = {};
-	                  self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-            	  }
-              } else {
-            	  // in case we just have one rule (should not happen)
-            	  var displayArray = [];
-                  var displayObject = {};
-                  displayObject.ruleId = rule.Rule;
-                  delete rule.Rule;              
-                  for (var detail in rule) {
-                    displayObject[detail] = rule[detail];
-                  }
-                  displayObject.originId = idField;
-                  displayArray.push(displayObject);
-                  displayObject = {};
-                  self.ruleDisplay[translateKey] = {};
-                  self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-              }
-            }
-          }
         }
         delete self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
 

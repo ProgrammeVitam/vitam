@@ -73,7 +73,6 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
@@ -81,7 +80,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
-//@Ignore
+// TODO Check if this is a usefull UT
+@Ignore
 public class ProcessManagementResourceMockedTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessManagementResourceMockedTest.class);
     private static final String PORCESSING_URI = "/processing/v1";

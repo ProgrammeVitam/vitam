@@ -70,13 +70,13 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public static final String TOTAL = "total";
     /**
-     * the creationDate field of accession register
+     * the deleted field of accession register
      */
-    public static final String DELETED = "creationDate";
+    public static final String DELETED = "deleted";
     /**
-     * the creationDate field of accession register
+     * the remained field of accession register
      */
-    public static final String REMAINED = "creationDate";
+    public static final String REMAINED = "remained";
     /**
      * the creationDate field of accession register
      */

@@ -36,7 +36,11 @@ angular.module('ihm.demo')
     $scope.search = {
       form: {
         EventID: '',
-        EventType: defaultSearchType
+        EventType: defaultSearchType,
+        orderby: {
+          field: 'evDateTime',
+          sortType: 'DESC'
+        }
       }, pagination: {
         currentPage: 0,
         resultPages: 0,
@@ -57,7 +61,7 @@ angular.module('ihm.demo')
     };
 
     $scope.goToDetails = function(id) {
-      $window.open('#!/admin/detailOperation/' + id)
+      $window.open('#!/admin/detailOperation/' + id);
     };
 
     function initFields(fields) {
@@ -89,8 +93,7 @@ angular.module('ihm.demo')
       if (requestOptions.EventID == "" || requestOptions.EventID == undefined) {
         requestOptions.EventID = "all";
       }
-
-      requestOptions.orderby = "evDateTime";
+      
       return requestOptions;
     };
 
@@ -115,5 +118,3 @@ angular.module('ihm.demo')
     $scope.reinitForm = searchService.processReinit;
     $scope.onInputChange = searchService.onInputChange;
   });
-
-

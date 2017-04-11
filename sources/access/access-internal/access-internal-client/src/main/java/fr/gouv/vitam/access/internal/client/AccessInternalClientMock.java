@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -119,4 +120,19 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookOperation();
     }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query) throws InvalidParseOperationException {
+        return ClientMockResultHelper.checkOperationTraceability();
+    }
+
+    @Override
+    public Response downloadTraceabilityFile(String operationId)
+        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
+        InvalidParseOperationException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
 }

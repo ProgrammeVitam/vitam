@@ -245,19 +245,18 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private void asyncObjectStream(AsyncResponse asyncResponse, HttpHeaders headers, String idObjectGroup,
-        JsonNode query,
-        boolean post) {
+        JsonNode query, boolean post) {
 
         if (post) {
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.PRECONDITION_FAILED)
                         .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
                 return;
             }
             final String xHttpOverride = headers.getRequestHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE).get(0);
             if (!HttpMethod.GET.equalsIgnoreCase(xHttpOverride)) {
-                AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                     Response.status(Status.METHOD_NOT_ALLOWED).entity(getErrorEntity(Status.METHOD_NOT_ALLOWED)
                         .toString()).build());
                 return;
@@ -268,7 +267,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse,
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString()).build());
             return;
@@ -287,18 +286,18 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED).toString())
                 .build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
                     .toString()).build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
             final Response errorResponse =
                 Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
-            AsyncInputStreamHelper.writeErrorAsyncResponse(asyncResponse, errorResponse);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
