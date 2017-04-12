@@ -38,7 +38,7 @@ public enum UnitType {
     /**
      * classification Unit type
      */
-    CLASSIFICATION_UNIT,
+    FILING_UNIT,
     /**
      * holding unit type
      */

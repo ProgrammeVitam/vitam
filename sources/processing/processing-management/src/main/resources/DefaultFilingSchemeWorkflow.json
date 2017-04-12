@@ -120,7 +120,7 @@
              "in": [
               {
                 "name": "UnitType",
-                "uri": "VALUE:CLASSIFICATION_UNIT"
+                "uri": "VALUE:FILING_UNIT"
               }
             ]
           }
