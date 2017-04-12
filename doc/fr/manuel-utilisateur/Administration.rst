@@ -341,8 +341,8 @@ Pour accéder à la recherche de contrats d'entrée, l'utilisateur clique sur le
 La page affiche un formulaire de recherche composé des champs suivants :
 
 * Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'entrée disponibles dans la solution logicielle Vitam.
-* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats. 
-  
+* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
+
 Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
 
 * Nom
@@ -353,7 +353,7 @@ Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles 
 * Date de désactivation
 * Date de création
 * Date modification
-  
+
 En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'entrée dans un nouvel onglet.
 
 .. image:: images/CONTRACTS_ingest_contract_search.png
@@ -413,8 +413,8 @@ Pour accéder à la recherche de contrats d'accès, l'utilisateur clique sur le 
 La page affiche un formulaire de recherche composé des champs suivants :
 
 * Nom du contrat : permet d'effectuer une recherche approchante sur les noms des contrats d'accès disponibles dans la solution logicielle Vitam.
-* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats. 
-  
+* Identifiant : permet d'effectuer une recherche exacte sur les identifiants des contrats.
+
 Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles dans la liste de résultats et l'affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
 
 * Nom
@@ -423,7 +423,7 @@ Par défaut, la solution logicielle Vitam affiche tous les contrats disponibles 
 * Tenant
 * Statut
 * Date de création
-  
+
 En cliquant sur une ligne, l'utilisateur ouvre le détail du contrat d'accès dans un nouvel onglet.
 
 .. image:: images/CONTRACTS_access_contract_search.png
@@ -443,3 +443,66 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Date de désactivation
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
+
+
+Import d'un arbre de positionnement
+=================================
+
+L'import d'un arbre de positionnement dans Vitam s'effectue depuis l'écran "Import de l'arbre de positionnement", accessible depuis le menu "Administration" puis en cliquant sur le sous-menu du même nom.
+
+.. image:: images/menu_import_arbre.png
+
+Pour débuter l'import, l’utilisateur doit sélectionner l'arbre sous le format demandé. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner l'arbre.
+
+Une fois celui-ci sélectionné, il apparaît sur l'écran "Import de l'arbre de positionnement". Le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+
+Deux listes déroulantes sont présentes sur l'écran :
+
+- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté.
+
+- Destination : l'utilisateur peut indiquer la destination de l'arbre. Actuellement, seule l'option "production", pour importer directement l'arbre, est disponible.
+
+Le mode d'exécution et la destination sont obligatoires.
+
+Pour lancer le transfert de l'arbre, l’utilisateur clique sur le bouton « Importer ».
+
+Les informations visibles à l'écran sont :
+
+- Un tableau comportant les champs suivants :
+
+  - Nom du fichier,
+  - Taille : Affiche la taille de l'arbre en Ko, Mo ou Go en fonction de la taille arrondie au dixième près,
+  - Statut (succès, erreur ou avertissement)
+
+- Une barre de progression affiche l’avancement du téléchargement de l'arbre dans Vitam (une barre de progression complète signifie que le téléchargement est achevé).
+
+NB : Suite au téléchargement de l'arbre, un temps d'attente est nécessairen correspondant au traitement de l'arbre par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
+
+.. image:: images/upload_arbre.png
+
+Si l'utilisateur tente d'importer un arbre au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
+Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
+
+Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génére une notification qui est proposée en téléchargement à l'utilisateur.
+
+Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
+Lors d'une entrée en succès dans VITAM, l'ATR comprend les informations suivantes :
+
+- Date : date d'émission de l'ATR
+- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribué à la demande de transfert par la solution logicielle Vitam
+- ArchivalAgreement : contrat d'entrée
+- CodeListVesion : la liste des référentiels utilisés
+- La liste des Unités Archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle VITAM (SystemId)
+- ReplyCode : statut final de l'entrée
+- GrantDate : date de prise en charge de l'arbre
+- MessageIdentifierRequest : identifiant de la demande de transfert
+
+Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING". Actuellement, il n'est pas possible de connaître la cause de l'avertissement.
+
+En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
+
+- Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
+- OutcomeDetail : code interne à VITAM correspondant à l'erreur rencontrée
+- OutcomeDetailMessage : message d'erreur
+
+La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques sous la forme de blocs <event>.
