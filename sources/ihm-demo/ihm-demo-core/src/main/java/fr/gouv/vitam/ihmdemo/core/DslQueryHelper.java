@@ -262,14 +262,12 @@ public final class DslQueryHelper {
                             query.add(exists("Name"));
                         }
                         else  if (!searchValue.isEmpty()) {
-                            query.add(eq("Name", searchValue));
+                            query.add(match("Name", searchValue));
                         }
                         break;
 
                     case CONTRACT_ID:
-                        if ("all".equals(searchValue)) {
-                            query.add(exists("#id"));
-                        } else {
+                        if (!"all".equals(searchValue)) {
                             query.add(eq("#id", searchValue));
                         }
                         break;
