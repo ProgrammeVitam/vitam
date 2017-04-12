@@ -2547,6 +2547,85 @@ Détail des champs
 
 "DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
+Collection AccessContract
+=========================
+
+Utilisation de la collection
+----------------------------
+
+La collection AccessContract permet de stocker unitairement les contrats d'accès.
+
+Exemple de JSON stocké en base
+------------------------------
+
+::
+
+    {
+    "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+    "_tenant": 0,
+    "Name": "SIA archives nationales",
+    "Description": "Contrat d'accès - SIA archives nationales",
+    "Status": "ACTIVE",
+    "CreationDate": "2017-04-10T11:30:33.798",
+    "LastUpdate": "2017-04-10T11:30:33.798",
+    "ActivationDate": "2017-04-10T11:30:33.798",
+    "DesactivationDate": null,
+    "OriginatingAgencies":["FRA-56","FRA-47"]
+    }
+
+Exemple de contrat d'accès envoyé au format JSON
+-------------------------------------------------
+
+L'exemple suivant est un JSON contenant deux contrats d'accès :
+
+::
+
+    [
+        {
+            "Name":"Archives du Doubs",
+            "Description":"Accès Archives du Doubs",
+            "Status" : "ACTIVE",
+            "LastUpdate":"10/12/2016",
+            "CreationDate":"10/12/2016",
+            "ActivationDate":"10/12/2016",
+            "DeactivationDate":"10/12/2016",
+            "OriginatingAgencies":["FRA-56","FRA-47"]
+        },
+        {
+            "Name":"Archives du Calvados",
+            "Description":"Accès Archives du Calvados",
+            "Status" : "ACTIVE",
+            "LastUpdate":"10/12/2016",
+            "CreationDate":"10/12/2016",
+            "ActivationDate":"10/12/2016",
+            "DeactivationDate":"10/12/2016",
+            "OriginatingAgencies":["FRA-54","FRA-64"]
+        }
+    ]
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+
+"_tenant": nom du tenant
+
+"Name" : nom du contrat d'accès. Il s'agit d'une chaîne de caractères.
+
+"Description": description du contrat d'accès. Il s'agit d'une chaîne de caractères.
+
+"Status": statut du contrat. Peut être ACTIVE ou INACTIVE
+
+"CreationDate": date de création du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"LastUpdate": date de dernière mise à jour du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"OriginatingAgencies": tableau contenant les services producteurs auxquels le détenteur du contrat a accès. Il s'agit d'un tableau de chaînes de caractères.
+
 Collection AccessionRegisterSummary
 ===================================
 
