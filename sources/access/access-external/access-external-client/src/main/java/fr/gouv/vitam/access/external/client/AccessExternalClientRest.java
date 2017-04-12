@@ -552,7 +552,4 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             }
         }
     }
-
-
-
 }

@@ -27,8 +27,16 @@
 
 // Define controller for traceability.operation.details
 angular.module('traceability.operation.details')
+  .filter('filterSize', function() {
+      return function(bytes, precision) {
+        if (isNaN(parseFloat(bytes)) || !isFinite(bytes)) return '-';
+        if (typeof precision === 'undefined') precision = 1;
+        var units = ['bytes', 'kB', 'MB', 'GB', 'TB', 'PB'],
+          number = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
+  }})
   .controller('traceabilityOperationDetailsController', function($scope, $routeParams, traceabilityOperationDetailsService,
-    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService, $window) {
+    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService) {
 
       // Traceability operation to check
       $scope.traceabilityOperationId = $routeParams.operationId;
@@ -45,11 +53,9 @@ angular.module('traceability.operation.details')
           $scope.startDate = details.StartDate;
           $scope.endDate = details.EndDate;
           $scope.numberOfElement = details.NumberOfElement;
-
-          // TODO : change this value by the stored value
-          $scope.digestAlgorithm = 'SHA256';
+          $scope.digestAlgorithm = details.DigestAlgorithm;
           $scope.fileName = details.FileName;
-          $scope.fileSize = details.Size; // TODO Add unit size
+          $scope.fileSize = details.Size;
           $scope.hash = details.Hash;
           $scope.timeStampToken = details.TimeStampToken;
         }
@@ -83,7 +89,7 @@ angular.module('traceability.operation.details')
       var successDownloadTraceabilityFile = function(response) {
         var a = document.createElement("a");
         document.body.appendChild(a);
-        var url = URL.createObjectURL(new Blob([response.data], { type: 'application/octet-stream', responseType: 'arraybuffer'}));
+        var url = URL.createObjectURL(new Blob([response.data], { type: 'octet/stream'}));
         a.href = url;
 
         if(response.headers('content-disposition')!== undefined && response.headers('content-disposition')!== null){
@@ -99,4 +105,12 @@ angular.module('traceability.operation.details')
       // Start by getting details for the selected operation
       traceabilityOperationDetailsService.getDetails($scope.traceabilityOperationId, successCallback, errorCallback);
 
+
+      $scope.hasPermission = function(permission) {
+        if (localStorage.getItem('user')) {
+            var user = JSON.parse(localStorage.getItem('user'));
+            return user && user.permissions.indexOf(permission) > -1;
+        }
+        return false;
+      }
   });

@@ -109,4 +109,11 @@ public class AccessExternalClientMockTest {
         LogbookClientException {
         assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID));
     }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternal_checkTraceabilityOperation_ThenReturnResult()
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, LogbookClientException {
+        assertNotNull(client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID));
+    }
 }

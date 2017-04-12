@@ -41,6 +41,5 @@ angular.module('ihm.demo', [
   'admin.home',
   'soap.ui',
   'operation.traceability',
-  'search.operation',
   'functional.test'
 ]);

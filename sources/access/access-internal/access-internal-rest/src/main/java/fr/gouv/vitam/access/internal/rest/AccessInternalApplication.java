@@ -127,7 +127,7 @@ public class AccessInternalApplication
             // Workspace dependency
             .register(WorkspaceClientFactory.getInstance());
         if (mock != null) {
-            resourceConfig.register(new AccessInternalResourceImpl(mock));
+            resourceConfig.register(new AccessInternalResourceImpl(mock)).register(new LogbookInternalResourceImpl());
         } else {
             resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
                 .register(new LogbookInternalResourceImpl());

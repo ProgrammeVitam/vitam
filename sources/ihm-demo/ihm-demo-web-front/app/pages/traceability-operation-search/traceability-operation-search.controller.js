@@ -152,4 +152,12 @@ angular
         $scope.ctrl.getList();
       };
 
+      $scope.ctrl.hasPermission = function(permission) {
+        if (localStorage.getItem('user')) {
+            var user = JSON.parse(localStorage.getItem('user'));
+            return user && user.permissions.indexOf(permission) > -1;
+        }
+        return false;
+      };
+
     }).constant('lodash', window._);

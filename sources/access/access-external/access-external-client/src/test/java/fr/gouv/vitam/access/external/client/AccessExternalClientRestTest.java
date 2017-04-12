@@ -18,10 +18,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
@@ -288,6 +289,26 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
             throws InvalidParseOperationException {
             return expectedResponse.post();
+        }
+
+
+        // Functionalities related to TRACEABILITY operation
+
+        @POST
+        @Path("/traceability/check")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkTraceabilityOperation(JsonNode query)
+            throws InvalidParseOperationException {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/traceability/{idOperation}/content")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId)
+            throws InvalidParseOperationException {
+            return expectedResponse.get();
         }
 
     }
@@ -668,5 +689,26 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID);
     }
 
+
+    /***
+     *
+     * TRACEABILITY operation test
+     * 
+     ***/
+
+    @Test
+    public void testCheckTraceabilityOperation()
+        throws InvalidParseOperationException, AccessExternalClientServerException {
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
+        client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID);
+    }
+
+    @Test
+    public void testDownloadTraceabilityOperationFile()
+        throws InvalidParseOperationException, AccessExternalClientServerException {
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+        client.downloadTraceabilityOperationFile(ID, TENANT_ID);
+    }
 
 }

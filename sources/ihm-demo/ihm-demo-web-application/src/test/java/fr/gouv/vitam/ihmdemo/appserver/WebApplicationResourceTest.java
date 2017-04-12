@@ -74,6 +74,7 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Cookie;
 import com.jayway.restassured.response.ResponseBody;
 
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -135,6 +136,10 @@ public class WebApplicationResourceTest {
     private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
     private static final List<Integer> tenants = new ArrayList<>();
+
+    private static final String TRACEABILITY_CHECK_URL = "traceability/check";
+    private static final String TRACEABILITY_CHECK_MAP = "{EventID: \"fake_id\"}";
+    private static final String TRACEABILITY_CHECK_DSL_QUERY = "{EventID: \"fake_id\"}";
 
     private final int TENANT_ID = 0;
 
@@ -1280,4 +1285,33 @@ public class WebApplicationResourceTest {
             .when().get(INGEST_URI + "/1/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
+
+    @Test
+    public void testCheckTraceabilityOperation()
+        throws AccessExternalClientServerException, InvalidParseOperationException, InvalidCreateOperationException {
+        // Mock AccessExternal response
+        PowerMockito.when(
+            UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(), (Integer) Mockito.anyInt()))
+            .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
+
+        given().contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post(TRACEABILITY_CHECK_URL);
+    }
+
+
+    @Test
+    public void testDownloadTraceabilityOperation()
+        throws AccessExternalClientServerException, InvalidParseOperationException, InvalidCreateOperationException {
+
+        // Mock AccessExternal response
+        AccessExternalClient accessExternalClient = Mockito.mock(AccessExternalClient.class);
+        Mockito.when(accessExternalClient.downloadTraceabilityOperationFile(anyString(), (Integer) Mockito.anyInt()))
+            .thenReturn(ClientMockResultHelper.getObjectStream());
+
+        RestAssured.given()
+            .when().get("traceability" + "/1/" + "content")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
 }

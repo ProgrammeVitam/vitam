@@ -36,6 +36,7 @@ import java.io.InputStream;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -59,9 +60,11 @@ import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -206,6 +209,25 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             @PathParam("id_object_group") String idObjectGroup,
             JsonNode query, @Suspended final AsyncResponse asyncResponse) {
             asyncResponse.resume(expectedResponse.get());
+        }
+
+        // Functionalities related to TRACEABILITY operation
+
+        @POST
+        @Path("/traceability/check")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response checkTraceabilityOperation(JsonNode query)
+            throws InvalidParseOperationException {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/traceability/{idOperation}/content")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadTraceabilityOperationFile(@PathParam("idOperation") String operationId)
+            throws InvalidParseOperationException {
+            return expectedResponse.get();
         }
 
     }
@@ -494,5 +516,29 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         client.checkStatus();
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void givenCorrectDslQueryWhenCheckTraceabilityOperationThenOK() throws Exception {
+        
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.post()).thenReturn(Response.ok().entity(ClientMockResultHelper.checkOperationTraceability()).build());
+        
+        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
+        @SuppressWarnings("rawtypes")
+        final RequestResponse requestResponse = client.checkTraceabilityOperation(queryJson);
+        assertNotNull(requestResponse);
+        assertTrue(requestResponse.toJsonNode().has("$results"));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenOperationIdWhenDownloadTraceabilityOperationThenOK() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        Response response = client.downloadTraceabilityFile("OP_ID");
+        assertNotNull(response);
+    }
 
 }
