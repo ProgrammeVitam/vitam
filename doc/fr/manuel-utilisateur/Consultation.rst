@@ -125,6 +125,15 @@ Lorsqu'une règle est bloquée, au travers des mécanismes de blocages totaux ou
 
 .. image:: images/detail_regle_gestion.png
 
+Le fait qu'une ou plusieurs règles soient bloquées et retirées de l'héritage est affiché au travers deux mentions :
+
+- "Règle désactivée" liste les identifiants des règles, provenant des parents, et qui ne sont plus appliquées à partir de cette unité archivistique.
+
+- "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
+
+Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble des valeurs déclarées pour la règle.
+La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cet origine est cliquable et mène sur le détail de l'unité mentionnée.
+
 Si des objets sont disponibles, le bloc "Groupe d'Objets" affiche le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées.
 
 Chaque objet est listé dans un tableau, une ligne du tableau correspondant à un objet. Les colonnes affichent les informations suivantes :
