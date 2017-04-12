@@ -122,6 +122,21 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
     }
 
     /**
+     * Constructor use for recovery process
+     *
+     * @param workParams the worker parameters
+     * @param monitor the monitor
+     */
+    protected ProcessEngineImpl(WorkerParameters workParams, Object monitor) {
+        processDistributorMock = null;
+        processData = ProcessDataAccessImpl.getInstance();
+        this.monitor = monitor;
+        this.workParams = workParams;
+        dataManagement = WorkspaceProcessDataManagement.getInstance();
+        isFirstCall = false;
+    }
+
+    /**
      * For test purpose
      *
      * @param processDistributor the wanted process distributor

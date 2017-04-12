@@ -59,4 +59,15 @@ public class ProcessEngineImplFactory {
         ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
         return new ProcessEngineImpl(processDistributor);
     }
+
+    /**
+     * Init for recovery process
+     *
+     * @param workParams the worker parameters
+     * @param monitor the monitor
+     * @return ProcessEngine object created
+     */
+    public ProcessEngineImpl createForRecovery(WorkerParameters workParams, Object monitor) {
+        return new ProcessEngineImpl(workParams, monitor);
+    }
 }

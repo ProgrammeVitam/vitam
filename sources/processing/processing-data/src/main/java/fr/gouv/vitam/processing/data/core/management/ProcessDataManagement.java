@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.processing.data.core.management;
 
+import java.util.Map;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -116,4 +118,15 @@ public interface ProcessDataManagement {
      * @throws ProcessingStorageWorkspaceException when storage error occurs
      */
     void removeProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException;
+
+    /**
+     * Get process workflow map for tenantId and folderName (server id from serverIdentity)
+     *
+     * @param tenantId the tenant ID
+     * @param folderName the folder name (server id from serverIdentity)
+     * @return map of tenantID process for a server id
+     * @throws ProcessingStorageWorkspaceException thrown if an error ocurred when loading process file
+     */
+    Map<String, ProcessWorkflow> getProcessWorkflowFor(Integer tenantId, String folderName) throws
+        ProcessingStorageWorkspaceException;
 }
