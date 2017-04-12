@@ -2477,6 +2477,76 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
 "UpdateDate": Date de mise à jour de la règle
        - Utilisation à IT10 : identique à la date de création. Ces deux dates sont mises à jour à chaque import de référentiel.
 
+Collection IngestContract
+=========================
+
+Utilisation de la collection
+----------------------------
+
+La collection IngestContract permet de stocker unitairement les contrats d'entrée.
+
+Exemple de JSON stocké en base
+------------------------------
+
+::
+
+    {
+    "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+    "_tenant": 0,
+    "Name": "SIA archives nationales",
+    "Description": "Contrat d'accès - SIA archives nationales",
+    "Status": "ACTIVE",
+    "CreationDate": "2017-04-10T11:30:33.798",
+    "LastUpdate": "2017-04-10T11:30:33.798",
+    "ActivationDate": "2017-04-10T11:30:33.798",
+    "DesactivationDate": null
+    }
+
+Exemple de contrat d'entrée envoyé au format JSON
+-------------------------------------------------
+
+L'exemple suivant est un JSON contenant deux contrats d'entrée :
+
+::
+
+    [
+        {
+            "Name":"Contrat Archives Départementales",
+            "Description":"Test entrée - Contrat Archives Départementales",
+            "Status" : "ACTIVE",
+            "CreationDate":"01/04/2017",
+            "ActivationDate":"01/04/2017"
+        },
+        {
+            "Name":"Contrat Archives Nationales",
+            "Description":"Test entrée - Contrat Archives Nationales",
+            "Status" : "INACTIVE",
+            "CreationDate":"01/04/2017",
+            "ActivationDate":"01/04/2017"
+        }
+    ]
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+
+"_tenant": nom du tenant
+
+"Name" : nom du contrat d'entrée. Il s'agit d'une chaîne de caractères.
+
+"Description": description du contrat d'entrée. Il s'agit d'une chaîne de caractères.
+
+"Status": statut du contrat. Peut être ACTIVE ou INACTIVE
+
+"CreationDate": date de création du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"LastUpdate": date de dernière mise à jour du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
 Collection AccessionRegisterSummary
 ===================================
 
@@ -2534,7 +2604,7 @@ Détail des champs
 
 "_id": Identifiant unique. Il s'agit d'une chaine de 36 caractères.
 
-"_tenant": 0,
+"_tenant": 0
 "OriginatingAgency": La valeur de ce champ est une chaîne de caractère.
 Ce champ est la clef primaire et sert de concaténation pour toutes les entrées effectuées sur ce producteur d'archives. Il est contenu entre les baslises <OriginatinAgencyIdentifier> du bordereau.
 
