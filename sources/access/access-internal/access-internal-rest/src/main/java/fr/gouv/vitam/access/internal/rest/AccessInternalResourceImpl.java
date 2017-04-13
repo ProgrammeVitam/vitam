@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import java.util.Set;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -54,12 +56,14 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -274,6 +278,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+        
+        if (!validUsage(xQualifier.split("_")[0])){
+            final Response errorResponse = Response.status(Status.UNAUTHORIZED)
+                .entity(getErrorEntity(Status.UNAUTHORIZED).toString())
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        }
+        
         try {
             SanityChecker.checkHeaders(headers);
             HttpHeaderHelper.checkVitamHeaders(headers);
@@ -299,6 +311,18 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND).toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
+    }
+    
+    private boolean validUsage(String s){        
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        Set<String> versions = vitamSession.getUsages();
+        
+        for (String version : versions){
+            if (version.equals(s)){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

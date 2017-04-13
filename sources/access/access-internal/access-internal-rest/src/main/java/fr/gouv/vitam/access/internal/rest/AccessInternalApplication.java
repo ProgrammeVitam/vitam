@@ -33,6 +33,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
+import fr.gouv.vitam.access.internal.serve.filter.AccessContratIdContainerFilter;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -127,10 +128,12 @@ public class AccessInternalApplication
             // Workspace dependency
             .register(WorkspaceClientFactory.getInstance());
         if (mock != null) {
-            resourceConfig.register(new AccessInternalResourceImpl(mock)).register(new LogbookInternalResourceImpl());
+            resourceConfig.register(new AccessInternalResourceImpl(mock))
+                .register(AccessContratIdContainerFilter.class);
         } else {
             resourceConfig.register(new AccessInternalResourceImpl(getConfiguration()))
-                .register(new LogbookInternalResourceImpl());
+                .register(new LogbookInternalResourceImpl())
+                .register(AccessContratIdContainerFilter.class);
         }
     }
 

@@ -1,89 +1,72 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.functional.administration.client.model;
+ *******************************************************************************/
+package fr.gouv.vitam.access.internal.serve.exception;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Set;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * Data Transfer Object Model of access contract (DTO).
+ *
+ * Exception when missing access contrat
+ *
  */
-
-public class AccessContractModel extends AbstractContractModel {
-
-    @JsonProperty("DataObjectVersion")
-    private Set<String> dataObjectVersion;
-
-    @JsonProperty("OriginatingAgencies")
-    private Set<String> originatingAgencies;
-
+public class MissingAccessContratIdException extends VitamException{
 
     /**
-     * Constructor without fields
-     * use for jackson
+     *
      */
-    public AccessContractModel() {
-        super();
-    }
-
+    private static final long serialVersionUID = -2684023194234768369L;
 
     /**
-     *  Get the collection of originating agency
-     * @return originatingAgencies collection
+     * Basic constructor to indicate a simple error message without stacktrace
+     *
+     * @param message message to log
      */
-    public Set<String> getOriginatingAgencies() {
-        return originatingAgencies;
+    public MissingAccessContratIdException(String message) {
+        super(message);
     }
 
     /**
-     * Set the collection of originating agency
-     * @param originatingAgencies
+     * Constructor used to encapsulate a previously thrown exception. A generic message is used.
+     *
+     * @param throwable the originating exception
      */
-    public AccessContractModel setOriginatingAgencies(Set<String> originatingAgencies) {
-        this.originatingAgencies = originatingAgencies;
-        return this;
-    }
-    
-    /**
-     * @return dataObjectVersion
-     */
-    public Set<String> getDataObjectVersion() {
-        return dataObjectVersion;
+    public MissingAccessContratIdException(Throwable throwable) {
+        super("An error occurred while retrieving objects from the local thread", throwable);
     }
 
-
     /**
-     * @param dataObjectVersion
-     * @return AccessContractModel
+     * Constructor used to encapsulate a previously thrown exception with but with a custom meaningful message
+     *
+     * @param message the message to log throw threw
+     * @param throwable the originating exception
      */
-    public AccessContractModel setDataObjectVersion(Set<String> dataObjectVersion) {
-        this.dataObjectVersion = dataObjectVersion;
-        return this;
+    public MissingAccessContratIdException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 
 }
+

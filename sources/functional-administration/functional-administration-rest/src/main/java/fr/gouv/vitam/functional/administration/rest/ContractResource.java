@@ -223,7 +223,7 @@ public class ContractResource {
 
             return Response.status(Status.OK)
                 .entity(
-                    new RequestResponseOK().addAllResults(accessContractModelList))
+                    new RequestResponseOK().setHits(accessContractModelList.size(), 0, accessContractModelList.size()).addAllResults(accessContractModelList))
                 .build();
 
         } catch (ReferentialException e) {

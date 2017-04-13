@@ -35,25 +35,34 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
+import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -61,6 +70,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -68,7 +79,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
-// FIXME P1 : there is big changes to do in this junit class! Almost all SelectByUnitId tests are wrong
 public class AccessInternalResourceImplTest {
 
     @Rule
@@ -131,7 +141,6 @@ public class AccessInternalResourceImplTest {
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
-
             LOGGER.debug("Beginning tests");
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -164,6 +173,7 @@ public class AccessInternalResourceImplTest {
             .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().put("/units/" + ID).then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
     }
@@ -200,6 +210,7 @@ public class AccessInternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML)).when()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .get(ACCESS_UNITS_URI).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -296,12 +307,14 @@ public class AccessInternalResourceImplTest {
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
         with()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(buildDSLWithOptions("", DATA2)).when()
             .get("/units").then()
             .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(BODY_TEST).when()
             .get("/units/" + ID_UNIT).then()
             .statusCode(Status.OK.getStatusCode());
@@ -313,6 +326,7 @@ public class AccessInternalResourceImplTest {
     public void given_emptyQuery_when_SelectByID_thenReturn_Bad_Request() {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body("")
             .when()
             .get("/units/" + ID_UNIT)
@@ -324,6 +338,7 @@ public class AccessInternalResourceImplTest {
     public void given_emptyQuery_when_UpdateByID_thenReturn_Bad_Request() {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body("").header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7kjkkkkkmfjfikiaaaaq")
             .when()
             .put("/units/" + ID_UNIT)
@@ -336,6 +351,7 @@ public class AccessInternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7cabmgeak2mfjfikiaaaaq")
             .when()
             .put("/units/" + ID)
@@ -347,6 +363,7 @@ public class AccessInternalResourceImplTest {
     public void given_pathWithId_when_get_SelectByID() {
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(BODY_TEST)
             .when()
             .get("/units/" + ID_UNIT)
@@ -360,6 +377,7 @@ public class AccessInternalResourceImplTest {
         GlobalDatasParser.limitRequest = 99;
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
             .get("/units/" + ID_UNIT).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
@@ -381,7 +399,9 @@ public class AccessInternalResourceImplTest {
         when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID)).thenReturn(JsonHandler
             .getFromString(DATA));
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).when()
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(BODY_TEST).when()
             .get(OBJECTS_URI +
                 OBJECT_ID)
             .then()
@@ -390,14 +410,18 @@ public class AccessInternalResourceImplTest {
 
     @Test
     public void getObjectGroupPreconditionFailed() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).when().get(OBJECTS_URI +
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .when().get(OBJECTS_URI +
             OBJECT_ID).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectGroupBadRequest() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body("test").when()
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body("test").when()
             .get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -408,7 +432,9 @@ public class AccessInternalResourceImplTest {
         when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID))
             .thenThrow(new NotFoundException());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).when()
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(BODY_TEST).when()
             .get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -419,7 +445,9 @@ public class AccessInternalResourceImplTest {
         when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID))
             .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST).when()
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(BODY_TEST).when()
             .get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -428,21 +456,27 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectStreamPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders())
             .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -458,6 +492,8 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectStreamDataRequiredThenPreconditionFailed() throws InvalidParseOperationException {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -474,6 +510,8 @@ public class AccessInternalResourceImplTest {
                 .thenThrow(new StorageNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -483,6 +521,8 @@ public class AccessInternalResourceImplTest {
                 .thenThrow(new MetaDataNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -499,6 +539,8 @@ public class AccessInternalResourceImplTest {
                 .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders())
             .body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -510,6 +552,25 @@ public class AccessInternalResourceImplTest {
         headers.put(GlobalDataRest.X_QUALIFIER, "qualif");
         headers.put(GlobalDataRest.X_VERSION, 1);
         return headers;
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void testGetObjectStream() throws Exception {
+        reset(mock);
+          
+        final Response response =
+            ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+                MediaType.APPLICATION_OCTET_STREAM, null);
+        when(
+            mock.getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt()))
+                .thenReturn(new AccessBinaryData("file1", MediaType.APPLICATION_OCTET_STREAM, response));
+
+        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .headers(getStreamHeaders())
+            .body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
 }

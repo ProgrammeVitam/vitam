@@ -255,6 +255,12 @@
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown" style="right:100px">
+            <label for="accessContractId" style="display:inline">Contrat d'access</label>
+            <select ng-model="accessContratId" id = "accessContractId"  ng-change="changeContract(accessContratId)">
+              <option ng-repeat='contract in contracts' value="{{contract.Name}}">{{contract.Name}}</option>
+            </select>
+          </li>
           <li class="dropdown" style ="padding-top: 25px" ng-show="user">
             {{user.userName}} (tenant : {{user.tenantId}})
           </li>

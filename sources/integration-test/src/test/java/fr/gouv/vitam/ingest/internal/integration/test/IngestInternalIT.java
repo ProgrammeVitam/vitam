@@ -46,6 +46,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -82,6 +83,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -90,6 +92,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementApplication;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
@@ -127,6 +130,7 @@ public class IngestInternalIT {
     static MongodProcess mongod;
     private static LogbookElasticsearchAccess esClient;
     private static final Integer tenantId = 0;
+    private static final String contractId = "aName";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -346,7 +350,10 @@ public class IngestInternalIT {
 
                 client.importIngestContracts(IngestContractModelList);
 
-
+                // import contrat
+                File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
+                List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>(){});
+                client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -400,9 +407,9 @@ public class IngestInternalIT {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            // ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
-            // processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
-            // ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
+            //ProcessDataAccessImpl processData = ProcessDataAccessImpl.getInstance();
+            //processData.initProcessWorkflow(ProcessPopulator.populate(WORFKLOW_NAME), operationGuid.getId(),
+            //    ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
@@ -464,6 +471,7 @@ public class IngestInternalIT {
 
             // Now redo Object with access internal
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
             responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 0);
             inputStream = responseStorage.readEntity(InputStream.class);
 
@@ -528,6 +536,7 @@ public class IngestInternalIT {
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -587,6 +596,7 @@ public class IngestInternalIT {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -863,6 +873,7 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -923,6 +934,7 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);

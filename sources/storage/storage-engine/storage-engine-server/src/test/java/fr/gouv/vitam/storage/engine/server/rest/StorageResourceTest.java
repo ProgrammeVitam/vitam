@@ -66,7 +66,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.TenantIdContainerFilter;
+import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -770,7 +770,7 @@ public class StorageResourceTest {
         resourceConfig.register(JacksonFeature.class);
         final StorageDistributionInnerClass storage = outer.new StorageDistributionInnerClass();
         resourceConfig.register(new StorageResource(storage));
-        resourceConfig.register(TenantIdContainerFilter.class);
+        resourceConfig.register(HeaderIdContainerFilter.class);
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
