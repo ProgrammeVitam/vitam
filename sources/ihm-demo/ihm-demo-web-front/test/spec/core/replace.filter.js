@@ -24,14 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
+
 'use strict';
-angular.module('ihm.demo')
-  .filter('StrReplace', function () {
-    return function (text) {
-        if(text){
-          return text.replace("INACTIVE","Inactif").replace("ACTIVE", "Actif");
-        }
-      return text;
-    };
+
+describe('Filter : StrReplace', function () {
+  beforeEach(module('ihm.demo'));
+  var $filter;
+  beforeEach(inject(function (_$filter_) {
+    $filter = _$filter_;
+
+  }));
+
+  it('should be able to transform INACTIVE to active and ACTIVE to Actif ', function () {
+    expect($filter('StrReplace')("INACTIVE")).toBe('Inactif');
+    expect($filter('StrReplace')("ACTIVE")).toBe('Actif');
+    expect($filter('StrReplace')('')).toBe('');
+    expect($filter('StrReplace')(undefined)).toBe(undefined);
+    expect($filter('StrReplace')(null)).toBe(null);
   });
+});
