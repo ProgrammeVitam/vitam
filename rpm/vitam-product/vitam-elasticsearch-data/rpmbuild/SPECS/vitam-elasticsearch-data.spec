@@ -1,5 +1,6 @@
-Name:          vitam-elasticsearch-data
 %define version 2.4.4
+
+Name:          vitam-elasticsearch-data
 Version:       %{version}
 Release:       1%{?dist}
 Summary:       A Distributed RESTful Search Engine (with vitam systemd units)
