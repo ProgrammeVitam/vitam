@@ -9,7 +9,7 @@ https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd
 https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-server_3.4.2_amd64.deb
 https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-shell_3.4.2_amd64.deb
 https://repo.mongodb.org/apt/debian/dists/jessie/mongodb-org/3.4/main/binary-amd64/mongodb-org-tools_3.4.2_amd64.deb
-https://packages.elastic.co/curator/4/debian/pool/main/p/python/python-elasticsearch_2.3.0_all.deb
-https://packages.elastic.co/curator/4/debian/pool/main/p/python/python-click_6.6_all.deb
-https://packages.elastic.co/curator/4/debian/pool/main/p/python/python-elasticsearch-curator_4.0.6_all.deb
-https://packages.elastic.co/curator/4/debian/pool/main/p/python/python-pyyaml_3.11_amd64.deb
+https://packages.elastic.co/curator/4/debian/pool/main/p/python-elasticsearch/python-elasticsearch_2.3.0_all.deb
+https://packages.elastic.co/curator/4/debian/pool/main/p/python-click/python-click_6.6_all.deb
+https://packages.elastic.co/curator/4/debian/pool/main/p/python-pyyaml/python-pyyaml_3.11_amd64.deb
+https://packages.elastic.co/curator/4/debian/pool/main/p/python-elasticsearch-curator/python-elasticsearch-curator_4.0.6_all.deb
