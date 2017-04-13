@@ -252,9 +252,11 @@ Il décrit le processus d'entrée pour téléchager un arbre, indexer les métad
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 
-##############################################
-# Image diagrame workflow-tree sera ajouté
-##############################################
+.. figure:: images/Workflow_HoldingScheme.jpg
+  :align: center
+  :height: 22 cm
+
+  Diagramme d'état / transitions du workflow de l'arbre de positionnement
 
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check d'arbre
