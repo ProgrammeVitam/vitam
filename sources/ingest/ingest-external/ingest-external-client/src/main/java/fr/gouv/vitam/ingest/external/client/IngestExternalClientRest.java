@@ -80,8 +80,9 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
-    private static final int TIME_TO_SLEEP = 1000; // Tree seconds
+    private static final int TIME_TO_SLEEP = 1000; // one seconds
     private Response response;
+    private static final int NB_TRY = 100;
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -136,36 +137,48 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action) {
-
+    public Response uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId,
+        String action) {
+        int nb_try = NB_TRY;
+        String x_request_id = null;
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             Response response = client.upload(stream, tenantId, contextId, action);
+            int responseStatus = response.getStatus();
+            client.consumeAnyEntityAndClose(response);
+            x_request_id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             String id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            if (!Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
-
-                return response;
+            if (!Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
+                return Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
             }
-            while (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
+            while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nb_try > 0) {
                 //SLEEP
+                nb_try--;
                 try {
                     Thread.sleep(TIME_TO_SLEEP);
                 } catch (InterruptedException ex) {
                     LOGGER.error(ex);
                     Thread.currentThread().interrupt();
-                    return response;
+                    return Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
                 }
 
                 try {
                     response = getOperationStatus(id, tenantId);
+                    responseStatus = response.getStatus();
+                    client.consumeAnyEntityAndClose(response);
                 } catch (Exception e) {
                     LOGGER.error(e);
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
+                        .header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
                 }
             }
-            return response;
+            if (nb_try < 0) {
+               return Response.status(Status.REQUEST_TIMEOUT).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
+            }
+            return    Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
         } catch (final VitamException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
+                .header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
         }
     }
 
@@ -208,7 +221,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } finally {
             consumeAnyEntityAndClose(response);
         }
-        return  Response.ok().build();
+        return Response.ok().build();
     }
 
     @Override
@@ -317,20 +330,19 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_ACTION, id);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        ItemStatus pwok = null ;
+        ItemStatus pwok = null;
         Status status = Status.PRECONDITION_FAILED;
         try {
             response =
-               performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
+                performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
             status = Status.fromStatusCode(response.getStatus());
-        } catch (VitamClientInternalException  e) {
+        } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
-        }
-        finally {
+        } finally {
             consumeAnyEntityAndClose(response);
         }
-        return Response.status(status).header(GlobalDataRest.X_REQUEST_ID,id).build();
+        return Response.status(status).header(GlobalDataRest.X_REQUEST_ID, id).build();
     }
 
     @Override

@@ -80,7 +80,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
+    public Response uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
         try {
             Thread.sleep(100);
