@@ -347,10 +347,15 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
 
                 String now = LocalDateUtil.now().toString();
-                boolean statusWasNull = false;
                 if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
                     contract.setStatus(ContractStatus.INACTIVE.name());
-                    statusWasNull = true;
+                }
+
+
+                if (!contract.getStatus().equals(ContractStatus.ACTIVE.name())
+                    && !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
+                    LOGGER.error("Error access contract status not valide (must be ACTIVE or INACTIVE");
+                    rejection = GenericRejectionCause.rejectMandatoryMissing("Status "+contract.getStatus()+ " not valide must be ACTIVE or INACTIVE");
                 }
 
 

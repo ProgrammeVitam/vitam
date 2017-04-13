@@ -66,7 +66,15 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.bson.conversions.Bson;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
@@ -243,7 +251,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             VitamError error) {
 
             for (GenericContractValidator validator : validators) {
-                Optional<GenericContractValidator.GenericRejectionCause> result = validator.validate(contract, jsonFormat);
+                Optional<GenericContractValidator.GenericRejectionCause>
+                    result = validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
                 /* contract is valid, add it to the list to persist */
@@ -324,14 +333,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
                     rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
                 }
-                if (contract.getStatus() == null) {
-                    contract.setStatus(ContractStatus.INACTIVE.name());
-                    // FIXME
-                    String now = new Date().toString();
-                    contract.setCreationdate(now);
-                    contract.setDeactivationdate(now);
-                    contract.setActivationdate(null);
-                }
 
                 return (rejection == null) ? Optional.empty() : Optional.of(rejection);
             };
@@ -344,18 +345,61 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private static GenericContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericContractValidator.GenericRejectionCause rejection = null;
+                DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE.ofPattern("dd/MM/yyyy");
+
+
                 String now = LocalDateUtil.now().toString();
-                if (contract.getStatus() == null) {
+                if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
                     contract.setStatus(ContractStatus.INACTIVE.name());
-                    contract.setCreationdate(now);
-                    contract.setDeactivationdate(now);
-                    contract.setActivationdate(null);
-                } else {
-                    contract.setCreationdate(now);
-                    contract.setDeactivationdate(null);
-                    contract.setActivationdate((contract.getStatus() == ContractStatus.ACTIVE.name()) ? now : null);
-                    contract.setDeactivationdate((contract.getStatus() == ContractStatus.INACTIVE.name()) ? now : null);
                 }
+
+                if (!contract.getStatus().equals(ContractStatus.ACTIVE.name())
+                    && !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
+                    LOGGER.error("Error ingest contract status not valide (must be ACTIVE or INACTIVE");
+                    rejection = GenericContractValidator.GenericRejectionCause
+                        .rejectMandatoryMissing("Status "+contract.getStatus()+ " not valide must be ACTIVE or INACTIVE");
+                }
+
+                try {
+                    if (contract.getCreationdate() == null || contract.getCreationdate().isEmpty()) {
+                        contract.setCreationdate(now);
+                    } else {
+                        contract.setCreationdate(
+                            LocalDate.parse(contract.getCreationdate(), formatter).atStartOfDay().toString());
+                    }
+
+                } catch (Exception e) {
+                    LOGGER.error("Error ingest contract parse dates", e);
+                    rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
+                }
+                try {
+                    if (contract.getActivationdate() == null || contract.getActivationdate().isEmpty()) {
+                        contract.setActivationdate(now);
+                    } else {
+                        contract.setActivationdate(
+                            LocalDate.parse(contract.getActivationdate(), formatter).atStartOfDay().toString());
+
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Error ingest contract parse dates", e);
+                    rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
+                }
+                try {
+
+                    if (contract.getDeactivationdate() == null || contract.getDeactivationdate().isEmpty()) {
+
+                    } else {
+
+                        contract.setDeactivationdate(
+                            LocalDate.parse(contract.getDeactivationdate(), formatter).atStartOfDay().toString());
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("Error ingest contract parse dates", e);
+                    rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
+                }
+
+                contract.setLastupdate(now);
+
                 return (rejection == null) ? Optional.empty() : Optional.of(rejection);
             };
         }
