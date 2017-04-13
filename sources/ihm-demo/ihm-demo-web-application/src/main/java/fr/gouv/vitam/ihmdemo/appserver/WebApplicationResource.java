@@ -789,7 +789,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         Response response = null;
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient();) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             try {
                 response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
                 switch (response.getStatusInfo().getFamily()) {
@@ -806,7 +806,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             } finally {
                 //close response before input
-                adminClient.consumeAnyEntityAndClose(response);
                 StreamUtils.closeSilently(input);
             }
         }
@@ -1107,7 +1106,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
-        Response response = null;
+        Response response;
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             try {
                 response = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
@@ -1123,7 +1122,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 LOGGER.error(e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             } finally {
-                adminClient.consumeAnyEntityAndClose(response);
                 StreamUtils.closeSilently(input);
             }
         }
