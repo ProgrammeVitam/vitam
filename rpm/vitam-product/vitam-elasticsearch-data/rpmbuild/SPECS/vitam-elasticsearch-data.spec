@@ -1,5 +1,6 @@
 Name:          vitam-elasticsearch-data
-Version:       2.4.0
+%define version 2.4.4
+Version:       %{version}
 Release:       1%{?dist}
 Summary:       A Distributed RESTful Search Engine (with vitam systemd units)
 Group:         Applications/Databases
@@ -12,7 +13,7 @@ Source0:       vitam-elasticsearch-data.service
 BuildRequires: systemd-units
 Requires:      systemd
 Requires:      java-1.8.0
-Requires:      elasticsearch
+Requires:      elasticsearch = %{version}
 Requires:      vitam-user-vitamdb
 
 %description
