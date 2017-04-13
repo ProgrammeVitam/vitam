@@ -150,7 +150,7 @@ config(['$locationProvider' ,'$routeProvider',
     when('/admin/accessContracts', {
       templateUrl: 'modules/access-contracts/access-contracts.template.html',
       controller: 'accessContractsController',
-      title: 'Liste des Contrats d\'accès'
+      title: 'Contrats d\'accès'
     }).
     when('/admin/accessContracts/:id', {
       templateUrl: 'modules/access-contracts/access-contract-single.template.html',
