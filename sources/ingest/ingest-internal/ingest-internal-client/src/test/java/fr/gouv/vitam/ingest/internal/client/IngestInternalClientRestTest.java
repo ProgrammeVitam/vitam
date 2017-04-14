@@ -57,6 +57,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -497,7 +499,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenGetPreconditionFailedStatusThenThrowUnauthorized()
         throws Exception {
 
@@ -517,7 +519,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenDeleteOperationStatusThenThrowInternalServerError()
         throws Exception {
 
@@ -534,7 +536,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenDeletePreconditionFailedThenThrowInternalServerError()
         throws Exception {
 
@@ -543,7 +545,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenUnauthorizedInitOperationStatusThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -552,7 +554,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenInitOperationInternalServerErrorThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -561,7 +563,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenInitOperationNotFoundThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -570,7 +572,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenInitOperationPreConditionFailedThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -579,12 +581,9 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenUnauthorizedInitWorkFlowThenThrowVitamClientInternalException()
         throws Exception {
-
-
-
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         client.initWorkFlow(CONTEXTID);
 
@@ -599,7 +598,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenInitWorkFlowNotFoundThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -608,7 +607,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenInitWorkFlowInternalServerErrorThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -618,13 +617,13 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     }
 
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenPostOperationStatusThenThrowVitamClientInternalException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.executeOperationProcess(ID, null, CONTEXTID, ProcessAction.START.getValue());
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenUnauthorizedExecuteOperationThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -642,7 +641,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenInternalServerErrorExecuteOperationThenThrowVitamClientInternalException()
         throws Exception {
 
@@ -651,7 +650,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = VitamClientException.class)
     public void givenPreconditionFailedExecuteOperationThenReturnResponseAccepted()
         throws Exception {
 

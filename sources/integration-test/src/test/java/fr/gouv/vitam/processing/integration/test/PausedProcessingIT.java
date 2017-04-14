@@ -36,6 +36,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -313,21 +315,18 @@ public class PausedProcessingIT {
             zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        Response ret;
-        ret = processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName,
+       processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
         Thread.sleep(5000);
-        assertNotNull(ret);
-        assertEquals(200, ret.getStatus());
 
-        ret = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+        RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
             LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
         // wait a little bit
         Thread.sleep(10000);
-        assertNotNull(ret);
-        assertEquals(Response.Status.OK.getStatusCode(), ret.getStatus());
-        assertEquals(ProcessExecutionStatus.PAUSE.toString(), ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
+        assertNotNull(resp);
+        assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
+        assertEquals(ProcessExecutionStatus.PAUSE.toString(), resp.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
         // wait a little bit
         Thread.sleep(5000);
 
@@ -346,7 +345,7 @@ public class PausedProcessingIT {
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
-        ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+        Response ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
             containerName);
         assertNotNull(ret);
         assertEquals(ProcessExecutionStatus.PAUSE.toString(), ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));

@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -185,7 +186,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
         }
     }
 
+    // FIXME: 4/18/17 why uploadedInputStream ? should we remove this parameter? ItemStatus resp also is not used ?!!
     /**
+     *
      * Execute the process of an operation related to the id.
      *
      * @param headers             contain X-Action and X-Context-ID
@@ -439,9 +442,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter("operationId must not be null", id);
         Status status;
-        Response response = null;
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            response = ingestInternalClient.cancelOperationProcessExecution(id);
+            final RequestResponse<JsonNode> response = ingestInternalClient.cancelOperationProcessExecution(id);
+            return Response.status(Status.OK).entity(response).build();
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
@@ -475,8 +478,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(status))
                 .build();
         }
-
-        return response;
     }
 
 
@@ -488,10 +489,9 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("/operations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response listOperationsDetails(@Context HttpHeaders headers) {
-        Response response = null;
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
-            response = client.listOperationsDetails();
-            return Response.fromResponse(response).build();
+            RequestResponse<JsonNode> response = client.listOperationsDetails();
+            return Response.status(Status.OK).entity(response).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();

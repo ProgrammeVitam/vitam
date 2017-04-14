@@ -321,7 +321,7 @@ public class ClientMockResultHelper {
                 .setQuery(null);
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
-        return responseOK;
+        return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
 
     /**

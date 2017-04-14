@@ -70,6 +70,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -256,7 +258,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param asyncResponse asyncResponse
      * @return http response
      */
-    @Path("operations/{id}")
+    @Path("/operations/{id}")
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
@@ -426,7 +428,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(status))
                 .build();
         }
-
+        // FIXME: 4/14/17 resp is null !!! move this to the try bloc
         return Response.status(Status.OK).entity(resp).build();
 
     }
@@ -446,7 +448,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param id operation identifier
      * @return http response
      */
-    @Path("operations/{id}")
+    @Path("/operations/{id}")
     @HEAD
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
@@ -500,7 +502,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param query body
      * @return http response
      */
-    @Path("operations/{id}")
+    @Path("/operations/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkFlowStatus(@PathParam("id") String id, JsonNode query) {
@@ -559,16 +561,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param id operation identifier
      * @return http response
      */
-    @Path("operations/{id}")
+    @Path("/operations/{id}")
     @DELETE
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
         Status status;
-        Response response = null;
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
-            response = processManagementClient.cancelOperationProcessExecution(id);
+            return processManagementClient.cancelOperationProcessExecution(id).toResponse();
         } catch (final IllegalArgumentException e) {
             // if the entry argument if illegal
             LOGGER.error(e);
@@ -602,7 +603,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 .build();
         }
 
-        return response;
     }
 
 
@@ -750,13 +750,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     }
 
                     try {
-                        Response processResponse =
+                        ProcessExecutionStatus processExecutionStatus =
                             startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
                                 process.getWorkFlowId(), logbookTypeProcess);
 
-                        ProcessExecutionStatus processExecutionStatus =
-                            ProcessExecutionStatus
-                                .valueOf(processResponse.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
                         isCompletedProcess = isCompletedProcess(processExecutionStatus);
 
                       if(!isInitMode) {
@@ -833,7 +830,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    private Response startProcessing(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
+    private ProcessExecutionStatus startProcessing(final LogbookOperationParameters parameters, final LogbookOperationsClient client,
         final String containerName, final String actionId, final String workflowId, LogbookTypeProcess logbookTypeProcess)
         throws IngestInternalException, ProcessingException, LogbookClientNotFoundException,
         LogbookClientBadRequestException, LogbookClientServerException, InternalServerException, VitamClientException {
@@ -844,12 +841,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
 
-            Response response = processingClient.executeOperationProcess(containerName, workflowId,
+
+            RequestResponse<JsonNode> response = processingClient.executeOperationProcess(containerName, workflowId,
                 logbookTypeProcess.toString(), actionId);
 
 
             // Check global execution status
             String globalExecutionStatus = response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
+
             if (globalExecutionStatus == null) {
                 throw new IngestInternalException("Global Execution Status not found.");
             }
@@ -860,7 +859,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, fromStatusToStatusCode(response.getStatus())));
             }
 
-            return response;
+            return ProcessExecutionStatus.valueOf(globalExecutionStatus);
         } catch (WorkflowNotFoundException | IllegalArgumentException | BadRequestException exc) {
             LOGGER.error(exc);
             callLogbookUpdate(client, parameters, StatusCode.FATAL,
@@ -1208,13 +1207,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
     public Response listOperationsDetails(@Context HttpHeaders headers) {
         try (ProcessingManagementClient processManagementClient =
             ProcessingManagementClientFactory.getInstance().getClient()) {
-            Response response;
             try {
-                response = processManagementClient.listOperationsDetails();
+                return processManagementClient.listOperationsDetails().toResponse();
             } catch (VitamClientException e) {
                 return Response.serverError().entity(e).build();
             }
-            return Response.fromResponse(response).build();
         }
     }
 }

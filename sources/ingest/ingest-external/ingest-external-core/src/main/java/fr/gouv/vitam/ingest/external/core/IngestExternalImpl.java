@@ -471,20 +471,15 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private void cancelOperation(GUID guid) throws IngestExternalException {
-        Response response = null;
-        try (IngestInternalClient ingestClient =
-            IngestInternalClientFactory.getInstance().getClient()) {
-            response = ingestClient.cancelOperationProcessExecution(guid.getId());
+        try (IngestInternalClient ingestClient = IngestInternalClientFactory.getInstance().getClient()) {
+            ingestClient.cancelOperationProcessExecution(guid.getId());
         } catch (final Exception e) {
             throw new IngestExternalException(e);
-        } finally {
-            if (null != response) {
-                response.close();
-            }
         }
     }
 
     /**
+     *
      * @param containerName
      * @param ingestGuid
      * @param helper
@@ -497,7 +492,6 @@ public class IngestExternalImpl implements IngestExternal {
      * @return
      * @throws LogbookClientNotFoundException
      * @throws IngestExternalException
-     * @throws VitamClientException
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,

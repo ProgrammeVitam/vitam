@@ -38,7 +38,11 @@ public enum ErrorMessage {
     /**
      * Ingest external upload with warning
      */
-    INGEST_EXTERNAL_UPLOAD_WITH_WARNING("Ingest external upload with warning ");
+    INGEST_EXTERNAL_UPLOAD_WITH_WARNING("Ingest external upload with warning "),
+    /**
+     *
+     */
+    INTERNAL_SERVER_ERROR("Ingest External Server Error");
 
     private final String message;
 

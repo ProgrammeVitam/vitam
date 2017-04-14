@@ -38,6 +38,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -285,8 +287,8 @@ public class IngestInternalResourceTest {
             Matchers.anyObject(), Matchers.anyObject());
 
         Mockito
-            .doReturn(Response.ok()
-                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.COMPLETED.name()).build())
+            .doReturn(new RequestResponseOK<JsonNode>().parseHeadersFromResponse(Response.ok()
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.COMPLETED.name()).build()))
             .when(processingClient).executeOperationProcess(Matchers.anyObject(),
                 Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 

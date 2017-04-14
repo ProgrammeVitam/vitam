@@ -30,11 +30,14 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.OperationManagementClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 /**
@@ -53,12 +56,12 @@ public interface IngestExternalClient extends OperationManagementClient {
      */
     // TODO P0 : add file name
 
-    Response upload(InputStream stream, Integer tenantId, String contextId, String action)
+    RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
     /**
-     * ingest upload file in with waiting
-     * For Internal Usage only
+     * ingest upload file in  with waiting
+     * For Intern Usage
      * TNR
      *
      * @param stream
@@ -69,7 +72,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      */
     // TODO P0 : add file name
     @Deprecated
-    Response uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
+    RequestResponse<JsonNode> uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
     /**
@@ -98,6 +101,6 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @throws BadRequestException
      */
 
-    Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
+    RequestResponse<JsonNode> getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException;
 
 }

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.driver.fake;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -34,6 +35,7 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.AbstractDriver;
@@ -67,14 +69,14 @@ public class FakeDriverImpl extends AbstractDriver {
             throw new StorageDriverException(getName(),
                 "Intentionaly thrown");
         }
-        return new ConnectionImpl();
+        return new FakeConnectionImpl();
     }
 
     @Override
     public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
         if (offer.getParameters().containsKey("fail")) {
             throw new StorageDriverException(getName(),
-                    "Intentionaly thrown");
+                "Intentionaly thrown");
         }
         return true;
     }
@@ -94,9 +96,9 @@ public class FakeDriverImpl extends AbstractDriver {
         return 0;
     }
 
-    class ConnectionImpl extends AbstractConnection {
+    class FakeConnectionImpl extends AbstractConnection {
 
-        ConnectionImpl() {
+        FakeConnectionImpl() {
             super("FakeDriverName", new TestVitamClientFactory<AbstractConnection>(1324, "/chemin/"));
         }
 
@@ -158,7 +160,7 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
+        public boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException {
             return "already_in_offer".equals(request.getGuid());
         }
 
@@ -178,25 +180,28 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public Response listObjects(StorageListRequest request) throws StorageDriverException {
+        public RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, request.getTenantId());
             try (VitamRequestIterator<ObjectNode> iterator = new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator",
                 ObjectNode.class, null, null)) {
-                final RequestResponseOK response = new RequestResponseOK();
+                final RequestResponseOK<JsonNode> response = new RequestResponseOK();
                 final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
                 final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
                 final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
                 response.addResult(node1);
-                final List<ObjectNode> list = new ArrayList<>();
+                final List<JsonNode> list = new ArrayList<>();
                 list.add(node2);
                 list.add(node3);
                 response.addAllResults(list);
                 response.setQuery(JsonHandler.createObjectNode());
                 response.setHits(response.getResults().size(), 0, response.getResults().size());
-                Response.ResponseBuilder builder = Response.status(Status.OK);
+                response.setHttpCode(Status.OK.getStatusCode());
 
-                return VitamRequestIterator.setHeaders(builder, false, "newcursor").entity(response).build();
+                response.addHeader(GlobalDataRest.X_CURSOR, String.valueOf(false));
+                response.addHeader(GlobalDataRest.X_CURSOR_ID, "newcursor");
+
+                return response;
             }
         }
     }

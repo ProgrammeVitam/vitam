@@ -29,6 +29,9 @@ package fr.gouv.vitam.storage.driver;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
@@ -142,7 +145,7 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException
      *             if any problem occurs during request
      */
-    Boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException;
+    boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException;
 
     /**
      * Check an object in order to validate its transfer
@@ -174,7 +177,7 @@ public interface Connection extends AutoCloseable {
      * @return an iterator with each object metadata
      * @throws StorageDriverException
      */
-    Response listObjects(StorageListRequest request) throws StorageDriverException;
+    RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException;
 
     /**
      * Override AutoCloseable implementation to specify the exception

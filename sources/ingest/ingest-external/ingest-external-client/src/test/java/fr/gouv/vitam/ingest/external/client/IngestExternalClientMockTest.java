@@ -32,6 +32,10 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -67,9 +71,10 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM);
-        final int status =
-            client.upload(firstStream, TENANT_ID, CONTEXT_ID, EXECUTION_MODE).getStatus();
-        assertEquals(status, 202);
+        RequestResponse<JsonNode> requestResponse =
+            client.upload(firstStream, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
+
+        assertEquals(requestResponse.getHttpCode(), 202);
     }
 
     @Test
