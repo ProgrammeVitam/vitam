@@ -71,8 +71,4 @@ public class CollectionSample extends VitamDocument<CollectionSample> {
         super(content);
     }
 
-    @Override
-    public String getId() {
-        return null;
-    }
 }

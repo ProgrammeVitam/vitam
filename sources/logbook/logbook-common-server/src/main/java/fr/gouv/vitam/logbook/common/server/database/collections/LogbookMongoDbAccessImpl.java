@@ -76,7 +76,6 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
@@ -1444,15 +1443,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
     
     private void checkCopyToMaster(LogbookCollections collection, LogbookParameters item) throws LogbookNotFoundException {
-    	String evDetData = item.getParameterValue(LogbookParameterName.eventDetailData);
+        String evDetData = item.getParameterValue(LogbookParameterName.eventDetailData);
         boolean copyToMaster = false;
         if (StringUtils.isNotEmpty(evDetData)) {
             try {
-				copyToMaster = shouldCopyToMaster(JsonHandler.getFromString(evDetData));
-			} catch (InvalidParseOperationException e) {
-				// Do not throw this error
-				LOGGER.warn("evDetData is not parsable as a json. Analyse cancelled: " + evDetData);
-			}
+                copyToMaster = shouldCopyToMaster(JsonHandler.getFromString(evDetData));
+            } catch (InvalidParseOperationException e) {
+                // Do not throw this error
+                LOGGER.warn("evDetData is not parsable as a json. Analyse cancelled: " + evDetData);
+            }
         }
 
         final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();

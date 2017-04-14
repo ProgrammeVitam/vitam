@@ -26,15 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -49,7 +46,6 @@ import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.IdsQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -58,6 +54,7 @@ import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
@@ -98,7 +95,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * Delete one index
      *
      * @param collection the working metadata collection
-     * @param tenantId the tenant for operation 
+     * @param tenantId the tenant for operation
      * @return True if ok
      */
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
@@ -426,7 +423,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
 
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, tenantId, type, query, filter);
+        return search(collection, tenantId, type, query, filter, null);
     }
 
     /**
@@ -435,7 +432,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param filterCond
      * @param currentNodes
      * @param key
-     * @param subdepth     where subdepth >= 1
+     * @param subdepth where subdepth >= 1
      * @return the associated filter
      */
     private final QueryBuilder getSubDepthFilter(final QueryBuilder filterCond, final Set<String> currentNodes,
@@ -475,7 +472,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param tenantId the tenant for opeation
      * @return the Result associated with this request. Note that the exact depth is not checked, so it must be checked
      *         after (using MongoDb)
-     * @throws MetaDataExecutionException if query operation exception occurred 
+     * @throws MetaDataExecutionException if query operation exception occurred
      */
     public final Result getStart(final MetadataCollections collection, final Integer tenantId,
         final Set<String> currentNodes, final QueryBuilder condition, final QueryBuilder filterCond)
@@ -497,7 +494,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             filter = filterCond;
         }
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, tenantId, type, query, filter);
+        return search(collection, tenantId, type, query, filter, null);
     }
 
     /**
@@ -564,25 +561,32 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             filter = filterCond;
         }
         final String type = collection == MetadataCollections.C_UNIT ? Unit.TYPEUNIQUE : ObjectGroup.TYPEUNIQUE;
-        return search(collection, tenantId, type, query, filter);
+        return search(collection, tenantId, type, query, filter, null);
     }
 
     /**
      * @param collection
      * @param type
-     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *                   values" : [list of id] } }"
-     * @param filter
+     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *        values" : [list of id] } }"
+     * @param filter the filter
+     * @param sorts the list of sort
+     * @param offset the offset
+     * @param limit the limit
      * @return a structure as ResultInterface
      * @throws MetaDataExecutionException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
-        final QueryBuilder query, final QueryBuilder filter) throws MetaDataExecutionException {
+        final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts)
+        throws MetaDataExecutionException {
         // Note: Could change the code to allow multiple indexes and multiple
         // types
         final SearchRequestBuilder request = client.prepareSearch(getIndexName(collection, tenantId))
             .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
             .setSize(GlobalDatas.LIMIT_LOAD);
+        if (sorts != null) {
+            sorts.stream().forEach(sort -> request.addSort(sort));
+        }
         if (filter != null) {
             if (GlobalDatasDb.USE_FILTERED_REQUEST) {
                 final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).filter(filter);
@@ -827,17 +831,17 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     private String getIndexName(final MetadataCollections collection, Integer tenantId) {
         return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
-    
+
     private String getMapping(MetadataCollections collection) throws IOException {
         if (collection == MetadataCollections.C_UNIT) {
             return ElasticsearchUtil.transferJsonToMapping(Unit.class.getResourceAsStream(MAPPING_UNIT_FILE));
-        }
-        else if (collection == MetadataCollections.C_OBJECTGROUP) {
-            return ElasticsearchUtil.transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
+        } else if (collection == MetadataCollections.C_OBJECTGROUP) {
+            return ElasticsearchUtil
+                .transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
         }
         return "";
     }
-    
+
     private String getTypeUnique(MetadataCollections collection) {
         if (collection.equals(MetadataCollections.C_UNIT)) {
             return Unit.TYPEUNIQUE;

@@ -105,4 +105,7 @@ Conclusion
 | 
 | **La recommandation de l'étude porte donc sur la réutilisation du DSL Vitam destiné aux Units et ObjectGroups pour les Journaux.**
 | 
-| Néanmoins, il y aura quelques différences (pas de **roots**, ni de **depth**). Il y aura enfin un effort de refactoring à faire pour mutualiser ce qui doit l'être entre Metadata et Logbook.
+| Néanmoins, il y aura quelques différences (pas de **roots**, ni de **depth**).
+|  
+| Additions IT18 : A ce jour, une implémentation du DSL en mode mono-query a été développée : la classe **DBRequestSingle**. Pour le moment il n'y a pas encore de mutualisation entre le DBRequestSingle et les requêtes Logbook car celles-ci sont encore trop spécifiques.
+
