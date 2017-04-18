@@ -133,9 +133,16 @@ abstract class AbstractCommonClient implements BasicClient {
 
     @Override
     public void checkStatus() throws VitamApplicationServerException {
+        this.checkStatus(null);
+    }
+
+
+    @Override
+    public void checkStatus(MultivaluedHashMap<String, Object> headers)
+        throws VitamApplicationServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, STATUS_URL, null, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE, false);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             consumeAnyEntityAndClose(response);
             if (status == Status.OK || status == Status.NO_CONTENT) {

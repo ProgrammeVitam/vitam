@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.client;
 
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+
 import java.lang.annotation.Annotation;
 import java.net.URI;
 import java.util.Date;
@@ -53,6 +55,12 @@ public class AbstractMockClient implements MockOrRestClient {
     @Override
     public void checkStatus() {
         // Nothing to do
+    }
+
+    @Override
+    public void checkStatus(MultivaluedHashMap<String, Object> headers)
+        throws VitamApplicationServerException {
+
     }
 
     @Override

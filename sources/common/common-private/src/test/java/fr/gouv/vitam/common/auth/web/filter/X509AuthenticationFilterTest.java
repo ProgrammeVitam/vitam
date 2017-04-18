@@ -30,41 +30,124 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.*;
 import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.subject.Subject;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import fr.gouv.vitam.common.shiro.junit.AbstractShiroTest;
+import sun.misc.BASE64Encoder;
+import sun.security.provider.X509Factory;
 
 public class X509AuthenticationFilterTest extends AbstractShiroTest {
     private X509Certificate cert;
-
-    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
-    BigInteger serial = new BigInteger("1000000000000000");
+    private String pem;
 
     HttpServletRequest request = mock(HttpServletRequest.class);
     HttpServletResponse response = mock(HttpServletResponse.class);
     HttpServletRequest requestNull = mock(HttpServletRequest.class);
 
+    private X509Certificate loadCertificate(CertificateFactory cf,File f) throws CertificateException, IOException {
+        FileInputStream in=new FileInputStream(f);
+        try {
+            cert =(X509Certificate)cf.generateCertificate(in);
+            cert.checkValidity();
+            return cert;
+        }
+        finally {
+            in.close();
+        }
+    }
+
+
     @Before
     public void setUp() throws Exception {
-        cert = mock(X509Certificate.class);
-        when(cert.getEncoded()).thenReturn(certBytes);
-        when(cert.getSerialNumber()).thenReturn(serial);
-        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+
+        generateX509Certificate();
+
+        x509CertificateToPem();
+
+
 
         when(request.getRemoteHost()).thenReturn("127.0.0.1");
-        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(clientCertChain);
 
         when(requestNull.getRemoteHost()).thenReturn("127.0.0.1");
+    }
+
+    private void x509CertificateToPem() throws CertificateEncodingException {
+        BASE64Encoder encoder = new BASE64Encoder();
+
+        StringWriter sw = new StringWriter();
+        sw.write(X509Factory.BEGIN_CERT);
+        sw.write("\n");
+        sw.write(encoder.encode(cert.getEncoded()));
+        sw.write("\n");
+        sw.write(X509Factory.END_CERT);
+
+        pem = sw.toString();
+    }
+
+    private void generateX509Certificate()
+        throws NoSuchAlgorithmException, IOException, OperatorCreationException, CertificateException {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(1024, new SecureRandom());
+        KeyPair keyPair=  generator.generateKeyPair();
+
+        String dn= "localhost";
+
+        X509v3CertificateBuilder builder = new X509v3CertificateBuilder(
+            new X500Name("CN=" + dn),
+            BigInteger.valueOf(new SecureRandom().nextLong()),
+            new Date(System.currentTimeMillis() - 10000),
+            new Date(System.currentTimeMillis() + 24L*3600*1000),
+            new X500Name("CN=" + dn),
+            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
+
+        builder.addExtension(X509Extension.basicConstraints, true, new BasicConstraints(false));
+        builder.addExtension(X509Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
+        builder.addExtension(X509Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
+
+        AlgorithmIdentifier signatureAlgorithmId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier digestAlgorithmId = new DefaultDigestAlgorithmIdentifierFinder().find(signatureAlgorithmId);
+        AsymmetricKeyParameter privateKey = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
+
+
+        X509CertificateHolder
+            holder =  builder.build(new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey));
+        Certificate certificate = holder.toASN1Structure();
+
+        InputStream is = new ByteArrayInputStream(certificate.getEncoded());
+        try {
+            cert = (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(is);
+        } finally {
+            is.close();
+        }
     }
 
     @After
@@ -75,6 +158,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     @Test
     public void givenFilterAccessDenied() throws Exception {
         // Needs mock subject for login call
+        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] {cert});
         Subject subjectUnderTest = mock(Subject.class);
         Mockito.doNothing().when(subjectUnderTest).login(anyObject());
         setSubject(subjectUnderTest);
@@ -85,6 +169,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
 
     @Test
     public void givenFilterCreateToken() throws Exception {
+        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] {cert});
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         filter.createToken(request, response);
     }
@@ -92,6 +177,34 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     @Test(expected = Exception.class)
     public void givenFilterCreateTokenWhenClientCertChainNullThenThrowException() throws Exception {
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
+        filter.createToken(requestNull, response);
+    }
+
+    @Test
+    public void givenFilterByHeaderAccessDenied() throws Exception {
+        // Needs mock subject for login call
+        when(request.getHeader(X509AuthenticationFilter.X_SSL_CLIENT_CERT)).thenReturn(pem);
+        Subject subjectUnderTest = mock(Subject.class);
+        Mockito.doNothing().when(subjectUnderTest).login(anyObject());
+        setSubject(subjectUnderTest);
+
+        final X509AuthenticationFilter filter = new X509AuthenticationFilter();
+        filter.setUseHeader(true);
+        filter.onAccessDenied(request, response);
+    }
+
+    @Test
+    public void givenFilterByHeaderCreateToken() throws Exception {
+        when(request.getHeader(X509AuthenticationFilter.X_SSL_CLIENT_CERT)).thenReturn(pem);
+        final X509AuthenticationFilter filter = new X509AuthenticationFilter();
+        filter.setUseHeader(true);
+        filter.createToken(request, response);
+    }
+
+    @Test(expected = Exception.class)
+    public void givenFilterByHeaderCreateTokenWhenClientCertChainNullThenThrowException() throws Exception {
+        final X509AuthenticationFilter filter = new X509AuthenticationFilter();
+        filter.setUseHeader(true);
         filter.createToken(requestNull, response);
     }
 
