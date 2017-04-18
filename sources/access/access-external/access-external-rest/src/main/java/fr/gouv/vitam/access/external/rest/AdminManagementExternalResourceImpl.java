@@ -41,7 +41,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
@@ -102,12 +101,10 @@ public class AdminManagementExternalResourceImpl {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     response = client.checkFormat(document);
-                    response.bufferEntity();
                     return Response.fromResponse(response).build();
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
                     response = client.checkRulesFile(document);
-                    response.bufferEntity();
                     return Response.fromResponse(response).build();
                 }
                 return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, null, null)).build();
@@ -127,7 +124,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * Import a referential document
-     * 
+     *
      * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param collection target collection type
      * @param document inputStream representing the data to import
@@ -154,9 +151,7 @@ public class AdminManagementExternalResourceImpl {
                     resp = client.importRulesFile(document);
                 }
                 // final Status status = Status.CREATED;
-                ResponseBuilder responseBuilder = Response.status(resp.getStatus())
-                    .entity(resp.hasEntity() ? resp.getEntity() : "Successfully imported");
-                return responseBuilder.build();
+                return Response.status(resp.getStatus()).entity("Successfully imported").build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);
                 final Status status = Status.CONFLICT;
@@ -309,7 +304,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * Construct the error following input
-     * 
+     *
      * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
      * @param code The functional error code, if absent the http code will be used instead

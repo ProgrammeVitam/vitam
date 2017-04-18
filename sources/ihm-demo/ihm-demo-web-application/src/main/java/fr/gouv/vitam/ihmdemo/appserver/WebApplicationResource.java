@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
-import static fr.gouv.vitam.common.client.DefaultClient.staticConsumeAnyEntityAndClose;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -80,6 +78,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -501,7 +500,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
 
                 } finally {
-                    staticConsumeAnyEntityAndClose(finalResponse);
+                    DefaultAdminClient.staticConsumeAnyEntityAndClose(finalResponse);
                 }
             } catch (IOException | VitamException e) {
                 LOGGER.error("Upload failed", e);
@@ -777,7 +776,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    /***
+    /**
      * check the referential format
      *
      * @param headers HTTP Headers
@@ -790,7 +789,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         Response response = null;
-        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient();) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             try {
                 response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
                 switch (response.getStatusInfo().getFamily()) {
@@ -807,8 +806,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             } finally {
                 //close response before input
-                adminClient.consumeAnyEntityAndClose(response);
                 StreamUtils.closeSilently(input);
+                adminClient.consumeAnyEntityAndClose(response);
             }
         }
     }
@@ -841,7 +840,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } finally {
             StreamUtils.closeSilently(input);
-            staticConsumeAnyEntityAndClose(response);
+            DefaultAdminClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -1108,22 +1107,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
-        Response response = null;
+        Response response;
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            response = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.BAD_REQUEST).build();
+            try {
+                response = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
+                switch (response.getStatusInfo().getFamily()) {
+                    case SUCCESSFUL:
+                        return Response.status(Status.OK).build();
+                    default:
+                        return Response.status(Status.BAD_REQUEST).build();
+                }
+            } catch (final AccessExternalClientException e) {
+                return Response.status(Status.FORBIDDEN).build();
+            } catch (final Exception e) {
+                LOGGER.error(e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } finally {
+                StreamUtils.closeSilently(input);
             }
-        } catch (final AccessExternalClientException e) {
-            return Response.status(Status.FORBIDDEN).build();
-        } catch (final Exception e) {
-            LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } finally {
-            staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -1141,20 +1142,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         Response response = null;
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            response = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            try {
+
+                response = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
+                switch (response.getStatusInfo().getFamily()) {
+                    case SUCCESSFUL:
+                        return Response.status(Status.OK).build();
+                    default:
+                        return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+                }
+            } catch (final AccessExternalClientException e) {
+                return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
+            } catch (final Exception e) {
+                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            } finally {
+                adminClient.consumeAnyEntityAndClose(response);
+                StreamUtils.closeSilently(input);
             }
-        } catch (final AccessExternalClientException e) {
-            return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
-        } catch (final Exception e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } finally {
-            staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -1490,7 +1495,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } finally {
-            staticConsumeAnyEntityAndClose(response);
+            DefaultAdminClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 
