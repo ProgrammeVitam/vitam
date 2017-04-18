@@ -67,7 +67,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
  */
 public class SanityChecker {
     private static final String JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK = "Json is not valid from Sanitize check";
-    private static final int DEFAULT_LIMIT_PARAMETER_SIZE = 1000;
+    private static final int DEFAULT_LIMIT_PARAMETER_SIZE = 5000;
     private static final int DEFAULT_LIMIT_FIELD_SIZE = 10000000;
     private static final int DEFAULT_LIMIT_JSON_SIZE = 16000000;
     private static final long DEFAULT_LIMIT_FILE_SIZE = 8000000000L;
