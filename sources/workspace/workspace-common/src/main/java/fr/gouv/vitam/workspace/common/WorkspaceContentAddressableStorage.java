@@ -182,9 +182,7 @@ public interface WorkspaceContentAddressableStorage {
      * containerName/objectName
      * <p>
      * <b>WARNING</b> : use this method only if the response has to be consumed
-     * right away. If the response has to be forwarded, you should use the
-     * method {@link #getObjectAsync(String, String, AsyncResponse)
-     * getObjectAsync} instead
+     * right away.
      * </p>
      *
      * @param containerName
@@ -214,9 +212,11 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageNotFoundException
      *             Thrown when the container cannot be located or the blob
      *             cannot be located in the container.
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
      */
 
-    void deleteObject(String containerName, String objectName) throws ContentAddressableStorageNotFoundException;
+    void deleteObject(String containerName, String objectName) throws ContentAddressableStorageException;
 
     /**
      * Determines if an object exists
@@ -290,6 +290,8 @@ public interface WorkspaceContentAddressableStorage {
      * @return long number of binary objects (excluding directory markers)
      * @throws ContentAddressableStorageNotFoundException
      *             Thrown when the container cannot be located.
+     * @throws ContentAddressableStorageException
+     *             Thrown when get action failed due some other failure
      */
-    long countObjects(String containerName) throws ContentAddressableStorageNotFoundException;
+    long countObjects(String containerName) throws ContentAddressableStorageException;
 }
