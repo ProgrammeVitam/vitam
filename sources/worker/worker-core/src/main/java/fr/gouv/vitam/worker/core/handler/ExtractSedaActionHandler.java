@@ -330,6 +330,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         // Archive Unit Tree
         final ObjectNode archiveUnitTree = JsonHandler.createObjectNode();
+        String prodService = null;
 
         try {
             try {
@@ -369,6 +370,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
 
                     final String orgAgId = reader.getElementText();
+                    prodService = orgAgId;
 
                     // Check if the OriginatingAgency was really set
                     if (orgAgId != null && !orgAgId.isEmpty()) {
@@ -473,7 +475,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 GRAPH_WITH_LONGEST_PATH_IO_RANK);
 
             checkArchiveUnitIdReference();
-            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess);
+            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, prodService);
 
             // Add parents to archive units and save them into workspace
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
@@ -1779,7 +1781,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void saveObjectGroupsToWorkspace(String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess) throws ProcessingException {
+        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess, String prodService) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
 
@@ -1867,6 +1869,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_NB, entry.getValue().size());
                 // Add operation to OPS
                 objectGroup.putArray(SedaConstants.PREFIX_OPS).add(containerId);
+                objectGroup.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
                 handlerIO.transferFileToWorkspace(

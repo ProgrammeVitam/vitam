@@ -121,7 +121,11 @@
               {
                 "name": "UnitType",
                 "uri": "VALUE:FILING_UNIT"
-              }
+              },
+              {
+	            "name": "globalSEDAParameters.file",
+	            "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+	          }	          
             ]
           }
         },
@@ -182,7 +186,7 @@
       "distribution": {
         "kind": "REF",
         "element": "SIP/manifest.xml"
-      },
+      	},
       "actions": [
         {
           "action": {
