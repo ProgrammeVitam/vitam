@@ -34,12 +34,10 @@ import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Matchers;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -71,9 +69,7 @@ import fr.gouv.vitam.processing.common.model.ProcessingUri;
 import fr.gouv.vitam.processing.common.model.Step;
 import fr.gouv.vitam.processing.common.model.UriPrefix;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
@@ -85,7 +81,7 @@ public class ProcessManagementImplTest {
     private static final Integer TENANT_ID = 0;
     private static final String CONTAINER_NAME = "container1";
     private static final String ID = "id1";
-    private static ProcessDataManagement processDataManagement;
+    private static WorkspaceProcessDataManagement processDataManagement;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -94,15 +90,14 @@ public class ProcessManagementImplTest {
     @Before
     public void setup() {
         PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
-        processDataManagement = Mockito.mock(WorkspaceProcessDataManagement.class);
+        processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenProcessingManagementWhenWorkflowIsNullThenThrowIllegalArgumentException()
         throws ProcessingException {
-        Mockito.reset(processDataManagement);
-        Mockito.doReturn(new HashMap<String, List<Object>>()).when(processDataManagement).getProcessWorkflowFor
+        PowerMockito.doReturn(new HashMap<String, List<Object>>()).when(processDataManagement).getProcessWorkflowFor
             (Matchers.anyInt(), Matchers.anyString());
         processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
         processManagementImpl.submitWorkflow(WorkerParametersFactory.newWorkerParameters(), CONTAINER_NAME,
@@ -112,10 +107,10 @@ public class ProcessManagementImplTest {
     @Test(expected = WorkflowNotFoundException.class)
     @RunWithCustomExecutor
     public void testSubmitWorkFlow() throws ProcessingException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.reset(processDataManagement);
-        Mockito.when(processDataManagement.getProcessWorkflowFor(Matchers.anyInt(), Matchers.anyString())).thenReturn
-            (new HashMap<>());
+        VitamThreadUtils.getVitamSession().setTenantId(1);
+        PowerMockito.verifyNoMoreInteractions(processDataManagement);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
+            .thenReturn(new HashMap<>());
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration());
         processManagementImpl.submitWorkflow(
@@ -123,20 +118,20 @@ public class ProcessManagementImplTest {
                 "http://localhost:8083",
                 "http://localhost:8083"),
             "XXX",
-            ProcessAction.RESUME, null, TENANT_ID);
+            ProcessAction.RESUME, null, 1);
     }
 
     @RunWithCustomExecutor
     @Test
     public void loadNoPersistedWorkflowTest() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(2);
         // No persisted Workflow
-        Mockito.reset(processDataManagement);
-        Mockito.when(processDataManagement.getProcessWorkflowFor(Matchers.anyInt(), Matchers.anyString()))
+        PowerMockito.verifyNoMoreInteractions(processDataManagement);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(2), Matchers.anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl = new ProcessManagementImpl(new ServerConfiguration());
         Assert.assertNotNull(processManagementImpl);
-        List<ProcessWorkflow> processWorkflowList = processManagementImpl.getAllWorkflowProcess(TENANT_ID);
+        List<ProcessWorkflow> processWorkflowList = processManagementImpl.getAllWorkflowProcess(2);
         Assert.assertNotNull(processWorkflowList);
         Assert.assertTrue(processWorkflowList.isEmpty());
     }
@@ -144,9 +139,8 @@ public class ProcessManagementImplTest {
     @RunWithCustomExecutor
     @Test
     public void loadPersitedPausedWorkflowTest() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.reset(processDataManagement);
-        Mockito.when(processDataManagement.getProcessWorkflowFor(Matchers.anyInt(), Matchers.anyString()))
+        VitamThreadUtils.getVitamSession().setTenantId(3);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(3), Matchers.anyString()))
             .thenReturn(getPausedWorkflowList());
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();
@@ -154,7 +148,7 @@ public class ProcessManagementImplTest {
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
         processManagementImpl = new ProcessManagementImpl(serverConfiguration);
         Assert.assertNotNull(processManagementImpl);
-        List<ProcessWorkflow> processWorkflowList = processManagementImpl.getAllWorkflowProcess(TENANT_ID);
+        List<ProcessWorkflow> processWorkflowList = processManagementImpl.getAllWorkflowProcess(3);
         Assert.assertNotNull(processWorkflowList);
         Assert.assertFalse(processWorkflowList.isEmpty());
     }
@@ -162,7 +156,7 @@ public class ProcessManagementImplTest {
     private Map<String, ProcessWorkflow> getPausedWorkflowList() {
         Map<String, ProcessWorkflow> result = new HashMap<>();
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
-        processWorkflow.setTenantId(0);
+        processWorkflow.setTenantId(3);
         processWorkflow.setExecutionMode(ProcessAction.PAUSE);
         processWorkflow.setExecutionStatus(ProcessExecutionStatus.PAUSE);
         processWorkflow.setGlobalStatusCode(StatusCode.OK);
