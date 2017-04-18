@@ -80,21 +80,18 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenPurgeContainerThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenPurgeContainerThenRaiseAnException() throws Exception {
         storage.purgeContainer(CONTAINER_NAME);
     }
 
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenDeleteContainerThenRaiseAnException() throws Exception {
         storage.deleteContainer(CONTAINER_NAME, false);
     }
 
     @Test
-    public void givenContainerAlreadyExistsWhenDeleteContainerThenOK()
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
+    public void givenContainerAlreadyExistsWhenDeleteContainerThenOK() throws Exception {
         storage.createContainer(CONTAINER_NAME);
 
         storage.deleteContainer(CONTAINER_NAME, true);
@@ -102,8 +99,7 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void givenContainerAlreadyExistsAndEmptyWhenPurgeContainerThenOK()
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException {
+    public void givenContainerAlreadyExistsAndEmptyWhenPurgeContainerThenOK() throws Exception {
         storage.createContainer(CONTAINER_NAME);
 
         storage.purgeContainer(CONTAINER_NAME);
@@ -111,8 +107,7 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
-    public void givenContainerAlreadyExistsAndNotEmptyWhenPurgeContainerThenOK()
-        throws IOException, ContentAddressableStorageException {
+    public void givenContainerAlreadyExistsAndNotEmptyWhenPurgeContainerThenOK() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
@@ -146,8 +141,7 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageException.class)
-    public void givenContainerNotFoundWhenCreateFolderThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException {
+    public void givenContainerNotFoundWhenCreateFolderThenRaiseAnException() throws Exception {
         storage.createFolder(CONTAINER_NAME, FOLDER_NAME);
     }
 
@@ -161,8 +155,7 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenDeleteFolderThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException {
+    public void givenContainerNotFoundWhenDeleteFolderThenRaiseAnException() throws Exception {
         storage.deleteFolder(CONTAINER_NAME, FOLDER_NAME);
     }
 
