@@ -776,7 +776,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    /***
+    /**
      * check the referential format
      *
      * @param headers HTTP Headers
@@ -807,6 +807,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             } finally {
                 //close response before input
                 StreamUtils.closeSilently(input);
+                adminClient.consumeAnyEntityAndClose(response);
             }
         }
     }
