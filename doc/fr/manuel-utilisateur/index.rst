@@ -9,7 +9,6 @@
    general.rst
    Authentification.rst
    Entree.rst
-   updateAU.rst
    Consultation.rst
+   gestion.rst
    Administration.rst
-   recette.rst
