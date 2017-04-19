@@ -249,7 +249,15 @@ import org.apache.http.client.methods.HttpHead;
 
 import org.apache.http.impl.client.DefaultHttpClient;
 def url = context.ingest+"ingest-external/v1/operations/"
-def TIME_TO_SLEEP = 300000; 
+def cert = context.certfile
+def certPass = context.certPass
+
+def trust = context.truststore
+def trustPass = context.trustPass
+
+def file = null //context.dataDir+context.sipName
+
+def TIME_TO_SLEEP = 600; 
 
 if(context.ope_id != null){
 	log.info '----check status '+context.ope_id
@@ -278,9 +286,15 @@ if(context.ope_id != null){
 		
 		int statusReponse = headeReponse.getStatusLine().getStatusCode() ; 
 		//headeReponse.getStatusLine().getStatusCode() ; 
-	
+	     try {
+	                    Thread.sleep(TIME_TO_SLEEP);
+	                } catch (InterruptedException ex) {
+	                    LOGGER.error(ex);
+	                    Thread.currentThread().interrupt();
+	                      statusReponse = 500; 
+	                }
 		while (statusReponse == 202  ) {
-		log.info "||||||||||||||||||||||||||||||||||||"
+		
 			      try {
 	                    Thread.sleep(TIME_TO_SLEEP);
 	                } catch (InterruptedException ex) {
@@ -296,8 +310,7 @@ if(context.ope_id != null){
 	                    statusReponse = 500
 	                }
 	        }
-}
-</script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script><![CDATA[import groovy.json.JsonSlurper
+}</script></con:config></con:testStep><con:testStep type="groovy" name="details" id="b6877300-39ac-40de-a7d4-17e228892c0a"><con:settings/><con:config><script><![CDATA[import groovy.json.JsonSlurper
 import groovy.json.JsonOutput
 import java.security.KeyStore
 
@@ -639,7 +652,7 @@ def items = []
 context.items = items</con:setupScript>
 <con:tearDownScript>//context.inputFile.close()</con:tearDownScript><con:properties/></con:testCase><con:properties/></con:testSuite>
 <con:endpointStrategy xsi:type="con:DefaultEndpointStrategy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><con:endpoint mode="COMPLEMENT" username="ykouki" password="">https://int.env.programmevitam.fr</con:endpoint></con:endpointStrategy>
-<con:properties><con:property><con:name>ingestHost</con:name><con:value>http://localhost:8079/</con:value></con:property><con:property><con:name>logbookHost</con:name><con:value>http://localhost:8085/</con:value></con:property><con:property><con:name>accessHost</con:name><con:value>http://localhost:8083/</con:value></con:property><con:property><con:name>certfile</con:name><con:value>/vitam/conf/keystore_ihm-demo.p12</con:value></con:property><con:property><con:name>certPass</con:name><con:value>vitam1234</con:value></con:property><con:property><con:name>truststore</con:name><con:value>/vitam/conf/truststore_ihm-demo.jks</con:value></con:property><con:property><con:name>trustPass</con:name><con:value>jksazerty</con:value></con:property><con:property><con:name>dataDir</con:name><con:value>/vitam/conf/soapui/data/</con:value></con:property><con:property><con:name>reportingDir</con:name><con:value>/vitam/conf/soapui/report/</con:value></con:property><con:property><con:name>configDir</con:name><con:value>/vitam/conf/soapui/config/</con:value></con:property><con:property><con:name>rulesCreatePath</con:name><con:value>/admin-external/v1/rules</con:value></con:property><con:property><con:name>tenant</con:name><con:value>0</con:value></con:property><con:property><con:name>fileRule</con:name><con:value>/vitam/conf/soapui/data/rules/regles_CSV.csv</con:value></con:property></con:properties><con:wssContainer>
+<con:properties><con:property><con:name>ingestHost</con:name><con:value>https://143.126.93.154:8443/</con:value></con:property><con:property><con:name>logbookHost</con:name><con:value>https://143.126.93.154:9002/</con:value></con:property><con:property><con:name>accessHost</con:name><con:value>https://143.126.93.154:8444/</con:value></con:property><con:property><con:name>certfile</con:name><con:value>/vitam/conf/ihm-recette/keystore_ihm-recette.p12</con:value></con:property><con:property><con:name>certPass</con:name><con:value>azerty5</con:value></con:property><con:property><con:name>truststore</con:name><con:value>/vitam/conf/ihm-recette/truststore_ihm-recette.jks</con:value></con:property><con:property><con:name>trustPass</con:name><con:value>azerty10</con:value></con:property><con:property><con:name>dataDir</con:name><con:value>/vitam/conf/soapui/data/</con:value></con:property><con:property><con:name>reportingDir</con:name><con:value>/vitam/conf/soapui/report/</con:value></con:property><con:property><con:name>configDir</con:name><con:value>/vitam/conf/soapui/config/</con:value></con:property><con:property><con:name>rulesCreatePath</con:name><con:value>/admin-external/v1/rules</con:value></con:property><con:property><con:name>tenant</con:name><con:value>0</con:value></con:property><con:property><con:name>fileRule</con:name><con:value>/vitam/conf/soapui/data/rules/regles_CSV.csv</con:value></con:property></con:properties><con:wssContainer>
 <con:crypto>
 	<con:source>/vitam/conf/tsa.p12</con:source>
 	<con:password>vitam1234</con:password>
