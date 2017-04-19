@@ -54,7 +54,7 @@
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>functional-administration-client</artifactId>
 			<version>${project.version}</version>
-		</dependency>
+		</dependency>		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -903,7 +903,7 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- status (ItemStatus)
 
 4.13 Détail du handler : CheckIngestContractActionHandler
--------------------------------------------------------
+---------------------------------------------------------
 
 4.13.1 Description
 ==================
@@ -943,7 +943,7 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 
 
 4.14 Détail du handler : CheckNoObjectsActionHandler
--------------------------------------------------------
+----------------------------------------------------
 
 4.14.1 Description
 ==================
@@ -958,6 +958,36 @@ Le handler prend ce fichier manifest extrait du WORKSPACE comme le parametre d'e
 ================
 Le fichier manifest sera lu pour vérifier s'il y a des TAG "BinaryDataObject" ou "PhysicalDataObject".
 S'il en y a, le handler retourne KO, sinon OK.
+
+4.15 Détail du plugin : CheckArchiveUnitSchema
+----------------------------------------------
+
+4.15.1 Description
+==================
+
+CheckArchiveUnitSchema permet d'exécuter un contrôle intelligent des archive unit en 
+vérifiant la conformité du JSON généré dans le process pour chaque archive unit, par rapport à un schéma défini. 
+
+
+.. literalinclude:: includes/archive-unit-schema.json
+   :language: javascript
+   :name: archive-unit-schema.json
+   :linenos:  
+
+4.15.2 Détail des données utilisées
+===================================
+Le plugin récupère l'id de l'Archive Unit à vérifier. 
+
+4.15.3 exécution
+================
+A partir de l'Id de l'id de l'Archive Unit à vérifier, le plugin va télécharger le fichier json associé dans le Workspace.
+Par la suite, il va vérifier la validation de ce Json par rapport au schéma json de Vitam.
+
+4.15.4 détail des vérifications
+===============================
+Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajoutées pour différents champs : 
+ - StartDate pour les Rules : une date contenant une année égale à ou au dessus de l'année 9000 sera refusée.
+ - Content / Title : peut être de type String, Array ou number (on pourra avoir des titres traduits ainsi que des nombres si besoin) 
 
 	
 5. Worker-common
