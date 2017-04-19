@@ -548,19 +548,19 @@
                         },
                         "OriginatingSystemId": {
                             "description": "Part of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "ArchivalAgencyArchiveUnitIdentifier": {
                             "description": "Part of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "OriginatingAgencyArchiveUnitIdentifier": {
                             "description": "Part of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "TransferringAgencyArchiveUnitIdentifier": {
                             "description": "End of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "Description": {
                             "description": "All of DescriptionGroup",
