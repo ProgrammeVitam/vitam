@@ -57,8 +57,8 @@ public interface IngestExternalClient extends OperationManagementClient {
         throws IngestExternalException;
 
     /**
-     * ingest upload file in  with waiting
-     * For Intern Usage
+     * ingest upload file in with waiting
+     * For Internal Usage only
      * TNR
      *
      * @param stream
@@ -68,7 +68,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-
+    @Deprecated
     Response uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
