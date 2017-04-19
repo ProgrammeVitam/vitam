@@ -46,6 +46,7 @@ public class UnitInheritedRuleTest {
         "\"StartDate\":\"01/01/2017\"," +
         "\"EndDate\":\"01/01/2019\"," +
         "\"path\":[[\"AU1\"]]}}}}}";
+
     private final static String AU1_MGT = "{" +
         "    \"StorageRule\" : {" +
         "      \"Rule\" : \"R1\"," +
@@ -242,6 +243,62 @@ public class UnitInheritedRuleTest {
         + "{\"STR1\":{\"AU0\":{\"StartDate\":\"02/01/2019\",\"EndDate\":\"01/01/2019\",\"RefNonRuleId\":[\"STR2\"],\"path\":[[\"AU0\"]]}}}"
         + "}}";
 
+    // PreventInheritance part
+    
+    private final static String STORAGE_PREVENTINHERITANCE = "{" +
+        "    \"StorageRule\" : [{" +
+        "      \"PreventInheritance\" : \"true\"" +
+        "    }]" +
+        "  }";
+    
+    private final static String STORAGE_PREVENTINHERITANCE_NEW = "{" +
+        "    \"StorageRule\" : [{" +
+        "      \"Rule\" : \"STR2\"," +
+        "      \"StartDate\" : \"02/01/2019\"," +
+        "      \"PreventInheritance\" : \"true\"" +
+        "    }]" +
+        "  }";
+
+    private final static String EXPECTED_PREVENT_WILE_DECLARE = "{"
+        + "\"inheritedRule\":{\"StorageRule\":{"
+        + "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"PreventInheritance\":\"true\",\"path\":[[\"AU2\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_CHILD_PREVENT_WILE_DECLARE = "{"
+        + "\"inheritedRule\":{\"StorageRule\":{"
+        + "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU2\",\"AU3\"]]}},"
+        + "\"STR1\":{\"AU3\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU3\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_FINAL_PREVENT_WHILE_DECLARE = "{"
+        + "\"inheritedRule\":{\"StorageRule\":{"
+        + "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU2\",\"AU3\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_PREVENTED_RULE = "{"
+        + "\"inheritedRule\":{\"AccessRule\":{"
+        + "\"R4\":{\"AU0\":{\"FinalAction\":\"Access\",\"StartDate\":\"01/01/2017\",\"EndDate\":\"01/01/2019\",\"path\":[[\"AU0\",\"AU2\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_PREVENTED_RULE_INHERIT = "{"
+        + "\"inheritedRule\":{\"AccessRule\":{"
+        + "\"R4\":{\"AU0\":{\"FinalAction\":\"Access\",\"StartDate\":\"01/01/2017\",\"EndDate\":\"01/01/2019\",\"path\":[[\"AU0\",\"AU2\",\"AU3\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_PREVENT_AND_DECLARE = "{"
+        + "\"inheritedRule\":{\"StorageRule\":{"
+        + "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"PreventInheritance\":\"true\",\"path\":[[\"AU2\"]]}}},"
+        + "\"AccessRule\":{"
+        + "\"R4\":{\"AU0\":{\"FinalAction\":\"Access\",\"StartDate\":\"01/01/2017\",\"EndDate\":\"01/01/2019\",\"path\":[[\"AU0\",\"AU2\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_FINAL_PREVENT_AND_DECLARE = "{"
+        + "\"inheritedRule\":{\"StorageRule\":{"
+        + "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU2\",\"AU3\"]]}}},"
+        + "\"AccessRule\":{"
+        + "\"R4\":{\"AU0\":{\"FinalAction\":\"Access\",\"StartDate\":\"01/01/2017\",\"EndDate\":\"01/01/2019\",\"path\":[[\"AU0\",\"AU2\",\"AU3\"]]}}"
+        + "}}}";
+
     @Test
     public void testUnitRuleResult() throws Exception {
         UnitInheritedRule au1RulesResult =
@@ -417,6 +474,65 @@ public class UnitInheritedRuleTest {
         UnitInheritedRule au0 = new UnitInheritedRule().createNewInheritedRule((ObjectNode) JsonHandler.getFromString(ROOT_NODE_WITH_MD), "AU0");
 
         assertEquals(EXPECTED_METADATA_REF_NON_RULE_ID, JsonHandler.unprettyPrint(au0));
+    }
+
+    // PreventInheritance part
+
+    @Test
+    public void testPreventInheritance() throws Exception {
+        UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(AU2_MGT), "AU0");
+
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_PREVENTINHERITANCE), "AU2"));
+
+        assertEquals(EXPECTED_PREVENTED_RULE, JsonHandler.unprettyPrint(au2));
+        
+        UnitInheritedRule au3 = new UnitInheritedRule();
+        au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
+
+        assertEquals(EXPECTED_PREVENTED_RULE_INHERIT, JsonHandler.unprettyPrint(au3));
+    }
+
+    @Test
+    public void testPreventInheritanceWhileDeclaringRuleInCateg() throws Exception {
+        UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU0");
+
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_PREVENTINHERITANCE_NEW), "AU2"));
+
+        assertEquals(EXPECTED_PREVENT_WILE_DECLARE, JsonHandler.unprettyPrint(au2));
+        
+        UnitInheritedRule au3 = new UnitInheritedRule();
+        au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
+
+        assertEquals(EXPECTED_FINAL_PREVENT_WHILE_DECLARE, JsonHandler.unprettyPrint(au3));
+    }
+
+    @Test
+    public void testPreventInheritanceAndDeclareNewRuleInCateg() throws Exception {
+        UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(AU2_MGT), "AU0");
+
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_PREVENTINHERITANCE_NEW), "AU2"));
+
+        assertEquals(EXPECTED_PREVENT_AND_DECLARE, JsonHandler.unprettyPrint(au2));
+        
+        UnitInheritedRule au3 = new UnitInheritedRule();
+        au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
+
+        assertEquals(EXPECTED_FINAL_PREVENT_AND_DECLARE, JsonHandler.unprettyPrint(au3));
+    }
+
+    @Test
+    public void testPreventInheritanceFromMetadataManagement() throws Exception {
+        UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_PREVENTINHERITANCE_NEW), "AU2");
+
+        assertEquals(EXPECTED_PREVENT_WILE_DECLARE, JsonHandler.unprettyPrint(au1));
+
+        UnitInheritedRule au3 = new UnitInheritedRule();
+        au3.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(LEVEL_1), "AU3"));
+
+        assertEquals(EXPECTED_CHILD_PREVENT_WILE_DECLARE, JsonHandler.unprettyPrint(au3));
     }
 
 }

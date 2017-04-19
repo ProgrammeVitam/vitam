@@ -58,6 +58,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
@@ -776,9 +777,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 } else {
                     managmentRuleTypeNode = JsonHandler.createArrayNode();
                 }
-                ((ArrayNode) managmentRuleTypeNode).add(generalRuleTypeNode);
-                managmentNode.set(ruleType, managmentRuleTypeNode);
 
+                if (!checkContainsPreventInheritance((ArrayNode)managmentRuleTypeNode)) {
+                    ((ArrayNode) managmentRuleTypeNode).add(generalRuleTypeNode);
+                    managmentNode.set(ruleType, managmentRuleTypeNode);
+                }
             }
         }
 
@@ -807,6 +810,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, managmentNode);
+    }
+
+    private boolean checkContainsPreventInheritance(ArrayNode ruleTypeNode) {
+        for(JsonNode ruleNode: ruleTypeNode) {
+            if (ruleNode.has(SedaConstants.TAG_RULE_PREVENT_INHERITANCE)) {
+                if (ruleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE) instanceof BooleanNode) {
+                    return ruleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE).asBoolean();
+                }
+            }
+        }
+        return false;
     }
 
     private void addWorkInformations(ObjectNode archiveUnit, String unitId, String unitGuid, boolean isRootArchive,
