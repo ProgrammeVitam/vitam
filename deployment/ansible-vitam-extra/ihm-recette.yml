@@ -5,4 +5,3 @@
     - ihm-recette-front
     - ihm-recette-data-sets
     - {role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url is defined) and (vitam_tests_gitrepo_url != '')}
-    - soapui_get_tests

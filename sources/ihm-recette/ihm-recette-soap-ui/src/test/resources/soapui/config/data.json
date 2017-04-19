@@ -1,6 +1,0 @@
-{"params":[
-	
-	{"sipName":"SIP_OK/OK_SIP_2_GO.zip","expected":"OK","httpStatusCode":200,"testName":"Succès du processus de téléchargement du SIP","category":"EVT_UPLOAD_SIP"},
-	{"sipName":"SIP_OK/OK_SIP_2_GO.zip","expected":"OK","httpStatusCode":200,"testName":"Succès du processus d’alimentation du Registre des Fonds","category":"EVT_ACCESSION_REGISTRATION"},
-	
-]}

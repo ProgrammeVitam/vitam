@@ -1,4 +1,0 @@
----
-# defaults file for soapui_get_tests
-json_deploy:
-  params: ""

@@ -12,7 +12,6 @@
 
     <modules>
         <module>ihm-recette-web-application</module>
-        <module>ihm-recette-soap-ui</module>
         <module>ihm-recette-web-front</module>
     </modules>
 

@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-// Define controller for soap-ui
+// Define controller for functional.test
 angular.module('functional.test')
   .controller('functionalTestController', function($scope/*, $interval*/, $window, functionalTestService) {
     $scope.step  = 'Name ';

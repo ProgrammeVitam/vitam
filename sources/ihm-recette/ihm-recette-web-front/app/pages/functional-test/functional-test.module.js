@@ -27,5 +27,5 @@
 
 'use strict';
 
-// Define the `soap.ui` module
+// Define the `functional.test` module
 angular.module('functional.test', []);

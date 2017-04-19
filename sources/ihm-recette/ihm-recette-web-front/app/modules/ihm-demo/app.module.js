@@ -39,7 +39,6 @@ angular.module('ihm.demo', [
   'pascalprecht.translate',
   'upload.sip.perf',
   'admin.home',
-  'soap.ui',
   'operation.traceability',
   'functional.test'
 ]);
