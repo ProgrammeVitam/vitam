@@ -26,18 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_ACTION;
-import static fr.gouv.vitam.common.GlobalDataRest.X_CONTEXT_ID;
-import static fr.gouv.vitam.common.GlobalDataRest.X_TENANT_ID;
-import static fr.gouv.vitam.common.model.ProcessExecutionStatus.CANCELLED;
-import static fr.gouv.vitam.common.model.ProcessExecutionStatus.COMPLETED;
-import static fr.gouv.vitam.common.model.ProcessExecutionStatus.FAILED;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import java.io.InputStream;
 
@@ -54,15 +44,16 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.exception.*;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.common.client.ErrorMessage;
 
@@ -81,8 +72,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final int TIME_TO_SLEEP = 1000; // one seconds
-    private Response response;
-    private static final int NB_TRY = 100;
+
+    private static final int NB_TRY = 500;
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);
@@ -172,9 +163,9 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 }
             }
             if (nb_try < 0) {
-               return Response.status(Status.REQUEST_TIMEOUT).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
+                throw new RuntimeException("too many try, test failed");
             }
-            return    Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
+            return Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, x_request_id).build();
         } catch (final VitamException e) {
             LOGGER.error("IngestExternalException in Upload sip", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e)
@@ -213,8 +204,9 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         headers.add(GlobalDataRest.X_ACTION, ProcessAction.INIT);
 
         // add header action id default init
+        Response response = null;
         try {
-            final Response response =
+            response =
                 performRequest(HttpMethod.POST, INGEST_URL, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (VitamClientInternalException e) {
             Response.status(Status.PRECONDITION_FAILED).build();
@@ -413,6 +405,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
         throws InternalServerException, BadRequestException, VitamClientException {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        // TODO : bad comparaison between string and enum ?
         if (actionId.equals(ProcessAction.START)) {
             ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
             headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
