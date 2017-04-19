@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook;
+package fr.gouv.vitam.storage.logbook;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -35,9 +35,9 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookOutcome;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameterName;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookOutcome;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameterName;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 
 public class StorageLogbookMockTest {
 

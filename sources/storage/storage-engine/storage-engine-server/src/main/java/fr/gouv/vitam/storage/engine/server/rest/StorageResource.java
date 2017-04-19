@@ -28,6 +28,8 @@
 package fr.gouv.vitam.storage.engine.server.rest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -52,6 +54,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -60,9 +63,11 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -71,6 +76,7 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -80,6 +86,8 @@ import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.logbook.StorageLogbookAdministration;
+import org.apache.commons.compress.archivers.ArchiveException;
 
 /**
  * Storage Resource implementation
@@ -90,8 +98,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
     private static final String CODE_VITAM = "code_vitam";
+    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
+        "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     private final StorageDistribution distribution;
+    private final StorageLogbookAdministration storageLogbookAdministration = new StorageLogbookAdministration();
 
     /**
      * Constructor
@@ -159,8 +170,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get storage information for a specific tenant/strategy For example the usable space
      *
-     * @param headers http headers
-     * @return Response containing the storage information as json, or an error (404, 500)
+     * @param headers
+     *            http headers
+     * @return Response containing the storage information as json, or an error
+     *         (404, 500)
      */
     @HEAD
     @Consumes(MediaType.APPLICATION_JSON)
@@ -1021,6 +1034,40 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             }
         });
 
+    }
+
+    /**
+     * Run storage logbook secure operation
+     *
+     * @param xTenantId the tenant id
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/storage/secure")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response secureStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            Integer tenantId = Integer.parseInt(xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            final GUID guid = storageLogbookAdministration.generateSecureStorageLogbook();
+            final List<String> resultAsJson = new ArrayList<>();
+            resultAsJson.add(guid.toString());
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<String>()
+                    .setHits(1, 0, 1)
+                    .addAllResults(resultAsJson))
+                .build();
+
+        } catch (ArchiveException | TraceabilityException | IOException | StorageLogException e) {
+            LOGGER.error("unable to generate secure  log", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new RequestResponseOK())
+                .build();
+        }
     }
 
     /**

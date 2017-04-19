@@ -24,52 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.logbook;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import java.util.List;
 
 /**
- * Logbook Process Type
+ * Secure configuration
  */
-public enum LogbookTypeProcess {
+public class SecureConfiguration {
     /**
-     * Ingest type process
+     * Empty ClientConfiguration constructor for YAMLFactory
      */
-    INGEST,
+    public SecureConfiguration() {
+
+    }
+
     /**
-     * Audit type process
+     *
+     * @return list of tenant
      */
-    AUDIT,
+    public List<String> getTenants() {
+        return tenants;
+    }
+
     /**
-     * Destruction type process
+     *
+     *
+     * @param tenants to set
      */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK;
+    public void setTenants(List<String> tenants) {
+        this.tenants = tenants;
+    }
+
+    protected List<String> tenants ;
+
 
 }

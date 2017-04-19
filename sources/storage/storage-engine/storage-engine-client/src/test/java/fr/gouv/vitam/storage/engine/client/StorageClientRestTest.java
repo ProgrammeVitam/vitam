@@ -607,6 +607,14 @@ public class StorageClientRestTest extends VitamJerseyTest {
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void successSecureStorageLogbook() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.secureStorageLogbook();
+    }
+
     private StoredInfoResult generateStoredInfoResult(String guid) {
         final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);

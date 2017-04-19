@@ -24,47 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-
-import fr.gouv.vitam.storage.engine.server.logbook.StorageLogbookFactory.StorageLogbookType;
+package fr.gouv.vitam.storage.service;
 
 /**
- * Test class for storage logbook (and parameters) factory
+
  */
-public class StorageLogbookFactoryTest {
-
-    @Test
-    public void getStorageLogbookInstanceTest() {
-        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
-        assertNotNull(storageLogbook);
-
-        final StorageLogbook storageLogbook2 = StorageLogbookFactory.getInstance().getStorageLogbook();
-        assertNotNull(storageLogbook2);
-
-        assertNotSame(storageLogbook, storageLogbook2);
-    }
-
-    @Test
-    public void changeDefaultStorageLogbookTypeTest() {
-        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
-        assertTrue(storageLogbook instanceof StorageLogbookMock);
-
-        final StorageLogbookFactory.StorageLogbookType type = StorageLogbookFactory.getDefaultStorageLogbookType();
-        assertNotNull(type);
-        assertEquals(StorageLogbookType.MOCK, type);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void changeDefaultStorageLogbookTypeThrowsExceptionTest() throws Exception {
-        StorageLogbookFactory.getInstance();
-        StorageLogbookFactory.changeDefaultStorageLogbookType(null);
-    }
+public class StorageAppenderService {
 
 }

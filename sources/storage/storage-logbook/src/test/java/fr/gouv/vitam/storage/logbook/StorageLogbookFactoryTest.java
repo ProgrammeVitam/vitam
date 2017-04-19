@@ -24,34 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook.parameters;
+package fr.gouv.vitam.storage.logbook;
 
-import java.io.IOException;
-import java.util.Map.Entry;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import fr.gouv.vitam.storage.logbook.StorageLogbook;
+import fr.gouv.vitam.storage.logbook.StorageLogbookFactory;
+import fr.gouv.vitam.storage.logbook.StorageLogbookMock;
+import org.junit.Test;
+
+import fr.gouv.vitam.storage.logbook.StorageLogbookFactory.StorageLogbookType;
 
 /**
- * StorageLogbookParameters Serializer for Jackson
+ * Test class for storage logbook (and parameters) factory
  */
-class StorageLogbookParametersSerializer extends JsonSerializer<StorageLogbookParameters> {
+public class StorageLogbookFactoryTest {
 
-    /**
-     * Empty constructor
-     */
-    public StorageLogbookParametersSerializer() {
-        // empty
+    @Test
+    public void getStorageLogbookInstanceTest() {
+        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
+        assertNotNull(storageLogbook);
+
+        final StorageLogbook storageLogbook2 = StorageLogbookFactory.getInstance().getStorageLogbook();
+        assertNotNull(storageLogbook2);
+
+        assertNotSame(storageLogbook, storageLogbook2);
     }
 
-    @Override
-    public void serialize(StorageLogbookParameters value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeStartObject();
-        for (final Entry<StorageLogbookParameterName, String> item : value.getMapParameters().entrySet()) {
-            gen.writeStringField(item.getKey().name(), item.getValue());
-        }
-        gen.writeEndObject();
+    @Test
+    public void changeDefaultStorageLogbookTypeTest() {
+        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
+        assertTrue(storageLogbook instanceof StorageLogbookMock);
+
+        final StorageLogbookFactory.StorageLogbookType type = StorageLogbookFactory.getDefaultStorageLogbookType();
+        assertNotNull(type);
+        assertEquals(StorageLogbookType.MOCK, type);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void changeDefaultStorageLogbookTypeThrowsExceptionTest() throws Exception {
+        StorageLogbookFactory.getInstance();
+        StorageLogbookFactory.changeDefaultStorageLogbookType(null);
     }
 
 }

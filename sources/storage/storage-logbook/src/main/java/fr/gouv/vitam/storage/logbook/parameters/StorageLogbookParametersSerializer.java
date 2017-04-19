@@ -24,52 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.logbook.parameters;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import java.io.IOException;
+import java.util.Map.Entry;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
- * Logbook Process Type
+ * StorageLogbookParameters Serializer for Jackson
  */
-public enum LogbookTypeProcess {
+class StorageLogbookParametersSerializer extends JsonSerializer<StorageLogbookParameters> {
+
     /**
-     * Ingest type process
+     * Empty constructor
      */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK;
+    public StorageLogbookParametersSerializer() {
+        // empty
+    }
+
+    @Override
+    public void serialize(StorageLogbookParameters value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
+        gen.writeStartObject();
+        for (final Entry<StorageLogbookParameterName, String> item : value.getMapParameters().entrySet()) {
+            gen.writeStringField(item.getKey().name(), item.getValue());
+        }
+        gen.writeEndObject();
+    }
 
 }

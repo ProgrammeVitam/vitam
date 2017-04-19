@@ -33,6 +33,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -174,4 +176,15 @@ public interface StorageClient extends BasicClient {
      */
     VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) throws StorageServerClientException;
 
-}
+    /**
+     * Call secure storage logbook operation <br>
+     * <br>
+     *
+     * @return secured storage logbook as String
+     * @throws StorageServerClientException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponseOK secureStorageLogbook() throws StorageServerClientException, InvalidParseOperationException;
+
+
+    }
