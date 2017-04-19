@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
+import fr.gouv.vitam.common.model.RequestResponse;
 
 /**
  * Siegfried client interface
@@ -43,20 +44,20 @@ public interface SiegfriedClient extends MockOrRestClient {
      * Call siegfried instance to analyse the given file and format a Json response
      *
      * @param filePath The file path
-     * @return the identified format as a json
+     * @return the identified format embedded in a RequestResponse
      * @throws FormatIdentifierTechnicalException if some error occurs
      * @throws FormatIdentifierNotFoundException
      */
-    JsonNode analysePath(Path filePath) throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
+    RequestResponse<JsonNode> analysePath(Path filePath) throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
 
     /**
      * Call Siegfried instance to get disponibility and version
      *
      * @param filePath path to an empty folder (can be null)
-     * @return the identified version as a json or an exception if siegfried is unavailable
+     * @return the identified version embedded in a RequestResponse
      * @throws FormatIdentifierTechnicalException
      * @throws FormatIdentifierNotFoundException
      */
-    JsonNode status(Path filePath) throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
+    RequestResponse<JsonNode> status(Path filePath) throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException;
 
 }

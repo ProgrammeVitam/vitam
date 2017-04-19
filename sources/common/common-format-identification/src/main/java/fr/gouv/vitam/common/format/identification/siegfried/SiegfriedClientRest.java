@@ -41,6 +41,8 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * HTTP implementation of siegfried client.
@@ -60,19 +62,16 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
     }
 
     @Override
-    public JsonNode analysePath(Path filePath)
+    public RequestResponse<JsonNode> analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         LOGGER.debug("Path to analyze: " + filePath);
-        final Response siegfriedResponse = callSiegfried(filePath);
-        return handleCommonResponseIdentify(siegfriedResponse);
+        return handleCommonResponseIdentify(callSiegfried(filePath));
     }
 
     @Override
-    public JsonNode status(Path filePath)
+    public RequestResponse<JsonNode> status(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-
-        final Response siegfriedResponse = callSiegfried(filePath);
-        return handleCommonResponseStatus(siegfriedResponse);
+        return handleCommonResponseStatus(callSiegfried(filePath));
     }
 
     private Response callSiegfried(Path filePath) throws FormatIdentifierTechnicalException {
@@ -91,13 +90,13 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         return response;
     }
 
-    private JsonNode handleCommonResponseIdentify(Response response)
+    private RequestResponse handleCommonResponseIdentify(Response response)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         try {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    return response.readEntity(JsonNode.class);
+                    return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
                 case NOT_FOUND:
                     throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
                 default:
@@ -109,13 +108,13 @@ public class SiegfriedClientRest extends DefaultClient implements SiegfriedClien
         }
     }
 
-    private JsonNode handleCommonResponseStatus(Response response)
+    private RequestResponse handleCommonResponseStatus(Response response)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
         try {
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
-                    return response.readEntity(JsonNode.class);
+                    return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
                 case NOT_FOUND:
                     throw new FormatIdentifierNotFoundException(status.getReasonPhrase());
                 default:

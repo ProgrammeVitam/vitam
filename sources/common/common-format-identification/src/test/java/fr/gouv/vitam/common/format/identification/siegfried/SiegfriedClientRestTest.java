@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.format.identification.siegfried;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
@@ -149,8 +151,9 @@ public class SiegfriedClientRestTest extends VitamJerseyTest {
     public void statusExecutionWithResponse() throws Exception {
         when(mock.get())
             .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_VERSION).build());
-        final JsonNode response = client.status(Paths.get("Path"));
-        assertEquals("1.6.4", response.get("siegfried").asText());
+        RequestResponse<JsonNode> jsonNodeRequestResponse = client.status(Paths.get("Path"));
+        assertTrue(jsonNodeRequestResponse.toJsonNode().has("$results"));
+        assertEquals("1.6.4", jsonNodeRequestResponse.toJsonNode().get("$results").get(0).get("siegfried").asText());
     }
 
     @Test(expected = FormatIdentifierNotFoundException.class)
@@ -169,8 +172,9 @@ public class SiegfriedClientRestTest extends VitamJerseyTest {
     public void analysePathExecutionWithResponse() throws Exception {
         when(mock.get())
             .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_RESPONSE_OK).build());
-        final JsonNode response = client.analysePath(Paths.get("Path"));
-        assertNotNull(response.get("files"));
+        RequestResponse<JsonNode> jsonNodeRequestResponse = client.analysePath(Paths.get("Path"));
+        assertTrue(jsonNodeRequestResponse.toJsonNode().has("$results"));
+        assertNotNull(jsonNodeRequestResponse.toJsonNode().get("$results").get(0).get("files"));
     }
 
     @Test(expected = FormatIdentifierNotFoundException.class)
