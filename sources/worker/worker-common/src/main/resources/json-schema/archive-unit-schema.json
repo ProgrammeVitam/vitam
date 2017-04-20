@@ -25,7 +25,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -92,7 +92,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
@@ -179,7 +179,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -271,7 +271,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -343,7 +343,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -410,7 +410,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -564,7 +564,7 @@
                         },
                         "Description": {
                             "description": "All of DescriptionGroup",
-                            "type": ["string", "array"]
+                            "type": ["null", "string", "array"]
                         },
                         "CustodialHistory": {
                             "description": "All of CustodialHistoryGroup",
@@ -1593,7 +1593,11 @@
                                             {
                                                 "type": "string",
                                                 "format": "date-time"
-                                            }
+                                            },
+			                                {
+			                                    "type": "string",
+			                                    "format": "date-time-vitam"
+			                                }
                                         ]
                                     },
                                     "EventDetail": {
