@@ -306,13 +306,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         try (LogbookLifeCyclesClient logbookLifeCycleClient =
             LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus, 
+            return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus,
                 logbookLifeCycleClient, params.getLogbookTypeProcess());
         }
     }
 
     private ObjectNode extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess) throws ProcessingException, CycleFoundException {
+        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess)
+        throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
 
@@ -418,7 +419,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             logbookLifeCycleClient, typeProcess);
                     } else if (element.getName().equals(dataObjectName)) {
                         final String objectGroupGuid =
-                            writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient, typeProcess);
+                            writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient,
+                                typeProcess);
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             handlerIO.getHelper()
                                 .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
@@ -931,7 +933,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void writeArchiveUnitToTmpDir(String containerId, XMLEventReader reader,
-        StartElement startElement, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess logbookTypeProcess)
+        StartElement startElement, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient,
+        LogbookTypeProcess logbookTypeProcess)
         throws ProcessingException {
 
         try {
@@ -1459,7 +1462,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writerJson.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_ID));
             writerJson.add(eventFactory.createCharacters(elementGuid));
             writerJson.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_ID));
-
+            String currentRuleType = null;
+            boolean ruleInProgress = false;
             boolean existingUpdateOperation = false;
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -1474,8 +1478,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement()) {
 
                     switch (event.asStartElement().getName().getLocalPart()) {
+                        case SedaConstants.TAG_RULE_ACCESS:
+                        case SedaConstants.TAG_RULE_REUSE:
+                        case SedaConstants.TAG_RULE_STORAGE:
+                        case SedaConstants.TAG_RULE_APPRAISAL:
+                        case SedaConstants.TAG_RULE_CLASSIFICATION:
+                        case SedaConstants.TAG_RULE_DISSEMINATION:
+                            writerJson.add(eventFactory.createStartElement("", "",
+                                event.asStartElement().getName().getLocalPart()));
+                            currentRuleType = event.asStartElement().getName().getLocalPart();
+                            ruleInProgress = false;
+                            break;
                         case SedaConstants.TAG_RULE_RULE:
-                            extractRuleTag(reader, writerJson, eventFactory, elementID);
+                            extractRuleTag(reader, writerJson, eventFactory, elementID, currentRuleType,
+                                ruleInProgress);
+                            ruleInProgress = true;
                             break;
                         case SedaConstants.TAG_ARCHIVE_UNIT:
                             extractArchiveUnitTag(reader, writerJson, eventFactory, event, archiveUnitId,
@@ -1518,7 +1535,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 } else if (event.isCharacters()) {
                     writerJson.add(event.asCharacters());
                 } else if (event.isEndElement()) {
-                    if (name.equals(event.asEndElement().getName())) {
+                    QName endName = event.asEndElement().getName();
+                    if (name.equals(endName)) {
                         stack--;
                         if (stack == 0) {
                             // Create objectgroup reference id
@@ -1528,6 +1546,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             writerJson.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
                             break;
                         }
+                    } else if (SedaConstants.TAG_RULE_ACCESS.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_REUSE.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_STORAGE.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_APPRAISAL.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_CLASSIFICATION.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_DISSEMINATION.equals(endName.getLocalPart())) {
+                        writerJson
+                            .add(eventFactory.createEndElement("", "", event.asEndElement().getName().getLocalPart()));
+                        currentRuleType = null;
+                        ruleInProgress = false;
                     } else {
                         writerJson
                             .add(eventFactory.createEndElement("", "", event.asEndElement().getName().getLocalPart()));
@@ -1587,7 +1615,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         return archiveUnitGuids;
     }
-
 
     private void extractArchiveUnitTag(XMLEventReader reader, XMLEventWriter writerJson, XMLEventFactory eventFactory,
         XMLEvent event, String archiveUnitId, ObjectNode archiveUnitTree, List<String> archiveUnitGuids,
@@ -1687,7 +1714,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void extractRuleTag(XMLEventReader reader, XMLEventWriter writerJson, XMLEventFactory eventFactory,
-        String elementID) throws XMLStreamException {
+        String elementID, String currentRuleType, boolean ruleInProgress) throws XMLStreamException {
         Set<String> setRuleIds = unitIdToSetOfRuleId.get(elementID);
         if (setRuleIds == null) {
             setRuleIds = new HashSet<>();
@@ -1696,6 +1723,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         setRuleIds.add(idRule);
         unitIdToSetOfRuleId.put(elementID, setRuleIds);
 
+        if (ruleInProgress) {
+            writerJson.add(eventFactory.createEndElement("", "", currentRuleType));
+            writerJson.add(eventFactory.createStartElement("", "", currentRuleType));
+        }
         writerJson.add(eventFactory.createStartElement("", "", SedaConstants.TAG_RULE_RULE));
         writerJson.add(eventFactory.createCharacters(idRule));
         writerJson.add(eventFactory.createEndElement("", "", SedaConstants.TAG_RULE_RULE));

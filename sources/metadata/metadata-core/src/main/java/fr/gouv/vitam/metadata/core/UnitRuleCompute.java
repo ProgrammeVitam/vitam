@@ -54,7 +54,7 @@ public class UnitRuleCompute extends UnitNode {
     /**
      * constructor with UnitNode
      * 
-     * @param u UnitSimplified
+     * @param u UnitNode
      */
     public UnitRuleCompute(UnitNode u) {
         super(u.getUnit());
