@@ -554,6 +554,7 @@
         </BinaryDataObject>
         <DescriptiveMetadata>
             <ArchiveUnit id="ID3">
+                <Management></Management>
                 <Content>
                     <DescriptionLevel>RecordGrp</DescriptionLevel>
                     <Title>Ecole des Hautes Etudes en Sciences Sociales</Title>

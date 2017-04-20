@@ -736,7 +736,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         ObjectNode managmentNode;
-        if (archiveUnitNode.has(SedaConstants.TAG_MANAGEMENT)) {
+        if (archiveUnitNode.has(SedaConstants.TAG_MANAGEMENT) && archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT) instanceof ObjectNode) {
             managmentNode = (ObjectNode) archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
         } else {
             managmentNode = JsonHandler.createObjectNode();
