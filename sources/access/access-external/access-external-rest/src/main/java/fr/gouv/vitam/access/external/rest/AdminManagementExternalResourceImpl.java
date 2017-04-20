@@ -108,13 +108,12 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    final Response status = client.checkFormat(document);
-                    status.bufferEntity();
-                    return Response.fromResponse(status).build();
+                    final Status status = client.checkFormat(document);
+                    return Response.status(status).build();
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    final Response status = client.checkRulesFile(document);
-                    return Response.fromResponse(status).build();
+                    final Status status = client.checkRulesFile(document);
+                    return Response.status(status).build();
                 }
                 return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, null, null)).build();
             } catch (ReferentialException ex) {
@@ -153,41 +152,25 @@ public class AdminManagementExternalResourceImpl {
 
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
-                Response resp = null;
                 Object respEntity = null;
-                int status = Status.CREATED.getStatusCode();
+                Status status = Status.CREATED;
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    resp = client.importFormat(document);
+                    status = client.importFormat(document);
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    resp = client.importRulesFile(document);
+                    status = client.importRulesFile(document);
                 }
-                //get response entity
-                if (resp != null) {
-                    status = resp.getStatus();
-                    if (resp.hasEntity()) {
-                        respEntity = resp.getEntity();
-                    }
-                }
+                
                 if (AdminCollections.CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
-                    respEntity = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<IngestContractModel>>(){}));
-                    //get response entity and http status
-                    if (respEntity != null && respEntity instanceof VitamError) {
-                        status = ((VitamError) respEntity).getHttpCode();
-                    }
+                    status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<IngestContractModel>>(){}));
                 }
 
                 if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
-
-                    respEntity = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<AccessContractModel>>(){}));
-                    //get response entity and http status
-                    if (respEntity != null && respEntity instanceof VitamError) {
-                        status = ((VitamError) respEntity).getHttpCode();
-                    }
+                    status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<AccessContractModel>>(){}));
                 }
 
                 // Send the http response with the entity and the status got from internalService;

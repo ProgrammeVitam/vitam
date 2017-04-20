@@ -839,13 +839,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:check")
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            Status status = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
@@ -871,13 +866,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:create")
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            Status status = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();
@@ -1158,13 +1148,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.BAD_REQUEST).build();
-            }
+            Status status = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (final Exception e) {
@@ -1187,13 +1172,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            Status status = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
         } catch (final Exception e) {

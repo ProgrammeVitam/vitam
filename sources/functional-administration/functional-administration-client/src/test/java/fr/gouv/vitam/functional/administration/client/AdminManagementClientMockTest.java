@@ -37,6 +37,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.Response.Status;
+
 import fr.gouv.vitam.functional.administration.common.exception.*;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
@@ -195,10 +197,8 @@ public class AdminManagementClientMockTest {
     @RunWithCustomExecutor
     public void givenClientMockWhenImportIngestContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        RequestResponse resp = client.importIngestContracts(new ArrayList<>());
-        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        Status resp = client.importIngestContracts(new ArrayList<>());
+        assertEquals(resp, Status.OK);
     }
 
     @Test(expected = ReferentialNotFoundException.class)
@@ -208,7 +208,7 @@ public class AdminManagementClientMockTest {
         RequestResponse resp = client.findIngestContractsByID("FakeId");
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
         assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
         throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
     }
 
@@ -228,10 +228,8 @@ public class AdminManagementClientMockTest {
     @RunWithCustomExecutor
     public void givenClientMockWhenImportAccessContracts() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        RequestResponse resp = client.importAccessContracts(new ArrayList<>());
-        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
-        assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
+        Status resp = client.importAccessContracts(new ArrayList<>());
+        assertEquals(resp, Status.OK);
     }
 
     @Test(expected = ReferentialNotFoundException.class)
@@ -241,7 +239,7 @@ public class AdminManagementClientMockTest {
         RequestResponse resp = client.findAccessContractsByID("FakeId");
         assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
         assertThat(((RequestResponseOK)resp).isOk());
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(1);
         throw new ReferentialNotFoundException("Ingest contract not found with id FakeId");
     }
 

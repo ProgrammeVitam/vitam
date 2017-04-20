@@ -248,7 +248,7 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject());
-        PowerMockito.doReturn(Response.ok().build()).when(adminCLient).checkFormat(anyObject());
+        PowerMockito.doReturn(Status.OK).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -447,9 +447,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID").
-        		setMessage("invalid input").setDescription("Input file of contracts is malformed");
-        PowerMockito.doReturn(error).when(adminCLient).importIngestContracts(anyObject());
+        PowerMockito.doReturn(Status.BAD_REQUEST).when(adminCLient).importIngestContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -466,7 +464,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).importIngestContracts(anyObject());
+        PowerMockito.doReturn(Status.CREATED).when(adminCLient).importIngestContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -497,9 +495,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID").
-            setMessage("invalid input").setDescription("Input file of contracts is malformed");
-        PowerMockito.doReturn(error).when(adminCLient).importAccessContracts(anyObject());
+        PowerMockito.doReturn(Status.BAD_REQUEST).when(adminCLient).importAccessContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -516,7 +512,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).importAccessContracts(anyObject());
+        PowerMockito.doReturn(Status.CREATED).when(adminCLient).importAccessContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
 
         given().contentType(ContentType.BINARY).body(stream)

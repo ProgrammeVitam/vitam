@@ -32,12 +32,12 @@ public class AdminExternalClientMockTest {
     public void testMockClient()
         throws Exception {
         assertEquals(
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID).getStatus(),
-            Status.OK.getStatusCode());
+            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
+            Status.OK);
 
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID).getStatus(),
-            Status.OK.getStatusCode());
+            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID),
+            Status.CREATED);
 
         assertEquals(
             client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),

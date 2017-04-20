@@ -30,10 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -41,6 +40,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -60,7 +60,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return Response
      * @throws ReferentialException when check exception occurs
      */
-    Response checkFormat(InputStream stream) throws ReferentialException;
+    Status checkFormat(InputStream stream) throws ReferentialException;
 
     /**
      * @param stream as InputStream
@@ -68,7 +68,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    Response importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
+    Status importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException;
 
 
     /**
@@ -99,7 +99,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
      */
-    Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
+    Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
      * Import a the set of rules for a given tenant
@@ -110,7 +110,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
-    Response importRulesFile(InputStream stream)
+    Status importRulesFile(InputStream stream)
         throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException;
 
     /**
@@ -155,7 +155,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    RequestResponse getAccessionRegister(JsonNode query) throws InvalidParseOperationException, ReferentialException;
+    RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query) throws InvalidParseOperationException, ReferentialException;
 
     /**
      * Get the accession register details matching the given query
@@ -165,7 +165,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    RequestResponse getAccessionRegisterDetail(JsonNode query)
+    RequestResponse<AccessionRegisterDetailModel> getAccessionRegisterDetail(JsonNode query)
         throws InvalidParseOperationException, ReferentialException;
 
 
@@ -185,7 +185,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
-    RequestResponse importIngestContracts(List<IngestContractModel> ingestContractModelList)
+    Status importIngestContracts(List<IngestContractModel> ingestContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
@@ -206,7 +206,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
-    RequestResponse importAccessContracts(List<AccessContractModel> accessContractModelList)
+    Status importAccessContracts(List<AccessContractModel> accessContractModelList)
             throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
