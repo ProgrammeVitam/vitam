@@ -160,6 +160,7 @@ environnement=local
 
 consul_domain=consul
 vitam_reverse_external_dns=localhost
+vitam_reverse_external_protocol=http
 package_version=*
 days_to_delete=3
 days_to_close=2
