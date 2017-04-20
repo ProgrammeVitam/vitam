@@ -14,7 +14,7 @@
                 {
                     "Rule": "APR001",
                     "StartDate": "2012-11-15T14:30:23",
-                    "PreventInheritance": "ID42",
+                    "PreventInheritance": false,
                     "FinalAction": "Keep"
                 }
             ],
@@ -76,7 +76,12 @@
         "Content": {
             "AnyOtherField": "AnyOtherValue",
             "DescriptionLevel": "Item",
+            "Description": null,
             "Title": "My title",
+            "Event": [{
+            	"EventType":"Création",
+            	"EventDateTime":"2010-01-01T10:22:02"
+            }],
             "AuthorizedAgent": [{
                 "FirstName": "Ludovic",
                 "GivenName": "BLANCHET",
