@@ -200,6 +200,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String MISSING_REQUIRED_GLOBAL_INFORMATIONS =
         "Global required informations are not found after extracting the manifest.xml";
 
+    private static String prodService = null;
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -287,6 +288,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // objectGroupIdToGuid
             // objectGroupIdToUnitId
         }
+        
+        if (prodService != null) {
+            LOGGER.debug("productor service: " + prodService);
+            globalCompositeItemStatus.getData().put(LogbookParameterName.agentIdentifierOriginating.name(), prodService);
+        }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
 
@@ -330,7 +336,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         // Archive Unit Tree
         final ObjectNode archiveUnitTree = JsonHandler.createObjectNode();
-        String prodService = null;
 
         try {
             try {
@@ -555,7 +560,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     LOGGER.debug("Find a service Level: " + serviceLevel);
                     evDetData.put("ServiceLevel", serviceLevel.asText());
                 }
-
+                
             } catch (InvalidParseOperationException e) {
                 LOGGER.error("Can't parse globalSedaPareters", e);
                 throw new ProcessingException(e);

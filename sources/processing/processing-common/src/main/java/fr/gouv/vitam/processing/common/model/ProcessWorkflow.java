@@ -47,6 +47,8 @@ public class ProcessWorkflow {
     private String operationId;
 
     private String messageIdentifier;
+    
+    private String prodService;
 
     private StatusCode globalStatusCode = StatusCode.UNKNOWN;
 
@@ -192,6 +194,24 @@ public class ProcessWorkflow {
         return this;
     }
 
+    /**
+     * @return the prodService
+     */
+
+    public String getProdService() {
+        return prodService;
+    }
+
+    /**
+     * @param prodService the prodService to set
+     *
+     * @return this
+     */    
+    public ProcessWorkflow setProdService(String prodService) {
+        this.prodService = prodService;
+        return this;
+    }
+    
 
     /**
      * @return the logbookTypeProcess

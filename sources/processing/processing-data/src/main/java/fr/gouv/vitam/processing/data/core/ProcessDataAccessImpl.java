@@ -405,6 +405,21 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
     }
 
     @Override
+    public void updateProdService(String operationId, String prodService, Integer tenantId) {
+        ParametersChecker.checkParameter("Operation must be not null", operationId);
+        ParametersChecker.checkParameter("prodService must be not null", prodService);
+        ParametersChecker.checkParameter("tenantId must be not null", tenantId);
+        getProcessWorkflow(operationId, tenantId).setMessageIdentifier(prodService);
+    }
+
+    @Override
+    public String getProdServiceByOperationId(String operationId, Integer tenantId) {
+        ParametersChecker.checkParameter("Operationid must be not null", operationId);
+        ParametersChecker.checkParameter("tenantId must be not null", tenantId);
+        return getProcessWorkflow(operationId, tenantId).getProdService();
+    }
+    
+    @Override
     public void addToWorkflowList(ProcessWorkflow processWorkflow) {
         if(ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus()) || ProcessExecutionStatus.FAILED
             .equals(processWorkflow.getExecutionStatus())) {
