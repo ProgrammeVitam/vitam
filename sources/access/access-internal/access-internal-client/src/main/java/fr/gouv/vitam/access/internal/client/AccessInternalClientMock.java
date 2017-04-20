@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -51,36 +52,36 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     static final String MOCK_GET_FILE_CONTENT = "Vitam test";
 
     @Override
-    public JsonNode selectUnits(JsonNode selectQuery)
+    public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+        return new RequestResponseOK().addResult(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
+    public RequestResponse<JsonNode> selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+        return new RequestResponseOK().addResult(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        return JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}");
+        return new RequestResponseOK().addResult(JsonHandler.getFromString(
+            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
+    public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
-        return JsonHandler.getFromString(
+        return new RequestResponseOK().addResult(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-                "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}");
+                "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}"));
 
     }
 
@@ -94,31 +95,33 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
 
     @Override
-    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
-        return ClientMockResultHelper.getLogbookResults();
-    }
-
-    @Override
-    public JsonNode selectOperationById(String processId, JsonNode queryDsl) throws InvalidParseOperationException {
-        return ClientMockResultHelper.getLogbookOperation();
-    }
-
-    @Override
-    public JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
+    public RequestResponse<JsonNode> selectOperation(JsonNode select)
         throws LogbookClientException, InvalidParseOperationException {
-        return ClientMockResultHelper.getLogbookOperation();
+        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults());
     }
 
     @Override
-    public JsonNode selectUnitLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
-        return ClientMockResultHelper.getLogbookOperation();
+    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl)
+        throws InvalidParseOperationException {
+        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
+    public RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
-        return ClientMockResultHelper.getLogbookOperation();
+        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
+        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException {
+        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
     }
 
     @SuppressWarnings("unchecked")

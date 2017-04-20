@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -84,7 +85,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
+    public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         VitamThreadUtils.getVitamSession().checkValidRequestId();
@@ -101,7 +102,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             }
 
-            return response.readEntity(JsonNode.class);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
@@ -110,7 +111,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnitbyId(JsonNode selectQuery, String idUnit) throws InvalidParseOperationException,
+    public RequestResponse<JsonNode> selectUnitbyId(JsonNode selectQuery, String idUnit)
+        throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
@@ -128,7 +130,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             }
 
-            return response.readEntity(JsonNode.class);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
@@ -137,7 +139,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws InvalidParseOperationException,
+    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
+        throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
@@ -155,7 +158,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
             }
-            return response.readEntity(JsonNode.class);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
@@ -164,7 +167,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId) throws InvalidParseOperationException,
+    public RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
+        throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException {
         ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
@@ -188,14 +192,12 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientServerException(response.getStatusInfo().getReasonPhrase());
             }
 
-            return response.readEntity(JsonNode.class);
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
 
         } catch (final VitamClientInternalException e) {
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
         } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -247,7 +249,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     /* Logbook internal */
 
     @Override
-    public JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException {
+    public RequestResponse<JsonNode> selectOperation(JsonNode select)
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, null, select,
@@ -261,7 +264,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -271,7 +274,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectOperationById(String processId, JsonNode select)
+    public RequestResponse<JsonNode> selectOperationById(String processId, JsonNode select)
         throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
@@ -287,7 +290,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -297,7 +300,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
+    public RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
@@ -314,7 +317,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -324,7 +327,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectUnitLifeCycle(JsonNode queryDsl)
+    public RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
         Response response = null;
@@ -341,7 +344,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -351,7 +354,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
+    public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -369,7 +372,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
+            return new RequestResponseOK().addResult(JsonHandler.getFromString(response.readEntity(String.class)));
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -380,7 +383,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query) throws LogbookClientServerException {
+    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
+        throws LogbookClientServerException, InvalidParseOperationException {
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, null, query, MediaType.APPLICATION_JSON_TYPE,
@@ -389,7 +393,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             switch (status) {
                 case OK:
                     LOGGER.info(CHECKS_OPERATION_TRACEABILITY_OK);
-                    return RequestResponse.parseFromResponse(response);
+                    return new RequestResponseOK()
+                        .addResult(JsonHandler.getFromString(response.readEntity(String.class)));
                 default:
                     LOGGER.error("checks operation tracebility is " + status.name() + ":" + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

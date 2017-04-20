@@ -177,7 +177,7 @@ public class IngestInternalIT {
     private static WorkspaceApplication workspaceApplication;
     private static ProcessManagementApplication processManagementApplication;
     private static IngestInternalApplication ingestInternalApplication;
-    private static AccessInternalApplication accessInternalApplication; 
+    private static AccessInternalApplication accessInternalApplication;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
 
@@ -194,7 +194,7 @@ public class IngestInternalIT {
 
     private static String SIP_KO_WITH_INCORRECT_DATE =
         "integration-processing/SIP_FILE_1791_CA2.zip";
-    
+
     private static String WORFKLOW_NAME = "DefaultIngestWorkflow";
 
 
@@ -290,13 +290,13 @@ public class IngestInternalIT {
 
         AdminManagementClientFactory
             .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
-        
+
         SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
             new AccessInternalApplication(CONFIG_ACCESS_INTERNAL_PATH);
         accessInternalApplication.start();
         SystemPropertyUtil.clear("jetty.access-internal.port");
-        AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);        
+        AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
 
     }
 
@@ -377,7 +377,7 @@ public class IngestInternalIT {
             RestAssured.port = PORT_SERVICE_INGEST_INTERNAL;
             RestAssured.basePath = INGEST_INTERNAL_PATH;
             get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-            
+
             RestAssured.port = PORT_SERVICE_ACCESS_INTERNAL;
             RestAssured.basePath = ACCESS_INTERNAL_PATH;
             get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
@@ -455,7 +455,7 @@ public class IngestInternalIT {
             final long size = StreamUtils.closeSilently(sizedInputStream);
             LOGGER.warn("read: " + size);
 
-            assertTrue(size > 1000);            
+            assertTrue(size > 1000);
 
             // Now redo Object with access internal
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
@@ -468,7 +468,8 @@ public class IngestInternalIT {
             assertTrue(size2 == size);
 
             JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect());
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode().get("$results").get(0);
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
                 esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
@@ -478,7 +479,7 @@ public class IngestInternalIT {
             assertNotNull(hit);
             // TODO compare
 
-            
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
@@ -523,28 +524,29 @@ public class IngestInternalIT {
 
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect());
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode().get("$results").get(0);
             boolean checkUnitSuccess = true;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
             for (final Document event : logbookOperationEvents) {
                 if (StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) && 
-                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA") ){
+                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                     checkUnitSuccess = false;
                     break;
                 }
             }
 
             assertTrue(!checkUnitSuccess);
-            
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testIngestInternal1791CA2() throws Exception {
@@ -581,22 +583,23 @@ public class IngestInternalIT {
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect());
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode().get("$results").get(0);
             boolean checkUnitSuccess = true;
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
             for (final Document event : logbookOperationEvents) {
                 if (StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) && 
-                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA") ){
+                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                     checkUnitSuccess = false;
                     break;
                 }
             }
 
             assertTrue(!checkUnitSuccess);
-            
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
