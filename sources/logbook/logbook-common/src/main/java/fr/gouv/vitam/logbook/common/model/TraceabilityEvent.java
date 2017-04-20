@@ -118,6 +118,7 @@ public class TraceabilityEvent {
     	this.logType = logType;
     	this.startDate = startDate;
         this.endDate = endDate;
+        this.previousLogbookTraceabilityDate = previousLogbookTraceabilityDate;
         this.hash = hash;
         this.minusOneMonthLogbookTraceabilityDate = minusOneMonthLogbookTraceabilityDate;
         this.minusOneYearLogbookTraceabilityDate = minusOneYearLogbookTraceabilityDate;
