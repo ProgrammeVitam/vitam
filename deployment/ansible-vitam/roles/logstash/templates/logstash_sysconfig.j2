@@ -9,7 +9,7 @@
 #LS_HOME=/var/lib/logstash
 
 # Arguments to pass to logstash agent
-#LS_OPTS=""
+LS_OPTS="--log-in-json"
 
 # Arguments to pass to java
 LS_HEAP_SIZE="{{ (ansible_memory_mb.real.total / 4) | int }}m"
