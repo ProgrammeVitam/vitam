@@ -49,7 +49,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
@@ -81,6 +80,8 @@ public class UnitInheritedRule {
     private Map<String, ObjectNode> inheritedRule;
     
     private String unitId;
+
+    private List<String> refNonRuleIds = new ArrayList<>();
 
     /**
      * empty constructor for every unitNode except root
@@ -114,6 +115,7 @@ public class UnitInheritedRule {
      */
     private void initRules(ObjectNode unitManagement, String unitId) {
         Iterator<String> fieldNames = unitManagement.fieldNames(); 
+
         while(fieldNames.hasNext()){
             String fieldName = fieldNames.next();
 
@@ -249,7 +251,7 @@ public class UnitInheritedRule {
                     while (originIds.hasNext()){
                         String originId = originIds.next();
                         if (checkPreventInheritance(originNode.get(originId))) {
-                                inheritedCategoryName.add(categoryName); 
+                            inheritedCategoryName.add(categoryName); 
                         } else {
                             ArrayNode pathNode = (ArrayNode) originNode.get(originId).get(PATH);
                             updateOriginPath(pathNode, unitId);
@@ -262,7 +264,6 @@ public class UnitInheritedRule {
                 while(ruleIds.hasNext()){
                     String ruleId = ruleIds.next();
                     ObjectNode ruleNode = (ObjectNode) categoryNode.get(ruleId);
-
                     if (unitManagement.get(categoryName).isObject()){
                         ObjectNode unitRuleNode = (ObjectNode) unitManagement.get(categoryName);
                         
@@ -284,6 +285,7 @@ public class UnitInheritedRule {
                 for (Entry<String, String> ruleIdEntry : ruleIdTodReplace.entrySet()) {
                     String originId = ruleIdEntry.getKey().split(SEPERATOR, 2)[0];
                     String ruleId = ruleIdEntry.getKey().split(SEPERATOR, 2)[1];
+                    
                     JsonNode ruleNode = categoryNode.get(ruleId).get(originId);
                     ((ObjectNode) categoryNode.get(ruleId)).remove(originId);
                     ((ObjectNode) categoryNode.get(ruleId)).set(ruleIdEntry.getValue(), ruleNode);
@@ -337,17 +339,36 @@ public class UnitInheritedRule {
                 nonRefRuleId.add(rule.get(REFNONRULEID));
             }
 
-            for (JsonNode id : nonRefRuleId) {
-                String ruleID = id.asText();
-                if (newRule.inheritedRule.containsKey(unitRuleCategory)){
-                    newRule.inheritedRule.get(unitRuleCategory).remove(ruleID);                        
-                }
+            // Indexed loop is needed in order to remove items in array while iterate over array items
+            for (int index = nonRefRuleId.size()-1; index>=0; index--) {
+                String refNonRuleId = nonRefRuleId.get(index).asText();
+                boolean localDefinitionRule = false;
+
                 if (rule.has(RULE)){
                     ruleId = rule.get(RULE).asText();
-                    if (ruleID.equals(ruleId)){
+                    if (refNonRuleId.equals(ruleId)){
                         isItself = true;
+                        localDefinitionRule = true;
                     }
                 }
+
+                if (!localDefinitionRule && newRule.inheritedRule.containsKey(unitRuleCategory)){
+                    newRule.inheritedRule.get(unitRuleCategory).remove(refNonRuleId);
+                } else if (localDefinitionRule){
+                    // Remove RefNonRuleId if rule exclude itself
+                    ObjectNode ruleWithoutRefNonRuleId = (ObjectNode)rule;
+                    if (ruleWithoutRefNonRuleId.get(REFNONRULEID).isArray()){
+                        ((ArrayNode)ruleWithoutRefNonRuleId.get(REFNONRULEID)).remove(index);
+                        if(((ArrayNode)ruleWithoutRefNonRuleId.get(REFNONRULEID)).size() == 0) {
+                            ruleWithoutRefNonRuleId.remove(REFNONRULEID);
+                        }
+                    } else {
+                        ruleWithoutRefNonRuleId.remove(REFNONRULEID);
+                    }
+                    addInheritedRuleFromManagement(newRule, ruleWithoutRefNonRuleId, unitRuleCategory, newRule.unitId);
+                    continue;
+                }
+                refNonRuleIds.add(refNonRuleId);
             }
 
             if (!isItself && rule.has(RULE)) {
@@ -355,24 +376,28 @@ public class UnitInheritedRule {
                 ruleCategories = createRuleCategories((ObjectNode) rule, newRule.unitId);
                 newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
                 ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
+                parentCategoryList.add(unitRuleCategory);
             }
 
         } else if (!parentCategoryList.contains(unitRuleCategory) && rule.has(RULE)){
-
             ObjectNode newCategories = JsonHandler.createObjectNode();
             ruleCategories = createRuleCategories((ObjectNode) rule, newRule.unitId);
             newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
             ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
-
+            parentCategoryList.add(unitRuleCategory);
         } else {
             addInheritedRuleFromManagement(newRule, (ObjectNode) rule, unitRuleCategory, newRule.unitId);
         }
     }
-    
-    
+
     private void addInheritedRuleFromManagement(UnitInheritedRule newRule, ObjectNode unitRuleNode, String unitRuleCategory, String unitId){
         if (unitRuleNode.has(RULE)) {
             String ruleId  = unitRuleNode.get(RULE).asText();
+
+            if (refNonRuleIds.contains(ruleId)) {
+                // New rule ignored by another refnonRuleId. Musn't be inherited
+                return;
+            }
 
             if (checkPreventInheritance(unitRuleNode)){
                 newRule.inheritedRule.get(unitRuleCategory).removeAll();
