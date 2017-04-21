@@ -41,6 +41,7 @@ public class SchemaValidationUtilsTest {
 
     private static final String AU_JSON_FILE = "archive-unit_OK.json";
     private static final String AU_INVALID_JSON_FILE = "archive-unit_Invalid.json";
+    private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";    
 
     @Test
     public void givenDefaultConstructorThenValidateJsonOK() throws Exception {
@@ -56,6 +57,14 @@ public class SchemaValidationUtilsTest {
             new SchemaValidationUtils("json-schema/archive-unit-schema.json");
         SchemaValidationStatus status = schemaValidation
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE)));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+    }
+    
+    @Test
+    public void givenComplexArchiveUnitJsonThenValidateJsonOK() throws Exception {
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        SchemaValidationStatus status = schemaValidation
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
     }
     
