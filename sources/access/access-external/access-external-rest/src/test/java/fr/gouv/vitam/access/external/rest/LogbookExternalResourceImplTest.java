@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.mockito.Matchers.anyObject;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -27,6 +28,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -125,10 +127,17 @@ public class LogbookExternalResourceImplTest {
         PowerMockito.when(AccessInternalClientFactory.getInstance().getClient())
             .thenReturn(accessInternalClient);
 
-        PowerMockito.when(accessInternalClient.selectOperation(JsonHandler.getFromString(request)))
-            .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
-        PowerMockito.when(accessInternalClient.selectOperationById(good_id, JsonHandler.getFromString(request)))
-            .thenReturn(JsonHandler.getFromString(MOCK_SELECT_RESULT));
+        PowerMockito.when(accessInternalClient.selectOperation(anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
+
+        PowerMockito.when(accessInternalClient.selectOperationById(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
+
+        PowerMockito.when(accessInternalClient.selectUnitLifeCycleById(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
+
+        PowerMockito.when(accessInternalClient.selectObjectGroupLifeCycleById(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
         // Mock AccessInternal response for check TRACEABILITY operation request
         PowerMockito.when(accessInternalClient.checkTraceabilityOperation(JsonHandler.getFromString(request)))

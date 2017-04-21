@@ -47,12 +47,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      * Select Units
      *
      * @param selectQuery the query used to select units
-     * @return JsonNode object including DSL queries and results
+     * @return a response containing a json node object including DSL queries and results
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode selectUnits(JsonNode selectQuery)
+    RequestResponse<JsonNode> selectUnits(JsonNode selectQuery)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException;
 
@@ -61,12 +61,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param sqlQuery the query to be executed
      * @param id the id of the unit
-     * @return JsonNode object including DSL queries, context and results
+     * @return a response containing a json node object including DSL queries, context and results
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode selectUnitbyId(JsonNode sqlQuery, String id)
+    RequestResponse<JsonNode> selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException;
 
@@ -75,12 +75,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param updateQuery the query to be executed as an update
      * @param unitId the id of the unit
-     * @return JsonNode object including DSL queries, context and results
+     * @return a response containing a json node object including DSL queries, context and results
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      */
-    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException;
 
@@ -89,12 +89,12 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param selectObjectQuery the query to be executed
      * @param objectId the Id of the ObjectGroup
-     * @return JsonNode object including DSL queries, context and results
+     * @return a response containing a json node object including DSL queries, context and results
      * @throws InvalidParseOperationException if the query is not well formatted
      * @throws AccessInternalClientServerException if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      */
-    JsonNode selectObjectbyId(JsonNode selectObjectQuery, String objectId)
+    RequestResponse<JsonNode> selectObjectbyId(JsonNode selectObjectQuery, String objectId)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException;
 
@@ -119,22 +119,22 @@ public interface AccessInternalClient extends MockOrRestClient {
      * selectOperation
      *
      * @param select
-     * @return Json representation
+     * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse<JsonNode> selectOperation(JsonNode select) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectOperationbyId
      *
      * @param processId ID of the operation
      * @param queryDsl query to be executed
-     * @return Json representation
+     * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectOperationById(String processId, JsonNode queryDsl)
+    RequestResponse<JsonNode> selectOperationById(String processId, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
@@ -142,40 +142,40 @@ public interface AccessInternalClient extends MockOrRestClient {
      *
      * @param idUnit
      * @param queryDsl query to be executed
-     * @return Json representation
+     * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
+    RequestResponse<JsonNode> selectUnitLifeCycleById(String idUnit, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectUnitLifeCycleById
      *
      * @param queryDsl
-     * @return Json representation
+     * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * selectObjectGroupLifeCycleById
      *
      * @param idObject
      * @param queryDsl query to be executed
-     * @return Json representation
+     * @return a response containing a json node
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
+    RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * Checks operation traceability
      * 
      * @param query to be executed
-     * @return Response
+     * @return a response containing a json node
      * @throws LogbookClientServerException
      */
     RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query)
@@ -183,7 +183,7 @@ public interface AccessInternalClient extends MockOrRestClient {
 
     /**
      * @param fileName
-     * @return
+     * @return a response containing the traceability file
      */
     Response downloadTraceabilityFile(String operationId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
