@@ -21,3 +21,6 @@ vitam_swift_subuser: ""
 vitam_keystone_passwd: ""
 vitam_ceph_mode: true
 vitam_site_id: 1
+
+# Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
+vitam_ssl_user_header: false
