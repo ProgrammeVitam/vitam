@@ -249,4 +249,22 @@ public interface ProcessDataAccess {
      */
     void addToWorkflowList(ProcessWorkflow processWorkflow);
 
+    /**
+     * updates productor service
+     * 
+     * @param operationId the operation id
+     * @param prodService
+     * @param tenantId the working tenant
+     */
+    void updateProdService(String operationId, String prodService, Integer tenantId);
+
+    /**
+     * Returns prodService by operation id
+     * 
+     * @param operationId he operation id
+     * @param tenantId the working tenant
+     * @return prodService
+     */
+    String getProdServiceByOperationId(String operationId, Integer tenantId);
+
 }

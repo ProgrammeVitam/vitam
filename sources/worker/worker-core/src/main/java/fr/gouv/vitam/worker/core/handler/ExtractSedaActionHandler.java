@@ -200,6 +200,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String MISSING_REQUIRED_GLOBAL_INFORMATIONS =
         "Global required informations are not found after extracting the manifest.xml";
 
+    private static String prodService = null;
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -287,6 +288,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // objectGroupIdToGuid
             // objectGroupIdToUnitId
         }
+        
+        if (prodService != null) {
+            LOGGER.debug("productor service: " + prodService);
+            globalCompositeItemStatus.getData().put(LogbookParameterName.agentIdentifierOriginating.name(), prodService);
+        }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
 
@@ -369,6 +375,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
 
                     final String orgAgId = reader.getElementText();
+                    prodService = orgAgId;
 
                     // Check if the OriginatingAgency was really set
                     if (orgAgId != null && !orgAgId.isEmpty()) {
@@ -473,7 +480,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 GRAPH_WITH_LONGEST_PATH_IO_RANK);
 
             checkArchiveUnitIdReference();
-            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess);
+            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, prodService);
 
             // Add parents to archive units and save them into workspace
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
@@ -553,7 +560,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     LOGGER.debug("Find a service Level: " + serviceLevel);
                     evDetData.put("ServiceLevel", serviceLevel.asText());
                 }
-
+                
             } catch (InvalidParseOperationException e) {
                 LOGGER.error("Can't parse globalSedaPareters", e);
                 throw new ProcessingException(e);
@@ -1779,7 +1786,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void saveObjectGroupsToWorkspace(String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess) throws ProcessingException {
+        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess, String prodService) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
 
@@ -1867,6 +1874,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_NB, entry.getValue().size());
                 // Add operation to OPS
                 objectGroup.putArray(SedaConstants.PREFIX_OPS).add(containerId);
+                objectGroup.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
                 handlerIO.transferFileToWorkspace(

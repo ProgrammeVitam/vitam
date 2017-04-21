@@ -279,6 +279,11 @@ public class SedaConstants {
      */
     public static final String TAG_ORGANIZATIONDESCRIPTIVEMETADATA = "OrganizationDescriptiveMetadata";
     /**
+     * tag of OriginatingAgency
+     */
+    public static final String TAG_ORIGINATINGAGENCY = "OriginatingAgency";
+    
+    /**
      * tag of OriginatingAgencyIdentifier
      */
     public static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";

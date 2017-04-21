@@ -101,6 +101,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
 
     private final ProcessDistributor processDistributorMock;
     private final Map<String, String> messageIdentifierMap = new HashMap<>();
+    private final Map<String, String> prodserviceMap = new HashMap<>();
     private final ProcessDataAccess processData;
     private Object monitor = null;
     private WorkerParameters workParams = null;
@@ -204,7 +205,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
 
                 stepResponse =
                     processStep(processId.getId(), step, step.getId(), workParams, workflowStatus, client, operationId,
-                        messageIdentifierMap.get(processId.getId()), tenantId);
+                        messageIdentifierMap.get(processId.getId()), prodserviceMap.get(processId.getId()), tenantId);
 
                 // update global status Process workFlow and process Step
                 processData.updateStepStatus(operationId, step.getId(), stepResponse.getGlobalStatus(), tenantId);
@@ -236,9 +237,10 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             // check if it's a final step
             if (finallyStep != null) {
                 processStep(processId.getId(), finallyStep, finallyStep.getId(), workParams,
-                    workflowStatus, client, operationId, messageIdentifierMap.get(processId.getId()),
+                    workflowStatus, client, operationId, messageIdentifierMap.get(processId.getId()), prodserviceMap.get(processId.getId()),
                     tenantId);
                 messageIdentifierMap.remove(processId);
+                prodserviceMap.remove(processId);
 
                 // process finished
                 processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.COMPLETED, tenantId);
@@ -362,7 +364,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
     }
 
     private ItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
-        ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier,
+        ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier, String prodService,
         int tenantId)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException, ProcessingException {
@@ -386,6 +388,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             GUIDReader.getGUID(workParams.getContainerName()));
         parameters.putParameterValue(
             LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
+
         client.update(parameters);
 
         // update the process monitoring for this step
@@ -476,10 +479,15 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                     messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
                     messageIdentifierMap.put(processId, messageIdentifier);
                 }
-
             }
-
-
+            
+            if (prodService == null) {
+                if (stepResponse.getData().get(LogbookParameterName.agentIdentifierOriginating.name()) != null) {
+                    prodService = (String)stepResponse.getData().get(LogbookParameterName.agentIdentifierOriginating.name().toString());
+                    prodserviceMap.put(processId, prodService);
+                }
+            }
+            
             if (messageIdentifier != null && !messageIdentifier.isEmpty()) {
                 processData.updateMessageIdentifier(workParams.getContainerName(), messageIdentifier, tenantId);
                 parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
@@ -488,6 +496,14 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                     processData.getMessageIdentifierByOperationId(workParams.getContainerName(), tenantId));
             }
 
+            if (prodService != null && !prodService.isEmpty()) {
+                processData.updateProdService(workParams.getContainerName(), prodService, tenantId);
+                parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating, prodService);
+            } else {
+                parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating, 
+                    processData.getProdServiceByOperationId(workParams.getContainerName(), tenantId));
+            }
+            
             parameters.putParameterValue(LogbookParameterName.eventIdentifier,
                 GUIDFactory.newEventGUID(tenantId).getId());
             parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());           
