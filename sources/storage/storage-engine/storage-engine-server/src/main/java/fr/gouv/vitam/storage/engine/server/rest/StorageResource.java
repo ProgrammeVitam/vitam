@@ -27,34 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -77,6 +52,8 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -86,8 +63,36 @@ import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.logbook.StorageLogException;
 import fr.gouv.vitam.storage.logbook.StorageLogbookAdministration;
 import org.apache.commons.compress.archivers.ArchiveException;
+import fr.gouv.vitam.storage.logbook.StorageLogbookService;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.compress.archivers.ArchiveException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Storage Resource implementation
@@ -102,15 +107,21 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     private final StorageDistribution distribution;
-    private final StorageLogbookAdministration storageLogbookAdministration = new StorageLogbookAdministration();
+    private StorageLogbookService storageLogbookService;
+    private StorageLogbookAdministration storageLogbookAdministration;
 
     /**
      * Constructor
      *
      * @param configuration the storage configuration to be applied
      */
-    public StorageResource(StorageConfiguration configuration) {
-        distribution = new StorageDistributionImpl(configuration);
+    public StorageResource(StorageConfiguration configuration, StorageLogbookService service) {
+        this.storageLogbookService = service;
+        distribution = new StorageDistributionImpl(configuration, storageLogbookService);
+        final WorkspaceClientFactory clientFactory = WorkspaceClientFactory.getInstance();
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
+        LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        storageLogbookAdministration = new StorageLogbookAdministration(WorkspaceClientFactory.getInstance(), logbookOperationsClient,storageLogbookService,configuration.getZippingDirecorty());
         LOGGER.info("init Storage Resource server");
     }
 

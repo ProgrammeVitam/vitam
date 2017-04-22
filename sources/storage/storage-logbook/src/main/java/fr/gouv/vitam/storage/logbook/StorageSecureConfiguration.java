@@ -28,67 +28,39 @@ package fr.gouv.vitam.storage.logbook;
 
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
-
 /**
- * Storage Logbook interface. It describes methods to be implemented.
+ * Secure configuration
  */
-public interface StorageLogbook {
+public class StorageSecureConfiguration {
+
+    protected List<Integer> tenants ;
+
+
 
     /**
-     * Add a storage logbook entry <br>
-     * <br>
+     * Empty ClientConfiguration constructor for YAMLFactory
+     */
+    public StorageSecureConfiguration() {
+
+    }
+
+    /**
      *
-     * @param parameters
-     *            the entry parameters
-     * @throws StorageException
-     *             if an error is encountered
+     * @return list of tenant
      */
-    void add(StorageLogbookParameters parameters) throws StorageException;
+    public List<Integer> getTenants() {
+        return tenants;
+    }
 
     /**
-     * Not implemented yet
-     */
-    void close();
-
-    /**
-     * Select a list of operations for a specified object
      *
-     * @param objectId
-     *            the id of the object
-     * @return List of operations for this object Id
-     * @throws StorageException
-     *             if any error is encountered
-     */
-    List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException;
-
-    /**
-     * Select a list of operations for a specified objectgroup
      *
-     * @param objectGroupId
-     *            the id of the object group
-     * @return List of operations for this object Id
-     * @throws StorageException
-     *             if any error is encountered
+     * @param tenants to set
      */
-    List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException;
+    public void setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
+    }
 
-    /**
-     * Select a list of operations for a specified request
-     *
-     * @param select
-     *            the request in JsonNode format
-     * @return a List of operations
-     * @throws StorageException
-     *             if any error is encountered
-     * @throws InvalidParseOperationException
-     *             if the select request is not correct
-     */
-    List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-            throws StorageException, InvalidParseOperationException;
+
 
 }

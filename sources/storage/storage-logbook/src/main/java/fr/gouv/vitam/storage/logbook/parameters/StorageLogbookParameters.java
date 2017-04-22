@@ -55,7 +55,7 @@ public class StorageLogbookParameters {
         mandatoryParameters.add(StorageLogbookParameterName.eventDateTime);
 //        xrequestid
 //            tenantid
-        mandatoryParameters.add(StorageLogbookParameterName.eventType);
+       // mandatoryParameters.add(StorageLogbookParameterName.eventType);
         mandatoryParameters.add(StorageLogbookParameterName.objectIdentifier);
         mandatoryParameters.add(StorageLogbookParameterName.digest);
         mandatoryParameters.add(StorageLogbookParameterName.digestAlgorithm);

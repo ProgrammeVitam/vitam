@@ -26,48 +26,80 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.logbook;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertTrue;
-
-import fr.gouv.vitam.storage.logbook.StorageLogbook;
-import fr.gouv.vitam.storage.logbook.StorageLogbookFactory;
-import fr.gouv.vitam.storage.logbook.StorageLogbookMock;
-import org.junit.Test;
-
-import fr.gouv.vitam.storage.logbook.StorageLogbookFactory.StorageLogbookType;
+import java.time.LocalDateTime;
 
 /**
- * Test class for storage logbook (and parameters) factory
+ * Log Information
  */
-public class StorageLogbookFactoryTest {
+public class LogInformationEvent {
+    /**
+     * fileName
+     */
+    private String fileName;
+    /**
+     * time stamp begin log time
+     */
+    private LocalDateTime beginTime;
+    /**
+     * time stamp end log time
+     */
+    private LocalDateTime endTime;
+    /**
+     * time stamp token (base64 encoded)
+     */
+    private String hash;
+    /**
+     * Total size of the ZIP entry
+     */
+    private long size;
 
-    @Test
-    public void getStorageLogbookInstanceTest() {
-        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
-        assertNotNull(storageLogbook);
-
-        final StorageLogbook storageLogbook2 = StorageLogbookFactory.getInstance().getStorageLogbook();
-        assertNotNull(storageLogbook2);
-
-        assertNotSame(storageLogbook, storageLogbook2);
+    public LogInformationEvent(String fileName, LocalDateTime beginTime, LocalDateTime endTime, String hash,
+        long size) {
+        this.fileName = fileName;
+        this.beginTime = beginTime;
+        this.endTime = endTime;
+        this.hash = hash;
+        this.size = size;
     }
 
-    @Test
-    public void changeDefaultStorageLogbookTypeTest() {
-        final StorageLogbook storageLogbook = StorageLogbookFactory.getInstance().getStorageLogbook();
-        assertTrue(storageLogbook instanceof StorageLogbookMock);
-
-        final StorageLogbookFactory.StorageLogbookType type = StorageLogbookFactory.getDefaultStorageLogbookType();
-        assertNotNull(type);
-        assertEquals(StorageLogbookType.MOCK, type);
+    /**
+     * get log FileName
+     *
+     * @return fileName
+     */
+    public String getFileName() {
+        return fileName;
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void changeDefaultStorageLogbookTypeThrowsExceptionTest() throws Exception {
-        StorageLogbookFactory.getInstance();
-        StorageLogbookFactory.changeDefaultStorageLogbookType(null);
+    /**
+     * get begin log time
+     *
+     * @return
+     */
+    public LocalDateTime getBeginTime() {
+        return beginTime;
     }
 
+    /**
+     * get end log file time
+     *
+     * @return
+     */
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    /**
+     * @return Size of the entry
+     */
+    public long getSize() {
+        return size;
+    }
+
+    /**
+     * @return hash
+     */
+    public String getHash() {
+        return hash;
+    }
 }

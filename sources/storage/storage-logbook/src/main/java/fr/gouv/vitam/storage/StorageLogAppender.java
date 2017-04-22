@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage;
 
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -66,14 +68,18 @@ public class StorageLogAppender {
 
     private final Map<Integer, ReentrantLock> lockers = new HashMap<>();
 
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    private DateTimeFormatter timeFormater = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
+
 
 
     /**
      * <pre>{@code
      * usage
      * final ArrayList list = new ArrayList<>();
-     * list.add(1);
-     * list.add(2);
+     * list.append(1);
+     * list.append(2);
      * StorageLogAppender storageLogAppender = new StorageLogAppender(list, folder.getRoot().toPath());
      * }
      * </pre>
@@ -85,6 +91,7 @@ public class StorageLogAppender {
     public StorageLogAppender(List<Integer> tenantIds, Path path) throws IOException {
         this.tenantIds = tenantIds;
         this.fileLocation = path;
+        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL,tenantIds);
         //create log by tenant
         for (Integer tenant : this.tenantIds) {
             ReentrantLock lock = new ReentrantLock();
@@ -110,14 +117,13 @@ public class StorageLogAppender {
     }
 
     /**
-     * Create
+     * Get the name of the new file
      *
      * @param tenant
      * @return
      */
     private Path constructPath(Integer tenant) {
         LocalDateTime date = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String file_name = fileLocation.toString() + "/"
             + tenant.toString()
             + "_" + date.toInstant(ZoneOffset.ofTotalSeconds(0)).toEpochMilli()
@@ -152,7 +158,7 @@ public class StorageLogAppender {
             endTime = LocalDateTime.now();
             out.flush();
             out.close();
-            // create a new name he fure log
+            // create a new name for  the futuSre log
             createNewLog(tenant);
         } finally {
             lock.unlock();
@@ -207,8 +213,7 @@ public class StorageLogAppender {
 
 
     private String getTime() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH:mm:ss");
-        return LocalDateTime.now().format(formatter);
+        return LocalDateTime.now().format(timeFormater);
     }
 
 

@@ -26,72 +26,68 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.logbook;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.LogInformation;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
- * Implementation of the mock of the storage logbook Only log informations
+ * Storage Logbook interface. It describes methods to be implemented.
  */
-public class StorageLogbookMock implements StorageLogbook {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookMock.class);
-
-    @Override
-    public void add(StorageLogbookParameters parameters) throws StorageException {
-        try {
-            if (parameters.checkMandatoryParameters()) {
-                logInformation(parameters);
-            }
-        } catch (final IllegalArgumentException exception) {
-            LOGGER.error(exception.getMessage());
-            throw new StorageException(exception.getMessage(), exception);
-        }
-    }
-
-    @Override
-    public void close() {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-            throws StorageException, InvalidParseOperationException {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+public interface StorageLogbookService {
 
     /**
-     * For the moment, parameters are only logged
+     * Add a storage logbook entry <br>
+     * <br>
      *
-     * @param parameters
-     *            the storage logbook parameters
+     * @param parameters the entry parameters
+     * @throws StorageException if an error is encountered
      */
-    private void logInformation(StorageLogbookParameters parameters) {
-        String result;
-        try {
-            result = JsonHandler.writeAsString(parameters);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Cannot serialize parameters", e);
-            result = "{}";
-        }
-        LOGGER.warn(result);
-    }
+    void append(Integer tenant, StorageLogbookParameters parameters) throws StorageException, IOException;
+
+    /**
+     * Not implemented yet
+     */
+    void close();
+
+    /**
+     * Select a list of operations for a specified object
+     *
+     * @param objectId the id of the object
+     * @return List of operations for this object Id
+     * @throws StorageException if any error is encountered
+     */
+    List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException;
+
+    /**
+     * Select a list of operations for a specified objectgroup
+     *
+     * @param objectGroupId the id of the object group
+     * @return List of operations for this object Id
+     * @throws StorageException if any error is encountered
+     */
+    List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException;
+
+    /**
+     * Select a list of operations for a specified request
+     *
+     * @param select the request in JsonNode format
+     * @return a List of operations
+     * @throws StorageException               if any error is encountered
+     * @throws InvalidParseOperationException if the select request is not correct
+     */
+    List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
+        throws StorageException, InvalidParseOperationException;
+
+    /**
+     * @param tenantId
+     */
+    LogInformation generateSecureStorage(Integer tenantId) throws IOException;
+
+    void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException;
 
 }

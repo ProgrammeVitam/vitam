@@ -24,11 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.service;
+package fr.gouv.vitam.storage.engine.server.registration;
+
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageResource;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
 
 /**
-
+ * Listener used for regitration
  */
-public class StorageAppenderService {
+public class StorageLogSecurisationListener implements ServletContextListener {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogSecurisationListener.class);
+    private final StorageConfiguration configuration;
+    private final StorageResource storageResource ;
+    public StorageLogSecurisationListener(
+        StorageResource storageResource, StorageConfiguration configuration) {
+        this.configuration = configuration;
+        this.storageResource = storageResource ;
+    }
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        LOGGER.debug("ServletContextListener started");
+
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        LOGGER.debug("ServletContextListener destroyed");
+
+        try {
+            for ( Integer tenant : configuration.getTenants()) {
+                storageResource.secureStorageLogbook(tenant.toString());
+            }
+        } catch (final Exception e) {
+            LOGGER.error("WorkerUnRegister run : unregister call failed on " , e);
+        }
+    }
 
 }

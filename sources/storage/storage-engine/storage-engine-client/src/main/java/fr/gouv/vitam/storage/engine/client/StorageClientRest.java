@@ -397,7 +397,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                     LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
                     break;
                 default:
-//                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
                     throw new StorageServerClientException("Internal Server Error");
             }

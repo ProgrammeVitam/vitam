@@ -49,7 +49,7 @@ public class SecureStorageLogbook {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecureStorageLogbook.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_SECURISATION_NAME = "securisationDaemon.conf";
+    private static final String VITAM_SECURISATION_NAME = "SecureStorageLogBook.conf";
 
     /**
      * @param args ignored
@@ -60,13 +60,12 @@ public class SecureStorageLogbook {
         platformSecretConfiguration();
         try {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-            final SecureConfiguration conf = PropertiesUtils.readYaml(confFile, SecureConfiguration.class);
+            final StorageSecureConfiguration conf = PropertiesUtils.readYaml(confFile, StorageSecureConfiguration.class);
             VitamThreadFactory instance = VitamThreadFactory.getInstance();
             Thread thread = instance.newThread(() -> {
                 conf.getTenants().forEach((v) -> {
-                    Integer i = Integer.parseInt(v);
                     try {
-                        secureByTenantId(i);
+                        secureByTenantId(v);
                     } catch (StorageServerClientException e) {
                         e.printStackTrace();
                     }
