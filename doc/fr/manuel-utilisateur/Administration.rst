@@ -32,7 +32,7 @@ Formulaire de recherche
 
 Pour effectuer une recherche précise, on utilise les champs "ID" ou "Type d'opération" :
 
-- L'ID est un champ libre, correspondant à l'ID de l'opération donné par le système.
+- L'ID est un champ libre, correspondant à l'identifiant de l'opération donné par le système.
 - Les types d'opération sont présentés sous forme de liste, permettant à l'utilisateur de sélectionner un type d'opération en particulier.
 
 NB : Il est impossible d'effectuer une recherche croisée par ID et type d'opération.
@@ -98,7 +98,7 @@ Pour cela, l'utilisateur peut récuperer ce fichier dans sa version la plus réc
 Le processus d'import du référentiel se décrit comme ceci :
 
 - L'utilisateur accède à l'écran d'import du référentiel des formats et clique sur le bouton "Choisissez un fichier" pour sélectionner un fichier
-- Le fichier à selectionner est le fichier XML PRONOM récupéré précédemment
+- Le fichier à sélectionner est le fichier XML PRONOM récupéré précédemment
 - L'utilisateur valide son choix
 - La solution logicielle Vitam vérifie l'intégrité et la cohérence du fichier
 
@@ -110,7 +110,7 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas 
 
 .. image:: images/import_rf_format_KO.png
 
-- En cas d'erreur pour cause de référentiel déjà existant : la solution logicielle Vitam détecte la présence d'un référentiel des formats. Par conséquent un message d'erreur indiquant "Référentiel des formats déjà existant" est affiché. L'import est alors impossible. 
+- En cas d'erreur pour cause de référentiel déjà existant : la solution logicielle Vitam détecte la présence d'un référentiel des formats. Par conséquent un message d'erreur indiquant "Référentiel des formats déjà existant" est affiché. L'import est alors impossible.
 
 .. image:: images/import_rf_deja_existant.png
 
@@ -207,7 +207,7 @@ Plusieurs critères doivent être respectés pour s'assurer de la bonne construc
 Un fichier valide est un fichier respectant toutes les conditions suivantes :
 
 - Il s'agit d'un format CSV dont la structure est bien formée
-- Il possède des valeurs dont le format est correct 
+- Il possède des valeurs dont le format est correct
 - Il comporte des valeurs dans tous les champs obligatoires
 - Il possède des valeurs cohérentes avec les besoins métier
 
@@ -524,7 +524,7 @@ La liste est composée des colonnes suivantes :
 * INGEST - indique une opération d’entrée normale
 * INGEST_TEST - indique une opération d’entrée en test à blanc
 * Date de l’entrée - date à laquelle l’entrée à été soumise à la solution logicielle Vitam
-* Mode d’éxécution - indique le mode d’éxécution choisi. Celui-ci peut-être
+* Mode d’exécution - indique le mode d’exécution choisi. Celui-ci peut-être
 	* Continu
 	* Pas à pas
 * Etat global de l’opération d’entrée - indique si l’opération est :
@@ -532,7 +532,7 @@ La liste est composée des colonnes suivantes :
 	* En cours
 	* Terminée
 * Statut : Statut de la dernière étape du workflow réalisée au cours de l’opération d’entrée
-* Actions : Contient des boutons d’action permettant d’interragir avec l'entrée réalisée en mode d’éxécution pas à
+* Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à
 pas
 
 Les opérations d’entrée sont classées par ordre alphabétique selon leur identifiant.
@@ -542,12 +542,9 @@ Utilisation du mode pas à pas
 
 Lorsque l’entrée est ralisée en mode d’éxécution pas à pas, l’utilisateur doit alors utiliser les boutons d’actions dispo-
 nibles afin de faire avancer son traitement.
-
 Les boutons disponibles sont :
 
-* Suivant : permet de passer à l’étape suivante du workflow. Lorsqu’une étape est terminée, il faut cliquer sur
-“suivant” pour continuer l’entrée
+* Suivant : permet de passer à l’étape suivante du workflow - lorsqu’une étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
 * Pause : permet de mettre l’opération d’entrée en pause
-* Reprise : Permet de reprendre une entrée en pause
-* Arrêt : permet d’arrêter complétement une opération d’entrée. Elle passera alors en statut “terminée” et il sera
-impossible de la redémarrer.
+* Reprise : permet de reprendre une entrée en pause
+* Arrêt : permet d’arrêter complètement une opération d’entrée. Elle passera alors en statut “terminée” et il sera impossible de la redémarrer

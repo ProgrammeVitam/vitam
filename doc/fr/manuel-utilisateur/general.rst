@@ -38,7 +38,7 @@ Deux types de formulaire sont utilisés dans la solution logicielle Vitam :
 Formulaires de recherche simple
 -------------------------------
 
-Les formulaires de recherche simple sont constitués d'un champ et d'un bouton "Rechercher". A droite du champs de recherche, l'utilisateur peut cliquer sur une croix pour effacer sa recherche.
+Les formulaires de recherche simple sont constitués d'un champ et d'un bouton "Rechercher". A droite du champ de recherche, l'utilisateur peut cliquer sur une croix pour effacer sa recherche.
 
 .. image:: images/gen_formulaire_simple.png
 
@@ -82,7 +82,7 @@ Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affich
 Affichage des dates et heures
 =============================
 
-Les dates et heures sont affichées au format jour-mois-année heures:minnutes (JJ-MM-AAAA HH:mm). 
+Les dates et heures sont affichées au format jour-mois-année heures:minutes (JJ-MM-AAAA HH:mm). 
 
 .. image:: images/date_heure.png
 

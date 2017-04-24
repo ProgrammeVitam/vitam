@@ -50,7 +50,7 @@ Le ou les mots saisis vont être recherchés dans les métadonnées suivantes :
 
 - Titre de l'unité archivistique
 - Description de l'unité archivistique
-- Idetifiant de l'unité archivistiques (attribué par le système)
+- Identifiant de l'unité archivistique (attribué par le système)
 - Dates extrêmes (Date de début et date de fin)
 
 Pour initier la recherche avancée, l'utilisateur saisit ses éléments dans les champs disponibles, puis clique sur le bouton "Rechercher".
@@ -97,7 +97,7 @@ Détail de l'unité archivistique
 Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivitique dans la solution logicielle Vitam.
 
 En premier, s'affiche la ou les arborescences de l'unité archivistique.
-Il est possible de cliquer sur les noeuds de l'arborecsence pour naviguer entre les unités archivistiques pères.
+Il est possible de cliquer sur les noeuds de l'arborescence pour naviguer entre les unités archivistiques pères.
 
 Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et de gestion relatives à l'unité archivistique.
 
@@ -114,7 +114,7 @@ Une fois les modification des métadonnées effectuées, les anciennes valeurs s
 
 .. image:: images/detail_v2.jpg
 
-Si des règles de gestion s'appliquent à l'unité archivistique, alors celles-ci sont listées parmi les catégorie suivantes :
+Si des règles de gestion s'appliquent à l'unité archivistique, alors celles-ci sont listées parmi les catégories suivantes :
 
 - Règle de durée d'utilité administrative
 - Règle de délais de communicabilité
@@ -158,10 +158,10 @@ Journaux du cycle de vie
 Une fois le processus d'entrée d'un SIP terminé avec succès, pour chaque nouvelle unité archivistique et groupe d'objets créés, un journal du cycle de vie est généré.
 Il trace tous les événements qui impactent l'unité archivistique et les objets, dès leur prise en charge dans la solution logicielle Vitam.
 
-Journal du cycle du vie d'une unité archivistique
+Journal du cycle de vie d'une unité archivistique
 -------------------------------------------------
 
-Le journal du cycle du vie de l'unité archivistique est disponible depuis son détail en cliquant sur l'icône "Journal du cycle de vie".
+Le journal du cycle de vie de l'unité archivistique est disponible depuis son détail en cliquant sur l'icône "Journal du cycle de vie".
 
 .. image:: images/JCV_AU_bouton.jpg
 
@@ -194,7 +194,7 @@ La liste déroulante contient les champs suivants :
 Journal du cycle de vie du groupe d'objet
 -----------------------------------------
 
-Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique, dans la partie groupe d"objets.
+Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique, dans la partie groupe dobjets.
 
 .. image:: images/JCV_GO_bouton.jpg
 
@@ -233,7 +233,7 @@ Le registre des fonds a pour but de :
 Recherche dans le registre des fonds
 ------------------------------------
 
-Pour y accéder, l'utilisateur clique sur "Recherche" dans le barre de menu puis sur "Registre des fonds" dans le sous-menu associé.
+Pour y accéder, l'utilisateur clique sur "Recherche" dans la barre de menu puis sur "Registre des fonds" dans le sous-menu associé.
 
 .. image:: images/menu_registre.jpg
 
