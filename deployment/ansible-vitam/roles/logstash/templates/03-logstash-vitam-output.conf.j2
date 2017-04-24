@@ -18,7 +18,7 @@ output
                 hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch_log_http_port + '", "') }}:{{elasticsearch_log_http_port}}"]
             }
         }
-        else if [vitam_component] =~ "elasticsearch-log" or [logger] == "curator"
+        else if [vitam_component] =~ "elasticsearch-log" or [vitam_component] =~ "logstash" or [logger] =~ "curator"
         {
             elasticsearch
             {
@@ -49,8 +49,9 @@ output
 
     # -----------------------------------------------------
     # Following is for debug purpose only
-    # stdout {
-    #   debug => debug_format => "json"
-    #   codec => rubydebug
+    # if [logger] != "consul" and [vitam_component] not in ["mongos","mongod","mongoc"] {
+    #     stdout {
+    #       codec => rubydebug
+    #     }
     # }
 }
