@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.storage.logbook;
 
+import com.google.common.io.ByteStreams;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
@@ -78,7 +79,8 @@ public class LogZipFile implements AutoCloseable {
      * @throws IOException if write log error
      */
     public void storeLogFile(InputStream stream) throws IOException {
-        StreamUtils.copy(stream, archive);
+        ByteStreams.copy(stream, archive);
+        stream.close();
         archive.closeArchiveEntry();
     }
 

@@ -175,13 +175,14 @@ public class StorageLogAppender {
      * @throws IOException
      */
     public LogInformation secureWithoutCreatingNewLogByTenant(Integer tenant) throws IOException {
-        OutputStream out = streams.get(tenant);
         LocalDateTime endTime = null;
         //save the name
-        Path lastPath = filesNames.get(tenant);
+        Path lastPath = null;
         ReentrantLock lock = lockers.get(tenant);
         try {
+            OutputStream out = streams.get(tenant);
             lock.lock();
+            filesNames.get(tenant);
             endTime = LocalDateTime.now();
             out.flush();
             out.close();

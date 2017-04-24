@@ -87,6 +87,8 @@ public class StorageLogbookAdministration {
     private static final String STP_SECURISATION = "STORAGE_LOG_OP_SECURISATION";
     private static final String OP_SECURISATION_STORAGE_LOGBOOK = "OP_SECURISATION_STORAGE_LOGBOOK";
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
+    private static final String STP_OP_SECURISATION_WORKSPACE = "Copie dans le WorkSapce";
+
 
     private static final String STRATEGY_ID = "default";
     final StorageLogbookService storageLogbookService;
@@ -125,7 +127,7 @@ public class StorageLogbookAdministration {
         //
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
 
-        final String fileName = String.format("%d_LogbookOperation_%s.zip", tenantId, "");
+        final String fileName = String.format("%d_LogbookOperation_%s.zip", tenantId, eip.toString());
         createLogbookOperationStructure(eip, tenantId);
 
         final File zipFile = new File(tmpFolder, fileName);
@@ -156,7 +158,7 @@ public class StorageLogbookAdministration {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
-            createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, StatusCode.STARTED, null);
+            createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION_WORKSPACE, StatusCode.STARTED, null);
 
             workspaceClient.createContainer(fileName);
             workspaceClient.putObject(fileName, uri, inputStream);
@@ -166,14 +168,13 @@ public class StorageLogbookAdministration {
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(fileName);
             description.setWorkspaceObjectURI(uri);
+            createLogbookOperationEvent(eip, tenantId, STP_OP_SECURISATION_WORKSPACE, StatusCode.OK, null);
 
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
                     STRATEGY_ID, StorageCollectionType.OBJECTS, fileName, description);
                 workspaceClient.deleteObject(fileName, uri);
-
-                createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, StatusCode.OK, null);
 
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {

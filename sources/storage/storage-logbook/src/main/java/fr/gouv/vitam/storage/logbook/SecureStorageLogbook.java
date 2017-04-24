@@ -49,7 +49,7 @@ public class SecureStorageLogbook {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecureStorageLogbook.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
-    private static final String VITAM_SECURISATION_NAME = "SecureStorageLogBook.conf";
+    private static final String VITAM_SECURISATION_NAME = "secureStorageLog.conf";
 
     /**
      * @param args ignored
