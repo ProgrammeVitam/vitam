@@ -243,11 +243,11 @@ public class UnitInheritedRule {
                     while (originIds.hasNext()) {
                         String originId = originIds.next();
                         if (checkPreventInheritance(originNode.get(originId))) {
-                            inheritedCategoryName.add(categoryName); 
-                        } else {
-                            ArrayNode pathNode = (ArrayNode) originNode.get(originId).get(PATH);
-                            updateOriginPath(pathNode, unitId);
+                            // If a preventInheritance is present on parent node, remove it for childs.
+                            ((ObjectNode)originNode.get(originId)).remove(PREVENTINHERITANCE);
                         }
+                        ArrayNode pathNode = (ArrayNode) originNode.get(originId).get(PATH);
+                        updateOriginPath(pathNode, unitId);
                     }
                 }
             } else {
@@ -428,11 +428,10 @@ public class UnitInheritedRule {
                 String originId = originIds.next();
 
                 if (checkPreventInheritance(ruleNode.get(originId))) {
-                    inheritedCategoryName.add(categoryName);
-                } else {
-                    ArrayNode pathNode = (ArrayNode) ruleNode.get(originId).get(PATH);
-                    updateOriginPath(pathNode, unitId);
+                    ((ObjectNode)ruleNode.get(originId)).remove(PREVENTINHERITANCE);
                 }
+                ArrayNode pathNode = (ArrayNode) ruleNode.get(originId).get(PATH);
+                updateOriginPath(pathNode, unitId);
             }
 
         } else {

@@ -83,6 +83,9 @@
                         <Rule>DIS-00003</Rule>
                         <StartDate>1950-01-01</StartDate>
                     </DisseminationRule>
+                    <AccessRule>
+                        <PreventInheritance>true</PreventInheritance>
+                    </AccessRule>
                 </Management>
                 <Content>
                     <DescriptionLevel>RecordGrp</DescriptionLevel>
@@ -241,6 +244,17 @@
             </ArchiveUnit>
         </DescriptiveMetadata>
         <ManagementMetadata>
+            <StorageRule>
+                <Rule>R6</Rule>
+                <StartDate>2021-01-01</StartDate>
+                <Rule>R1</Rule>
+                <StartDate>1900-01-01</StartDate>
+                <FinalAction>RestrictAccess</FinalAction>
+            </StorageRule>
+            <AccessRule>
+                <Rule>ACC-00035</Rule>
+                <StartDate>2020-01-01</StartDate>
+            </AccessRule>
             <OriginatingAgencyIdentifier>Service_producteur</OriginatingAgencyIdentifier>
             <SubmissionAgencyIdentifier>Service_versant</SubmissionAgencyIdentifier>
         </ManagementMetadata>
