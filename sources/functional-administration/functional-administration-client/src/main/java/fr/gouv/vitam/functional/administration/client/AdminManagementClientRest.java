@@ -35,8 +35,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -45,7 +43,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -53,7 +50,12 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.client.model.*;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
+import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -92,7 +94,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     // régles
     // de gestions, contrat , etc)
     @Override
-    public Response checkFormat(InputStream stream) throws ReferentialException {
+    public Status checkFormat(InputStream stream) throws ReferentialException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -112,15 +114,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return response;
+            return status;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public Response importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException {
+    public Status importFormat(InputStream stream) throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -142,10 +146,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return response;
+            return status;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -208,7 +214,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
 
     @Override
-    public Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
+    public Status checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
         try {
@@ -229,15 +235,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return response;
+            return status;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public Response importRulesFile(InputStream stream)
+    public Status importRulesFile(InputStream stream)
         throws FileRulesException, DatabaseConflictException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
         Response response = null;
@@ -264,10 +272,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return response;
+            return status;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -468,7 +478,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse importIngestContracts(List<IngestContractModel> ingestContractModelList)
+    public Status importIngestContracts(List<IngestContractModel> ingestContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input ingest contracts json is mandatory", ingestContractModelList);
         Response response = null;
@@ -479,13 +489,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
 
-            if (status == Status.CREATED) {
-                LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    IngestContractModel.class);
-            }
-
-            return RequestResponse.parseFromResponse(response);
+            return status;
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -495,7 +499,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse importAccessContracts(List<AccessContractModel> accessContractModelList)
+    public Status importAccessContracts(List<AccessContractModel> accessContractModelList)
             throws InvalidParseOperationException, AdminManagementClientServerException {
 
         ParametersChecker.checkParameter("The input access contracts json is mandatory", accessContractModelList);
@@ -507,13 +511,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     false);
             final Status status = Status.fromStatusCode(response.getStatus());
 
-            if (status == Status.CREATED) {
-                LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
-                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        AccessContractModel.class);
-            }
-
-            return RequestResponse.parseFromResponse(response);
+            return status;
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

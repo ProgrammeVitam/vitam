@@ -28,7 +28,7 @@ package fr.gouv.vitam.access.external.client;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -56,7 +56,7 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientException
      * @throws AccessExternalClientServerException
      */
-    Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException,
         AccessExternalClientException, AccessExternalClientServerException;
 
@@ -71,7 +71,7 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**

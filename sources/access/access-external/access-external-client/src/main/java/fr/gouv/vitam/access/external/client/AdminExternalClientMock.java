@@ -2,7 +2,7 @@ package fr.gouv.vitam.access.external.client;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -23,20 +23,20 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
 
     @Override
-    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
-            return Response.ok().build();
+            return Status.OK;
         }
         throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
     }
 
     @Override
-    public Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
-        return Response.ok().build();
+        return Status.CREATED;
     }
 
     @Override

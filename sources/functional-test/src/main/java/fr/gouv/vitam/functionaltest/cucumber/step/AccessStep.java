@@ -44,6 +44,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.assertj.core.api.Fail;
 
@@ -320,17 +321,17 @@ public class AccessStep {
         Path file = Paths.get(world.getBaseDirectory(), filename);
         try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
             AdminCollections adminCollection = AdminCollections.valueOf(collection);
-            Response response = null;
+            Status status = null;
             results = new ArrayList<>();
             if ("vérifie".equals(action)) {
-                response =
+                status =
                     world.getAdminClient().checkDocuments(adminCollection, inputStream, world.getTenantId());
             } else if ("importe".equals(action)) {
-                response =
+                status =
                     world.getAdminClient().createDocuments(adminCollection, inputStream, world.getTenantId());
             }
-            if (response != null) {
-                results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(response.getStatus())));
+            if (status != null) {
+                results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status.getStatusCode())));
             }
         }
     }
