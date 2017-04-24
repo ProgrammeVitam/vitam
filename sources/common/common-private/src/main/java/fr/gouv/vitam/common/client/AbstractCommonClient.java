@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -122,11 +123,15 @@ abstract class AbstractCommonClient implements BasicClient {
                     StreamUtils.closeSilently((InputStream) object);
                 }
             }
-        } catch (final IllegalStateException | ProcessingException e) {
+        } catch (final Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         } finally {
             if (response != null) {
-                response.close();
+                try {
+                    response.close();
+                } catch (final Exception e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
             }
         }
     }
@@ -144,7 +149,6 @@ abstract class AbstractCommonClient implements BasicClient {
         try {
             response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE, false);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            consumeAnyEntityAndClose(response);
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
             }
@@ -154,11 +158,9 @@ abstract class AbstractCommonClient implements BasicClient {
         } catch (ProcessingException | VitamClientInternalException e) {
             final String messageText = INTERNAL_SERVER_ERROR + " : " + e.getMessage();
             LOGGER.error(messageText);
-            throw new VitamApplicationServerException(messageText, e);
+            throw new VitamApplicationServerDisconnectException(messageText, e);
         } finally {
-            if (response != null) {
-                response.close();
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 

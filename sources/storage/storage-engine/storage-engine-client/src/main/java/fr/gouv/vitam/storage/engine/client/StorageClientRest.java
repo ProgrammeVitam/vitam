@@ -372,9 +372,11 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
         ParametersChecker.checkParameter("Strategy cannot be null", strategyId);
         ParametersChecker.checkParameter("Type cannot be null", type);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
         headers.add(GlobalDataRest.X_CURSOR, true);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         return new VitamRequestIterator<>(this, HttpMethod.GET, type.name(), JsonNode.class, headers, null);
     }
 

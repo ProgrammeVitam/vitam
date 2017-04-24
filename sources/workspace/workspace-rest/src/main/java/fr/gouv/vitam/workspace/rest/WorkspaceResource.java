@@ -126,7 +126,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName + " => " + e.getMessage());
+            LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName).build();
         } catch (Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -273,7 +273,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + containerName + "/" + folderName, e);
+            LOGGER.info(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + containerName + "/" + folderName, e);
             return Response.status(Status.CONFLICT).entity(containerName + "/" + folderName).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName, e);
@@ -373,7 +373,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
                 return Response.status(Status.NOT_FOUND).entity(containerName).build();
             } catch (final ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
+                LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
                 return Response.status(Status.CONFLICT).entity(containerName).build();
             } catch (final ContentAddressableStorageCompressedFileException e) {
                 LOGGER.error(e);

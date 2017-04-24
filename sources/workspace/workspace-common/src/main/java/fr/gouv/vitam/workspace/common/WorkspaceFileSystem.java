@@ -121,7 +121,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     public void purgeContainer(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         if (!isExistingContainer(containerName)) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            LOGGER.info(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
         }
@@ -183,7 +183,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                 ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
         }
         if (isExistingFolder(containerName, folderName)) {
-            LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST + folderName);
+            LOGGER.info(ErrorMessage.FOLDER_ALREADY_EXIST + folderName);
             throw new ContentAddressableStorageAlreadyExistException(
                 ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + folderName);
         }

@@ -279,7 +279,7 @@ public class StorageTestMultiIT {
             }
             LOGGER.warn("Test Passed with size: " + size);
             try {
-                Thread.sleep(100);
+                Thread.sleep(10);
             } catch (InterruptedException e) {
                 LOGGER.warn("Interruption with size: " + size);
                 assert (false);
@@ -293,7 +293,7 @@ public class StorageTestMultiIT {
     @Test
     public void testParallel() throws InterruptedException {
         size = 6 * 64000;
-        final ExecutorService executor = new VitamThreadPoolExecutor(NB_MULTIPLE_THREADS);
+        ExecutorService executor = new VitamThreadPoolExecutor(NB_MULTIPLE_THREADS);
         List<Future<Boolean>> list = new ArrayList<Future<Boolean>>(NB_MULTIPLE_THREADS);
         List<FullTest> listFullTest = new ArrayList<FullTest>(NB_MULTIPLE_THREADS);
         // initialize Workspace
