@@ -389,6 +389,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
                     globalMetadata = false;
                 }
+                
+                // Bug #2324 - lets check the serviceLevel value 
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_SERVICE_LEVEL)) {
+                    final String serviceLevel = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_SERVICE_LEVEL));
+                    writer.add(eventFactory.createCharacters(serviceLevel));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_SERVICE_LEVEL));
+                    globalMetadata = false;
+                }
 
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER)) {
@@ -555,10 +567,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                 }
 
-                JsonNode serviceLevel = metadataAsJson.get(SedaConstants.TAG_SERVICE_LEVEL);
-                if (serviceLevel != null) {
-                    LOGGER.debug("Find a service Level: " + serviceLevel);
-                    evDetData.put("ServiceLevel", serviceLevel.asText());
+                JsonNode dataObjPack = metadataAsJson.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                if (dataObjPack != null) {
+                    JsonNode serviceLevel = dataObjPack.get(SedaConstants.TAG_SERVICE_LEVEL);
+                    if (serviceLevel != null) {
+                        LOGGER.debug("Find a service Level: " + serviceLevel);
+                        evDetData.put("ServiceLevel", serviceLevel.asText());
+                    }
                 }
                 
             } catch (InvalidParseOperationException e) {
