@@ -65,3 +65,5 @@ Le résultat de l'éxécution est un objet DbRequestResult qui contient les info
    Insert insertquery = new Insert();
    insertquery.setData(arrayNode);
    DbRequestResult result = dbrequest.execute(insertquery);
+   
+L'implémentation du sort est disponible sur les requêtes MongoDB et ElasticSearch.

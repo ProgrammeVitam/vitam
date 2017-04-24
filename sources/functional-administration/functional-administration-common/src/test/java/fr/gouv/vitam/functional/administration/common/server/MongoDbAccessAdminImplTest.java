@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.gouv.vitam.functional.administration.common.*;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -88,7 +87,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ContractStatus;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public class MongoDbAccessAdminImplTest {
@@ -113,18 +117,24 @@ public class MongoDbAccessAdminImplTest {
 
     private static final String REUSE_RULE = "ReuseRule";
     private static final String RULE_ID_VALUE = "APK-485";
+    private static final String RULE_ID_VALUE_2 = "APK-48";
     private static final String RULE_ID = "RuleId";
     private static final String FILEFORMAT_PUID = "x-fmt/33";
+    private static final String FILEFORMAT_PUID_2 = "x-fmt/44";
+    private static final String FILEFORMAT_PUID_3 = "x-fmt/55";
     private static final String AGENCY = "Agency";
     private static final Integer TENANT_ID = 0;
 
     static int port;
     static MongoDbAccessAdminImpl mongoAccess;
-    static FileFormat file;
-    static FileRules fileRules;
+    static FileFormat fileFormat1;
+    static FileFormat fileFormat2;
+    static FileFormat fileFormat3;
+    static FileRules fileRules1;
+    static FileRules fileRules2;
     static AccessionRegisterDetail register;
     static IngestContract contract;
-    
+
     private static ElasticsearchTestConfiguration esConfig = null;
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchAccessFunctionalAdmin esClient;
@@ -145,7 +155,7 @@ public class MongoDbAccessAdminImplTest {
         esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, esNodes);
         FunctionalAdminCollections.FORMATS.initialize(esClient);
         FunctionalAdminCollections.RULES.initialize(esClient);
-        //FunctionalAdminCollections.INGEST_CONTRACT.initialize(esClient);
+        // FunctionalAdminCollections.INGEST_CONTRACT.initialize(esClient);
         port = junitHelper.findAvailablePort();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .version(Version.Main.PRODUCTION)
@@ -160,7 +170,10 @@ public class MongoDbAccessAdminImplTest {
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
 
-        file = new FileFormat()
+        final List<String> testList2 = new ArrayList<>();
+        testList.add("test2");
+
+        fileFormat1 = new FileFormat()
             .setCreatedDate("now")
             .setExtension(testList)
             .setMimeType(testList)
@@ -170,12 +183,40 @@ public class MongoDbAccessAdminImplTest {
             .setPUID(FILEFORMAT_PUID)
             .setVersion("version");
 
-        fileRules = new FileRules(TENANT_ID)
+        fileFormat2 = new FileFormat()
+            .setCreatedDate("now")
+            .setExtension(testList)
+            .setMimeType(testList)
+            .setName("Acrobat PDF 1.0 - Portable Document Format")
+            .setPriorityOverIdList(testList)
+            .setPronomVersion("pronom version")
+            .setPUID(FILEFORMAT_PUID_2)
+            .setVersion("version");
+
+        fileFormat3 = new FileFormat()
+            .setCreatedDate("now")
+            .setExtension(testList)
+            .setMimeType(testList2)
+            .setName("Acrobat PDF/X - Portable Document Format - Exchange 1a:2001")
+            .setPriorityOverIdList(testList)
+            .setPronomVersion("pronom version")
+            .setPUID(FILEFORMAT_PUID_3)
+            .setVersion("version");
+
+        fileRules1 = new FileRules(TENANT_ID)
             .setRuleId(RULE_ID_VALUE)
             .setRuleValue(" 3D étudiants avec actes de naissance 10/10/2000 17 e siècle NFZ42020")
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("10")
+            .setRuleMeasurement("Annee");
+
+        fileRules2 = new FileRules(TENANT_ID)
+            .setRuleId(RULE_ID_VALUE_2)
+            .setRuleValue(" 3D étudiants avec actes de naissance 10/10/2000 18 e siècle NFZ42020")
+            .setRuleType(REUSE_RULE)
+            .setRuleDescription("testList")
+            .setRuleDuration("20")
             .setRuleMeasurement("Annee");
 
         final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(1, 0, 1);
@@ -188,7 +229,7 @@ public class MongoDbAccessAdminImplTest {
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
             .setTotalUnits(initialValue);
-        
+
         contract = createContract();
 
     }
@@ -207,15 +248,26 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testImplementFunction() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode = JsonHandler.getFromString(file.toJson());
+        final JsonNode jsonNode1 = JsonHandler.getFromString(fileFormat1.toJson());
+        final JsonNode jsonNode2 = JsonHandler.getFromString(fileFormat2.toJson());
+        final JsonNode jsonNode3 = JsonHandler.getFromString(fileFormat3.toJson());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
-        arrayNode.add(jsonNode);
+        arrayNode.add(jsonNode1);
+        arrayNode.add(jsonNode2);
+        arrayNode.add(jsonNode3);
         FunctionalAdminCollections formatCollection = FunctionalAdminCollections.FORMATS;
         mongoAccess.insertDocuments(arrayNode, formatCollection);
         assertEquals("FileFormat", formatCollection.getName());
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        assertEquals(1, collection.count());
+        assertEquals(3, collection.count());
+
+        // find all
+        QueryBuilder query = QueryBuilders.matchAllQuery();
+        final SearchResponse requestResponse = formatCollection.getEsClient().search(formatCollection, query, null);
+        assertEquals(3, requestResponse.getHits().getTotalHits());
+
+        // find one by id
         final Select select = new Select();
         select.setQuery(and()
             .add(match(FileFormat.NAME, "name"))
@@ -227,13 +279,37 @@ public class MongoDbAccessAdminImplTest {
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
         assertEquals(f2, f1);
         formatCollection.getEsClient().refreshIndex(formatCollection);
-        QueryBuilder query = QueryBuilders.matchAllQuery();
-        final SearchResponse requestResponse =
-            formatCollection.getEsClient()
-                .search(formatCollection, query, null);
-        assertEquals(1, requestResponse.getHits().getTotalHits());
-        
-        //Test update and delete by query 
+        assertEquals(false, fileList.hasNext());
+
+        // Test select by query with order on name
+        final Select selectWithSortName = new Select();
+        selectWithSortName.setQuery(and().add(match(FileFormat.NAME, "acrobat")));
+        selectWithSortName.addOrderByDescFilter(FileFormat.NAME);
+        DbRequestSingle dbrequestSort = new DbRequestSingle(formatCollection.getVitamCollection());
+        DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
+        final MongoCursor<VitamDocument<?>> selectSortList = selectSortResult.getCursor();
+        assertEquals(true, selectSortList.hasNext());
+        FileFormat fileFormatFirst = (FileFormat) selectSortList.next();
+        assertEquals(FILEFORMAT_PUID_3, fileFormatFirst.getString(FileFormat.PUID));
+        FileFormat fileFormatSecond = (FileFormat) selectSortList.next();
+        assertEquals(FILEFORMAT_PUID_2, fileFormatSecond.getString(FileFormat.PUID));
+        selectSortList.close();
+
+        // Test select by query with order on id
+        final Select selectWithSortId = new Select();
+        selectWithSortId.setQuery(match(FileFormat.NAME, "acrobat"));
+        selectWithSortName.addOrderByAscFilter(FileFormat.PUID);
+        DbRequestSingle dbrequestSortId = new DbRequestSingle(formatCollection.getVitamCollection());
+        DbRequestResult selectSortIdResult = dbrequestSortId.execute(selectWithSortId);
+        final MongoCursor<VitamDocument<?>> selectSortIdList = selectSortIdResult.getCursor();
+        assertEquals(true, selectSortIdList.hasNext());
+        fileFormatFirst = (FileFormat) selectSortIdList.next();
+        assertEquals(FILEFORMAT_PUID_2, fileFormatFirst.getString(FileFormat.PUID));
+        fileFormatSecond = (FileFormat) selectSortIdList.next();
+        assertEquals(FILEFORMAT_PUID_3, fileFormatSecond.getString(FileFormat.PUID));
+        selectSortIdList.close();
+
+        // Test update and delete by query
         final Update update = new Update();
         update.setQuery(match(FileFormat.NAME, "name"));
         update.addActions(UpdateActionHelper.set(FileFormat.NAME, "new name"));
@@ -241,12 +317,12 @@ public class MongoDbAccessAdminImplTest {
         DbRequestResult updateResult = dbrequest.execute(update);
         assertEquals(1, updateResult.getCount());
         formatCollection.getEsClient().refreshIndex(formatCollection);
-        
+
         final Delete delete = new Delete();
         delete.setQuery(match(FileFormat.NAME, "new name"));
         DbRequestResult deleteResult = dbrequest.execute(delete);
         assertEquals(1, deleteResult.getCount());
-        assertEquals(0, collection.count());
+        assertEquals(2, collection.count());
         fileList.close();
         formatCollection.getEsClient().deleteIndex(formatCollection);
         mongoAccess.deleteCollection(formatCollection);
@@ -257,15 +333,17 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testRulesFunction() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode = JsonHandler.getFromString(fileRules.toJson());
+        final JsonNode jsonNode1 = JsonHandler.getFromString(fileRules1.toJson());
+        final JsonNode jsonNode2 = JsonHandler.getFromString(fileRules2.toJson());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
-        arrayNode.add(jsonNode);
+        arrayNode.add(jsonNode1);
+        arrayNode.add(jsonNode2);
         FunctionalAdminCollections rulesCollection = FunctionalAdminCollections.RULES;
         mongoAccess.insertDocuments(arrayNode, rulesCollection);
         assertEquals("FileRules", rulesCollection.getName());
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_RULES);
-        assertEquals(1, collection.count());
+        assertEquals(2, collection.count());
 
         final Select select = new Select();
         select.setQuery(and()
@@ -286,12 +364,26 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
 
+        // Test select by query with order on rule value
+        final Select selectWithSortName = new Select();
+        selectWithSortName.setQuery(and().add(match(FileRules.RULEVALUE, "siecle")));
+        selectWithSortName.addOrderByDescFilter(FileRules.RULEVALUE);
+        DbRequestSingle dbrequestSort = new DbRequestSingle(rulesCollection.getVitamCollection());
+        DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
+        final MongoCursor<VitamDocument<?>> selectSortList = selectSortResult.getCursor();
+        assertEquals(true, selectSortList.hasNext());
+        FileRules fileRuleFirst = (FileRules) selectSortList.next();
+        assertEquals(RULE_ID_VALUE_2, fileRuleFirst.getString(FileRules.RULEID));
+        FileRules fileRuleSecond = (FileRules) selectSortList.next();
+        assertEquals(RULE_ID_VALUE, fileRuleSecond.getString(FileRules.RULEID));
+        selectSortList.close();
+        
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse requestResponse =
             rulesCollection.getEsClient()
                 .search(rulesCollection, query, null);
         fileList.close();
-        assertEquals(1, requestResponse.getHits().getTotalHits());
+        assertEquals(2, requestResponse.getHits().getTotalHits());
         mongoAccess.deleteCollection(rulesCollection);
         assertEquals(0, collection.count());
         client.close();
@@ -318,12 +410,9 @@ public class MongoDbAccessAdminImplTest {
         client.close();
     }
 
-
-
     @Test
     @RunWithCustomExecutor
     public void testIngestContract() throws Exception {
-        
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
@@ -334,7 +423,7 @@ public class MongoDbAccessAdminImplTest {
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
         final MongoCollection<Document> collection =
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
-        for(String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
+        for (String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
             System.out.println(c);
         }
         mongoAccess.insertDocuments(arrayNode, contractCollection);
@@ -345,12 +434,14 @@ public class MongoDbAccessAdminImplTest {
         client.close();
     }
 
-        
+
     @Test
     @RunWithCustomExecutor
-    public void testFindContract() throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException, DatabaseException{
-        
-        
+    public void testFindContract()
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
+        DatabaseException {
+
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
@@ -359,14 +450,14 @@ public class MongoDbAccessAdminImplTest {
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         mongoAccess.insertDocuments(arrayNode, contractCollection);
-        
+
         final Select select = new Select();
         select.setQuery(and()
             .add(eq(IngestContract.NAME, "aName"))
             .add(or()
                 .add(eq(IngestContract.CREATIONDATE, "10/12/2016"))));
         final MongoCursor<VitamDocument<?>> contracts =
-        mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
+            mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
         final IngestContract foundContract = (IngestContract) contracts.next();
         contracts.close();
         assertEquals("aName", foundContract.getString(IngestContract.NAME));

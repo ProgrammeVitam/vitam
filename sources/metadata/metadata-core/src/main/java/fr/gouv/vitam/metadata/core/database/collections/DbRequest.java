@@ -48,6 +48,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
@@ -109,12 +110,11 @@ public class DbRequest {
     private static final String NO_RESULT_AT_RANK = "No result at rank: ";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-    
+
     /**
      * Constructor
      */
-    public DbRequest() {
-    }
+    public DbRequest() {}
 
     /**
      * The request should be already analyzed.
@@ -123,9 +123,9 @@ public class DbRequest {
      * @param defaultStartSet the set of id from which the request should start, whatever the roots set
      * @return the Result
      * @throws IllegalAccessException when exceute query exception
-     * @throws InstantiationException when result/request class instance exception occurred 
+     * @throws InstantiationException when result/request class instance exception occurred
      * @throws MetaDataExecutionException when select/insert/update/delete on metadata collection exception occurred
-     * @throws InvalidParseOperationException when json data exception occurred 
+     * @throws InvalidParseOperationException when json data exception occurred
      * @throws MetaDataAlreadyExistException when insert metadata exception
      * @throws MetaDataNotFoundException when metadata not found exception
      */
@@ -343,9 +343,11 @@ public class DbRequest {
         throws MetaDataExecutionException, InstantiationException,
         IllegalAccessException, InvalidParseOperationException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
+        final boolean isLastQuery = (requestToMongodb.getNbQueries() == rank + 1);
+        Bson orderBy = null;
         Integer tenantId = ParameterHelper.getTenantParameter();
-        if (requestToMongodb instanceof SelectToMongodb) {
-            tenantId = ParameterHelper.getTenantParameter();
+        if (requestToMongodb instanceof SelectToMongodb && isLastQuery) {
+            orderBy = ((SelectToMongodb) requestToMongodb).getFinalOrderBy();
         }
 
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -382,11 +384,11 @@ public class DbRequest {
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
-                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId);
+                    result = relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, orderBy);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
-                    result = sameDepthUnitQuery(realQuery, previous, tenantId);
+                    result = sameDepthUnitQuery(realQuery, previous, tenantId, orderBy);
                 }
             } else {
                 // OBJECTGROUPS
@@ -453,7 +455,8 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
-    protected Result relativeDepthUnitQuery(Query realQuery, Result previous, int relativeDepth, Integer tenantId)
+    protected Result relativeDepthUnitQuery(Query realQuery, Result previous, int relativeDepth, Integer tenantId,
+        final Bson orderBy)
         throws InvalidParseOperationException, MetaDataExecutionException {
 
         if (realQuery.isFullText()) {
@@ -486,8 +489,10 @@ public class DbRequest {
             }
             previous.clear();
 
-            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId, Unit.TYPEUNIQUE, query,
-                null);
+            List<SortBuilder> sorts = QueryToElasticsearch.getSorts(orderBy);
+
+            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
+                Unit.TYPEUNIQUE, query, null, sorts);
 
         } else {
             // MongoDB
@@ -617,7 +622,7 @@ public class DbRequest {
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
      */
-    protected Result sameDepthUnitQuery(Query realQuery, Result previous, Integer tenantId)
+    protected Result sameDepthUnitQuery(Query realQuery, Result previous, Integer tenantId, final Bson orderBy)
         throws InvalidParseOperationException, MetaDataExecutionException {
 
         final Result result = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
@@ -634,10 +639,12 @@ public class DbRequest {
                 finalQuery = QueryBuilders.boolQuery().must(query).must(roots);
             }
 
+            List<SortBuilder> sorts = QueryToElasticsearch.getSorts(orderBy);
+
             previous.clear();
             LOGGER.debug(QUERY2 + finalQuery.toString());
-            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId, Unit.TYPEUNIQUE,
-                finalQuery, null);
+            return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
+                Unit.TYPEUNIQUE, finalQuery, null, sorts);
 
         } else {
 
@@ -778,7 +785,7 @@ public class DbRequest {
      */
     protected Result lastUpdateFilterProjection(UpdateToMongodb requestToMongodb, Result last)
         throws InvalidParseOperationException, MetaDataExecutionException {
-        Integer tenantId = ParameterHelper.getTenantParameter();        
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         final Bson update = requestToMongodb.getFinalUpdateActions();
         final FILTERARGS model = requestToMongodb.model();
@@ -843,7 +850,7 @@ public class DbRequest {
      * 
      */
     private void indexFieldsOGUpdated(Result last) throws Exception {
-        Integer tenantId = ParameterHelper.getTenantParameter();                
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES update in error since no results to update");
@@ -906,7 +913,7 @@ public class DbRequest {
      * 
      */
     private void removeUnitIndexFields(Result last) throws Exception {
-        Integer tenantId = ParameterHelper.getTenantParameter();        
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final Bson finalQuery;
         if (last.getCurrentIds().isEmpty()) {
             LOGGER.error("ES delete in error since no results to delete");
@@ -1029,7 +1036,7 @@ public class DbRequest {
      */
     private void insertBulk(InsertToMongodb requestToMongodb, Result result) throws MetaDataExecutionException {
         // index Metadata
-        Integer tenantId = ParameterHelper.getTenantParameter();        
+        Integer tenantId = ParameterHelper.getTenantParameter();
         final Set<String> ids = result.getCurrentIds();
         final FILTERARGS model = requestToMongodb.model();
         // index Unit

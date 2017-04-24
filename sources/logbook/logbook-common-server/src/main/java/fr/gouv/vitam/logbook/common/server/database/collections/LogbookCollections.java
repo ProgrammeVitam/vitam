@@ -108,6 +108,14 @@ public enum LogbookCollections {
     }
 
     /**
+     * 
+     * @return the associated VitamCollection
+     */
+    public VitamCollection getVitamCollection() {
+        return vitamCollection;
+    }
+
+    /**
      *
      * @return the casted MongoCollection
      */
