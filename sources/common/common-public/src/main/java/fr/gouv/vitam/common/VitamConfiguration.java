@@ -87,11 +87,11 @@ public class VitamConfiguration {
     /**
      * Max total concurrent clients
      */
-    private static final int MAX_TOTAL_CLIENT = 500;
+    private static final int MAX_TOTAL_CLIENT = 1000;
     /**
      * Max concurrent clients associated to one host
      */
-    private static final int MAX_CLIENT_PER_HOST = 100;
+    private static final int MAX_CLIENT_PER_HOST = 200;
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
@@ -109,7 +109,7 @@ public class VitamConfiguration {
     /**
      * Default minimum thread pool size
      */
-    public static final int MINIMUM_THREAD_POOL_SIZE = 10;
+    public static final int MINIMUM_THREAD_POOL_SIZE = 100;
     /**
      * No check of unused client within pool (Apache Only)
      */

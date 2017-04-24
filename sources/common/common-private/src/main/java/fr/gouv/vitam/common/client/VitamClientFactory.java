@@ -39,6 +39,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
+import org.apache.http.config.SocketConfig;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
@@ -100,6 +101,12 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      */
     static final AtomicBoolean STATIC_IDLE_MONITOR = new AtomicBoolean(false);
 
+    /**
+     * Specific Socket Configuration
+     */
+    static final SocketConfig SOCKETCONFIG = SocketConfig.custom()
+        .setTcpNoDelay(true).setSoKeepAlive(true).setSoReuseAddress(true).build();
+    
     /**
      * Global configuration for Apache: Idle Monitor
      */
@@ -447,12 +454,14 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Shutdown the global Connection Manager (cannot be restarted yet)
      */
     public void shutdown() {
-        if (idleMonitor != null) {
+        if (idleMonitor != null && ! STATIC_IDLE_MONITOR.get()) {
             idleMonitor.shutdown();
             idleMonitor.interrupt();
         }
-        if (chunkedPoolingManager != null) {
+        if (chunkedPoolingManager != null && chunkedPoolingManager != POOLING_CONNECTION_MANAGER) {
             chunkedPoolingManager.close();
+        }
+        if (notChunkedPoolingManager != null && notChunkedPoolingManager != POOLING_CONNECTION_MANAGER_NOT_CHUNKED) {
             notChunkedPoolingManager.close();
         }
     }
@@ -467,8 +476,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private static void setupApachePool(PoolingHttpClientConnectionManager manager) {
         manager.setMaxTotal(VitamConfiguration.getMaxTotalClient());
         manager.setDefaultMaxPerRoute(VitamConfiguration.getMaxClientPerHost());
-        manager
-                .setValidateAfterInactivity(VitamConfiguration.getDelayValidationAfterInactivity());
+        manager.setValidateAfterInactivity(VitamConfiguration.getDelayValidationAfterInactivity());
+        manager.setDefaultSocketConfig(SOCKETCONFIG);
     }
 
     private void startupMonitor() {

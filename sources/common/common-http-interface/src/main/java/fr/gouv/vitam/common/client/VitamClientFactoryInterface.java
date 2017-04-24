@@ -120,7 +120,12 @@ public interface VitamClientFactoryInterface<T extends MockOrRestClient> {
      * @param port
      */
     void changeServerPort(int port);
-
+    
+    /**
+     * Shutdown the Factory
+     */
+    void shutdown();
+    
     /**
      * enum to define client type
      */

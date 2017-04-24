@@ -97,7 +97,7 @@ public class WorkspaceClient extends DefaultClient {
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
+                LOGGER.warn(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage());
             } else {
@@ -194,7 +194,7 @@ public class WorkspaceClient extends DefaultClient {
             if (Status.CREATED.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + folderName + ": " + Response.Status.CREATED.getReasonPhrase());
             } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                LOGGER.warn(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
             } else {
@@ -439,7 +439,7 @@ public class WorkspaceClient extends DefaultClient {
                         throw new ContentAddressableStorageNotFoundException(
                             ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                     } else if (Status.CONFLICT.getStatusCode() == response.getStatus()) {
-                        LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                        LOGGER.warn(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                         throw new ContentAddressableStorageAlreadyExistException(
                             ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                     } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
@@ -460,7 +460,7 @@ public class WorkspaceClient extends DefaultClient {
                 }
 
             } else {
-                LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                LOGGER.warn(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                 throw new ContentAddressableStorageAlreadyExistException(
                     ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
             }
@@ -560,7 +560,7 @@ public class WorkspaceClient extends DefaultClient {
 
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
-        // FIXME implémente dans workspace 
+        // FIXME implémente dans workspace
         return new MetadatasStorageObject();
     }
 }
