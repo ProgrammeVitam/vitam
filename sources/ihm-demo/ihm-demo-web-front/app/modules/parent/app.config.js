@@ -98,7 +98,7 @@ config(['$locationProvider' ,'$routeProvider',
     }).
     when('/admin/importContracts', {
         templateUrl: "views/import-contracts.html",
-        title: 'Import du Référentiel des contrats'
+        title: 'Import des contrats d\'entrée'
     }).
     when('/admin/importAccessContracts', {
         templateUrl: "views/import-access-contracts.html",
