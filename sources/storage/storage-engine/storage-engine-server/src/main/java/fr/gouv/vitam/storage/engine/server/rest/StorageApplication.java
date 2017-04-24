@@ -131,7 +131,7 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
             storageLogbookService =
                 new StorageLogbookServiceImpl(getConfiguration().getTenants(), Paths.get(getConfiguration().getLoggingDirectory()));
         } catch (IOException e) {
-
+            LOGGER.error("Unable to instantiate ", e);
         }
         storageResource = new StorageResource(getConfiguration(), this.storageLogbookService);
         resourceConfig.register(storageResource);

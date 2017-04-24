@@ -96,6 +96,9 @@ public class StorageLogbookServiceParametersTest {
     private StorageLogbookParameters getParameters() {
         final Map<StorageLogbookParameterName, String> parameters = new TreeMap<>();
 
+        parameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        parameters.put(StorageLogbookParameterName.xRequestId, "abcd");
+        parameters.put(StorageLogbookParameterName.tenantId, "0");
         parameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");

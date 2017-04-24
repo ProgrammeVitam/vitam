@@ -37,6 +37,14 @@ public enum StorageLogbookParameterName {
      */
     eventDateTime,
     /**
+     * X-Request-Id
+     */
+    xRequestId,
+    /**
+     * Tenant ID
+     */
+    tenantId,
+    /**
      * Event type: should use one global Enum ActionType <br>
      * <br>
      * Could be for instance: "Unzip", "CheckSeda", ...
