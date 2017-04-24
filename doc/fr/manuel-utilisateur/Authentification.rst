@@ -21,7 +21,7 @@ Cliquer sur le bouton "Se connecter" permet de lancer l'authentification.
 
 .. image:: images/authentification_OK.png
 
-Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est à dire :
+Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est-à-dire :
 
 - L'identifiant n'existe pas
 - Le mot de passe ne correspond pas à l'identifiant associé
@@ -33,7 +33,7 @@ Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de 
 Par défaut, après connexion, la page "Transfert" d'un SIP est affichée.
 
 Si l'utilisateur souhaite accéder à la plate-forme en saisissant une URL vers une page de la solution logicielle Vitam, une fois l'authentification effectuée, il sera redirigé vers la page demandée.
-Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est d'une heure, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la derniere page consultée.
+Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est d'une heure, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
 
 Le nom de l'utilisateur est indiqué en haut à droite de l'écran. Le tenant est indiqué entre parenthèses.
 

@@ -67,11 +67,11 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 - GrantDate : date de prise en charge du SIP
 - MessageIdentifierRequest : identifiant de la demande de transfert
 
-Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR d'une entrée en succès et le statut final de l'entrée (ou ReplyCode) est "WARNING". L'ATR indique les unités archivistiques et étapes du processus ayant rencontré une difficulté, en revanche il n'est pas posssible de connaître la cause de l'avertissement.
+Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR d'une entrée en succès et le statut final de l'entrée (ou ReplyCode) est "WARNING". L'ATR indique les unités archivistiques et étapes du processus ayant rencontré une difficulté, en revanche il n'est pas possible de connaître la cause de l'avertissement.
 
 En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès, mais le ReplyCode est KO. La notification comprend ensuite la liste des erreurs rencontrées sous la forme de blocs <event>, tout d'abord au niveau des blocs <Operation>, puis au niveau des unités archivistiques comme au niveau des groupes d'objets.
 
-Les bloc <event> sont composés des balises suivantes :
+Les blocs <event> sont composés des balises suivantes :
 
 - EventTypeCode : code de l'étape ou de la tâche en erreur
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
