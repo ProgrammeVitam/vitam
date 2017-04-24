@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamConstants;
 
 /**
  * POJO for the result of Inherited Rule
@@ -292,19 +293,19 @@ public class UnitInheritedRule {
             newRule.inheritedRule.remove(name);
         }
 
-        Iterator<String> fieldNames = unitManagement.fieldNames();
-        while (fieldNames.hasNext()) {
-            String unitRuleCategory = fieldNames.next();
+        for(String ruleCategory: VitamConstants.getSupportedRules()) {
+            if (unitManagement.get(ruleCategory) == null) {
+                continue;
+            }
             ObjectNode ruleCategories = null;
-            if (unitManagement.get(unitRuleCategory).isArray()) {
-                for (JsonNode rule : (ArrayNode) unitManagement.get(unitRuleCategory)) {
-                    computeRuleCategoryInheritance(rule, newRule, unitRuleCategory, ruleCategories,
-                        ruleCategoryFromUnit,
+            if (unitManagement.get(ruleCategory).isArray()) {
+                for (JsonNode rule : (ArrayNode) unitManagement.get(ruleCategory)){
+                    computeRuleCategoryInheritance(rule, newRule, ruleCategory, ruleCategories, ruleCategoryFromUnit,
                         parentCategoryList);
                 }
-            } else if (unitManagement.get(unitRuleCategory).isObject()) {
-                computeRuleCategoryInheritance((ObjectNode) unitManagement.get(unitRuleCategory), newRule,
-                    unitRuleCategory, ruleCategories, ruleCategoryFromUnit, parentCategoryList);
+            } else {
+                computeRuleCategoryInheritance((ObjectNode) unitManagement.get(ruleCategory), newRule,
+                    ruleCategory, ruleCategories, ruleCategoryFromUnit, parentCategoryList);
             }
         }
 
@@ -390,12 +391,12 @@ public class UnitInheritedRule {
         if (unitRuleNode.has(RULE)) {
             String ruleId = unitRuleNode.get(RULE).asText();
 
-            if (refNonRuleIds.contains(ruleId)) {
+            if (ruleId != null && refNonRuleIds.contains(ruleId)) {
                 // New rule ignored by another refnonRuleId. Musn't be inherited
                 return;
             }
 
-            if (checkPreventInheritance(unitRuleNode)){
+            if (checkPreventInheritance(unitRuleNode) && newRule.inheritedRule.get(unitRuleCategory) != null) {
                 newRule.inheritedRule.get(unitRuleCategory).removeAll();
             }
 

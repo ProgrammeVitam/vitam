@@ -259,6 +259,30 @@ public class UnitInheritedRuleTest {
         "    }]" +
         "  }";
 
+    private final static String STORAGE_NPE_REPRODUCTION = "{\"StorageRule\": ["
+        + "{"
+        + "\"Rule\": \"R1\","
+        + "\"StartDate\": \"2017-01-01\","
+        + "\"FinalAction\": \"RestrictAccess\","
+        + "\"EndDate\": \"2018-01-01\""
+        + "},"
+        + "{"
+        + "\"Rule\": \"R4\","
+        + "\"StartDate\": \"2017-01-01\","
+        + "\"PreventInheritance\": true,"
+        + "\"FinalAction\": \"RestrictAccess\","
+        + "\"EndDate\": \"2021-01-01\""
+        + "}"
+        + "],"
+        + "\"AccessRule\": ["
+        + "{"
+        + "\"Rule\": \"ACC-00001\","
+        + "\"StartDate\": \"2017-01-01\","
+        + "\"EndDate\": \"2017-01-01\""
+        + "}"
+        + "],"
+        + "\"OriginatingAgency\": \"FRAN_NP_050239\"}";
+
     private final static String EXPECTED_PREVENT_WILE_DECLARE = "{"
         + "\"inheritedRule\":{\"StorageRule\":{"
         + "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"PreventInheritance\":\"true\",\"path\":[[\"AU2\"]]}}"
@@ -533,6 +557,16 @@ public class UnitInheritedRuleTest {
         au3.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(LEVEL_1), "AU3"));
 
         assertEquals(EXPECTED_CHILD_PREVENT_WILE_DECLARE, JsonHandler.unprettyPrint(au3));
+    }
+
+    @Test
+    // Should not throw NPE (Old error when other field than rule category is in Management)
+    public void testNPEReproduction() throws Exception {
+        UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_NPE_REPRODUCTION), "AU1");
+
+        UnitInheritedRule au0 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU0");
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au0.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_NPE_REPRODUCTION), "AU2"));
     }
 
 }
