@@ -3,6 +3,8 @@ package fr.gouv.vitam.functional.administration.common;
 import static org.junit.Assert.assertEquals;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
@@ -32,6 +34,8 @@ public class AccessionRegisterDetailTest {
     	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
         final String id = GUIDFactory.newGUID().getId();
+        List<String> ids = new ArrayList<>();
+        ids.add(id);
         AccessionRegisterDetail register = new AccessionRegisterDetail()
             .setOriginatingAgency(id)
             .setId(id)
@@ -45,7 +49,7 @@ public class AccessionRegisterDetailTest {
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
             .setTotalUnits(initialValue)
-            .setOperationIds(id);
+            .setOperationIds(ids);
 
         assertEquals(id, register.get("_id"));
         assertEquals(id, register.getOriginatingAgency());
