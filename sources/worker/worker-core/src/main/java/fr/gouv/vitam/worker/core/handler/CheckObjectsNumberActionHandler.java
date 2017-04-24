@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -230,11 +231,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             // To fix this, uncomment the next line and remove what is comming next.
             // return workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants
             //    .CONTENT_SIP_FOLDER);
-
             final List<URI> uriListWorkspace =
                 workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER);
-            uriListWorkspace.remove(uriListWorkspace.size() - 1);
-            return uriListWorkspace;
+            // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
+            return uriListWorkspace.stream().filter(uri -> uri.toString().contains("/")).collect(Collectors
+                .toList());
         }
     }
 

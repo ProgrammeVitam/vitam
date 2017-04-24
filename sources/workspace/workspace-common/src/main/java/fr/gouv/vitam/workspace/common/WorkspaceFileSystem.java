@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -31,9 +31,20 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -42,23 +53,10 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.httpclient.util.URIUtil;
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.ContainerNotFoundException;
-import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
-import org.jclouds.blobstore.domain.StorageType;
-import org.jclouds.blobstore.options.ListContainerOptions;
-import org.jclouds.filesystem.reference.FilesystemConstants;
-import org.jclouds.providers.ProviderMetadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -72,7 +70,6 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.storage.constants.StorageMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -84,98 +81,94 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceFileSystem.class);
 
-    /**
-     * Max result for listing option TODO: have to be configurable ?
-     */
-    private static final int LISTING_MAX_RESULTS = 100;
+    private Path root;
 
-    // FIXME P1: the BlobStoreContext should be build for each call, since it is
-    // as a HttpClient. For now (Filesystem),
-    // that's fine.
-    protected final BlobStoreContext context;
     /**
-     * maximum list size of the blob store. In S3, Azure, and Swift, this is
-     * 1000, 5000, and 10000 respectively
+     * Default constructor Define the root of workspace with the storagePath property from configuration
      *
-     * @see <a href="https://jclouds.apache.org/start/blobstore/">Large
-     *      lists</a>
+     * @param configuration the configuration, just StoragePath property is required
+     * @throws IOException when error occurs to create root directory
      */
-
-    private int maxResults = 51000;
-
-    private StorageConfiguration configuration;
-
-    public WorkspaceFileSystem(StorageConfiguration configuration) {
-        this.configuration = configuration;
-        context = getContext(configuration);
-    }
-
-    @Override
-    public void createContainer(String containerName) throws ContentAddressableStorageAlreadyExistException {
-        LOGGER.info(" create container : " + containerName);
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        try {
-            if (!context.getBlobStore().createContainerInLocation(null, containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
-                throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName);
-            }
-        } finally {
-            closeContext();
-        }
-
-    }
-
-    @Override
-    public void purgeContainer(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            } else {
-                blobStore.clearContainer(containerName);
-            }
-
-        } finally {
-            context.close();
+    public WorkspaceFileSystem(StorageConfiguration configuration) throws IOException {
+        ParametersChecker.checkParameter("Workspace configuration cannot be null", configuration);
+        ParametersChecker.checkParameter("Storage path configuration have to be define",
+            configuration.getStoragePath());
+        root = Paths.get(configuration.getStoragePath());
+        if (!Files.exists(root)) {
+            Files.createDirectories(root);
         }
     }
 
     @Override
-    public void deleteContainer(String containerName, boolean recursive) throws
-        ContentAddressableStorageNotFoundException {
+    public void createContainer(String containerName)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
+        if (!isExistingContainer(containerName)) {
+            try {
+                Path containerPath = getContainerPath(containerName);
+                Files.createDirectories(containerPath);
+            } catch (IOException ex) {
+                throw new ContentAddressableStorageServerException(ex);
+            }
+        } else {
+            // Retro-compatibility
+            throw new ContentAddressableStorageAlreadyExistException("Container " + containerName + "already exists");
+        }
+    }
+
+    @Override
+    public void purgeContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
         try {
-            final BlobStore blobStore = context.getBlobStore();
+            Path containerPath = getContainerPath(containerName);
+            Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS).filter(path -> !containerPath.equals(path))
+                .sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageServerException(ex);
+        }
+    }
 
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+    @Override
+    public void deleteContainer(String containerName, boolean recursive)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        Path containerPath = getContainerPath(containerName);
+        if (!Files.exists(containerPath)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+        if (recursive) {
+            try {
+                Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS).sorted(Comparator.reverseOrder())
+                    .map(Path::toFile).forEach(File::delete);
+            } catch (IOException ex) {
+                throw new ContentAddressableStorageServerException(ex);
             }
-            if (recursive) {
-                blobStore.deleteContainer(containerName);
-            } else {
-                blobStore.deleteContainerIfEmpty(containerName);
+        } else {
+            try {
+                Files.delete(containerPath);
+            } catch (DirectoryNotEmptyException ex) {
+                // TODO: keep this old none recursive delete workspace container style ?
+                LOGGER.warn("Directory {} not empty, do nothing", containerPath.toString());
+            } catch (IOException ex) {
+                throw new ContentAddressableStorageServerException(ex);
             }
-
-        } finally {
-            context.close();
         }
     }
 
     @Override
     public boolean isExistingContainer(String containerName) {
-        try {
-            return context.getBlobStore().containerExists(containerName);
-        } finally {
-            closeContext();
-        }
+        Path containerPath = getContainerPath(containerName);
+        // if not a directory -> error ?
+        return Files.exists(containerPath) && Files.isDirectory(containerPath);
     }
 
     @Override
@@ -184,25 +177,21 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+        if (isExistingFolder(containerName, folderName)) {
+            LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST + folderName);
+            throw new ContentAddressableStorageAlreadyExistException(
+                ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + folderName);
+        }
+        Path folderPath = getFolderPath(containerName, folderName);
         try {
-
-            final BlobStore blobStore = context.getBlobStore();
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            }
-
-            if (isExistingFolder(containerName, folderName)) {
-                LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST + folderName);
-                throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + folderName);
-            }
-            // TODO: check this deprecated !
-            blobStore.createDirectory(containerName, folderName);
-
-        } finally {
-            context.close();
+            Files.createDirectories(folderPath);
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageServerException(ex);
         }
     }
 
@@ -211,29 +200,27 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
+        if (!isExistingFolder(containerName, folderName)) {
+            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
+        }
+        Path folderPath = getFolderPath(containerName, folderName);
         try {
-            final BlobStore blobStore = context.getBlobStore();
-
-            if (!isExistingFolder(containerName, folderName)) {
-                LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
-            }
-            // FIXME P1 REVIEW should it be a check of emptyness?
-            blobStore.deleteDirectory(containerName, folderName);
-        } finally {
-            context.close();
+            Files.delete(folderPath);
+        } catch (DirectoryNotEmptyException ex) {
+            // TODO: keep this old none recursive delete workspace container style ?
+            LOGGER.warn("Directory {} not empty, do nothing", folderPath.toString());
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageServerException(ex);
         }
     }
 
     @Override
     public boolean isExistingFolder(String containerName, String folderName) {
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-            return blobStore.containerExists(containerName) && blobStore.directoryExists(containerName, folderName);
-        } finally {
-            context.close();
-        }
+        Path folderPath = getFolderPath(containerName, folderName);
+        // if not a directory -> error ?
+        return Files.exists(folderPath) && Files.isDirectory(folderPath);
     }
 
     @Override
@@ -242,75 +229,60 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
         ParametersChecker.checkParameter(ErrorMessage.FOLDER_NOT_FOUND.getMessage(), folderName);
-        List<URI> uriFolderListFromContainer;
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-            // It's like a filter
-            final ListContainerOptions listContainerOptions = new ListContainerOptions();
-            // List of all resources in a container recursively
-            final PageSet<? extends StorageMetadata> blobStoreList = blobStore.list(containerName,
-                listContainerOptions.inDirectory(folderName).recursive().maxResults(maxResults));
-
-            uriFolderListFromContainer = new ArrayList<>();
-            LOGGER.debug(StorageMessage.BEGINNING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
-
-            // TODO P1
-            // Get the uri
-            // Today the uri null so
-
-            // The temporary solution is to concat the file path to the
-            // generated GUID
-
-            // if (storageMetada.getUri()!=null) {
-            // uriListFromContainer.add(storageMetada.getUri());
-            // }
-
-            for (final StorageMetadata storageMetada : blobStoreList) {
-                // select BLOB only, not folder nor relative path
-                if (storageMetada.getType().equals(StorageType.BLOB) && storageMetada.getName() != null &&
-                    !storageMetada.getName().isEmpty()) {
-                    String uri = URIUtil.encodeQuery(UriUtils.splitUri(storageMetada.getName()), CharsetUtils.UTF_8);
-                    uriFolderListFromContainer.add(new URI(uri));
-                }
-            }
-            LOGGER.debug(StorageMessage.ENDING_GET_URI_LIST_OF_DIGITAL_OBJECT.getMessage());
-        } catch (final ContainerNotFoundException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
-        } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            context.close();
+        if (!isExistingContainer(containerName)) {
+            // retro-compatibility
+            throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
         }
-        return uriFolderListFromContainer;
+        if (!isExistingFolder(containerName, folderName)) {
+            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
+            // throw new ContentAddressableStorageNotFoundException(
+            // ErrorMessage.FOLDER_NOT_FOUND.getMessage() + folderName);
+            // TODO: ugly retro-compatibility !
+            return new ArrayList<>();
+        }
+        Path folderPath = getFolderPath(containerName, folderName);
+        try {
+            /*
+             * return Files .walk(folderPath, FileVisitOption.FOLLOW_LINKS) .filter(path -> !folderPath.equals(path))
+             * .map(Path::getFileName) .map(path -> URI.create(path.toString())) .collect(Collectors.toList());
+             */
+
+            final List<URI> list = new ArrayList<>();
+            Files.walkFileTree(folderPath, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    if (attrs.isDirectory()) {
+                        return FileVisitResult.CONTINUE;
+                    }
+                    String pathFile = file.toString().replace(folderPath.toString() + "/", "");
+                    list.add(URI.create(pathFile));
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            return list;
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
+        }
     }
 
     @Override
     public void uncompressObject(String containerName, String folderName, String archiveMimeType,
         InputStream inputStreamObject) throws ContentAddressableStorageException {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
-            LOGGER.debug("init unzip method  ...");
-
-            if (!isExistingContainer(containerName)) {
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
-            }
-
-            if (inputStreamObject == null) {
-                throw new ContentAddressableStorageException(ErrorMessage.STREAM_IS_NULL.getMessage());
-            }
-
-            if (isExistingFolder(containerName, folderName)) {
-                LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + ":folderName" + folderName);
-                throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
-            }
-            LOGGER.debug("create folder name " + folderName);
-
-            createFolder(containerName, folderName);
-
-            extractArchiveInputStreamOnContainer(containerName, folderName, CommonMediaType.valueOf(archiveMimeType),
-                inputStreamObject);
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, folderName);
+        if (!isExistingContainer(containerName)) {
+            throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
+        }
+        if (inputStreamObject == null) {
+            throw new ContentAddressableStorageException(ErrorMessage.STREAM_IS_NULL.getMessage());
+        }
+        if (isExistingFolder(containerName, folderName)) {
+            LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + " : folderName " + folderName);
+            throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+        }
+        createFolder(containerName, folderName);
+        extractArchiveInputStreamOnContainer(containerName, folderName, CommonMediaType.valueOf(archiveMimeType),
+            inputStreamObject);
     }
 
     @Override
@@ -318,95 +290,93 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        final BlobStore blobStore = context.getBlobStore();
-        try {
-            if (isExistingObject(containerName, objectName)) {
-                LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
-            }
-
-            final Blob blob = blobStore.blobBuilder(objectName).payload(stream).build();
-            blobStore.putBlob(containerName, blob);
-        } catch (final ContainerNotFoundException e) {
+        if (!isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
-        } catch (final Exception e) {
-            LOGGER.error("Rollback", e.getMessage());
-            blobStore.removeBlob(containerName, objectName);
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            closeContext();
-            StreamUtils.closeSilently(stream);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+
+        boolean existingObject = false;
+        if (isExistingObject(containerName, objectName)) {
+            LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
+            existingObject = true;
+        }
+        Path filePath = getObjectPath(containerName, objectName);
+        try {
+            if (!existingObject) {
+                // create parent folders if needed
+                Path parentPath = filePath.getParent();
+                if (!Files.exists(parentPath)) {
+                    Files.createDirectories(parentPath);
+                }
+                filePath = Files.createFile(filePath);
+            }
+            Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            LOGGER.error("Try to rollback because of ", ex);
+            // try to rollback -> keep it ?
+            if (filePath != null) {
+                try {
+                    Files.deleteIfExists(filePath);
+                } catch (IOException exc) {
+                    LOGGER.error("Cannot rollback because of ", exc);
+                }
+            }
         }
     }
 
     @Override
-    public Response getObject(String containerName, String objectName)
-        throws ContentAddressableStorageException {
+    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-
-            if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-
-            final Blob blob = blobStore.getBlob(containerName, objectName);
-            if (null != blob) {
-                return new AbstractMockClient.FakeInboundResponse(Response.Status.OK, blob.getPayload().openStream(),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(blob));
-            } else {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-        } catch (final ContainerNotFoundException e) {
+        if (!isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            closeContext();
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+        if (!isExistingObject(containerName, objectName)) {
+            LOGGER.error(
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+        }
+        try {
+            Path objectPath = getObjectPath(containerName, objectName);
+            InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
+            long size = Files.size(objectPath);
+            return new AbstractMockClient.FakeInboundResponse(Response.Status.OK, inputStream,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(size));
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
         }
     }
 
     @Override
-    public void deleteObject(String containerName, String objectName) throws
-        ContentAddressableStorageNotFoundException {
+    public void deleteObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+        if (!isExistingObject(containerName, objectName)) {
+            LOGGER.error(
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName + " in container '" + containerName + "'");
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+        }
         try {
-            final BlobStore blobStore = context.getBlobStore();
-
-            if (!isExistingContainer(containerName) || !isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-
-            blobStore.removeBlob(containerName, objectName);
-        } finally {
-            closeContext();
+            Files.delete(getObjectPath(containerName, objectName));
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
         }
     }
 
     @Override
     public boolean isExistingObject(String containerName, String objectName) {
-        try {
-            boolean isExists = false;
-            final BlobStore blobStore = context.getBlobStore();
-            try {
-                isExists = blobStore.blobExists(containerName, objectName);
-            } catch (Exception e) {
-                LOGGER.info(e.getMessage());
-            }
-            return isExists;
-        } finally {
-            closeContext();
-        }
+        Path objectPath = getObjectPath(containerName, objectName);
+        return Files.exists(objectPath) && Files.isRegularFile(objectPath);
     }
 
     @Override
@@ -417,26 +387,32 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
-        } catch (final IOException e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } catch (final ContentAddressableStorageException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
         }
     }
 
     @Override
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter("Container name may not be null", containerName);
-        final File baseDirFile = getBaseDir(containerName);
-        final long usableSpace = baseDirFile.getUsableSpace();
-        final long usedSpace = getFolderUsedSize(baseDirFile);
-        final ContainerInformation containerInformation = new ContainerInformation();
-        containerInformation.setUsableSpace(usableSpace);
-        containerInformation.setUsedSpace(usedSpace);
-        return containerInformation;
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+        Path containerPath = getContainerPath(containerName);
+        try {
+            final long usedSpace = Files.size(containerPath);
+            final long usableSpace = Files.getFileStore(containerPath).getUsableSpace();
+            final ContainerInformation containerInformation = new ContainerInformation();
+            containerInformation.setUsableSpace(usableSpace);
+            containerInformation.setUsedSpace(usedSpace);
+            return containerInformation;
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageServerException(ex);
+        }
     }
 
     @Override
@@ -444,93 +420,57 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
-        ObjectNode jsonNodeObjectInformation = null;
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-
-            if (!isExistingObject(containerName, objectName)) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
-            }
-            final Blob blob = blobStore.getBlob(containerName, objectName);
-            if (null != blob && null != blob.getMetadata()) {
-                final Long size = blob.getMetadata().getSize();
-                jsonNodeObjectInformation = JsonHandler.createObjectNode();
-                jsonNodeObjectInformation.put("size", size);
-                jsonNodeObjectInformation.put("object_name", objectName);
-                jsonNodeObjectInformation.put("container_name", containerName);
-            }
-        } catch (final ContainerNotFoundException e) {
+        if (!isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException(e);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e.getMessage());
-            throw e;
-        } catch (final Exception e) {
-            LOGGER.error(e.getMessage());
-            throw new ContentAddressableStorageException(e);
-        } finally {
-            closeContext();
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
         }
-        return jsonNodeObjectInformation;
+        if (!isExistingObject(containerName, objectName)) {
+            LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
+        }
+        Path objectPath = getObjectPath(containerName, objectName);
+        try {
+            ObjectNode objectInformation = JsonHandler.createObjectNode();
+            objectInformation.put("size", Files.size(objectPath));
+            objectInformation.put("object_name", objectName);
+            objectInformation.put("container_name", containerName);
+            return objectInformation;
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
+        }
     }
 
     @Override
-    public long countObjects(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+    public long countObjects(String containerName) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName);
+        if (!isExistingContainer(containerName)) {
+            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
+        }
+        Path containerPath = getContainerPath(containerName);
         try {
-            final BlobStore blobStore = context.getBlobStore();
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            }
-            return blobStore.countBlobs(containerName);
-        } finally {
-            closeContext();
+            return Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS).filter(path -> !containerPath.equals(path))
+                .count();
+        } catch (IOException ex) {
+            throw new ContentAddressableStorageException(ex);
         }
     }
 
-    private File getBaseDir(String containerName) throws ContentAddressableStorageNotFoundException {
-        try {
-            final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
-            final Properties properties = providerMetadata.getDefaultProperties();
-            final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
-            File baseDirFile;
-            if (containerName != null) {
-                baseDirFile = new File(baseDir, containerName);
-            } else {
-                baseDirFile = new File(baseDir);
-            }
-            if (!baseDirFile.exists()) {
-                LOGGER.error("container not found: " + containerName + "(BaseDir File: " + baseDirFile + ")");
-                throw new ContentAddressableStorageNotFoundException("Storage not found");
-            }
-            return baseDirFile;
-        } finally {
-            closeContext();
-        }
+    private Path getContainerPath(String containerName) {
+        return Paths.get(root.toString(), containerName);
     }
 
-    // TODO： manage the cycle in filesystem (ex: symlink)
-    private long getFolderUsedSize(File directory) {
-        long usedSpace = 0;
-        for (final File file : directory.listFiles()) {
-            if (file.isFile()) {
-                usedSpace += file.length();
-            } else if (file.isDirectory()) {
-                usedSpace += getFolderUsedSize(file);
-            }
-        }
-        return usedSpace;
+    private Path getFolderPath(String containerName, String folder) {
+        return Paths.get(root.toString(), containerName, folder);
     }
 
-    private MultivaluedHashMap<String, Object> getXContentLengthHeader(Blob blob) {
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        List<Object> headersList = new ArrayList<>();
-        headersList.add(blob.getMetadata().getSize().toString());
-        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
-        return headers;
+    // Same as getFolderPath but...
+    private Path getObjectPath(String containerName, String objectName) {
+        return Paths.get(root.toString(), containerName, objectName);
     }
 
     /**
@@ -549,54 +489,47 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
         try (final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
             final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                .createArchiveInputStream(archiverType, inputStreamClosable);) {
-            ArchiveEntry archiveEntry;
+                .createArchiveInputStream(archiverType, inputStreamClosable)) {
+
+            ArchiveEntry entry;
             boolean isEmpty = true;
-
             // create entryInputStream to resolve the stream closed problem
-            final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream
-                (archiveInputStream);
+            final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
 
-            while ((archiveEntry = archiveInputStream.getNextEntry()) != null) {
 
-                LOGGER.debug("containerName : " + containerName + "    / ArchiveEntryName : " + archiveEntry.getName());
+            while ((entry = archiveInputStream.getNextEntry()) != null) {
+                if (archiveInputStream.canReadEntryData(entry)) {
+                    isEmpty = false;
 
-                isEmpty = false;
-                if (archiveEntry.isDirectory()) {
-                    continue;
+                    final String entryName = entry.getName();
+                    final Path target = Paths.get(root.toString(), containerName, folderName, entryName);
+                    final Path parent = target.getParent();
+
+                    if (parent != null && !Files.exists(parent)) {
+                        Files.createDirectories(parent);
+                    }
+                    if (!entry.isDirectory()) {
+                        Files.copy(entryInputStream, target, StandardCopyOption.REPLACE_EXISTING);
+                    }
                 }
-                // put object in container
-                putObject(containerName, folderName + File.separator + archiveEntry.getName(), entryInputStream);
-                LOGGER.debug("Container name: " + containerName);
-                LOGGER.debug("IsExisiting: " +
-                    isExistingObject(containerName, folderName + File.separator + archiveEntry.getName()) + " = " +
-                    folderName + File.separator + archiveEntry.getName());
-                // after put entry stream open stream to add a next
                 entryInputStream.setClosed(false);
             }
             archiveInputStream.close();
             if (isEmpty) {
                 throw new ContentAddressableStorageCompressedFileException("File is empty");
             }
-        } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new ContentAddressableStorageException(e);
-        } catch (final ArchiveException e) {
+        } catch (final IOException | ArchiveException e) {
             LOGGER.error(e);
             throw new ContentAddressableStorageException(e);
         }
-
     }
 
-    private BlobStoreContext getContext(StorageConfiguration configuration) {
-        final Properties props = new Properties();
-        props.setProperty(FilesystemConstants.PROPERTY_BASEDIR, configuration.getStoragePath());
-        LOGGER.debug("Get File System Context");
-        return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
-    }
-
-    private void closeContext() {
-        context.close();
+    private MultivaluedHashMap<String, Object> getXContentLengthHeader(long size) {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        List<Object> headersList = new ArrayList<>();
+        headersList.add(size);
+        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
+        return headers;
     }
 
     /**

@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -71,7 +72,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
@@ -99,7 +99,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param configuration the storage config
      */
     public WorkspaceResource(StorageConfiguration configuration) {
-        workspace = new WorkspaceFileSystem(configuration);
+        try {
+            workspace = new WorkspaceFileSystem(configuration);
+        } catch (IOException ex) {
+            LOGGER.error("cannot load WorkspaceFileSystem : ", ex);
+            throw new IllegalStateException(ex);
+        }
         LOGGER.info("init Workspace Resource server");
     }
 
