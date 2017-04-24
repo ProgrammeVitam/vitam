@@ -79,7 +79,6 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
 
     /**
-     *
      * Get the Process Monitoring instance
      *
      * @return the ProcessMonitoring instance
@@ -297,11 +296,19 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
         // }
         // }
         // Need requestId
-        if (!WORKFLOWS_LIST.containsKey(tenantId) ||  WORKFLOWS_LIST.get(tenantId)==null) {
+        LOGGER.info("add workflow with processId: {} and tenant {}", processWorkflow.getOperationId(),
+            processWorkflow.getTenantId());
+
+        // TODO: refacto
+        //WORKFLOWS_LIST.putIfAbsent(tenantId, new ConcurrentHashMap<>()).put(processId, processWorkflow);
+
+        if (!WORKFLOWS_LIST.containsKey(tenantId) || WORKFLOWS_LIST.get(tenantId) == null) {
             Map<String, ProcessWorkflow> operationsByTenant = new ConcurrentHashMap<>();
             operationsByTenant.put(processId, processWorkflow);
+
             WORKFLOWS_LIST.put(tenantId, operationsByTenant);
         } else {
+
             WORKFLOWS_LIST.get(tenantId).put(processId, processWorkflow);
         }
     }
@@ -345,7 +352,8 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
 
 
     @Override
-    public ProcessExecutionStatus getProcessExecutionStatus(String id, Integer tenantId) throws WorkflowNotFoundException {
+    public ProcessExecutionStatus getProcessExecutionStatus(String id, Integer tenantId)
+        throws WorkflowNotFoundException {
         return getProcessWorkflow(id, tenantId).getExecutionStatus();
     }
 
@@ -358,10 +366,11 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
             try {
                 Map<String, ProcessWorkflow> processWorkflows = processDataManagement.getProcessWorkflowFor(tenantId,
                     String.valueOf
-                    (ServerIdentity.getInstance().getServerId()));
+                        (ServerIdentity.getInstance().getServerId()));
                 if (processWorkflows.isEmpty()) {
                     return new ArrayList<>(0);
                 }
+                LOGGER.info("reload all workflow from ProcessDataManagement with tenant {}", tenantId);
                 WORKFLOWS_LIST.put(tenantId, processWorkflows);
                 return new ArrayList<>(processWorkflows.values());
             } catch (ProcessingStorageWorkspaceException e) {
@@ -421,8 +430,15 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
     
     @Override
     public void addToWorkflowList(ProcessWorkflow processWorkflow) {
-        if(ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus()) || ProcessExecutionStatus.FAILED
+
+        LOGGER.info("try to add workflow to list with processId: {} and tenant {}", processWorkflow.getOperationId(),
+            processWorkflow.getTenantId());
+        if (ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus()) || ProcessExecutionStatus.FAILED
             .equals(processWorkflow.getExecutionStatus())) {
+
+            LOGGER.info("add workflow to list with processId: {} and tenant {}", processWorkflow.getOperationId(),
+                processWorkflow.getTenantId());
+
             if (WORKFLOWS_LIST.containsKey(processWorkflow.getTenantId())) {
                 WORKFLOWS_LIST.get(processWorkflow.getTenantId())
                     .put(processWorkflow.getOperationId(), processWorkflow);
