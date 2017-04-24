@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.client;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -46,6 +47,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
+import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
+import fr.gouv.vitam.common.client.configuration.SSLKey;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -82,6 +85,8 @@ public class DefaultSslHeaderClientTest {
     private static int serverPort;
 
 
+
+
     private static String pem = null;
     private static String pemExpired = null;
     private static String pemNotGranted = null;
@@ -94,7 +99,7 @@ public class DefaultSslHeaderClientTest {
     }
 
     private static class TestVitamApplication
-        extends AbstractVitamApplication<TestVitamApplication, BenchmarkConfiguration> {
+        extends AbstractVitamApplication<DefaultSslHeaderClientTest.TestVitamApplication, BenchmarkConfiguration> {
 
         protected TestVitamApplication(String config) {
             super(BenchmarkConfiguration.class, config);
@@ -132,27 +137,27 @@ public class DefaultSslHeaderClientTest {
 
         @Override
         protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(new SslResource());
+            resourceConfig.register(new DefaultSslHeaderClientTest.SslResource());
         }
 
         @Override
         protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
+           return false;
         }
     }
 
-    private static String x509CertificateToPem(X509Certificate cert) throws CertificateEncodingException {
+    private static String x509CertificateToPemWithWiteSpaceApacheFormat(X509Certificate cert) throws CertificateEncodingException {
         BASE64Encoder encoder = new BASE64Encoder();
 
         StringWriter sw = new StringWriter();
         sw.write(X509Factory.BEGIN_CERT);
-        sw.write("\n");
+        sw.write(" ");
         sw.write(encoder.encode(cert.getEncoded()));
-        sw.write("\n");
+        sw.write(" ");
         sw.write(X509Factory.END_CERT);
-        return Base64.getEncoder().encodeToString(sw.toString().getBytes());
+        return sw.toString().replaceAll("\n", " ");
     }
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -163,7 +168,7 @@ public class DefaultSslHeaderClientTest {
         while (e.hasMoreElements()) {
             String alias = (String) e.nextElement();
             X509Certificate c = (X509Certificate) p12.getCertificate(alias);
-            pem = x509CertificateToPem(c);
+            pem = x509CertificateToPemWithWiteSpaceApacheFormat(c);
             break;
             /*Principal subject = c.getSubjectDN();
             String subjectArray[] = subject.toString().split(",");
@@ -180,7 +185,7 @@ public class DefaultSslHeaderClientTest {
         while (e.hasMoreElements()) {
             String alias = (String) e.nextElement();
             X509Certificate c = (X509Certificate) p12.getCertificate(alias);
-            pemExpired = x509CertificateToPem(c);
+            pemExpired = x509CertificateToPemWithWiteSpaceApacheFormat(c);
             break;
         }
 
@@ -189,22 +194,24 @@ public class DefaultSslHeaderClientTest {
         while (e.hasMoreElements()) {
             String alias = (String) e.nextElement();
             X509Certificate c = (X509Certificate) p12.getCertificate(alias);
-            pemNotGranted = x509CertificateToPem(c);
+            pemNotGranted = x509CertificateToPemWithWiteSpaceApacheFormat(c);
             break;
         }
-       final MinimalTestVitamApplicationFactory<TestVitamApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestVitamApplication>() {
+
+        final MinimalTestVitamApplicationFactory<DefaultSslHeaderClientTest.TestVitamApplication> testFactory =
+            new MinimalTestVitamApplicationFactory<DefaultSslHeaderClientTest.TestVitamApplication>() {
 
                 @Override
-                public StartApplicationResponse<TestVitamApplication> startVitamApplication(int reservedPort)
+                public StartApplicationResponse<DefaultSslHeaderClientTest.TestVitamApplication> startVitamApplication(int reservedPort)
                     throws IllegalStateException {
-                    final TestVitamApplication application = new TestVitamApplication(INGEST_EXTERNAL_CONF);
-                    final StartApplicationResponse<TestVitamApplication> response = startAndReturn(application);
+                    final DefaultSslHeaderClientTest.TestVitamApplication
+                        application = new DefaultSslHeaderClientTest.TestVitamApplication(INGEST_EXTERNAL_CONF);
+                    final StartApplicationResponse<DefaultSslHeaderClientTest.TestVitamApplication> response = startAndReturn(application);
                     return response;
                 }
 
             };
-        final StartApplicationResponse<TestVitamApplication> response = testFactory.findAvailablePortSetToApplication();
+        final StartApplicationResponse<DefaultSslHeaderClientTest.TestVitamApplication> response = testFactory.findAvailablePortSetToApplication();
         serverPort = response.getServerPort();
         application = response.getApplication();
         LOGGER.warn("Start configuration: " + serverPort);
@@ -220,6 +227,29 @@ public class DefaultSslHeaderClientTest {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         JunitHelper.getInstance().releasePort(serverPort);
+    }
+
+    @Test
+    public void testClientBuilder() throws Exception {
+        final SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
+        final ArrayList<SSLKey> truststore = new ArrayList<>();
+        truststore.add(key);
+        final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
+        final SecureClientConfiguration configuration =
+            new SecureClientConfigurationImpl("host", 8443, true, sslConfig, false);
+        final VitamClientFactory<DefaultClient> factory =
+            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+
+                @Override
+                public DefaultClient getClient() {
+                    return new DefaultClient(this);
+                }
+
+            };
+        try (DefaultClient client = factory.getClient()) {
+            // Only Apache Pool has this, not the JerseyClient
+            assertNull(client.getHttpClient().getHostnameVerifier());
+        }
     }
 
     /**
@@ -261,7 +291,7 @@ public class DefaultSslHeaderClientTest {
             try (final DefaultClient client = factory.getClient()) {
                 client.checkStatus();
                 LOGGER.error("THIS SHOULD RAIZED AN EXCEPTION");
-                fail("THIS SHOULD RAIZED EXCEPTION");
+                fail("THIS SHOULD NOT RAIZED EXCEPTION");
             } catch (final VitamException e) {
             }
         }
@@ -279,7 +309,6 @@ public class DefaultSslHeaderClientTest {
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-
                 @Override
                 public DefaultClient getClient() {
                     return new DefaultClient(this);

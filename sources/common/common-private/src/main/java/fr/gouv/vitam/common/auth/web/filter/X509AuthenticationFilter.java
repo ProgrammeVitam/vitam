@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.auth.web.filter;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Base64;
@@ -44,6 +45,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import org.bouncycastle.util.io.pem.PemReader;
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
@@ -96,19 +98,27 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
 
             final HttpServletRequest httpRequest = (HttpServletRequest) request;
             String pem = httpRequest.getHeader(X_SSL_CLIENT_CERT);
-            byte[] pemByte = null;
             if (null != pem) {
 
                 try {
 
-                    try {
-                        pemByte = Base64.getDecoder().decode(pem);
-                    } catch (IllegalArgumentException ex) {
-                        // the pem is not base64 encoded
-                        pemByte = pem.getBytes();
-                    }
+                    /*
+                     * TODO fixme : use instead the official PemReader that implement RFC 7468 when released
+                     * Implementation of RFC 7468 (PEM can have empty space, an other characters
+                     * PemReader is RFC 1421 and do not handle character other than \n
+                     * This implementation replace those characters with \n
+                     */
+                    pem = pem.replaceAll("-----BEGIN CERTIFICATE-----", "-----BEGIN_CERTIFICATE-----");
+                    pem = pem.replaceAll("-----END CERTIFICATE-----", "-----END_CERTIFICATE-----");
+                    pem = pem.replace((char)0x09, (char)0x0A); // Line Feed
+                    pem = pem.replace((char)0x0B, (char)0x0A); // Vertical Tab
+                    pem = pem.replace((char)0x0C, (char)0x0A); // Form Feed
+                    pem = pem.replace((char)0x20, (char)0x0A); // Space
+                    pem = pem.replace((char)0x0D, (char)0x0A); // Carriage Return
+                    pem = pem.replaceAll("-----BEGIN_CERTIFICATE-----", "-----BEGIN CERTIFICATE-----");
+                    pem = pem.replaceAll("-----END_CERTIFICATE-----", "-----END CERTIFICATE-----");
 
-                    final InputStream pemStream = new ByteArrayInputStream(pemByte);
+                    final InputStream pemStream = new ByteArrayInputStream(pem.getBytes());
                     final CertificateFactory cf = CertificateFactory.getInstance("X.509");
                     final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
                     clientCertChain = new X509Certificate[] {cert};
