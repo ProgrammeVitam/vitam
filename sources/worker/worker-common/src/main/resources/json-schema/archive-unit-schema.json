@@ -867,16 +867,16 @@
                                 "type": "object",
                                 "properties": {
                                     "FirstName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "GivenName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "Gender": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthDate": {
                                         "description": "pattern: Date",
@@ -972,21 +972,20 @@
                         },
                         "Addressee": {
                             "description": "All of AddresseeGroup (AudienceGroup)",
-                            "type": "array",
                             "items": {
                                 "type": "object",
                                 "properties": {
                                     "FirstName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "GivenName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "Gender": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthDate": {
                                         "description": "pattern: Date",
@@ -1051,7 +1050,7 @@
                                         "items": {
                                             "type": "string"
                                         },
-                                        "type": "array"
+                                        "type": ["array", "string"]
                                     },
                                     "Corpname": {
                                         "type": "string"
@@ -1116,21 +1115,20 @@
                         },
                         "Recipient": {
                             "description": "All of RecipientGroup (AudienceGroup)",
-                            "type": "array",
                             "items": {
                                 "type": "object",
                                 "properties": {
                                     "FirstName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "GivenName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "Gender": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthDate": {
                                         "description": "pattern: Date",
@@ -1195,7 +1193,7 @@
                                         "items": {
                                             "type": "string"
                                         },
-                                        "type": "array"
+                                        "type": ["array", "string"]
                                     },
                                     "Corpname": {
                                         "type": "string"

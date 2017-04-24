@@ -182,7 +182,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        //assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
     }    
     
 }
