@@ -471,7 +471,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
 
         if (model.getOperationsIds() != null) {
-            accessionRegisterDetail.setOperationIds(model.getOperationsIds().toString());
+            accessionRegisterDetail.setOperationIds(model.getOperationsIds());
         }
 
         return accessionRegisterDetail;
