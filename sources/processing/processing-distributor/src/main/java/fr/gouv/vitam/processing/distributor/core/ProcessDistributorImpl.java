@@ -38,12 +38,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -170,9 +170,10 @@ public class ProcessDistributorImpl implements ProcessDistributor, Callbackable<
 
                     } else {
                         // List from Storage
-                        List<URI> objectsListUri = workspaceClient
-                            .getListUriDigitalObjectFromFolder(workParams.getContainerName(),
-                                step.getDistribution().getElement());
+                        final List<URI> objectsListUri =
+                            JsonHandler.getFromStringAsTypeRefence(workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(),
+                                step.getDistribution().getElement())
+                                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
                         for (URI uri : objectsListUri) {
                             objectsList.add(uri.getPath());
                         }

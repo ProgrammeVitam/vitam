@@ -29,6 +29,9 @@ package fr.gouv.vitam.processing.management.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 
+import java.net.URI;
+import java.util.Collections;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
@@ -54,6 +57,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
@@ -83,6 +87,7 @@ public class ProcessManagementResourceTest {
     private static final Integer TENANT_ID = 0;
 
     private static final String CONTEXT_ID = "INGEST";
+    private static WorkspaceClient workspaceClient;
 
     @Test
     @Ignore
@@ -110,7 +115,7 @@ public class ProcessManagementResourceTest {
         application = new ProcessManagementApplication(configuration);
         application.start();
         RestAssured.port = port;
-        RestAssured.basePath = DATA_URI;
+        RestAssured.basePath = DATA_URI;       
     }
 
     @AfterClass
@@ -132,16 +137,17 @@ public class ProcessManagementResourceTest {
     }
 
     @Test
-    public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {
+    public void shouldReturnResponseOKIfWorkflowExecuted() throws Exception {        
 
-        // Mock WorkspaceClientFactory + WorkspaceClient
         WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
-
         WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
+        
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+        
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
         PowerMockito.mockStatic(ProcessDistributorImplFactory.class);
         ProcessDistributorImplFactory processDistributorImplFactory =
@@ -182,6 +188,9 @@ public class ProcessManagementResourceTest {
         WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         final GUID processId = GUIDFactory.newGUID();
         given()
@@ -208,6 +217,9 @@ public class ProcessManagementResourceTest {
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+        .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+        
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
@@ -245,6 +257,15 @@ public class ProcessManagementResourceTest {
 
     @Test
     public void shouldReturnNotFoundIfcancelWorkflowById() throws Exception {
+        WorkspaceClientFactory workspaceClientFactory = PowerMockito.mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = PowerMockito.mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(Mockito.anyObject(), Mockito.anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+        
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.PAUSE.getValue(),

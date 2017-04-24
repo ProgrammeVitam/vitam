@@ -53,7 +53,10 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -62,7 +65,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
-import fr.gouv.vitam.common.storage.ContainerInformation;
 
 
 /**
@@ -385,7 +387,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public List<URI> getListUriDigitalObjectFromFolder(String containerName, String folderName)
+    public RequestResponse<List<URI>> getListUriDigitalObjectFromFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName);
@@ -395,14 +397,14 @@ public class WorkspaceClient extends DefaultClient {
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             if (response != null && Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return response.readEntity(new GenericType<List<URI>>() {
+                return new RequestResponseOK().addResult(response.readEntity(new GenericType<List<URI>>() {
                     // Empty
-                });
+                }));
             } else {
                 if (response != null) {
                     LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 }
-                return Collections.<URI>emptyList();
+                return new RequestResponseOK().addResult(Collections.<URI>emptyList());
             }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR2, e);
@@ -471,7 +473,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public String computeObjectDigest(String containerName, String objectName, DigestType algo)
+    public RequestResponse<String> computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
 
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -486,7 +488,7 @@ public class WorkspaceClient extends DefaultClient {
                     MediaType.APPLICATION_JSON_TYPE, false);
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return response.getHeaderString(GlobalDataRest.X_DIGEST);
+                return new RequestResponseOK().addResult(response.getHeaderString(GlobalDataRest.X_DIGEST));
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
@@ -502,7 +504,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public ContainerInformation getContainerInformation(String containerName)
+    public RequestResponse<ContainerInformation> getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
@@ -512,7 +514,7 @@ public class WorkspaceClient extends DefaultClient {
                 performRequest(HttpMethod.GET, CONTAINERS + containerName, null,
                     MediaType.APPLICATION_JSON_TYPE, false);
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return response.readEntity(ContainerInformation.class);
+                return new RequestResponseOK().addResult(response.readEntity(ContainerInformation.class));
             } else {
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
                 throw new ContentAddressableStorageNotFoundException(response.getStatusInfo().getReasonPhrase());
@@ -525,7 +527,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public JsonNode getObjectInformation(String containerName, String objectName)
+    public RequestResponse<JsonNode> getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
@@ -536,7 +538,7 @@ public class WorkspaceClient extends DefaultClient {
                     MediaType.APPLICATION_JSON_TYPE, false);
 
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
-                return response.readEntity(JsonNode.class);
+                return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
@@ -554,13 +556,14 @@ public class WorkspaceClient extends DefaultClient {
 
     public boolean checkObject(String containerName, String objectId, String digest,
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
-        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
+        String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm)
+            .toJsonNode().get("$results").get(0).asText();
         return offerDigest.equals(digest);
     }
 
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId)
+    public RequestResponse<MetadatasObject> getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
         // FIXME implémente dans workspace
-        return new MetadatasStorageObject();
+        return new RequestResponseOK().addResult(new MetadatasStorageObject());
     }
 }
