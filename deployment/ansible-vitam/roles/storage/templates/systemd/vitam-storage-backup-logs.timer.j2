@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup old vitam storage logs
+
+[Timer]
+OnCalendar=*-*-* *:00:00
+Persistent=false
+
+[Install]
+WantedBy=timers.target
