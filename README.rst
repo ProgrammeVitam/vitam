@@ -132,7 +132,7 @@ Instructions
 ************
 
 CentOS
--------
+------
 
 Pour construire les packages rpm dédiés :
 
@@ -147,7 +147,7 @@ Pour construire le cache des packages externes :
     ./rpm/vitam-external/build_repo.sh
 
 Debian
--------
+------
 
 Pour construire les packages deb dédiés :
 

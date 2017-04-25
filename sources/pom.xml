@@ -147,6 +147,7 @@
 		<metrics.elastic.version>2.2.0</metrics.elastic.version>
 		<jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
 		<skipITs>false</skipITs>
+		<nodeDownloadRoot/>
 	</properties>
 
 
@@ -193,6 +194,11 @@
 					</snapshots>
 				</pluginRepository>
 			</pluginRepositories>
+
+			<properties>
+				<nodeDownloadRoot>https://dev.programmevitam.fr/nexus/content/sites/node-dist-mirror/</nodeDownloadRoot>
+			</properties>
+
 		</profile>
 
 		<profile>
