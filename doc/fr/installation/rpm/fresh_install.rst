@@ -45,7 +45,7 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
    "vitam_reverse_domain","Cas de la gestion d'un reverse proxy",""
    "consul_domain","nom de domaine consul",""
    "vitam_ihm_demo_external_dns","Déprécié ; ne pas utiliser",""
-   "rpm_version","Version à installer",""
+   "package_version","Version à installer",""
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
    "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
    "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
