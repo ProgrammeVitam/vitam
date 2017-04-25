@@ -53,7 +53,9 @@ Validation via SoapUI
 
 Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du composant IHM-recette (menu > tests SOAP-UI).
 
-.. note:: cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
+.. caution:: Cette méthode de validation est dépréciée en Release3 et sera prochainement supprimée.
+
+.. .. note:: cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
 
 .. Validation via IHM technique
 .. ============================
