@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -33,31 +36,23 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 
 /**
- * Check Seda Handler
+ * Check HEADER Handler
  */
-public class CheckSedaActionHandler extends ActionHandler {
+public class CheckHeaderActionHandler extends ActionHandler {
     
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
-    private static final String NOT_XSD_VALID = "NOT_XSD_VALID";
-    private static final String NOT_XML_FILE = "NOT_XML_FILE";
-    private static final String NO_FILE = "NO_FILE";
-    private static final String HANDLER_ID = "CHECK_SEDA";
-    private static final String CONTAINER_FORMAT = "CONTAINER_FORMAT";
-    private static final String FILE = "FILE";
-    private static final String DIRECTORY = "DIRECTORY";
-    private static final String SUBTASK_CHECK_MULTI_MANIFEST = CONTAINER_FORMAT + "." + FILE;    
-    private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = CONTAINER_FORMAT + "." + DIRECTORY;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
+    private static final String HANDLER_ID = "CHECK_HEADER";
 
     /**
-     * Constructor with parameter SedaUtilsFactory
+     * empty Constructor 
      *
      */
-    public CheckSedaActionHandler() {
+    public CheckHeaderActionHandler() {
         // empty constructor
     }
 
@@ -72,46 +67,40 @@ public class CheckSedaActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+        Map<String, Object> madatoryValueMap = new HashMap<>();
 
-        CheckSedaValidationStatus status;
-        status = sedaUtils.checkSedaValidation(params);
-
-        switch (status) {
-            case VALID:
-                itemStatus.increment(StatusCode.OK);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case NO_FILE:
-                itemStatus.setItemId(NO_FILE);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case NOT_XML_FILE:
-                itemStatus.setItemId(NOT_XML_FILE);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case NOT_XSD_VALID:
-                itemStatus.setItemId(NOT_XSD_VALID);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            case MORE_THAN_ONE_MANIFEST:
-                itemStatus.setItemId(SUBTASK_CHECK_MULTI_MANIFEST);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);                
-            case MORE_THAN_ONE_FOLDER_CONTENT:
-                itemStatus.setItemId(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-            default:
-                itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        try {
+            madatoryValueMap = sedaUtils.getMandatoryValues(params);
+        } catch (final ProcessingException e) {
+            LOGGER.error("getMandatoryValues ProcessingException", e);
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
+
+        if (!madatoryValueMap.containsKey(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
+            itemStatus.increment(StatusCode.KO);
+            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        }
+        
+        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null && Boolean.valueOf((String)handlerIO.getInput(0))) {
+            handlerIO.getInput().clear();
+            handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+            CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
+            final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
+            itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
+            checkIngestContractActionHandler.close();
+        } else {
+            itemStatus.increment(StatusCode.OK); 
+        }
+       
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        // TODO P0 Add Workspace:SIP/manifest.xml and check it
+        
     }
 
 }

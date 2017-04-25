@@ -130,11 +130,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int BDO_ID_TO_OG_ID_IO_RANK = 1;
     private static final int BDO_ID_TO_GUID_IO_RANK = 2;
     private static final int OG_ID_TO_GUID_IO_RANK = 3;
-    private static final int OG_ID_TO_UNID_ID_IO_RANK = 4;
+    public static final int OG_ID_TO_UNID_ID_IO_RANK = 4;
     private static final int BDO_ID_TO_VERSION_DO_IO_RANK = 5;
     private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
-    private static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
+    public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
     private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 9;
 
 
@@ -197,7 +197,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
 
-    private static final List<String> REQUIRED_GLOBAL_INFORMATIONS = initGlobalRequiredInformations();
     private static final String MISSING_REQUIRED_GLOBAL_INFORMATIONS =
         "Global required informations are not found after extracting the manifest.xml";
 
@@ -229,14 +228,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final String getId() {
         return HANDLER_ID;
     }
-
-    private static final List<String> initGlobalRequiredInformations() {
-        List<String> globalRequiredInfos = new ArrayList<>();
-        globalRequiredInfos.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-
-        return globalRequiredInfos;
+    
+    /**
+     * @return HandlerIO
+     */
+    public HandlerIO getHandlerIO() {
+        return handlerIO;
     }
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO ioParam) {
@@ -294,7 +292,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             LOGGER.debug("productor service: " + prodService);
             globalCompositeItemStatus.getData().put(LogbookParameterName.agentIdentifierOriginating.name(), prodService);
         }
-
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
 
     }
@@ -471,13 +468,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             writer.add(eventFactory.createEndDocument());
             writer.close();
-
-            // 1- Check if required informations exist
-            for (String currentInfo : REQUIRED_GLOBAL_INFORMATIONS) {
-                if (!globalRequiredInfosFound.contains(currentInfo)) {
-                    throw new MissingFieldException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
-                }
-            }
 
             // 2-detect cycle : if graph has a cycle throw CycleFoundException
             // Define Treatment DirectedCycle detection

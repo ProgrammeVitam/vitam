@@ -79,6 +79,7 @@ import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagem
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -93,9 +94,6 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
     private static final String ELAPSED_TIME_MESSAGE =
         "Total elapsed time in execution of method startProcessByWorkFlowId is :";
     private static final String START_MESSAGE = "start ProcessEngine ...";
-
-    private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
-
 
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
@@ -426,14 +424,27 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                     if (itemStatus instanceof ItemStatus) {
                         final ItemStatus actionStatus = itemStatus;
                         for (final ItemStatus sub : actionStatus.getItemsStatus().values()) {
+                            final LogbookOperationParameters startParameters =
+                                LogbookParametersFactory.newLogbookOperationParameters(
+                                    GUIDFactory.newEventGUID(tenantId),
+                                    handlerId + "." + sub.getItemId(),
+                                    GUIDReader.getGUID(workParams.getContainerName()),
+                                    logbookTypeProcess,
+                                    StatusCode.STARTED,
+                                    VitamLogbookMessages.getCodeOp(handlerId, sub.getItemId(), StatusCode.STARTED),
+                                    GUIDReader.getGUID(workParams.getContainerName()));
+                            startParameters.putParameterValue(
+                                LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
+                            helper.updateDelegate(startParameters);
+
                             final LogbookOperationParameters sublogbook =
                                 LogbookParametersFactory.newLogbookOperationParameters(
                                     GUIDFactory.newEventGUID(tenantId),
-                                    actionStatus.getItemId(),
+                                    handlerId + "." + sub.getItemId(),
                                     GUIDReader.getGUID(workParams.getContainerName()),
                                     logbookTypeProcess,
                                     sub.getGlobalStatus(),
-                                    sub.getItemId(), " Detail= " + sub.computeStatusMeterMessage(),
+                                    null, " Detail= " + sub.computeStatusMeterMessage(),
                                     GUIDReader.getGUID(workParams.getContainerName()));
                             helper.updateDelegate(sublogbook);
                         }
@@ -475,8 +486,8 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             }
 
             if (messageIdentifier == null) {
-                if (stepResponse.getData().get(MESSAGE_IDENTIFIER) != null) {
-                    messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
+                if (stepResponse.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
+                    messageIdentifier = stepResponse.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER).toString();
                     messageIdentifierMap.put(processId, messageIdentifier);
                 }
             }

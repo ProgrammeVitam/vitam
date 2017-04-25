@@ -14,25 +14,31 @@
         {
           "action": {
             "actionKey": "CHECK_SEDA",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST_DATAOBJECT_VERSION",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
-            "behavior": "NOBLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST",
             "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_HEADER",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:false"
+              }
+            ],
             "out": [
               {
                 "name": "unitsLevel.file",
@@ -65,34 +71,6 @@
               {
                 "name": "globalSEDAParameters.file",
                 "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-              },
-              {
-                "name": "mapsObjectGroup.file",
-                "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_CONTRACT_INGEST",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "globalSEDAParameters.file",
-                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
-              }
-            ]
-          }
-        },         
-        {
-          "action": {
-            "actionKey": "CHECK_CONSISTENCY",
-            "behavior": "NOBLOCKING",
-            "in": [
-              {
-                "name": "mapsBDOtoOG.file",
-                "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
               },
               {
                 "name": "mapsObjectGroup.file",

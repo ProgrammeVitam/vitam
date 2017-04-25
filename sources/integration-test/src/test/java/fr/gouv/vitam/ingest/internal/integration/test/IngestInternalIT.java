@@ -933,7 +933,7 @@ public class IngestInternalIT {
             for (final Document event : logbookOperationEvents) {
                 if (StatusCode.OK.toString()
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_MANIFEST")) {
+                    event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
                     if ("ServiceLevel0".equals(
                         JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
                             .get("ServiceLevel").asText())) {

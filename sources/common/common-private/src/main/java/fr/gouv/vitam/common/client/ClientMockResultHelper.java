@@ -114,7 +114,7 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"UpdateDate\":\"2016-11-02\"}";
 
-    private static final String INGEST_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
@@ -122,7 +122,7 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"LastUpdate\":\"2016-11-02\", " +
             "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}]";
+            "\"DeactivationDate\":\"2016-11-02\"}";
 
     private static final String ACCESS_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +

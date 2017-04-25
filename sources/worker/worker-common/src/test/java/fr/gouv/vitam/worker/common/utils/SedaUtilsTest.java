@@ -156,7 +156,7 @@ public class SedaUtilsTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(seda);
-        assertEquals("Entrée_avec_groupe_d_objet", utils.getMessageIdentifier(params));
+        assertEquals(2, utils.getMandatoryValues(params).size());
     }
 
     @Test

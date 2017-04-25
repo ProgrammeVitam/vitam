@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
@@ -238,7 +239,8 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     public RequestResponse<IngestContractModel> findIngestContracts(JsonNode query)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find ingest contracts request");
-        return ClientMockResultHelper.getIngestContracts();
+        IngestContractModel ingestContract = JsonHandler.getFromString(ClientMockResultHelper.INGEST_CONTRACTS, IngestContractModel.class);
+        return ClientMockResultHelper.createReponse(ingestContract);
     }
 
     @Override

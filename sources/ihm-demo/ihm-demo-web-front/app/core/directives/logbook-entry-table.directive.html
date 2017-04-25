@@ -17,7 +17,7 @@
         <td>{{detail.outMessg}}</td>
       </tr>
       <tr ng-repeat="event in detail.events" ng-class="$last ? 'logbookProcess': ''">
-        <td ng-class="($last ? '' : ( event.evType.startsWith('STP') ? 'logbookStep': 'logbookTask' ))" class="{{selectStyleByStatus(event.outcome)}}">{{event.evType | translate | replaceDoubleQuote}}</td>
+        <td ng-class="($last ? '' : getClassByevType(event.evType))" class="{{selectStyleByStatus(event.outcome)}}">{{event.evType | translate | replaceDoubleQuote}}</td>
         <td class="{{selectStyleByStatus(event.outcome)}}">{{event.evDateTime | vitamFormatDate}}</td>
         <td class="{{selectStyleByStatus(event.outcome)}}">{{event.outcome}}</td>
         <td class="{{selectStyleByStatus(event.outcome)}}">{{event.outMessg}}</td>

@@ -19,20 +19,26 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_NO_OBJECT",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
-            "behavior": "NOBLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST",
+            "actionKey": "CHECK_HEADER",
             "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:true"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:true"
+              }
+            ],
             "out": [
               {
                 "name": "unitsLevel.file",
@@ -69,18 +75,6 @@
               {
                 "name": "mapsObjectGroup.file",
                 "uri": "MEMORY:MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_CONTRACT_INGEST",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "globalSEDAParameters.file",
-                "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
               }
             ]
           }
