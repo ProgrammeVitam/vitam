@@ -214,6 +214,12 @@
 		</profile>
 	</profiles>
 
+    <repositories>
+        <repository>
+            <id>bintray</id>
+            <url>http://dl.bintray.com/programmevitam/vitam-maven-release</url>
+        </repository>
+    </repositories>
 
 	<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 	<!-- Définition des plugins -->
@@ -227,7 +233,7 @@
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Core plugins : Plugins corresponding to default core phases (ie. 
+				<!-- Core plugins : Plugins corresponding to default core phases (ie.
 					clean, compile). They may have muliple goals as well. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
@@ -462,8 +468,8 @@
 					</configuration>
 				</plugin>
 				<plugin>
-					<!-- The Surefire Report Plugin parses the generated TEST-*.xml files 
-						under ${basedir}/target/surefire-reports and renders them to DOXIA which 
+					<!-- The Surefire Report Plugin parses the generated TEST-*.xml files
+						under ${basedir}/target/surefire-reports and renders them to DOXIA which
 						creates the web interface version of the test results. -->
 					<artifactId>maven-surefire-report-plugin</artifactId>
 					<version>2.19.1</version>
@@ -476,7 +482,7 @@
 				</plugin>
 
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-				<!-- Tools : These are miscellaneous tools available through Maven by 
+				<!-- Tools : These are miscellaneous tools available through Maven by
 					default. -->
 				<!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
 				<plugin>
@@ -490,7 +496,7 @@
 					<version>2.10</version>
 				</plugin>
 				<plugin>
-					<!-- Environmental constraint checking (Maven Version, JDK etc), User 
+					<!-- Environmental constraint checking (Maven Version, JDK etc), User
 						Custom Rule Execution. -->
 					<artifactId>maven-enforcer-plugin</artifactId>
 					<version>1.4.1</version>
@@ -501,7 +507,7 @@
 					<version>2.2</version>
 				</plugin>
 				<plugin>
-					<!-- SCM plugin ; set as using jgit for git (essentially for the release 
+					<!-- SCM plugin ; set as using jgit for git (essentially for the release
 						plugin) -->
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-scm-plugin</artifactId>
@@ -554,7 +560,7 @@
 					<artifactId>sonar-maven-plugin</artifactId>
 					<version>3.2</version>
 				</plugin>
-				
+
 				<plugin>
 					<!-- Debian packaging -->
 					<artifactId>jdeb</artifactId>
@@ -639,7 +645,7 @@
 						</dataSet>
 					</configuration>
 				</plugin>
-				
+
 				<plugin>
 					<!-- RPM packaging -->
 					<groupId>org.codehaus.mojo</groupId>
@@ -677,8 +683,8 @@
 									</source>
 								</sources>
 							</mapping>
-							<!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory> 
-								<sources> <source> <location>${project.build.directory}/script</location> 
+							<!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory>
+								<sources> <source> <location>${project.build.directory}/script</location>
 								</source> </sources> </mapping> -->
 							<mapping>
 								<directory>/usr/lib/systemd/system/</directory>
@@ -1013,8 +1019,8 @@
 				<artifactId>xercesImpl-xsd11</artifactId>
 				<version>${xerces-xsd11.version}</version>
 			</dependency>
-			<!-- Removed to put xerces with 1.1 support <dependency> <groupId>xerces</groupId> 
-				<artifactId>xercesImpl</artifactId> <version>${xerces.version}</version> 
+			<!-- Removed to put xerces with 1.1 support <dependency> <groupId>xerces</groupId>
+				<artifactId>xercesImpl</artifactId> <version>${xerces.version}</version>
 				</dependency> -->
 			<dependency>
 				<groupId>xml-resolver</groupId>
