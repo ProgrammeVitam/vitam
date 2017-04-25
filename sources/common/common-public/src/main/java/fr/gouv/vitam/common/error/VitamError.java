@@ -27,21 +27,25 @@
 
 package fr.gouv.vitam.common.error;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * VitamError class
- *
  */
 public class VitamError extends RequestResponse {
 
@@ -86,23 +90,14 @@ public class VitamError extends RequestResponse {
     }
 
     /**
-     * @return the httpCode
-     */
-    @JsonGetter("httpCode")
-    public int getHttpCode() {
-        return httpCode;
-    }
-
-    /**
      * @param httpCode the httpCode to set
-     *
      * @return this
      */
-    @JsonSetter("httpCode")
     public VitamError setHttpCode(int httpCode) {
-        this.httpCode = httpCode;
+        super.setHttpCode(httpCode);
         return this;
     }
+
 
     /**
      * @param context of error as String
@@ -228,7 +223,6 @@ public class VitamError extends RequestResponse {
     }
 
     /**
-     *
      * @param node of vitam error in format JsonNode
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException if parse JsonNode node exception occurred
@@ -236,4 +230,22 @@ public class VitamError extends RequestResponse {
     public static VitamError getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
         return JsonHandler.getFromJsonNode(node, VitamError.class);
     }
+
+    /**
+     * transform a RequestResponse to a standard response
+     *
+     * @return Response
+     */
+    @Override
+    public Response toResponse() {
+        final Response.ResponseBuilder resp = Response.status(getStatus()).entity(toJsonNode());
+        final Map<String, String> vitamHeaders = this.getVitamHeaders();
+        for (String key : vitamHeaders.keySet()) {
+            resp.header(key, getHeaderString(key));
+        }
+
+        this.unSetVitamHeaders();
+        return resp.build();
+    }
+
 }

@@ -26,32 +26,9 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
-import static fr.gouv.vitam.ingest.external.core.Contexts.FILING_SCHEME;
-import static fr.gouv.vitam.ingest.external.core.Contexts.HOLDING_SCHEME;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -67,6 +44,26 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.ingest.external.core.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.ingest.external.core.Contexts.HOLDING_SCHEME;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class IngestStep {
 
@@ -100,7 +97,7 @@ public class IngestStep {
     public void upload_this_sip() throws IOException, IngestExternalException, IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            Response response =
+            RequestResponse<JsonNode> response =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
                         ProcessAction.RESUME.name());
@@ -112,7 +109,6 @@ public class IngestStep {
 
     /**
      * call vitam to upload the plan
-     *
      * @throws IOException
      * @throws IngestExternalException
      */
@@ -120,10 +116,9 @@ public class IngestStep {
     public void upload_this_plan() throws IOException, IngestExternalException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            Response response =
+            RequestResponse<JsonNode> response =
                 world.getIngestClient()
-                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(),
-                        ProcessAction.RESUME.name());
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
@@ -140,10 +135,9 @@ public class IngestStep {
     public void upload_this_tree() throws IOException, IngestExternalException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            Response response =
+            RequestResponse<JsonNode> response =
                 world.getIngestClient()
-                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(),
-                        ProcessAction.RESUME.name());
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();

@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -41,7 +42,10 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -52,6 +56,8 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
  *
  */
 public class ProcessingManagementClientMock extends AbstractMockClient implements ProcessingManagementClient {
+
+    private static final String FAKE_EXECUTION_STATUS = "Fake";
 
     ProcessingManagementClientMock() {
         // Empty
@@ -100,7 +106,7 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public Response cancelOperationProcessExecution(String id)
+    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException, VitamClientException {
         final List<Integer> status = new ArrayList<>();
         status.add(0);
@@ -109,7 +115,10 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
         status.add(0);
         status.add(0);
         status.add(0);
-        return Response.ok().build();
+        final ItemStatus it = new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
+            null, null);
+
+        return new RequestResponseOK().addResult(it).setHttpCode(Status.OK.getStatusCode());
     }
 
 
@@ -117,39 +126,23 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     @Override
     public Response updateOperationActionProcess(String actionId, String operationId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        final List<Integer> status = new ArrayList<>();
-        status.add(0);
-        status.add(0);
-        status.add(1);
-        status.add(0);
-        status.add(0);
-        status.add(0);
         return Response.ok().build();
     }
 
 
 
     @Override
-    public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        return Response.status(Status.OK).build();
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, FAKE_EXECUTION_STATUS);
+
     }
 
 
 
     @Override
-    public Response initWorkFlow(String contextId) throws VitamException {
-        final List<Integer> status = new ArrayList<>();
-        status.add(0);
-        status.add(0);
-        status.add(1);
-        status.add(0);
-        status.add(0);
-        status.add(0);
-        return Response.status(Status.OK)
-            .entity(new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-                null, null))
-            .build();
+    public void initWorkFlow(String contextId) throws VitamException {
+
     }
 
 
@@ -188,27 +181,16 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public Response initVitamProcess(String contextId, String container, String workflow)
+    public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, VitamClientException, BadRequestException {
-        final List<Integer> status = new ArrayList<>();
-        status.add(0);
-        status.add(0);
-        status.add(1);
-        status.add(0);
-        status.add(0);
-        status.add(0);
-        return Response.status(Status.OK)
-            .entity(new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-                null, null))
-            .build();
     }
 
 
 
     @Override
-    public Response listOperationsDetails() {
+    public RequestResponse<JsonNode> listOperationsDetails() {
         // TODO Add a list of operations to response
-        return Response.ok().build();
+        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
     }
 
     @Override

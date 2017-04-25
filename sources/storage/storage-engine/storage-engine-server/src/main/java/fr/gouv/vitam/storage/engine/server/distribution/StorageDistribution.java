@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -147,7 +148,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageException
      *             thrown in case of any technical problem
      */
-    Response listContainerObjects(String strategyId, DataCategory category, String cursorId) throws StorageException;
+    RequestResponse<JsonNode> listContainerObjects(String strategyId, DataCategory category, String cursorId) throws StorageException;
 
     /**
      * Get a specific Object binary data as an input stream

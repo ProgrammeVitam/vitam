@@ -62,6 +62,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -116,8 +117,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @return null if strategy and tenant headers have values, an error response otherwise
      */
     private Response checkTenantStrategyHeader(HttpHeaders headers) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
@@ -146,10 +147,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @return null if strategy, tenant, digest and digest algorithm headers have values, an error response otherwise
      */
     private Response checkDigestAlgorithmHeader(HttpHeaders headers) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST_ALGORITHM)) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST_ALGORITHM)) {
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
@@ -268,13 +269,17 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public Response listObjects(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
         @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
         @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId, @PathParam("type") DataCategory type) {
+        final Response response = checkTenantStrategyHeader(strategyId);
+        if (response != null) {
+            return response;
+        }
         try {
-            final Response response = checkTenantStrategyHeader(strategyId);
-            if (response != null) {
-                return response;
-            }
             ParametersChecker.checkParameter("X-Cursor is required", xcursor);
-            return distribution.listContainerObjects(strategyId, type, xcursorId);
+            ParametersChecker.checkParameter("Strategy ID is required", strategyId);
+            RequestResponse<JsonNode> jsonNodeRequestResponse =
+                distribution.listContainerObjects(strategyId, type, xcursorId);
+
+            return jsonNodeRequestResponse.toResponse();
         } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
@@ -504,7 +509,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * 
      * @param headers http header
      * @param objectId the id of the object
      * @param asyncResponse async response
@@ -529,7 +533,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Post a new object
      *
      * @param httpServletRequest http servlet request to get requester
-     *
      * @param headers http header
      * @param logbookId the id of the logbookId
      * @param createObjectDescription the workspace information about logbook to be created
@@ -640,7 +643,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Post a new unit metadata
      *
      * @param httpServletRequest http servlet request to get requester
-     *
      * @param headers http header
      * @param metadataId the id of the unit metadata
      * @param createObjectDescription the workspace description of the unit to be created
@@ -777,7 +779,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Note : this is NOT to be handled in item #72.
      *
      * @param httpServletRequest http servlet request to get requester
-     *
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
      * @param createObjectDescription the workspace description of the unit to be created
@@ -856,7 +857,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param headers http header
      * @param metadataId the id of the Object Group metadata
-     * @return Response OK if the object exists, NOT_FOUND otherwise (or BAD_REQUEST in cas of bad request format)
+     * @return Response OK if the object exists, NOT_FOUND otherwise (or
+     * BAD_REQUEST in cas of bad request format)
      */
     @Path("/objectgroups/{id_md}")
     @HEAD
@@ -887,7 +889,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Post a new object
      *
      * @param httpServletRequest http servlet request to get requester
-     *
      * @param headers http header
      * @param reportId the id of the object
      * @param createObjectDescription the object description
@@ -974,7 +975,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Post a new object manifest
      *
      * @param httpServletRequest http servlet request to get requester
-     *
      * @param headers http header
      * @param manifestId the id of the object
      * @param createObjectDescription the object description
@@ -1002,7 +1002,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * getManifest stored by ingest operation
-     * 
+     *
      * @param headers
      * @param objectId
      * @param asyncResponse
@@ -1025,11 +1025,12 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * @param headers http headers
-     * @return null if strategy and tenant headers have values, a VitamCode response otherwise
+     * @return null if strategy and tenant headers have values, a VitamCode
+     * response otherwise
      */
     private VitamCode checkTenantStrategyHeaderAsync(HttpHeaders headers) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
+        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
             return VitamCode.STORAGE_MISSING_HEADER;
         }
         return null;

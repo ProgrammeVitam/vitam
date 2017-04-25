@@ -166,7 +166,7 @@ public class PerformanceService {
     private String uploadSIP(PerformanceModel model, Integer tenantId) {
         // TODO: client is it thread safe ?
         LOGGER.debug("launch unitary test");
-        Response response = null;
+        RequestResponse<JsonNode>  response = null;
         IngestExternalClient client = ingestClientFactory.getClient();
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ)) {
@@ -180,7 +180,6 @@ public class PerformanceService {
             LOGGER.error("unable to close report", e);
             return null;
         } finally {
-            client.consumeAnyEntityAndClose(response);
             client.close();
         }
     }

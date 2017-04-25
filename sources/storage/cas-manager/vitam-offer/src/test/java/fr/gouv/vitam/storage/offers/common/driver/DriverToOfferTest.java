@@ -42,6 +42,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -224,16 +225,16 @@ public class DriverToOfferTest {
         }
 
         StorageListRequest listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(), null, true);
-        Response response = connection.listObjects(listRequest);
+        RequestResponse<JsonNode> response = connection.listObjects(listRequest);
         assertNotNull(response);
-        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), response.getStatus());
+        assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), response.getHttpCode());
         assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
 
         listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(),
                 response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
         response = connection.listObjects(listRequest);
         assertNotNull(response);
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals(Response.Status.OK.getStatusCode(), response.getHttpCode());
         assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
     }
 }

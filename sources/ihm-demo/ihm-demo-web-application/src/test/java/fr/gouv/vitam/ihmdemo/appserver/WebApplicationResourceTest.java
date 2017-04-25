@@ -51,6 +51,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.RequestResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -474,17 +475,14 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUploadSipOK() throws Exception {
-        final Response mockResponse = Mockito.mock(Response.class);
+        final RequestResponse mockResponse = Mockito.mock(RequestResponse.class);
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        final String xmlString = FileUtil.readInputStream(inputStreamATR);
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(xmlString).when(mockResponse).readEntity(String.class);
         Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
@@ -506,17 +504,14 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUploadSipMultipleChunkOK() throws Exception {
-        final Response mockResponse = Mockito.mock(Response.class);
+        final RequestResponse mockResponse = Mockito.mock(RequestResponse.class);
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        final InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
-        final String xmlString = FileUtil.readInputStream(inputStreamATR);
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(xmlString).when(mockResponse).readEntity(String.class);
         Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");

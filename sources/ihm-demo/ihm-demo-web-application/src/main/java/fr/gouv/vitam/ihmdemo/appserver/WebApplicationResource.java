@@ -27,51 +27,9 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -84,7 +42,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -125,6 +82,45 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Web Application Resource class
@@ -507,16 +503,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Override
         public void run() {
             // start the upload
-            Response finalResponse = null;
             File file = null;
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
+
+
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-                finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
+                final RequestResponse<JsonNode> finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
+
+                int responseStatus = finalResponse.getHttpCode();
                 final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
                 final List<Object> finalResponseDetails = new ArrayList<>();
                 finalResponseDetails.add(guid);
-                finalResponseDetails.add(Status.fromStatusCode(finalResponse.getStatus()));
+                finalResponseDetails.add(Status.fromStatusCode(responseStatus));
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+
             } catch (IOException | VitamException e) {
                 LOGGER.error("Upload failed", e);
                 final List<Object> finalResponseDetails = new ArrayList<>();
@@ -525,7 +526,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
             } finally {
                 temporarSipFile.delete();
-                DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
             }
         }
     }
@@ -555,18 +555,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
         if (responseDetails != null) {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 String id = responseDetails.get(GUID_INDEX).toString();
-                Response response = client.getOperationStatus(id, tenantId);
+                final RequestResponse<JsonNode> response = client.getOperationStatus(id, tenantId);
 
-                if (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
-                    client.consumeAnyEntityAndClose(response);
+                int responseStatus = response.getHttpCode();
+
+                if (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
-                if (Status.fromStatusCode(response.getStatus()).equals(Status.NOT_FOUND)) {
-                    client.consumeAnyEntityAndClose(response);
+                if (Status.fromStatusCode(responseStatus).equals(Status.NOT_FOUND)) {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
-                if (Status.fromStatusCode(response.getStatus()).equals(Status.OK)) {
-                    client.consumeAnyEntityAndClose(response);
+                if (Status.fromStatusCode(responseStatus).equals(Status.OK)) {
                      File file = downloadAndSaveATR(id,tenantId);
 
                     if (file != null) {
@@ -581,9 +580,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     }
 
                 } else {
-                    int status = response.getStatus();
-                    client.consumeAnyEntityAndClose(response);
-                    return Response.status(status).header(GlobalDataRest.X_REQUEST_ID, operationId)
+                    return Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, operationId)
                         .build();
                 }
 
@@ -1450,12 +1447,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("operations:read")
     public Response listOperationsDetails(@Context HttpHeaders headers) {
-        Response response = null;
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
-            response = client.listOperationsDetails();
-            return Response.fromResponse(response).build();
+            RequestResponse<JsonNode> response = client.listOperationsDetails();
+            return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -1538,7 +1534,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            return ingestExternalClient.cancelOperationProcessExecution(id);
+            RequestResponse<JsonNode> resp = ingestExternalClient.cancelOperationProcessExecution(id);
+            return Response.status(Status.OK).entity(resp).build();
         } catch (InternalServerException | VitamClientException | ProcessingException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -1687,7 +1684,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get Access contracts
      *
      * @param headers HTTP Headers
-     * @param queryDsl the query to find access contracts
+     * @param select the query to find access contracts
      * @return Response
      */
     @POST

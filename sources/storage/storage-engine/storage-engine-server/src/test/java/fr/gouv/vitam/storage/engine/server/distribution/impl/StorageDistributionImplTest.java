@@ -42,6 +42,8 @@ import java.io.IOException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -585,10 +587,10 @@ public class StorageDistributionImplTest {
     @Test
     public void listContainerObjectsCustomTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        Response result = customDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
+        RequestResponse<JsonNode> result = customDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
         assertNotNull(result);
+        assertTrue(result.isOk());
         assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));
-        assertNotNull(result.getEntity());
     }
 
     private JsonNode getCheckObjectResult() throws IOException {

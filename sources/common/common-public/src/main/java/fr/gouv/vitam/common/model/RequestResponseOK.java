@@ -26,23 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 
 /**
  * Access RequestResponseOK class contains list of results<br>
  * default results : is an empty list (immutable)
- *
  */
 public final class RequestResponseOK<T> extends RequestResponse<T> {
     @JsonProperty("$hits")
@@ -54,7 +54,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
 
     /**
      * Empty RequestResponseOK constructor
-     *
      **/
     public RequestResponseOK() {
         // Empty
@@ -138,6 +137,7 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         return results;
     }
 
+
     /**
      * @return the query as JsonNode of Response
      */
@@ -159,11 +159,25 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     /**
      * @param node to transform
      * @return the corresponding VitamError
-     * @throws InvalidParseOperationException if parse json object exception occurred 
+     * @throws InvalidParseOperationException if parse json object exception occurred
      */
     public static RequestResponseOK getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, JsonNode.class);
-        //return JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
     }
 
+    /**
+     * transform a RequestResponse to a standard response
+     * @return Response
+     */
+    @Override
+    public Response toResponse() {
+        final Response.ResponseBuilder resp = Response.status(getStatus()).entity(toJsonNode());
+        final Map<String, String> vitamHeaders = this.getVitamHeaders();
+        for (String key : vitamHeaders.keySet()) {
+            resp.header(key, getHeaderString(key));
+        }
+
+        this.unSetVitamHeaders();
+        return resp.build();
+    }
 }
