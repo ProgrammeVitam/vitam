@@ -38,7 +38,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +63,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -99,13 +99,13 @@ public class SedaUtilsTest {
     }
 
     @Before
-    public void setUp(){
+    public void setUp() {
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        
+
     }
 
     // TODO P1 : WARN sometimes bug on jenkins
@@ -207,7 +207,7 @@ public class SedaUtilsTest {
     @Test
     public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
-            .thenReturn(getSedaTest());
+            .thenReturn(new RequestResponseOK().addResult(getSedaTest()));
         final long manifestSize = utils.getManifestSize(params);
         assertTrue(manifestSize > 0);
     }
@@ -215,7 +215,7 @@ public class SedaUtilsTest {
     @Test(expected = ProcessingException.class)
     public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObjectInformation(anyObject(), anyObject()))
-            .thenReturn(getSedaTestError());
+            .thenReturn(new RequestResponseOK().addResult(getSedaTestError()));
         utils.getManifestSize(params);
     }
 
@@ -230,7 +230,7 @@ public class SedaUtilsTest {
     private JsonNode getSedaTestError() {
         return JsonHandler.createObjectNode();
     }
-    
+
     @Test
     public void givenSIPWithTwoManifestThenReturnKOMultiManifest() throws Exception {
         List<URI> listUri = new ArrayList<URI>();
@@ -242,7 +242,7 @@ public class SedaUtilsTest {
         final CheckSedaValidationStatus status = utils.checkSedaValidation(params);
         assertTrue(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST.equals(status));
     }
-    
+
     @Test
     public void givenSIPWithTwoFolderThenReturnKOMultiFolderContent() throws Exception {
         List<URI> listUri = new ArrayList<URI>();

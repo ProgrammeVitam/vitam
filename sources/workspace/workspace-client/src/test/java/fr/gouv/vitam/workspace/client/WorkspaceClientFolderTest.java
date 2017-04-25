@@ -31,6 +31,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -48,6 +50,11 @@ import javax.ws.rs.core.Response.Status;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -207,10 +214,30 @@ public class WorkspaceClientFolderTest extends WorkspaceClientTest {
 
     @Test
     public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList()
-        throws ContentAddressableStorageServerException {
+        throws ContentAddressableStorageServerException, InvalidParseOperationException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
-        final List<URI> uris = client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME);
+        final List<URI> uris =
+            JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
         assertTrue(uris.isEmpty());
+    }
+
+    @Test
+    public void given_FolderExists_When_FindingUriObjects_Then_ReturnURIList()
+        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException {
+        List<URI> uriListWorkspaceOK = new ArrayList<>();
+        uriListWorkspaceOK.add(new URI("content/file1.pdf"));
+        uriListWorkspaceOK.add(new URI("content/file2.pdf"));
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(uriListWorkspaceOK).build());
+        final List<URI> uris =
+            JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+        assertTrue(!uris.isEmpty());
+        for (final URI uriWorkspace : uris) {
+            assertTrue(uriWorkspace.toString().contains("content/"));
+        }
+
     }
 
 }

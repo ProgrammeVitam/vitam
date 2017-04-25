@@ -285,7 +285,8 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     public void givenObjectAlreadyExistsWhenComputeDigestThenReturnTrue()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         when(mock.head()).thenReturn(Response.status(Status.OK).header(X_DIGEST, MESSAGE_DIGEST).build());
-        assertTrue(client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO).equals(MESSAGE_DIGEST));
+        assertTrue(client.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO)
+            .toJsonNode().get("$results").get(0).asText().equals(MESSAGE_DIGEST));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
@@ -370,7 +371,8 @@ public class WorkspaceClientObjectTest extends WorkspaceClientTest {
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectInformationThenReturnInformation() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity("{\"size\" : \"1024\"}").build());
-        final JsonNode jsonInfo = client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME);
+        final JsonNode jsonInfo = client.getObjectInformation(CONTAINER_NAME, OBJECT_NAME)
+            .toJsonNode().get("$results").get(0);
         assertNotNull(jsonInfo);
         assertNotNull(jsonInfo.get("size"));
         assertEquals(1024, jsonInfo.get("size").asInt());

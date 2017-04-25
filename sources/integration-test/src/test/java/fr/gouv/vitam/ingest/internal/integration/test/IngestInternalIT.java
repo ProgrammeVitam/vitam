@@ -870,7 +870,7 @@ public class IngestInternalIT {
             final JsonNode elmt = logbookOperation.get("$results").get(0);
             final List<Document> logbookOperationEvents =
                 (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
-            for (final Document event : logbookOperationEvents) {
+            for (final Document event : logbookOperationEvents) {               
                 if (StatusCode.OK.toString()
                     .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) && 
                     event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA") ){

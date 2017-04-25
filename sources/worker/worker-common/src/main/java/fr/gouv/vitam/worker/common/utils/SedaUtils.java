@@ -748,7 +748,8 @@ public class SedaUtils {
         String pathToObject)
         throws ProcessingException {
         try {
-            return workspaceClient.getObjectInformation(containerId, pathToObject);
+            return workspaceClient.getObjectInformation(containerId, pathToObject)
+                .toJsonNode().get("$results").get(0);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error(IngestWorkflowConstants.SEDA_FILE + " Not Found");
             throw new ProcessingException(e);

@@ -30,7 +30,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -230,12 +234,16 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             // is case sensitive (theoretically it's "Content" with upper 'c').
             // To fix this, uncomment the next line and remove what is comming next.
             // return workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants
-            //    .CONTENT_SIP_FOLDER);
+            // .CONTENT_SIP_FOLDER);
             final List<URI> uriListWorkspace =
-                workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER);
+                JsonHandler.getFromStringAsTypeRefence(workspaceClient
+                    .getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER)
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
             return uriListWorkspace.stream().filter(uri -> uri.toString().contains("/")).collect(Collectors
                 .toList());
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingException(e);
         }
     }
 

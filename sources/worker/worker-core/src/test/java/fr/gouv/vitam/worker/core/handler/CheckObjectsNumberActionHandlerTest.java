@@ -50,6 +50,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -191,8 +192,8 @@ public class CheckObjectsNumberActionHandlerTest {
             new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn
-            (uriListWorkspaceOK);
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -212,8 +213,8 @@ public class CheckObjectsNumberActionHandlerTest {
             new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractDuplicatedUriResponseKO);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn
-            (uriListWorkspaceOK);
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -233,8 +234,8 @@ public class CheckObjectsNumberActionHandlerTest {
             new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractOutNumberUriResponseKO);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn
-            (uriListWorkspaceOK);
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -256,8 +257,8 @@ public class CheckObjectsNumberActionHandlerTest {
             new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn
-            (uriOutNumberListWorkspaceKO);
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -278,8 +279,8 @@ public class CheckObjectsNumberActionHandlerTest {
             new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest(anyObject())).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject())).thenReturn
-            (uriOutNumberListWorkspaceKO);
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
