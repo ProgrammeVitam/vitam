@@ -35,17 +35,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Visitor to recalculate container Metadata
- *
  */
 public final class HashFileScanVisitor extends SimpleFileVisitor<Path> {
-    private long  nbObjects=0;
-    private long  containerBytes=0;
-    
-   
+    private long nbObjects = 0;
+    private long containerBytes = 0;
+
+
     @Override
-    public  FileVisitResult visitFile(Path p, BasicFileAttributes bfa) throws IOException {
-        nbObjects+=1;
-        containerBytes+=Files.size(p);
+    public FileVisitResult visitFile(Path p, BasicFileAttributes bfa) throws IOException {
+        nbObjects += 1;
+        containerBytes += Files.size(p);
         return super.visitFile(p, bfa);
     }
 

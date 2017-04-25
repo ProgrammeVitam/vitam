@@ -79,7 +79,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     protected static final String TENANT_ID = "0";
     protected static final String TYPE = "object";
-    protected static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
+    protected static final String OBJECT_ID =  "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     protected static final String OBJECT_ID2 = "aeaaaaaaaaaam7mxaa2pkak2bnhxy4aaaaaq";
 
     // Container
@@ -324,7 +324,7 @@ public abstract class ContentAddressableStorageTestAbstract {
         String containerName = TENANT_ID + "_"+ TYPE;
         storage.createContainer(containerName);
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
-        //storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
+        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
         //get metadata of file
         MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
         assertEquals(OBJECT_ID, result.getObjectName());

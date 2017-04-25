@@ -27,9 +27,7 @@
 package fr.gouv.vitam.common.storage.constants;
 
 /**
- * 
  * Enumeration of ExtendedAttributes managed by the ContentAddressableStorage
- *
  */
 public enum ExtendedAttributes {
 
@@ -37,13 +35,13 @@ public enum ExtendedAttributes {
      * This metadata contains the digest of the file in the following format : DigestType:Digest_value
      */
     DIGEST("vitam-digest");
-    
+
     private final String key;
-    
-    private ExtendedAttributes(String key){
+
+    private ExtendedAttributes(String key) {
         this.key = key;
     }
-    
+
     /**
      * getter for attribute message
      *
@@ -52,9 +50,9 @@ public enum ExtendedAttributes {
     public String getKey() {
         return key;
     }
-    
+
     @Override
-    public String toString(){
+    public String toString() {
         return key;
     }
 }

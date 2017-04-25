@@ -26,14 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-import java.io.IOException;
-
-import org.junit.Before;
-
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import org.junit.Before;
+import org.junit.Test;
 
-public class HashFileSystemTest extends ContentAddressableStorageTestAbstract{
+import java.io.IOException;
+
+public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
 
     @Before
     public void setup() throws IOException {
@@ -42,5 +43,6 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract{
         configuration.setStoragePath(tempDir.getCanonicalPath());
         storage = new HashFileSystem(configuration);
     }
+
 
 }

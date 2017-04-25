@@ -1,8 +1,5 @@
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -12,14 +9,16 @@ import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
- * Abstract class of CAS that contains common methos 
- * 
+ * Abstract class of CAS that contains common methos
  */
 public abstract class ContentAddressableStorageAbstract implements ContentAddressableStorage {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
-    
+
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
@@ -38,13 +37,13 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             throw e;
         }
     }
-    
+
     @Override
     public boolean checkObject(String containerName, String objectId, String digest,
         DigestType digestAlgorithm) throws ContentAddressableStorageException {
         String offerDigest = computeObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
     }
-    
-    
+
+
 }

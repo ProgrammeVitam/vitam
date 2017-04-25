@@ -26,16 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-import java.util.LinkedHashSet;
-
+import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashStorageMetadata;
 import org.jclouds.blobstore.domain.PageSet;
 
-import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashStorageMetadata;
+import java.util.LinkedHashSet;
 
 /**
- * 
  * Implementation of Jclouds PageSet for Vitam. It is based on PageSetImpl Jclouds internal class
- *
  */
 public class HashPageSet extends LinkedHashSet<HashStorageMetadata> implements PageSet<HashStorageMetadata> {
 
@@ -44,10 +41,11 @@ public class HashPageSet extends LinkedHashSet<HashStorageMetadata> implements P
 
     /**
      * Set the NextMarker in the PageSet
+     *
      * @param marker
      */
-    public void setNextMarker(String marker){
-       this.marker=marker;
+    public void setNextMarker(String marker) {
+        this.marker = marker;
     }
 
     /**
@@ -55,31 +53,36 @@ public class HashPageSet extends LinkedHashSet<HashStorageMetadata> implements P
      */
     @Override
     public String getNextMarker() {
-       return marker;
+        return marker;
     }
 
     @Override
     public boolean equals(Object obj) {
-       if (this == obj)
-          return true;
-       if (!super.equals(obj))
-          return false;
-       if (getClass() != obj.getClass())
-          return false;
-       HashPageSet other = (HashPageSet) obj;
-       if (marker == null) {
-          if (other.marker != null)
-             return false;
-       } else if (!marker.equals(other.marker))
-          return false;
-       return true;
+        if (this == obj) {
+            return true;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        HashPageSet other = (HashPageSet) obj;
+        if (marker == null) {
+            if (other.marker != null) {
+                return false;
+            }
+        } else if (!marker.equals(other.marker)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public int hashCode() {
-       final int prime = 31;
-       int result = super.hashCode();
-       result = prime * result + ((marker == null) ? 0 : marker.hashCode());
-       return result;
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((marker == null) ? 0 : marker.hashCode());
+        return result;
     }
 }

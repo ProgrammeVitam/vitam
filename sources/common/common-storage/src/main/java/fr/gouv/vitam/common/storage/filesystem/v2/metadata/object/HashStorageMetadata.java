@@ -26,6 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2.metadata.object;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.jclouds.blobstore.domain.StorageMetadata;
+import org.jclouds.blobstore.domain.StorageType;
+import org.jclouds.domain.Location;
+import org.jclouds.domain.ResourceMetadata;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -34,17 +41,10 @@ import java.nio.file.Path;
 import java.util.Date;
 import java.util.Map;
 
-import org.jclouds.blobstore.domain.StorageMetadata;
-import org.jclouds.blobstore.domain.StorageType;
-import org.jclouds.domain.Location;
-import org.jclouds.domain.ResourceMetadata;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 /**
- * POJO object that store the metadata of the object 
- * @author vitam
+ * POJO object that store the metadata of the object
  *
+ * @author vitam
  */
 public class HashStorageMetadata implements StorageMetadata {
 
@@ -62,7 +62,7 @@ public class HashStorageMetadata implements StorageMetadata {
 
     /**
      * Constructor . Will only load the name of the object for performance reasons. If you need additionals metadata, use setStatValues
-     * 
+     *
      * @param path
      */
     public HashStorageMetadata(Path path) {

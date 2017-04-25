@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 
 /**
  * Class Utils that extracts a uri from a path
- *
  */
 public final class UriUtils {
 
@@ -43,9 +42,7 @@ public final class UriUtils {
     /**
      * Removes the extension file and the root folder
      *
-     *
-     * @param uriString
-     *            path file uri
+     * @param uriString path file uri
      * @return a URI path
      */
     // TODO P1 REVIEW does not what it says

@@ -26,6 +26,35 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.storage.ContainerInformation;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
+import fr.gouv.vitam.common.storage.filesystem.v2.metadata.container.HashContainerMetadata;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.jclouds.blobstore.domain.PageSet;
+import org.jclouds.blobstore.domain.StorageMetadata;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,43 +73,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.storage.ContainerInformation;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
-import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
-import fr.gouv.vitam.common.storage.filesystem.v2.metadata.container.HashContainerMetadata;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
 /**
  * FileSystem implements a Content Addressable Storage that stores objects on the file system with a hierarchical vision
- *
  */
 public class HashFileSystem extends ContentAddressableStorageAbstract {
 
@@ -88,11 +82,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     private final String storagePath;
     private HashFileSystemHelper fsHelper;
     // It is not needed to have a concurrent structure (eg: ConcurrentHashMap) as long as the put is only in the unmarshall (which is static synchronized)
-    private static Map<String,HashContainerMetadata> containerMetadata = new HashMap<>();
-    
+    private static Map<String, HashContainerMetadata> containerMetadata = new HashMap<>();
+
 
     /**
-     * 
      * @param configuration
      */
     public HashFileSystem(StorageConfiguration configuration) {
@@ -110,30 +103,33 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     // It must be synchronized to prevent simultaneous put on the HashMap
-    private static synchronized void unmarshall(HashFileSystemHelper fsHelper){
-        if (containerMetadata.size() == 0){ // Prevent to redo the serializartion more than once
-            for (String containerName : fsHelper.getListContainers()){
-                containerMetadata.put(containerName, new HashContainerMetadata(containerName,fsHelper,true));
-            }    
+    private static synchronized void unmarshall(HashFileSystemHelper fsHelper) {
+        if (containerMetadata.size() == 0) { // Prevent to redo the serializartion more than once
+            for (String containerName : fsHelper.getListContainers()) {
+                containerMetadata.put(containerName, new HashContainerMetadata(containerName, fsHelper, true));
+            }
         }
     }
-    
+
     @Override
     public void createContainer(String containerName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
-        synchronized(HashFileSystem.class){
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-            if (isExistingContainer(containerName)){
-                throw new ContentAddressableStorageAlreadyExistException(ErrorMessage.CONTAINER_ALREADY_EXIST+ containerName);
+        synchronized (HashFileSystem.class) {
+            ParametersChecker
+                .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            if (isExistingContainer(containerName)) {
+                throw new ContentAddressableStorageAlreadyExistException(
+                    ErrorMessage.CONTAINER_ALREADY_EXIST + containerName);
             }
             fsHelper.createContainer(containerName);
-            containerMetadata.put(containerName,new HashContainerMetadata(containerName,fsHelper));
+            containerMetadata.put(containerName, new HashContainerMetadata(containerName, fsHelper));
         }
     }
 
     @Override
     public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         return fsHelper.isContainer(containerName);
     }
 
@@ -141,8 +137,9 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public long countObjects(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        if (!isExistingContainer(containerName)){
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }
         return containerMetadata.get(containerName).getNbObjects();
@@ -152,7 +149,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
         Path parentPath = filePath.getParent();
         // Create the chain of directories
@@ -183,14 +181,16 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
         if (!Files.isRegularFile(filePath)) {
             throw new ContentAddressableStorageNotFoundException(
                 objectName + " in container " + containerName + " not found");
         }
-        try{
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, Files.newInputStream(filePath), MediaType.APPLICATION_OCTET_STREAM_TYPE,
+        try {
+            return new AbstractMockClient.FakeInboundResponse(Status.OK, Files.newInputStream(filePath),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 getXContentLengthHeader(filePath));
         } catch (IOException e) {
             throw new ContentAddressableStorageException(
@@ -202,14 +202,16 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         return getObject(containerName, objectName);
     }
 
     @Override
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
         // Delete file
         try {
@@ -221,7 +223,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         } catch (IOException e) {
             throw new ContentAddressableStorageServerException("I/O error on removing " + filePath, e);
         }
-        
+
         // Delete parent directory if parents directories are empty
         try {
             filePath = filePath.getParent();
@@ -239,7 +241,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public boolean isExistingObject(String containerName, String objectName)
         throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = null;
         try {
             filePath = fsHelper.getPathObject(containerName, objectName);
@@ -248,7 +251,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
         return filePath.toFile().isFile();
     }
-    
+
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
@@ -299,10 +302,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         // A discuter : je l'ai enlevé car les autres implémentations considère que containerName peut être null
         //ParametersChecker.checkParameter(LOG_MESSAGE_CHECK_CONTAINER, containerName);
-        if (containerName == null){
-            containerName="";
+        if (containerName == null) {
+            containerName = "";
         }
-        if (!isExistingContainer(containerName)){
+        if (!isExistingContainer(containerName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
         }
         File containerDir = fsHelper.getPathContainer(containerName).toFile();
@@ -312,12 +315,13 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         containerInformation.setUsedSpace(containerMetadata.get(containerName).getUsedBytes());
         return containerInformation;
     }
-    
+
     // FIXME : Copié/collé du FS v1
     @Override
     public JsonNode getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         ObjectNode jsonNodeObjectInformation;
         Long size;
         File file = fsHelper.getPathObject(containerName, objectName).toFile();
@@ -342,7 +346,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         MetadatasStorageObject result = new MetadatasStorageObject();
         try {
             File file = fsHelper.getPathObject(containerName, objectId).toFile();
@@ -379,11 +384,12 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     @Override
     public PageSet<? extends StorageMetadata> listContainer(String containerName)
         throws ContentAddressableStorageNotFoundException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path p = fsHelper.getPathContainer(containerName);
         HashFileListVisitor hfv = new HashFileListVisitor();
         try {
-            fsHelper.walkFileTreeOrdered(p,hfv);
+            fsHelper.walkFileTreeOrdered(p, hfv);
         } catch (IOException e) {
             LOGGER.error(e);
         }
@@ -392,25 +398,26 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path p = fsHelper.getPathContainer(containerName);
         try {
             HashFileListVisitor hfv = new HashFileListVisitor(fsHelper.splitObjectId(nextMarker), nextMarker);
-            fsHelper.walkFileTreeOrdered(p,hfv);
+            fsHelper.walkFileTreeOrdered(p, hfv);
             return hfv.getPageSet();
         } catch (IOException e) {
             LOGGER.error(e.getMessage());
             throw new ContentAddressableStorageServerException(e);
         }
-        
+
     }
-    
+
     @Override
     public void close() {
         // Nothing to do
     }
-    
+
     private MultivaluedHashMap<String, Object> getXContentLengthHeader(Path path) throws IOException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         List<Object> headersList = new ArrayList<>();
@@ -422,25 +429,26 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     private BasicFileAttributes getFileAttributes(File file) throws IOException {
         Path path = Paths.get(file.getPath());
         BasicFileAttributeView basicView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
-        return  basicView.readAttributes();
+        return basicView.readAttributes();
     }
-    
-    
-    private void writeExtendedMetadata(Path p,String name,String value) throws IOException{
-        writeExtendedMetadata(Files.getFileAttributeView(p,UserDefinedFileAttributeView.class),name,value);
+
+
+    private void writeExtendedMetadata(Path p, String name, String value) throws IOException {
+        writeExtendedMetadata(Files.getFileAttributeView(p, UserDefinedFileAttributeView.class), name, value);
     }
-    
-    private void writeExtendedMetadata(UserDefinedFileAttributeView view,String name,String value) throws IOException{
+
+    private void writeExtendedMetadata(UserDefinedFileAttributeView view, String name, String value)
+        throws IOException {
         view.write(name, ByteBuffer.wrap(value.getBytes()));
     }
-    
-    private String readExtendedMetadata(Path p,String name) throws IOException{
-        return readExtendedMetadata(Files.getFileAttributeView(p,UserDefinedFileAttributeView.class),name);
+
+    private String readExtendedMetadata(Path p, String name) throws IOException {
+        return readExtendedMetadata(Files.getFileAttributeView(p, UserDefinedFileAttributeView.class), name);
     }
-    
-    private String readExtendedMetadata(UserDefinedFileAttributeView view,String name) throws IOException{
+
+    private String readExtendedMetadata(UserDefinedFileAttributeView view, String name) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(view.size(name));
-        view.read(name,bb);
+        view.read(name, bb);
         return new String(bb.array());
     }
 }
