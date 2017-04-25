@@ -24,14 +24,24 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
- 
-'use strict';
-angular.module('ihm.demo')
-  .filter('StrReplace', function () {
-    return function (text) {
-      if(text){
-        return text.replace("INACTIVE","Inactif").replace("ACTIVE", "Actif");
-      }
-      return text;
-    };
-  });
+
+// Define resources in order to call WebApp http endpoints for accession-register
+angular.module('core')
+    .factory('accessContractResource', function(ihmDemoCLient) {
+
+        var accessContractResource = {};
+
+        accessContractResource.getDetails = function (id, callback) {
+            ihmDemoCLient.getClient('accesscontracts').one(id).get().then(function (response) {
+                callback(response);
+            }, function (error) {
+                console.log('Error while read contract with id: ' + id, error);
+            });
+        }
+
+        accessContractResource.update = function (id, data) {
+            return ihmDemoCLient.getClient('accesscontracts').all(id).post(data);
+        };
+
+        return accessContractResource;
+    });

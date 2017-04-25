@@ -73,4 +73,16 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
     }
 
+    @Override
+    public RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
+    }
+
+    @Override
+    public RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
+    }
+
 }

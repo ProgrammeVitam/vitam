@@ -94,7 +94,7 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * Check if rule file is well formated
      * 
-     * @param stream rule file inputstream to check 
+     * @param stream rule file inputstream to check
      * @return Response
      * @throws FileRulesException
      * @throws AdminManagementClientServerException
@@ -142,7 +142,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @param register AccessionRegisterDetail
      * @throws AccessionRegisterException when AccessionRegisterDetailexception occurs
      * @throws DatabaseConflictException when Database conflict exception occurs
-     * @throws AdminManagementClientServerException when  
+     * @throws AdminManagementClientServerException when
      */
     void createorUpdateAccessionRegister(AccessionRegisterDetailModel register)
         throws AccessionRegisterException, DatabaseConflictException, AdminManagementClientServerException;
@@ -155,7 +155,8 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query) throws InvalidParseOperationException, ReferentialException;
+    RequestResponse<AccessionRegisterSummaryModel> getAccessionRegister(JsonNode query)
+        throws InvalidParseOperationException, ReferentialException;
 
     /**
      * Get the accession register details matching the given query
@@ -170,8 +171,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     /**
-     * Import a set of ingest contracts after passing the validation steps If all the contracts are valid, they are stored in
-     * the collection and indexed The input is invalid in the following situations : </BR>
+     * Import a set of ingest contracts after passing the validation steps If all the contracts are valid, they are
+     * stored in the collection and indexed The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -190,8 +191,8 @@ public interface AdminManagementClient extends MockOrRestClient {
 
 
     /**
-     * Import a set of access contracts after passing the validation steps If all the contracts are valid, they are stored in
-     * the collection and indexed The input is invalid in the following situations : </BR>
+     * Import a set of access contracts after passing the validation steps If all the contracts are valid, they are
+     * stored in the collection and indexed The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json have an id already set</li>
@@ -206,10 +207,32 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws VitamClientInternalException
      * @throws InvalidParseOperationException
      */
+
     Status importAccessContracts(List<AccessContractModel> accessContractModelList)
-            throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
+    /**
+     * Update AccessContract to mongo
+     * 
+     * @param queryDsl query to execute
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+
+    /**
+     * Update IngestContract to mongo
+     * 
+     * @param queryDsl query to execute
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
      * Find access contracts
@@ -225,7 +248,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      */
     RequestResponse<AccessContractModel> findAccessContracts(JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException;
 
 
     /**
@@ -237,7 +260,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialNotFoundException
      */
     RequestResponse<AccessContractModel> findAccessContractsByID(String documentId)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      *

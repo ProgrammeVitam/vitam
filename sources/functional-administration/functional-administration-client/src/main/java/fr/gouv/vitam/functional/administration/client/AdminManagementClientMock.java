@@ -53,12 +53,14 @@ import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterStatus;
+
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+
 
 /**
  * Mock client implementation for AdminManagement
@@ -218,19 +220,22 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status importAccessContracts(List<AccessContractModel> accessContractModelList) throws InvalidParseOperationException, AdminManagementClientServerException {
+    public Status importAccessContracts(List<AccessContractModel> accessContractModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("import access contracts request ");
         return Status.OK;
     }
 
     @Override
-    public RequestResponse findAccessContracts(JsonNode queryDsl) throws InvalidParseOperationException, AdminManagementClientServerException {
+    public RequestResponse findAccessContracts(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find access contracts request ");
         return ClientMockResultHelper.getAccessContracts();
     }
 
     @Override
-    public RequestResponse findAccessContractsByID(String documentId) throws InvalidParseOperationException, AdminManagementClientServerException {
+    public RequestResponse findAccessContractsByID(String documentId)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find access contracts by id request ");
         return ClientMockResultHelper.getAccessContracts();
     }
@@ -248,5 +253,21 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         LOGGER.debug("find ingest contracts by id request ");
         return ClientMockResultHelper.getIngestContracts();
+    }
+
+    @Override
+    public RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("uddate access contract");
+        // TODO 2219
+        return null;
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("uddate ingest contract");
+        // TODO 2195
+        return null;
     }
 }

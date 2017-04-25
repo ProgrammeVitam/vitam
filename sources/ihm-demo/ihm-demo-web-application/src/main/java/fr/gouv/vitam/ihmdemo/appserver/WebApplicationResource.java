@@ -30,6 +30,7 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -43,8 +44,14 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -82,6 +89,7 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -107,6 +115,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -1647,6 +1656,60 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Upload Access contracts
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/contracts/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:update")
+    public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String unitId,
+        Map<String, String> updateData) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+        	final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
+            SetAction setActionStatusActive = UpdateActionHelper.set("Status", updateData.get("Status"));
+            SetAction setActionDesactivationDateActive = null;
+            if (updateData.get("ActivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", updateData.get("ActivationDate"));
+            } else if (updateData.get("DeactivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("DeactivationDate", updateData.get("DeactivationDate"));
+            }
+            SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", updateData.get("LastUpdate"));
+            Update updateStatusActive = new Update();
+            updateStatusActive.setQuery(QueryHelper.eq("Name", updateData.get("Name")));
+            updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
+                setActionLastUpdateActive);
+            updateParserActive.parse(updateStatusActive.getFinalUpdate());
+            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            final RequestResponse archiveDetails = adminClient.updateIngestContract(queryDsl, getTenantId(headers));
+            return Response.status(Status.OK).entity(archiveDetails).build();
+         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+         } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+         } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 
     /**
@@ -1752,6 +1815,60 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Upload Access contracts
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/accesscontracts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("accesscontracts:update")
+    public Response updateAccessContracts(@Context HttpHeaders headers, @PathParam("id") String unitId,
+        Map<String, String> updateData) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+        	final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
+            SetAction setActionStatusActive = UpdateActionHelper.set("Status", updateData.get("Status"));
+            SetAction setActionDesactivationDateActive = null;
+            if (updateData.get("ActivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", updateData.get("ActivationDate"));
+            } else if (updateData.get("DeactivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("DeactivationDate", updateData.get("DeactivationDate"));
+            }
+            SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", updateData.get("LastUpdate"));
+            Update updateStatusActive = new Update();
+            updateStatusActive.setQuery(QueryHelper.eq("Name", updateData.get("Name")));
+            updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
+                setActionLastUpdateActive);
+            updateParserActive.parse(updateStatusActive.getFinalUpdate());
+            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            final RequestResponse archiveDetails = adminClient.updateAccessContract(queryDsl, getTenantId(headers));
+            return Response.status(Status.OK).entity(archiveDetails).build();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     private Integer getTenantId(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0
         Integer tenantId = 0;

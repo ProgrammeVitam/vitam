@@ -85,6 +85,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "accession-register/detail";
     private static final String INGEST_CONTRACTS_URI = "/contracts";
     private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
+    private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
+    private static final String UPDATE_INGEST_CONTRACT_URI = "/contract";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -500,18 +502,17 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public Status importAccessContracts(List<AccessContractModel> accessContractModelList)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
-
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input access contracts json is mandatory", accessContractModelList);
         Response response = null;
 
         try {
             response = performRequest(HttpMethod.POST, ACCESS_CONTRACTS_URI, null,
-                    accessContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
-                    false);
+                accessContractModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
             final Status status = Status.fromStatusCode(response.getStatus());
-
             return status;
+
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
@@ -521,20 +522,19 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-
     public RequestResponse<AccessContractModel> findAccessContracts(JsonNode queryDsl)
-            throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
 
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, ACCESS_CONTRACTS_URI, null, queryDsl,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                        AccessContractModel.class);
+                    AccessContractModel.class);
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -550,7 +550,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<AccessContractModel> findAccessContractsByID(String documentId)
-            throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
         Response response = null;
         try {
@@ -563,7 +563,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
 
             response = performRequest(HttpMethod.GET, ACCESS_CONTRACTS_URI, null, queryDsl,
-                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
@@ -617,7 +617,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-
     public RequestResponse<IngestContractModel> findIngestContractsByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
@@ -637,7 +636,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 RequestResponseOK<IngestContractModel> resp =
                     JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                    IngestContractModel.class);
+                        IngestContractModel.class);
 
                 if (resp.getResults() == null || resp.getResults().size() == 0)
                     throw new ReferentialNotFoundException("Ingest contract not found with id: " + documentId);
@@ -650,6 +649,52 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<AccessContractModel> updateAccessContract(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<AccessContractModel>();
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> updateIngestContract(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<IngestContractModel>();
+            }
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

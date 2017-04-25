@@ -115,15 +115,6 @@ angular.module('ihm.demo')
         $scope.getList = searchService.processSearch;
         $scope.reinitForm = searchService.processReinit;
         $scope.onInputChange = searchService.onInputChange;
-    }).controller('accessContractController', function ($scope, $routeParams, ihmDemoCLient) {
-    var id = $routeParams.id;
-    ihmDemoCLient.getClient('accesscontracts').one(id).get().then(function (response) {
-        if (response.data.length !== 0) {
-            $scope.contract = response.data.$results[0];
-        }
-    }, function (error) {
-        console.log('Error while read contract with id: ' + id, error);
-    });
 });
 
 

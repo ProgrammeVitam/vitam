@@ -63,7 +63,7 @@ public interface MongoDbAccessReferential {
     /**
      * Delete FileFormat collections
      *
-     * @param collection collection of Mongo for insert
+     * @param collection collection of Mongo for delete
      * @throws DatabaseException thrown when error on delete
      * @throws ReferentialException when error occurs
      */
@@ -71,7 +71,7 @@ public interface MongoDbAccessReferential {
 
     /**
      * @param id of vitam document
-     * @param collection collection of Mongo for insert
+     * @param collection collection of Mongo
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
@@ -81,8 +81,8 @@ public interface MongoDbAccessReferential {
     /**
      * @param map Map of key-value
      * @param object
-     * @param collection collection of Mongo for insert
-     * @param action
+     * @param collection collection of Mongo for update
+     * @param action update actions
      * @throws ReferentialException when error occurs
      */
     void updateDocumentByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
@@ -90,8 +90,18 @@ public interface MongoDbAccessReferential {
         throws ReferentialException;
 
     /**
+     * Update with queryDsl
+     * 
+     * @param update JsonNode to update
+     * @param collection collection of Mongo Type for update
+     * @throws ReferentialException when error occurs;
+     */
+    void updateData(JsonNode update, FunctionalAdminCollections collection)
+        throws ReferentialException;;
+
+    /**
      * @param select filter
-     * @param collection collection of Mongo for insert
+     * @param collection collection of Mongo for find
      * @return vitam document list
      * @throws ReferentialException when error occurs
      */
