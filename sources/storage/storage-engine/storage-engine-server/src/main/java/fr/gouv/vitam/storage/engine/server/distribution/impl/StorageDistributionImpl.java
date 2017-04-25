@@ -42,12 +42,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultipleInputStreamHandler;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -513,7 +513,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             status = Status.INTERNAL_SERVER_ERROR;
         }
         if (parameters == null) {
-            parameters = getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
+            parameters =  getParameters(res != null ? res.getObjectGuid() : null, res != null ? res.getResponse() : null,
                 null, offerId, res != null ? res.getStatus() : status, requester, attempt);
         } else {
             updateStorageLogbookParameters(parameters, offerId,
@@ -771,7 +771,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         mandatoryParameters.put(StorageLogbookParameterName.digest, digest);
         mandatoryParameters.put(StorageLogbookParameterName.digestAlgorithm, digestAlgorithm);
         mandatoryParameters.put(StorageLogbookParameterName.size, size);
+        mandatoryParameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        mandatoryParameters.put(StorageLogbookParameterName.xRequestId, VitamThreadUtils.getVitamSession().getRequestId());
         mandatoryParameters.put(StorageLogbookParameterName.agentIdentifiers, agentIdentifiers);
+        mandatoryParameters.put(StorageLogbookParameterName.tenantId,ParameterHelper.getTenantParameter().toString());
         mandatoryParameters.put(StorageLogbookParameterName.agentIdentifierRequester, agentIdentifierRequester);
         final StorageLogbookParameters parameters = new StorageLogbookParameters(mandatoryParameters);
 

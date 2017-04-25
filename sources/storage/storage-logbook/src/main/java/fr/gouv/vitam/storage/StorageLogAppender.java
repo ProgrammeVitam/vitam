@@ -182,7 +182,7 @@ public class StorageLogAppender {
         try {
             OutputStream out = streams.get(tenant);
             lock.lock();
-            filesNames.get(tenant);
+            lastPath = filesNames.get(tenant);
             endTime = LocalDateTime.now();
             out.flush();
             out.close();
@@ -218,23 +218,5 @@ public class StorageLogAppender {
     }
 
 
-
-    /***
-     *Enumerations of Type Message
-     */
-    public enum StorageLogAppenderEnum {
-        /**
-         * CREATE type
-         */
-        CREATE,
-        /**
-         * Update type
-         */
-        UPDATE,
-        /**
-         * delete type
-         */
-        DELETE
-    }
 
 }

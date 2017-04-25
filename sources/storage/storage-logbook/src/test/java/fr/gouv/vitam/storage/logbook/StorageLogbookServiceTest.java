@@ -105,6 +105,9 @@ public class StorageLogbookServiceTest {
         initalParameters.put(StorageLogbookParameterName.agentIdentifierRequester, "agentIdentifierRequester");
         initalParameters.put(StorageLogbookParameterName.outcomeDetailMessage, "outcomeDetailMessage");
         initalParameters.put(StorageLogbookParameterName.objectIdentifierIncome, "objectIdentifierIncome");
+        initalParameters.put(StorageLogbookParameterName.tenantId, "0");
+        initalParameters.put(StorageLogbookParameterName.xRequestId, "0123");
+        initalParameters.put(StorageLogbookParameterName.eventType, "CREATE");
 
         final StorageLogbookParameters parameters = new StorageLogbookParameters(initalParameters);
 

@@ -52,10 +52,6 @@ public class StorageLogbookParameters {
      * Mandatories parameters initialisation
      */
     static {
-        mandatoryParameters.add(StorageLogbookParameterName.eventDateTime);
-        mandatoryParameters.add(StorageLogbookParameterName.xRequestId);
-        mandatoryParameters.add(StorageLogbookParameterName.tenantId);
-        mandatoryParameters.add(StorageLogbookParameterName.eventType);
         mandatoryParameters.add(StorageLogbookParameterName.objectIdentifier);
         mandatoryParameters.add(StorageLogbookParameterName.digest);
         mandatoryParameters.add(StorageLogbookParameterName.digestAlgorithm);

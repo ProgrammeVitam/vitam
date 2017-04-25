@@ -63,9 +63,8 @@ public class StorageLogAppenderTest {
     private static final StorageLogbookOutcome KO_STATUS = StorageLogbookOutcome.KO;
     private static final String DATE = "2016-07-29T11:56:35.914";
     private static final String LOG =
-        "{eventDateTime=2016-07-29T11:56:35.914, objectIdentifier=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, objectGroupIdentifier=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, digest=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, digestAlgorithm=" +
+        "{eventDateTime=2016-07-29T11:56:35.914, xRequestId=abcd, tenantId=0, eventType=CREATE, objectIdentifier=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, objectGroupIdentifier=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, digest=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, digestAlgorithm=" +
             "SHA-256, size=1024, agentIdentifiers=agentIdentifiers, agentIdentifierRequester=agentIdentifierRequester, outcome=OK}\n";
-
     @Test
     public void appenderTest() throws Exception {
         List<Integer> list = new ArrayList<>();
@@ -80,7 +79,6 @@ public class StorageLogAppenderTest {
         assertThat(logInformation.getPath().toString()).startsWith(currentFolder.toString() + "/2_");
         assertThat(logInformation.getPath().toString()).contains("_" + LocalDateTime.now().format(formatter));
         assertThat(currentFolder.list().length).isEqualTo(list.size() + 1);
-       // assertThat(logInformation.getBeginTime()).isBefore(logInformation.getEndTime());
     }
 
     @Test
@@ -165,8 +163,14 @@ public class StorageLogAppenderTest {
         assertThat(nbLines).isEqualTo(20);
     }
 
+
+
     private StorageLogbookParameters getParameters() {
         final Map<StorageLogbookParameterName, String> parameters = new TreeMap<>();
+
+        parameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        parameters.put(StorageLogbookParameterName.xRequestId, "abcd");
+        parameters.put(StorageLogbookParameterName.tenantId, "0");
         parameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
@@ -176,6 +180,7 @@ public class StorageLogAppenderTest {
         parameters.put(StorageLogbookParameterName.agentIdentifierRequester, "agentIdentifierRequester");
         parameters.put(StorageLogbookParameterName.eventDateTime, DATE);
         parameters.put(StorageLogbookParameterName.outcome, OK_STATUS.name());
+
         return new StorageLogbookParameters(parameters);
     }
 

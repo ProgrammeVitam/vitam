@@ -134,7 +134,6 @@ public class StorageLogbookAdministration {
         final String uri = String.format("%s/%s", "logbook", fileName);
         LogInformationEvent event = null;
         LogInformation info = storageLogbookService.generateSecureStorage(tenantId);
-
         try (LogZipFile logZipFile = new LogZipFile(zipFile)) {
             logZipFile.initStoreLog();
             logZipFile.storeLogFile(new FileInputStream(info.getPath().toFile()));

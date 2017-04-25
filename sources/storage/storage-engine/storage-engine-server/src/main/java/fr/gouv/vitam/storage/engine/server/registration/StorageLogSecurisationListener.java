@@ -51,7 +51,7 @@ public class StorageLogSecurisationListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener started");
-
+        //TODO RETRY TO Secure LOG When Server not shutdown correctly Or securisation fail
     }
 
     @Override
@@ -63,7 +63,7 @@ public class StorageLogSecurisationListener implements ServletContextListener {
                 storageResource.secureStorageLogbook(tenant.toString());
             }
         } catch (final Exception e) {
-            LOGGER.error("WorkerUnRegister run : unregister call failed on " , e);
+            LOGGER.error("Fail to Backup Storage log " , e);
         }
     }
 

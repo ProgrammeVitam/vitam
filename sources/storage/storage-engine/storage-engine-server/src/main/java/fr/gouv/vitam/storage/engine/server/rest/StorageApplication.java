@@ -97,12 +97,6 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
             }
             final StorageApplication application = new StorageApplication(args[0]);
 
-            Path loggingDierectory = Paths.get(application.getConfiguration().getLoggingDirectory());
-
-        //    StorageLogbookService storageLogbookService =
-             //   new StorageLogbookServiceImpl(application.getConfiguration().getTenants(), loggingDierectory);
-
-
             // Test if dependencies are OK
             if (serviceRegistry == null) {
                 LOGGER.error("ServiceRegistry is not allocated");
