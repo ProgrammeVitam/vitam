@@ -59,7 +59,6 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 public class AccessContratIdHeaderHelper {
     
     private static final String ACTIVE_STATUS = "ACTIVE";
-    private static final String USAGES = "DataObjectVersion";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContratIdHeaderHelper.class);
 
@@ -95,6 +94,8 @@ public class AccessContratIdHeaderHelper {
             List<AccessContractModel> list = ((RequestResponseOK<AccessContractModel>)response).getResults(); 
             Set<String> dataObjectVersions = list.get(0).getDataObjectVersion();
             VitamThreadUtils.getVitamSession().setUsages(dataObjectVersions);
+            boolean writingPermission = list.get(0).getWritingPermission();
+            VitamThreadUtils.getVitamSession().setWritingPermission(writingPermission);
             
             Set<String> prodServices = list.get(0).getOriginatingAgencies();
             VitamThreadUtils.getVitamSession().setProdServices(prodServices);

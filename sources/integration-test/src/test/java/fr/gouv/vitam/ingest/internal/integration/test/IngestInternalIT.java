@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -73,6 +74,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
@@ -333,6 +335,7 @@ public class IngestInternalIT {
 
     private void tryImportFile() {
 
+        VitamThreadUtils.getVitamSession().setContractId(contractId);
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client
@@ -472,9 +475,11 @@ public class IngestInternalIT {
 
             // Now redo Object with access internal
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
             responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 0);
             inputStream = responseStorage.readEntity(InputStream.class);
+            
+            RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), unit.findValuesAsText("#id").get(0));
+            assertEquals(response.toJsonNode().get("$results").get(0).get("$hits").get("size").asInt(), 1);
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
@@ -537,7 +542,6 @@ public class IngestInternalIT {
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -597,7 +601,6 @@ public class IngestInternalIT {
 
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -874,7 +877,6 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -935,7 +937,6 @@ public class IngestInternalIT {
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
             client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode().get("$results").get(0);
@@ -971,7 +972,6 @@ public class IngestInternalIT {
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            VitamThreadUtils.getVitamSession().setContractId(contractId);
             tryImportFile();
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;

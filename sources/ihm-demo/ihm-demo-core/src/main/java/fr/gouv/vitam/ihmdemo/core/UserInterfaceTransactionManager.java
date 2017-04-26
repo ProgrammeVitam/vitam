@@ -45,6 +45,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -109,10 +110,11 @@ public class UserInterfaceTransactionManager {
      * @throws AccessExternalClientServerException thrown when an errors occurs during the connection with the server
      * @throws AccessExternalClientNotFoundException thrown when access client is not found
      * @throws InvalidParseOperationException thrown when the Json node format is not correct
+     * @throws NoWritingPermissionException 
      */
     public static RequestResponse<JsonNode> updateUnits(JsonNode parameters, String unitId, Integer tenantId)
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, NoWritingPermissionException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.updateUnitbyId(parameters, unitId, tenantId);
         }

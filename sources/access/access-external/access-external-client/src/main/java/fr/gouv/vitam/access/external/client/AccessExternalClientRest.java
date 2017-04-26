@@ -16,6 +16,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -36,6 +37,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String NO_WRITING_PERMISSION = "No Writing Permission";
     private static final String UNAUTHORIZED = "Unauthorized";
     private static final String UNITS = "/units/";
     private static final String OBJECTS = "/objects/";
@@ -129,7 +131,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     @Override
     public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, NoWritingPermissionException {
         Response response = null;
         SanityChecker.checkJsonAll(updateQuery);
         if (updateQuery == null || updateQuery.size() == 0) {
@@ -149,6 +151,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
+            }else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()){
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION); 
             }
 
             return RequestResponse.parseFromResponse(response);

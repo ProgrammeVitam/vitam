@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -386,7 +387,7 @@ public class AccessExternalResourceImplTest {
     @Test
     public void given_queryThatThrowException_when_updateByID()
         throws InvalidParseOperationException, AccessInternalClientServerException,
-        AccessInternalClientNotFoundException {
+        AccessInternalClientNotFoundException, NoWritingPermissionException {
 
         PowerMockito.when(clientAccessInternal.updateUnitbyId(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA), ID))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(UPDATE_RETURN)));
@@ -830,7 +831,7 @@ public class AccessExternalResourceImplTest {
     @Test
     public void testErrorsUpdateUnitsById()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, NoWritingPermissionException {
 
         try {
             PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))

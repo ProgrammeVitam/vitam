@@ -127,6 +127,7 @@ public class ClientMockResultHelper {
     public static final String ACCESS_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":0, " +
             "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
+            "\"WritingPermission\": \"true\", " +
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
             "\"Status\":\"ACTIVE\", " +

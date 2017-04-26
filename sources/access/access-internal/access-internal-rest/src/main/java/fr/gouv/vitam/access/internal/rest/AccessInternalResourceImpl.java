@@ -220,6 +220,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
+            if (!VitamThreadUtils.getVitamSession().isWritingPermission()){
+                status = Status.METHOD_NOT_ALLOWED;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            }
             result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);

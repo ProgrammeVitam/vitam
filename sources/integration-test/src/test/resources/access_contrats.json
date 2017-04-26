@@ -8,7 +8,8 @@
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
-		"DeactivationDate":"10/12/2016"
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
 	},
 		{
 		"Name":"aName2",
@@ -19,7 +20,8 @@
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
-		"DeactivationDate":"10/12/2016"
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
 	},
 	{
 		"Name":"aName3",
@@ -30,6 +32,7 @@
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
-		"DeactivationDate":"10/12/2016"
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
 	}	
 ]

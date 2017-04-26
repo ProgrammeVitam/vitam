@@ -62,6 +62,7 @@ public class VitamSession {
     private String contractId = null;
     private Set<String> usages = new HashSet<>();
     private Set<String> prodServices = new HashSet<>();
+    private boolean writingPermission;
 
     /**
      * @param owningThread the owning thread
@@ -185,6 +186,20 @@ public class VitamSession {
     public VitamSession setUsages(Set<String> usages) {
         this.usages = usages;
         return this;
+    }
+    
+    /**
+     * @return writingPermission
+     */
+    public boolean isWritingPermission() {
+        return writingPermission;
+    }
+
+    /**
+     * @param writingPermission
+     */
+    public void setWritingPermission(boolean writingPermission) {
+        this.writingPermission = writingPermission;
     }
 
     /**
