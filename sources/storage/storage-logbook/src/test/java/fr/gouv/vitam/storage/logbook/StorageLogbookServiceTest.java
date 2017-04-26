@@ -24,60 +24,71 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook;
+package fr.gouv.vitam.storage.logbook;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookOutcome;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameterName;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookOutcome;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameterName;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
+import org.junit.rules.TemporaryFolder;
 
-public class StorageLogbookMockTest {
+public class StorageLogbookServiceTest {
 
     private static final String selectString = "{\"select\": \"selectQuery\"}";
-    private StorageLogbook storageLogbook;
-
+    private StorageLogbookService storageLogbookService;
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
     @Before
-    public void setUp() {
-        storageLogbook = new StorageLogbookMock();
+    public void setUp() throws IOException {
+        List<Integer> list = new ArrayList<>() ;
+        list.add(0);
+        list.add(1);
+        storageLogbookService = new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
     }
 
     @Test()
-    public void addTest() throws Exception {
-        storageLogbook.add(getParameters());
+    public void appendTest() throws Exception {
+        storageLogbookService.append(0,getParameters());
     }
-
     @Test(expected = StorageException.class)
     public void addTestInError() throws Exception {
-        storageLogbook.add(getEmptyParameters());
+        storageLogbookService.append(0,getEmptyParameters());
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void closeTest() {
-        storageLogbook.close();
+        storageLogbookService.close();
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void selectOperationsbyObjectIdTest() throws Exception {
-        storageLogbook.selectOperationsbyObjectId("objectId");
+        storageLogbookService.selectOperationsbyObjectId("objectId");
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void selectOperationsbyObjectGroupIdTest() throws Exception {
-        storageLogbook.selectOperationsbyObjectGroupId("objectGroupId");
+        storageLogbookService.selectOperationsbyObjectGroupId("objectGroupId");
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void selectOperationsWithASelectTest() throws Exception {
         final ObjectMapper mapper = new ObjectMapper();
-        storageLogbook.selectOperationsWithASelect(mapper.readTree(selectString));
+        storageLogbookService.selectOperationsWithASelect(mapper.readTree(selectString));
     }
 
     private StorageLogbookParameters getParameters() {
@@ -94,6 +105,9 @@ public class StorageLogbookMockTest {
         initalParameters.put(StorageLogbookParameterName.agentIdentifierRequester, "agentIdentifierRequester");
         initalParameters.put(StorageLogbookParameterName.outcomeDetailMessage, "outcomeDetailMessage");
         initalParameters.put(StorageLogbookParameterName.objectIdentifierIncome, "objectIdentifierIncome");
+        initalParameters.put(StorageLogbookParameterName.tenantId, "0");
+        initalParameters.put(StorageLogbookParameterName.xRequestId, "0123");
+        initalParameters.put(StorageLogbookParameterName.eventType, "CREATE");
 
         final StorageLogbookParameters parameters = new StorageLogbookParameters(initalParameters);
 

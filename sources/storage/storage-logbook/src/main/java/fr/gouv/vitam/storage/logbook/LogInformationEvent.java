@@ -24,52 +24,82 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.logbook;
 
-package fr.gouv.vitam.logbook.common.parameters;
+import java.time.LocalDateTime;
 
 /**
- * Logbook Process Type
+ * Log Information
  */
-public enum LogbookTypeProcess {
+public class LogInformationEvent {
     /**
-     * Ingest type process
+     * fileName
      */
-    INGEST,
+    private String fileName;
     /**
-     * Audit type process
+     * time stamp begin log time
      */
-    AUDIT,
+    private LocalDateTime beginTime;
     /**
-     * Destruction type process
+     * time stamp end log time
      */
-    DESTRUCTION,
+    private LocalDateTime endTime;
     /**
-     * Preservation type process
+     * time stamp token (base64 encoded)
      */
-    PRESERVATION,
+    private String hash;
     /**
-     * Check type process
+     * Total size of the ZIP entry
      */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK;
+    private long size;
 
+    public LogInformationEvent(String fileName, LocalDateTime beginTime, LocalDateTime endTime, String hash,
+        long size) {
+        this.fileName = fileName;
+        this.beginTime = beginTime;
+        this.endTime = endTime;
+        this.hash = hash;
+        this.size = size;
+    }
+
+    /**
+     * get log FileName
+     *
+     * @return fileName
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
+     * get begin log time
+     *
+     * @return
+     */
+    public LocalDateTime getBeginTime() {
+        return beginTime;
+    }
+
+    /**
+     * get end log file time
+     *
+     * @return
+     */
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    /**
+     * @return Size of the entry
+     */
+    public long getSize() {
+        return size;
+    }
+
+    /**
+     * @return hash
+     */
+    public String getHash() {
+        return hash;
+    }
 }

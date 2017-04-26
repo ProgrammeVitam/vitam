@@ -142,6 +142,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @Path("/storage/v1")
     public static class MockResource {
+        private static final String SECURE = "/storage/secure";
         private final ExpectedResults expectedResponse;
         public static final String APPLICATION_ZIP = "application/zip";
 
@@ -261,6 +262,14 @@ public class StorageClientRestTest extends VitamJerseyTest {
         public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
             return expectedResponse.get();
         }
+
+        @POST
+        @Path(SECURE)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response t() {
+            return expectedResponse.post();
+        }
+        //operations/traceability"
     }
 
     @RunWithCustomExecutor
@@ -605,6 +614,15 @@ public class StorageClientRestTest extends VitamJerseyTest {
         final InputStream stream2 = IOUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void successSecureStorageLogbook() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.OK).
+            entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build());
+        client.secureStorageLogbook();
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

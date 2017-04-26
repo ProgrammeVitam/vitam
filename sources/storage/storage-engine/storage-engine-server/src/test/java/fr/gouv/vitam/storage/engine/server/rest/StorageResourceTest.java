@@ -755,6 +755,13 @@ public class StorageResourceTest {
                 .statusCode(Status.OK.getStatusCode());
     }
 
+    @Test
+    public void secureStorageLogbookOk(){
+        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().post("/storage/secure").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+    }
+
     private static VitamServer buildTestServer() throws VitamApplicationServerException {
         final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
 

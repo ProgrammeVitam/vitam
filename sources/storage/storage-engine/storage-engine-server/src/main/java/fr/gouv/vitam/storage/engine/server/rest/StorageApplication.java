@@ -27,18 +27,25 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import static java.lang.String.format;
-
-import org.glassfish.jersey.server.ResourceConfig;
-
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.storage.engine.server.registration.StorageLogSecurisationListener;
+import fr.gouv.vitam.storage.logbook.StorageLogbookService;
+import fr.gouv.vitam.storage.logbook.StorageLogbookServiceImpl;
+import static java.lang.String.format;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.glassfish.jersey.server.ResourceConfig;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Storage web application
@@ -52,6 +59,10 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
 
     static VitamServiceRegistry serviceRegistry = null;
     static StorageResource storageResource;
+
+
+    private StorageLogbookService storageLogbookService;
+
 
     /**
      * StorageApplication constructor
@@ -67,26 +78,25 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
      *
      * @param configuration
      */
-    public StorageApplication(StorageConfiguration configuration) {
+    public StorageApplication(StorageConfiguration configuration) throws IOException {
         super(StorageConfiguration.class, configuration);
     }
 
     /**
      * Main method to run the APPLICATION (doing start and join)
      *
-     * @param args
-     *            command line parameters
-     * @throws IllegalStateException
-     *             if the Vitam server cannot be launched
+     * @param args command line parameters
+     * @throws IllegalStateException if the Vitam server cannot be launched
      */
     public static void main(String[] args) {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, STORAGE_CONF_FILE_NAME));
                 throw new IllegalArgumentException(
-                        format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, STORAGE_CONF_FILE_NAME));
+                    format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, STORAGE_CONF_FILE_NAME));
             }
             final StorageApplication application = new StorageApplication(args[0]);
+
             // Test if dependencies are OK
             if (serviceRegistry == null) {
                 LOGGER.error("ServiceRegistry is not allocated");
@@ -111,8 +121,19 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         // FIXME P2 register for default offer: useful ?
-        storageResource = new StorageResource(getConfiguration());
+        try {
+            storageLogbookService =
+                new StorageLogbookServiceImpl(getConfiguration().getTenants(), Paths.get(getConfiguration().getLoggingDirectory()));
+        } catch (IOException e) {
+            LOGGER.error("Unable to instantiate ", e);
+            System.exit(2);
+        }
+        storageResource = new StorageResource(getConfiguration(), this.storageLogbookService);
         resourceConfig.register(storageResource);
+    }
+
+    protected void setFilter(ServletContextHandler context) {
+        context.addEventListener(new StorageLogSecurisationListener(storageResource, getConfiguration()));
     }
 
     @Override
@@ -120,4 +141,5 @@ public final class StorageApplication extends AbstractVitamApplication<StorageAp
         resourceConfig.register(new AdminStatusResource(serviceRegistry));
         return true;
     }
+
 }

@@ -27,11 +27,14 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import fr.gouv.vitam.storage.logbook.StorageLogbookService;
+import fr.gouv.vitam.storage.logbook.StorageLogbookServiceImpl;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -86,6 +89,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 import junit.framework.TestCase;
+import org.junit.rules.TemporaryFolder;
 
 public class StorageTestMultiIT {
     private static final int NB_MULTIPLE_THREADS = 50;
@@ -105,11 +109,12 @@ public class StorageTestMultiIT {
     private static int workspacePort = 8987;
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String WORKSPACE_FOLDER = "workspace";
+    private static final String TMP_FOLDER = "tmp";
 
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
     private static int size = 500;
-
+    static TemporaryFolder folder = new TemporaryFolder();
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
@@ -141,6 +146,11 @@ public class StorageTestMultiIT {
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
         serverConfiguration.setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
+
+        folder.create();
+        serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
+        serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
+
         try {
             storageApplication = new StorageApplication(serverConfiguration);
             storageApplication.start();
@@ -192,6 +202,7 @@ public class StorageTestMultiIT {
         storageClient.close();
         defaultOfferApplication.stop();
         storageApplication.stop();
+        folder.delete();
     }
 
     public static void afterTest() {

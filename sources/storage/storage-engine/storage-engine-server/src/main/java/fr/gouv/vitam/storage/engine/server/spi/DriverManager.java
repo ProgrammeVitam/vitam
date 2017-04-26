@@ -52,8 +52,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Use to register storage driver and associates it with offers.<br>
  * <br>
  *
- * Actually, it is not possible to add driver without a server restart (you can
- * add the driver, do association with offers but you have to restart the server
+ * Actually, it is not possible to append driver without a server restart (you can
+ * append the driver, do association with offers but you have to restart the server
  * to have the new driver).
  */
 
@@ -120,7 +120,7 @@ public class DriverManager {
             boolean done = driver.addOffer(offerId);
             if (!done) {
                 LOGGER.warn(
-                    "Cannot add to the driver {} with name {} the offer ID {}, offer already define",
+                    "Cannot append to the driver {} with name {} the offer ID {}, offer already define",
                     driver, driver.getClass().getName(), offerId);
             }
         }
@@ -229,7 +229,7 @@ public class DriverManager {
      * @param name
      *            the driver name
      * @param offerId
-     *            the offer ID to add
+     *            the offer ID to append
      * @throws StorageDriverMapperException
      *             thrown if error on driver mapper (persisting part) append
      */
@@ -262,7 +262,7 @@ public class DriverManager {
      * @param name
      *            the driver name
      * @param offerIds
-     *            the offer ID to add
+     *            the offer ID to append
      * @throws StorageDriverMapperException
      *             thrown if error on driver mapper (persisting part) append
      */

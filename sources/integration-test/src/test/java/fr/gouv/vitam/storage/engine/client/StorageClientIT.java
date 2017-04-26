@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,6 +66,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
@@ -99,6 +101,7 @@ public class StorageClientIT {
 
     private static final String MANIFEST =
         "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa802";
+    private static final String TMP_FOLDER = "tmp";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -122,6 +125,12 @@ public class StorageClientIT {
         }
         serverConfiguration
             .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
+        TemporaryFolder folder = new TemporaryFolder();
+        folder.create();
+        ArrayList<Integer> tenants = new ArrayList<Integer>();
+        serverConfiguration.setTenants(tenants);
+        serverConfiguration.setZippingDirecorty(TMP_FOLDER);
+        serverConfiguration.setLoggingDirectory(TMP_FOLDER);
         try {
             storageApplication = new StorageApplication(serverConfiguration);
             storageApplication.start();

@@ -24,34 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook.parameters;
+package fr.gouv.vitam.storage;
 
-import java.io.IOException;
-import java.util.Map.Entry;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
 
 /**
- * StorageLogbookParameters Serializer for Jackson
+ * Log Information
  */
-class StorageLogbookParametersSerializer extends JsonSerializer<StorageLogbookParameters> {
+public class LogInformation {
+
+    private Path path;
+
+    private LocalDateTime beginTime;
+
+    private LocalDateTime endTime;
+
+    public LogInformation(Path path, LocalDateTime beginTime, LocalDateTime endTime) {
+        this.path = path;
+        this.beginTime = beginTime;
+        this.endTime = endTime;
+    }
 
     /**
-     * Empty constructor
+     * get log  Path
+     * @return path
      */
-    public StorageLogbookParametersSerializer() {
-        // empty
+    public Path getPath() {
+        return path;
     }
 
-    @Override
-    public void serialize(StorageLogbookParameters value, JsonGenerator gen, SerializerProvider serializers) throws IOException {
-        gen.writeStartObject();
-        for (final Entry<StorageLogbookParameterName, String> item : value.getMapParameters().entrySet()) {
-            gen.writeStringField(item.getKey().name(), item.getValue());
-        }
-        gen.writeEndObject();
+    /**
+     * get begin log time
+     * @return
+     */
+    public LocalDateTime getBeginTime() {
+        return beginTime;
     }
 
+    /**
+     * get end log file time
+     * @return
+     */
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
 }

@@ -54,7 +54,7 @@ public interface DriverMapper {
      * Add one offer to a driver's offers persisted list (and persists it)
      *
      * @param offerId
-     *            the offer ID to add and persist
+     *            the offer ID to append and persist
      * @param driverName
      *            the driver name
      * @throws StorageDriverMapperException
@@ -67,7 +67,7 @@ public interface DriverMapper {
      * Add list of offers to a driver's offers persisted list (and persists it)
      *
      * @param offersIdsToAdd
-     *            the offers IDs list to add and persist
+     *            the offers IDs list to append and persist
      * @param driverName
      *            the driver name
      * @throws StorageDriverMapperException

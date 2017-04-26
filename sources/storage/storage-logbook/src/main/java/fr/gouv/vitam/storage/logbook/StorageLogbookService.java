@@ -24,31 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook;
-
-import java.util.List;
+package fr.gouv.vitam.storage.logbook;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.storage.LogInformation;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
+
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Storage Logbook interface. It describes methods to be implemented.
  */
-public interface StorageLogbook {
+public interface StorageLogbookService {
 
     /**
      * Add a storage logbook entry <br>
      * <br>
      *
-     * @param parameters
-     *            the entry parameters
-     * @throws StorageException
-     *             if an error is encountered
+     * @param parameters the entry parameters
+     * @throws StorageException if an error is encountered
      */
-    void add(StorageLogbookParameters parameters) throws StorageException;
+    void append(Integer tenant, StorageLogbookParameters parameters) throws StorageException, IOException;
 
     /**
      * Not implemented yet
@@ -58,37 +57,45 @@ public interface StorageLogbook {
     /**
      * Select a list of operations for a specified object
      *
-     * @param objectId
-     *            the id of the object
+     * @param objectId the id of the object
      * @return List of operations for this object Id
-     * @throws StorageException
-     *             if any error is encountered
+     * @throws StorageException if any error is encountered
      */
     List<StorageLogbookParameters> selectOperationsbyObjectId(String objectId) throws StorageException;
 
     /**
      * Select a list of operations for a specified objectgroup
      *
-     * @param objectGroupId
-     *            the id of the object group
+     * @param objectGroupId the id of the object group
      * @return List of operations for this object Id
-     * @throws StorageException
-     *             if any error is encountered
+     * @throws StorageException if any error is encountered
      */
     List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException;
 
     /**
      * Select a list of operations for a specified request
      *
-     * @param select
-     *            the request in JsonNode format
+     * @param select the request in JsonNode format
      * @return a List of operations
-     * @throws StorageException
-     *             if any error is encountered
-     * @throws InvalidParseOperationException
-     *             if the select request is not correct
+     * @throws StorageException               if any error is encountered
+     * @throws InvalidParseOperationException if the select request is not correct
      */
     List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-            throws StorageException, InvalidParseOperationException;
+        throws StorageException, InvalidParseOperationException;
+
+    /**
+     * Rotation
+     * clode  Storage Log file and create a new one
+     * @param tenantId
+     */
+    LogInformation generateSecureStorage(Integer tenantId) throws IOException;
+
+    /**
+     * Just close  Storage Log file
+     * should be called when the server is shutting Down
+     * @param tenantId
+     * @throws IOException
+     */
+    void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException;
 
 }

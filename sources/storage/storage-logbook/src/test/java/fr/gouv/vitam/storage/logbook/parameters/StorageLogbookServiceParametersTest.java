@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook.parameters;
+package fr.gouv.vitam.storage.logbook.parameters;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -35,12 +35,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookOutcome;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameterName;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 import org.junit.Test;
 
 /**
  * Test class for StorageLogbookParameters
  */
-public class StorageLogbookParametersTest {
+public class StorageLogbookServiceParametersTest {
     private static final StorageLogbookOutcome OK_STATUS = StorageLogbookOutcome.OK;
     private static final StorageLogbookOutcome KO_STATUS = StorageLogbookOutcome.KO;
     private static final String DATE = "2016-07-29T11:56:35.914";
@@ -93,6 +96,9 @@ public class StorageLogbookParametersTest {
     private StorageLogbookParameters getParameters() {
         final Map<StorageLogbookParameterName, String> parameters = new TreeMap<>();
 
+        parameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        parameters.put(StorageLogbookParameterName.xRequestId, "abcd");
+        parameters.put(StorageLogbookParameterName.tenantId, "0");
         parameters.put(StorageLogbookParameterName.objectIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.objectGroupIdentifier, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");
         parameters.put(StorageLogbookParameterName.digest, "aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq");

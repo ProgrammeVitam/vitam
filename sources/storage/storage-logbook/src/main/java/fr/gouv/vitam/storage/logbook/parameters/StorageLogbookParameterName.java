@@ -24,52 +24,85 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.logbook.common.parameters;
+package fr.gouv.vitam.storage.logbook.parameters;
 
 /**
- * Logbook Process Type
+ * Enum with all possible logbook storage parameters <br>
+ * <br>
+ * Use to set parameter value and to check emptiness or nullity
  */
-public enum LogbookTypeProcess {
+public enum StorageLogbookParameterName {
     /**
-     * Ingest type process
+     * Set by the storage engine : date time of the event
      */
-    INGEST,
+    eventDateTime,
     /**
-     * Audit type process
+     * X-Request-Id
      */
-    AUDIT,
+    xRequestId,
     /**
-     * Destruction type process
+     * Tenant ID
      */
-    DESTRUCTION,
+    tenantId,
     /**
-     * Preservation type process
+     * Event type: should use one global Enum ActionType <br>
+     * <br>
+     * Could be for instance: "Unzip", "CheckSeda", ...
      */
-    PRESERVATION,
+    eventType,
     /**
-     * Check type process
+     * Object Identifier.<br>
+     * Identifier of the object to be written in the storage offer. <br>
+     * For instance: Object GUID<br>
      */
-    CHECK,
+    objectIdentifier,
     /**
-     * Update process
+     * Object Group Identifier.<br>
+     * Identifier of the object group corresponding to the object written in the
+     * storage offer. <br>
+     * For instance: Object Group GUID<br>
      */
-    UPDATE,
+    objectGroupIdentifier,
     /**
-     * Rules Manager process
+     * Digest of the written object.
      */
-    MASTERDATA,
+    digest,
     /**
-     * traceabiliy type process
+     * digest Algorithm used for this object Could be for instance: "SHA-256",
+     * "SHA-512", ...
      */
-    TRACEABILITY,
+    digestAlgorithm,
     /**
-     * INGEST (Blank test)
+     * Size in bytes of the object written on the storage offer
      */
-    INGEST_TEST,
+    size,
     /**
-     * Storage logbook type process
+     * List of the offers identifiers on which the object has been written
      */
-    STORAGE_LOGBOOK;
+    agentIdentifiers,
+    /**
+     * Requester of the storage order
+     */
+    agentIdentifierRequester,
+    /**
+     * Status between: "OK", "KO", "PENDING" <br>
+     * <br>
+     * One must use the StorageLogbookOutcome enum. <br>
+     */
+    outcome,
+    /**
+     * Message output, whatever the "outcome" status <br>
+     * Can be null
+     */
+    outcomeDetailMessage,
+    /**
+     * External Object Identifier on the current object<br>
+     * <br>
+     * For instance: from Ingest, in the manifest.xml, this field is
+     * "MessageIdentifier" <br>
+     * <br>
+     * Can be null
+     */
+    objectIdentifierIncome
 
 }

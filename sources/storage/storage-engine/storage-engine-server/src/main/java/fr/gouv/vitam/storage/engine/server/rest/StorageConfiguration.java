@@ -36,7 +36,8 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
 
     private String urlWorkspace;
     private Integer timeoutMsPerKB;
-
+    protected String loggingDirectory ;
+    protected String  zippingDirecorty;
     /**
      * StorageConfiguration empty constructor for YAMLFactory
      */
@@ -79,4 +80,39 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
         this.timeoutMsPerKB = timeoutMsPerKB;
         return this;
     }
+
+
+    /**
+     *
+     * @return
+     */
+    public String getLoggingDirectory() {
+        return loggingDirectory;
+    }
+
+    /**
+     *
+     * @param loggingDirectory
+     */
+    public void setLoggingDirectory(String loggingDirectory) {
+        this.loggingDirectory = loggingDirectory;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getZippingDirecorty() {
+        return zippingDirecorty;
+    }
+
+    /**
+     *
+     * @param zippingDirecorty
+     */
+    public void setZippingDirecorty(String zippingDirecorty) {
+        this.zippingDirecorty = zippingDirecorty;
+    }
+
+
 }

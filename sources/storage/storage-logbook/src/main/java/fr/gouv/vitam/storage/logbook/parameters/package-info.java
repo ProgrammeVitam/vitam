@@ -28,4 +28,4 @@
 /**
  * Provides logbook parameters classes used for the Storage Engine Server module
  */
-package fr.gouv.vitam.storage.engine.server.logbook.parameters;
+package fr.gouv.vitam.storage.logbook.parameters;

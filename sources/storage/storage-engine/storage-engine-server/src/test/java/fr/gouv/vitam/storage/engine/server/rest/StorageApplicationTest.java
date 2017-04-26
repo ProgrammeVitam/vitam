@@ -30,8 +30,10 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import org.jhades.JHades;
+import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +43,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.server.VitamServerFactory;
+import org.junit.rules.TemporaryFolder;
 
 /**
  *
@@ -55,6 +58,8 @@ public class StorageApplicationTest {
     private static int oldPort;
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static File storage;
+    @Rule
+    public TemporaryFolder testFolder = new TemporaryFolder();
 
     // @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -83,8 +88,13 @@ public class StorageApplicationTest {
     @Test
     public final void testFictiveLaunch() {
         try {
-            new StorageApplication(STORAGE_CONF);
-        } catch (final IllegalStateException e) {
+
+            final StorageConfiguration
+                conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF), StorageConfiguration.class);
+                conf.setLoggingDirectory(testFolder.newFolder().getAbsolutePath());
+                conf.setZippingDirecorty(testFolder.newFolder().getAbsolutePath());
+            new StorageApplication(conf);
+        } catch (final IllegalStateException | IOException e) {
             fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
     }

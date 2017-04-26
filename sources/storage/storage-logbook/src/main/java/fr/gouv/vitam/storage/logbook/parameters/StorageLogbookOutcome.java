@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.engine.server.logbook.parameters;
+package fr.gouv.vitam.storage.logbook.parameters;
 
 /**
  * Storage Logbook Operation Outcome values

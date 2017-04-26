@@ -24,71 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook.parameters;
+package fr.gouv.vitam.storage.logbook;
+
+import java.util.List;
 
 /**
- * Enum with all possible logbook storage parameters <br>
- * <br>
- * Use to set parameter value and to check emptiness or nullity
+ * Secure configuration
  */
-public enum StorageLogbookParameterName {
+public class StorageSecureConfiguration {
+
+    protected List<Integer> tenants ;
+
+
+
     /**
-     * Set by the storage engine : date time of the event
+     * Empty ClientConfiguration constructor for YAMLFactory
      */
-    eventDateTime,
+    public StorageSecureConfiguration() {
+
+    }
+
     /**
-     * Object Identifier.<br>
-     * Identifier of the object to be written in the storage offer. <br>
-     * For instance: Object GUID<br>
+     *
+     * @return list of tenant
      */
-    objectIdentifier,
+    public List<Integer> getTenants() {
+        return tenants;
+    }
+
     /**
-     * Object Group Identifier.<br>
-     * Identifier of the object group corresponding to the object written in the
-     * storage offer. <br>
-     * For instance: Object Group GUID<br>
+     *
+     *
+     * @param tenants to set
      */
-    objectGroupIdentifier,
-    /**
-     * Digest of the written object.
-     */
-    digest,
-    /**
-     * digest Algorithm used for this object Could be for instance: "SHA-256",
-     * "SHA-512", ...
-     */
-    digestAlgorithm,
-    /**
-     * Size in bytes of the object written on the storage offer
-     */
-    size,
-    /**
-     * List of the offers identifiers on which the object has been written
-     */
-    agentIdentifiers,
-    /**
-     * Requester of the storage order
-     */
-    agentIdentifierRequester,
-    /**
-     * Status between: "OK", "KO", "PENDING" <br>
-     * <br>
-     * One must use the StorageLogbookOutcome enum. <br>
-     */
-    outcome,
-    /**
-     * Message output, whatever the "outcome" status <br>
-     * Can be null
-     */
-    outcomeDetailMessage,
-    /**
-     * External Object Identifier on the current object<br>
-     * <br>
-     * For instance: from Ingest, in the manifest.xml, this field is
-     * "MessageIdentifier" <br>
-     * <br>
-     * Can be null
-     */
-    objectIdentifierIncome
+    public void setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
+    }
+
+
 
 }

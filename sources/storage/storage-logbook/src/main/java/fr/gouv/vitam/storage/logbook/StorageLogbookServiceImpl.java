@@ -24,36 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.logbook;
-
-import java.util.List;
+package fr.gouv.vitam.storage.logbook;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.LogInformation;
+import fr.gouv.vitam.storage.StorageLogAppender;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.server.logbook.parameters.StorageLogbookParameters;
+import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
+ * Use as a singleton
  * Implementation of the mock of the storage logbook Only log informations
  */
-public class StorageLogbookMock implements StorageLogbook {
+public class StorageLogbookServiceImpl implements StorageLogbookService {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookMock.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookServiceImpl.class);
+    private StorageLogAppender appender;
+
+    public StorageLogbookServiceImpl(List<Integer> tenants, Path path) throws IOException {
+        appender = new StorageLogAppender(tenants, path);
+    }
+
 
     @Override
-    public void add(StorageLogbookParameters parameters) throws StorageException {
-        try {
-            if (parameters.checkMandatoryParameters()) {
-                logInformation(parameters);
-            }
-        } catch (final IllegalArgumentException exception) {
-            LOGGER.error(exception.getMessage());
-            throw new StorageException(exception.getMessage(), exception);
-        }
+    public void append(Integer tenant, StorageLogbookParameters parameters) throws StorageException, IOException {
+        appender.append(tenant, parameters);
     }
 
     @Override
@@ -67,31 +69,29 @@ public class StorageLogbookMock implements StorageLogbook {
     }
 
     @Override
-    public List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId) throws StorageException {
+    public List<StorageLogbookParameters> selectOperationsbyObjectGroupId(String objectGroupId)
+        throws StorageException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public List<StorageLogbookParameters> selectOperationsWithASelect(JsonNode select)
-            throws StorageException, InvalidParseOperationException {
+        throws StorageException, InvalidParseOperationException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    /**
-     * For the moment, parameters are only logged
-     *
-     * @param parameters
-     *            the storage logbook parameters
-     */
-    private void logInformation(StorageLogbookParameters parameters) {
-        String result;
-        try {
-            result = JsonHandler.writeAsString(parameters);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error("Cannot serialize parameters", e);
-            result = "{}";
-        }
-        LOGGER.warn(result);
+    @Override
+    public LogInformation generateSecureStorage(Integer tenantId) throws IOException {
+        return appender.secureWithoutCreatingNewLogByTenant(tenantId);
+
     }
+
+    @Override
+    public void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException {
+
+        LogInformation info = appender.secureWithoutCreatingNewLogByTenant(tenantId);
+
+    }
+
 
 }
