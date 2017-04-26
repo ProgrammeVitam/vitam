@@ -349,6 +349,7 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     @Test
     public void listTest() throws Exception {
+        int nbIter = 1;
         String containerName = "object_0";
         storage.createContainer(containerName);
         assertNotNull(storage.getContainerInformation(containerName));
@@ -360,20 +361,26 @@ public abstract class ContentAddressableStorageTestAbstract {
         assertFalse(pageSet.isEmpty());
         assertEquals(100, pageSet.size());
 
-        for (int i = 100; i < 150; i++) {
+        for (int i = 100; i < (nbIter * 100 +50); i++) {
             storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100, false));
         }
+        // First list without marker
         pageSet = storage.listContainer(containerName);
-        assertNotNull(pageSet);
-        assertFalse(pageSet.isEmpty());
-        assertEquals(100, pageSet.size());
-        assertNotNull(pageSet.getNextMarker());
-
+        // Loop with marker with complete PageSet (100 elements)
+        for(int i=1;i < nbIter;i++){
+            pageSet = storage.listContainerNext(containerName,pageSet.getNextMarker());
+            assertNotNull(pageSet);
+            assertFalse(pageSet.isEmpty());
+            assertEquals(100, pageSet.size());
+            assertNotNull(pageSet.getNextMarker());
+        }
+        // Last listContainer with only 50 results
         pageSet = storage.listContainerNext(containerName, pageSet.getNextMarker());
         assertNotNull(pageSet);
         assertFalse(pageSet.isEmpty());
         assertEquals(50, pageSet.size());
         assertNull(pageSet.getNextMarker());
+        
     }
     
 }

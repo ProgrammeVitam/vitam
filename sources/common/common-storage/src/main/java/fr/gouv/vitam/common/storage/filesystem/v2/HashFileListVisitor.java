@@ -50,7 +50,8 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
     private boolean rootDirectory = true;
     int level = 0;
     ArrayList<Integer> fatherCompare = new ArrayList<>(MAX_DEPTH);
-
+    boolean isSameDirectoryMarker = false;
+    
     /**
      * Default constructor
      */
@@ -75,19 +76,28 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
             rootDirectory = false;
             return FileVisitResult.CONTINUE;
         }
-
+        // We have a Marker (not the first request
         if (beginMarkerSplitted != null) {
+            // add to the fatherCompare is the current directory is greater/lower than the directory part of the marker 
             if (level >= fatherCompare.size()) {
                 fatherCompare.add(directory.getFileName().toString().compareTo(beginMarkerSplitted.get(level)));
             } else {
                 fatherCompare.set(level, directory.getFileName().toString().compareTo(beginMarkerSplitted.get(level)));
             }
+            // Calculate if we are exactly in the directory structure of the marker 
+            isSameDirectoryMarker = true;
+            for (Integer compValue: fatherCompare){
+                isSameDirectoryMarker = isSameDirectoryMarker && (compValue == 0);
+            }
+            // Global Idea :
+            //   * If we have at least one parent level that is greater, we continue the exploration
+            //   * If the current level is not the last level (file level) and is smaller, we can skip all the subtree (smaller than the marker)
             for (Integer compValue : fatherCompare) {
                 if (compValue > 0) {
                     level++;
                     return FileVisitResult.CONTINUE;
                 }
-            }
+            } 
             if (level < beginMarkerSplitted.size() && fatherCompare.get(level) < 0) {
                 return FileVisitResult.SKIP_SUBTREE;
             }
@@ -107,10 +117,11 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        if (beginMarker != null && fatherCompare.get(level - 1) == 0 &&
-            file.getFileName().toString().compareTo(beginMarker) < 0) {
+        // If we have a marker and we 
+        if (beginMarker != null && isSameDirectoryMarker && file.getFileName().toString().compareTo(beginMarker) < 0){
             return FileVisitResult.CONTINUE;
         }
+        // The PageSet is full
         if (currentFiles >= MAX_RESULTS_PER_ITERABLE) {
             hashPageSet.setNextMarker(file.getFileName().toString());
             return FileVisitResult.TERMINATE;
