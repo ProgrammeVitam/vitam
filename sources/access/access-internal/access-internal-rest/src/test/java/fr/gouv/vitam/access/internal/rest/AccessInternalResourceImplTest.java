@@ -31,13 +31,17 @@ import static com.jayway.restassured.RestAssured.with;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
@@ -48,11 +52,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
@@ -62,7 +61,6 @@ import fr.gouv.vitam.access.internal.api.AccessBinaryData;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -70,7 +68,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -304,11 +301,14 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
+        Set<String> prodServices = new HashSet<String>(Arrays.asList("a", "b"));
+        VitamThreadUtils.getVitamSession().setProdServices(prodServices);
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(buildDSLWithOptions("", DATA2)).when()
+            .body(BODY_TEST).when()
             .get("/units").then()
             .statusCode(Status.OK.getStatusCode());
 
@@ -396,7 +396,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectGroupOk() throws Exception {
         reset(mock);
-        when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID)).thenReturn(JsonHandler
+        when(mock.selectObjectGroupById(anyObject(), eq(OBJECT_ID))).thenReturn(JsonHandler
             .getFromString(DATA));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -429,7 +429,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectGroupNotFound() throws Exception {
         reset(mock);
-        when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID))
+        when(mock.selectObjectGroupById(anyObject(), eq(OBJECT_ID)))
             .thenThrow(new NotFoundException());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -442,7 +442,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectGroupInternalServerError() throws Exception {
         reset(mock);
-        when(mock.selectObjectGroupById(JsonHandler.getFromString(BODY_TEST), OBJECT_ID))
+        when(mock.selectObjectGroupById(anyObject(), eq(OBJECT_ID)))
             .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)

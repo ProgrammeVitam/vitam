@@ -216,7 +216,7 @@ public class HeaderIdHelper {
                 }
             } else {
                 LOGGER.warn(
-                    "No tenantId found in session (somebody should have set it) ! " +
+                    "No contract id found in session (somebody should have set it) ! " +
                         "{} header will not be set in the http {}.",
                     GlobalDataRest.X_ACCESS_CONTRAT_ID, ctx);
             }

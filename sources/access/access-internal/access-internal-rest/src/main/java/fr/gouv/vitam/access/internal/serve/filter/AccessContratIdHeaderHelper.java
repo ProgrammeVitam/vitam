@@ -96,6 +96,9 @@ public class AccessContratIdHeaderHelper {
             Set<String> dataObjectVersions = list.get(0).getDataObjectVersion();
             VitamThreadUtils.getVitamSession().setUsages(dataObjectVersions);
             
+            Set<String> prodServices = list.get(0).getOriginatingAgencies();
+            VitamThreadUtils.getVitamSession().setProdServices(prodServices);
+            
         } catch (final VitamThreadAccessException | AdminManagementClientServerException |
             InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.warn(

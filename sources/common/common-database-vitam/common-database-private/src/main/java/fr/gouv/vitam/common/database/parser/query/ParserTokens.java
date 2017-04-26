@@ -161,7 +161,7 @@ public class ParserTokens extends BuilderToken {
          */
         public static final boolean isValid(String token) {
             // Exception for getObject sliced projection
-            return token.startsWith("_qualifiers.");
+            return token.startsWith("_qualifiers.") || token.equals("mgt") ;
         }
 
         /**

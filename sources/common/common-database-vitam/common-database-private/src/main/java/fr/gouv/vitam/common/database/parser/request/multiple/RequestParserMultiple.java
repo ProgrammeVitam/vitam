@@ -382,8 +382,14 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         newOne.parse(rootNode);
         final RequestMultiple request = newOne.getRequest();
         final Query query = request.getNthQuery(0);
-        final Query newQuery = QueryHelper.and().add(query, condition);
-        getRequest().getQueries().set(0, newQuery);
+        Query newQuery = null;
+        if (query == null) {
+            newQuery = condition;
+            getRequest().getQueries().add(newQuery);
+        } else {
+            newQuery = QueryHelper.and().add(query, condition);
+            getRequest().getQueries().set(0, newQuery);
+        }
         if (newOne instanceof SelectParserMultiple) {
             parse(((SelectMultiQuery) getRequest()).getFinalSelect().deepCopy());
         } else if (newOne instanceof InsertParserMultiple) {

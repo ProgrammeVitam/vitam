@@ -61,6 +61,7 @@ public class VitamSession {
     private Integer tenantId = null;
     private String contractId = null;
     private Set<String> usages = new HashSet<>();
+    private Set<String> prodServices = new HashSet<>();
 
     /**
      * @param owningThread the owning thread
@@ -81,6 +82,7 @@ public class VitamSession {
         newSession.tenantId = origin.getTenantId();
         newSession.contractId = origin.getContractId();
         newSession.usages = origin.getUsages();
+        newSession.prodServices = origin.getProdServices();
         return newSession;
     }
 
@@ -170,6 +172,13 @@ public class VitamSession {
     }
 
     /**
+     * @return prodSerivces
+     */
+    public Set<String> getProdServices() {
+        return prodServices;
+    }
+    
+    /**
      * @param usages
      * @return VitamSession
      */
@@ -178,6 +187,15 @@ public class VitamSession {
         return this;
     }
 
+    /**
+     * @param prodSerivces
+     * @return VitamSession
+     */
+    public VitamSession setProdServices(Set<String> prodServices) {
+        this.prodServices = prodServices;
+        return this;
+    }
+    
     /**
      * Get the content of a given VitamSession and copy its internal values to the current instance
      *
