@@ -506,21 +506,6 @@ public class ExtractSedaActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenManifestWithOriginatingAgencyNotSetThenReadKO() throws VitamException, IOException {
-
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
-        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_WITHOUT_ORIGINATING_AGENCY));
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-        action.addOutIOParameters(out);
-        final ItemStatus response = handler.execute(params, action);
-
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void givenManifestInheritenceExtractSedaThenReadSuccess() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());

@@ -91,7 +91,7 @@ public class CheckSedaActionHandlerTest {
     public void givenWorkspaceWhenXmlNotExistThenReturnResponseKO()
         throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject());
-        when(sedaUtils.getMessageIdentifier(anyObject())).thenThrow(new ProcessingException(""));
+        when(sedaUtils.getMandatoryValues(anyObject())).thenThrow(new ProcessingException(""));
         assertNotNull(CheckSedaActionHandler.getId());
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =

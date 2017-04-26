@@ -550,7 +550,11 @@ table {
 }
 
 .table > tbody > tr > td.logbookTask {
-  padding-left: 25px;
+    padding-left: 25px;
+}
+
+.table > tbody > tr > td.logbookSubTask {
+    padding-left: 40px;
 }
 /* TASK-FORCE-LOGBOOK-MESSAGE */
 
