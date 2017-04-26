@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.common.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.validation.constraints.NotNull;
 
 import org.slf4j.MDC;
@@ -56,6 +59,10 @@ public class VitamSession {
     private final VitamThreadFactory.VitamThread owningThread;
     private String requestId = null;
     private Integer tenantId = null;
+    private String contractId = null;
+    private Set<String> usages = new HashSet<>();
+    private Set<String> prodServices = new HashSet<>();
+    private boolean writingPermission;
 
     /**
      * @param owningThread the owning thread
@@ -74,6 +81,9 @@ public class VitamSession {
         final VitamSession newSession = new VitamSession(origin.owningThread);
         newSession.requestId = origin.getRequestId();
         newSession.tenantId = origin.getTenantId();
+        newSession.contractId = origin.getContractId();
+        newSession.usages = origin.getUsages();
+        newSession.prodServices = origin.getProdServices();
         return newSession;
     }
 
@@ -140,7 +150,67 @@ public class VitamSession {
     public void setRequestId(GUID guid) {
         setRequestId(guid.getId());
     }
+    
+    /**
+     * @return contract Id
+     */
+    public String getContractId() {
+        return contractId;
+    }
 
+    /**
+     * @param contractId
+     */
+    public void setContractId(String contractId) {
+        this.contractId = contractId;
+    }
+    
+    /**
+     * @return usages
+     */
+    public Set<String> getUsages() {
+        return usages;
+    }
+
+    /**
+     * @return prodSerivces
+     */
+    public Set<String> getProdServices() {
+        return prodServices;
+    }
+    
+    /**
+     * @param usages
+     * @return VitamSession
+     */
+    public VitamSession setUsages(Set<String> usages) {
+        this.usages = usages;
+        return this;
+    }
+    
+    /**
+     * @return writingPermission
+     */
+    public boolean isWritingPermission() {
+        return writingPermission;
+    }
+
+    /**
+     * @param writingPermission
+     */
+    public void setWritingPermission(boolean writingPermission) {
+        this.writingPermission = writingPermission;
+    }
+
+    /**
+     * @param prodSerivces
+     * @return VitamSession
+     */
+    public VitamSession setProdServices(Set<String> prodServices) {
+        this.prodServices = prodServices;
+        return this;
+    }
+    
     /**
      * Get the content of a given VitamSession and copy its internal values to the current instance
      *
@@ -153,6 +223,8 @@ public class VitamSession {
         }
         setRequestId(newSession.getRequestId());
         setTenantId(newSession.getTenantId());
+        setContractId(newSession.getContractId());
+        setUsages(newSession.getUsages());
     }
 
     /**

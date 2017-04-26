@@ -32,6 +32,7 @@ angular.module('core')
   'IHM_BASE_URL':'/ihm-demo/v1/api',
   'ADMIN_ROOT': 'admin',
   'TENANTS': 'tenants',
+  'ACCESS_CONTRACT': 'accesscontracts',
   'ACCESSION_REGISTER_SEARCH': 'accession-register',
   'ARCHIVE_ROOT': 'archiveunit',
   'ARCHIVE_TREE': 'tree/',
@@ -62,6 +63,10 @@ angular.module('core')
   dataFactory.getTenants = function (){
     return ihmDemoCLient.getClient(IHM_URLS.TENANTS).one('').get();
   };
+
+  dataFactory.getAccessContracts = function (criteria, headers){
+    return ihmDemoCLient.getClient(IHM_URLS.ACCESS_CONTRACT).all('').customPOST(criteria, null, null, headers);
+  }
 
   // Search Archive Units Http Request (POST method)
   dataFactory.searchArchiveUnits = function (criteria, headers) {
@@ -154,7 +159,9 @@ angular.module('core')
       RestangularConfigurer.setFullResponse(true);
       function addMandatoryHeader(element, operation, route, url, headers, params, httpConfig) {
           headers['X-Tenant-Id'] = $cookies.get('tenantId');
-
+          if ($cookies.get('X-Access-Contrat-Id')) {
+            headers['X-Access-Contrat-Id'] = $cookies.get('X-Access-Contrat-Id')
+          }
           return {
             element: element,
             headers: headers,

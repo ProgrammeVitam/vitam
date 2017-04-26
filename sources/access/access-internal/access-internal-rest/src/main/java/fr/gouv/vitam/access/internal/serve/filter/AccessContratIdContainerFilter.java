@@ -24,50 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.server;
+package fr.gouv.vitam.access.internal.serve.filter;
 
 import java.io.IOException;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.Response;
+
+import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContratIdException;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 /**
- * Manage the X-TENANT-ID header from the server-side perspective.
+ * Manage the X_ACCESS_CONTRAT_ID header from the server-side perspective.
  */
-public class TenantIdContainerFilter implements ContainerRequestFilter, ContainerResponseFilter {
+public class AccessContratIdContainerFilter implements ContainerRequestFilter{
 
-    /**
-     * Extracts the X-TENANT-ID from the headers to save it in the VitamSession
-     *
-     * @see ContainerRequestFilter#filter(ContainerRequestContext)
-     * @param requestContext {@link ContainerRequestFilter#filter(ContainerRequestContext)}
-     * @throws IOException {@see ContainerRequestFilter#filter(ContainerRequestContext)}
-     */
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        TenantIdHeaderHelper.putTenantIdFromHeaderInSession(requestContext.getHeaders(),
-            TenantIdHeaderHelper.Context.REQUEST);
-    }
-
-    /**
-     * Retrieves the tenant id from the VitamSession and add a X-TENANT-ID header to the request
-     *
-     * @see ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext)
-     * @param requestContext Cf.
-     *        {@link ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext) }
-     * @param responseContext Cf.
-     *        {@link ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext) }
-     * @throws IOException Cf.
-     *         {@link ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext) }
-     */
-    @Override
-    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
-        throws IOException {
-        TenantIdHeaderHelper.putTenantIdFromSessionInHeader(responseContext.getHeaders(),
-            TenantIdHeaderHelper.Context.RESPONSE);
+        if (requestContext.getUriInfo().getPath().contains("/status")) {
+            return;
+        }
+        try {
+            HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(),
+            HeaderIdHelper.Context.REQUEST);
+            AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestContext.getHeaders()); 
+        } catch (MissingAccessContratIdException e) {
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+        }
     }
 
 }
-

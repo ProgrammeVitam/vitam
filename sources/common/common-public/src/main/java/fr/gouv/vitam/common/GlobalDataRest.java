@@ -130,6 +130,11 @@ public class GlobalDataRest {
     public static final String X_CONTEXT_ID = "X-Context-Id";
 
     /**
+     * Header use to contain the id of the access contract
+     */
+    public static final String X_ACCESS_CONTRAT_ID = "X-Access-Contrat-Id";
+    
+    /**
      * Transfer Encoding Header
      */
     public static final String TRANSFER_ENCODING_HEADER = "Transfer-Encoding";

@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import java.util.Set;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -50,18 +52,28 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionExc
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
@@ -84,6 +96,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
+    private static final String  MANAGEMENT = "_mgt";
+    
 
 
 
@@ -125,10 +139,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING);
         Status status;
         JsonNode result = null;
+        
         try {
             SanityChecker.checkJsonAll(queryDsl);
-            result = accessModule.selectUnit(queryDsl);
-        } catch (final InvalidParseOperationException e) {
+            result = accessModule.selectUnit(addProdServicesToQuery(queryDsl));
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
@@ -166,8 +181,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            result = accessModule.selectUnitbyId(queryDsl, idUnit);
-        } catch (final InvalidParseOperationException e) {
+            result = accessModule.selectUnitbyId(addProdServicesToQuery(queryDsl), idUnit);
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
@@ -205,6 +220,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkParameter(requestId);
+            if (!VitamThreadUtils.getVitamSession().isWritingPermission()){
+                status = Status.METHOD_NOT_ALLOWED;
+                return Response.status(status).entity(getErrorEntity(status)).build();
+            }
             result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
@@ -231,8 +250,19 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
-            result = accessModule.selectObjectGroupById(query, idObjectGroup);
-        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+            final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+            Set<String> prodServices = vitamSession.getProdServices();        
+            if (prodServices == null || prodServices.isEmpty()){
+                result = accessModule.selectObjectGroupById(query, idObjectGroup);
+            } else {
+                final SelectParserMultiple parser = new SelectParserMultiple(new MongoDbVarNameAdapter());
+                parser.parse(query);
+                parser.addCondition(
+                    QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new)));
+                result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
+            }
+            
+        } catch (final InvalidParseOperationException | IllegalArgumentException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -274,6 +304,14 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
         final String xQualifier = headers.getRequestHeader(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = headers.getRequestHeader(GlobalDataRest.X_VERSION).get(0);
+        
+        if (!validUsage(xQualifier.split("_")[0])){
+            final Response errorResponse = Response.status(Status.UNAUTHORIZED)
+                .entity(getErrorEntity(Status.UNAUTHORIZED).toString())
+                .build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        }
+        
         try {
             SanityChecker.checkHeaders(headers);
             HttpHeaderHelper.checkVitamHeaders(headers);
@@ -300,7 +338,32 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
+    
+    private boolean validUsage(String s){        
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        Set<String> versions = vitamSession.getUsages();
+        
+        for (String version : versions){
+            if (version.equals(s)){
+                return true;
+            }
+        }
+        return false;
+    }
 
+    private JsonNode addProdServicesToQuery(JsonNode queryDsl) throws InvalidParseOperationException, InvalidCreateOperationException {        
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        Set<String> prodServices = vitamSession.getProdServices();        
+        if (prodServices == null || prodServices.isEmpty()){
+            return queryDsl; 
+        } else {
+            final SelectParserMultiple parser = new SelectParserMultiple(new MongoDbVarNameAdapter());
+            parser.parse(queryDsl);
+            parser.addCondition(QueryHelper.in(PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new)));
+            return parser.getRequest().getFinalSelect();
+        }
+    }
+    
     @Override
     @GET
     @Path("/objects/{id_object_group}")

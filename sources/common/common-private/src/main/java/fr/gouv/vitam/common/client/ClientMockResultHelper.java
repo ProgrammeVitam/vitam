@@ -124,8 +124,10 @@ public class ClientMockResultHelper {
             "\"ActivationDate\":\"2016-11-02\", " +
             "\"DeactivationDate\":\"2016-11-02\"}";
 
-    private static final String ACCESS_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-            "\"_tenant\":\"0\", " +
+    public static final String ACCESS_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+            "\"_tenant\":0, " +
+            "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
+            "\"WritingPermission\": \"true\", " +
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
             "\"Status\":\"ACTIVE\", " +
@@ -133,7 +135,7 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"LastUpdate\":\"2016-11-02\", " +
             "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}]";
+            "\"DeactivationDate\":\"2016-11-02\"}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
             "\"CreatedDate\":\"2016-01-21T10:36:46\", " +

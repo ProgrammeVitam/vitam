@@ -54,7 +54,6 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamConfigurationParameters;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.metrics.VitamInstrumentedResourceMethodApplicationListener;
@@ -62,8 +61,7 @@ import fr.gouv.vitam.common.metrics.VitamMetricRegistry;
 import fr.gouv.vitam.common.metrics.VitamMetrics;
 import fr.gouv.vitam.common.metrics.VitamMetricsType;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilter;
-import fr.gouv.vitam.common.server.RequestIdContainerFilter;
-import fr.gouv.vitam.common.server.TenantIdContainerFilter;
+import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
@@ -302,9 +300,8 @@ public abstract class AbstractVitamApplication<A extends VitamApplication<A, C>,
                 .register(JacksonFeature.class)
                 // Register a Generic Exception Mapper
                 .register(new GenericExceptionMapper())
-                // Register container filters to copy the header's parameters (tenant_id and request_id)
-                .register(RequestIdContainerFilter.class)
-                .register(TenantIdContainerFilter.class);
+                // Register container filters to copy the header's parameters (tenant_id, request_id and contract_id)
+                .register(HeaderIdContainerFilter.class);
 
         // Register Jersey Metrics Listener
         clearAndconfigureMetrics();

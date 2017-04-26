@@ -65,6 +65,10 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      */
     public static final String NB_COPY = "_nbc";
     /**
+     * OriginatingAgency
+     */
+    public static final String ORIGINATINGAGENCY = "OriginatingAgency";
+    /**
      * Usages
      */
     public static final String USAGES = "_qualifiers";
@@ -72,13 +76,13 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Unit Id, Vitam fields Only projection (no usage)
      */
     public static final BasicDBObject OBJECTGROUP_VITAM_PROJECTION =
-        new BasicDBObject(NB_COPY, 1).append(TYPE, 1)
+        new BasicDBObject(NB_COPY, 1).append(TYPE, 1).append(ORIGINATINGAGENCY, 1)
             .append(TENANT_ID, 1).append(MetadataDocument.UP, 1).append(MetadataDocument.ID, 1);
     /**
      * Versions
      */
     // FIXME P2 WRONG
-    public static final String VERSIONS = USAGES + ".*." + "versions";
+    public static final String VERSIONS = USAGES + ".*." + "versions";    
     /**
      * DataObjectVersion
      */
@@ -123,6 +127,7 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     private static final BasicDBObject[] indexes = {
         new BasicDBObject(VitamLinks.UNIT_TO_OBJECTGROUP.field2to1, 1),
         new BasicDBObject(TENANT_ID, 1),
+        new BasicDBObject(ORIGINATINGAGENCY, 1),
         new BasicDBObject(VERSION, 1),
         new BasicDBObject(OPS, 1),
         new BasicDBObject(OBJECTID, 1),

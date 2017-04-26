@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -84,7 +85,7 @@ public interface AccessExternalClient extends BasicClient {
      */
     RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, NoWritingPermissionException;
 
     /**
      * getObjectAsInputStream

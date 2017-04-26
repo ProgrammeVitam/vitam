@@ -67,7 +67,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.BasicVitamServer;
-import fr.gouv.vitam.common.server.TenantIdContainerFilter;
+import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -128,7 +128,7 @@ public class ProcessManagementResourceMockedTest {
         serverConfiguration.setUrlWorkspace("http://localhost:8083");
         serverConfiguration.setUrlMetadata("http://localhost:8083");
         resourceConfig.register(new ProcessManagementResource(mock, serverConfiguration));
-        resourceConfig.register(new TenantIdContainerFilter());
+        resourceConfig.register(new HeaderIdContainerFilter());
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);

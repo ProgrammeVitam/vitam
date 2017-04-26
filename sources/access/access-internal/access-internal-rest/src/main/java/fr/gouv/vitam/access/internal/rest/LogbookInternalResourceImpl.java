@@ -28,6 +28,7 @@ package fr.gouv.vitam.access.internal.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -86,6 +87,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -151,8 +153,8 @@ public class LogbookInternalResourceImpl {
             Select select = new Select();
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
-            queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectOperationById(operationId, queryDsl);
+            queryDsl = parser.getRequest().getFinalSelect();            
+            final JsonNode result = client.selectOperationById(operationId, addProdServicesToQuery(queryDsl));
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -187,7 +189,7 @@ public class LogbookInternalResourceImpl {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(query);
             parser.getRequest().reset();
-            final JsonNode result = client.selectOperation(query);
+            final JsonNode result = client.selectOperation(addProdServicesToQuery(query));
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientNotFoundException e) {
             return Response.status(Status.OK).entity(new RequestResponseOK().toJsonNode()).build();
@@ -195,7 +197,7 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status)).build();
@@ -491,4 +493,19 @@ public class LogbookInternalResourceImpl {
             helper.updateDelegate(parameters);
         }
     }
+
+    private JsonNode addProdServicesToQuery(JsonNode queryDsl) throws InvalidParseOperationException, InvalidCreateOperationException{        
+        Set<String> prodServices = VitamThreadUtils.getVitamSession().getProdServices();
+
+        if (prodServices == null || prodServices.isEmpty()){
+            return queryDsl; 
+        } else {
+            final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+            parser.parse(queryDsl);
+            parser.addCondition(QueryHelper.in("events.agIdOrig", prodServices.stream().toArray(String[]::new)));
+            return parser.getRequest().getFinalSelect();
+        }
+    }    
+
+    
 }

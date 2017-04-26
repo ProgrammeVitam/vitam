@@ -72,6 +72,16 @@ angular.module('core')
             $scope.tenantId = '' + $scope.tenants[0];
         });
 
+        ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+
+            if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
+                $scope.contracts = repsonse.data['$results'];
+                $scope.accessContratId = $scope.contracts[0].Name;
+            }
+        }, function (error) {
+            console.log('Error while get tenant. Set default list : ', error);
+        });
+
         $rootScope.hasPermission = function (permission) {
             if(!$rootScope.user) {
                 return false;
@@ -108,6 +118,10 @@ angular.module('core')
                 authVitamService.url = $location.path();
             }
         });
+
+        $scope.changeContract = function(accessContratId) {
+            authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
+        };
 
         $scope.connectUser = function (tenantId) {
             subject.login($scope.credentials)

@@ -29,6 +29,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
@@ -424,7 +425,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void givenBadRequest_whenUpdateUnitById_ThenRaiseAnException()
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, NoWritingPermissionException {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
     }
@@ -433,7 +434,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenRequestBlank_whenUpdateUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, NoWritingPermissionException {
         assertThat(client.updateUnitbyId(JsonHandler.createObjectNode(), "", TENANT_ID)).isNotNull();
     }
 
@@ -441,7 +442,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenIdBlank_whenUpdateUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, NoWritingPermissionException {
         assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), "", TENANT_ID)).isNotNull();
     }
 
@@ -449,14 +450,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenrEquestBlank_IDFilledwhenUpdateUnitById_ThenRaiseAnException()
         throws IllegalArgumentException, AccessExternalClientServerException, AccessExternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, NoWritingPermissionException {
         assertThat(client.updateUnitbyId(JsonHandler.createObjectNode(), ID, TENANT_ID)).isNotNull();
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenBadRequest_whenUpdateUnit_ThenRaiseAnException()
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, NoWritingPermissionException {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
     }
@@ -464,7 +465,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = AccessExternalClientServerException.class)
     public void given500_whenUpdateUnit_ThenRaiseAnException()
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, NoWritingPermissionException {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         assertThat(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID)).isNotNull();
     }

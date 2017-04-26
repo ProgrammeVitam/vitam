@@ -226,7 +226,11 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     @Override
     public RequestResponse findAccessContracts(JsonNode queryDsl) throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find access contracts request ");
-        return ClientMockResultHelper.getAccessContracts();
+        if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+            VitamThreadUtils.getVitamSession().setTenantId(0);
+        }
+        AccessContractModel model = JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
+        return ClientMockResultHelper.createReponse(model);
     }
 
     @Override

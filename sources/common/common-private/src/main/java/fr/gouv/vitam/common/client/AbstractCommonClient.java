@@ -98,10 +98,8 @@ abstract class AbstractCommonClient implements BasicClient {
         // External client or with no Session context are excluded
         // TODO: Find a better check (a specific one, instead of inferring the context from another constraint ?);
         if (clientFactory.useAuthorizationFilter()) {
-            client.register(RequestIdClientFilter.class);
-            client.register(TenantIdClientFilter.class);
-            clientNotChunked.register(RequestIdClientFilter.class);
-            clientNotChunked.register(TenantIdClientFilter.class);
+            client.register(HeaderIdClientFilter.class);
+            clientNotChunked.register(HeaderIdClientFilter.class);
         }
     }
 

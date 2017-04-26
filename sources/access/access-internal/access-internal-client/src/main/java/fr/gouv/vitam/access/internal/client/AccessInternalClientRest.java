@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -65,6 +66,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String NO_WRITING_PERMISSION = "No Writing Permission";
     private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
@@ -141,7 +143,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, NoWritingPermissionException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
@@ -157,6 +159,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()){
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION); 
             }
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
         } catch (final VitamClientInternalException e) {
