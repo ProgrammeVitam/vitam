@@ -21,5 +21,6 @@
 		<module>common-http-interface</module>
 		<module>common-storage</module>
 		<module>common-plugin</module>
+		<module>fake-storage-drivers</module>
 	</modules>
 </project>

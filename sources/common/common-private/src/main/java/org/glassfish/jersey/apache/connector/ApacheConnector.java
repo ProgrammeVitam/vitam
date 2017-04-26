@@ -31,7 +31,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -172,7 +171,6 @@ class ApacheConnector implements Connector {
 
     private static final VersionInfo VI;
     private static final String RELEASE;
-
     private static final ConnectionKeepAliveStrategy MY_KEEP_ALIVE_STRATEGY;
     static {
         VI = VersionInfo.loadVersionInfo("org.apache.http.client", HttpClientBuilder.class.getClassLoader());
@@ -500,7 +498,6 @@ class ApacheConnector implements Connector {
     @Override
     public Future<?> apply(final ClientRequest request, final AsyncConnectorCallback callback) {
         return MoreExecutors.newDirectExecutorService().submit(new Runnable() {
-            
             @Override
             public void run() {
                 try {

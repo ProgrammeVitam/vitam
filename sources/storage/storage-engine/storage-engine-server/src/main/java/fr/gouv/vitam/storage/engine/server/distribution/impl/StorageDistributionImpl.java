@@ -27,9 +27,33 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -87,49 +111,28 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.TreeMap;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 /**
  * StorageDistribution service Implementation process continue if needed)
  */
 // TODO P1: see what to do with RuntimeException (catch it and log it to let the
 public class StorageDistributionImpl implements StorageDistribution {
-    public static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
-    /**
-     * Global pool thread
-     */
-    static final ExecutorService executor = new VitamThreadPoolExecutor();
     private static final String DEFAULT_SIZE_WHEN_UNKNOWN = "1000000";
     private static final int DEFAULT_MINIMUM_TIMEOUT = 10000;
     private static final String STRATEGY_ID_IS_MANDATORY = "Strategy id is mandatory";
+    public static final String CATEGORY_IS_MANDATORY = "Category (object type) is mandatory";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageDistributionImpl.class);
-    private static final StorageStrategyProvider STRATEGY_PROVIDER =
-        StorageStrategyProviderFactory.getDefaultProvider();
+    private static final StorageStrategyProvider STRATEGY_PROVIDER = StorageStrategyProviderFactory.getDefaultProvider();
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
     private static final String NOT_IMPLEMENTED_MSG = "Not yet implemented";
     private static final int NB_RETRY = 3;
     private static final String SIZE_KEY = "size";
     private static final String STREAM_KEY = "stream";
+
+    /**
+     * Global pool thread
+     */
+    static final ExecutorService executor = new VitamThreadPoolExecutor();
+
     /**
      * Used to wait for all task submission (executorService)
      */
@@ -720,12 +723,9 @@ public class StorageDistributionImpl implements StorageDistribution {
     private JsonNode getOfferInformation(OfferReference offerReference, Integer tenantId) throws StorageException {
         final Driver driver = retrieveDriverInternal(offerReference.getId());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-        final Properties parameters = new Properties();
-        parameters.putAll(offer.getParameters());
-
-        try (Connection connection = driver.connect(offer, parameters)) {
+        try (Connection connection = driver.connect(offer.getId())) {
             final ObjectNode ret = JsonHandler.createObjectNode();
-            ret.put("offerId", offer.getId());
+            ret.put("offerId", offerReference.getId());
             ret.put("usableSpace", connection.getStorageCapacity(tenantId).getUsableSpace());
             return ret;
         } catch (StorageDriverException | RuntimeException exc) {
@@ -816,9 +816,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             // account errors !
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReferences.get(0).getId());
             final Driver driver = retrieveDriverInternal(offerReferences.get(0).getId());
-            final Properties parameters = new Properties();
-            parameters.putAll(offer.getParameters());
-            try (Connection connection = driver.connect(offer, parameters)) {
+            try (Connection connection = driver.connect(offer.getId())) {
                 StorageListRequest request = new StorageListRequest(tenantId, category.getFolder(), cursorId, true);
                 return connection.listObjects(request);
             } catch (final StorageDriverException exc) {
@@ -864,9 +862,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         for (final OfferReference offerReference : offerReferences) {
             final Driver driver = retrieveDriverInternal(offerReference.getId());
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-            final Properties parameters = new Properties();
-            parameters.putAll(offer.getParameters());
-            try (Connection connection = driver.connect(offer, parameters)) {
+            try (Connection connection = driver.connect(offer.getId())) {
                 final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
@@ -1029,9 +1025,8 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
                 final Properties parameters = new Properties();
                 parameters.putAll(offer.getParameters());
-                try (Connection connection = driver.connect(offer, parameters)) {
-                    StorageRemoveRequest request =
-                        new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(), objectId,
+                try (Connection connection = driver.connect(offer.getId())) {
+                    StorageRemoveRequest request = new StorageRemoveRequest(tenantId, DataCategory.OBJECT.getFolder(), objectId,
                             digestType, digest);
                     StorageRemoveResult result = connection.removeObject(request);
                     if (!result.isObjectDeleted()) {

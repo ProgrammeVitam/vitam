@@ -13,6 +13,5 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>vitam-driver</module>
-		<module>mock-driver</module>
 	</modules>
 </project>

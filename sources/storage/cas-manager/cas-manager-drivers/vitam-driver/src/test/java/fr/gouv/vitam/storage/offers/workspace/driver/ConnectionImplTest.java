@@ -135,9 +135,9 @@ public class ConnectionImplTest extends VitamJerseyTest {
         String offerId = "default" + new Random().nextDouble();
         offer.setId(offerId);
         offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-        driver.addOffer(offerId);
+        driver.addOffer(offer, null);
         try {
-            connection = (AbstractConnection) driver.connect(offer, null);
+            connection = (AbstractConnection)driver.connect(offer.getId());
         } catch (final StorageDriverException e) {
             throw new VitamApplicationServerException(e);
         }

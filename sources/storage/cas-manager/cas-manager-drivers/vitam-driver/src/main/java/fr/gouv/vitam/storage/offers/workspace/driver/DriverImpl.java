@@ -27,8 +27,11 @@
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.*;
+import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -91,47 +94,54 @@ public class DriverImpl extends AbstractDriver {
 
 
     @Override
-    public Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException {
+    protected VitamClientFactoryInterface addInternalOfferAsFactory(StorageOffer offer, Properties parameters) {
+        DriverClientFactory factory =
+            new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
+        return factory;
+    }
 
-        if (null == offer) throw new IllegalArgumentException("The parameter offer is required");
+    @Override
+    public Connection connect(String offerId) throws StorageDriverException {
+        ParametersChecker.checkParameter("The parameter offer is required", offerId);
 
-        VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer.getId());
+        VitamClientFactoryInterface<? extends AbstractConnection> factory = connectionFactories.get(offerId);
+        if (factory == null) {
+            LOGGER.error("Driver {} has no Offer named {}", getName(), offerId);
+            StorageNotFoundException exception =
+                new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offerId);
+            throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
+                exception.getMessage(), exception);
+        }
 
-
-        if (offers.contains(offer.getId())) {
-
-            /*
-             * The offer is registred but the factory not yet initiated
-             */
-            if (null == factory) {
-                factory = new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
-                connectionFactories.put(offer.getId(), factory);
-            }
-
+        VitamApplicationServerException lastExc = null;
+        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
+            AbstractConnection connection = factory.getClient();
             try {
-                final AbstractConnection connection = factory.getClient();
                 connection.checkStatus();
                 LOGGER.debug("Check status ok");
                 return connection;
+            } catch (final VitamApplicationServerDisconnectException e) {
+                lastExc = e;
+                connection.close();
+                Thread.yield();
+                continue;
             } catch (final VitamApplicationServerException exception) {
-                LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offer.getId(), exception);
-                throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
-                    exception.getMessage(), exception);
+                lastExc = exception;
+                connection.close();
+                Thread.yield();
+                continue;
             }
         }
-        LOGGER.error("Driver {} has no Offer named {}", getName(), offer.getId());
-        StorageNotFoundException exception =
-            new StorageNotFoundException("Driver " + getName() + " has no Offer named " + offer.getId());
-        throw new StorageDriverException("Driver " + getName() + " with Offer " + offer.getId(),
-            exception.getMessage(), exception);
+        LOGGER.error("Service unavailable for Driver {} with Offer {}", getName(), offerId, lastExc);
+        throw new StorageDriverException("Driver " + getName() + " with Offer " + offerId,
+            lastExc.getMessage(), lastExc);
     }
 
 
     /**
      * Change client configuration from a Yaml files
      *
-     * @param offer
-     *            the path to the configuration file
+     * @param offer the path to the configuration file
      * @return ClientConfiguration
      */
     static final ClientConfiguration changeConfigurationFile(StorageOffer offer) {
@@ -139,46 +149,21 @@ public class DriverImpl extends AbstractDriver {
         ParametersChecker.checkParameter("StorageOffer cannot be null", offer);
         try {
             final URI url = new URI(offer.getBaseUrl());
-
             Map<String, String> param = offer.getParameters();
-
             if (param != null) {
                 List<SSLKey> keystoreList = new ArrayList<>();
                 List<SSLKey> truststoreList = new ArrayList<>();
                 keystoreList.add(new SSLKey(param.get("keyStore-keyPath"), param.get("keyStore-keyPassword")));
                 truststoreList.add(new SSLKey(param.get("trustStore-keyPath"), param.get("trustStore-keyPassword")));
-
                 configuration = new SecureClientConfigurationImpl(url.getHost(), url.getPort(), true,
                     new SSLConfiguration(keystoreList, truststoreList));
             } else {
                 configuration = new ClientConfigurationImpl(url.getHost(), url.getPort());
             }
-
         } catch (final URISyntaxException e) {
             throw new IllegalStateException("Cannot parse the URI: ", e);
         }
         return configuration;
-    }
-
-    @Override
-    public boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException {
-
-        if (null == offer) return false;
-
-        boolean hasOffer = hasOffer(offer.getId());
-        if (!hasOffer) return false;
-
-        VitamClientFactory<? extends AbstractConnection> factory = connectionFactories.get(offer);
-
-        if (null == factory) {
-            final Properties parameters = new Properties();
-            parameters.putAll(offer.getParameters());
-
-            factory = new DriverClientFactory(changeConfigurationFile(offer), RESOURCE_PATH, parameters);
-            connectionFactories.put(offer.getId(), factory);
-        }
-
-       return  super.isStorageOfferAvailable(offer);
     }
 
     @Override

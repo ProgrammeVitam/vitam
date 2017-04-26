@@ -125,7 +125,7 @@ public class Storage {
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
             final Properties parameters = new Properties();
             parameters.putAll(offer.getParameters());
-            try (Connection connection = driver.connect(offer, parameters)) {
+            try (Connection connection = driver.connect(offer.getId())) {
                 final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
                 if (result.getObject() != null) {

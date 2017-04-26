@@ -51,7 +51,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider {
     private static final String OFFER_FILENAME = "static-offer.json";
     private StorageStrategy storageStrategy;
 
-    private Map<String, StorageOffer> storageOffers;
+    private volatile Map<String, StorageOffer> storageOffers;
 
     /**
      * Package protected to avoid out of scope instance creation

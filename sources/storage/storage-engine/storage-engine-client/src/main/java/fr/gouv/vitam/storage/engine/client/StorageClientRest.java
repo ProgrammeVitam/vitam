@@ -381,7 +381,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
         headers.add(GlobalDataRest.X_CURSOR, true);
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        return new VitamRequestIterator<>(this, HttpMethod.GET, type.name(), JsonNode.class, headers, null);
+        return new VitamRequestIterator<>(this, HttpMethod.GET, "/" + type.name(), JsonNode.class, headers, null);
     }
 
     @Override

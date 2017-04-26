@@ -116,10 +116,8 @@ public class TransferThread implements Callable<ThreadResponseData> {
         }
         LOGGER.debug(request.toString());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
-        final Properties parameters = new Properties();
-        parameters.putAll(offer.getParameters());
         ThreadResponseData response;
-        try (Connection connection = driver.connect(offer, parameters)) {
+        try (Connection connection = driver.connect(offer.getId())) {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }

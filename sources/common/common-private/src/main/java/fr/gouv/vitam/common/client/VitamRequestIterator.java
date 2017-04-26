@@ -193,6 +193,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
                 response = ((AbstractCommonClient) client).performRequest(method, path, headers, request,
                     MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
+                LOGGER.warn(response.toString());
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
                         closed = true;
@@ -218,6 +219,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
             try {
                 response = ((AbstractCommonClient) client).performRequest(method, path, headers,
                     MediaType.APPLICATION_JSON_TYPE);
+                LOGGER.warn(response.toString());
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
                         closed = true;

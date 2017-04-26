@@ -43,46 +43,32 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public interface Driver extends VitamAutoCloseable {
     /**
-     * Create a connection to the distant offer service based on given service
-     * URL and optional parameters. If no connection could be made, the driver
+     * Create a connection to the distant offer service based on given offer Id name.
+     * If no connection could be made, the driver
      * MUST throw a StorageException
      *
-     * Regarding the parameters, they will contain keys coming from the
-     * {@link fr.gouv.vitam.storage.driver.constants.StorageDriverParameterNames}
-     * whose are generic to all driver implementation. However they can also
-     * contains driver implementation specific properties.
      *
-     * @param offer
-     *            URL to the offer service
-     * @param parameters
-     *            the parameters needed to connect and possibly authenticate to
-     *            a specific offer service.
+     * @param offerId the offerId name
      * @return a connection which MUST contains all necessary parameters and
      *         initial configurations to allow further requests to the distant
      *         offer service without needing to pass parameters/configurations.
      * @throws StorageDriverException
      *             if any problem occurs during connection
      */
-    Connection connect(StorageOffer offer, Properties parameters) throws StorageDriverException;
+    Connection connect(String offerId) throws StorageDriverException;
 
     /**
      * The driver MUST provide a way to check the availability of the storage
-     * offer based on storage offer  and configuration parameters. For
-     * example it can be used to pass user and password properties in for
-     * authentication.
-     * <p>
-     * The parameters argument can also be used to pass arbitrary string
-     * tag/value pairs as connection arguments.
-     * </p>
+     * offer Id name.
      *
-     * @param offer
-     *            The information of offer service
+     * @param offerId the offerId name
+     *            
      * @return MUST return true if the distant offer service is available to
-     *         accept further requests, false otherwise
+     *         accept further requests, false otherwise, including if the offer is not yet added
      * @throws StorageDriverException
      *             if any problem occurs during request
      */
-    boolean isStorageOfferAvailable(StorageOffer offer) throws StorageDriverException;
+    boolean isStorageOfferAvailable(String offerId) throws StorageDriverException;
 
     /**
      * Remove one offer from the Driver (from DriverManager)
@@ -95,16 +81,25 @@ public interface Driver extends VitamAutoCloseable {
 
     /**
      * Add one offer to the Driver (from DriverManager)
+     * The driver MUST provide a way to check the availability of the storage
+     * offer based on storage offer and configuration parameters. For
+     * example it can be used to pass user and password properties in for
+     * authentication.
+     * <p>
+     * The parameters argument can also be used to pass arbitrary string
+     * tag/value pairs as connection arguments.
+     * </p>
      *
-     * @param offerId
+     * @param offer the storage offer configuration
+     * @param parameters other extra parameters
      * @return True if the offer was removed, false if not existing
      */
-    boolean addOffer(String offerId);
+    boolean addOffer(StorageOffer offer, Properties parameters);
 
     /**
      * Return true if offer exists for the driver, false else
      * @param offerId
-     * @return
+     * @return True if the offer is declared in the driver
      */
     boolean hasOffer(String offerId);
 
