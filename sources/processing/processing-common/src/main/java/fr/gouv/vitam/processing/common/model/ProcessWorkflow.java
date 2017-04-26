@@ -58,7 +58,7 @@ public class ProcessWorkflow {
 
     private ProcessAction executionMode;
 
-    private ProcessExecutionStatus executionStatus = ProcessExecutionStatus.RUNNING;
+    private ProcessExecutionStatus executionStatus = ProcessExecutionStatus.PAUSE;
 
     private LogbookTypeProcess logbookTypeProcess;
 
