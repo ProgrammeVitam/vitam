@@ -49,17 +49,6 @@
   notify:
     - restart service
 
-- name: Check that storage_archives directory exists for storage component
-  file:
-    path: "{{vitam_folder_root}}/data/{{ vitam_component }}/storage_archive"
-    state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
-  notify:
-    - restart service
-  when: vitam_component == 'storage'
-
 - name: Ensure that the sysconfig sub-directory exists
   file:
     path: "{{ vitam_folder_conf }}/sysconfig"
