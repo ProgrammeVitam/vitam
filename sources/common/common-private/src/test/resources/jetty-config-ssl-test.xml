@@ -77,7 +77,6 @@
         </Call>
     </New>
 
-
     <!-- create https connector                                      -->
     <!-- =========================================================== -->            
     <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
