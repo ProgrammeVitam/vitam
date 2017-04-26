@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # General information about the project.
-project = u'VITAM - Scénarios de test'
-doc_id = 'vitam-scenario-tests'
+project = u'VITAM - Règles de gestions.'
+doc_id = 'vitam-regles-gestion'
 
 execfile("../conf-common.py")

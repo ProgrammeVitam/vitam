@@ -100,7 +100,7 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 Paramétrage de mongoclient (administration mongoclient)
 ========================================================
 
-Le package rpm vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
+Le package vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
 Cette base de données est créée dans :term:`VITAM` durant la première installation.
 La configuration est également générée en fonction des paramètres de l'inventaire.
 
