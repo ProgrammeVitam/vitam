@@ -7,6 +7,5 @@
 
    recette.rst
    collections.rst
-   soapui.rst
    securisation.rst
    fonctionnel.rst

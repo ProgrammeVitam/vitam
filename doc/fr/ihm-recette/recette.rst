@@ -62,10 +62,9 @@ Par défaut, suite à sa connexion l'utilisateur accède à la page d'administra
 Le menu de navigation contient les entrées suivantes :
 
   * Administration des collections
-  * Test SOAP-UI
   * Transfert (test de performance)
   * Sécurisation d'un journal des opérations
-  * Rechercher un journal sécurisé
+  * Tests fonctionnels
 
 .. image:: images/RECETTE_navigation.png
 
