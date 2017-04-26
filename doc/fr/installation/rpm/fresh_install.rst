@@ -45,7 +45,7 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
    "vitam_reverse_domain","Cas de la gestion d'un reverse proxy",""
    "consul_domain","nom de domaine consul",""
    "vitam_ihm_demo_external_dns","Déprécié ; ne pas utiliser",""
-   "rpm_version","Version à installer",""
+   "package_version","Version à installer",""
    "days_to_delete","Période de grâce des données sous Elastricsearch avant destruction (valeur en jours)",""
    "days_to_close","Période de grâce des données sous Elastricsearch avant fermeture des index (valeur en jours)",""
    "days_to_delete_topbeat","Période de grâce des données sous Elastricsearch  - index Topbeat - avant destruction (valeur en jours)",""
@@ -100,7 +100,7 @@ Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solut
 Paramétrage de mongoclient (administration mongoclient)
 ========================================================
 
-Le package rpm vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
+Le package vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
 Cette base de données est créée dans :term:`VITAM` durant la première installation.
 La configuration est également générée en fonction des paramètres de l'inventaire.
 
@@ -170,14 +170,14 @@ Déploiement
 Fichier de mot de passe
 -----------------------
 
-Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environnements-rpm/group_vars/all/vault.yml``, le mot de passe ne sera pas demandé. Si le fichier est absent, le mot de passe du "vault" sera demandé.
+Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé. Si le fichier est absent, le mot de passe du "vault" sera demandé.
 
 PKI
 ---
 Se positionner dans le répertoire ``deployment``.
 
 
-1. paramétrer le fichier ``environnements-rpm/group_vars/all/vault.yml`` et le fichier d'inventaire de la plate-forme sous ``environnements-rpm`` (se baser sur le fichier hosts.example)
+1. paramétrer les fichiers ``environments/group_vars/all/vault-vitam.yml`` et ``environments/group_vars/all/vault-keystores.yml``, ainsi que le fichier d'inventaire de la plate-forme sous ``environments`` (se baser sur le fichier hosts.example)
 
 2. En absence d'une PKI, exécuter le script
 
@@ -207,7 +207,7 @@ Mise en place des repositories VITAM (optionnel)
 -------------------------------------------------
 Si gestion par VITAM des repositories CentOS spécifiques à VITAM :
 
-Editer le fichier ``environments/group_vars/all/repo.yml`` à partir des modèles suivants (décommenter également les lignes) :
+Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
 
 Pour une cible de déploiement CentOS :
 
