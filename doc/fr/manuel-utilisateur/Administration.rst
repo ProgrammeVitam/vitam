@@ -548,3 +548,92 @@ Les boutons disponibles sont :
 * Pause : permet de mettre l’opération d’entrée en pause
 * Reprise : permet de reprendre une entrée en pause
 * Arrêt : permet d’arrêter complètement une opération d’entrée. Elle passera alors en statut “terminée” et il sera impossible de la redémarrer
+
+Recherche et vérification des opérations de sécurisation
+=======================================================
+
+La sécurisation des journaux permet de garantir la valeur probante des archives prises en charge dans la solution logicielle VITAM.
+
+Le fichier produit par une opération de sécurisation des journaux est appelé un "journal sécurisé".
+
+Les adminsitrateur ont la possibilité d'accéder aux fonctionnalités suivantes :
+
+* Recherche de journaux sécurisés
+* Consultation du détail d'un journal sécurisé
+* Vérification de l'intégrité d'un journal sécurisé
+
+Rechercher des journaux sécurisés
+---------------------------------
+
+L’interface de consultation des journaux sécurisés est accessible par le menu : Menu > Rechercher un journal sécurisé
+
+L’interface est consituée de trois éléments :
+
+* Un formulaire
+* Un paginateur
+* Une zone d’affichage des résultats
+
+.. image:: images/securisation_consulation_journal_secu.png
+
+**Lancer une recherche**
+
+Par défaut, aucun résultat n'est affiché. Il faut lancer une recherche pour faire apparaître des résultats.
+
+Pour lancer une recherche en prenant en compte cette date, cliquer sur le bouton "Rechercher" après l'avoir sélectionné.
+
+Si l'utilisateur clique sur le bouton "Rechercher" sans sélectionner de date, alors tous les journaux disponibles s'affichent.
+
+**Utilisation du formulaire**
+
+Le formulaire est composé des champs suivants :
+
+* Identifiant de l’objet : nom du fichier recherché
+* Dates extrêmes : intervalle de dates permettant de rechercher sur les date de début d’un opération de sécurisation
+* Type de journal sécurisé : liste déroulante permettant de cib
+
+**Zone de résultats**
+
+La zone de résultats est composée des colonnes suivantes :
+
+* Type de journal sécurisé : affiche le type de journal sécurisé
+* Date de début : indique la date de début de l’opération de sécurisation
+* Date de fin : indique la date de fin de l’opération de sécurisation
+* Télécharger : icône permettant de télecharger l’opération
+
+.. image:: images/securisation_consultation_journal.png
+
+**Télechargement d'un journal**
+
+Chaque ligne représentant un journal comporte un symbole de téléchargement. En cliquant sur ce symbole, le journal est téléchargé sous forme de zip. Le nom de ce fichier correspond à la valeur du champ FileName du dernier event du journal de l'opération.
+
+.. image:: images/securisation_telecharger_journal_traceability.png
+
+Détail d'un journal sécurisé
+----------------------------
+
+En cliquant sur une ligne de la liste de résultats, l'interface de la solution logicielle VITAM affiche le détail du journal concerné dans une nouvelle fenêtre.
+
+Le détail est composé des élements suivants :
+
+* Détail sur le journal sécurisé, contient les 6 informations
+	* Date de début - date de premier journal pris en compte dans l'opération de sécurisation
+	* Date de fin - date du dernier journal pris en compte dans l'opération de sécurisation
+	* Nombre d'opérations - il s'agit du nombre de journaux pris en compte dans l'opération de sécurisation
+	* Algorithme de hashage - indique l'algorithme utilisé
+	* Nom du fichier - Nom du journal sécurisé
+	* Taille du fichier - Taille du journal sécurisé
+* Hash de l'arbre de Merkle
+* Tampon d'horodatage
+  
+.. image:: images/securisation_detail.png
+
+Vérification d'un journal sécurisé
+----------------------------------
+
+En cliquant sur le bouton "Lancer la vérification", la solution logicielle VITAM vérifie que le les informations de l'arbre de hashage sont à la fois conformes au contenu du journal sécurisé et aux journaux disponibles dans la solution logicielle VITAM.
+
+Une fois l'opération terminée, son détail est affiché. Il est également disponible dans le Journal des opérations.
+
+.. image:: images/securisation_verification_detail.png
+
+Le bouton télecharger permet de d'obtenir le journal sécurisé.
