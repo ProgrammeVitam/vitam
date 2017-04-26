@@ -4,36 +4,37 @@
 		<li><a href="#!/admin/entryContracts">Contrats d'entrée</a></li>
 	</ol>
 
-	<div class="panel panel-default boxSearchWrapper col-md-12">
-		<a class="panel-header" href="#boxEntriesSearchForm">
+	<div class="boxSearchWrapper panel panel-default col-md-12">
+		<a class="panel-header" data-target="#boxSearch" data-toggle="collapse">
 			<h2>Contrats d'entrée</h2>
 		</a>
-
-		<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="getList()">
-			<div class="row">
-				<div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
-					<label for="entryName">Nom du contrat</label>
-					<input ng-model="search.form.ContractName" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+		<div id="boxSearch" class="panel-body panel-collapse collapse in">
+			<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="getList()">
+				<div class="row">
+					<div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
+						<label for="entryName">Nom du contrat</label>
+						<input ng-model="search.form.ContractName" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+					</div>
+	
+					<div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
+						<label for="entryType">Identifiant</label>
+						<input ng-model="search.form.ContractID" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
+					</div>
 				</div>
-
-				<div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
-					<label for="entryType">Identifiant</label>
-					<input ng-model="search.form.ContractID" type="text" name="entryName" class="form-control" ng-change="onInputChange()"/>
-				</div>
-			</div>
-			<div>
-				<div class="col-md-2"><!-- Blank zone --></div>
-				<div class="col-md-3">
-					<button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
-				</div>
-				<div class="col-md-4">
-					<button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
-				</div>
-			</div>
+				<div>
+					<div class="col-md-2"><!-- Blank zone --></div>
+					<div class="col-md-3">
+						<button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+					</div>
+					<div class="col-md-4">
+						<button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+					</div>
+				</div>			
+			</form>
 			<button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
-				{{search.error.message}}
+					{{search.error.message}}
 			</button>
-		</form>
+		</div>
 	</div>
 
 	<search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
