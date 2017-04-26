@@ -77,29 +77,6 @@
         </Call>
     </New>
 
-
-    <!-- this connetor is used to test X_SSL_CLIENT_CERT header-->
-    <New id="connector" class="org.eclipse.jetty.server.ServerConnector">
-        <Arg name="server">
-            <Ref refid="Server" />
-        </Arg>
-        <Arg name="factories">
-            <Array type="org.eclipse.jetty.server.ConnectionFactory">
-                <Item>
-                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-                        <Arg name="config">
-                            <Ref refid="httpConfig" />
-                        </Arg>
-                    </New>
-                </Item>
-            </Array>
-        </Arg>
-
-        <Set name="port">8084</Set>
-        <Set name="name">admin</Set>
-    </New>
-
-
     <!-- create https connector                                      -->
     <!-- =========================================================== -->            
     <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
@@ -177,9 +154,6 @@
                 <Item>
                     <Ref refid="sslConnector" />
                 </Item>
-                 <Item>
-                     <Ref refid="connector" />
-                 </Item>
             </Array>
         </Arg>
     </Call>    

@@ -229,29 +229,6 @@ public class DefaultSslHeaderClientTest {
         JunitHelper.getInstance().releasePort(serverPort);
     }
 
-    @Test
-    public void testClientBuilder() throws Exception {
-        final SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
-        final ArrayList<SSLKey> truststore = new ArrayList<>();
-        truststore.add(key);
-        final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
-        final SecureClientConfiguration configuration =
-            new SecureClientConfigurationImpl("host", 8443, true, sslConfig, false);
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
-        try (DefaultClient client = factory.getClient()) {
-            // Only Apache Pool has this, not the JerseyClient
-            assertNull(client.getHttpClient().getHostnameVerifier());
-        }
-    }
-
     /**
      * Change client configuration from a Yaml files
      *
@@ -274,7 +251,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithoutHeaderCertificateThenRaizeShiroException() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        //configuration.setServerPort(serverPort);
+        configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -305,7 +282,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithHeaderCertificateThenOK() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        //configuration.setServerPort(serverPort);
+        configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -341,7 +318,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithHeaderCertificateExpiredThenRaiseAnException() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        //configuration.setServerPort(serverPort);
+        configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -375,7 +352,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithHeaderCertificateNotGrantedThenReturnForbidden() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        //configuration.setServerPort(serverPort);
+        configuration.setServerPort(serverPort);
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {

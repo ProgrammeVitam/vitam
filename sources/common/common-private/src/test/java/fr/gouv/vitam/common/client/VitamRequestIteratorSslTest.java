@@ -55,6 +55,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -136,6 +137,8 @@ public class VitamRequestIteratorSslTest {
 
         @Override
         protected void platformSecretConfiguration() {
+            VitamConfiguration.setFilterActivation(false);
+
             // Nothing
         }
 
