@@ -22,6 +22,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -150,7 +151,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.POST, collection.getName(), headers,
                 contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
-            return RequestResponse.parseFromResponse(response);
+            // FIXME quick fix for response OK, adapt response for all response types
+            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
+                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return new RequestResponseOK();
+            } else {
+                return RequestResponse.parseFromResponse(response);
+            }
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
