@@ -44,6 +44,7 @@ import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -344,8 +345,25 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
 
-        private void logUpdateSuccess(String updateEventDetailData) throws VitamException {
+        /**
+         * log update start process
+         * 
+         * @throws VitamException
+         */
+        private void logUpdateStarted() throws VitamException {
             eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.STARTED), eip);
+
+            helper.createDelegate(logbookParameters);
+
+        }
+
+        private void logUpdateSuccess(String updateEventDetailData) throws VitamException {
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            evDetData.put("AccessStatus", updateEventDetailData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
@@ -357,8 +375,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.OK),
                         eip);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                updateEventDetailData);
-            helper.createDelegate(logbookParameters);
+                JsonHandler.unprettyPrint(evDetData));
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
@@ -397,8 +414,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     contract.setStatus(ContractStatus.INACTIVE.name());
                 }
 
-                if (!contract.getStatus().equals(ContractStatus.ACTIVE.name())
-                    && !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
+                if (!contract.getStatus().equals(ContractStatus.ACTIVE.name()) &&
+                    !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
                     LOGGER.error("Error ingest contract status not valide (must be ACTIVE or INACTIVE");
                     rejection =
                         GenericContractValidator.GenericRejectionCause
@@ -486,6 +503,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
         }
+        IngestContractManager manager = new IngestContractManager(logBookclient);
+        manager.logUpdateStarted();
         JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
         String updateStatus = null;
         for (JsonNode fieldToSet : actionNode) {
@@ -496,8 +515,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     String field = it.next();
                     JsonNode status = fieldName.findValue(field);
                     if ("Status".equals(field)) {
-                        if (!(AccessContractStatus.ACTIVE.name().equals(status.asText()) || AccessContractStatus.INACTIVE
-                            .name().equals(status.asText()))) {
+                        if (!(AccessContractStatus.ACTIVE.name().equals(status.asText()) ||
+                            AccessContractStatus.INACTIVE
+                                .name().equals(status.asText()))) {
                             return error;
                         }
                         updateStatus = status.asText();
@@ -505,8 +525,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
             }
         }
-        IngestContractManager manager = new IngestContractManager(logBookclient);
-
         try {
             mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
         } catch (ReferentialException e) {

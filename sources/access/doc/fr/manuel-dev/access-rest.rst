@@ -30,7 +30,7 @@ Rest API
 	Mettre à jour l'unit avec avec le contenu de la requête
 
 | HEAD https://vitam/access-external/v1/units
-	Vérifier l'existence d'un unit (non implémenté) 
+	Vérifier l'existence d'un unit (non implémenté)
 
 | GET https://vitam/access-external/v1/units/unit_id
 	récupérer l'units avec la filtre (le contenu de la requête)
@@ -59,7 +59,7 @@ Rest API
 | POST https://vitam/access-external/v1/objects/objet_id (avec X-HTTP-METHOD-OVERRIDE GET)
 	récupérer une groupe d'objet avec la filtre (le contenu de la requête) et id
 
-	
+
 -Accession Register
 | POST https://vitam/access-external/v1/accession-register
 	récupérer le registre de fond
@@ -69,8 +69,8 @@ Rest API
 
 | POST https://vitam/access-external/v1/accession-register/document_id/accession-register-detail
 	récupérer le détail du registre de fond avec la filtre (le contenu de la requête) et id
-	
-	
+
+
 -- LogbookRessourceImpl
 
 Rest API
@@ -79,7 +79,7 @@ Rest API
 -Operation
 | GET https://vitam/access-external/v1/operations
 	récupérer tous les journaux de l'opéraion
-	
+
 | POST https://vitam/access-external/v1/operations (with X-HTTP-METHOD-OVERRIDE GET)
 	récupérer tous les journaux de l'opéraion
 
@@ -105,13 +105,26 @@ Rest API
 
 -Format&Rule
 | PUT https://vitam/admin-external/v1/collection_id
-	vérifier le format ou la règle 
+	vérifier le format ou la règle
 
 | POST https://vitam/admin-external/v1/collection_id
 	importer le fichier du format ou de la règle
 
 | POST https://vitam/admin-external/v1/collection_id
-	récupérer le format ou la règle 
+	récupérer le format ou la règle
 
 | POST https://vitam/admin-external/v1/collection_id/document_id
 	récupérer le format ou la règle avec la filtre (le contenu de la requête) et id
+
+-- AdminManagementExternalResourceImpl
+
+	Rest API
+--------
+
+-Contrat d'accès
+| PUT https://vitam/admin-external/v1/accesscontract
+	Mise à jour du contrat d'accès
+
+-Contrat d'entrée
+|PUT https://vitam/admin-external/v1/contract
+Mise à jour du contrat d'entrès
