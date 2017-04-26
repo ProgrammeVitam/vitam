@@ -1,4 +1,2 @@
-{% for item in groups['hosts-storage-offer-default'] %}
-stragety_name={{item}}
+strategy_name=[{% for item in groups['hosts-storage-offer-default'] %}"{{item}}"{% if not loop.last %},{% endif %}{% endfor %}]
 
-{% endfor %}
