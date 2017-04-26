@@ -6,55 +6,56 @@
 	</ol>
 
 	<div class="boxSearchWrapper panel panel-default col-md-12">
-		<a class="panel-header" data-toggle="collapse" href="#boxSearch">
+		<a class="panel-header" data-target="#boxSearch" data-toggle="collapse">
 			<h2>Référentiel des règles de gestion</h2>
 		</a>
-		<form id="boxEntriesSearchForm"
-			class="panel-body panel-collapse collapse in"
-			ng-submit="getFileRules()">
-			<div class="col-md-12">
-				<div class="form-group col-md-4">
-					<label for="entryName">Intitulé</label> <input
-						ng-model="search.form.RuleValue" id="entryName" name="entryName"
-						type="text" class="form-control" ng-change="onInputChange()" />
+		<div id="boxSearch" class="panel-body panel-collapse collapse in">
+			<form id="boxEntriesSearchForm"
+				class="panel-body panel-collapse collapse in"
+				ng-submit="getFileRules()">
+				<div class="col-md-12">
+					<div class="form-group col-md-4">
+						<label for="entryName">Intitulé</label> <input
+							ng-model="search.form.RuleValue" id="entryName" name="entryName"
+							type="text" class="form-control" ng-change="onInputChange()" />
+					</div>
+					<div class="form-group col-md-4">
+						<label for="entryType">Type</label> <select multiple=""
+							class="form-control" name="entryType"
+							ng-model="search.form.RuleType" ng-change="onInputChange()">
+							<option value="All">Tous</option>
+							<option value="AppraisalRule">Durée d'utilité
+								Administrative</option>
+							<option value="AccessRule">Délai de communicabilité</option>
+							<option value="StorageRule">Durée d'utilité courante</option>
+							<option value="DisseminationRule">Délai de diffusion</option>
+							<option value="ReuseRule">Durée de réutilisation</option>
+							<option value="ClassificationRule">Durée de
+								classification</option>
+						</select>
+					</div>
 				</div>
-				<div class="form-group col-md-4">
-					<label for="entryType">Type</label> <select multiple=""
-						class="form-control" name="entryType"
-						ng-model="search.form.RuleType" ng-change="onInputChange()">
-						<option value="All">Tous</option>
-						<option value="AppraisalRule">Durée d'utilité
-							Administrative</option>
-						<option value="AccessRule">Délai de communicabilité</option>
-						<option value="StorageRule">Durée d'utilité courante</option>
-						<option value="DisseminationRule">Délai de diffusion</option>
-						<option value="ReuseRule">Durée de réutilisation</option>
-						<option value="ClassificationRule">Durée de
-							classification</option>
-					</select>
-				</div>
-			</div>
-			<div>
-				<div class="col-md-2">
-					<!-- Blank zone -->
-				</div>
-				<div class="col-md-3">
-					<button class="btn btn-default" type="reset"
-						ng-click="reinitForm()">
-						<i class="material-icons pull-left">clear</i><span>Effacer</span>
-					</button>
-				</div>
-				<div class="col-md-4">
-					<button class="btn btn-primary" type="submit">
-						<i class="material-icons pull-left">search</i><span>Rechercher</span>
-					</button>
-				</div>
-			</div>
-			<button ng-if="search.error.displayMessage"
+				<div>
+					<div class="col-md-2">
+						<!-- Blank zone -->
+					</div>
+					<div class="col-md-3">
+						<button class="btn btn-default" type="reset"
+							ng-click="reinitForm()">
+							<i class="material-icons pull-left">clear</i><span>Effacer</span>
+						</button>
+					</div>
+					<div class="col-md-4">
+						<button class="btn btn-primary" type="submit">
+							<i class="material-icons pull-left">search</i><span>Rechercher</span>
+						</button>
+					</div>
+				</div>			
+			</form>
+		<button ng-if="search.error.displayMessage"
 				class="btn btn-danger center-block" type="button"
 				style="margin-top: 20px">{{search.error.message}}</button>
-		</form>
-
+		</div>
 	</div>
 
 	<search-pagination pagination-scope="search.pagination" search-function="getFileRules"></search-pagination>

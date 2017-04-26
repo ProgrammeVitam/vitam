@@ -4,61 +4,65 @@
 		<li><a href="#!/searchOperation">Recherche d'un journal sécurisé</a></li>
 	</ol>
 
-	<div class="panel panel-default col-md-12">
-		<a class="panel-header">
+	<div class="panel panel-default boxSearchWrapper col-md-12">
+		<a class="panel-header" data-target="#boxSearch" data-toggle="collapse">
 			<h2>Recherche</h2>
 		</a>
-
-		<form id="boxEntriesSearchForm"
-			  class="panel-body panel-collapse collapse in"
-			  ng-submit="ctrl.getList()">
-			<div id="boxAdvanced" class="panel-body panel-collapse collapse in">
-				<div class="form-group col-md-3">
-					<label for="searchId">Identifiant de l'objet</label>
-					<input ng-model="searchId" type="text" name="searchId" class="form-control" />
-				</div>
-
-				<div class="form-group col-md-2 col-md-offset-1">
-					<label>Dates extrêmes</label>
-					<div class="input-group">
-						<input id="startDate" type="text" class="form-control input-sm"
-							   ng-model="startDate" />
-						<div class="input-group-addon">
-							<i class="material-icons">date_range</i>
+		<div id="boxSearch" class="panel-body panel-collapse collapse in">
+			<form id="boxEntriesSearchForm"
+				  class="panel-body panel-collapse collapse in"
+				  ng-submit="ctrl.getList()">
+				<div id="boxAdvanced" class="panel-body panel-collapse collapse in">
+					<div class="form-group col-md-3">
+						<label for="searchId">Identifiant de l'objet</label>
+						<input ng-model="searchId" type="text" name="searchId" class="form-control" />
+					</div>
+	
+					<div class="form-group col-md-2 col-md-offset-1">
+						<label>Dates extrêmes</label>
+						<div class="input-group">
+							<input id="startDate" type="text" class="form-control input-sm"
+								   ng-model="startDate" />
+							<div class="input-group-addon">
+								<i class="material-icons">date_range</i>
+							</div>
 						</div>
 					</div>
-				</div>
-
-				<div class="form-group col-md-2">
-					<label>&nbsp;</label>
-					<div class="input-group">
-						<input id="endDate" type="text" class="form-control input-sm"
-							   ng-model="endDate" />
-						<div class="input-group-addon">
-							<i class="material-icons">date_range</i>
+	
+					<div class="form-group col-md-2">
+						<label>&nbsp;</label>
+						<div class="input-group">
+							<input id="endDate" type="text" class="form-control input-sm"
+								   ng-model="endDate" />
+							<div class="input-group-addon">
+								<i class="material-icons">date_range</i>
+							</div>
 						</div>
 					</div>
+	
+					<div class="form-group col-md-2 col-md-offset-1">
+						<label for="logType">Type de journal sécurisé</label>
+						<select ng-model="logType" class="form-control" name="logType">
+							<option value="--">--</option>
+							<option value="OPERATION">Journal des opérations</option>
+							<option value="LFC_UNIT">Cycle de vie Unité Archivistique</option>
+							<option value="LFC_OG">Cycle de vie Groupe d'Objets</option>
+							<option value="WRITE">Journal des écritures</option>
+						</select>
+					</div>
+					<div class="clearfix"></div>
+					<button class="btn btn-default pull-left" type="reset" ng-click="ctrl.reinitTab()">
+						<i class="material-icons pull-left">clear</i><span>Effacer</span>
+					</button>
+					<button class="btn btn-primary center-block" type="submit">
+						<i class="material-icons pull-left">search</i><span>Rechercher</span>
+					</button>
 				</div>
-
-				<div class="form-group col-md-2 col-md-offset-1">
-					<label for="logType">Type de journal sécurisé</label>
-					<select ng-model="logType" class="form-control" name="logType">
-						<option value="--">--</option>
-						<option value="OPERATION">Journal des opérations</option>
-						<option value="LFC_UNIT">Cycle de vie Unité Archivistique</option>
-						<option value="LFC_OG">Cycle de vie Groupe d'Objets</option>
-						<option value="WRITE">Journal des écritures</option>
-					</select>
-				</div>
-				<div class="clearfix"></div>
-				<button class="btn btn-default pull-left" type="reset" ng-click="ctrl.reinitTab()">
-					<i class="material-icons pull-left">clear</i><span>Effacer</span>
-				</button>
-				<button class="btn btn-primary center-block" type="submit">
-					<i class="material-icons pull-left">search</i><span>Rechercher</span>
-				</button>
-			</div>
-		</form>
+			</form>
+			<button ng-if="ctrl.fileNotFoundError"
+				class="btn btn-danger center-block" type="button"
+				style="margin-top: 20px">{{ctrl.errorMessage}}</button>
+		</div>
 	</div>
 
 	<!-- Pagination -->
@@ -69,10 +73,7 @@
 		<input ng-model="ctrl.currentPage" style="max-width: 40px">/{{ctrl.resultPages}}
 		<button class="btn btn-default btn-s"
 				ng-disabled="ctrl.currentPage >= ctrl.resultPages"
-				ng-click="ctrl.currentPage=ctrl.currentPage+1">Suivant</button>
-		<button ng-if="ctrl.fileNotFoundError"
-				class="btn btn-danger center-block" type="button"
-				style="margin-top: 20px">{{ctrl.errorMessage}}</button>
+				ng-click="ctrl.currentPage=ctrl.currentPage+1">Suivant</button>		
 	</div>
 
 	<div class="panel panel-default col-md-12">
