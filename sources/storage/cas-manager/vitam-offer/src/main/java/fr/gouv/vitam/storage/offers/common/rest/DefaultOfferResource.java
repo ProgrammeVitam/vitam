@@ -176,7 +176,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
     
             if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
-                LOGGER.warn("test4");
                 try {
                     cursorId = DefaultOfferServiceImpl.getInstance().createCursor(buildContainerName(type, xTenantId));
                 } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException exc) {
@@ -190,17 +189,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             }
     
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
-            LOGGER.warn("test5");
 
             if (DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)) {
                 try {
-                    LOGGER.warn("test6");
-
                     List<JsonNode> list = DefaultOfferServiceImpl.getInstance().next(buildContainerName(type, xTenantId), cursorId);
-                    LOGGER.warn("test7 {}", list);
-
                     responseOK.addAllResults(list).setHits(list.size(), 0, list.size());
-                    LOGGER.warn("test8 {}", responseOK);
+                    LOGGER.debug("Result {}", responseOK);
                     final Response.ResponseBuilder builder = Response
                             .status(DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)
                                     ? Status.PARTIAL_CONTENT : Status.OK)
@@ -215,7 +209,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                     return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
                 }
             } else {
-                LOGGER.warn("test10");
                 DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
                 final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
                 return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
