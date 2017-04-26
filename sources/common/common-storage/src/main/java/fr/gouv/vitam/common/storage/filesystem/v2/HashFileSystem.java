@@ -61,10 +61,12 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserDefinedFileAttributeView;
@@ -144,7 +146,10 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
         return containerMetadata.get(containerName).getNbObjects();
     }
-
+    // FIXME : This method doesn't implement the contract of ContentAdressableStorage interface
+    // On update, it rewrites the file and doesn't throw an  ContentAddressableStorageAlreadyExistException
+    // This was choosen to be coherent with existing Jclouds implementation of ContentAdressableStorage
+    // This must be changed by verifying that where the call is done, it implements the contract
     @Override
     public void putObject(String containerName, String objectName, InputStream stream)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
@@ -168,7 +173,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
         try {
             // Create the file from the inputstream
-            Files.copy(stream, filePath);
+            Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
             containerMetadata.get(containerName).updateAndMarshall(1L - beforeObj, Files.size(filePath) - beforeSize);
         } catch (FileAlreadyExistsException e) {
             throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
@@ -347,7 +352,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
         throws ContentAddressableStorageException, IOException {
         ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         try {
             File file = fsHelper.getPathObject(containerName, objectId).toFile();

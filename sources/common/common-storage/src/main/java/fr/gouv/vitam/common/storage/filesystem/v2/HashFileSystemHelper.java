@@ -124,8 +124,10 @@ public class HashFileSystemHelper {
         Digest d = new Digest(DigestType.SHA256);
         String digest = d.update(objectId.getBytes()).digestHex();
         List<String> r = new LinkedList<>();
-        r.add(digest.substring(0, 2));
-        r.add(digest.substring(3, 5));
+        //Extract the 4 first HexaDigit to have a repartition in a 16x16x16x16 directories
+        for (int i = 0; i < 4; i++) {
+            r.add(digest.substring(i, i + 1));
+        }
         return r;
     }
 
