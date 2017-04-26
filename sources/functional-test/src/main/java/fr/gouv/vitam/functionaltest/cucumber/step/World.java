@@ -34,12 +34,24 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.functionaltest.services.WorkSpaceClientConfiguration;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import java.io.File;
+import java.io.IOException;
 
 public class World {
 
     public static final String TNR_BASE_DIRECTORY = "tnrBaseDirectory";
+    public static final String WORKSPACE_URI = "workSpaceURI";
+
+
     private int tenantId;
 
     /**
@@ -61,17 +73,32 @@ public class World {
      * admin eternal client
      */
     private AdminExternalClient adminClient;
+    /**
+     *
+     */
+    StorageClient storageClient;
 
+    private String workspaceUri;
+
+    /**
+     *
+     */
+    WorkspaceClient workspaceClient;
     /**
      * base path of all the feature
      */
     private String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
 
+
+
     @Before
-    public void init() {
+    public void init() throws IOException {
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
-        adminClient =  AdminExternalClientFactory.getInstance().getClient();
+        adminClient = AdminExternalClientFactory.getInstance().getClient();
+        storageClient = StorageClientFactory.getInstance().getClient();
+        configureWorSpaceClient();
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
     }
 
     /**
@@ -114,7 +141,15 @@ public class World {
     }
 
     /**
+     * Workspace  client
      *
+     * @return
+     */
+    public WorkspaceClient getWorkspaceClient() {
+        return workspaceClient;
+    }
+
+    /**
      * @return operation ID
      */
     public String getOperationId() {
@@ -122,7 +157,6 @@ public class World {
     }
 
     /**
-     *
      * @param operationId operation ID
      */
     public void setOperationId(String operationId) {
@@ -134,6 +168,8 @@ public class World {
         adminClient.close();
         accessClient.close();
         ingestClient.close();
+        storageClient.close();
+        workspaceClient.close();
     }
 
     /**
@@ -153,4 +189,11 @@ public class World {
         return baseDirectory;
     }
 
+
+
+    private void configureWorSpaceClient() throws IOException {
+        File confFile = PropertiesUtils.findFile("workspace-client.conf");
+        WorkSpaceClientConfiguration conf = PropertiesUtils.readYaml(confFile, WorkSpaceClientConfiguration.class);
+        WorkspaceClientFactory.changeMode(conf.getUrlWorkspace());
+    }
 }

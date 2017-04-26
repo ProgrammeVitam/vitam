@@ -26,11 +26,26 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Iterables;
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.common.FileUtil;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.api.Fail;
 
+import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,26 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.assertj.core.api.Fail;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Iterables;
-
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.common.FileUtil;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * step defining access glue
@@ -88,7 +83,7 @@ public class AccessStep {
 
     /**
      * check if the metadata are valid.
-     * 
+     *
      * @param dataTable
      * @throws Throwable
      */
@@ -172,8 +167,8 @@ public class AccessStep {
 
     /**
      * Get a specific field value from a result identified by its index
-     * 
-     * @param field field name
+     *
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -189,7 +184,7 @@ public class AccessStep {
 
     /**
      * check if the number of result is OK
-     * 
+     *
      * @param numberOfResult number of result.
      * @throws Throwable
      */
@@ -200,7 +195,7 @@ public class AccessStep {
 
     /**
      * define a query from a file to reuse it after
-     * 
+     *
      * @param queryFilename name of the file containing the query
      * @throws Throwable
      */
@@ -215,7 +210,7 @@ public class AccessStep {
 
     /**
      * define a query to reuse it after
-     * 
+     *
      * @param query
      * @throws Throwable
      */
@@ -229,7 +224,7 @@ public class AccessStep {
 
     /**
      * search an archive unit according to the query define before
-     * 
+     *
      * @throws Throwable
      */
     @When("^je recherche les unités archivistiques$")
@@ -248,7 +243,7 @@ public class AccessStep {
 
     /**
      * update an archive unit according to the query define before
-     * 
+     *
      * @throws Throwable
      */
     @When("^je modifie les unités archivistiques$")
@@ -269,7 +264,7 @@ public class AccessStep {
 
     /**
      * search logbook operations according to the query define before
-     * 
+     *
      * @throws Throwable
      */
     @When("^je recherche les journaux d'opération$")
@@ -288,9 +283,8 @@ public class AccessStep {
 
     /**
      * search an accession register detail according to the originating agency and the query define before
-     * 
+     *
      * @param originatingAgency originating agency
-     * 
      * @throws Throwable
      */
     @When("^je recherche les détails des registres de fond pour le service producteur (.*)$")
@@ -309,9 +303,9 @@ public class AccessStep {
 
     /**
      * Import or Check an admin referential file
-     * 
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     *
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -338,7 +332,7 @@ public class AccessStep {
 
     /**
      * Search in admin collection according to the query define before
-     * 
+     *
      * @param collection name of the collection
      * @throws Throwable
      */
