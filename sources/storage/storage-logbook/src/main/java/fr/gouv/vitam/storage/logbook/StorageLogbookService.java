@@ -84,10 +84,18 @@ public interface StorageLogbookService {
         throws StorageException, InvalidParseOperationException;
 
     /**
+     * Rotation
+     * clode  Storage Log file and create a new one
      * @param tenantId
      */
     LogInformation generateSecureStorage(Integer tenantId) throws IOException;
 
+    /**
+     * Just close  Storage Log file
+     * should be called when the server is shutting Down
+     * @param tenantId
+     * @throws IOException
+     */
     void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException;
 
 }

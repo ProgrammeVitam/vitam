@@ -55,17 +55,12 @@ public class LogZipFileTest {
         File file = tmpFolder.newFile();
         try (LogZipFile logZipFile = new LogZipFile(zipFile)) {
             logZipFile.initStoreLog();
-            logZipFile.storeLogFile(new FileInputStream(tmpFolder.newFile()));
-
             final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
-
             final Digest digest = new Digest(digestType);
-            digest.update(new FileInputStream(file));
-            final byte[] hash = digest.digest();
-
+            logZipFile.storeLogFile(digest.getDigestInputStream(new FileInputStream(tmpFolder.newFile())));
             logZipFile
                 .storeAdditionalInformation(getString(LocalDateTime.now()), getString(LocalDateTime.now().plusDays(1)),
-                    hash.toString(),
+                    digest.toString(),
                     getString(LocalDateTime.now()), 0);
             logZipFile.close();
 

@@ -30,6 +30,7 @@ import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookOutcome;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +46,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -65,6 +67,7 @@ public class StorageLogAppenderTest {
     private static final String LOG =
         "{eventDateTime=2016-07-29T11:56:35.914, xRequestId=abcd, tenantId=0, eventType=CREATE, objectIdentifier=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, objectGroupIdentifier=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, digest=aeaaaaaaaaaam7mxaaaamakv36y6m3yaaaaq, digestAlgorithm=" +
             "SHA-256, size=1024, agentIdentifiers=agentIdentifiers, agentIdentifierRequester=agentIdentifierRequester, outcome=OK}\n";
+
     @Test
     public void appenderTest() throws Exception {
         List<Integer> list = new ArrayList<>();
@@ -73,12 +76,12 @@ public class StorageLogAppenderTest {
         list.add(3);
         File currentFolder = folder.newFolder();
         StorageLogAppender storageLogAppender = new StorageLogAppender(list, currentFolder.toPath());
-        assertThat(currentFolder.list().length).isEqualTo(list.size());
+        assertThat(currentFolder.list()).hasSize(3);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         LogInformation logInformation = storageLogAppender.secureAndCreateNewlogByTenant(2);
         assertThat(logInformation.getPath().toString()).startsWith(currentFolder.toString() + "/2_");
         assertThat(logInformation.getPath().toString()).contains("_" + LocalDateTime.now().format(formatter));
-        assertThat(currentFolder.list().length).isEqualTo(list.size() + 1);
+        assertThat(currentFolder.list()).hasSize(4);
     }
 
     @Test
@@ -102,63 +105,104 @@ public class StorageLogAppenderTest {
     public void testParallelism() throws IOException, InterruptedException {
         File currentFolder = folder.newFolder();
         final List<Integer> list = new ArrayList<>();
+        list.add(0);
         list.add(1);
         list.add(2);
 
         // When
         StorageLogAppender storageLogAppender = new StorageLogAppender(list, currentFolder.toPath());
 
-        ExecutorService executorService = Executors.newFixedThreadPool(3);
+        ExecutorService executorService = Executors.newFixedThreadPool(4);
 
+        CountDownLatch startSignal = new CountDownLatch(1);
+        CountDownLatch doneSignal = new CountDownLatch(4);
         executorService.submit(() -> {
-            int i = 10;
-            while (i > 0) {
-                try {
-                    storageLogAppender.append(1, getParameters());
-                    Thread.sleep(50L);
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
+            try {
+                startSignal.await();
+                int i = 10;
+                while (i > 0) {
+                    try {
+                        storageLogAppender.append(1, getParameters());
+                        Thread.sleep(50L);
+                    } catch (IOException | InterruptedException e) {
+                        fail("should not raise execption");
+                    }
+                    i--;
                 }
-                i--;
-            }
+                doneSignal.countDown();
+            } catch (InterruptedException ex) {
+            } // return;
+
+        });
+        //execute 10 times on tenant 0
+        executorService.submit(() -> {
+            try {
+                startSignal.await();
+                int i = 10;
+                while (i > 0) {
+                    try {
+                        storageLogAppender.append(0, getParameters());
+                        Thread.sleep(50L);
+                    } catch (IOException | InterruptedException e) {
+                        fail("should not raise execption");
+                    }
+                    i--;
+                }
+                doneSignal.countDown();
+            } catch (InterruptedException ex) {
+            } // return;
+
         });
         //execute 10 times
         executorService.submit(() -> {
-            int i = 10;
-            while (i > 0) {
-                try {
-                    storageLogAppender.append(1, getParameters());
-                    Thread.sleep(75L);
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
+            try {
+                startSignal.await();
+                int i = 10;
+                while (i > 0) {
+                    try {
+                        storageLogAppender.append(1, getParameters());
+                        Thread.sleep(75L);
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    i--;
                 }
-                i--;
-            }
+                doneSignal.countDown();
+            } catch (InterruptedException ex) {
+            } //
         });
         //execute 10 times
 
         executorService.submit(() -> {
-            int i = 5;
-            while (i > 0) {
-                try {
-                    LogInformation info = storageLogAppender.secureAndCreateNewlogByTenant(1);
+            try {
+                startSignal.await();
+                int i = 5;
+                while (i > 0) {
+                    try {
+                        LogInformation info = storageLogAppender.secureAndCreateNewlogByTenant(1);
 
-                    Thread.sleep(100L);
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
+                        Thread.sleep(100L);
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    i--;
                 }
-                i--;
-            }
+                doneSignal.countDown();
+            } catch (InterruptedException ex) {
+            } //
         });
         executorService.shutdown();
-        Thread.sleep(2000L);
+        startSignal.countDown();      // let all threads proceed
+        doneSignal.await();           // wait for all to finish
         String[] lines = currentFolder.list();
-        assertThat(lines.length).isEqualTo(7);
+        assertThat(lines.length).isEqualTo(8);
 
         LogInformation info = storageLogAppender.secureAndCreateNewlogByTenant(1);
         int nbLines = 0;
         for (String file : lines) {
-            nbLines += Files.lines(Paths.get(currentFolder.getAbsolutePath() + "/" + file)).count();
+            if (file.startsWith("1")) {
+                nbLines += Files.lines(Paths.get(currentFolder.getAbsolutePath() + "/" + file)).count();
+            }
         }
         assertThat(nbLines).isEqualTo(20);
     }

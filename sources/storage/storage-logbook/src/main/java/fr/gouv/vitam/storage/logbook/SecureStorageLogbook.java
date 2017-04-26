@@ -41,6 +41,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Utility to launch the Traceability through command line and external scheduler
@@ -54,54 +55,55 @@ public class SecureStorageLogbook {
     /**
      * @param args ignored
      * @throws InvalidParseOperationException if json data not well-formed
-     * @throws StorageServerClientException if logbook server is unreachable
+     * @throws StorageServerClientException   if logbook server is unreachable
      */
     public static void main(String[] args) throws InvalidParseOperationException, StorageServerClientException {
         platformSecretConfiguration();
         try {
             File confFile = PropertiesUtils.findFile(VITAM_SECURISATION_NAME);
-            final StorageSecureConfiguration conf = PropertiesUtils.readYaml(confFile, StorageSecureConfiguration.class);
-            VitamThreadFactory instance = VitamThreadFactory.getInstance();
-            Thread thread = instance.newThread(() -> {
-                conf.getTenants().forEach((v) -> {
-                    try {
-                        secureByTenantId(v);
-                    } catch (StorageServerClientException e) {
-                        e.printStackTrace();
-                    }
-                });
+            final StorageSecureConfiguration conf =
+                PropertiesUtils.readYaml(confFile, StorageSecureConfiguration.class);
+            CountDownLatch startSignal = new CountDownLatch(1);
+            CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
+            conf.getTenants().forEach((v) -> {
+                try {
+                    secureByTenantId(v, startSignal, doneSignal);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Cannot secure log " + v, e);
+                }
+
             });
-            thread.start();
-            thread.join();
-        } catch (final IOException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException("Cannot start the Application Server", e);
-        } catch (InterruptedException e) {
+            startSignal.countDown();
+            doneSignal.await();           // wait for all to finish
+
+        } catch (final IOException |InterruptedException e) {
             LOGGER.error(e);
             throw new IllegalStateException("Cannot start the Application Server", e);
         }
     }
 
-    private static void secureByTenantId(int tenantId) throws StorageServerClientException {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-            final StorageClientFactory storageClientFactory =
-                StorageClientFactory.getInstance();
+    private static void secureByTenantId(int tenantId, CountDownLatch startSignal, CountDownLatch doneSignal)
+        throws InterruptedException {
 
-            try (StorageClient client = storageClientFactory.getClient()) {
-
-                client.secureStorageLogbook();
+        VitamThreadFactory instance = VitamThreadFactory.getInstance();
+        Thread thread = instance.newThread(() -> {
+            try {
+                startSignal.await();
+                VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                final StorageClientFactory storageClientFactory =
+                    StorageClientFactory.getInstance();
+                try (StorageClient client = storageClientFactory.getClient()) {
+                    client.secureStorageLogbook();
+                }
+            } catch (InvalidParseOperationException | StorageServerClientException | InterruptedException e) {
+                throw new IllegalStateException(" Error when securing Tenant  :  " + tenantId, e);
+            } finally {
+                VitamThreadUtils.getVitamSession().setTenantId(null);
+                doneSignal.countDown();
             }
-        } catch (InvalidParseOperationException e) {
-
-            throw new IllegalStateException(" Error when securing Tenant  :  " + tenantId, e);
-        }
-        finally {
-            VitamThreadUtils.getVitamSession().setTenantId(null);
-
-        }
-
+        });
+        thread.start();
     }
 
 

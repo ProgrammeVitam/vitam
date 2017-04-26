@@ -27,10 +27,8 @@
 package fr.gouv.vitam.storage;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 import static java.nio.file.StandardOpenOption.APPEND;
-import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 import java.io.IOException;
@@ -45,7 +43,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Storage Logbook  Appender
@@ -66,7 +63,7 @@ public class StorageLogAppender {
 
     private final Map<Integer, LocalDateTime> beginLogTimes = new HashMap<>();
 
-    private final Map<Integer, ReentrantLock> lockers = new HashMap<>();
+    private final Map<Integer, Object> lockers = new HashMap<>();
 
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -91,20 +88,12 @@ public class StorageLogAppender {
     public StorageLogAppender(List<Integer> tenantIds, Path path) throws IOException {
         this.tenantIds = tenantIds;
         this.fileLocation = path;
-        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL,tenantIds);
+        ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, tenantIds);
         //create log by tenant
         for (Integer tenant : this.tenantIds) {
-            ReentrantLock lock = new ReentrantLock();
+            Object lock = new Object();
             lockers.put(tenant, lock);
-            try {
-                lock.lock();
-                createNewLog(tenant);
-            }
-            finally {
-                lock.unlock();
-            }
-
-            beginLogTimes.put(tenant, LocalDateTime.now());
+            createNewLog(tenant);
         }
     }
 
@@ -114,6 +103,7 @@ public class StorageLogAppender {
         filesNames.put(tenant, filepath);
         OutputStream out = openTenantStream(tenant, filepath);
         streams.put(tenant, out);
+        beginLogTimes.put(tenant, LocalDateTime.now());
     }
 
     /**
@@ -147,21 +137,19 @@ public class StorageLogAppender {
      * @throws IOException
      */
     public LogInformation secureAndCreateNewlogByTenant(Integer tenant) throws IOException {
-        // get tenant Stream
-        OutputStream out = streams.get(tenant);
         LocalDateTime endTime;
+        Path lastPath;
         //save the name
-        Path lastPath = filesNames.get(tenant);
-        ReentrantLock lock = lockers.get(tenant);
-        try {
-            lock.lock();
+        Object lock = lockers.get(tenant);
+        synchronized (lock) {
+            // get tenant Stream
+            lastPath = filesNames.get(tenant);
+            OutputStream out = streams.get(tenant);
             endTime = LocalDateTime.now();
             out.flush();
             out.close();
-            // create a new name for  the futuSre log
+            // create a new name for  the future log
             createNewLog(tenant);
-        } finally {
-            lock.unlock();
         }
         return new LogInformation(lastPath, beginLogTimes.get(tenant), endTime);
     }
@@ -178,16 +166,13 @@ public class StorageLogAppender {
         LocalDateTime endTime = null;
         //save the name
         Path lastPath = null;
-        ReentrantLock lock = lockers.get(tenant);
-        try {
+        Object lock = lockers.get(tenant);
+        synchronized (lock) {
             OutputStream out = streams.get(tenant);
-            lock.lock();
             lastPath = filesNames.get(tenant);
             endTime = LocalDateTime.now();
             out.flush();
             out.close();
-        } finally {
-            lock.unlock();
         }
         return new LogInformation(lastPath, beginLogTimes.get(tenant), endTime);
     }
@@ -201,22 +186,16 @@ public class StorageLogAppender {
      * @throws IOException
      */
     public StorageLogAppender append(Integer tenant, StorageLogbookParameters parameters) throws IOException {
-        ReentrantLock lock = lockers.get(tenant);
-        try {
+        Object lock = lockers.get(tenant);
+        synchronized (lock) {
             final OutputStream out = streams.get(tenant);
-            lock.lock();
-            out.write((parameters.getMapParameters().toString()+lineSeparator).getBytes());
-        } finally {
-            lock.unlock();
+            out.write((parameters.getMapParameters().toString() + lineSeparator).getBytes());
         }
         return this;
     }
 
-
     private String getTime() {
         return LocalDateTime.now().format(timeFormater);
     }
-
-
 
 }

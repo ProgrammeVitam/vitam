@@ -34,6 +34,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 
@@ -155,9 +156,12 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);
     }
 
-    @Override public RequestResponseOK secureStorageLogbook()
+    @Override
+    public RequestResponseOK secureStorageLogbook()
         throws StorageServerClientException, InvalidParseOperationException {
-        return null;
+        return new RequestResponseOK<String>()
+            .setHits(1, 0, 1)
+            .addResult(GUIDFactory.newGUID());
     }
 
 }
