@@ -318,30 +318,27 @@ public class PausedProcessingIT {
        processingClient.initVitamProcess(LogbookTypeProcess.INGEST.name(), containerName,
             WORFKLOW_NAME);
         // wait a little bit
-        Thread.sleep(5000);
 
         RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
             LogbookTypeProcess.INGEST.toString(), ProcessAction.NEXT.getValue());
         // wait a little bit
-        Thread.sleep(10000);
         assertNotNull(resp);
         assertEquals(Response.Status.OK.getStatusCode(), resp.getStatus());
         assertEquals(ProcessExecutionStatus.PAUSE.toString(), resp.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
         // wait a little bit
-        Thread.sleep(5000);
 
         // shutdown processing
         processManagementApplication.stop();
         // wait a little bit
-        Thread.sleep(5000);
+        Thread.sleep(500);
         LOGGER.info("After STOP");
         // restart processing
         SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
         processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
         processManagementApplication.start();
-        // wait a little bit
-        Thread.sleep(5000);
+        // wait a little bit until jetty start
+        Thread.sleep(8000);
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
@@ -351,7 +348,6 @@ public class PausedProcessingIT {
         assertEquals(ProcessExecutionStatus.PAUSE.toString(), ret.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS));
         assertEquals(Response.Status.PARTIAL_CONTENT.getStatusCode(), ret.getStatus());
         // wait a little bit
-        Thread.sleep(1000);
 
         ret =  processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
             containerName);
