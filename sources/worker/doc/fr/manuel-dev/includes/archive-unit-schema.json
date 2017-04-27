@@ -25,7 +25,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -92,7 +92,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
@@ -153,9 +153,6 @@
                                         }
                                     }
                                 ],
-                                "required": [
-                                    "FinalAction"
-                                ],
                                 "type": "object"
                             },
                             "type": "array"
@@ -179,7 +176,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -271,7 +268,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -343,7 +340,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -410,7 +407,7 @@
                                     "PreventInheritance": {
                                         "description": "An explanation about the purpose of this instance.",
                                         "title": "The Preventinheritance schema.",
-                                        "type": "string"
+                                        "type": ["string", "boolean"]
                                     },
                                     "RefNonRuleId": {
                                         "id": "http://example.com/root.json/ArchiveUnit/Management/Rules/0/RefNonRuleId",
@@ -471,9 +468,6 @@
                                             ]
                                         }
                                     }
-                                ],
-                                "required": [
-                                    "FinalAction"
                                 ],
                                 "type": "object"
                             },
@@ -548,23 +542,23 @@
                         },
                         "OriginatingSystemId": {
                             "description": "Part of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "ArchivalAgencyArchiveUnitIdentifier": {
                             "description": "Part of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "OriginatingAgencyArchiveUnitIdentifier": {
                             "description": "Part of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "TransferringAgencyArchiveUnitIdentifier": {
                             "description": "End of IdentifierGroup",
-                            "type": "string"
+                            "type": ["string", "number"]
                         },
                         "Description": {
                             "description": "All of DescriptionGroup",
-                            "type": ["string", "array"]
+                            "type": ["null", "string", "array"]
                         },
                         "CustodialHistory": {
                             "description": "All of CustodialHistoryGroup",
@@ -867,16 +861,16 @@
                                 "type": "object",
                                 "properties": {
                                     "FirstName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "GivenName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "Gender": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthDate": {
                                         "description": "pattern: Date",
@@ -972,21 +966,20 @@
                         },
                         "Addressee": {
                             "description": "All of AddresseeGroup (AudienceGroup)",
-                            "type": "array",
                             "items": {
                                 "type": "object",
                                 "properties": {
                                     "FirstName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "GivenName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "Gender": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthDate": {
                                         "description": "pattern: Date",
@@ -1051,7 +1044,7 @@
                                         "items": {
                                             "type": "string"
                                         },
-                                        "type": "array"
+                                        "type": ["array", "string"]
                                     },
                                     "Corpname": {
                                         "type": "string"
@@ -1116,21 +1109,20 @@
                         },
                         "Recipient": {
                             "description": "All of RecipientGroup (AudienceGroup)",
-                            "type": "array",
                             "items": {
                                 "type": "object",
                                 "properties": {
                                     "FirstName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "GivenName": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "Gender": {
-                                        "type": "string"
+                                        "type": ["string", "null"]
                                     },
                                     "BirthDate": {
                                         "description": "pattern: Date",
@@ -1195,7 +1187,7 @@
                                         "items": {
                                             "type": "string"
                                         },
-                                        "type": "array"
+                                        "type": ["array", "string"]
                                     },
                                     "Corpname": {
                                         "type": "string"
@@ -1593,7 +1585,11 @@
                                             {
                                                 "type": "string",
                                                 "format": "date-time"
-                                            }
+                                            },
+			                                {
+			                                    "type": "string",
+			                                    "format": "date-time-vitam"
+			                                }
                                         ]
                                     },
                                     "EventDetail": {

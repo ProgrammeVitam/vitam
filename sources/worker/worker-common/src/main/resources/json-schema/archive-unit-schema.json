@@ -153,9 +153,6 @@
                                         }
                                     }
                                 ],
-                                "required": [
-                                    "FinalAction"
-                                ],
                                 "type": "object"
                             },
                             "type": "array"
@@ -471,9 +468,6 @@
                                             ]
                                         }
                                     }
-                                ],
-                                "required": [
-                                    "FinalAction"
                                 ],
                                 "type": "object"
                             },
