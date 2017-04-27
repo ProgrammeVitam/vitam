@@ -34,6 +34,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
+    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
+    private static final String UPDATE_INGEST_CONTRACT = "/contract";
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -158,6 +160,44 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             } else {
                 return RequestResponse.parseFromResponse(response);
             }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+        throws AccessExternalClientException {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT, headers,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT, headers,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -56,6 +57,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+
 import java.util.List;
 
 /**
@@ -67,10 +69,14 @@ public class ContractResource {
 
     static final String INGEST_CONTRACTS_URI = "/contracts";
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
-
+    static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
+    static final String UPDATE_INGEST_CONTRACTS_URI = "/contract";
+    
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);
-    private static final String INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER = "The json input of ingest contracts is mandatory";
-    private static final String ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER = "The json input of access contracts is mandatory";
+    private static final String INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER =
+        "The json input of ingest contracts is mandatory";
+    private static final String ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER =
+        "The json input of access contracts is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
 
@@ -85,9 +91,8 @@ public class ContractResource {
 
 
     /**
-     * Import a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
-     * The input is invalid in the following situations : </BR>
+     * Import a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR> The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -108,7 +113,7 @@ public class ContractResource {
         ParametersChecker.checkParameter(INGEST_CONTRACT_JSON_IS_MANDATORY_PATAMETER, ingestContractModelList);
 
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
-            RequestResponse requestResponse =  ingestContract.createContracts(ingestContractModelList);
+            RequestResponse requestResponse = ingestContract.createContracts(ingestContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -132,6 +137,7 @@ public class ContractResource {
 
     /**
      * Find ingest contracts by queryDsl
+     * 
      * @param queryDsl
      * @return
      */
@@ -162,10 +168,8 @@ public class ContractResource {
     }
 
     /**
-     * Import a set of contracts access after passing the validation steps.
-     * If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
-     * The input is invalid in the following situations : </BR>
+     * Import a set of contracts access after passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR> The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -185,7 +189,7 @@ public class ContractResource {
     public Response importAccessContracts(List<AccessContractModel> accessContractModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(ACCESS_CONTRACT_JSON_IS_MANDATORY_PATAMETER, accessContractModelList);
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
-            RequestResponse requestResponse =  accessContract.createContracts(accessContractModelList);
+            RequestResponse requestResponse = accessContract.createContracts(accessContractModelList);
 
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
@@ -208,8 +212,60 @@ public class ContractResource {
     }
 
 
+    @Path(UPDATE_ACCESS_CONTRACT_URI)
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateAccessContract(JsonNode queryDsl) {
+        try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess)) {
+            RequestResponse requestResponse = accessContract.updateContract(queryDsl);
+            if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+
+                return Response.status(Status.OK).entity(requestResponse).build();
+            }
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+    }
+    
+    @Path(UPDATE_INGEST_CONTRACTS_URI)
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateIngestContract(JsonNode queryDsl) {
+        try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess)) {
+            RequestResponse requestResponse = ingestContract.updateContract(queryDsl);
+            if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+
+                return Response.status(Status.OK).entity(requestResponse).build();
+            }
+        } catch (VitamException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+        } catch (Exception exp) {
+            LOGGER.error("Unexpected server error {}", exp);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
+        }
+    }
+
+
     /**
      * find access contracts by queryDsl
+     * 
      * @return
      */
     @Path(ACCESS_CONTRACTS_URI)

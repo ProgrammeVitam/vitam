@@ -115,16 +115,6 @@ angular.module('entryContracts')
         $scope.reinitForm = searchService.processReinit;
         $scope.onInputChange = searchService.onInputChange;
         console.log("searchService => ", searchService);
-    })
-    .controller('entryContractController', function ($scope, $routeParams, ihmDemoCLient) {
-        var id = $routeParams.id;
-        ihmDemoCLient.getClient('contracts').one(id).get().then(function (response) {
-            if (response.data.length !== 0) {
-                $scope.contract = response.data.$results[0];
-            }
-        }, function (error) {
-            console.log('Error while read contract with id: ' + id, error);
-        });
     });
 
 
