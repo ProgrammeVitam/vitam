@@ -34,7 +34,6 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -48,10 +47,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
-import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
-import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
-import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -78,6 +73,8 @@ public class StorageStep {
     private static final String TEST_URI = "testStorage";
     private String guid;
     private StoredInfoResult info;
+    private Response.StatusType responseStatus;
+    private VitamRequestIterator<JsonNode> result;
 
     public StorageStep(World world) throws FileNotFoundException, InvalidParseOperationException {
         this.world = world;
@@ -98,9 +95,9 @@ public class StorageStep {
     @When("^je sauvegarde le fichier dans la strategie (.*)")
     public void save_this_file(String strategy) throws IOException {
         save(strategy);
+        assertThat(info).isNotNull();
+        assertThat(info.getId()).isEqualTo(guid);
     }
-
-
 
     private void save(String strategy) {
         runInVitamThread(() -> {
@@ -139,60 +136,55 @@ public class StorageStep {
     public void the_sip_is_stored_in_offers(DataTable dataTable) throws StorageException {
         List<List<String>> raws = dataTable.raw();
         for (List<String> raw : raws.subList(1, raws.size())) {
+            responseStatus = null;
             String strategy = raw.get(1);
-            assertThat(the_sip_is_stored_in_offer(strategy)).isTrue();
+            the_sip_is_stored_in_offer(strategy);
+            assertThat(responseStatus).isEqualTo(Response.Status.OK);
         }
     }
 
-    public void container_has_files(String strategy) throws StorageServerClientException {
+    @Then("^je verifie que toutes ces strategies contiennent des fichiers")
+    public void list_srategy(DataTable dataTable) throws StorageException, StorageServerClientException {
+        List<List<String>> raws = dataTable.raw();
+        for (List<String> raw : raws.subList(1, raws.size())) {
+            result = null;
+            String strategy = raw.get(1);
+            container_has_files(strategy);
+            assertThat(result).isNotNull();
+            assertThat(result.hasNext()).isTrue();
+
+        }
+    }
+
+    private void container_has_files(String strategy) throws StorageServerClientException {
         runInVitamThread(() -> {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-                VitamRequestIterator<JsonNode> result;
                 try {
                     result = world.storageClient.listContainer(strategy, DataCategory.OBJECT);
                 } catch (StorageServerClientException e) {
                     throw new RuntimeException(e);
                 }
-                assertThat(result).isNotNull();
-                assertThat(result.hasNext()).isTrue();
             } catch (Exception | AssertionError e) {
                 throw new RuntimeException(e);
             }
         });
     }
 
-    private boolean the_sip_is_stored_in_offer(String strategy) {
+    private void the_sip_is_stored_in_offer(String strategy) {
         //ugly
-        final boolean[] ok = {true};
         runInVitamThread(() -> {
-            Path sip = Paths.get(world.getBaseDirectory(), fileName);
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-
-
                 Response response =
                     world.storageClient.getContainerAsync(strategy, guid, StorageCollectionType.OBJECTS);
-                final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-
-                //
-                //                FileInputStream outputStream = new FileInputStream(sip.toFile());
-                //                assertThat(stream).hasSameContentAs(outputStream);
-                //
-                //
-                //
-                //                StreamUtils.closeSilently(outputStream);
-                //                StreamUtils.closeSilently(stream);
-
+                responseStatus = response.getStatusInfo();
+                world.storageClient.consumeAnyEntityAndClose(response);
             } catch (Exception | AssertionError e) {
-                ok[0] = false;
+
                 throw new RuntimeException(e);
             }
         });
-
-
-
-        return ok[0];
     }
 
     /**
