@@ -18,7 +18,10 @@ function generate_ca_root {
     local REPERTOIRE_SORTIE="${2}"
     local CONFIG_DIR="${3}"
 
-    local LDAPLIKE="/CN=CA_${REPERTOIRE_SORTIE}/O=Vitam./C=FR/ST=idf/L=paris"
+    # Correctly set certificate CN (env var is read inside the openssl configuration file)
+    export OPENSSL_CN=ca_root_${REPERTOIRE_SORTIE}
+    # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
+    export OPENSSL_CA_DIR=${REPERTOIRE_SORTIE}
 
     if [ ! -d ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE} ]; then
         pki_logger "Création du sous-répertoire ${REPERTOIRE_SORTIE}"
@@ -26,22 +29,22 @@ function generate_ca_root {
     fi
 
     pki_logger "Create CA request..."
-    openssl req -new \
-        -config ${REPERTOIRE_CONFIG}/${CONFIG_DIR}/ca-config \
+    openssl req \
+        -config ${REPERTOIRE_CONFIG}/ca-config \
+        -new \
         -out ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.req \
         -keyout ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.key \
         -passout pass:${MDP_CAROOT_KEY} \
-        -subj "${LDAPLIKE}" \
         -batch
 
     pki_logger "Create CA certificate..."
-    openssl ca -selfsign \
-        -config ${REPERTOIRE_CONFIG}/${CONFIG_DIR}/ca-config \
-        -in ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.req \
-        -out ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.crt \
+    openssl ca \
+        -config ${REPERTOIRE_CONFIG}/ca-config \
+        -selfsign \
         -extensions extension_ca_root \
-        -subj "${LDAPLIKE}" \
+        -in ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.req \
         -passin pass:${MDP_CAROOT_KEY} \
+        -out ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-root.crt \
         -batch
 }
 
@@ -52,7 +55,10 @@ function generate_ca_interm {
     local REPERTOIRE_SORTIE="${3}"
     local TYPE_CA="${4}"
 
-    local LDAPLIKE="/CN=CA_${REPERTOIRE_SORTIE}/O=Vitam./C=FR/ST=idf/L=paris"
+    # Correctly set certificate CN (env var is read inside the openssl configuration file)
+    export OPENSSL_CN=ca_intermediate_${REPERTOIRE_SORTIE}
+    # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
+    export OPENSSL_CA_DIR=${REPERTOIRE_SORTIE}
 
     if [ ! -d ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE} ]; then
         pki_logger "Création du sous-répertoire ${REPERTOIRE_SORTIE}"
@@ -60,23 +66,22 @@ function generate_ca_interm {
     fi
 
     pki_logger "Generate intermediate request..."
-    openssl req -new \
+    openssl req \
+    -config ${REPERTOIRE_CONFIG}/ca-config \
+    -new \
     -newkey ${PARAM_KEY_CHIFFREMENT} \
-    -config ${REPERTOIRE_CONFIG}/${TYPE_CA}/ca-config \
     -out ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-intermediate.req \
     -keyout ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-intermediate.key \
     -passout pass:${MDP_CAINTERMEDIATE_KEY} \
-    -subj "${LDAPLIKE}" \
     -batch
 
     pki_logger "Sign..."
     openssl ca \
-    -config ${REPERTOIRE_CONFIG}/${TYPE_CA}/ca-config \
+    -config ${REPERTOIRE_CONFIG}/ca-config \
+    -extensions extension_ca_intermediate \
     -in ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-intermediate.req \
-    -out ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-intermediate.crt \
     -passin pass:${MDP_CAROOT_KEY} \
-    -subj "${LDAPLIKE}" \
-    -extensions CA_SSL \
+    -out ${REPERTOIRE_CA}/${REPERTOIRE_SORTIE}/ca-intermediate.crt \
     -batch
 }
 
