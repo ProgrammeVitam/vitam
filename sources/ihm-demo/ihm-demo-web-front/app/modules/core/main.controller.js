@@ -33,6 +33,19 @@ angular.module('core')
         $scope.credentials = usernamePasswordToken;
         $scope.session = {};
         $scope.tenants = ['0', '1'];
+        if (!!authVitamService.cookieValue('userCredentials')) {
+          ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+            if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
+              $scope.contracts = repsonse.data['$results'];
+            }
+          }, function (error) {
+            console.log('Error while get contrat. Set default list : ', error);
+          });
+        }
+
+        if (!!authVitamService.cookieValue("X-Access-Contrat-Id")){
+            $scope.accessContratId = authVitamService.cookieValue("X-Access-Contrat-Id");
+        }
 
         $window.addEventListener('storage', function(event) {
             if (event.key === 'reset-timeout') {
@@ -70,16 +83,6 @@ angular.module('core')
         }, function (error) {
             console.log('Error while get tenant. Set default list : ', error);
             $scope.tenantId = '' + $scope.tenants[0];
-        });
-
-        ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
-
-            if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
-                $scope.contracts = repsonse.data['$results'];
-                $scope.accessContratId = $scope.contracts[0].Name;
-            }
-        }, function (error) {
-            console.log('Error while get tenant. Set default list : ', error);
         });
 
         $rootScope.hasPermission = function (permission) {
@@ -146,6 +149,16 @@ angular.module('core')
                             $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
                             $translate.refresh();
                         }
+
+                        ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+
+                            if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
+                                $scope.contracts = repsonse.data['$results'];
+                                $scope.accessContratId = $scope.contracts[0].Name;
+                            }
+                        }, function (error) {
+                            console.log('Error while get tenant. Set default list : ', error);
+                        });
                     },
                     function (err) {
                         $scope.logginError = true;
