@@ -52,7 +52,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionExc
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -69,9 +68,7 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -87,8 +84,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
 
-
-    private static final String GET = HttpMethod.GET;
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
     private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
         "Execution of DSL Vitam from Access ongoing...";
@@ -96,10 +91,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
-    private static final String  MANAGEMENT = "_mgt";
-    
-
-
 
     private final AccessInternalModule accessModule;
 
@@ -255,7 +246,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             if (prodServices == null || prodServices.isEmpty()){
                 result = accessModule.selectObjectGroupById(query, idObjectGroup);
             } else {
-                final SelectParserMultiple parser = new SelectParserMultiple(new MongoDbVarNameAdapter());
+                final SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(query);
                 parser.addCondition(
                     QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new)));
@@ -343,6 +334,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         Set<String> versions = vitamSession.getUsages();
         
+        if (versions == null || versions.isEmpty()){
+            return true;
+        }            
         for (String version : versions){
             if (version.equals(s)){
                 return true;
@@ -357,9 +351,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         if (prodServices == null || prodServices.isEmpty()){
             return queryDsl; 
         } else {
-            final SelectParserMultiple parser = new SelectParserMultiple(new MongoDbVarNameAdapter());
+            final SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
-            parser.addCondition(QueryHelper.in(PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new)));
+            parser.getRequest().addQueries(QueryHelper.in(
+                PROJECTIONARGS.MANAGEMENT.exactToken() + "." + SedaConstants.TAG_ORIGINATINGAGENCY, 
+                prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
             return parser.getRequest().getFinalSelect();
         }
     }

@@ -34,6 +34,7 @@ import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContratIdException;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Manage the X_ACCESS_CONTRAT_ID header from the server-side perspective.
@@ -50,7 +51,9 @@ public class AccessContratIdContainerFilter implements ContainerRequestFilter{
             HeaderIdHelper.Context.REQUEST);
             AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestContext.getHeaders()); 
         } catch (MissingAccessContratIdException e) {
-            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+            //TODO : fixer pour rejet en cas contrat absence 
+            VitamThreadUtils.getVitamSession().setWritingPermission(true);
+            //requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
         }
     }
 
