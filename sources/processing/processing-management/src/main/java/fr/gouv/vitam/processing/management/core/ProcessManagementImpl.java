@@ -104,7 +104,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         this.serverConfig = serverConfig;
         processData = ProcessDataAccessImpl.getInstance();
         poolWorkflows = new ConcurrentHashMap<>();
-        
+
         try {
             setWorkflow("DefaultFilingSchemeWorkflow");
             setWorkflow("DefaultHoldingSchemeWorkflow");
@@ -226,7 +226,8 @@ public class ProcessManagementImpl implements ProcessManagement {
         processData.prepareToRelaunch(workParams.getContainerName(), executionMode, tenantId);
         // persist running state
         try {
-            WorkspaceProcessDataManagement.getInstance().persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance().getServerId()),
+            WorkspaceProcessDataManagement.getInstance().persistProcessWorkflow(
+                String.valueOf(ServerIdentity.getInstance().getServerId()),
                 workParams.getContainerName(), processData.getProcessWorkflow(operationId, tenantId));
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException(e);
@@ -328,8 +329,8 @@ public class ProcessManagementImpl implements ProcessManagement {
         }
         Map<String, ProcessWorkflow> map = null;
 
-        map = WorkspaceProcessDataManagement.getInstance().getProcessWorkflowFor(null, String.valueOf
-            (ServerIdentity.getInstance().getServerId()));
+        map = WorkspaceProcessDataManagement.getInstance().getProcessWorkflowFor(null,
+            String.valueOf(ServerIdentity.getInstance().getServerId()));
 
         // Nothing to load
         if (map == null) {
@@ -364,17 +365,18 @@ public class ProcessManagementImpl implements ProcessManagement {
                 processWorkflow.setGlobalStatusCode(StatusCode.UNKNOWN);
                 processWorkflow.setExecutionStatus(ProcessExecutionStatus.FAILED);
                 try {
-                    WorkspaceProcessDataManagement.getInstance().persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance()
-                        .getServerId()), operationId, processWorkflow);
+                    WorkspaceProcessDataManagement.getInstance()
+                        .persistProcessWorkflow(String.valueOf(ServerIdentity.getInstance()
+                            .getServerId()), operationId, processWorkflow);
                 } catch (InvalidParseOperationException e) {
                     // TODO: just log error is the good solution (here, we set to failed and unknown status on wrong
                     // persisted process) ?
                     LOGGER.error("Cannot set UNKNONW status and FAILED execution status on workflow {}, check " +
-                            "processing datas",
+                        "processing datas",
                         operationId, e);
                 }
-                processData.addToWorkflowList(processWorkflow);
             }
+            processData.addToWorkflowList(processWorkflow);
         }
         return PROCESS_MONITORS;
     }
