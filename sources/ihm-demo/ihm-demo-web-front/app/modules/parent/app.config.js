@@ -159,7 +159,7 @@ config(['$locationProvider' ,'$routeProvider',
     }).
     when('/admin/traceabilityOperationSearch', {
       template: '<traceability-operation-search></traceability-operation-search>',
-      title: 'Recherche sur les opérations de sécurisation'
+      title: 'Opérations de sécurisation'
     }).
     when('/admin/traceabilityOperationDetail/:operationId', {
       template: '<traceability-operation-details></traceability-operation-details>',
