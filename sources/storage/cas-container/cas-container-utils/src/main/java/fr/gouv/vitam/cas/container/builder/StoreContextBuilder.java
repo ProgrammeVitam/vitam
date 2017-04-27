@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
+import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
 
 /**
  * Creates {@link ContentAddressableStorage} configured in a configuration file
@@ -70,7 +71,9 @@ public class StoreContextBuilder {
 
         if (StorageProvider.SWIFT.getValue().equalsIgnoreCase(configuration.getProvider())) {
             return new OpenstackSwift(configuration);
-        } else {
+        } else if (StorageProvider.HASHFILESYSTEM.getValue().equalsIgnoreCase(configuration.getProvider())){
+            return new HashFileSystem(configuration);
+        }else{
             // by default file system
             return new FileSystem(configuration);
         }

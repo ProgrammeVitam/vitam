@@ -245,7 +245,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public List<JsonNode> next(String containerName, String cursorId) throws ContentAddressableStorageNotFoundException {
+    public List<JsonNode> next(String containerName, String cursorId)
+        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException {
         String keyMap = getKeyMap(containerName, cursorId);
         if (mapXCusor.containsKey(keyMap)) {
             PageSet<? extends StorageMetadata> pageSet;

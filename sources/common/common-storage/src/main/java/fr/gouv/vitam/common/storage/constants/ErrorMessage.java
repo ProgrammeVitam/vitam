@@ -102,4 +102,9 @@ public enum ErrorMessage {
     public String getMessage() {
         return message;
     }
+    
+    @Override
+    public String toString(){
+        return message;
+    }
 }

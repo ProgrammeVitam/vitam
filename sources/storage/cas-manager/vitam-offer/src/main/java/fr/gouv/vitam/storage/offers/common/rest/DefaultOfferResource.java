@@ -201,7 +201,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                             .entity(responseOK);
                     return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
                 } catch (ContentAddressableStorageNotFoundException exc) {
-                    LOGGER.error(exc);
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
                     status = Status.INTERNAL_SERVER_ERROR;
                     final Response.ResponseBuilder builder = Response.status(status)
                             .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
