@@ -27,7 +27,7 @@
 
 // Define resources in order to call WebApp http endpoints for accession-register
 angular.module('core')
-  .factory('MessagesResource', function($q, $http, IHM_URLS, authVitamService, ihmDemoCLient) {
+  .factory('MessagesResource', function($q, $http, IHM_URLS, authVitamService) {
 
     var MESSAGES_ROOT = '/messages/';
     var MESSAGES_LOGBOOK = 'logbook';
@@ -47,7 +47,7 @@ angular.module('core')
 
       var status = authVitamService.isConnect('userCredentials');
 
-      if(status === 'logged') {
+      if(status === 'logged' && authVitamService.hasPermission('messages:logbook:read')) {
         combinedPromise.push($http.get(IHM_URLS.IHM_BASE_URL + MESSAGES_ROOT + MESSAGES_LOGBOOK));
       }
 

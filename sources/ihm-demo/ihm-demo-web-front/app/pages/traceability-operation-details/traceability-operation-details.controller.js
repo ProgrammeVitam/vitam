@@ -36,7 +36,7 @@ angular.module('traceability.operation.details')
         return (bytes / Math.pow(1024, Math.floor(number))).toFixed(precision) +  ' ' + units[number];
   }})
   .controller('traceabilityOperationDetailsController', function($scope, $routeParams, traceabilityOperationDetailsService,
-    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService) {
+    traceabilityOperationResource, responseValidator, downloadTraceabilityOperationService, authVitamService) {
 
       // Traceability operation to check
       $scope.traceabilityOperationId = $routeParams.operationId;
@@ -106,11 +106,5 @@ angular.module('traceability.operation.details')
       traceabilityOperationDetailsService.getDetails($scope.traceabilityOperationId, successCallback, errorCallback);
 
 
-      $scope.hasPermission = function(permission) {
-        if (localStorage.getItem('user')) {
-            var user = JSON.parse(localStorage.getItem('user'));
-            return user && user.permissions.indexOf(permission) > -1;
-        }
-        return false;
-      }
+      $scope.hasPermission = authVitamService.hasPermission;
   });

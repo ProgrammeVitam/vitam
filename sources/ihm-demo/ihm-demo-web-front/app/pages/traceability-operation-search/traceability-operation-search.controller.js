@@ -38,7 +38,7 @@ angular
   .controller(
     'searchTraceabilityOperationController',
     function($scope, $timeout, $window, lodash, traceabilityOperationSearchService,
-      ihmDemoCLient, downloadTraceabilityOperationService) {
+      ihmDemoCLient, downloadTraceabilityOperationService, authVitamService) {
 
       $scope.logType = '--';
       $scope.ctrl = {
@@ -152,12 +152,6 @@ angular
         $scope.ctrl.getList();
       };
 
-      $scope.ctrl.hasPermission = function(permission) {
-        if (localStorage.getItem('user')) {
-            var user = JSON.parse(localStorage.getItem('user'));
-            return user && user.permissions.indexOf(permission) > -1;
-        }
-        return false;
-      };
+      $scope.ctrl.hasPermission = authVitamService.hasPermission;
 
     }).constant('lodash', window._);
