@@ -504,7 +504,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     public RequestResponse<JsonNode>  listOperationsDetails() throws VitamClientException {
         Response response = null;
         try {
-            performRequest(HttpMethod.GET, "/operations", null, null, null,
+            response = performRequest(HttpMethod.GET, "/operations", null, null, null,
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
