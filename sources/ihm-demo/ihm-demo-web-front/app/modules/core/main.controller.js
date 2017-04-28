@@ -123,7 +123,7 @@ angular.module('core')
         });
 
         $scope.changeContract = function(accessContratId) {
-            authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
+            //authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
         };
 
         $scope.connectUser = function (tenantId) {

@@ -159,9 +159,9 @@ angular.module('core')
       RestangularConfigurer.setFullResponse(true);
       function addMandatoryHeader(element, operation, route, url, headers, params, httpConfig) {
           headers['X-Tenant-Id'] = $cookies.get('tenantId');
-          if ($cookies.get('X-Access-Contrat-Id')) {
-            headers['X-Access-Contrat-Id'] = $cookies.get('X-Access-Contrat-Id')
-          }
+          //if ($cookies.get('X-Access-Contrat-Id')) {
+          //  headers['X-Access-Contrat-Id'] = $cookies.get('X-Access-Contrat-Id')
+          //}
           return {
             element: element,
             headers: headers,
