@@ -259,21 +259,24 @@ angular.module('archive.unit')
               // Archive unit found
               self.archiveFields = transferToIhmResult.transferUnit(data.$results)[0];
               //get archive object groups informations to be displayed in the table
-              ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-                .then(function (response) {
-                  var dataOG = response.data;
-                  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                    dataOG.versions == null || dataOG.versions == undefined){
-                    // ObjectGroups Not Found
+              if (!!self.archiveFields._og) {
+                ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+                  .then(function (response) {
+                    var dataOG = response.data;
+                    if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                      dataOG.versions == null || dataOG.versions == undefined){
+                      // ObjectGroups Not Found
+                      console.log("errorMsg");
+                    } else {
+                      $scope.archiveObjectGroups = dataOG;
+                      $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                      self.displayTechnicalMetadata();
+                    }
+                  },function () {
                     console.log("errorMsg");
-                  } else {
-                    $scope.archiveObjectGroups = dataOG;
-                    $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                    self.displayTechnicalMetadata();
-                  }
-                },function () {
-                  console.log("errorMsg");
-                });
+                  });
+              }
+
               self.archiveArray=[];
               self.displayArchiveDetails();
 
@@ -307,24 +310,24 @@ angular.module('archive.unit')
           // Archive unit found
           var results = transferToIhmResult.transferUnit(data.$results);
           self.archiveFields = results[0];
-
-          //get archive object groups informations to be displayed in the table
-          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-            .then(function (response) {
-              var dataOG = response.data;
-              if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                dataOG.versions == null || dataOG.versions == undefined){
-                // ObjectGroups Not Found
+          if (!!self.archiveFields._og) {
+            //get archive object groups informations to be displayed in the table
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+              .then(function (response) {
+                var dataOG = response.data;
+                if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                  dataOG.versions == null || dataOG.versions == undefined) {
+                  // ObjectGroups Not Found
+                  console.log("errorMsg");
+                } else {
+                  $scope.archiveObjectGroups = dataOG;
+                  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                  self.displayTechnicalMetadata();
+                }
+              }, function () {
                 console.log("errorMsg");
-              } else {
-                $scope.archiveObjectGroups = dataOG;
-                $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                self.displayTechnicalMetadata();
-              }
-            },function () {
-              console.log("errorMsg");
-            });
-
+              });
+          }
           // Get Archive Tree
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
             .then(function (response) {
@@ -553,23 +556,24 @@ angular.module('archive.unit')
             fieldSet.isModificationAllowed = false;
             self.mainFields[fieldSet.fieldName] =  fieldSet;
           }
-          //get archive object groups informations to be displayed in the table
-          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-            .then(function (response) {
-              var dataOG = response.data;
-              if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                dataOG.versions == null || dataOG.versions == undefined){
-                // ObjectGroups Not Found
+          if (!!self.archiveFields._og) {
+            //get archive object groups informations to be displayed in the table
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+              .then(function (response) {
+                var dataOG = response.data;
+                if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                  dataOG.versions == null || dataOG.versions == undefined) {
+                  // ObjectGroups Not Found
+                  console.log("errorMsg");
+                } else {
+                  $scope.archiveObjectGroups = dataOG;
+                  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                  self.displayTechnicalMetadata();
+                }
+              }, function () {
                 console.log("errorMsg");
-              } else {
-                $scope.archiveObjectGroups = dataOG;
-                $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                self.displayTechnicalMetadata();
-              }
-            },function () {
-              console.log("errorMsg");
-            });
-
+              });
+          }
 
           // Get Archive Tree
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)

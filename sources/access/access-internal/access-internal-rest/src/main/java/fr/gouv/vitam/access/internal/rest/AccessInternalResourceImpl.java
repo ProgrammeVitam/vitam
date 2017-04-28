@@ -248,8 +248,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             } else {
                 final SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(query);
-                parser.addCondition(
-                    QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new)));
+                parser.getRequest().addQueries(
+                    QueryHelper.in(SedaConstants.TAG_ORIGINATINGAGENCY, prodServices.stream().toArray(String[]::new))
+                    .setDepthLimit(0));
                 result = accessModule.selectObjectGroupById(parser.getRequest().getFinalSelect(), idObjectGroup);
             }
             
