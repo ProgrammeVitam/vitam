@@ -85,7 +85,7 @@ public class StorageLogbookServiceImpl implements StorageLogbookService {
         return appender.secureWithoutCreatingNewLogByTenant(tenantId);
 
     }
-
+    //FIXME Secure when server restart
     @Override
     public void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException {
 
