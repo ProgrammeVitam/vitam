@@ -123,7 +123,7 @@ angular.module('core')
         });
 
         $scope.changeContract = function(accessContratId) {
-            authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
+            //authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
         };
 
         $scope.connectUser = function (tenantId) {
@@ -155,7 +155,6 @@ angular.module('core')
                             if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
                                 $scope.contracts = repsonse.data['$results'];
                                 $scope.accessContratId = $scope.contracts[0].Name;
-                                authVitamService.createCookie("X-Access-Contrat-Id", $scope.accessContratId);
                             }
                         }, function (error) {
                             console.log('Error while get tenant. Set default list : ', error);
