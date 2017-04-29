@@ -78,7 +78,7 @@ public class VitamFieldsHelper {
     }
 
     /**
-     * @return #nbunits
+     * @return #nbobjects
      */
     public static final String nbobjects() {
         return NBOBJECTS.exactToken();

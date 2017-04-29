@@ -1,9 +1,13 @@
+DSL Vitam
+#########
+
 Le DSL (Domain Specific Language) Vitam est composé de deux parties :
 
 - Request: Contient la structure du Body contenant la requête au format Json. Le DSL permet d'exprimer un grand nombre de possibilités de requêtes. Dans le cadre des *Units* et *Objects*, cette requête peut être arborescente et multiples.
 - Response: Contient la structure du Body contenant le résultat au format Json. Il contient différentes informations utiles ou demandées.
 
-# Request
+Request
+=======
 
 Une requête est composée de plusieurs parties, et en particulier le Body qui contient un Json exprimant la requête.
 
@@ -16,7 +20,8 @@ Elle peut être complétée par quelques valeurs dans le *Header* :
 - **X-Cursor: true** et **X-Cursor-Id** (**UNSUPPORTED**) : pour la gestion d'une requête en mode "curseur"
 - **X-Http-Method-Override** : pour permettre aux clients HTTP ne supportant pas tous les modes de la RFC 7231 (GET/PUT/DELETE avec Body)
 
-## BuilderRequest
+BuilderRequest
+--------------
 
 Il existe des Helpers en Java pour construire les requêtes au bon format (hors headers) dans le package **common-database-public.**
 - **Request**
@@ -26,7 +31,8 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
   - fr.gouv.vitam.common.database.builder.query avec BooleanQuery, CompareQuery, ... et surtout le **QueryHelper** et le **VitamFieldsHelper** pour les champs protégés (commençant par un '#')
   - dans le cas de update fr.gouv.vitam.common.database.builder.action avec AddAction, IncAction, ... et surtout le **UpdateActionHelper***
 
-## Collections Units et Objects uniquement
+Collections Units et Objects uniquement
+---------------------------------------
 
 - **$roots**:
   - Il s'agit des racines (Units) à partir desquelles la requête est exprimée (toutes les recherches sur les Units et Objects sont en mode arborescente). Il correspond d'une certaine façon à "*FROM x*" dans le langage SQL étendu au cas des arborescences.
@@ -45,7 +51,7 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
         - par défaut, $depth vaut 1 (enfants immédiats dans le $roots courant)
     - Le principe est résumé dans le graphe d'états suivant :
 
-        ![alt text](multi-query-schema.png "Graphe d'états dans le cas Multi-queries")
+.. image:: images/multi-query-schema.png
 
 - **$filter**:
   - Il permet de spécifier des filtres additionnels :
@@ -74,7 +80,8 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
 - **facetQuery** (**UNSUPPORTED**): uniquement pour *GET* et optionnel
   - Permet de définir des sous-requêtes (sous la forme d'agrégats) correspondant généralement à des facettes dans l'application Front-Office
 
-## Autres collections
+Autres collections
+------------------
 
 - **$query**:
   - Il s'agit d'une **Query** unique.
@@ -105,7 +112,8 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
 - **facetQuery** (**UNSUPPORTED**): uniquement pour *GET* et optionnel
   - Permet de définir des sous-requêtes (sous la forme d'agrégats) correspondant généralement à des facettes dans l'application Front-Office
 
-## Query
+Query
+-----
 
 Les commandes de la Query peuvent être :
 
@@ -135,7 +143,9 @@ Chaque Query dispose éventuellement d'arguments additionnels pour gérer l'arbo
 | Collection |	$source |	units / objects |	Permet dans une succession de Query de changer de collection. Attention, la dernière Query doit respecter la collection associée à la requête |
 
 
-## Actions
+Actions
+-------
+
 Dans la commande PUT (Update) :
 
 | Opérateur |	Arguments |	Commentaire |
@@ -149,7 +159,8 @@ Dans la commande PUT (Update) :
 | $add | nom de champ,  liste de valeurs | ajoute les éléments de la liste du champ (qui est un "set" avec unicité des valeurs) |
 | $pop | nom de champ,  -1 ou 1 | retire le premier (-1) ou le dernier (1) de la liste du champ |
 
-## FacetQuery **UNSUPPORTED**
+FacetQuery **UNSUPPORTED**
+--------------------------
 
 Lors d'une commande GET (Select), les possibilités envisagées sont :
 
@@ -165,9 +176,12 @@ Lors d'une commande GET (Select), les possibilités envisagées sont :
 | $significant_terms | nom de champ principal, nom de champ secondaire | indique la répartition selon des valeurs textuelles du champ principal et affiche pour chaque les termes significatifs pour le second champ |
 
 
-## Exemples
+Exemples
+--------
 
-### GET
+GET
+***
+
   - La query sélectionne les Units qui vont être retournées.
   - Le contenu est :
     - Pour **Units/Objects** :
@@ -194,7 +208,9 @@ Lors d'une commande GET (Select), les possibilités envisagées sont :
   }
 ```
 
-### POST
+POST
+****
+
   - La query sélectionne le ou les Units parents de celle qui va être créée.
   - Le contenu est :
     - Pour **Units/Objects** :
@@ -219,7 +235,9 @@ Lors d'une commande GET (Select), les possibilités envisagées sont :
   }
 ```
 
-### PUT
+PUT
+***
+
   - La query sélectionne les Units sur lesquelles l'update va être réalisé.
   - Le contenu est :
     - Pour **Units/Objects** :
@@ -243,7 +261,8 @@ Lors d'une commande GET (Select), les possibilités envisagées sont :
   }
 ```
 
-# Response
+Response
+========
 
 Une réponse est composée de plusieurs parties :
 
@@ -294,9 +313,11 @@ La réponse dispose également de champs dans le *Header* :
 - **X-Callback** (**UNSUPPORTED**): pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
 - (**UNSUPPORTED**) Si **X-Cursor: true** a été spécifié et si la réponse nécessite l'usage d'un curseur (nombre de réponses > *$per_page*), le SAE retourne **X-Cursor-Id** et **X-Cursor-Timeout** (date de fin de validité du curseur) : pour la gestion d'une requête en mode "curseur" par le client
 
-## Exemples
+Exemples
+--------
 
-### Réponse pour Units
+Réponse pour Units
+******************
 
 ```json
   {
@@ -342,7 +363,8 @@ La réponse dispose également de champs dans le *Header* :
   }
 ```
 
-### Réponse pour Objects
+Réponse pour Objects
+********************
 
 ```json
   {
@@ -382,7 +404,8 @@ La réponse dispose également de champs dans le *Header* :
   }
 ```
 
-## Réponse en cas d'erreurs
+Réponse en cas d'erreurs
+------------------------
 
 En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
 
@@ -395,7 +418,8 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
 - **errors** : le cas échéant des sous-erreurs associées avec le même format
 
 
-### Exemple de retour en erreur
+Exemple de retour en erreur
+***************************
 
 ```json
   {
@@ -422,7 +446,8 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
   }
 ```
 
-## Cas particulier : HEAD pour test d'existence et validation (**UNSUPPORTED**)
+Cas particulier : HEAD pour test d'existence et validation (**UNSUPPORTED**)
+----------------------------------------------------------------------------
 
 La commande *HEAD* permet de savoir pour un item donné s'il existe (retour **204**) ou pas (retour **404**).
 
