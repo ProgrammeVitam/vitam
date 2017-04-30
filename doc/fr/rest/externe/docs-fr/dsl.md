@@ -45,7 +45,7 @@ Il existe des Helpers en Java pour construire les requêtes au bon format (hors 
         - par défaut, $depth vaut 1 (enfants immédiats dans le $roots courant)
     - Le principe est résumé dans le graphe d'états suivant :
 
-        ![alt text](multi-query-schema.png "Graphe d'états dans le cas Multi-queries")
+![Graphe d'états dans le cas Multi-queries](./multi-query-schema.png)
 
 - **$filter**:
   - Il permet de spécifier des filtres additionnels :
