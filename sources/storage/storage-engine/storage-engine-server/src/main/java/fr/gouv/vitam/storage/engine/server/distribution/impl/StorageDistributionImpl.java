@@ -136,7 +136,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     /**
      * Used to wait for all task submission (executorService)
      */
-    private static final long threadSleep = 10;
+    private static final long THREAD_SLEEP = 1;
     private final String urlWorkspace;
     private final Integer millisecondsPerKB;
     // TODO P2 see API
@@ -217,7 +217,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             datas.populateFromOfferReferences(offerReferences);
 
             StorageLogbookParameters parameters =
-                tryAndRetry(objectId, createObjectDescription, category, requester, tenantId,
+                oldTryAndRetry(objectId, createObjectDescription, category, requester, tenantId,
                     datas, 1, null);
 
             try {
@@ -273,7 +273,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         // wait all tasks submission
         try {
-            Thread.sleep(threadSleep);
+            Thread.sleep(THREAD_SLEEP);
         } catch (InterruptedException exc) {
             LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
             for (String offerId : futureMap.keySet()) {
@@ -370,6 +370,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
             int rank = 0;
             String offerId2 = null;
+            long finalTimeout = getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY)));
             try {
                 for (final String offerId : datas.getKoList()) {
                     offerId2 = offerId;
@@ -395,7 +396,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             // wait all tasks submission
             try {
-                Thread.sleep(threadSleep);
+                Thread.sleep(THREAD_SLEEP);
             } catch (InterruptedException exc) {
                 LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
                 for (String offerId : futureMap.keySet()) {
@@ -420,8 +421,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 String offerId = entry.getKey();
                 try {
                     ThreadResponseData threadResponseData = future
-                        .get(getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))),
-                            TimeUnit.MILLISECONDS);
+                        .get(finalTimeout, TimeUnit.MILLISECONDS);
                     if (threadResponseData == null) {
                         LOGGER.error("Error on offer ID " + offerId);
                         parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
@@ -433,21 +433,29 @@ public class StorageDistributionImpl implements StorageDistribution {
                             threadResponseData.getStatus());
                     datas.koListToOkList(offerId);
                 } catch (TimeoutException e) {
-                    LOGGER.info("Timeout on offer ID {} TimeOut: {}", offerId,
-                        getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY))), e);
+                    LOGGER.info("Timeout on offer ID {} TimeOut: {}", offerId, finalTimeout, e);
                     future.cancel(true);
                     // TODO: manage thread to take into account this interruption
                     LOGGER.error("Interrupted after timeout on offer ID " + offerId);
                     parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
-                        Status.INTERNAL_SERVER_ERROR);
+                        null);
                 } catch (InterruptedException e) {
                     LOGGER.error("Interrupted on offer ID " + offerId, e);
                     parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
-                        Status.INTERNAL_SERVER_ERROR);
+                        null);
                 } catch (ExecutionException e) {
                     LOGGER.error("Error on offer ID " + offerId, e);
-                    parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
-                        Status.INTERNAL_SERVER_ERROR);
+                    Status status = Status.INTERNAL_SERVER_ERROR;
+                    if (e.getCause() instanceof StorageAlreadyExistsException) {
+                        status = Status.CONFLICT;
+                        datas.changeStatus(offerId, status);
+                    }
+                    parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, status);
+                    if (e.getCause() instanceof StorageDriverException ||
+                        e.getCause() instanceof StorageDriverPreconditionFailedException) {
+                        LOGGER.error("Error encountered is " + e.getCause().getClass() + ", no need to retry");
+                        attempt = NB_RETRY;
+                    }
                     // TODO: review this exception to manage errors correctly
                     // Take into account Exception class
                     // For example, for particular exception do not retry (because
@@ -457,14 +465,14 @@ public class StorageDistributionImpl implements StorageDistribution {
                     future.cancel(true);
                     LOGGER.error("Wrong number on wait on offer ID " + offerId, e);
                     parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
-                        Status.INTERNAL_SERVER_ERROR);
+                        null);
                 }
             }
         }
         // ACK to prevent retry
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
             attempt++;
-            tryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
+            oldTryAndRetry(objectId, createObjectDescription, category, requester, tenantId, datas, attempt, parameters);
         }
 
         // TODO : error management (US #2009)
@@ -902,7 +910,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         // wait all tasks submission
         try {
-            Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
+            Thread.sleep(THREAD_SLEEP, TimeUnit.MILLISECONDS.ordinal());
         } catch (InterruptedException exc) {
             LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
             throw new StorageTechnicalException("Object potentially not deleted: " + objectId, exc);
@@ -957,7 +965,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         // wait all tasks submission
         try {
-            Thread.sleep(threadSleep, TimeUnit.MILLISECONDS.ordinal());
+            Thread.sleep(THREAD_SLEEP, TimeUnit.MILLISECONDS.ordinal());
         } catch (InterruptedException exc) {
             LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
             throw new StorageTechnicalException("Object potentially not deleted: " + objectId, exc);
