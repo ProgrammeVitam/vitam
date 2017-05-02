@@ -31,7 +31,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
@@ -47,9 +46,12 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.httpclient.HeaderElement;
 import org.apache.http.Header;
+import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
@@ -65,6 +67,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.ConnectionConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.apache.http.conn.routing.HttpRoute;
@@ -72,10 +75,10 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.BufferedHttpEntity;
 import org.apache.http.entity.ContentLengthStrategy;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCookieStore;
@@ -87,6 +90,9 @@ import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.io.ChunkedOutputStream;
 import org.apache.http.io.SessionOutputBuffer;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.TextUtils;
 import org.apache.http.util.VersionInfo;
 import org.glassfish.jersey.client.ClientProperties;
@@ -100,6 +106,9 @@ import org.glassfish.jersey.message.internal.HeaderUtils;
 import org.glassfish.jersey.message.internal.OutboundMessageContext;
 import org.glassfish.jersey.message.internal.ReaderWriter;
 import org.glassfish.jersey.message.internal.Statuses;
+
+import fr.gouv.vitam.common.VitamConfiguration;
+import jersey.repackaged.com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * A {@link Connector} that utilizes the Apache HTTP Client to send and receive HTTP request and responses.
@@ -156,17 +165,37 @@ import org.glassfish.jersey.message.internal.Statuses;
  * @author Arul Dhesiaseelan (aruld at acm.org)
  * @see ApacheClientProperties#CONNECTION_MANAGER
  */
-@SuppressWarnings("deprecation")
 class ApacheConnector implements Connector {
 
     private static final Logger LOGGER = Logger.getLogger(ApacheConnector.class.getName());
 
     private static final VersionInfo VI;
     private static final String RELEASE;
-
+    private static final ConnectionKeepAliveStrategy MY_KEEP_ALIVE_STRATEGY;
     static {
         VI = VersionInfo.loadVersionInfo("org.apache.http.client", HttpClientBuilder.class.getClassLoader());
         RELEASE = VI != null ? VI.getRelease() : VersionInfo.UNAVAILABLE;
+        MY_KEEP_ALIVE_STRATEGY = new ConnectionKeepAliveStrategy() {
+
+            @Override
+            public long getKeepAliveDuration(HttpResponse response, HttpContext context) {
+                // Honor 'keep-alive' header
+                HeaderIterator iterator = response.headerIterator(HTTP.CONN_KEEP_ALIVE);
+                while (iterator.hasNext()) {
+                    HeaderElement he = (HeaderElement) iterator.next();
+                    String param = he.getName();
+                    String value = he.getValue();
+                    if (value != null && param.equalsIgnoreCase("timeout")) {
+                        try {
+                            return Long.parseLong(value) * 1000;
+                        } catch(NumberFormatException ignore) {
+                        }
+                    }
+                }
+                // otherwise keep alive for 30 seconds
+                return VitamConfiguration.getDelayValidationAfterInactivity();
+            }
+        };
     }
 
     private final CloseableHttpClient client;
@@ -279,6 +308,8 @@ class ApacheConnector implements Connector {
         } else {
             cookieStore = null;
         }
+        clientBuilder.setConnectionReuseStrategy(new DefaultConnectionReuseStrategy());
+        clientBuilder.setKeepAliveStrategy(MY_KEEP_ALIVE_STRATEGY);
         clientBuilder.setDefaultRequestConfig(requestConfig);
         this.client = clientBuilder.build();
     }
@@ -466,16 +497,16 @@ class ApacheConnector implements Connector {
 
     @Override
     public Future<?> apply(final ClientRequest request, final AsyncConnectorCallback callback) {
-        try {
-            final ClientResponse response = apply(request);
-            callback.response(response);
-            return CompletableFuture.completedFuture(response);
-        } catch (final Exception | Error t) {// NOSONAR
-            callback.failure(t);
-            final CompletableFuture<Object> future = new CompletableFuture<>();
-            future.completeExceptionally(t);
-            return future;
-        }
+        return MoreExecutors.newDirectExecutorService().submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    callback.response(apply(request));
+                } catch (final Throwable t) {
+                    callback.failure(t);
+                }
+            }
+        });
     }
 
     @Override
@@ -596,6 +627,11 @@ class ApacheConnector implements Connector {
 
         HttpClientResponseInputStream(final InputStream inputStream) throws IOException {
             super(inputStream);
+        }
+
+        @Override
+        public void close() throws IOException {
+            super.close();
         }
     }
 

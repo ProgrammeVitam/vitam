@@ -40,6 +40,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.FileUtil;
@@ -430,8 +431,10 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
     @Override
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
         try {
-            return client.getListUriDigitalObjectFromFolder(containerName, folderName);
-        } catch (ContentAddressableStorageServerException e) {
+            return JsonHandler
+                .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(containerName, folderName)
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+        } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         }

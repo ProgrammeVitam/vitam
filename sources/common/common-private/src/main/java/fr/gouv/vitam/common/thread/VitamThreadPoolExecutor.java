@@ -86,6 +86,8 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
 
     /**
      * Create a Cached Thread Pool
+     * 
+     * @param minimumAvailableThreads minimum Available Threads kept in the pool 
      */
     @Inject
     @Named("threadpool")

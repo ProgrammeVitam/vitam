@@ -33,6 +33,11 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,31 +66,33 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
+    private static final String FAKE_EXECUTION_STATUS = "Fake";
     final int TENANT_ID = 0;
     public static final String ID = "identifier1";
     protected StatusCode globalStatus;
 
     @Override
-    public Response upload(InputStream stream, Integer tenantId, String contextId, String action)
+    public RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }
         StreamUtils.closeSilently(stream);
 
-        return Response.status(Status.ACCEPTED)
-            .header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .build();
+        RequestResponseOK r = new RequestResponseOK<JsonNode>();
+        r.setHttpCode(Status.ACCEPTED.getStatusCode());
+        r.addHeader(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+
+        return r;
     }
 
     @Override
-    public Response uploadAndWaitAtr(InputStream stream, Integer tenantId, String contextId, String action)
+    public RequestResponse<JsonNode> uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new IngestExternalException("Ingest External Mock Internal Server Error", e);
         }
         return upload(stream, tenantId, contextId, action);
     }
@@ -109,8 +116,14 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         return ClientMockResultHelper.getObjectStream();
     }
 
-    @Override public Response getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException {
-        return Response.status(Status.OK).build();
+    @Override
+    public RequestResponse<JsonNode> getOperationStatus(String id, Integer tenantId) throws VitamClientException, InternalServerException, BadRequestException {
+
+        final RequestResponseOK r = new RequestResponseOK<JsonNode>();
+        r.setHttpCode(Status.ACCEPTED.getStatusCode());
+        r.addHeader(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+
+        return r;
     }
 
     @Override
@@ -134,10 +147,11 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public Response cancelOperationProcessExecution(String id)
+    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException, VitamClientException {
         // return new ItemStatus(ID);
-        return Response.status(Status.OK).build();
+
+        return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
@@ -147,14 +161,13 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, VitamClientException {
-        return Response.status(Status.OK).build();
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, FAKE_EXECUTION_STATUS);
     }
 
     @Override
-    public Response initWorkFlow(String contextId) throws VitamException {
-        return Response.status(Status.OK).build();
+    public void initWorkFlow(String contextId) throws VitamException {
     }
 
     @Override
@@ -164,14 +177,13 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     }
 
     @Override
-    public Response initVitamProcess(String contextId, String container, String workflow)
+    public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, VitamClientException, BadRequestException {
-        return Response.status(Status.OK).build();
     }
 
     @Override
-    public Response listOperationsDetails() throws VitamClientException {
-        return Response.status(Status.OK).build();
+    public RequestResponse<JsonNode> listOperationsDetails() throws VitamClientException {
+        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
     }
 
 

@@ -144,9 +144,6 @@ vitam_conf_permission: 0640
 consul_component: consul
 consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
 
-soapui_component: soapui
-soapui_folder_app: "{{vitam_folder_root}}/app/{{soapui_component}}"
-
 mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
 mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
 

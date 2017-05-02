@@ -3,34 +3,26 @@
  *
  * contact.vitam@culture.gouv.fr
  * 
- * This software is a computer program whose purpose is to implement a digital 
- * archiving back-office system managing high volumetry securely and efficiently.
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and
- * abiding by the rules of distribution of free software.  You can  use,
- * modify and/ or redistribute the software under the terms of the CeCILL 2.1
- * license as circulated by CEA, CNRS and INRIA at the following URL
- * "http://www.cecill.info".
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
  *
- * As a counterpart to the access to the source code and  rights to copy,
- * modify and redistribute granted by the license, users are provided only
- * with a limited warranty  and the software's author,  the holder of the
- * economic rights,  and the successive licensors  have only  limited
- * liability.
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
  *
- * In this respect, the user's attention is drawn to the risks associated
- * with loading,  using,  modifying and/or developing or reproducing the
- * software by the user in light of its specific status of free software,
- * that may mean  that it is complicated to manipulate,  and  that  also
- * therefore means  that it is reserved for developers  and  experienced
- * professionals having in-depth computer knowledge. Users are therefore
- * encouraged to load and test the software's suitability as regards their
- * requirements in conditions enabling the security of their systems and/or
- * data to be ensured and,  more generally, to use and operate it in the
- * same conditions as regards security.
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had
- * knowledge of the CeCILL 2.1 license and that you accept its terms.
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
  */
 package fr.gouv.vitam.common.database.server;
 
@@ -61,6 +53,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -87,6 +80,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.SelectToMongoDb;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
@@ -110,6 +104,7 @@ public class DbRequestSingle {
 
     /**
      * Constructor with VitamCollection
+     * 
      * @param collection
      */
     public DbRequestSingle(VitamCollection collection) {
@@ -117,14 +112,15 @@ public class DbRequestSingle {
     }
 
     /**
-     * execute all request 
+     * execute all request
      * 
      * @param request
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
      */
-    public DbRequestResult execute(RequestSingle request) throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+    public DbRequestResult execute(RequestSingle request)
+        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
         if (request instanceof Insert) {
             ArrayNode data = ((Insert) request).getData();
             return insertDocuments(data);
@@ -146,13 +142,15 @@ public class DbRequestSingle {
      * @throws DatabaseException
      */
     @SuppressWarnings("unchecked")
-    private DbRequestResult insertDocuments(ArrayNode arrayNode) throws InvalidParseOperationException, DatabaseException {
+    private DbRequestResult insertDocuments(ArrayNode arrayNode)
+        throws InvalidParseOperationException, DatabaseException {
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<VitamDocument<?>>();
         for (final JsonNode objNode : arrayNode) {
             VitamDocument<?> obj = (VitamDocument<?>) JsonHandler.getFromJsonNode(objNode, vitamCollection.getClasz());
             vitamDocumentList.add(obj);
         }
-        MongoCollection<VitamDocument<?>> collection = (MongoCollection<VitamDocument<?>>) vitamCollection.getCollection();
+        MongoCollection<VitamDocument<?>> collection =
+            (MongoCollection<VitamDocument<?>>) vitamCollection.getCollection();
         collection.insertMany(vitamDocumentList);
         insertToElasticsearch(vitamDocumentList);
         return new DbRequestResult().setCount(vitamDocumentList.size());
@@ -161,7 +159,7 @@ public class DbRequestSingle {
     /**
      * @param vitamDocumentList
      * @param vitamDocumentList
-     * @throws DatabaseException 
+     * @throws DatabaseException
      * @throws DatabaseException if error occurs
      */
     private void insertToElasticsearch(List<VitamDocument<?>> vitamDocumentList) throws DatabaseException {
@@ -199,10 +197,11 @@ public class DbRequestSingle {
 
         // either use client#prepare, or use Requests# to directly build index/delete requests
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefresh(true).add(client.prepareIndex(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(),
-                val.getKey()).setSource(val.getValue()));
+            bulkRequest.setRefresh(true)
+                .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(),
+                    val.getKey()).setSource(val.getValue()));
         }
-        return bulkRequest.execute().actionGet(); 
+        return bulkRequest.execute().actionGet();
     }
 
     private DbRequestResult findDocuments(JsonNode select) throws DatabaseException {
@@ -229,21 +228,24 @@ public class DbRequestSingle {
     /**
      * @param parser
      * @return
-     * @throws InvalidParseOperationException 
-     * @throws DatabaseException 
-     * @throws InvalidCreateOperationException 
-     * @throws DatabaseException 
+     * @throws InvalidParseOperationException
+     * @throws DatabaseException
+     * @throws InvalidCreateOperationException
+     * @throws DatabaseException
      */
-    private MongoCursor<VitamDocument<?>> findDocumentsElasticsearch(SelectParserSingle parser) throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException {
+    private MongoCursor<VitamDocument<?>> findDocumentsElasticsearch(SelectParserSingle parser)
+        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException {
         final SelectToMongodb requestToMongodb = new SelectToMongodb(parser);
         QueryBuilder query = QueryToElasticsearch.getCommand(requestToMongodb.getNthQuery(0));
-        SearchResponse elasticSearchResponse = search(query, null);
+        List<SortBuilder> sorts = QueryToElasticsearch.getSorts(requestToMongodb.getFinalOrderBy());
+        SearchResponse elasticSearchResponse =
+            search(query, null, sorts, requestToMongodb.getFinalOffset(), requestToMongodb.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {
-            return null;
+            return new EmptyMongoCursor<VitamDocument<?>>();
         }
         final SearchHits hits = elasticSearchResponse.getHits();
         if (hits.getTotalHits() == 0) {
-            return null;
+            return new EmptyMongoCursor<VitamDocument<?>>();
         }
         PathQuery newQuery = null;
         final Iterator<SearchHit> iterator = hits.iterator();
@@ -255,11 +257,9 @@ public class DbRequestSingle {
                 newQuery.add(hit.getId());
             }
         }
-        Select newSelectRequest = new Select();
-        newSelectRequest.setQuery(newQuery);
-        final SelectParserSingle newParser = new SelectParserSingle(new VarNameAdapter());
-        newParser.parse(newSelectRequest.getFinalSelect());
-        return selectMongoDbExecute(newParser);
+        
+        parser.getRequest().setQuery(newQuery);
+        return selectMongoDbExecute(parser);
     }
 
     /**
@@ -271,9 +271,9 @@ public class DbRequestSingle {
     private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser)
         throws InvalidParseOperationException {
         final SelectToMongoDb selectToMongoDb = new SelectToMongoDb(parser);
-        int tenantId = ParameterHelper.getTenantParameter();        
+        int tenantId = ParameterHelper.getTenantParameter();
         Bson initialCondition = QueryToMongodb.getCommand(selectToMongoDb.getSelect().getQuery());
-        Bson condition = initialCondition;        
+        Bson condition = initialCondition;
         if (vitamCollection.isMultiTenant()) {
             condition = and(initialCondition, eq(VitamDocument.TENANT_ID, tenantId));
         }
@@ -281,7 +281,8 @@ public class DbRequestSingle {
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
         final int offset = selectToMongoDb.getFinalOffset();
         final int limit = selectToMongoDb.getFinalLimit();
-        FindIterable<VitamDocument<?>> find = (FindIterable<VitamDocument<?>>) vitamCollection.getCollection().find(condition).skip(offset);
+        FindIterable<VitamDocument<?>> find =
+            (FindIterable<VitamDocument<?>>) vitamCollection.getCollection().find(condition).skip(offset);
         if (projection != null) {
             find = find.projection(projection);
         }
@@ -291,7 +292,6 @@ public class DbRequestSingle {
         if (limit > 0) {
             find = find.limit(limit);
         }
-        VitamDocument<?> document = find.first();
         return find.iterator();
     }
 
@@ -300,22 +300,31 @@ public class DbRequestSingle {
      *
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      *        values" : [list of id] } }"
-     * @param filter
+     * @param filter the filter
+     * @param sorts the list of sort
+     * @param offset the offset
+     * @param limit the limit
      * @return a structure as ResultInterface
      * @throws DatabaseException
      */
     private final SearchResponse search(final QueryBuilder query,
-        final QueryBuilder filter) throws DatabaseException {
+        final QueryBuilder filter, List<SortBuilder> sorts, final int offset, final int limit)
+        throws DatabaseException {
         final SearchRequestBuilder request =
             vitamCollection.getEsClient().getClient()
-            .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
-            .setTypes(vitamCollection.getTypeunique()).setExplain(false).setSize(GlobalDatas.LIMIT_LOAD);
+                .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
+                .setTypes(vitamCollection.getTypeunique()).setExplain(false).setFrom(offset)
+                .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);
+        if (sorts != null) {
+            sorts.stream().forEach(sort -> request.addSort(sort));
+        }
         if (filter != null) {
             request.setQuery(query).setPostFilter(filter);
         } else {
             request.setQuery(query);
         }
         try {
+            
             return request.get();
         } catch (final Exception e) {
             LOGGER.debug(e.getMessage(), e);
@@ -343,7 +352,8 @@ public class DbRequestSingle {
         }
     }
 
-    private DbRequestResult updateDocuments(JsonNode request) throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+    private DbRequestResult updateDocuments(JsonNode request)
+        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
         final UpdateParserSingle parser = new UpdateParserSingle(new VarNameAdapter());
         parser.parse(request);
         final UpdateToMongodb requestToMongodb = new UpdateToMongodb(parser);
@@ -367,15 +377,16 @@ public class DbRequestSingle {
         for (VitamDocument<?> document : listDocuments) {
             final String documentId = document.getId();
             final String documentBeforeUpdate = JsonHandler.prettyPrint(document);
-            Bson condition = eq(VitamDocument.ID, documentId);        
+            Bson condition = eq(VitamDocument.ID, documentId);
             UpdateResult updateResult = updateMongoDb(condition, requestToMongodb.getFinalUpdateActions(), false);
             if (updateResult.getModifiedCount() < 1) {
-                throw new DatabaseException("Can not modified Document");  
+                throw new DatabaseException("Can not modify Document");
             }
-            VitamDocument<?> updatedDocument = (VitamDocument<?>) vitamCollection.getCollection().find(condition, vitamCollection.getClasz()).first();
+            VitamDocument<?> updatedDocument =
+                (VitamDocument<?>) vitamCollection.getCollection().find(condition, vitamCollection.getClasz()).first();
             listUpdatedDocuments.add(updatedDocument);
             final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
-            diffs.put(documentId, 
+            diffs.put(documentId,
                 getConcernedDiffLines(getUnifiedDiff(documentBeforeUpdate, documentAfterUpdate)));
         }
         insertToElasticsearch(listUpdatedDocuments);
@@ -384,7 +395,8 @@ public class DbRequestSingle {
             .setDiffs(diffs);
     }
 
-    private DbRequestResult deleteDocuments(JsonNode request) throws DatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
+    private DbRequestResult deleteDocuments(JsonNode request)
+        throws DatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
         MongoCursor<VitamDocument<?>> searchResult = search(request);
         if (searchResult == null || !searchResult.hasNext()) {
             throw new DatabaseException("Document not found");
@@ -433,14 +445,15 @@ public class DbRequestSingle {
      * Delete one index
      *
      * @param id
-     * @throws DatabaseException 
+     * @throws DatabaseException
      */
     private final void deleteEntry(String id) throws DatabaseException {
         final Client client = vitamCollection.getEsClient().getClient();
         final DeleteResponse response;
         try {
             if (client.admin().indices().prepareExists(vitamCollection.getName().toLowerCase()).get().isExists()) {
-                final DeleteRequestBuilder builder = client.prepareDelete(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(), id);
+                final DeleteRequestBuilder builder =
+                    client.prepareDelete(vitamCollection.getName().toLowerCase(), vitamCollection.getTypeunique(), id);
                 response = builder.setRefresh(true).get();
                 if (!response.isFound()) {
                     throw new DatabaseException("Item not found when trying to delete");

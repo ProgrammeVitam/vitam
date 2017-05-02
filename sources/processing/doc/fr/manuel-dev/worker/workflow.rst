@@ -200,6 +200,12 @@ Un Workflow est défini en JSON avec la structure suivante :
            "element": "Units"
          },
          "actions": [
+            {
+               "action": {
+                  "actionKey": "CHECK_UNIT_SCHEMA",
+                  "behavior": "BLOCKING"
+               }
+            },
            {
              "action": {
                "actionKey": "UNITS_RULES_COMPUTE",
@@ -387,7 +393,12 @@ Un Workflow est défini en JSON avec la structure suivante :
     - Contrôle du format des objets binaires
     - Consolidation de l'information du format dans l'object groupe correspondant si nécessaire
 
-- **Step 3** - STP_STORAGE_AVAILABILITY_CHECK : Check Storage Availability / distribution REF GUID/SIP/manifest.xml
+- **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Check des archive unit et de leurs règles associées
+
+  - CHECK_UNIT_SCHEMA : Contrôles intelligents du Json représentant l'Archive Unit par rapport à un schéma Json
+  - UNITS_RULES_COMPUTE : Calcul des règles de gestion 
+
+- **Step 4** - STP_STORAGE_AVAILABILITY_CHECK : Check Storage Availability / distribution REF GUID/SIP/manifest.xml
 
   - STORAGE_AVAILABILITY_CHECK : Contrôle de la taille totale à stocker par rapport à la capacité des offres de stockage pour une stratégie et un tenant donnés
 
@@ -397,17 +408,17 @@ Un Workflow est défini en JSON avec la structure suivante :
 
   - OG_METADATA_INDEXATION : Enregistrement en base des ObjectGroup
 
-- **Step 4** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
+- **Step 6** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
 
   - UNIT_METADATA_INDEXATION :
     - Transformation Json Unit et intégration GUID Unit + GUID GO
     - Enregistrement en base Units
 
-- **Step 5** - STP_ACCESSION_REGISTRATION : Alimentation du registre de fond
+- **Step 7** - STP_ACCESSION_REGISTRATION : Alimentation du registre de fond
 
   - ACCESSION_REGISTRATION :  enregistrement des archives prises en charge dans le Registre des Fonds
 
-- **Step 6 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
+- **Step 8 et finale** - STP_INGEST_FINALISATION : Notification de la fin de l’opération d’entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
   - ATR_NOTIFICATION :
     - génération de l'ArchiveTransferReply xml (OK ou KO)

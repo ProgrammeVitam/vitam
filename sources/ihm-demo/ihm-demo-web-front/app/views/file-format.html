@@ -4,36 +4,37 @@
     <li><a href="#!/admin/formats">Référentiel des formats</a></li>
   </ol>
 
-  <div class="panel panel-default boxSearchWrapper col-md-12">
-    	<a class="panel-header" data-toggle="collapse">
+  <div class="boxSearchWrapper panel panel-default col-md-12">
+    	<a class="panel-header" data-target="#boxSearch" data-toggle="collapse">
       		<h2>Référentiel des formats</h2>
     	</a>
-
-    	<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="getFileFormats()">
-        <div class="row">
-          <div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
-            <label for="entryName">Nom de format</label>
-              <input ng-model="search.form.FormatName" id="entryName" name="entryName" type="text" class="form-control"  ng-change="onInputChange()"/>
-          </div>
-
-          <div class="boxSimpleSearchInput form-group col-md-12 m-b-50 " style="width: 20%; margin-left: 0px">
-            <label for="entrypuid">PUID</label>
-              <input ng-model="search.form.PUID" id="entrypuid" name="entrypuid" type="text" class="form-control"  ng-change="onInputChange()"/>
-          </div>
-        </div>
-          <div>
-            <div class="col-md-2"><!-- Blank zone --></div>
-            <div class="col-md-3">
-              <button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
-            </div>
-            <div class="col-md-4">
-              <button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
-            </div>
-          </div>
-        <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
+		<div id="boxSearch" class="panel-body panel-collapse collapse in">
+	    	<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in"  ng-submit="getFileFormats()">
+	        <div class="row">
+	          <div class="boxSimpleSearchInput form-group col-md-12 m-b-50" style="width: 40%; margin-left: 0px">
+	            <label for="entryName">Nom de format</label>
+	              <input ng-model="search.form.FormatName" id="entryName" name="entryName" type="text" class="form-control"  ng-change="onInputChange()"/>
+	          </div>
+	
+	          <div class="boxSimpleSearchInput form-group col-md-12 m-b-50 " style="width: 20%; margin-left: 0px">
+	            <label for="entrypuid">PUID</label>
+	              <input ng-model="search.form.PUID" id="entrypuid" name="entrypuid" type="text" class="form-control"  ng-change="onInputChange()"/>
+	          </div>
+	        </div>
+	          <div>
+	            <div class="col-md-2"><!-- Blank zone --></div>
+	            <div class="col-md-3">
+	              <button class="btn btn-default" type="reset" ng-click="reinitForm()"><i class="material-icons pull-left">clear</i><span>Effacer</span></button>
+	            </div>
+	            <div class="col-md-4">
+	              <button class="btn btn-primary" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
+	            </div>
+	          </div>        
+		    </form>
+    	<button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
             {{search.error.message}}
-        </button>
-    </form>
+    	</button>
+    </div>
     
   </div>
     <div class="clearfix"></div>
@@ -60,7 +61,10 @@
               <th>MIME</th>
               <th>Extension</th>
             </tr>
-            <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo: search.pagination.itemsPerPage">
+            <!-- <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | limitTo: search.pagination.itemsPerPage">-->
+			<!-- FIXME: Should reset search.pagination.startOffset (and remove the 0) in last param of startFrom filter when mongo OK (See Item #2227) commented tbody should be used once the fix is found -->
+            <tbody ng-repeat="file in search.response.data | startFrom:startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, 0) | limitTo: search.pagination.itemsPerPage">            
+            
               <tr ng-click="openDialog($event, file._id)">
                 <td style="text-overflow: ellipsis;max-width:20%" scope="row" >{{file.PUID}}</td>
                 <td style="text-overflow: ellipsis;max-width:20%">{{file.Name}}</td>

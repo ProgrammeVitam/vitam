@@ -44,1188 +44,1272 @@ JSON correspondant à une opération d'entrée terminée avec succès.
 
 ::
 
-  {
-    "_id": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-    "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-    "evType": "PROCESS_SIP_UNITARY",
-    "evDateTime": "2017-02-28T15:39:11.627",
-    "evDetData": null,
-    "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-    "evTypeProc": "INGEST",
-    "outcome": "STARTED",
-    "outDetail": null,
-    "outMessg": "Début du processus d'entrée du SIP : aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-    "agIdApp": null,
-    "agIdAppSession": null,
-    "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-    "agIdSubm": null,
-    "agIdOrig": null,
-    "obId": null,
-    "obIdReq": null,
-    "obIdIn": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-    "events": [
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "STP_SANITY_CHECK_SIP",
-            "evDateTime": "2017-02-28T15:39:11.627",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus des contrôles préalables à l'entrée",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "SANITY_CHECK_SIP",
-            "evDateTime": "2017-02-28T15:39:11.678",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du contrôle sanitaire",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "SANITY_CHECK_SIP",
-            "evDateTime": "2017-02-28T15:39:11.691",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du contrôle sanitaire : aucun virus détecté",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "CHECK_CONTAINER",
-            "evDateTime": "2017-02-28T15:39:11.692",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du contrôle de format du conteneur du SIP",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "CHECK_CONTAINER",
-            "evDateTime": "2017-02-28T15:39:11.702",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du contrôle de format du conteneur du SIP",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "STP_SANITY_CHECK_SIP",
-            "evDateTime": "2017-02-28T15:39:11.702",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST_TEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus des contrôles préalables à l'entrée",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1049188441,\"SiteId\":1,\"GlobalPlatformId\":243882073}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "STP_UPLOAD_SIP",
-            "evDateTime": "2017-02-28T15:39:11.638",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de téléchargement du SIP",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"ingest-internal\",\"ServerId\":1044459315,\"SiteId\":1,\"GlobalPlatformId\":239152947}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "STP_UPLOAD_SIP",
-            "evDateTime": "2017-02-28T15:39:11.703",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus de téléchargement du SIP",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"ingest-internal\",\"ServerId\":1044459315,\"SiteId\":1,\"GlobalPlatformId\":239152947}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb4pqaaaaq",
-            "evType": "STP_INGEST_CONTROL_SIP",
-            "evDateTime": "2017-02-28T15:39:13.342",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus du contrôle du bordereau",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaaaq",
-            "evType": "CHECK_SEDA",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la vérification globale du SIP",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaaba",
-            "evType": "CHECK_SEDA",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "CHECK_SEDA.OK",
-            "outMessg": "Succès de la vérification globale du SIP Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaabq",
-            "evType": "CHECK_MANIFEST_DATAOBJECT_VERSION",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la vérification des usages des groupes d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaaca",
-            "evType": "CHECK_MANIFEST_DATAOBJECT_VERSION",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "CHECK_MANIFEST_DATAOBJECT_VERSION.OK",
-            "outMessg": "Succès de la vérification des usages des groupes d'objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaacq",
-            "evType": "CHECK_MANIFEST_OBJECTNUMBER",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la vérification du nombre d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaada",
-            "evType": "CHECK_MANIFEST_OBJECTNUMBER",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "CHECK_MANIFEST_OBJECTNUMBER.OK",
-            "outMessg": "Succès de la vérification du nombre d'objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaadq",
-            "evType": "CHECK_MANIFEST",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du contrôle de cohérence du bordereau",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaaea",
-            "evType": "CHECK_MANIFEST",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "CHECK_MANIFEST.OK",
-            "outMessg": "Succès du contrôle de cohérence du bordereau Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaaeq",
-            "evType": "CHECK_CONSISTENCY",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaafa",
-            "evType": "CHECK_CONSISTENCY",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "CHECK_CONSISTENCY.OK",
-            "outMessg": "Succès de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6gqaaafq",
-            "evType": "STP_INGEST_CONTROL_SIP",
-            "evDateTime": "2017-02-28T15:39:13.562",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus du contrôle du bordereau",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb6qaaaaaq",
-            "evType": "STP_OG_CHECK_AND_TRANSFORME",
-            "evDateTime": "2017-02-28T15:39:13.600",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de vérification et de traitement des objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb7oqaaaaq",
-            "evType": "CHECK_DIGEST",
-            "evDateTime": "2017-02-28T15:39:13.722",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la vérification de l'intégrité des objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb7oyaaaaq",
-            "evType": "CHECK_DIGEST",
-            "evDateTime": "2017-02-28T15:39:13.723",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "CHECK_DIGEST.OK",
-            "outMessg": "Succès de la vérification de l'intégrité des objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb7oyaaaba",
-            "evType": "OG_OBJECTS_FORMAT_CHECK",
-            "evDateTime": "2017-02-28T15:39:13.723",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la vérification des formats",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb7oyaaabq",
-            "evType": "OG_OBJECTS_FORMAT_CHECK",
-            "evDateTime": "2017-02-28T15:39:13.723",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "OG_OBJECTS_FORMAT_CHECK.OK",
-            "outMessg": "Succès de la vérification des formats Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb7oyaaaca",
-            "evType": "STP_OG_CHECK_AND_TRANSFORME",
-            "evDateTime": "2017-02-28T15:39:13.723",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès de l'étape de vérification et de traitement des objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqb7yaaaaaq",
-            "evType": "STP_UNIT_CHECK_AND_PROCESS",
-            "evDateTime": "2017-02-28T15:39:13.760",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de contrôle et traitements des unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqccqaaaaaq",
-            "evType": "UNITS_RULES_COMPUTE",
-            "evDateTime": "2017-02-28T15:39:14.112",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du calcul des dates d'échéance",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqccqaaaaba",
-            "evType": "UNITS_RULES_COMPUTE",
-            "evDateTime": "2017-02-28T15:39:14.112",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "UNITS_RULES_COMPUTE.OK",
-            "outMessg": "Succès du calcul des dates d'échéance Detail=  OK:6",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqccqaaaabq",
-            "evType": "STP_UNIT_CHECK_AND_PROCESS",
-            "evDateTime": "2017-02-28T15:39:14.112",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus de contrôle et traitements des unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqccyqaaaaq",
-            "evType": "STP_STORAGE_AVAILABILITY_CHECK",
-            "evDateTime": "2017-02-28T15:39:14.146",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de vérification préalable à la prise en charge",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcdyiaaaaq",
-            "evType": "STP_STORAGE_AVAILABILITY_CHECK",
-            "evDateTime": "2017-02-28T15:39:14.273",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "UNKNOWN",
-            "outDetail": null,
-            "outMessg": "!STP_STORAGE_AVAILABILITY_CHECK.UNKNOWN!",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)"
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqceaiaaaaq",
-            "evType": "STP_OG_STORING",
-            "evDateTime": "2017-02-28T15:39:14.305",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de rangement des objets et groupes d'objets sur l'offre de stockage",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaaaq",
-            "evType": "OG_STORAGE",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du rangement des objets et groupes d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaaba",
-            "evType": "OG_STORAGE",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "OG_STORAGE.OK",
-            "outMessg": "Succès du rangement des objets et groupes d'objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaabq",
-            "evType": "OG_METADATA_INDEXATION",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de l'indexation des métadonnées des objets et groupes d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaaca",
-            "evType": "OG_METADATA_INDEXATION",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "OG_METADATA_INDEXATION.OK",
-            "outMessg": "Succès de l'indexation des métadonnées des objets et groupes d'objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaacq",
-            "evType": "OG_METADATA_STORAGE",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de l' enregistrement des métadonnées des groupes d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaada",
-            "evType": "OG_METADATA_STORAGE",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "OG_METADATA_STORAGE.OK",
-            "outMessg": "Succès de l' enregistrement des métadonnées des groupes d'objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaadq",
-            "evType": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la sécurisation du cycle de vie des groupes d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaaea",
-            "evType": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK",
-            "outMessg": "Succès de la sécurisation du cycle de vie des groupes d'objets Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqch4aaaaeq",
-            "evType": "STP_OG_STORING",
-            "evDateTime": "2017-02-28T15:39:14.800",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus de rangement des objets et groupes d'objets sur l'offre de stockage",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcigiaaaaq",
-            "evType": "STP_UNIT_STORING",
-            "evDateTime": "2017-02-28T15:39:14.841",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de rangement des unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaaaq",
-            "evType": "UNIT_METADATA_INDEXATION",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de l'indexation des métadonnées de l'unité archivistique",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaaba",
-            "evType": "UNIT_METADATA_INDEXATION",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "UNIT_METADATA_INDEXATION.OK",
-            "outMessg": "Succès de l'indexation des métadonnées de l'unité archivistique Detail=  OK:6",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaabq",
-            "evType": "UNIT_METADATA_STORAGE",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de l'enregistrement des métadonnées des unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaaca",
-            "evType": "UNIT_METADATA_STORAGE",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "UNIT_METADATA_STORAGE.OK",
-            "outMessg": "Succès de l'enregistrement des métadonnées des unités archivistiques Detail=  OK:6",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaacq",
-            "evType": "COMMIT_LIFE_CYCLE_UNIT",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la sécurisation du cycle de vie des unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaada",
-            "evType": "COMMIT_LIFE_CYCLE_UNIT",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "COMMIT_LIFE_CYCLE_UNIT.OK",
-            "outMessg": "Succès de la sécurisation du cycle de vie des unités archivistiques Detail=  OK:6",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqcy3qaaadq",
-            "evType": "STP_UNIT_STORING",
-            "evDateTime": "2017-02-28T15:39:16.974",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus de rangement des unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqczhiaaaaq",
-            "evType": "STP_ACCESSION_REGISTRATION",
-            "evDateTime": "2017-02-28T15:39:17.021",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus d'alimentation du registre des fonds",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc2gqaaaaq",
-            "evType": "ACCESSION_REGISTRATION",
-            "evDateTime": "2017-02-28T15:39:17.146",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de l'alimentation du registre des fonds",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc2gqaaaba",
-            "evType": "ACCESSION_REGISTRATION",
-            "evDateTime": "2017-02-28T15:39:17.146",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "ACCESSION_REGISTRATION.OK",
-            "outMessg": "Succès de l'alimentation du registre des fonds Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc2gqaaabq",
-            "evType": "STP_ACCESSION_REGISTRATION",
-            "evDateTime": "2017-02-28T15:39:17.146",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus d'alimentation du registre des fonds",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc2siaaaaq",
-            "evType": "STP_INGEST_FINALISATION",
-            "evDateTime": "2017-02-28T15:39:17.193",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début du processus de finalisation de l'entrée",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc5piaaaaq",
-            "evType": "ATR_NOTIFICATION",
-            "evDateTime": "2017-02-28T15:39:17.565",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la notification de la fin de l'opération à l'opérateur de versement",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc5piaaaba",
-            "evType": "ATR_NOTIFICATION",
-            "evDateTime": "2017-02-28T15:39:17.565",
-            "evDetData": "{\"FileName\":\"ATR_aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq\", \"MessageDigest\": \"fc7f389b68e10059422fd8e0a32b1794249dd3b54e90fc8dfd3ce5c3d9adc422d94b3dafeca0279fad843d570bdc71e02a48f58b8ed880aa596ea425fec67449\", \"Algorithm\": \"SHA512\"}",
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "ATR_NOTIFICATION.OK",
-            "outMessg": "Succès de la notification de la fin de l'opération à l'opérateur de versement Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc5piaaabq",
-            "evType": "ROLL_BACK",
-            "evDateTime": "2017-02-28T15:39:17.565",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": null,
-            "outMessg": "Début de la mise en cohérence des journaux de cycle de vie",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc5piaaaca",
-            "evType": "ROLL_BACK",
-            "evDateTime": "2017-02-28T15:39:17.565",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "ROLL_BACK.OK",
-            "outMessg": "Succès de la mise en cohérence des journaux de cycle de vie Detail=  OK:1",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null,
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhkknocabl5wak2qvqc5piaaacq",
-            "evType": "STP_INGEST_FINALISATION",
-            "evDateTime": "2017-02-28T15:39:17.565",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Succès du processus de finalisation de l'entrée",
-            "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1051014594,\"SiteId\":1,\"GlobalPlatformId\":245708226}",
-            "agIdApp": null,
-            "agIdAppSession": null,
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "agIdSubm": null,
-            "agIdOrig": null,
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": "SIP possédant des règles de gestion pour le calcul de l'héritage créé pour la story 1069 (voir commentaire dans le manifest)",
-            "_tenant": 2
-        },
-        {
-            "evId": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evType": "PROCESS_SIP_UNITARY",
-            "evDateTime": "2017-02-28T15:39:16.023",
-            "evDetData": null,
-            "evIdProc": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": null,
-            "outMessg": "Entrée effectuée avec succès",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"ingest-internal\",\"ServerId\":1044459315,\"SiteId\":1,\"GlobalPlatformId\":239152947}",
-            "evIdReq": "aedqaaaaakhiswczabjdyak2qvqbpcyaaaaq",
-            "obId": null,
-            "obIdReq": null,
-            "obIdIn": null
-        }
-    ],
-    "_tenant": 2
-    }
+{
+  "_id": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+  "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+  "evType": "PROCESS_SIP_UNITARY",
+  "evDateTime": "2017-04-06T23:12:09.233",
+  "evDetData": "{\"evDetDataType\":\"MASTER\",\"EvDetailReq\":\"Jeu de test avec arborescence complexe\",\"EvDateTimeReq\":\"2016-11-22T13:50:57\",\"ArchivalAgreement\":\"ArchivalAgreement0\",\"AgIfTrans\":\"Identifier5\"}",
+  "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+  "evTypeProc": "INGEST",
+  "outcome": "STARTED",
+  "outDetail": null,
+  "outMessg": "Début du processus d'entrée du SIP : aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+  "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+  "agIdApp": null,
+  "agIdAppSession": null,
+  "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+  "agIdSubm": null,
+  "agIdOrig": null,
+  "obId": null,
+  "obIdReq": null,
+  "obIdIn": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+  "events": [
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "STP_SANITY_CHECK_SIP",
+          "evDateTime": "2017-04-06T23:12:09.234",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": null,
+          "outMessg": "Début du processus des contrôles préalables à l'entrée",
+          "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "SANITY_CHECK_SIP",
+          "evDateTime": "2017-04-06T23:12:09.980",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": null,
+          "outMessg": "Début du contrôle sanitaire",
+          "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "SANITY_CHECK_SIP",
+          "evDateTime": "2017-04-06T23:12:10.011",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": null,
+          "outMessg": "Succès du contrôle sanitaire : aucun virus détecté",
+          "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "CHECK_CONTAINER",
+          "evDateTime": "2017-04-06T23:12:10.012",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": null,
+          "outMessg": "Début du contrôle de format du conteneur du SIP",
+          "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "CHECK_CONTAINER",
+          "evDateTime": "2017-04-06T23:12:10.106",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": null,
+          "outMessg": "Succès du contrôle de format du conteneur du SIP",
+          "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "STP_SANITY_CHECK_SIP",
+          "evDateTime": "2017-04-06T23:12:10.106",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": null,
+          "outMessg": "Succès du processus des contrôles préalables à l'entrée",
+          "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "STP_UPLOAD_SIP",
+          "evDateTime": "2017-04-06T23:12:09.408",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "PROCESS_SIP_UNITARY.STARTED",
+          "outMessg": "Début du processus de téléchargement du SIP",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"ingest-internal\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "STP_UPLOAD_SIP",
+          "evDateTime": "2017-04-06T23:12:09.545",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "PROCESS_SIP_UNITARY.OK",
+          "outMessg": "Succès du processus de téléchargement du SIP",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"ingest-internal\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfbxwiaaaaq",
+          "evType": "STP_INGEST_CONTROL_SIP",
+          "evDateTime": "2017-04-06T23:12:10.713",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_INGEST_CONTROL_SIP.STARTED",
+          "outMessg": "Début du processus du contrôle du bordereau",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aiaaaaq",
+          "evType": "CHECK_SEDA",
+          "evDateTime": "2017-04-06T23:12:11.265",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_SEDA.STARTED",
+          "outMessg": "Début de la vérification globale du SIP",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aiaaaba",
+          "evType": "CHECK_SEDA",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_SEDA.OK",
+          "outMessg": "Succès de la vérification globale du SIP Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaaaq",
+          "evType": "CHECK_MANIFEST_DATAOBJECT_VERSION",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_MANIFEST_DATAOBJECT_VERSION.STARTED",
+          "outMessg": "Début de la vérification des usages des groupes d'objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaaba",
+          "evType": "CHECK_MANIFEST_DATAOBJECT_VERSION",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_MANIFEST_DATAOBJECT_VERSION.OK",
+          "outMessg": "Succès de la vérification des usages des groupes d'objets Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaabq",
+          "evType": "CHECK_MANIFEST_OBJECTNUMBER",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_MANIFEST_OBJECTNUMBER.STARTED",
+          "outMessg": "Début de la vérification du nombre d'objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaaca",
+          "evType": "CHECK_MANIFEST_OBJECTNUMBER",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_MANIFEST_OBJECTNUMBER.OK",
+          "outMessg": "Succès de la vérification du nombre d'objets Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaacq",
+          "evType": "CHECK_MANIFEST",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_MANIFEST.STARTED",
+          "outMessg": "Début du contrôle de cohérence du bordereau",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaada",
+          "evType": "CHECK_MANIFEST",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": "{\"evDetDataType\":\"MASTER\",\"EvDetailReq\":\"Jeu de test avec arborescence complexe\",\"EvDateTimeReq\":\"2016-11-22T13:50:57\",\"ArchivalAgreement\":\"ArchivalAgreement0\",\"AgIfTrans\":\"Identifier5\"}",
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_MANIFEST.OK",
+          "outMessg": "Succès du contrôle de cohérence du bordereau Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaadq",
+          "evType": "CHECK_CONTRACT_INGEST",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_CONTRACT_INGEST.STARTED",
+          "outMessg": "Début du contrôle de la validité du contrat d'entrée",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaaea",
+          "evType": "CHECK_CONTRACT_INGEST",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_CONTRACT_INGEST.OK",
+          "outMessg": "Succès du contrôle de la validité du contrat d'entrée Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaaeq",
+          "evType": "CHECK_CONSISTENCY",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_CONSISTENCY.STARTED",
+          "outMessg": "Début de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaafa",
+          "evType": "CHECK_CONSISTENCY",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_CONSISTENCY.OK",
+          "outMessg": "Succès de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb4aqaaafq",
+          "evType": "STP_INGEST_CONTROL_SIP",
+          "evDateTime": "2017-04-06T23:12:11.266",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_INGEST_CONTROL_SIP.OK",
+          "outMessg": "Succès du processus du contrôle du bordereau",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfb5iaaaaaq",
+          "evType": "STP_OG_CHECK_AND_TRANSFORME",
+          "evDateTime": "2017-04-06T23:12:11.424",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_OG_CHECK_AND_TRANSFORME.STARTED",
+          "outMessg": "Début du processus de vérification et de traitement des objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcbyyaaaaq",
+          "evType": "CHECK_DIGEST",
+          "evDateTime": "2017-04-06T23:12:12.003",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "CHECK_DIGEST.STARTED",
+          "outMessg": "Début de la vérification de l'intégrité des objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcbyyaaaba",
+          "evType": "CHECK_DIGEST",
+          "evDateTime": "2017-04-06T23:12:12.003",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "CHECK_DIGEST.OK",
+          "outMessg": "Succès de la vérification de l'intégrité des objets Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcbyyaaabq",
+          "evType": "OG_OBJECTS_FORMAT_CHECK",
+          "evDateTime": "2017-04-06T23:12:12.003",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "OG_OBJECTS_FORMAT_CHECK.STARTED",
+          "outMessg": "Début de la vérification des formats",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcbyyaaaca",
+          "evType": "OG_OBJECTS_FORMAT_CHECK",
+          "evDateTime": "2017-04-06T23:12:12.004",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "OG_OBJECTS_FORMAT_CHECK.OK",
+          "outMessg": "Succès de la vérification des formats Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcbzaaaaaq",
+          "evType": "STP_OG_CHECK_AND_TRANSFORME",
+          "evDateTime": "2017-04-06T23:12:12.004",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_OG_CHECK_AND_TRANSFORME.OK",
+          "outMessg": "Succès de l'étape de vérification et de traitement des objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcciyaaaaq",
+          "evType": "STP_UNIT_CHECK_AND_PROCESS",
+          "evDateTime": "2017-04-06T23:12:12.067",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_UNIT_CHECK_AND_PROCESS.STARTED",
+          "outMessg": "Début du processus de contrôle et traitements des unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcf2yaaaaq",
+          "evType": "UNITS_RULES_COMPUTE",
+          "evDateTime": "2017-04-06T23:12:12.523",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "UNITS_RULES_COMPUTE.STARTED",
+          "outMessg": "Début du calcul des dates d'échéance",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcf2yaaaba",
+          "evType": "UNITS_RULES_COMPUTE",
+          "evDateTime": "2017-04-06T23:12:12.523",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "UNITS_RULES_COMPUTE.OK",
+          "outMessg": "Succès du calcul des dates d'échéance Detail=  OK:5",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcf2yaaabq",
+          "evType": "STP_UNIT_CHECK_AND_PROCESS",
+          "evDateTime": "2017-04-06T23:12:12.523",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_UNIT_CHECK_AND_PROCESS.OK",
+          "outMessg": "Succès du processus de contrôle et traitements des unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfcgoqaaaaq",
+          "evType": "STP_STORAGE_AVAILABILITY_CHECK",
+          "evDateTime": "2017-04-06T23:12:12.602",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_STORAGE_AVAILABILITY_CHECK.STARTED",
+          "outMessg": "Début du processus de vérification préalable à la prise en charge",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfc3vaaaaaq",
+          "evType": "STORAGE_AVAILABILITY_CHECK",
+          "evDateTime": "2017-04-06T23:12:15.317",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STORAGE_AVAILABILITY_CHECK.STARTED",
+          "outMessg": "Début de la vérification de la disponibilité de l'offre de stockage",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfc3viaaaaq",
+          "evType": "STORAGE_AVAILABILITY_CHECK",
+          "evDateTime": "2017-04-06T23:12:15.317",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STORAGE_AVAILABILITY_CHECK.OK",
+          "outMessg": "Succès de la vérification de la disponibilité de l'offre de stockage Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfc3viaaaba",
+          "evType": "STP_STORAGE_AVAILABILITY_CHECK",
+          "evDateTime": "2017-04-06T23:12:15.317",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_STORAGE_AVAILABILITY_CHECK.OK",
+          "outMessg": "Succès du processus de vérification préalable à la prise en charge",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfc4liaaaaq",
+          "evType": "STP_OG_STORING",
+          "evDateTime": "2017-04-06T23:12:15.405",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_OG_STORING.STARTED",
+          "outMessg": "Début du processus de rangement des objets et groupes d'objets sur l'offre de stockage",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaaaq",
+          "evType": "OG_STORAGE",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "OG_STORAGE.STARTED",
+          "outMessg": "Début du rangement des objets et groupes d'objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaaba",
+          "evType": "OG_STORAGE",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "OG_STORAGE.OK",
+          "outMessg": "Succès du rangement des objets et groupes d'objets Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaabq",
+          "evType": "OG_METADATA_INDEXATION",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "OG_METADATA_INDEXATION.STARTED",
+          "outMessg": "Début de l'indexation des métadonnées des objets et groupes d'objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaaca",
+          "evType": "OG_METADATA_INDEXATION",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "OG_METADATA_INDEXATION.OK",
+          "outMessg": "Succès de l'indexation des métadonnées des objets et groupes d'objets Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaacq",
+          "evType": "OG_METADATA_STORAGE",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "OG_METADATA_STORAGE.STARTED",
+          "outMessg": "Début de l' enregistrement des métadonnées des groupes d'objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaada",
+          "evType": "OG_METADATA_STORAGE",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "OG_METADATA_STORAGE.OK",
+          "outMessg": "Succès de l' enregistrement des métadonnées des groupes d'objets Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaadq",
+          "evType": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "COMMIT_LIFE_CYCLE_OBJECT_GROUP.STARTED",
+          "outMessg": "Début de la sécurisation des journaux du cycle de vie des groupes d'objets",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaaea",
+          "evType": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK",
+          "outMessg": "Succès de la sécurisation des journaux du cycle de vie des groupes d'objets Detail=  OK:2",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdvxiaaaeq",
+          "evType": "STP_OG_STORING",
+          "evDateTime": "2017-04-06T23:12:18.653",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_OG_STORING.OK",
+          "outMessg": "Succès du processus de rangement des objets et groupes d'objets sur l'offre de stockage",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfdwwiaaaaq",
+          "evType": "STP_UNIT_STORING",
+          "evDateTime": "2017-04-06T23:12:18.777",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_UNIT_STORING.STARTED",
+          "outMessg": "Début du processus de rangement des unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaaaq",
+          "evType": "UNIT_METADATA_INDEXATION",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "UNIT_METADATA_INDEXATION.STARTED",
+          "outMessg": "Début de l'indexation des métadonnées de l'unité archivistique",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaaba",
+          "evType": "UNIT_METADATA_INDEXATION",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "UNIT_METADATA_INDEXATION.OK",
+          "outMessg": "Succès de l'indexation des métadonnées de l'unité archivistique Detail=  OK:5",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaabq",
+          "evType": "UNIT_METADATA_STORAGE",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "UNIT_METADATA_STORAGE.STARTED",
+          "outMessg": "Début de l'enregistrement des métadonnées des unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaaca",
+          "evType": "UNIT_METADATA_STORAGE",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "UNIT_METADATA_STORAGE.OK",
+          "outMessg": "Succès de l'enregistrement des métadonnées des unités archivistiques Detail=  OK:5",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaacq",
+          "evType": "COMMIT_LIFE_CYCLE_UNIT",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "COMMIT_LIFE_CYCLE_UNIT.STARTED",
+          "outMessg": "Début de la sécurisation du journal du cycle de vie des unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaada",
+          "evType": "COMMIT_LIFE_CYCLE_UNIT",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "COMMIT_LIFE_CYCLE_UNIT.OK",
+          "outMessg": "Succès de la sécurisation du journal du cycle de vie des unités archivistiques Detail=  OK:5",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfetkqaaadq",
+          "evType": "STP_UNIT_STORING",
+          "evDateTime": "2017-04-06T23:12:22.442",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_UNIT_STORING.OK",
+          "outMessg": "Succès du processus de rangement des unités archivistiques",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfeufaaaaaq",
+          "evType": "STP_ACCESSION_REGISTRATION",
+          "evDateTime": "2017-04-06T23:12:22.548",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_ACCESSION_REGISTRATION.STARTED",
+          "outMessg": "Début du processus d'alimentation du registre des fonds",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfewhyaaaaq",
+          "evType": "ACCESSION_REGISTRATION",
+          "evDateTime": "2017-04-06T23:12:22.815",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "ACCESSION_REGISTRATION.STARTED",
+          "outMessg": "Début de l'alimentation du registre des fonds",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfewhyaaaba",
+          "evType": "ACCESSION_REGISTRATION",
+          "evDateTime": "2017-04-06T23:12:22.815",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "ACCESSION_REGISTRATION.OK",
+          "outMessg": "Succès de l'alimentation du registre des fonds Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfewhyaaabq",
+          "evType": "STP_ACCESSION_REGISTRATION",
+          "evDateTime": "2017-04-06T23:12:22.815",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_ACCESSION_REGISTRATION.OK",
+          "outMessg": "Succès du processus d'alimentation du registre des fonds",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfexaiaaaaq",
+          "evType": "STP_INGEST_FINALISATION",
+          "evDateTime": "2017-04-06T23:12:22.913",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "STP_INGEST_FINALISATION.STARTED",
+          "outMessg": "Début du processus de finalisation de l'entrée",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfe6tiaaaaq",
+          "evType": "ATR_NOTIFICATION",
+          "evDateTime": "2017-04-06T23:12:23.885",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "ATR_NOTIFICATION.STARTED",
+          "outMessg": "Début de la notification de la fin de l'opération à l'opérateur de versement",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfe6tiaaaba",
+          "evType": "ATR_NOTIFICATION",
+          "evDateTime": "2017-04-06T23:12:23.885",
+          "evDetData": "{\"FileName\":\"ATR_aedqaaaaache45hwaantmak3iwfbl6qaaaaq\", \"MessageDigest\": \"1fd78993b117d880dd59205b8ce39314e0aa8ea703f21ba0d23b3e6deae49015a013cc6285ed73d7bc8fe1fcfe760becde4dce48d950d3d44a1ec59bcf486a86\", \"Algorithm\": \"SHA512\"}",
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "ATR_NOTIFICATION.OK",
+          "outMessg": "Succès de la notification de la fin de l'opération à l'opérateur de versement Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfe6tiaaabq",
+          "evType": "ROLL_BACK",
+          "evDateTime": "2017-04-06T23:12:23.885",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "ROLL_BACK.STARTED",
+          "outMessg": "Début de la mise en cohérence des journaux du cycle de vie",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfe6tiaaaca",
+          "evType": "ROLL_BACK",
+          "evDateTime": "2017-04-06T23:12:23.885",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "ROLL_BACK.OK",
+          "outMessg": "Succès de la mise en cohérence des journaux du cycle de vie Detail=  OK:1",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null,
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaachgxr27aa73iak3iwfe6tiaaacq",
+          "evType": "STP_INGEST_FINALISATION",
+          "evDateTime": "2017-04-06T23:12:23.885",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_INGEST_FINALISATION.OK",
+          "outMessg": "Succès du processus de finalisation de l'entrée",
+          "agId": "{\"Name\":\"vitam-iaas-app-03\",\"Role\":\"processing\",\"ServerId\":1047250783,\"SiteId\":1,\"GlobalPlatformId\":241944415}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": null,
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": "Jeu de test avec arborescence complexe",
+          "_tenant": 0
+      },
+      {
+          "evId": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evType": "PROCESS_SIP_UNITARY",
+          "evDateTime": "2017-04-06T23:12:22.935",
+          "evDetData": null,
+          "evIdProc": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "PROCESS_SIP_UNITARY.OK",
+          "outMessg": "Entrée effectuée avec succès",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"ingest-internal\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "evIdReq": "aedqaaaaache45hwaantmak3iwfbl6qaaaaq",
+          "obId": null,
+          "obIdReq": null,
+          "obIdIn": null
+      }
+  ],
+  "_tenant": 0
+}
 
-Détail des champ du JSON stocké en base
+Détail des champs du JSON stocké en base
 ---------------------------------------
 
 Chaque entrée de cette collection est composée d'une structure auto-imbriquée : la structure possède une première instanciation "incluante", et contient un tableau de N structures identiques, dont seules les valeurs contenues dans les champs changent.
@@ -1355,7 +1439,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 "_tenant": identifiant du tenant
       *Ce champ existe uniquement pour la structure incluante.*
 
-Détail des champ du JSON stocké en base spécifiques à une opération de Sécurisation
+Détail des champs du JSON stocké en base spécifiques à une opération de Sécurisation
 -----------------------------------------------------------------------------------
 
 Exemple de données stockées :
@@ -1438,67 +1522,355 @@ Exemple de JSON stocké en base
 
 ::
 
-  {
-    "_id": "aeaaaaaaaaaam7mxaap44akyf6fv4sqaaaaq",
-    "evId": "aedqaaaaacaam7mxaap44akyf6fv4syaaaaq",
-    "evType": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units",
-    "evDateTime": "2016-11-04T13:33:32.619",
-    "evIdProc": "aedqaaaaacaam7mxaau56akyf6fsepiaaaaq",
-    "evTypeProc": "INGEST",
-    "outcome": "STARTED",
-    "outDetail": "STARTED",
-    "outMessg": "Début de la vérification de la cohérence entre objets/groupes d’objets et ArchiveUnit.",
-    "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-    "obId": "aeaaaaaaaaaam7mxaap44akyf6fv4sqaaaaq",
-    "evDetData": null,
-    "events": [
-        {
-            "evId": "aedqaaaaacaam7mxaap44akyf6fv4syaaaaq",
-            "evType": "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units",
-            "evDateTime": "2016-11-04T13:33:32.648",
-            "evIdProc": "aedqaaaaacaam7mxaau56akyf6fsepiaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "OK",
-            "outMessg": "Objet/groupe dobjet référencé par un ArchiveUnit.",
-            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-            "obId": "aeaaaaaaaaaam7mxaap44akyf6fv4sqaaaaq",
-            "evDetData": null,
-            "_tenant": 0
-        },
-        {
-            "evId": "aedqaaaaacaam7mxaap44akyf6fwjciaaaaq",
-            "evType": "STP_UNIT_STORING",
-            "evDateTime": "2016-11-04T13:33:34.217",
-            "evIdProc": "aedqaaaaacaam7mxaau56akyf6fsepiaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "STARTED",
-            "outMessg": "Début de lindex unit.",
-            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-            "obId": "aeaaaaaaaaaam7mxaap44akyf6fv4sqaaaaq",
-            "evDetData": null,
-            "_tenant": 0
-        },
-        {
-            "evId": "aedqaaaaacaam7mxaap44akyf6fwjciaaaaq",
-            "evType": "STP_UNIT_STORING",
-            "evDateTime": "2016-11-04T13:33:34.253",
-            "evIdProc": "aedqaaaaacaam7mxaau56akyf6fsepiaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "OK",
-            "outDetail": "OK",
-            "outMessg": "Index unit réalisé avec succès.",
-            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-            "obId": "aeaaaaaaaaaam7mxaap44akyf6fv4sqaaaaq",
-            "evDetData": null,
-            "_tenant": 0
-        }
-    ],
-    "_tenant": 0
-    }
+{
+  "_id": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+  "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+  "evType": "LFC.LFC_CREATION",
+  "evDateTime": "2017-04-10T12:39:37.933",
+  "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+  "evTypeProc": "INGEST",
+  "outcome": "STARTED",
+  "outDetail": "LFC.LFC_CREATION.STARTED",
+  "outMessg": "!LFC.LFC_CREATION.STARTED!",
+  "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+  "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+  "evDetData": null,
+  "events": [
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+          "evType": "LFC.CHECK_MANIFEST",
+          "evDateTime": "2017-04-10T12:39:37.953",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "LFC.CHECK_MANIFEST.STARTED",
+          "outMessg": "Début de la vérification de la cohérence du bordereau",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+          "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+          "evDateTime": "2017-04-10T12:39:37.953",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+          "outMessg": "Succès de la création du journal du cycle de vie",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+          "evType": "LFC.CHECK_MANIFEST",
+          "evDateTime": "2017-04-10T12:39:37.953",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "LFC.CHECK_MANIFEST.OK",
+          "outMessg": "Succès de la vérification de la cohérence du bordereau",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qhc5qaaaaq",
+          "evType": "LFC.UNITS_RULES_COMPUTE",
+          "evDateTime": "2017-04-10T12:39:38.614",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "LFC.UNITS_RULES_COMPUTE.STARTED",
+          "outMessg": "Début du calcul des dates d'échéance",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qhc5qaaaaq",
+          "evType": "LFC.UNITS_RULES_COMPUTE",
+          "evDateTime": "2017-04-10T12:39:38.661",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "LFC.UNITS_RULES_COMPUTE.OK",
+          "outMessg": "Succès du calcul des dates d'échéance",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qhuvaaaaaq",
+          "evType": "LFC.UNIT_METADATA_INDEXATION",
+          "evDateTime": "2017-04-10T12:39:40.884",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "LFC.UNIT_METADATA_INDEXATION.STARTED",
+          "outMessg": "Début de l'indexation des métadonnées de l'unité archivistique",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qhuvaaaaaq",
+          "evType": "LFC.UNIT_METADATA_INDEXATION",
+          "evDateTime": "2017-04-10T12:39:40.945",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "LFC.UNIT_METADATA_INDEXATION.OK",
+          "outMessg": "Succès de l'indexation de l'unité archivistique",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qhvfqaaaaq",
+          "evType": "LFC.UNIT_METADATA_STORAGE",
+          "evDateTime": "2017-04-10T12:39:40.950",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "STARTED",
+          "outDetail": "LFC.UNIT_METADATA_STORAGE.STARTED",
+          "outMessg": "Début de l'enregistrement des métadonnées de l'unité archivistique",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      },
+      {
+          "evId": "aedqaaaaaghbl62nabqkwak3k7qhvfqaaaaq",
+          "evType": "LFC.UNIT_METADATA_STORAGE",
+          "evDateTime": "2017-04-10T12:39:41.145",
+          "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "LFC.UNIT_METADATA_STORAGE.OK",
+          "outMessg": "Succès de l'enregistrement des métadonnées de l'unité archivistique",
+          "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+          "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
+          "evDetData": null,
+          "_tenant": 1
+      }
+  ],
+  "_tenant": 1
+}
 
-Détail des champ du JSON stocké en base
+Exemple avec une mise à jour de métadonnées
+
+::
+
+ {
+   "_id": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+   "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
+   "evType": "LFC.LFC_CREATION",
+   "evDateTime": "2017-04-10T12:52:50.173",
+   "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+   "evTypeProc": "INGEST",
+   "outcome": "STARTED",
+   "outDetail": "LFC.LFC_CREATION.STARTED",
+   "outMessg": "!LFC.LFC_CREATION.STARTED!",
+   "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+   "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+   "evDetData": null,
+   "events": [
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
+           "evType": "LFC.CHECK_MANIFEST",
+           "evDateTime": "2017-04-10T12:52:50.205",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "STARTED",
+           "outDetail": "LFC.CHECK_MANIFEST.STARTED",
+           "outMessg": "Début de la vérification de la cohérence du bordereau",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
+           "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
+           "evDateTime": "2017-04-10T12:52:50.205",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "OK",
+           "outDetail": "LFC.CHECK_MANIFEST.LFC_CREATION.OK",
+           "outMessg": "Succès de la création du journal du cycle de vie",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wik7iaaaba",
+           "evType": "LFC.CHECK_MANIFEST",
+           "evDateTime": "2017-04-10T12:52:50.205",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "OK",
+           "outDetail": "LFC.CHECK_MANIFEST.OK",
+           "outMessg": "Succès de la vérification de la cohérence du bordereau",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wir6iaaaaq",
+           "evType": "LFC.UNITS_RULES_COMPUTE",
+           "evDateTime": "2017-04-10T12:52:51.065",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "STARTED",
+           "outDetail": "LFC.UNITS_RULES_COMPUTE.STARTED",
+           "outMessg": "Début du calcul des dates d'échéance",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wir6iaaaaq",
+           "evType": "LFC.UNITS_RULES_COMPUTE",
+           "evDateTime": "2017-04-10T12:52:51.089",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "OK",
+           "outDetail": "LFC.UNITS_RULES_COMPUTE.OK",
+           "outMessg": "Succès du calcul des dates d'échéance",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wji3aaaaaq",
+           "evType": "LFC.UNIT_METADATA_INDEXATION",
+           "evDateTime": "2017-04-10T12:52:53.996",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "STARTED",
+           "outDetail": "LFC.UNIT_METADATA_INDEXATION.STARTED",
+           "outMessg": "Début de l'indexation des métadonnées de l'unité archivistique",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wji3aaaaaq",
+           "evType": "LFC.UNIT_METADATA_INDEXATION",
+           "evDateTime": "2017-04-10T12:52:54.064",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "OK",
+           "outDetail": "LFC.UNIT_METADATA_INDEXATION.OK",
+           "outMessg": "Succès de l'indexation de l'unité archivistique",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wjjniaaaaq",
+           "evType": "LFC.UNIT_METADATA_STORAGE",
+           "evDateTime": "2017-04-10T12:52:54.069",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "STARTED",
+           "outDetail": "LFC.UNIT_METADATA_STORAGE.STARTED",
+           "outMessg": "Début de l'enregistrement des métadonnées de l'unité archivistique",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaachbl62nabqkwak3k7wjjniaaaaq",
+           "evType": "LFC.UNIT_METADATA_STORAGE",
+           "evDateTime": "2017-04-10T12:52:54.301",
+           "evIdProc": "aedqaaaaache45hwabliwak3k7wim4qaaaaq",
+           "evTypeProc": "INGEST",
+           "outcome": "OK",
+           "outDetail": "LFC.UNIT_METADATA_STORAGE.OK",
+           "outMessg": "Succès de l'enregistrement des métadonnées de l'unité archivistique",
+           "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaache45hwab3paak3k7x6zuaaaaaq",
+           "evType": "LFC.UNIT_METADATA_UPDATE",
+           "evDateTime": "2017-04-10T12:56:33.232",
+           "evIdProc": "aecaaaaaache45hwab3paak3k7x6y7qaaaaq",
+           "evTypeProc": "UPDATE",
+           "outcome": "STARTED",
+           "outDetail": "LFC.UNIT_METADATA_UPDATE.STARTED",
+           "outMessg": "Début de la mise à jour des métadonnées de l'unité archivistique aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"access-internal\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaache45hwab3paak3k7x62zqaaaaq",
+           "evType": "LFC.UNIT_METADATA_UPDATE",
+           "evDateTime": "2017-04-10T12:56:33.382",
+           "evIdProc": "aecaaaaaache45hwab3paak3k7x6y7qaaaaq",
+           "evTypeProc": "UPDATE",
+           "outcome": "OK",
+           "outDetail": "LFC.UNIT_METADATA_UPDATE.OK",
+           "outMessg": "Succès de la mise à jour des métadonnées de l'unité archivistique aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"access-internal\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": "{\n  \"diff\" : \"+  Description : Lorem ipsum\\n-  #operations : [ aedqaaaaache45hwabliwak3k7wim4qaaaaq \\n+  #operations : [ aedqaaaaache45hwabliwak3k7wim4qaaaaq, aecaaaaaache45hwab3paak3k7x6y7qaaaaq \"\n}",
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaache45hwab3paak3k7x63fyaaaaq",
+           "evType": "LFC.UNIT_METADATA_STORAGE",
+           "evDateTime": "2017-04-10T12:56:33.432",
+           "evIdProc": "aecaaaaaache45hwab3paak3k7x6y7qaaaaq",
+           "evTypeProc": "UPDATE",
+           "outcome": "STARTED",
+           "outDetail": "LFC.UNIT_METADATA_STORAGE.STARTED",
+           "outMessg": "Début de l'enregistrement des métadonnées de l'unité archivistiqueaeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"access-internal\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": null,
+           "_tenant": 0
+       },
+       {
+           "evId": "aedqaaaaache45hwab3paak3k7x66cqaaaaq",
+           "evType": "LFC.UNIT_METADATA_STORAGE",
+           "evDateTime": "2017-04-10T12:56:33.802",
+           "evIdProc": "aecaaaaaache45hwab3paak3k7x6y7qaaaaq",
+           "evTypeProc": "UPDATE",
+           "outcome": "OK",
+           "outDetail": "LFC.UNIT_METADATA_STORAGE.OK",
+           "outMessg": "Succès de l'enregistrement des métadonnées de l'unité archivistiqueaeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"access-internal\",\"ServerId\":1045329142,\"SiteId\":1,\"GlobalPlatformId\":240022774}",
+           "obId": "aeaqaaaaaahbl62nabqkwak3k7wik7iaaaaq",
+           "evDetData": "{\n  \"diff\" : \"+  Description : Lorem ipsum\\n-  #operations : [ aedqaaaaache45hwabliwak3k7wim4qaaaaq \\n+  #operations : [ aedqaaaaache45hwabliwak3k7wim4qaaaaq, aecaaaaaache45hwab3paak3k7x6y7qaaaaq \"\n}",
+           "_tenant": 0
+       }
+   ],
+   "_tenant": 0
+}
+
+Détail des champs du JSON stocké en base
 ---------------------------------------
 
 "_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
@@ -1583,7 +1955,7 @@ Détail des champ du JSON stocké en base
 
 
 
-Détail des champ du JSON stocké en base spécifiques à une mise à jour
+Détail des champs du JSON stocké en base spécifiques à une mise à jour
 ---------------------------------------------------------------------
 
 Exemple de données stockées :
@@ -1828,7 +2200,7 @@ Exemple de JSON stocké en base
     }
 
 
-Détail des champ du JSON stocké en base
+Détail des champs du JSON stocké en base
 ---------------------------------------
 
 "_id" : Identifiant unique donné par le système lors de l'initialisation du journal du cycle de vie.
@@ -1924,40 +2296,48 @@ Exemple de JSON
 
 ::
 
-  {
-    "_id": "aeaaaaaaaaaam7mxabigiakyiqyobzaaaaaq",
-    "DescriptionLevel": "RecordGrp",
-    "Title": "Europe orientale-sud",
-    "Description": "C:\\Users\\XXX.XXX\\Desktop\\SIP arborescent\\Europe\\Europe\noccidentale",
-    "StartDate": "2016-10-12T17:24:00",
-    "EndDate": "2016-10-12T17:24:00",
-    "_og": "",
-    "_ops": [
-        "aedqaaaaacaam7mxabr7iakyiqymbdqaaaaq"
-    ],
-    "_tenant": 0,
-    "_max": 3,
-    "_min": 1,
-    "_up": [
-        "aeaaaaaaaaaam7mxabigiakyiqyobxqaaaaq"
-    ],
-    "_nbc": 1,
-    "_uds": [
-        {
-            "aeaaaaaaaaaam7mxabigiakyiqyobwqaaaaq": 2
-        },
-        {
-            "aeaaaaaaaaaam7mxabigiakyiqyobxqaaaaq": 1
-        }
-    ],
-    "_us": [
-        "aeaaaaaaaaaam7mxabigiakyiqyobwqaaaaq",
-        "aeaaaaaaaaaam7mxabigiakyiqyobxqaaaaq"
-    ],
-    "OriginatingAgency": {
-        "OrganizationDescriptiveMetadata": "Issy"
-    },
-    }
+{
+  "_id": "aeaqaaaaaahbl62nabqkwak3k7zvpuiaaabq",
+  "_og": "aebaaaaaaahbl62nabqkwak3k7zvpqaaaaba",
+  "_mgt": {
+      "StorageRule": [
+          {
+              "Rule": "R4",
+              "StartDate": "9000-10-10",
+              "FinalAction": "Copy",
+              "EndDate": "9004-10-10"
+          }
+      ]
+  },
+  "DescriptionLevel": "Item",
+  "Title": "AU4",
+  "_ops": [
+      "aedqaaaaache45hwabliwak3k7zvtfqaaaaq"
+  ],
+  "_tenant": 0,
+  "_max": 4,
+  "_min": 1,
+  "_up": [
+      "aeaqaaaaaahbl62nabqkwak3k7zvpuiaaaba"
+  ],
+  "_nbc": 0,
+  "_us": [
+      "aeaqaaaaaahbl62nabqkwak3k7zvpuaaaaaq",
+      "aeaqaaaaaahbl62nabqkwak3k7zvpuiaaaaq",
+      "aeaqaaaaaahbl62nabqkwak3k7zvpuiaaaba"
+  ],
+  "_uds": [
+      {
+          "aeaqaaaaaahbl62nabqkwak3k7zvpuaaaaaq": 3
+      },
+      {
+          "aeaqaaaaaahbl62nabqkwak3k7zvpuiaaaaq": 2
+      },
+      {
+          "aeaqaaaaaahbl62nabqkwak3k7zvpuiaaaba": 1
+      }
+  ]
+}
 
 Exemple de XML en entrée
 ------------------------
@@ -2044,149 +2424,148 @@ Exemple de Json stocké en base
 
 ::
 
-   {
-     "_id": "aeaaaaaaaaaam7mxab43iakye2cxhbaaaaaq",
-     "_tenant": 0,
-     "_profil": "",
-     "FileInfo": {},
-     "_qualifiers": {
-         "Thumbnail": {
-             "_nbc": 1,
-             "versions": [
-                 {
-                     "_id": "aeaaaaaaaaaam7mxab43iakye2cxiqyaaaaq",
-                     "DataObjectGroupId": "aeaaaaaaaaaam7mxab43iakye2cxhbaaaaaq",
-                     "DataObjectVersion": "Thumbnail_1",
-                     "FormatIdentification": {
-                         "FormatLitteral": "Portable Network Graphics",
-                         "MimeType": "image/png",
-                         "FormatId": "fmt/12"
-                     },
-                     "FileInfo": {
-                         "Filename": "Vitam-Sensibilisation-API-V1.0.png",
-                         "CreatingApplicationName": "LibreOffice/Impress",
-                         "CreatingApplicationVersion": "5.0.5.2",
-                         "CreatingOs": "Windows_X86_64",
-                         "CreatingOsVersion": "10",
-                         "LastModified": "2016-06-23T12:45:20"
-                     },
-                     "Metadata": {
-                         "Image": null
-                     },
-                     "OtherMetadata": null,
-                     "Size": 40740,
-                     "Uri": "content/fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7
-                     f6c86a35cd2925351076da7abc064ad89369edf44f0.png",
-                     "MessageDigest": "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d
-                     7f6c86a35cd2925351076da7abc064ad89369edf44f0",
-                     "Algorithm": "SHA-512"
-                 }
-             ]
-         },
-         "TextContent": {
-             "_nbc": 1,
-             "versions": [
-                 {
-                     "_id": "aeaaaaaaaaaam7mxab43iakye2cxiriaaaaq",
-                     "DataObjectGroupId": "aeaaaaaaaaaam7mxab43iakye2cxhbaaaaaq",
-                     "DataObjectVersion": "TextContent_1",
-                     "FormatIdentification": {
-                         "FormatLitteral": "Plain Text File",
-                         "MimeType": "text/plain",
-                         "FormatId": "x-fmt/111",
-                         "Encoding": "UTF-8"
-                     },
-                     "FileInfo": {
-                         "Filename": "Vitam-Sensibilisation-API-V1.0.txt",
-                         "LastModified": "2016-06-23T12:50:20"
-                     },
-                     "Metadata": {
-                         "Text": null
-                     },
-                     "OtherMetadata": null,
-                     "Size": 17120,
-                     "Uri": "content/d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f
-                     9dbfeca338180ca64bdde645706ec14499311d557f4.txt",
-                     "MessageDigest": "d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f
-                     9dbfeca338180ca64bdde645706ec14499311d557f4",
-                     "Algorithm": "SHA-512"
-                 }
-             ]
-         },
-         "BinaryMaster": {
-             "_nbc": 1,
-             "versions": [
-                 {
-                     "_id": "aeaaaaaaaaaam7mxab43iakye2cxhaqaaaaq",
-                     "DataObjectGroupId": "aeaaaaaaaaaam7mxab43iakye2cxhbaaaaaq",
-                     "DataObjectVersion": "BinaryMaster_1",
-                     "FormatIdentification": {
-                         "FormatLitteral": "OpenDocument Presentation",
-                         "MimeType": "application/vnd.oasis.opendocument.presentation",
-                         "FormatId": "fmt/293"
-                     },
-                     "FileInfo": {
-                         "Filename": "Vitam-Sensibilisation-API-V1.0.odp",
-                         "CreatingApplicationName": "LibreOffice/Impress",
-                         "CreatingApplicationVersion": "5.0.5.2",
-                         "CreatingOs": "Windows_X86_64",
-                         "CreatingOsVersion": "10",
-                         "LastModified": "2016-05-05T20:45:20"
-                     },
-                     "Metadata": {
-                         "Document": null
-                     },
-                     "OtherMetadata": null,
-                     "Size": 100646,
-                     "Uri": "content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e2
-                     21a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp",
-                     "MessageDigest": "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e2
-                     21a53a4bbe170501af318c8f2c026cc8ea60f66fa804",
-                     "Algorithm": "SHA-512"
-                 }
-             ]
-         },
-         "Dissemination": {
-             "_nbc": 1,
-             "versions": [
-                 {
-                     "_id": "aeaaaaaaaaaam7mxab43iakye2cxiqaaaaaq",
-                     "DataObjectGroupId": "aeaaaaaaaaaam7mxab43iakye2cxhbaaaaaq",
-                     "DataObjectVersion": "Dissemination_1",
-                     "FormatIdentification": {
-                         "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
-                         "MimeType": "application/pdf",
-                         "FormatId": "fmt/18"
-                     },
-                     "FileInfo": {
-                         "Filename": "Vitam-Sensibilisation-API-V1.0.pdf",
-                         "CreatingApplicationName": "LibreOffice 5.0/Impress",
-                         "CreatingApplicationVersion": "5.0.5.2",
-                         "CreatingOs": "Windows_X86_64",
-                         "CreatingOsVersion": "10",
-                         "LastModified": "2016-05-05T20:45:32"
-                     },
-                     "Metadata": {
-                         "Document": null
-                     },
-                     "OtherMetadata": null,
-                     "Size": 186536,
-                     "Uri": "content/f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954.pdf",
-                     "MessageDigest": "abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073
-                     a422d825175bf1bef24dc355bfa081f7e48b106070fd5",
-                     "Algorithm": "SHA-512"
-                 }
-             ]
-         }
+{
+ "_id": "aebaaaaaaahbl62nabejwak3lchc4baaaaaq",
+ "_tenant": 0,
+ "_profil": "Document",
+ "FileInfo": {
+     "Filename": "Vitam-Sensibilisation-API-V1.0.odp",
+     "CreatingApplicationName": "LibreOffice/Impress",
+     "CreatingApplicationVersion": "5.0.5.2",
+     "CreatingOs": "Windows_X86_64",
+     "CreatingOsVersion": 10,
+     "LastModified": "2016-05-05T20:45:20"
+ },
+ "_qualifiers": {
+     "BinaryMaster": {
+         "_nbc": 1,
+         "versions": [
+             {
+                 "_id": "aeaaaaaaaahbl62nabejwak3lchc4ayaaaaq",
+                 "DataObjectGroupId": "aebaaaaaaahbl62nabejwak3lchc4baaaaaq",
+                 "DataObjectVersion": "BinaryMaster_1",
+                 "FormatIdentification": {
+                     "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+                     "MimeType": "application/pdf",
+                     "FormatId": "fmt/18"
+                 },
+                 "FileInfo": {
+                     "Filename": "Vitam-Sensibilisation-API-V1.0.odp",
+                     "CreatingApplicationName": "LibreOffice/Impress",
+                     "CreatingApplicationVersion": "5.0.5.2",
+                     "CreatingOs": "Windows_X86_64",
+                     "CreatingOsVersion": 10,
+                     "LastModified": "2016-05-05T20:45:20"
+                 },
+                 "Metadata": {
+                     "Document": null
+                 },
+                 "OtherMetadata": null,
+                 "Size": 29403,
+                 "Uri": "content/MM4BBunhtApiMcDFGLfPPvtAK83qpz.pdf",
+                 "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                 "Algorithm": "SHA-512"
+             }
+         ]
      },
-     "_up": [
-         "aeaaaaaaaaaam7mxab43iakye2cxiryaaaaq"
-     ],
-     "_nbc": 0,
-     "_ops": [
-         "aedqaaaaacaam7mxabnmyakye2cun3iaaaaq"
-     ]
+     "Dissemination": {
+         "_nbc": 1,
+         "versions": [
+             {
+                 "_id": "aeaaaaaaaahbl62nabejwak3lchc4diaaaaq",
+                 "DataObjectGroupId": "aebaaaaaaahbl62nabejwak3lchc4baaaaaq",
+                 "DataObjectVersion": "Dissemination_1",
+                 "FormatIdentification": {
+                     "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+                     "MimeType": "application/pdf",
+                     "FormatId": "fmt/18"
+                 },
+                 "FileInfo": {
+                     "Filename": "Vitam-Sensibilisation-API-V1.0.pdf",
+                     "CreatingApplicationName": "LibreOffice 5.0/Impress",
+                     "CreatingApplicationVersion": "5.0.5.2",
+                     "CreatingOs": "Windows_X86_64",
+                     "CreatingOsVersion": 10,
+                     "LastModified": "2016-05-05T20:45:32"
+                 },
+                 "Metadata": {
+                     "Document": null
+                 },
+                 "OtherMetadata": null,
+                 "Size": 29403,
+                 "Uri": "content/o3zT7xoCaeTVo1Em5d6FlAO1ZTclJT.pdf",
+                 "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                 "Algorithm": "SHA-512"
+             }
+         ]
+     },
+     "Thumbnail": {
+         "_nbc": 1,
+         "versions": [
+             {
+                 "_id": "aeaaaaaaaahbl62nabejwak3lchc4dqaaaba",
+                 "DataObjectGroupId": "aebaaaaaaahbl62nabejwak3lchc4baaaaaq",
+                 "DataObjectVersion": "Thumbnail_1",
+                 "FormatIdentification": {
+                     "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+                     "MimeType": "application/pdf",
+                     "FormatId": "fmt/18"
+                 },
+                 "FileInfo": {
+                     "Filename": "Vitam-Sensibilisation-API-V1.0.png",
+                     "CreatingApplicationName": "LibreOffice/Impress",
+                     "CreatingApplicationVersion": "5.0.5.2",
+                     "CreatingOs": "Windows_X86_64",
+                     "CreatingOsVersion": 10,
+                     "LastModified": "2016-06-23T12:45:20"
+                 },
+                 "Metadata": {
+                     "Image": null
+                 },
+                 "OtherMetadata": null,
+                 "Size": 29403,
+                 "Uri": "content/PC9p8TqGxK8bCoMEzVtBgo3baeSs0C.pdf",
+                 "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                 "Algorithm": "SHA-512"
+             }
+         ]
+     },
+     "TextContent": {
+         "_nbc": 1,
+         "versions": [
+             {
+                 "_id": "aeaaaaaaaahbl62nabejwak3lchc4dyaaaaq",
+                 "DataObjectGroupId": "aebaaaaaaahbl62nabejwak3lchc4baaaaaq",
+                 "DataObjectVersion": "TextContent_1",
+                 "FormatIdentification": {
+                     "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+                     "MimeType": "application/pdf",
+                     "FormatId": "fmt/18"
+                 },
+                 "FileInfo": {
+                     "Filename": "Vitam-Sensibilisation-API-V1.0.txt",
+                     "LastModified": "2016-06-23T12:50:20"
+                 },
+                 "Metadata": {
+                     "Text": null
+                 },
+                 "OtherMetadata": null,
+                 "Size": 29403,
+                 "Uri": "content/u2baSZmIVDCihTmWVpMPA0fLPttxUf.pdf",
+                 "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+                 "Algorithm": "SHA-512"
+             }
+         ]
      }
+ },
+ "_up": [
+     "aeaqaaaaaahbl62nabejwak3lchc4dyaaabq"
+ ],
+ "_nbc": 0,
+ "_ops": [
+     "aedqaaaaache45hwab23sak3lchc6vyaaaaq"
+ ]
+}
 
 Exemple de XML
 --------------
@@ -2213,7 +2592,7 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
       </FileInfo>
   </BinaryDataObject>
 
-Détail des champ du JSON
+Détail des champs du JSON
 ------------------------
 
 *A noter: les champs préfixés par un '_' devraient être visibles via les API avec un code utilisant '#' en prefix. Mais il est possible que pour la Beta, le '_' reste visible.*
@@ -2277,24 +2656,25 @@ Exemple de JSON stocké en base
 
 ::
 
-  {
-     "_id": "aeaaaaaaaaaam7mxaahrkakyist5opaaahoa",
-     "CreatedDate": "2016-09-27T15:37:53",
-     "VersionPronom": "88",
-     "Version": "2",
-     "HasPriorityOverFileFormatID": [
-         "fmt/714"
-     ],
-     "MIMEType": "audio/mobile-xmf",
-     "Name": "Mobile eXtensible Music Format",
-     "Group": "",
-     "Alert": false,
-     "Comment": "",
-     "Extension": [
-         "mxmf"
-     ],
-     "PUID": "fmt/961"
- }
+ {
+  "_id": "aeaaaaaaaahbl62nabduoak3jc2zqciaadiq",
+  "CreatedDate": "2016-09-27T15:37:53",
+  "VersionPronom": "88",
+  "Version": "2",
+  "HasPriorityOverFileFormatID": [
+      "fmt/714"
+  ],
+  "MIMEType": "audio/mobile-xmf",
+  "Name": "Mobile eXtensible Music Format",
+  "Group": "",
+  "Alert": false,
+  "Comment": "",
+  "Extension": [
+      "mxmf"
+  ],
+  "PUID": "fmt/961"
+}
+
 
 Exemple de la description d'un format dans le XML d'entrée
 ----------------------------------------------------------
@@ -2308,7 +2688,7 @@ Ci-après, la portion d'un bordereau (DROID_SignatureFile_VXX.xml) utilisée pou
      <Extension>mcw</Extension>
    </FileFormat>
 
-Détail des champ du JSON stocké en base
+Détail des champs du JSON stocké en base
 ---------------------------------------
 
 "_id": Il s'agit de l'identifiant unique du format dans VITAM.
@@ -2421,16 +2801,17 @@ Exemple de JSON stocké en base
 ::
 
  {
-   "_id": "aeaaaaaaaaaam7mxabg7qakx65rhnkiaaada",
-   "RuleId": "ACC-00004",
+   "_id": "aeaaaaaaaahbl62nabduoak3jc4avsyaaaha",
+   "_tenant": 0,
+   "RuleId": "ACC-00011",
    "RuleType": "AccessRule",
-   "RuleValue": "Communicabilité des informations portant atteinte à la monnaie et au crédit public (date du document)",
-   "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte à la monnaie et au crédit public\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
-   "RuleDuration": "25",
-   "RuleMeasurement": "Année",
-   "CreationDate": "2016-10-24",
-   "UpdateDate": "2016-10-24"
-   }
+   "RuleValue": "Communicabilité des informations portant atteinte au secret de la défense nationale",
+   "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte au secret de la défense nationale\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
+   "RuleDuration": "50",
+   "RuleMeasurement": "YEAR",
+   "CreationDate": "2017-04-07",
+   "UpdateDate": "2017-04-07"
+}
 
 Colonne du csv comprenant les règles de gestion
 -----------------------------------------------
@@ -2477,6 +2858,155 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
 "UpdateDate": Date de mise à jour de la règle
        - Utilisation à IT10 : identique à la date de création. Ces deux dates sont mises à jour à chaque import de référentiel.
 
+Collection IngestContract
+=========================
+
+Utilisation de la collection
+----------------------------
+
+La collection IngestContract permet de stocker unitairement les contrats d'entrée.
+
+Exemple de JSON stocké en base
+------------------------------
+
+::
+
+    {
+    "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+    "_tenant": 0,
+    "Name": "SIA archives nationales",
+    "Description": "Contrat d'accès - SIA archives nationales",
+    "Status": "ACTIVE",
+    "CreationDate": "2017-04-10T11:30:33.798",
+    "LastUpdate": "2017-04-10T11:30:33.798",
+    "ActivationDate": "2017-04-10T11:30:33.798",
+    "DesactivationDate": null
+    }
+
+Exemple de contrat d'entrée envoyé au format JSON
+-------------------------------------------------
+
+L'exemple suivant est un JSON contenant deux contrats d'entrée :
+
+::
+
+    [
+        {
+            "Name":"Contrat Archives Départementales",
+            "Description":"Test entrée - Contrat Archives Départementales",
+            "Status" : "ACTIVE",
+            "CreationDate":"01/04/2017",
+            "ActivationDate":"01/04/2017"
+        },
+        {
+            "Name":"Contrat Archives Nationales",
+            "Description":"Test entrée - Contrat Archives Nationales",
+            "Status" : "INACTIVE",
+            "CreationDate":"01/04/2017",
+            "ActivationDate":"01/04/2017"
+        }
+    ]
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+
+"_tenant": nom du tenant
+
+"Name" : nom du contrat d'entrée. Il s'agit d'une chaîne de caractères.
+
+"Description": description du contrat d'entrée. Il s'agit d'une chaîne de caractères.
+
+"Status": statut du contrat. Peut être ACTIVE ou INACTIVE
+
+"CreationDate": date de création du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"LastUpdate": date de dernière mise à jour du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+Collection AccessContract
+=========================
+
+Utilisation de la collection
+----------------------------
+
+La collection AccessContract permet de stocker unitairement les contrats d'accès.
+
+Exemple de JSON stocké en base
+------------------------------
+
+::
+
+    {
+    "_id": "aefqaaaaaahbl62nabkzgak3k6qtf3aaaaaq",
+    "_tenant": 0,
+    "Name": "SIA archives nationales",
+    "Description": "Contrat d'accès - SIA archives nationales",
+    "Status": "ACTIVE",
+    "CreationDate": "2017-04-10T11:30:33.798",
+    "LastUpdate": "2017-04-10T11:30:33.798",
+    "ActivationDate": "2017-04-10T11:30:33.798",
+    "DesactivationDate": null,
+    "OriginatingAgencies":["FRA-56","FRA-47"]
+    }
+
+Exemple de contrat d'accès envoyé au format JSON
+-------------------------------------------------
+
+L'exemple suivant est un JSON contenant deux contrats d'accès :
+
+::
+
+    [
+        {
+            "Name":"Archives du Doubs",
+            "Description":"Accès Archives du Doubs",
+            "Status" : "ACTIVE",
+            "LastUpdate":"10/12/2016",
+            "CreationDate":"10/12/2016",
+            "ActivationDate":"10/12/2016",
+            "DeactivationDate":"10/12/2016",
+            "OriginatingAgencies":["FRA-56","FRA-47"]
+        },
+        {
+            "Name":"Archives du Calvados",
+            "Description":"Accès Archives du Calvados",
+            "Status" : "ACTIVE",
+            "LastUpdate":"10/12/2016",
+            "CreationDate":"10/12/2016",
+            "ActivationDate":"10/12/2016",
+            "DeactivationDate":"10/12/2016",
+            "OriginatingAgencies":["FRA-54","FRA-64"]
+        }
+    ]
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique. Il s'agit d'une chaîne de 36 caractères.
+
+"_tenant": nom du tenant
+
+"Name" : nom du contrat d'accès. Il s'agit d'une chaîne de caractères.
+
+"Description": description du contrat d'accès. Il s'agit d'une chaîne de caractères.
+
+"Status": statut du contrat. Peut être ACTIVE ou INACTIVE
+
+"CreationDate": date de création du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"LastUpdate": date de dernière mise à jour du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"OriginatingAgencies": tableau contenant les services producteurs auxquels le détenteur du contrat a accès. Il s'agit d'un tableau de chaînes de caractères.
+
 Collection AccessionRegisterSummary
 ===================================
 
@@ -2490,32 +3020,38 @@ Exemple de JSON stocké en base
 
 ::
 
-  {
-    "_id": "aefaaaaaaaaam7mxaa4n4akyfm47sfqaaaaq",
-    "_tenant": 0,
-    "OriginatingAgency": "FRAN_NP_009734",
-    "TotalObjects": {
-        "Total": 1,
-        "Deleted": 0,
-        "Remained": 1
-    },
-    "TotalObjectGroups": {
-        "Total": 244,
-        "Deleted": 0,
-        "Remained": 244
-    },
-    "TotalUnits": {
-        "Total": 249,
-        "Deleted": 0,
-        "Remained": 249
-    },
-    "ObjectSize": {
-        "Total": 55351,
-        "Deleted": 0,
-        "Remained": 55351
-    },
-    "creationDate": "2016-11-03T17:26:09.430"
-    }
+{
+  "_id": "aedqaaaaache45hwaantmak3iwffi2aaaaaq",
+  "_tenant": 0,
+  "OriginatingAgency": "FRAN_NP_009913",
+  "SubmissionAgency": "FRAN_NP_009913",
+  "ArchivalAgreement": "ArchivalAgreement0",
+  "EndDate": "2017-04-07T01:12:31.772+02:00",
+  "StartDate": "2017-04-07T01:12:31.772+02:00",
+  "Status": "STORED_AND_COMPLETED",
+  "LastUpdate": "2017-04-07T01:12:31.772+02:00",
+  "TotalObjectGroups": {
+      "total": 1,
+      "deleted": 0,
+      "remained": 1
+  },
+  "TotalUnits": {
+      "total": 6,
+      "deleted": 0,
+      "remained": 6
+  },
+  "TotalObjects": {
+      "total": 1,
+      "deleted": 0,
+      "remained": 1
+  },
+  "ObjectSize": {
+      "total": 29403,
+      "deleted": 0,
+      "remained": 29403
+  },
+  "OperationIds": "[aedqaaaaache45hwaantmak3iwffi2aaaaaq]"
+}
 
 Exemple de la description dans le XML d'entrée
 ----------------------------------------------
@@ -2534,7 +3070,7 @@ Détail des champs
 
 "_id": Identifiant unique. Il s'agit d'une chaine de 36 caractères.
 
-"_tenant": 0,
+"_tenant": 0
 "OriginatingAgency": La valeur de ce champ est une chaîne de caractère.
 Ce champ est la clef primaire et sert de concaténation pour toutes les entrées effectuées sur ce producteur d'archives. Il est contenu entre les baslises <OriginatinAgencyIdentifier> du bordereau.
 
@@ -2704,38 +3240,38 @@ Valeurs possibles pour le champ evType logBook Operation
   ===================================== ========================================================================================== ======================================================================
   Code evtType                          Fr EventType Label                                                                         EN EventType Label
   ------------------------------------- ------------------------------------------------------------------------------------------ ----------------------------------------------------------------------
-  STP_UPLOAD_SIP                          Réception dans vitam                                                                       Upload SIP
-  UPLOAD_SIP                              Tache de réception dans Vitam
-  STP_SANITY_CHECK_SIP                  Contrôles préalables à l’entrée                                                            Sanity Check
-  SANITY_CHECK_SIP                      Contrôle sanitaire
-  CHECK_CONTAINER                         Contrôle du format du conteneur du SIP
-  STP_INGEST_CONTROL_SIP                  Contrôle du bordereau                                                                      Check Manifest
-  CHECK_SEDA                              Vérification globale du SIP                                                                  Check SIP – Manifest SEDA Consistency
-  CHECK_MANIFEST_DATAOBJECT_VERSION     Vérification des usage des groupes d’objets                                                Check SIP – Manifest – DataObjectVersion
-  CHECK_MANIFEST_OBJECTNUMBER             Vérification du nombre d'objets                                       c                      Check SIP – ObjectGroups - Objects Count
-  CHECK_MANIFEST                          Vérification de la cohérence du bordereau                                                  Check SIP – ObjectGroups – Lifecycle Logbook Creation
-  CHECK_CONSISTENCY                     Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
-  OLD_CHECK_DIGEST                      Vérification de l’empreinte                                                                Check SIP – ObjectGroups – Digest
-  STP_OG_CHECK_AND_TRANSFORME             Contrôle et traitements des objets                                                           Check and process objects
-  CHECK_DIGEST                          Vérification de l’intégrité des objets
-  OG_OBJECTS_FORMAT_CHECK                 Identification des formats                                                                   File format check
-  STP_STORAGE_AVAILABILITY_CHECK          Préparation de la prise en charge                                                          Check before storage
-  STORAGE_AVAILABILITY_CHECK              Vérification de la disponibilité de l’offre de stockage                                      Storage availability check
-  STP_UNIT_CHECK_AND_PROCESS              Contrôle et traitements des Units                                                          Check and process units
-  UNITS_RULES_COMPUTE                     Application des règles de gestion et calcul des échéances                                  Apply management rules and compute deadlines
-  STP_UNIT_STORING                      Rangement des Unites                                                                         ArchiveUnit storing
-  UNIT_METADATA_INDEXATION              Indexation des metadonnées des Units                                                         Units – Metadata Indexation
-  STP_OG_STORING                          Rangement des objets                                                                       ObjectsGroups storing
-  OG_STORAGE                              Ecriture des objets sur l’offre de stockage                                                  ObjectGroups Storage
-  OG_METADATA_INDEXATION                  Indexation des métadonnées des groupes d'objets                                              ObjectGroups – Metadata Index
-  STP_INGEST_FINALISATION                 Finalisation de l’entrée                                                                   Ingest finalisation and transfer notification to the operator
-  ATR_NOTIFICATION                      Notification de la fin de l’opération d’entrée
-  ACCESSION_REGISTRATION                  Alimentation du registre des fonds
-  CHECK_PROFIL                          Vérification du Profil
-  UNIT_METADATA_STORAGE                 Sécurisation des métadonnées des Unités Archivistiques
-  UNIT_LOGBOOK_STORAGE                  Enregistrement du journal du cycle de vie des unités archivistiques
-  OG_METADATA_STORAGE                     Sécurisation des métadonnées des Objets et Groupes d’Objets
-  OG_LOGBOOK_STORAGE                      Enregistrement du journal du cycle de vie des Objets et Groupes d'objets
+  ACCESSION_REGISTRATION 	              Alimentation du registre des fonds
+ATR_NOTIFICATION 	                      Notification de la fin de l’opération d’entrée
+CHECK_CONSISTENCY 	                    Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
+CHECK_CONTAINER 	                      Contrôle du format du conteneur du SIP
+CHECK_DIGEST 	                          Vérification de l’intégrité des objets
+CHECK_MANIFEST 	                        Vérification de la cohérence du bordereau                                                  Check SIP – ObjectGroups – Lifecycle Logbook Creation
+CHECK_MANIFEST_DATAOBJECT_VERSION 	    Vérification des usage des groupes d’objets                                                Check SIP – Manifest – DataObjectVersion
+CHECK_MANIFEST_OBJECTNUMBER 	          Vérification du nombre d'objets                                                             Check SIP – ObjectGroups - Objects Count
+CHECK_PROFIL 	                          Vérification du Profil
+CHECK_SEDA 	                            Vérification globale du SIP                                                                  Check SIP – Manifest SEDA Consistency
+OG_LOGBOOK_STORAGE 	                    Enregistrement du journal du cycle de vie des Objets et Groupes d'objets
+OG_METADATA_INDEXATION 	                Indexation des métadonnées des groupes d'objets                                              ObjectGroups – Metadata Index
+OG_METADATA_STORAGE 	                  Sécurisation des métadonnées des Objets et Groupes d’Objets
+OG_OBJECTS_FORMAT_CHECK 	              Identification des formats                                                                   File format check
+OG_STORAGE 	                            Ecriture des objets sur l’offre de stockage                                                  ObjectGroups Storage
+OLD_CHECK_DIGEST 	                      Vérification de l’empreinte                                                                Check SIP – ObjectGroups – Digest
+SANITY_CHECK_SIP 	                      Contrôle sanitaire
+STORAGE_AVAILABILITY_CHECK 	            Vérification de la disponibilité de l’offre de stockage                                      Storage availability check
+STP_INGEST_CONTROL_SIP 	                Contrôle du bordereau                                                                      Check Manifest
+STP_INGEST_FINALISATION 	              Finalisation de l’entrée                                                                   Ingest finalisation and transfer notification to the operator
+STP_OG_CHECK_AND_TRANSFORME 	          Contrôle et traitements des objets                                                           Check and process objects
+STP_OG_STORING 	                        Rangement des objets                                                                       ObjectsGroups storing
+STP_SANITY_CHECK_SIP 	                  Contrôles préalables à l’entrée                                                            Sanity Check
+STP_STORAGE_AVAILABILITY_CHECK 	        Préparation de la prise en charge                                                          Check before storage
+STP_UNIT_CHECK_AND_PROCESS 	            Contrôle et traitements des Units                                                          Check and process units
+STP_UNIT_STORING 	                      Rangement des Unites                                                                         ArchiveUnit storing
+STP_UPLOAD_SIP 	                        Réception dans vitam                                                                       Upload SIP
+UNIT_LOGBOOK_STORAGE 	                  Enregistrement du journal du cycle de vie des unités archivistiques
+UNIT_METADATA_INDEXATION 	              Indexation des metadonnées des Units                                                         Units – Metadata Indexation
+UNIT_METADATA_STORAGE 	                Sécurisation des métadonnées des Unités Archivistiques
+UNITS_RULES_COMPUTE 	                  Application des règles de gestion et calcul des échéances                                  Apply management rules and compute deadlines
+UPLOAD_SIP 	                            Tache de réception dans Vitam
   ===================================== ========================================================================================== ======================================================================
 
 Valeurs possibles pour le champ evType logBook LifeCycle
@@ -2744,36 +3280,34 @@ Valeurs possibles pour le champ evType logBook LifeCycle
   ====================================== =========================================================================================================
   Code evtType                              Label de evtType
   -------------------------------------- ---------------------------------------------------------------------------------------------------------
-  STP_SANITY_CHECK_SIP                      Contrôles préalables à l’entrée
-  SANITY_CHECK_SIP                          Contrôle sanitaire
+  ACCESSION_REGISTRATION                      Alimentation du registre des fonds
+  ATR_NOTIFICATION                          Notification de la fin de l’opération d’entrée
+  CHECK_CONSISTENCY                         Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
   CHECK_CONTAINER                            Contrôle du format du conteneur du SIP
-  STP_UPLOAD_SIP                              Réception dans vitam
-  UPLOAD_SIP                                  Tache de réception dans Vitam
-  STP_INGEST_CONTROL_SIP                      Contrôle du bordereau
-  CHECK_SEDA                                  Vérification globale du SIP
+  CHECK_DIGEST                              Vérification de l’intégrité des objets
+  CHECK_MANIFEST                              Vérification de la cohérence du bordereau
   CHECK_MANIFEST_DATAOBJECT_VERSION         Vérification des usage des groupes d’objets
   CHECK_MANIFEST_OBJECTNUMBER                 Vérification du nombre d'objets
-  CHECK_MANIFEST                              Vérification de la cohérence du bordereau
-  CHECK_CONSISTENCY                         Vérification de la cohérence entre objets, groupes d’objets et unités archivistiques
-  OLD_CHECK_DIGEST                          Vérification de l’empreinte
-  STP_OG_CHECK_AND_TRANSFORME                 Contrôle et traitement des objets
-  CHECK_DIGEST                              Vérification de l’intégrité des objets
-  OG_OBJECTS_FORMAT_CHECK                     Identification des formats
-  STP_STORAGE_AVAILABILITY_CHECK              Préparation de la prise en charge
-  STORAGE_AVAILABILITY_CHECK                  Vérification de la disponibilité de l’offre de stockage
-  STP_UNIT_CHECK_AND_PROCESS                  Contrôle et traitement des Unités Archivistiques
-  UNITS_RULES_COMPUTE                         Application des règles de gestion et calcule des échéances
-  STP_UNIT_STORING                          Rangement des Unités Archivistiques
-  UNIT_METADATA_INDEXATION                  Indexation des metadonnées des Unités Archivistiques
-  STP_OG_STORING                              Rangement des objets
-  OG_STORAGE                                  Ecriture des objets sur l’offre de stockage
+  CHECK_SEDA                                  Vérification globale du SIP
   OG_METADATA_INDEXATION                      Indexation des métadonnées des groupes d'objets
+  OG_OBJECTS_FORMAT_CHECK                     Identification des formats
+  OG_STORAGE                                  Ecriture des objets sur l’offre de stockage
+  OLD_CHECK_DIGEST                          Vérification de l’empreinte
+  SANITY_CHECK_SIP                          Contrôle sanitaire
+  STORAGE_AVAILABILITY_CHECK                  Vérification de la disponibilité de l’offre de stockage
   STP_ACCESSION_REGISTRATION                  Registre des Fonds
-  ACCESSION_REGISTRATION                      Alimentation du registre des fonds
+  STP_INGEST_CONTROL_SIP                      Contrôle du bordereau
   STP_INGEST_FINALISATION                     Finalisation de l’entrée
-  ACCESSION_REGISTRATION                      Alimentation du registre des fonds
-  STP_INGEST_FINALISATION                     Finalisation de l’entrée
-  ATR_NOTIFICATION                          Notification de la fin de l’opération d’entrée
+  STP_OG_CHECK_AND_TRANSFORME                 Contrôle et traitement des objets
+  STP_OG_STORING                              Rangement des objets
+  STP_SANITY_CHECK_SIP                      Contrôles préalables à l’entrée
+  STP_STORAGE_AVAILABILITY_CHECK              Préparation de la prise en charge
+  STP_UNIT_CHECK_AND_PROCESS                  Contrôle et traitement des Unités Archivistiques
+  STP_UNIT_STORING                          Rangement des Unités Archivistiques
+  STP_UPLOAD_SIP                              Réception dans vitam
+  UNIT_METADATA_INDEXATION                  Indexation des metadonnées des Unités Archivistiques
+  UNITS_RULES_COMPUTE                         Application des règles de gestion et calcule des échéances
+  UPLOAD_SIP                                  Tache de réception dans Vitam
   ====================================== =========================================================================================================
 
 Valeurs possibles pour le champ evTypeProc
@@ -2782,14 +3316,15 @@ Valeurs possibles pour le champ evTypeProc
  =================================== ===================
  Process Type                          Valeur
  ----------------------------------- -------------------
- Ingest type process                   INGEST
+
  Audit type process                    AUDIT
- Destruction type process (v2)         DESTRUCTION
- Preservation type process             PRESERVATION
  Check type process                    CHECK
- Update process                        UPDATE
+ Destruction type process (v2)         DESTRUCTION
+ Ingest type process                   INGEST
+ Preservation type process             PRESERVATION
  Rules Manager process                 MASTERDATA
  Traceability type process             TRACEABILITY
+ Update process                        UPDATE
  =================================== ===================
 
 Prefixes possibles des RulesId
@@ -2800,10 +3335,10 @@ Prefixes possibles des RulesId
  --------- ------------------------------ -----------------------------------------------------------------------------------
  ACC        AccessRule                     Règle d'accès
  APP        Appraisal                      Règle correspondant à la durée d'utilité administrative (DUA)/Durée de rétention
- STO        StorageRule                    Règle de Stockage
+ CLASS      ClassificationRule             Règle de classification
  DIS        DisseminationRule              Règle de diffusion
  REU        ReuseRule                      Règle d'utilisation
- CLASS      ClassificationRule             Règle de classification
+ STO        StorageRule                    Règle de Stockage
  ========= ============================== ===================================================================================
 
 Valeurs possibles pour le champ Status de la collection AccessionRegisterDetail

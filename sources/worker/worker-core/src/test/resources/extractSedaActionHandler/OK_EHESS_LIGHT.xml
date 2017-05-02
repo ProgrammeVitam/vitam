@@ -554,6 +554,7 @@
         </BinaryDataObject>
         <DescriptiveMetadata>
             <ArchiveUnit id="ID3">
+                <Management></Management>
                 <Content>
                     <DescriptionLevel>RecordGrp</DescriptionLevel>
                     <Title>Ecole des Hautes Etudes en Sciences Sociales</Title>
@@ -1365,6 +1366,7 @@
                 <Rule>DIS-00002</Rule>
                 <StartDate>2016-12-04</StartDate>
             </DisseminationRule>
+            <ServiceLevel>ServiceLevel0</ServiceLevel>
             <OriginatingAgencyIdentifier>FRAN_NP_051314</OriginatingAgencyIdentifier>
             <SubmissionAgencyIdentifier>FRAN_NP_005761</SubmissionAgencyIdentifier>
         </ManagementMetadata>

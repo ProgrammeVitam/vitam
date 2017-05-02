@@ -69,10 +69,7 @@ public class DeleteThread implements Callable<Boolean> {
 
     @Override
     public Boolean call() throws StorageException, StorageDriverException, InterruptedException {
-        final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
-        final Properties parameters = new Properties();
-        parameters.putAll(offer.getParameters());
-        try (Connection connection = driver.connect(offer, parameters)) {
+        try (Connection connection = driver.connect(offerId)) {
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }

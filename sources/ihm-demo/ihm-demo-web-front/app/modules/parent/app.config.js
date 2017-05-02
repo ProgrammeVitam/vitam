@@ -98,7 +98,7 @@ config(['$locationProvider' ,'$routeProvider',
     }).
     when('/admin/importContracts', {
         templateUrl: "views/import-contracts.html",
-        title: 'Import du Référentiel des contrats'
+        title: 'Import des contrats d\'entrée'
     }).
     when('/admin/importAccessContracts', {
         templateUrl: "views/import-access-contracts.html",
@@ -138,28 +138,28 @@ config(['$locationProvider' ,'$routeProvider',
         title: 'Gestion des versements'
     }).
      when('/admin/entryContracts', {
-       templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
+       templateUrl: 'pages/entry-contract-search/entry-contract.template.html',
        controller: 'entryContractsController',
        title: 'Contrats d\'entrée'
      }).
     when('/admin/entryContracts/:id', {
-      templateUrl: 'modules/entry-contracts/entry-contract-single.template.html',
-      controller: 'entryContractController',
+      templateUrl: 'pages/entry-contract-details/entry-contract-details.template.html',
+      controller: 'entryContractsDetailsController',
       title: 'Détail d\'un contrat d\'entrée'
     }).
     when('/admin/accessContracts', {
-      templateUrl: 'modules/access-contracts/access-contracts.template.html',
+      templateUrl: 'pages/access-contract-search/access-contract.template.html',
       controller: 'accessContractsController',
-      title: 'Liste des Contrats d\'accès'
+      title: 'Contrats d\'accès'
     }).
     when('/admin/accessContracts/:id', {
-      templateUrl: 'modules/access-contracts/access-contract-single.template.html',
-      controller: 'accessContractController',
+      templateUrl: 'pages/access-contract-details/access-contract-details.template.html',
+      controller: 'accessContractsDetailsController',
       title: 'Détail d\'un contrat d\'accès'
     }).
     when('/admin/traceabilityOperationSearch', {
       template: '<traceability-operation-search></traceability-operation-search>',
-      title: 'Recherche sur les opérations de sécurisation'
+      title: 'Opérations de sécurisation'
     }).
     when('/admin/traceabilityOperationDetail/:operationId', {
       template: '<traceability-operation-details></traceability-operation-details>',

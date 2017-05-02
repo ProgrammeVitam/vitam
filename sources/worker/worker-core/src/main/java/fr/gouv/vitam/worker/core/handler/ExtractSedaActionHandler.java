@@ -58,6 +58,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 
@@ -129,11 +130,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final int BDO_ID_TO_OG_ID_IO_RANK = 1;
     private static final int BDO_ID_TO_GUID_IO_RANK = 2;
     private static final int OG_ID_TO_GUID_IO_RANK = 3;
-    private static final int OG_ID_TO_UNID_ID_IO_RANK = 4;
+    public static final int OG_ID_TO_UNID_ID_IO_RANK = 4;
     private static final int BDO_ID_TO_VERSION_DO_IO_RANK = 5;
     private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
     private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
-    private static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
+    public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
     private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 9;
 
 
@@ -196,10 +197,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
 
-    private static final List<String> REQUIRED_GLOBAL_INFORMATIONS = initGlobalRequiredInformations();
     private static final String MISSING_REQUIRED_GLOBAL_INFORMATIONS =
         "Global required informations are not found after extracting the manifest.xml";
 
+    private static String prodService = null;
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -227,14 +228,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final String getId() {
         return HANDLER_ID;
     }
-
-    private static final List<String> initGlobalRequiredInformations() {
-        List<String> globalRequiredInfos = new ArrayList<>();
-        globalRequiredInfos.add(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-
-        return globalRequiredInfos;
+    
+    /**
+     * @return HandlerIO
+     */
+    public HandlerIO getHandlerIO() {
+        return handlerIO;
     }
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO ioParam) {
@@ -287,7 +287,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // objectGroupIdToGuid
             // objectGroupIdToUnitId
         }
-
+        
+        if (prodService != null) {
+            LOGGER.debug("productor service: " + prodService);
+            globalCompositeItemStatus.getData().put(LogbookParameterName.agentIdentifierOriginating.name(), prodService);
+        }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
 
     }
@@ -306,13 +310,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final String containerId = params.getContainerName();
         try (LogbookLifeCyclesClient logbookLifeCycleClient =
             LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus, 
+            return extractSEDAWithWorkspaceClient(containerId, globalCompositeItemStatus,
                 logbookLifeCycleClient, params.getLogbookTypeProcess());
         }
     }
 
     private ObjectNode extractSEDAWithWorkspaceClient(String containerId, ItemStatus globalCompositeItemStatus,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess) throws ProcessingException, CycleFoundException {
+        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess)
+        throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
 
@@ -368,6 +373,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .equals(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
 
                     final String orgAgId = reader.getElementText();
+                    prodService = orgAgId;
 
                     // Check if the OriginatingAgency was really set
                     if (orgAgId != null && !orgAgId.isEmpty()) {
@@ -379,6 +385,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createCharacters(orgAgId));
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                    globalMetadata = false;
+                }
+                
+                // Bug #2324 - lets check the serviceLevel value 
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_SERVICE_LEVEL)) {
+                    final String serviceLevel = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_SERVICE_LEVEL));
+                    writer.add(eventFactory.createCharacters(serviceLevel));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_SERVICE_LEVEL));
                     globalMetadata = false;
                 }
 
@@ -418,7 +436,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             logbookLifeCycleClient, typeProcess);
                     } else if (element.getName().equals(dataObjectName)) {
                         final String objectGroupGuid =
-                            writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient, typeProcess);
+                            writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient,
+                                typeProcess);
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             handlerIO.getHelper()
                                 .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
@@ -450,13 +469,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writer.add(eventFactory.createEndDocument());
             writer.close();
 
-            // 1- Check if required informations exist
-            for (String currentInfo : REQUIRED_GLOBAL_INFORMATIONS) {
-                if (!globalRequiredInfosFound.contains(currentInfo)) {
-                    throw new MissingFieldException(MISSING_REQUIRED_GLOBAL_INFORMATIONS);
-                }
-            }
-
             // 2-detect cycle : if graph has a cycle throw CycleFoundException
             // Define Treatment DirectedCycle detection
             final DirectedCycle directedCycle = new DirectedCycle(new DirectedGraph(archiveUnitTree));
@@ -471,7 +483,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 GRAPH_WITH_LONGEST_PATH_IO_RANK);
 
             checkArchiveUnitIdReference();
-            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess);
+            saveObjectGroupsToWorkspace(containerId, logbookLifeCycleClient, typeProcess, prodService);
 
             // Add parents to archive units and save them into workspace
             finalizeAndSaveArchiveUnitToWorkspace(archiveUnitTree, containerId,
@@ -546,12 +558,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                 }
 
-                JsonNode serviceLevel = metadataAsJson.get(SedaConstants.TAG_SERVICE_LEVEL);
-                if (serviceLevel != null) {
-                    LOGGER.debug("Find a service Level: " + serviceLevel);
-                    evDetData.put("ServiceLevel", serviceLevel.asText());
+                JsonNode dataObjPack = metadataAsJson.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
+                if (dataObjPack != null) {
+                    JsonNode serviceLevel = dataObjPack.get(SedaConstants.TAG_SERVICE_LEVEL);
+                    if (serviceLevel != null) {
+                        LOGGER.debug("Find a service Level: " + serviceLevel);
+                        evDetData.put("ServiceLevel", serviceLevel.asText());
+                    }
                 }
-
+                
             } catch (InvalidParseOperationException e) {
                 LOGGER.error("Can't parse globalSedaPareters", e);
                 throw new ProcessingException(e);
@@ -736,7 +751,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);
         ObjectNode managmentNode;
-        if (archiveUnitNode.has(SedaConstants.TAG_MANAGEMENT)) {
+        if (archiveUnitNode.has(SedaConstants.TAG_MANAGEMENT) && archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT) instanceof ObjectNode) {
             managmentNode = (ObjectNode) archiveUnitNode.get(SedaConstants.TAG_MANAGEMENT);
         } else {
             managmentNode = JsonHandler.createObjectNode();
@@ -767,9 +782,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 } else {
                     managmentRuleTypeNode = JsonHandler.createArrayNode();
                 }
-                ((ArrayNode) managmentRuleTypeNode).add(generalRuleTypeNode);
-                managmentNode.set(ruleType, managmentRuleTypeNode);
 
+                if (!checkContainsPreventInheritance((ArrayNode)managmentRuleTypeNode)) {
+                    ((ArrayNode) managmentRuleTypeNode).add(generalRuleTypeNode);
+                    managmentNode.set(ruleType, managmentRuleTypeNode);
+                }
             }
         }
 
@@ -798,6 +815,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, managmentNode);
+    }
+
+    private boolean checkContainsPreventInheritance(ArrayNode ruleTypeNode) {
+        for(JsonNode ruleNode: ruleTypeNode) {
+            if (ruleNode.has(SedaConstants.TAG_RULE_PREVENT_INHERITANCE)) {
+                if (ruleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE) instanceof BooleanNode) {
+                    return ruleNode.get(SedaConstants.TAG_RULE_PREVENT_INHERITANCE).asBoolean();
+                }
+            }
+        }
+        return false;
     }
 
     private void addWorkInformations(ObjectNode archiveUnit, String unitId, String unitGuid, boolean isRootArchive,
@@ -931,7 +959,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void writeArchiveUnitToTmpDir(String containerId, XMLEventReader reader,
-        StartElement startElement, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess logbookTypeProcess)
+        StartElement startElement, ObjectNode archiveUnitTree, LogbookLifeCyclesClient logbookLifeCycleClient,
+        LogbookTypeProcess logbookTypeProcess)
         throws ProcessingException {
 
         try {
@@ -1459,7 +1488,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             writerJson.add(eventFactory.createStartElement("", "", SedaConstants.PREFIX_ID));
             writerJson.add(eventFactory.createCharacters(elementGuid));
             writerJson.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_ID));
-
+            String currentRuleType = null;
+            boolean ruleInProgress = false;
             boolean existingUpdateOperation = false;
             while (true) {
                 final XMLEvent event = reader.nextEvent();
@@ -1474,8 +1504,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (event.isStartElement()) {
 
                     switch (event.asStartElement().getName().getLocalPart()) {
+                        case SedaConstants.TAG_RULE_ACCESS:
+                        case SedaConstants.TAG_RULE_REUSE:
+                        case SedaConstants.TAG_RULE_STORAGE:
+                        case SedaConstants.TAG_RULE_APPRAISAL:
+                        case SedaConstants.TAG_RULE_CLASSIFICATION:
+                        case SedaConstants.TAG_RULE_DISSEMINATION:
+                            writerJson.add(eventFactory.createStartElement("", "",
+                                event.asStartElement().getName().getLocalPart()));
+                            currentRuleType = event.asStartElement().getName().getLocalPart();
+                            ruleInProgress = false;
+                            break;
                         case SedaConstants.TAG_RULE_RULE:
-                            extractRuleTag(reader, writerJson, eventFactory, elementID);
+                            extractRuleTag(reader, writerJson, eventFactory, elementID, currentRuleType,
+                                ruleInProgress);
+                            ruleInProgress = true;
                             break;
                         case SedaConstants.TAG_ARCHIVE_UNIT:
                             extractArchiveUnitTag(reader, writerJson, eventFactory, event, archiveUnitId,
@@ -1518,7 +1561,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 } else if (event.isCharacters()) {
                     writerJson.add(event.asCharacters());
                 } else if (event.isEndElement()) {
-                    if (name.equals(event.asEndElement().getName())) {
+                    QName endName = event.asEndElement().getName();
+                    if (name.equals(endName)) {
                         stack--;
                         if (stack == 0) {
                             // Create objectgroup reference id
@@ -1528,6 +1572,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             writerJson.add(eventFactory.createEndElement("", "", SedaConstants.PREFIX_OG));
                             break;
                         }
+                    } else if (SedaConstants.TAG_RULE_ACCESS.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_REUSE.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_STORAGE.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_APPRAISAL.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_CLASSIFICATION.equals(endName.getLocalPart()) ||
+                        SedaConstants.TAG_RULE_DISSEMINATION.equals(endName.getLocalPart())) {
+                        writerJson
+                            .add(eventFactory.createEndElement("", "", event.asEndElement().getName().getLocalPart()));
+                        currentRuleType = null;
+                        ruleInProgress = false;
                     } else {
                         writerJson
                             .add(eventFactory.createEndElement("", "", event.asEndElement().getName().getLocalPart()));
@@ -1587,7 +1641,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         return archiveUnitGuids;
     }
-
 
     private void extractArchiveUnitTag(XMLEventReader reader, XMLEventWriter writerJson, XMLEventFactory eventFactory,
         XMLEvent event, String archiveUnitId, ObjectNode archiveUnitTree, List<String> archiveUnitGuids,
@@ -1687,7 +1740,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void extractRuleTag(XMLEventReader reader, XMLEventWriter writerJson, XMLEventFactory eventFactory,
-        String elementID) throws XMLStreamException {
+        String elementID, String currentRuleType, boolean ruleInProgress) throws XMLStreamException {
         Set<String> setRuleIds = unitIdToSetOfRuleId.get(elementID);
         if (setRuleIds == null) {
             setRuleIds = new HashSet<>();
@@ -1696,6 +1749,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         setRuleIds.add(idRule);
         unitIdToSetOfRuleId.put(elementID, setRuleIds);
 
+        if (ruleInProgress) {
+            writerJson.add(eventFactory.createEndElement("", "", currentRuleType));
+            writerJson.add(eventFactory.createStartElement("", "", currentRuleType));
+        }
         writerJson.add(eventFactory.createStartElement("", "", SedaConstants.TAG_RULE_RULE));
         writerJson.add(eventFactory.createCharacters(idRule));
         writerJson.add(eventFactory.createEndElement("", "", SedaConstants.TAG_RULE_RULE));
@@ -1748,7 +1805,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void saveObjectGroupsToWorkspace(String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess) throws ProcessingException {
+        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess typeProcess, String prodService) throws ProcessingException {
 
         completeBinaryObjectToObjectGroupMap();
 
@@ -1836,6 +1893,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_NB, entry.getValue().size());
                 // Add operation to OPS
                 objectGroup.putArray(SedaConstants.PREFIX_OPS).add(containerId);
+                objectGroup.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);
+
                 JsonHandler.writeAsFile(objectGroup, tmpFile);
 
                 handlerIO.transferFileToWorkspace(

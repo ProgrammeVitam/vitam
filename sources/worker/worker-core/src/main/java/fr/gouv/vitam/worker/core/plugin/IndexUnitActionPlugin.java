@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.Iterator;
 
@@ -49,7 +50,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.parameters.UnitType;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -75,6 +75,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
     private static final String TAG_WORK = "_work";
     private static final String TAG_CONTENT = "Content";
     private static final String TAG_MANAGEMENT = "Management";
+    private static final int SEDA_PARAMETERS_RANK = 1;
+
 
     private HandlerIO handlerIO;
 
@@ -134,9 +136,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
 
             if (response != null) {
                 input = (InputStream) response.getEntity();
-
                 JsonNode archiveUnit = prepareArchiveUnitJson(input, containerId, objectName);
-
                 final ObjectNode data = (ObjectNode) archiveUnit.get(ARCHIVE_UNIT);
                 final JsonNode work = archiveUnit.get(TAG_WORK);
                 Boolean existing = false;
@@ -260,7 +260,11 @@ public class IndexUnitActionPlugin extends ActionHandler {
         }
 
         // replace Management by _mgt
-        archiveUnitNode.set(SedaConstants.PREFIX_MGT, archiveUnitNode.get(TAG_MANAGEMENT));
+        ObjectNode managementNode = (ObjectNode)archiveUnitNode.get(TAG_MANAGEMENT);
+        final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
+        String prodService = sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_DATA_OBJECT_PACKAGE).get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER).asText();
+        managementNode.put(SedaConstants.TAG_ORIGINATINGAGENCY, prodService);        
+        archiveUnitNode.set(SedaConstants.PREFIX_MGT,(JsonNode) managementNode);
         archiveUnitNode.remove(TAG_MANAGEMENT);
 
         // remove Content tag and move its content in ArchiveUnit
@@ -269,13 +273,14 @@ public class IndexUnitActionPlugin extends ActionHandler {
         while (contentFieldNames.hasNext()) {
             String fieldName = contentFieldNames.next();
             archiveUnitNode.set(fieldName, content.get(fieldName));
-        }
+        }        
         archiveUnitNode.remove(TAG_CONTENT);
 
         // remove DataObjectReference
         // FIXME is it normal to have this TAG "DataObjectReference" after ExtractSeda since "_og" contains the guids
         archiveUnitNode.remove("DataObjectReference");
 
+        
         // add #operations
         archiveUnitNode.putArray(VitamFieldsHelper.operations()).add(containerId);
 

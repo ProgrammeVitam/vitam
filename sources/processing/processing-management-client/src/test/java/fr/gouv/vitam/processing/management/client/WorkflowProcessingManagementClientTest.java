@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.management.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
@@ -45,6 +46,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
@@ -334,9 +338,12 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void givenBadRequestWhenProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final Response ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
         assertNotNull(ret);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getStatus());
+        assertTrue(ret.isOk());
+
+
+        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getHttpCode());
         // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 
@@ -350,8 +357,10 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void executeOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final Response ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
+        final  RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, CONTEXT_ID, ACTION_ID);
         assertNotNull(ret);
+        assertTrue(ret.isOk());
+
         // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 
@@ -378,8 +387,10 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void givenBadRequestWhenCancelProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.UNAUTHORIZED).entity(desired).build());
-        final Response ret = client.cancelOperationProcessExecution(ID);
+        final RequestResponse<JsonNode> ret = client.cancelOperationProcessExecution(ID);
         assertNotNull(ret);
+        assertTrue(ret.isOk());
+
         // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());s
     }
 
@@ -393,8 +404,10 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void CancelOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final Response ret = client.cancelOperationProcessExecution(ID);
-        assertNotNull(ret);
+        final RequestResponse<JsonNode>  ret = client.cancelOperationProcessExecution(ID);
+
+        assertTrue(ret.isOk());
+
         // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
     }
 
@@ -541,24 +554,21 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void givenBadRequestWheninitWorkFlowOperationThenReturnNoContent() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        Response resp = client.initWorkFlow(CONTEXT_ID);
-        assertEquals(resp.getStatus(), Status.NO_CONTENT.getStatusCode());
+        client.initWorkFlow(CONTEXT_ID);
 
     }
 
     @Test
     public void givenInternalServerErrorWheninitWorkFlowThenReturnInternalServerError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        Response resp = client.initWorkFlow(CONTEXT_ID);
-        assertEquals(resp.getStatus(), Status.NO_CONTENT.getStatusCode());
+        client.initWorkFlow(CONTEXT_ID);
     }
 
     @Test
     public void initWorkFlowProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        Response resp = client.initWorkFlow(CONTEXT_ID);
-        assertEquals(resp.getStatus(), Status.NO_CONTENT.getStatusCode());
+        client.initWorkFlow(CONTEXT_ID);
 
     }
 

@@ -67,12 +67,12 @@ public class RequestResponseOKTest {
     private JsonNode query;
 
     private static final String ERROR_JSON =
-        "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
+        "{\"httpCode\":400,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
             "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
             "[{\"httpCode\":0,\"code\":\"1\"}]}";
 
     private static final String OK_JSON =
-        "{\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
+        "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
             "\"$results\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
 
     @Test
@@ -98,6 +98,7 @@ public class RequestResponseOKTest {
         final RequestResponseOK requestResponseOK = new RequestResponseOK();
         requestResponseOK.setQuery(query);
         requestResponseOK.addAllResults(new ArrayList());
+        requestResponseOK.setHttpCode(Status.OK.getStatusCode());
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
 
@@ -115,13 +116,13 @@ public class RequestResponseOKTest {
         requestResponseOK.addResult(objectTest);
         requestResponseOK.getHits().setTotal(2).setLimit(2);
         assertEquals(
-            "{\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
+            "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));
         requestResponseOK.setHits(2, 0, 2, 0);
         assertEquals(
-            "{\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
+            "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":0}," +
                 "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
                 "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
             JsonHandler.unprettyPrint(requestResponseOK));

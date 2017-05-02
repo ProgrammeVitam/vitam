@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -66,6 +67,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -81,6 +83,8 @@ public class AdminManagementExternalResourceImpl {
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
     private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
+    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
+    private static final String UPDATE_INGEST_CONTRACT = "/contract";
 
     /**
      * Constructor
@@ -108,13 +112,12 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    final Response status = client.checkFormat(document);
-                    status.bufferEntity();
-                    return Response.fromResponse(status).build();
+                    final Status status = client.checkFormat(document);
+                    return Response.status(status).build();
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    final Response status = client.checkRulesFile(document);
-                    return Response.fromResponse(status).build();
+                    final Status status = client.checkRulesFile(document);
+                    return Response.status(status).build();
                 }
                 return Response.status(Status.NOT_FOUND).entity(getErrorEntity(Status.NOT_FOUND, null, null)).build();
             } catch (ReferentialException ex) {
@@ -150,44 +153,29 @@ public class AdminManagementExternalResourceImpl {
         try {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             ParametersChecker.checkParameter(collection, "The collection is mandatory");
-
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
-                Response resp = null;
                 Object respEntity = null;
-                int status = Status.CREATED.getStatusCode();
+                Status status = Status.CREATED;
                 if (AdminCollections.FORMATS.compareTo(collection)) {
-                    resp = client.importFormat(document);
+                    status = client.importFormat(document);
                 }
                 if (AdminCollections.RULES.compareTo(collection)) {
-                    resp = client.importRulesFile(document);
+                    status = client.importRulesFile(document);
                 }
-                //get response entity
-                if (resp != null) {
-                    status = resp.getStatus();
-                    if (resp.hasEntity()) {
-                        respEntity = resp.getEntity();
-                    }
-                }
+
                 if (AdminCollections.CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
-                    respEntity = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<IngestContractModel>>(){}));
-                    //get response entity and http status
-                    if (respEntity != null && respEntity instanceof VitamError) {
-                        status = ((VitamError) respEntity).getHttpCode();
-                    }
+                    status =
+                        client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                            new TypeReference<List<IngestContractModel>>() {}));
                 }
-
                 if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
                     JsonNode json = JsonHandler.getFromInputStream(document);
                     SanityChecker.checkJsonAll(json);
+                    status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<AccessContractModel>>() {}));
 
-                    respEntity = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(), new TypeReference<List<AccessContractModel>>(){}));
-                    //get response entity and http status
-                    if (respEntity != null && respEntity instanceof VitamError) {
-                        status = ((VitamError) respEntity).getHttpCode();
-                    }
                 }
 
                 // Send the http response with the entity and the status got from internalService;
@@ -322,6 +310,61 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Update access contract
+     * 
+     * @param queryDsl
+     * @return
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path(UPDATE_ACCESS_CONTRACT)
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateAccessContract(JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<AccessContractModel> response = client.updateAccessContract(queryDsl);
+                return Response.status(Status.OK).entity(response).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+    
+    /**
+     * 
+     * @param queryDsl the given query dsl
+     * @return
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path(UPDATE_INGEST_CONTRACT)
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateIngestContract(JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<IngestContractModel> response = client.updateIngestContract(queryDsl);
+                return Response.status(Status.OK).entity(response).build();
+            }
+        } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();

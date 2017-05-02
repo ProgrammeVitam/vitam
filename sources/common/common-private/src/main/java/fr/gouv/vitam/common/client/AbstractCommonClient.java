@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -97,10 +98,8 @@ abstract class AbstractCommonClient implements BasicClient {
         // External client or with no Session context are excluded
         // TODO: Find a better check (a specific one, instead of inferring the context from another constraint ?);
         if (clientFactory.useAuthorizationFilter()) {
-            client.register(RequestIdClientFilter.class);
-            client.register(TenantIdClientFilter.class);
-            clientNotChunked.register(RequestIdClientFilter.class);
-            clientNotChunked.register(TenantIdClientFilter.class);
+            client.register(HeaderIdClientFilter.class);
+            clientNotChunked.register(HeaderIdClientFilter.class);
         }
     }
 
@@ -122,22 +121,32 @@ abstract class AbstractCommonClient implements BasicClient {
                     StreamUtils.closeSilently((InputStream) object);
                 }
             }
-        } catch (final IllegalStateException | ProcessingException e) {
+        } catch (final Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         } finally {
             if (response != null) {
-                response.close();
+                try {
+                    response.close();
+                } catch (final Exception e) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
             }
         }
     }
 
     @Override
     public void checkStatus() throws VitamApplicationServerException {
+        this.checkStatus(null);
+    }
+
+
+    @Override
+    public void checkStatus(MultivaluedHashMap<String, Object> headers)
+        throws VitamApplicationServerException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, STATUS_URL, null, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.GET, STATUS_URL, headers, MediaType.APPLICATION_JSON_TYPE, false);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            consumeAnyEntityAndClose(response);
             if (status == Status.OK || status == Status.NO_CONTENT) {
                 return;
             }
@@ -147,11 +156,9 @@ abstract class AbstractCommonClient implements BasicClient {
         } catch (ProcessingException | VitamClientInternalException e) {
             final String messageText = INTERNAL_SERVER_ERROR + " : " + e.getMessage();
             LOGGER.error(messageText);
-            throw new VitamApplicationServerException(messageText, e);
+            throw new VitamApplicationServerDisconnectException(messageText, e);
         } finally {
-            if (response != null) {
-                response.close();
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 

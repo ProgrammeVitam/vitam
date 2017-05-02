@@ -66,6 +66,10 @@ public enum LogbookTypeProcess {
     /**
      * INGEST (Blank test)
      */
-    INGEST_TEST;
+    INGEST_TEST,
+    /**
+     * Storage logbook type process
+     */
+    STORAGE_LOGBOOK;
 
 }

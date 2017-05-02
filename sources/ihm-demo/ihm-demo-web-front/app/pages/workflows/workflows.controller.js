@@ -51,7 +51,8 @@ angular.module('workflows')
       ihmDemoFactory.getWorkflows()
       .then(
         function(response) {
-          $scope.operations = response.data;
+            	//FIXME : dirty fix, the response should not be like this.
+          $scope.operations = response.data.$results[0].$results[0].$results[0];
       },
         function (error) {
           // Display error message

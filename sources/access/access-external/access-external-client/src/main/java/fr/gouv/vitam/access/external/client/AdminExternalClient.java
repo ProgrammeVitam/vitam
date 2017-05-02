@@ -28,7 +28,7 @@ package fr.gouv.vitam.access.external.client;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -56,7 +56,7 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientException
      * @throws AccessExternalClientServerException
      */
-    Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException,
         AccessExternalClientException, AccessExternalClientServerException;
 
@@ -71,7 +71,7 @@ public interface AdminExternalClient extends BasicClient {
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**
@@ -100,12 +100,11 @@ public interface AdminExternalClient extends BasicClient {
      */
     RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
         throws AccessExternalClientException, InvalidParseOperationException;
-    
-    
+
+
     /**
      * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
-     * The input is invalid in the following situations : </BR>
+     * the collection and indexed. </BR> The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -118,9 +117,34 @@ public interface AdminExternalClient extends BasicClient {
      * @param tenantId
      * @param collection the collection name
      * @return Vitam response
-     * @throws InvalidParseOperationException 
-     * @throws AccessExternalClientException 
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
      */
-    RequestResponse importContracts(InputStream contracts, Integer tenantId, AdminCollections collection) throws InvalidParseOperationException, AccessExternalClientException;
-    
+    RequestResponse importContracts(InputStream contracts, Integer tenantId, AdminCollections collection)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+    /**
+     * Update the given access contract by query dsl
+     * 
+     * @param queryDsl the given dsl query
+     * @param tenantId
+     * @return Response status ok or vitam error
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+    /**
+     * Update the given ingest contract by query dsl
+     * 
+     * @param queryDsl the given dsl query
+     * @param tenantId
+     * @return Response status ok or vitam error
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
 }

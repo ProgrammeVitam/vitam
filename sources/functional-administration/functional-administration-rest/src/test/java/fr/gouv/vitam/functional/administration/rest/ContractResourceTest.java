@@ -26,13 +26,34 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
-import com.jayway.restassured.response.ValidatableResponse;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -41,12 +62,20 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -59,26 +88,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.*;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.data.Index;
-import org.jhades.JHades;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 
 
 /**
@@ -92,6 +106,7 @@ public class ContractResourceTest {
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
+    private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
 
 
     private static final int TENANT_ID = 0;
@@ -111,7 +126,7 @@ public class ContractResourceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     private static ElasticsearchTestConfiguration configEs = null;
 
     @ClassRule
@@ -141,7 +156,7 @@ public class ContractResourceTest {
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
-                PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
@@ -150,9 +165,9 @@ public class ContractResourceTest {
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(databasePort, Network.localhostIsIPv6()))
-                .build());
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(databasePort, Network.localhostIsIPv6()))
+            .build());
         mongod = mongodExecutable.start();
 
         final List<MongoDbNode> nodes = new ArrayList<>();
@@ -171,7 +186,7 @@ public class ContractResourceTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
-                    "Cannot start the AdminManagement Application Server", e);
+                "Cannot start the AdminManagement Application Server", e);
         }
     }
 
@@ -212,7 +227,7 @@ public class ContractResourceTest {
     @RunWithCustomExecutor
     public void givenAWellFormedAccessContractJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok_unique.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
         // transform to json
         given().contentType(ContentType.JSON).body(json)
@@ -220,13 +235,18 @@ public class ContractResourceTest {
             .when().post(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
+        final fr.gouv.vitam.common.database.builder.request.single.Select select =
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
+        final BooleanQuery query = and();
+        query.add(match("Name", "aUniqueName"));
+        select.setQuery(query);                
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        List<String> result = given().contentType(ContentType.JSON).body("{}")
+        List<String> result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().get(ContractResource.INGEST_CONTRACTS_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Name");
 
-        assertThat(result).hasSize(1).contains("aName");
+        assertThat(result).hasSize(1).contains("aUniqueName");
     }
 
     @Test
@@ -264,10 +284,79 @@ public class ContractResourceTest {
         JsonNode json = JsonHandler.getFromFile(fileContracts);
         // transform to json
         given().contentType(ContentType.JSON).body(json)
-                .header(GlobalDataRest.X_TENANT_ID, 0)
-                .when().post( ContractResource.ACCESS_CONTRACTS_URI)
-                .then().statusCode(Status.CREATED.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
+
+    private void createAccessContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    private void createIngestContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileContracts);
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.INGEST_CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractTestUpdate() throws Exception {
+        createAccessContract();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        // Test update for access contract Status => inactive
+        String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
+        SetAction setActionStatusInactive;
+        try {
+            setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
+            SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+            SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+            Update update = new Update();
+            update.setQuery(QueryHelper.eq("Name", "aName"));
+            update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
+            updateParser.parse(update.getFinalUpdate());
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {}
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI).then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractTestUpdate() throws Exception {
+        createIngestContract();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        // Test update for access contract Status => inactive
+        String now = LocalDateUtil.now().toString();
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new VarNameAdapter());
+        SetAction setActionStatusInactive;
+        try {
+            setActionStatusInactive = UpdateActionHelper.set("Status", "INACTIVE");
+            SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
+            SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+            Update update = new Update();
+            update.setQuery(QueryHelper.eq("Name", "aName"));
+            update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
+            updateParser.parse(update.getFinalUpdate());
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {}
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI).then().statusCode(Status.OK.getStatusCode());
+    }
+
 
 
     @Test
@@ -279,15 +368,15 @@ public class ContractResourceTest {
         JsonNode json = JsonHandler.getFromFile(fileContracts);
         // first succefull create
         JsonPath body = given().contentType(ContentType.JSON).body(json)
-                .header(GlobalDataRest.X_TENANT_ID, 0)
-                .when().post(ContractResource.ACCESS_CONTRACTS_URI)
-                .then().statusCode(Status.CREATED.getStatusCode()).extract().body().jsonPath();
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().post(ContractResource.ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.CREATED.getStatusCode()).extract().body().jsonPath();
 
         List<String> names = body.get("$results.Name");
 
         assertThat(names).isNotEmpty();
 
-        //We juste test the first contract
+        // We juste test the first contract
         String name = names.get(0);
         assertThat(name).isNotNull();
 
@@ -298,19 +387,19 @@ public class ContractResourceTest {
         JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 
-        //find accessContract with the id1 should return Status.OK
-        body =  given().contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, 0)
-                .body(queryDsl)
-                .when()
-                .get(ContractResource.ACCESS_CONTRACTS_URI)
-                .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+        // find accessContract with the id1 should return Status.OK
+        body = given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .body(queryDsl)
+            .when()
+            .get(ContractResource.ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
 
         names = body.get("$results.Name");
 
         assertThat(names).hasSize(1);
 
-        //We juste test the first contract
+        // We juste test the first contract
         assertThat(names).contains(name);
 
     }

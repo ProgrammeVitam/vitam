@@ -38,6 +38,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -72,8 +74,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.RequestIdContainerFilter;
-import fr.gouv.vitam.common.server.TenantIdContainerFilter;
+import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -239,8 +240,7 @@ public class IngestInternalResourceTest {
         configuration.setProcessingUrl("http://localhost:9999");
 
         resourceConfig.register(new IngestInternalResource(workspaceClient, processingClient));
-        resourceConfig.register(RequestIdContainerFilter.class);
-        resourceConfig.register(TenantIdContainerFilter.class);
+        resourceConfig.register(HeaderIdContainerFilter.class);
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
@@ -285,8 +285,8 @@ public class IngestInternalResourceTest {
             Matchers.anyObject(), Matchers.anyObject());
 
         Mockito
-            .doReturn(Response.ok()
-                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.COMPLETED.name()).build())
+            .doReturn(new RequestResponseOK<JsonNode>().parseHeadersFromResponse(Response.ok()
+                .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, ProcessExecutionStatus.COMPLETED.name()).build()))
             .when(processingClient).executeOperationProcess(Matchers.anyObject(),
                 Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject());
 

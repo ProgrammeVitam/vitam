@@ -26,19 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.FindIterable;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCursor;
@@ -52,6 +51,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -87,7 +87,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     @Override
     public void insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection)
         throws ReferentialException {
-        try {    
+        try {
             DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
             Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
@@ -125,7 +125,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                 LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
             }
             if (result.getCount() != count) {
-                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), 
+                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(),
                     result.getCount(), count));
             }
         }
@@ -153,9 +153,26 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
+    public void updateData(JsonNode update, FunctionalAdminCollections collection)
+        throws ReferentialException {
+        try { 
+            UpdateParserSingle parser = new UpdateParserSingle(new VarNameAdapter());
+            parser.parse(update);
+            DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
+            DbRequestResult result = (DbRequestResult) dbrequest.execute(parser.getRequest());
+            if (result.getDiffs().size() == 0 ) {
+                throw new ReferentialException("Document is not updated");
+            }
+        } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error("find Document Exception", e);
+            throw new ReferentialException(e);
+        }
+    }
+
+    @Override
     public void updateDocumentByMap(Map<String, Object> map, JsonNode objNode,
         FunctionalAdminCollections collection, UPDATEACTION operator)
-            throws ReferentialException {
+        throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
         final BasicDBObject updateFields = new BasicDBObject();
         for (final Entry<String, Object> entry : map.entrySet()) {
@@ -164,9 +181,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         incQuery.append(operator.exactToken(), updateFields);
         Bson query = and(
             eq(AccessionRegisterSummary.ORIGINATING_AGENCY,
-            objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()),
+                objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()),
             eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
-        
+
         final UpdateResult result = collection.getCollection().updateOne(query, incQuery);
         if (result.getModifiedCount() == 0 && result.getMatchedCount() == 0) {
             throw new ReferentialException("Document is not updated");

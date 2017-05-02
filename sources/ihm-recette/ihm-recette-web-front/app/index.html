@@ -52,7 +52,7 @@
     <script src="modules/core/main.controller.js"></script>
     <script src="modules/core/ihm-demo-service.js"></script>
     <script src="modules/core/message.service.js"></script>
-    
+
     <!-- Core -->
     <script src="core/filter/search.filter.js"></script>
     <script src="core/filter/date.filter.js"></script>
@@ -68,18 +68,9 @@
     <script src="pages/admin-home/admin-home.controller.js"></script>
     <script src="pages/admin-home/admin-home.component.js"></script>
 
-    <script src="pages/soap-ui/soap-ui.module.js"></script>
-    <script src="pages/soap-ui/soap-ui.controller.js"></script>
-    <script src="pages/soap-ui/soap-ui.component.js"></script>
-
     <script src="pages/operation-traceability/operation-traceability.module.js"></script>
     <script src="pages/operation-traceability/operation-traceability.controller.js"></script>
     <script src="pages/operation-traceability/operation-traceability.component.js"></script>
-    
-    <script src="pages/search-operation/search-operation.module.js"></script>
-    <script src="pages/search-operation/search-operation.controller.js"></script>
-    <script src="pages/search-operation/search-operation.component.js"></script>
-    <script src="pages/search-operation/detail-operation.controller.js"></script>
 
     <script src="pages/functional-test/functional-test.module.js"></script>
     <script src="pages/functional-test/functional-test.controller.js"></script>
@@ -88,23 +79,15 @@
 
     <!-- Services -->
     <script src="services/admin.service.js"></script>
-    <script src="services/soap-ui.service.js"></script>
     <script src="services/operation-traceability.service.js"></script>
-    <script src="services/search-operation.service.js"></script>
-    <script src="services/download-operation.service.js"></script>
-    <script src="services/detail-operation.service.js"></script>
     <script src="services/functional-test.service.js"></script>
 
 
     <!-- Resources -->
     <script src="resources/admin.resource.js"></script>
-    <script src="resources/soap-ui.resource.js"></script>
     <script src="resources/messages.resource.js"></script>
     <script src="resources/upload-sip-perf.resource.js"></script>
     <script src="resources/operation-traceability.resource.js"></script>
-    <script src="resources/search-operation.resource.js"></script>
-    <script src="resources/download-operation.resource.js"></script>
-    <script src="resources/detail-operation.resource.js"></script>
     <script src="resources/functional-test.resource.js"></script>
 </head>
 
@@ -143,10 +126,8 @@
                         </button>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="Menu">
                             <li><a href="#!/adminHome">Administration des collections</a></li>
-                            <li><a href="#!/soapUi">Tests SOAP-UI</a></li>
                             <li><a href="#!/uploadperf">Transfert (Test de performance)</a></li>
                             <li><a href="#!/operationTraceability">Sécurisation du journal des opérations </a></li>
-                            <li><a href="#!/searchOperation">Rechercher un journal sécurisé</a></li>
                             <li><a href="#!/applicativeTest">Tests fonctionnels</a></li>
                         </ul>
                     </li>
@@ -161,7 +142,7 @@
                         </ul>
                     </li>
                 </ul>
-                
+
                 <ul class="nav navbar-nav" style="margin: 10px 0 0 100px; width: 500px; float: right">
                 	<li><b> Tenant en cours : {{tenantChosen}} </b></li>
                 	<li style="min-width: 500px">

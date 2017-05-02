@@ -40,10 +40,13 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -141,7 +144,8 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         @Path("ingests")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         public Response upload(InputStream stream) {
-            return expectedResponse.post();
+            Response resp =  expectedResponse.post();
+            return resp;
         }
 
         @GET
@@ -171,28 +175,20 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
     @Test
     public void givenErrorWhenUploadThenReturnBadRequestErrorWithBody() throws Exception {
-        final InputStream mockResponseInputStream = IOUtils.toInputStream(MOCK_RESPONSE_STREAM);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-        final Response fakeResponse = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
-            mockResponseInputStream,
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
-        when(mock.post()).thenReturn(fakeResponse);
+        ObjectNode objectNode = JsonHandler.createObjectNode();
+        objectNode.put(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
+
+
+        when(mock.post()).thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
 
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT);
-        final InputStream fakeUploadResponseInputStream =
-            client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE).readEntity(InputStream.class);
-        assertNotNull(fakeUploadResponseInputStream);
+        RequestResponse<JsonNode> resp = client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
 
-        try {
-            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                IOUtils.toInputStream(MOCK_RESPONSE_STREAM)));
-        } catch (final IOException e) {
-            e.printStackTrace();
-            fail();
-        }
+        assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
     }
 
     @Test
@@ -219,7 +215,9 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
 
         when(mock.head()).thenReturn(Response.status(Status.OK).build());
-        assertEquals(client.getOperationStatus(ID, 0).getStatus(), 200);
+        RequestResponse<JsonNode> resp = client.getOperationStatus(ID, 0);
+
+        assertEquals(resp.getHttpCode(), Status.OK.getStatusCode());
 
     }
 

@@ -28,6 +28,7 @@ package fr.gouv.vitam.ingest.external.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -76,7 +77,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 
 /**
@@ -186,7 +187,7 @@ public class IngestExternalImpl implements IngestExternal {
                 if (containerName != null) {
                     workspaceFileSystem.createContainer(containerName.toString());
                 }
-            } catch (final ContentAddressableStorageAlreadyExistException e) {
+            } catch (final ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
                 LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
@@ -212,18 +213,21 @@ public class IngestExternalImpl implements IngestExternal {
                     if (containerName != null) {
                         workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
                     }
-                } catch (final ContentAddressableStorageNotFoundException e) {
+                } catch (final ContentAddressableStorageException e) {
                     LOGGER.warn(e);
                 }
                 try {
                     if (containerName != null) {
                         workspaceFileSystem.deleteContainer(containerName.getId(), true);
                     }
-                } catch (final ContentAddressableStorageNotFoundException e) {
+                } catch (final ContentAddressableStorageException e) {
                     LOGGER.warn(e);
                 }
             }
             throw new IngestExternalException(ex);
+        } catch (IOException ex) {
+            LOGGER.error("Cannot load WorkspaceFileSystem ", ex);
+            throw new IllegalStateException(ex);
         }
         return new PreUploadResume(
             helper,
@@ -452,14 +456,14 @@ public class IngestExternalImpl implements IngestExternal {
                     if (containerName != null) {
                         workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
                     }
-                } catch (final ContentAddressableStorageNotFoundException e) {
+                } catch (final ContentAddressableStorageException e) {
                     LOGGER.warn(e);
                 }
                 try {
                     if (containerName != null) {
                         workspaceFileSystem.deleteContainer(containerName.getId(), true);
                     }
-                } catch (final ContentAddressableStorageNotFoundException e) {
+                } catch (final ContentAddressableStorageException e) {
                     LOGGER.warn(e);
                 }
             }
@@ -467,20 +471,15 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private void cancelOperation(GUID guid) throws IngestExternalException {
-        Response response = null;
-        try (IngestInternalClient ingestClient =
-            IngestInternalClientFactory.getInstance().getClient()) {
-            response = ingestClient.cancelOperationProcessExecution(guid.getId());
+        try (IngestInternalClient ingestClient = IngestInternalClientFactory.getInstance().getClient()) {
+            ingestClient.cancelOperationProcessExecution(guid.getId());
         } catch (final Exception e) {
             throw new IngestExternalException(e);
-        } finally {
-            if (null != response) {
-                response.close();
-            }
         }
     }
 
     /**
+     *
      * @param containerName
      * @param ingestGuid
      * @param helper
@@ -488,11 +487,11 @@ public class IngestExternalImpl implements IngestExternal {
      * @param isFileInfected
      * @param mimeType
      * @param endParameters
-     * @param string 
+     * @param logbookTypeProcess
+     * @param logbookEventType
      * @return
      * @throws LogbookClientNotFoundException
      * @throws IngestExternalException
-     * @throws VitamClientException
      */
     private Response prepareEarlyAtrKo(final GUID containerName, final GUID ingestGuid,
         final LogbookOperationsClientHelper helper, final LogbookOperationParameters startedParameters,

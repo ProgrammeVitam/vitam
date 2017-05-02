@@ -44,8 +44,6 @@ echo "vitam-elasticsearch-head"
 ${WORKING_FOLDER}/build-elasticsearch-head.sh
 echo "vitam-elasticsearch-kopf"
 ${WORKING_FOLDER}/build-elasticsearch-kopf.sh
-echo "vitam-elasticsearch-soapui"
-${WORKING_FOLDER}/build-soapui.sh
 echo "vitam-siegfried"
 ${WORKING_FOLDER}/build-siegfried.sh
 echo "vitam-mongoclient"

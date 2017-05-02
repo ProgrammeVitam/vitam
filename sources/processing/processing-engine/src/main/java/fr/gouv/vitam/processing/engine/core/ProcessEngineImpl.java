@@ -79,6 +79,7 @@ import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagem
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImplFactory;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -94,13 +95,11 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         "Total elapsed time in execution of method startProcessByWorkFlowId is :";
     private static final String START_MESSAGE = "start ProcessEngine ...";
 
-    private static final String MESSAGE_IDENTIFIER = "messageIdentifier";
-
-
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
     private final ProcessDistributor processDistributorMock;
     private final Map<String, String> messageIdentifierMap = new HashMap<>();
+    private final Map<String, String> prodserviceMap = new HashMap<>();
     private final ProcessDataAccess processData;
     private Object monitor = null;
     private WorkerParameters workParams = null;
@@ -119,6 +118,21 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
         this.workParams = workParams;
         this.asyncResponse = asyncResponse;
         dataManagement = WorkspaceProcessDataManagement.getInstance();
+    }
+
+    /**
+     * Constructor use for recovery process
+     *
+     * @param workParams the worker parameters
+     * @param monitor the monitor
+     */
+    protected ProcessEngineImpl(WorkerParameters workParams, Object monitor) {
+        processDistributorMock = null;
+        processData = ProcessDataAccessImpl.getInstance();
+        this.monitor = monitor;
+        this.workParams = workParams;
+        dataManagement = WorkspaceProcessDataManagement.getInstance();
+        isFirstCall = false;
     }
 
     /**
@@ -189,7 +203,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
 
                 stepResponse =
                     processStep(processId.getId(), step, step.getId(), workParams, workflowStatus, client, operationId,
-                        messageIdentifierMap.get(processId.getId()), tenantId);
+                        messageIdentifierMap.get(processId.getId()), prodserviceMap.get(processId.getId()), tenantId);
 
                 // update global status Process workFlow and process Step
                 processData.updateStepStatus(operationId, step.getId(), stepResponse.getGlobalStatus(), tenantId);
@@ -221,9 +235,10 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             // check if it's a final step
             if (finallyStep != null) {
                 processStep(processId.getId(), finallyStep, finallyStep.getId(), workParams,
-                    workflowStatus, client, operationId, messageIdentifierMap.get(processId.getId()),
+                    workflowStatus, client, operationId, messageIdentifierMap.get(processId.getId()), prodserviceMap.get(processId.getId()),
                     tenantId);
                 messageIdentifierMap.remove(processId);
+                prodserviceMap.remove(processId);
 
                 // process finished
                 processData.updateProcessExecutionStatus(operationId, ProcessExecutionStatus.COMPLETED, tenantId);
@@ -347,7 +362,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
     }
 
     private ItemStatus processStep(String processId, ProcessStep step, String uniqueId, WorkerParameters workParams,
-        ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier,
+        ItemStatus workflowStatus, LogbookOperationsClient client, String workflowId, String messageIdentifier, String prodService,
         int tenantId)
         throws InvalidGuidOperationException, LogbookClientBadRequestException, LogbookClientNotFoundException,
         LogbookClientServerException, ProcessingException {
@@ -371,6 +386,7 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             GUIDReader.getGUID(workParams.getContainerName()));
         parameters.putParameterValue(
             LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
+
         client.update(parameters);
 
         // update the process monitoring for this step
@@ -408,14 +424,27 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                     if (itemStatus instanceof ItemStatus) {
                         final ItemStatus actionStatus = itemStatus;
                         for (final ItemStatus sub : actionStatus.getItemsStatus().values()) {
+                            final LogbookOperationParameters startParameters =
+                                LogbookParametersFactory.newLogbookOperationParameters(
+                                    GUIDFactory.newEventGUID(tenantId),
+                                    handlerId + "." + sub.getItemId(),
+                                    GUIDReader.getGUID(workParams.getContainerName()),
+                                    logbookTypeProcess,
+                                    StatusCode.STARTED,
+                                    VitamLogbookMessages.getCodeOp(handlerId, sub.getItemId(), StatusCode.STARTED),
+                                    GUIDReader.getGUID(workParams.getContainerName()));
+                            startParameters.putParameterValue(
+                                LogbookParameterName.outcomeDetail, VitamLogbookMessages.getOutcomeDetail(handlerId, sub.getItemId(), StatusCode.STARTED));
+                            helper.updateDelegate(startParameters);
+
                             final LogbookOperationParameters sublogbook =
                                 LogbookParametersFactory.newLogbookOperationParameters(
                                     GUIDFactory.newEventGUID(tenantId),
-                                    actionStatus.getItemId(),
+                                    handlerId + "." + sub.getItemId(),
                                     GUIDReader.getGUID(workParams.getContainerName()),
                                     logbookTypeProcess,
                                     sub.getGlobalStatus(),
-                                    sub.getItemId(), " Detail= " + sub.computeStatusMeterMessage(),
+                                    null, " Detail= " + sub.computeStatusMeterMessage(),
                                     GUIDReader.getGUID(workParams.getContainerName()));
                             helper.updateDelegate(sublogbook);
                         }
@@ -457,14 +486,19 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
             }
 
             if (messageIdentifier == null) {
-                if (stepResponse.getData().get(MESSAGE_IDENTIFIER) != null) {
-                    messageIdentifier = stepResponse.getData().get(MESSAGE_IDENTIFIER).toString();
+                if (stepResponse.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
+                    messageIdentifier = stepResponse.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER).toString();
                     messageIdentifierMap.put(processId, messageIdentifier);
                 }
-
             }
-
-
+            
+            if (prodService == null) {
+                if (stepResponse.getData().get(LogbookParameterName.agentIdentifierOriginating.name()) != null) {
+                    prodService = (String)stepResponse.getData().get(LogbookParameterName.agentIdentifierOriginating.name().toString());
+                    prodserviceMap.put(processId, prodService);
+                }
+            }
+            
             if (messageIdentifier != null && !messageIdentifier.isEmpty()) {
                 processData.updateMessageIdentifier(workParams.getContainerName(), messageIdentifier, tenantId);
                 parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
@@ -473,6 +507,14 @@ public class ProcessEngineImpl implements ProcessEngine, Runnable {
                     processData.getMessageIdentifierByOperationId(workParams.getContainerName(), tenantId));
             }
 
+            if (prodService != null && !prodService.isEmpty()) {
+                processData.updateProdService(workParams.getContainerName(), prodService, tenantId);
+                parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating, prodService);
+            } else {
+                parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating, 
+                    processData.getProdServiceByOperationId(workParams.getContainerName(), tenantId));
+            }
+            
             parameters.putParameterValue(LogbookParameterName.eventIdentifier,
                 GUIDFactory.newEventGUID(tenantId).getId());
             parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());           

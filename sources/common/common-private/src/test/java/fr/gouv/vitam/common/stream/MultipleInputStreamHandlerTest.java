@@ -35,14 +35,18 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -113,7 +117,7 @@ public class MultipleInputStreamHandlerTest {
         LOGGER.warn("end bad initialization Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test
+    @Test
     public void testMultipleInputStreamHandlerSingle() {
         final long start = System.nanoTime();
         LOGGER.warn("start testMultipleInputStreamHandlerSingle Pool {}", MultipleInputStreamHandler.getPoolAvailability());
@@ -123,7 +127,7 @@ public class MultipleInputStreamHandlerTest {
             assertNotNull(mish.toString());
             final InputStream is = mish.getInputStream(0);
             long total = 0;
-            assertNotNull(is.toString());
+            assertNotNull(is);
             while (is.read() >= 0) {
                 total++;
             }
@@ -146,7 +150,7 @@ public class MultipleInputStreamHandlerTest {
             int read;
             long total = 0;
             final byte[] buffer = new byte[size];
-            while ((read = is.read(buffer)) > 0) {
+            while ((read = is.read(buffer)) >= 0) {
                 total += read;
             }
             assertEquals(INPUTSTREAM_SIZE, total);
@@ -158,7 +162,7 @@ public class MultipleInputStreamHandlerTest {
         addTimer(stop - start, "SINGLE_BLOCK_" + size + "  :\t" + (stop - start));
     }
 
-    @Ignore //@Test
+    @Test
     public void testMultipleInputStreamHandlerBlock() {
         LOGGER.warn("start testMultipleInputStreamHandlerBlock Pool {}", MultipleInputStreamHandler.getPoolAvailability());
         testMultipleInputStreamHandlerBlock(100);
@@ -173,7 +177,7 @@ public class MultipleInputStreamHandlerTest {
         LOGGER.warn("stop testMultipleInputStreamHandlerBlock Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test
+    @Test
     public void testMultipleInputStreamHandlerMultipleShift8K() {
         final long start = System.nanoTime();
         final int size = 8192;
@@ -211,106 +215,117 @@ public class MultipleInputStreamHandlerTest {
         addTimer(stop - start, "MULTIPLE_BLOCK_" + size + "_" + nb + " :\t" + (stop - start) + "  \t" + (stop - start) / nb);
     }
 
-    private static class ThreadReader implements Runnable {
+    private static class ThreadReader implements Callable<Integer> {
         private final InputStream is;
         private final int size;
-        private final long[] total;
         private final int rank;
 
-        private ThreadReader(int rank, long[] total, InputStream is, int size) {
+        private ThreadReader(int rank, InputStream is, int size) {
             this.rank = rank;
-            this.total = total;
             this.is = is;
             this.size = size;
         }
 
         @Override
-        public void run() {
+        public Integer call() {
             int read;
-            total[rank] = 0;
+            int total = 0;
             final byte[] buffer = new byte[size];
             try {
-                while ((read = is.read(buffer)) > 0) {
-                    total[rank] += read;
+                while ((read = is.read(buffer)) >= 0) {
+                    LOGGER.debug("{} Read: {}", rank,read);
+                    total += read;
                 }
+                LOGGER.debug("{} Read: {} Total: {}", rank, read, total);
+                return total;
             } catch (final IOException e) {
                 LOGGER.error(e);
-                return;
+                return total;
             }
         }
+
     }
 
-    private void testMultipleInputStreamHandlerMultipleMultiThread(int nb, int size, boolean block) {
+    private void testMultipleInputStreamHandlerMultipleMultiThread(int nb, int size, boolean block, boolean timer) {
         final long start = System.nanoTime();
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE, block);
                 MultipleInputStreamHandler mish = new MultipleInputStreamHandler(fakeInputStream, nb)) {
             InputStream is;
-            final long[] total = new long[nb];
+            @SuppressWarnings("unchecked")
+            final Future<Integer>[] total = new Future[nb];
             final ExecutorService executor = Executors.newFixedThreadPool(nb);
             for (int i = 0; i < nb; i++) {
                 is = mish.getInputStream(i);
-                final ThreadReader threadReader = new ThreadReader(i, total, is, size);
-                executor.execute(threadReader);
+                final ThreadReader threadReader = new ThreadReader(i, is, size);
+                total[i] = executor.submit(threadReader);
             }
             executor.shutdown();
             while (!executor.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
                 ;
             }
             for (int i = 0; i < nb; i++) {
-                assertEquals(INPUTSTREAM_SIZE, total[i]);
+                assertEquals(INPUTSTREAM_SIZE, (int) total[i].get());
             }
-        } catch (final InterruptedException e) {
+        } catch (final InterruptedException | ExecutionException e) {
             fail("Should not raized an exception: " + e.getMessage());
         }
         final long stop = System.nanoTime();
         LOGGER.debug("Read {}: \t{} ns", size, stop - start);
-
-        addTimer((stop - start) / nb, "PARALLEL_VAR_SIZE_" + (block ? "BLOCK_" : "BYTE_") + size + "_" + nb + " :\t"
-                + (stop - start) + "  \t" + (stop - start) / nb);
+        if (timer) {
+            addTimer((stop - start) / nb, "PARALLEL_VAR_SIZE_" + (block ? "BLOCK_" : "BYTE_") + size + "_" + nb + " :\t"
+                    + (stop - start) + "  \t" + (stop - start) / nb);
+        }
     }
 
-    @Ignore //@Test
+    @Test
     public void testMultipleInputStreamHandlerMultipleMultiThread() {
         LOGGER.warn("start testMultipleInputStreamHandlerMultipleMultiThread Pool {}", MultipleInputStreamHandler.getPoolAvailability());
-        testMultipleInputStreamHandlerMultipleMultiThread(1, 8192, true);
-        testMultipleInputStreamHandlerMultipleMultiThread(1, 8192, true);
-        testMultipleInputStreamHandlerMultipleMultiThread(10, 8192, true);
-        testMultipleInputStreamHandlerMultipleMultiThread(1, 65536, true);
-        testMultipleInputStreamHandlerMultipleMultiThread(10, 65536, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(1, 8192, true, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(1, 8192, true, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(10, 8192, true, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(1, 65536, true, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(10, 65536, true, true);
 
-        testMultipleInputStreamHandlerMultipleMultiThread(1, 8192, false);
-        testMultipleInputStreamHandlerMultipleMultiThread(10, 8192, false);
-        testMultipleInputStreamHandlerMultipleMultiThread(1, 65536, false);
-        testMultipleInputStreamHandlerMultipleMultiThread(10, 65536, false);
+        testMultipleInputStreamHandlerMultipleMultiThread(1, 8192, false, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(10, 8192, false, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(1, 65536, false, true);
+        testMultipleInputStreamHandlerMultipleMultiThread(10, 65536, false, true);
         LOGGER.warn("stop testMultipleInputStreamHandlerMultipleMultiThread Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test(timeout = 20000)
+    @Test
     public void testMultipleInputStreamHandlerMultiRead() {
         LOGGER.warn("start testMultipleInputStreamHandlerMultiRead Pool {}", MultipleInputStreamHandler.getPoolAvailability());
-        for (int i = 0; i < 2001; i++) {
+        for (int i = 0; i < 1002; i++) {
             if (i % 100 == 0) {
                 LOGGER.warn("Step {} Pool: {}", i, MultipleInputStreamHandler.getPoolAvailability());
             }
-            testMultipleInputStreamHandlerMultipleMultiThread(1, 1024, true);
+            testMultipleInputStreamHandlerMultipleMultiThread(1, 1024, true, false);
         }
         LOGGER.warn("stop testMultipleInputStreamHandlerMultiRead Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test
+    @Test
     public void testMultipleInputStreamHandlerMultipleMultiThreadWithVariableSizes() {
         LOGGER.warn("start testMultipleInputStreamHandlerMultipleMultiThreadWithVariableSizes Pool {}", MultipleInputStreamHandler.getPoolAvailability());
-        for (int len = 100; len < 80000; len += 500) {
-            testMultipleInputStreamHandlerMultipleMultiThread(1, len, true);
-            testMultipleInputStreamHandlerMultipleMultiThread(10, len, true);
+        for (int len = 100; len < 2200; len += 500) {
+            testMultipleInputStreamHandlerMultipleMultiThread(1, len, true, false);
+            testMultipleInputStreamHandlerMultipleMultiThread(10, len, true, false);
+    
+            testMultipleInputStreamHandlerMultipleMultiThread(1, len, false, false);
+            testMultipleInputStreamHandlerMultipleMultiThread(10, len, false, false);
+        }
+        for (int len = 100; len < 80000; len += 10000) {
+            testMultipleInputStreamHandlerMultipleMultiThread(1, len, true, false);
+            testMultipleInputStreamHandlerMultipleMultiThread(10, len, true, false);
 
-            testMultipleInputStreamHandlerMultipleMultiThread(1, len, false);
-            testMultipleInputStreamHandlerMultipleMultiThread(10, len, false);
+            testMultipleInputStreamHandlerMultipleMultiThread(1, len, false, false);
+            testMultipleInputStreamHandlerMultipleMultiThread(10, len, false, false);
         }
         LOGGER.warn("stop testMultipleInputStreamHandlerMultipleMultiThreadWithVariableSizes Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test
+    @Test
     public void testClose() {
         final int size = 8192;
         final int nb = 10;
@@ -340,7 +355,7 @@ public class MultipleInputStreamHandlerTest {
         LOGGER.warn("stop testClose Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test
+    @Test
     public void testMultipleClose() {
         final int size = 8192;
         final int nb = 10;
@@ -368,23 +383,24 @@ public class MultipleInputStreamHandlerTest {
         LOGGER.warn("stop testMultipleClose Pool {}", MultipleInputStreamHandler.getPoolAvailability());
     }
 
-    @Ignore //@Test
+    @Test
     public void testConcurrentMultipleIntputStreamHandler() {
         int old = VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM;
         VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = 2000;
-        List<MultipleInputStreamHandler> list = new ArrayList<>(1000);
-        List<FakeInputStream> listStream = new ArrayList<>(1001);
-        LOGGER.warn("start allocate stream {}", MultipleInputStreamHandler.getPoolAvailability());
-        for (int i = 0; i < 1001; i++) {
-            listStream.add(new FakeInputStream(INPUTSTREAM_SIZE, true));
-        }
-        LOGGER.warn("start allocate MISH {}", MultipleInputStreamHandler.getPoolAvailability());
+        
+        List<FakeInputStream> listStream = new ArrayList<>(VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER + 1);
         try {
-            for (int i = 0; i < 1000; i++) {
+            List<MultipleInputStreamHandler> list = new ArrayList<>(VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER);
+            LOGGER.warn("start allocate stream {}", MultipleInputStreamHandler.getPoolAvailability());
+            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER + 1; i++) {
+                listStream.add(new FakeInputStream(INPUTSTREAM_SIZE, true));
+            }
+            LOGGER.warn("start allocate MISH {}", MultipleInputStreamHandler.getPoolAvailability());
+            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
                 try {
                     MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
                     list.add(mish);
-                    LOGGER.info(mish.toString());
+                    LOGGER.debug(mish.toString());
                 } catch (IllegalArgumentException e) {
                     fail("Should not be interrupted");
                 }
@@ -392,7 +408,7 @@ public class MultipleInputStreamHandlerTest {
             // Try to allocate once more but not possible
             LOGGER.warn("start allocate MISH 1 more than possible {}", MultipleInputStreamHandler.getPoolAvailability());
             try {
-                list.add(new MultipleInputStreamHandler(listStream.get(1000), 1));
+                list.add(new MultipleInputStreamHandler(listStream.get(VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER), 1));
                 fail("Should be interrupted");
             } catch (IllegalArgumentException e) {
                 // legal
@@ -400,21 +416,20 @@ public class MultipleInputStreamHandlerTest {
             LOGGER.warn("start free half of MISH and streams and reallocate streams {}",
                     MultipleInputStreamHandler.getPoolAvailability());
             // Now free half of the list
-            for (int i = 999; i >= 500; i--) {
+            for (int i = VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER - 1; i >= 500; i--) {
                 MultipleInputStreamHandler mish = list.remove(i);
                 mish.close();
-                list.add(mish);
-                LOGGER.info(mish.toString());
+                LOGGER.debug(mish.toString());
                 StreamUtils.closeSilently(listStream.remove(i));
                 listStream.add(new FakeInputStream(INPUTSTREAM_SIZE, true));
             }
             // Now reallocate 500
             LOGGER.warn("start half of MISH {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 500; i < 1000; i++) {
+            for (int i = 500; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
                 try {
                     MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
                     list.add(mish);
-                    LOGGER.info(mish.toString());
+                    LOGGER.debug(mish.toString());
                 } catch (IllegalArgumentException e) {
                     fail("Should not be interrupted");
                 }
@@ -422,27 +437,86 @@ public class MultipleInputStreamHandlerTest {
             LOGGER.warn("Closing all {}", MultipleInputStreamHandler.getPoolAvailability());
             for (MultipleInputStreamHandler mish : list) {
                 mish.close();
-                LOGGER.info(mish.toString());
+                LOGGER.debug(mish.toString());
             }
             for (FakeInputStream fakeInputStream : listStream) {
                 StreamUtils.closeSilently(fakeInputStream);
             }
             LOGGER.warn("Restart from 0 with 1000 {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
                 listStream.add(new FakeInputStream(INPUTSTREAM_SIZE, true));
             }
             LOGGER.warn("Try reading {}", MultipleInputStreamHandler.getPoolAvailability());
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER; i++) {
                 try {
                     MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
-                    LOGGER.info(mish.toString());
+                    LOGGER.debug(mish.toString());
                     InputStream stream = mish.getInputStream(0);
                     StreamUtils.closeSilently(stream);
                     mish.close();
-                    LOGGER.info(mish.toString());
+                    LOGGER.debug(mish.toString());
                 } catch (IllegalArgumentException e) {
                     fail("Should not be interrupted");
                 }
+            }
+            LOGGER.warn("End of test {}", MultipleInputStreamHandler.getPoolAvailability());
+        } finally {
+            for (FakeInputStream fakeInputStream : listStream) {
+                StreamUtils.closeSilently(fakeInputStream);
+            }
+            VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = old;
+        }
+    }
+    @Test
+    public void testConcurrentMultipleThreadIntputStreamHandler() {
+        int old = VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM;
+        VitamConfiguration.DELAY_MULTIPLE_INPUTSTREAM = 2000;
+        
+        int nb = VitamConfiguration.MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER;
+        List<FakeInputStream> listStream = new ArrayList<>(nb + 1);
+        try {
+            List<MultipleInputStreamHandler> list = new ArrayList<>(nb);
+            LOGGER.warn("Restart MultiThread from 0 with {} {}", nb, MultipleInputStreamHandler.getPoolAvailability());
+            for (int i = 0; i < nb; i++) {
+                listStream.add(new FakeInputStream(INPUTSTREAM_SIZE, true));
+            }
+            LOGGER.warn("Start real concurrent tests {}", MultipleInputStreamHandler.getPoolAvailability());
+            final ExecutorService executor = Executors.newFixedThreadPool(nb);
+            list.clear();
+            @SuppressWarnings("unchecked")
+            final Future<Integer>[] total = new Future[nb];
+            for (int i = 0; i < nb; i++) {
+                MultipleInputStreamHandler mish = new MultipleInputStreamHandler(listStream.get(i), 1);
+                list.add(mish);
+                LOGGER.debug(mish.toString());
+                InputStream stream = mish.getInputStream(0);
+                final ThreadReader threadReader = new ThreadReader(i, stream, VitamConfiguration.getChunkSize());
+                total[i] = executor.submit(threadReader);
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e1) {
+                // ignore
+            }
+            executor.shutdown();
+            try {
+                while (!executor.awaitTermination(10000, TimeUnit.MILLISECONDS)) {
+                    ;
+                }
+            } catch (InterruptedException e) {
+                LOGGER.error(e);
+                fail("Should not failed");
+            }
+            for (int i = 0; i < nb; i++) {
+                try {
+                    assertEquals("Rank not equel: " + i, INPUTSTREAM_SIZE, (int) total[i].get());
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.error(e);
+                    fail("Should not failed");
+                }
+            }
+            for (MultipleInputStreamHandler mish : list) {
+                mish.close();
             }
             LOGGER.warn("End of test {}", MultipleInputStreamHandler.getPoolAvailability());
 

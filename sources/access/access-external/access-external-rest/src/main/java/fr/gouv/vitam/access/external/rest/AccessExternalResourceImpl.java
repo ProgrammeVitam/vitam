@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -120,7 +121,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnits(queryJson);
+            result = client.selectUnits(queryJson).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
@@ -141,7 +142,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query with POST method
      *
      * @param queryJson the query to get units
-     * @param xhttpOverride the use of override POST method 
+     * @param xhttpOverride the use of override POST method
      * @return Response
      */
     @POST
@@ -197,7 +198,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.selectUnitbyId(queryJson, idUnit);
+            result = client.selectUnitbyId(queryJson, idUnit).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -217,7 +218,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * get units list by query based on identifier
      *
-     * @param queryJson the query to get archive unit 
+     * @param queryJson the query to get archive unit
      * @param xhttpOverride the use of override POST method
      * @param idUnit the archive unit id
      * @return Response
@@ -258,7 +259,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         JsonNode result = null;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            result = client.updateUnitbyId(queryJson, idUnit);
+            result = client.updateUnitbyId(queryJson, idUnit).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -271,6 +272,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (NoWritingPermissionException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -310,7 +315,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         try {
             try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-                result = client.selectObjectbyId(queryJson, idObjectGroup);
+                result = client.selectObjectbyId(queryJson, idObjectGroup).toJsonNode().get("$results").get(0);
                 return Response.status(Status.OK).entity(RequestResponseOK.getFromJsonNode(result)).build();
             }
         } catch (final InvalidParseOperationException e) {
@@ -332,7 +337,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param headers the http header defined parameters of request
      * @param idObjectGroup the id object group
      * @param query the query to get object
-     * @param asyncResponse the synchronized response 
+     * @param asyncResponse the synchronized response
      */
     @GET
     @Path("/objects/{ido}")
@@ -369,7 +374,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * @param headers the http header defined parameters of request
-     * @param idObjectGroup  the id object group
+     * @param idObjectGroup the id object group
      * @param query the query to get object
      * @param asyncResponse the synchronized response
      */
@@ -425,7 +430,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param query the query to get object
      * @param asyncResponse the synchronized response
      */
-    @POST 
+    @POST
     @Path("/units/{idu}/object")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -499,10 +504,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         // Select "Object from ArchiveUNit idu
         JsonNode result = null;
         ParametersChecker.checkParameter("unit id is required", idu);
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()){
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection("#object");
-            result = client.selectUnitbyId(select.getFinalSelect(), idu);
+            result = client.selectUnitbyId(select.getFinalSelect(), idu).toJsonNode().get("$results").get(0);
             SanityChecker.checkJsonAll(result);
             return result.findValue("#object").textValue();
         }
@@ -643,7 +648,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * findAccessionRegisterDetail
      *
-     * @param documentId the document id of accession register to get 
+     * @param documentId the document id of accession register to get
      * @param select the query to get document
      * @param xhttpOverride the use of override POST method
      * @return Response

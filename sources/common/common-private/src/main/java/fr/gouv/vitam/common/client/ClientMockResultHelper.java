@@ -114,7 +114,7 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"UpdateDate\":\"2016-11-02\"}";
 
-    private static final String INGEST_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
@@ -122,10 +122,12 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"LastUpdate\":\"2016-11-02\", " +
             "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}]";
+            "\"DeactivationDate\":\"2016-11-02\"}";
 
-    private static final String ACCESS_CONTRACTS = "[{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-            "\"_tenant\":\"0\", " +
+    public static final String ACCESS_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+            "\"_tenant\":0, " +
+            "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
+            "\"WritingPermission\": \"true\", " +
             "\"Name\":\"Un contrat\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
             "\"Status\":\"ACTIVE\", " +
@@ -133,7 +135,7 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"LastUpdate\":\"2016-11-02\", " +
             "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}]";
+            "\"DeactivationDate\":\"2016-11-02\"}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
             "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
@@ -210,8 +212,31 @@ public class ClientMockResultHelper {
             "\"TimeStampToken\":\"MIIEZzAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIETAYJKoZIhvcNAQcCoIIEPTCCBDkCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAMcCUdvY+87OSgJw3slg+aHgTt+j+UcybWmhG0G9wL7A0NE8eUO8JFJRD81Gb4wTu12AealKzWeUoLczLWRhACQIBARgPMjAxNzAzMDIxNDIyMzVaMYIDnjCCA5oCAQEwTzBKMQswCQYDVQQGEwJGUjEPMA0GA1UECBMGRnJhbmNlMQ4wDAYDVQQHEwVQQXJpczENMAsGA1UEChMERXRhdDELMAkGA1UECxMCRVQCAQEwDQYJYIZIAWUDBAIDBQCgggEgMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMTcwMzAyMTQyMjM1WjAtBgkqhkiG9w0BCTQxIDAeMA0GCWCGSAFlAwQCAwUAoQ0GCSqGSIb3DQEBDQUAME8GCSqGSIb3DQEJBDFCBECDgiYpV3Bd/9ckq0Nq+zm/TmPWO3rCt33o+cKA8DI5L9EGiEV2GtjO0z4jnw08/iZ3chanYRrR8hJk4u4Fmqk4MGQGCyqGSIb3DQEJEAIvMVUwUzBRME8wCwYJYIZIAWUDBAIDBEACrDhLC92Gcm2mclJwDuLADobFbVWY5HASuT8FL0/1nNexkoSVnVclwr0VkxJgmVAxa+g8ecGbwLzDs8vbT9AYMA0GCSqGSIb3DQEBDQUABIICABBtgwv5dZJhWu050wXM27HGZF6yFaU6AOPjjUIQccbly1nw/Sebg2xRenMv+jxAm8bAdW3eBPNrSa1iJKGLmgfYZuxIwt5AluzVuvTH2t1j08XSMmDQpilhN6Bx9dOS3aClNm89ZVygmdUz6N9HGmxZh1yis80SxD6jDjhnuK6R+xpmdmL6HIDzHa5mjOCbD1lXtr5tWWR+1K9Axv4qoLADlrUKmpCdbnfUBgVdbWJnJBcW6WoQXDpTD/JbV/m2s/yzK7FDt+IpERwVZGqiZF9WwzgX9AFJ352tFWWj+KhqfFN8UgfPKD5aCo6V5T+vMlkodiV+0XQBPKdcPBoo8PJtiCR5sFlJHbQ0qGwQq6P/06ApvrXOFKz434CkCGTbZLKVEHTs1SqgZuAg54bR6GbifOheVojOhWDFEMEXlnpD7PjCYscL9U83H92Iosr4rJhvYwSYbahmU7W1RlUP4cHy8nUYwvUO54ehYMcKcZ4idG4nbUfVYy8lClYruKG0rVcwWu3TZxeSaLePYRZwaeXJ00p36SttyZTLeN4rZatePQc/ff856jvKqDlDZlXIyhOcYCXot5xHFlv+zKZhB71uOv/XvqqmZFhentmkZFYK+qi2tH+Tahar2f3b4RJo+bm235g/v1rIvKQKe8rjkemgPIG7RzkCnss2SGIpfW5h\"," +
             "\"NumberOfElement\":4," +
             "\"FileName\":\"0_LogbookOperation_20170302_142234.zip\"," +
-            "\"Size\":41807}";
+            "\"Size\":41807}}";
 
+    private static final String TRACEABILITY_LOGBOOK_OPERATION =
+        "{\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
+            "\"evType\": \"CHECK_TRACEABILITY_OPERATION\"," +
+            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"evTypeProc\": \"TRACEABILITY\"," +
+            "\"outcome\": \"STARTED\"," +
+            "\"outDetail\": null," +
+            "\"outMessg\": \"SIP entry : SIP.zip\"," +
+            "\"agId\": {\"name\":\"traceability_1\",\"role\":\"traceability\",\"pid\":425367}," +
+            "\"agIdApp\": null," +
+            "\"agIdAppSession\": null," +
+            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"agIdSubm\": null," +
+            "\"agIdOrig\": null," +
+            "\"obId\": null," +
+            "\"obIdReq\": null," +
+            "\"obIdIn\": null," +
+            "\"events\": [{" +
+            "\"evTypeProc\": \"TRACEABILITY\"," +
+            "\"evDetData\": {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-04-06T22:50:59.657\"," +
+            "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
+            "\"NumberOfElement\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
 
 
     private ClientMockResultHelper() {}
@@ -298,7 +323,7 @@ public class ClientMockResultHelper {
                 .setQuery(null);
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
-        return responseOK;
+        return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
@@ -424,10 +449,15 @@ public class ClientMockResultHelper {
      * 
      */
     public static RequestResponse checkOperationTraceability() throws InvalidParseOperationException {
-
         return createReponse(TRACEABILITY_OPERATION);
+    }
 
-
+    /**
+     * @throws InvalidParseOperationException
+     * 
+     */
+    public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
+        return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
     }
 
 }

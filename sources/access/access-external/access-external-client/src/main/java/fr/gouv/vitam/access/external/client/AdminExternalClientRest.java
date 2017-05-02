@@ -6,6 +6,7 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -21,6 +22,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -32,6 +34,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
+    private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
+    private static final String UPDATE_INGEST_CONTRACT = "/contract";
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -39,7 +43,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     // FIXME replace Response by RequestResponse
     @Override
-    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Status checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -51,16 +55,19 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
-            return response;
+            final Status status = Status.fromStatusCode(response.getStatus());
+            return status;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
     // FIXME replace Response by RequestResponse
     @Override
-    public Response createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Status createDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
         throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -72,10 +79,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
             }
-            return response;
+            final Status status = Status.fromStatusCode(response.getStatus());
+            return status;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -142,6 +152,50 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         try {
             response = performRequest(HttpMethod.POST, collection.getName(), headers,
                 contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            // FIXME quick fix for response OK, adapt response for all response types
+            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
+                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return new RequestResponseOK();
+            } else {
+                return RequestResponse.parseFromResponse(response);
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse updateAccessContract(JsonNode queryDsl, Integer tenantId)
+        throws AccessExternalClientException {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT, headers,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT, headers,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {

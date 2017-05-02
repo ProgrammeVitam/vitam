@@ -436,14 +436,14 @@ Ci-dessous un exemple de sortie du script :
     [INFO] [generate_certs.sh] Fin de script
 
 
-Ce script génère sous ``environmements-rpm/certs`` les certificats (format crt & key) nécessaires pour un bon fonctionnement dans VITAM.
+Ce script génère sous ``environmements/certs`` les certificats (format crt & key) nécessaires pour un bon fonctionnement dans VITAM.
 
 .. caution::  Les certificats générés à l'issue ont une durée de validité de (à vérifier).
 
 Cas de certificats déjà créés par le client
 --------------------------------------------
 
-Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term:`PKI` fournie par VITAM, il convient de positionner les certificats et CA sous ``environmements-rpm/certs/....`` en respectant la structure indiquée ci-dessous
+Si le client possède déjà une :term:`PKI`, ou ne compte pas utiliser la :term:`PKI` fournie par VITAM, il convient de positionner les certificats et CA sous ``environmements/certs/....`` en respectant la structure indiquée ci-dessous
 
 - cert
     - client-external
@@ -565,6 +565,6 @@ Ci-dessous un exemple de sortie du script :
     [INFO] [generate_stores.sh] -------------------------------------------
     [INFO] [generate_stores.sh] Fin de la génération des stores
 
-Ce script génère sous ``environmements-rpm/keystores`` les stores (jks / p12) associés pour un bon fonctionnement dans VITAM.
+Ce script génère sous ``environmements/keystores`` les stores (jks / p12) associés pour un bon fonctionnement dans VITAM.
 
-Il est aussi possible de déposer directement les keystores au bon format en remplaçant ceux fournis par défaut, en indiquant les mots de passe d'accès dans le vault: ``environmements-rpm/group_vars/all/vault-keystores.yml``
+Il est aussi possible de déposer directement les keystores au bon format en remplaçant ceux fournis par défaut, en indiquant les mots de passe d'accès dans le vault: ``environmements/group_vars/all/vault-keystores.yml``

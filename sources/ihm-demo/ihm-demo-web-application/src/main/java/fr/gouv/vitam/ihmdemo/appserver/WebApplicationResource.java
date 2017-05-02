@@ -27,47 +27,6 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
@@ -84,15 +43,21 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -125,6 +90,47 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Web Application Resource class
@@ -507,16 +513,21 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Override
         public void run() {
             // start the upload
-            Response finalResponse = null;
             File file = null;
             final File temporarSipFile = PropertiesUtils.fileFromTmpFolder(operationGuidFirstLevel);
+
+
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-                finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
+                final RequestResponse<JsonNode> finalResponse = client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
+
+                int responseStatus = finalResponse.getHttpCode();
                 final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+
                 final List<Object> finalResponseDetails = new ArrayList<>();
                 finalResponseDetails.add(guid);
-                finalResponseDetails.add(Status.fromStatusCode(finalResponse.getStatus()));
+                finalResponseDetails.add(Status.fromStatusCode(responseStatus));
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
+
             } catch (IOException | VitamException e) {
                 LOGGER.error("Upload failed", e);
                 final List<Object> finalResponseDetails = new ArrayList<>();
@@ -525,7 +536,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 uploadRequestsStatus.put(operationGuidFirstLevel, finalResponseDetails);
             } finally {
                 temporarSipFile.delete();
-                DefaultClient.staticConsumeAnyEntityAndClose(finalResponse);
             }
         }
     }
@@ -555,18 +565,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
         if (responseDetails != null) {
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 String id = responseDetails.get(GUID_INDEX).toString();
-                Response response = client.getOperationStatus(id, tenantId);
+                final RequestResponse<JsonNode> response = client.getOperationStatus(id, tenantId);
 
-                if (Status.fromStatusCode(response.getStatus()).equals(Status.ACCEPTED)) {
-                    client.consumeAnyEntityAndClose(response);
+                int responseStatus = response.getHttpCode();
+
+                if (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
-                if (Status.fromStatusCode(response.getStatus()).equals(Status.NOT_FOUND)) {
-                    client.consumeAnyEntityAndClose(response);
+                if (Status.fromStatusCode(responseStatus).equals(Status.NOT_FOUND)) {
                     return Response.status(Status.NO_CONTENT).header(GlobalDataRest.X_REQUEST_ID, operationId).build();
                 }
-                if (Status.fromStatusCode(response.getStatus()).equals(Status.OK)) {
-                    client.consumeAnyEntityAndClose(response);
+                if (Status.fromStatusCode(responseStatus).equals(Status.OK)) {
                      File file = downloadAndSaveATR(id,tenantId);
 
                     if (file != null) {
@@ -581,9 +590,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     }
 
                 } else {
-                    int status = response.getStatus();
-                    client.consumeAnyEntityAndClose(response);
-                    return Response.status(status).header(GlobalDataRest.X_REQUEST_ID, operationId)
+                    return Response.status(responseStatus).header(GlobalDataRest.X_REQUEST_ID, operationId)
                         .build();
                 }
 
@@ -712,16 +719,93 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
+        } catch(final NoWritingPermissionException e){
+            return Response.status(Status.METHOD_NOT_ALLOWED).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
+//    /**
+//     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+//     * @param sessionId json session id from shiro
+//     * @param options   the queries for searching
+//     * @return Response
+//     */
+//    @POST
+//    @Path("/admin/formats")
+//    @Produces(MediaType.APPLICATION_JSON)
+//    @RequiresPermissions("admin:formats:read")
+//    public Response getFileFormats(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
+//        String options) {
+//
+//        ParametersChecker.checkParameter("cookie is mandatory", sessionId);
+//        String requestId = null;
+//        RequestResponse result = null;
+//        OffsetBasedPagination pagination = null;
+//
+//        try {
+//            pagination = new OffsetBasedPagination(headers);
+//        } catch (final VitamException e) {
+//            LOGGER.error("Bad request Exception ", e);
+//            return Response.status(Status.BAD_REQUEST).build();
+//        }
+//        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
+//        Integer tenantId = getTenantId(headers);
+//        if (requestIds != null) {
+//            requestId = requestIds.get(0);
+//            // get result from shiro session
+//            try {
+//                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
+//
+//                // save result
+//                PaginationHelper.setResult(sessionId, result.toJsonNode());
+//                // pagination
+//                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
+//
+//                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
+//                    .header(IhmDataRest.X_OFFSET, pagination.getOffset())
+//                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
+//            } catch (final VitamException e) {
+//                LOGGER.error("Bad request Exception ", e);
+//                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
+//            }
+//        } else {
+//            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
+//
+//            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
+//            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+//                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+//                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
+//                final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+//                result = adminClient.findDocuments(AdminCollections.FORMATS, query,
+//                    getTenantId(headers));
+//
+//                // save result
+//                PaginationHelper.setResult(sessionId, result.toJsonNode());
+//                // pagination
+//                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
+//
+//                return Response.status(Status.OK).entity(result).build();
+//            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+//                LOGGER.error("Bad request Exception ", e);
+//                return Response.status(Status.BAD_REQUEST).build();
+//            } catch (final AccessExternalClientNotFoundException e) {
+//                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+//                return Response.status(Status.NOT_FOUND).build();
+//            } catch (final Exception e) {
+//                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+//                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+//            }
+//        }
+//    }
+    
+    
     /**
-     * @param headers   HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
+     * @param headers HTTP header needed for the request: X-TENANT-ID (mandatory), X-LIMIT/X-OFFSET (not mandatory)
      * @param sessionId json session id from shiro
-     * @param options   the queries for searching
+     * @param options the queries for searching
      * @return Response
      */
     @POST
@@ -730,65 +814,27 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("admin:formats:read")
     public Response getFileFormats(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
         String options) {
-
-        ParametersChecker.checkParameter("cookie is mandatory", sessionId);
-        String requestId = null;
-        RequestResponse result = null;
-        OffsetBasedPagination pagination = null;
-
-        try {
-            pagination = new OffsetBasedPagination(headers);
-        } catch (final VitamException e) {
+        // FIXME P0: Pagination rollbacked because of error on mongo/ES indexation --> use the commented method after some fixes 
+        // FIXME Pagination should be use as in others endpoints after solution found (See Item #2227)        
+        ParametersChecker
+            .checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory
+            .getInstance().getClient()) {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final RequestResponse result = adminClient.findDocuments(AdminCollections.FORMATS, query,
+                getTenantId(headers));
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        }
-        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-        Integer tenantId = getTenantId(headers);
-        if (requestIds != null) {
-            requestId = requestIds.get(0);
-            // get result from shiro session
-            try {
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
-
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
-                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
-            } catch (final VitamException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
-            }
-        } else {
-            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-                final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                result = adminClient.findDocuments(AdminCollections.FORMATS, query,
-                    getTenantId(headers));
-
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessExternalClientNotFoundException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.NOT_FOUND).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+        } catch (final AccessExternalClientNotFoundException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.NOT_FOUND).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -839,13 +885,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:check")
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            Status status = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
@@ -871,13 +912,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:create")
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            Status status = adminClient.createDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();
@@ -1158,13 +1194,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response checkRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.BAD_REQUEST).build();
-            }
+            Status status = adminClient.checkDocuments(AdminCollections.RULES, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).build();
         } catch (final Exception e) {
@@ -1187,13 +1218,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Response response = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
-            switch (response.getStatusInfo().getFamily()) {
-                case SUCCESSFUL:
-                    return Response.status(Status.OK).build();
-                default:
-                    return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+            Status status = adminClient.createDocuments(AdminCollections.RULES, input, getTenantId(headers));
+            return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
         } catch (final Exception e) {
@@ -1470,12 +1496,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("operations:read")
     public Response listOperationsDetails(@Context HttpHeaders headers) {
-        Response response = null;
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
-            response = client.listOperationsDetails();
-            return Response.fromResponse(response).build();
+            RequestResponse<JsonNode> response = client.listOperationsDetails();
+            return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -1558,7 +1583,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(tenantIdHeader));
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            return ingestExternalClient.cancelOperationProcessExecution(id);
+            RequestResponse<JsonNode> resp = ingestExternalClient.cancelOperationProcessExecution(id);
+            return Response.status(Status.OK).entity(resp).build();
         } catch (InternalServerException | VitamClientException | ProcessingException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
@@ -1670,6 +1696,60 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Upload Access contracts
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/contracts/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("contracts:update")
+    public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String unitId,
+        Map<String, String> updateData) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+        	final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
+            SetAction setActionStatusActive = UpdateActionHelper.set("Status", updateData.get("Status"));
+            SetAction setActionDesactivationDateActive = null;
+            if (updateData.get("ActivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", updateData.get("ActivationDate"));
+            } else if (updateData.get("DeactivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("DeactivationDate", updateData.get("DeactivationDate"));
+            }
+            SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", updateData.get("LastUpdate"));
+            Update updateStatusActive = new Update();
+            updateStatusActive.setQuery(QueryHelper.eq("Name", updateData.get("Name")));
+            updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
+                setActionLastUpdateActive);
+            updateParserActive.parse(updateStatusActive.getFinalUpdate());
+            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            final RequestResponse archiveDetails = adminClient.updateIngestContract(queryDsl, getTenantId(headers));
+            return Response.status(Status.OK).entity(archiveDetails).build();
+         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+         } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+         } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
 
     /**
@@ -1707,7 +1787,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get Access contracts
      *
      * @param headers HTTP Headers
-     * @param queryDsl the query to find access contracts
+     * @param select the query to find access contracts
      * @return Response
      */
     @POST
@@ -1775,6 +1855,60 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Upload Access contracts
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/accesscontracts/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("accesscontracts:update")
+    public Response updateAccessContracts(@Context HttpHeaders headers, @PathParam("id") String unitId,
+        Map<String, String> updateData) {
+        try {
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
+
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+        	final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
+            SetAction setActionStatusActive = UpdateActionHelper.set("Status", updateData.get("Status"));
+            SetAction setActionDesactivationDateActive = null;
+            if (updateData.get("ActivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", updateData.get("ActivationDate"));
+            } else if (updateData.get("DeactivationDate") != null) {
+                setActionDesactivationDateActive = UpdateActionHelper.set("DeactivationDate", updateData.get("DeactivationDate"));
+            }
+            SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", updateData.get("LastUpdate"));
+            Update updateStatusActive = new Update();
+            updateStatusActive.setQuery(QueryHelper.eq("Name", updateData.get("Name")));
+            updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
+                setActionLastUpdateActive);
+            updateParserActive.parse(updateStatusActive.getFinalUpdate());
+            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            final RequestResponse archiveDetails = adminClient.updateAccessContract(queryDsl, getTenantId(headers));
+            return Response.status(Status.OK).entity(archiveDetails).build();
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     private Integer getTenantId(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0
         Integer tenantId = 0;
@@ -1827,6 +1961,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/traceability/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("traceability:check:create")
     public Response checkOperationTraceability(@Context HttpHeaders headers, String operationCriteria) {
 
         try {
@@ -1836,7 +1971,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             // Get tenantId value
             Integer tenantIdHeader = getTenantId(headers);
 
-            // Prepare DSLQuery base don the received criteria
+            // Prepare DSLQuery based on the received criteria
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(operationCriteria);
             final JsonNode dslQuery = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
@@ -1872,12 +2007,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Download the Traceability Operation file
      * 
      * @param headers request headers
-     * @param fileName the file name to download
+     * @param operationId the TRACEABILITY operation identifier
      * @return a response containing the file name stream
      */
     @GET
     @Path("/traceability/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("traceability:content:read")
     public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
         @Suspended final AsyncResponse asyncResponse) {
 
@@ -1894,9 +2030,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
         Integer tenantId) {
 
+        Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
 
-            Response response = client.downloadTraceabilityOperationFile(operationId, tenantId);
+            response = client.downloadTraceabilityOperationFile(operationId, tenantId);
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
 

@@ -1,0 +1,38 @@
+[
+	{
+		"Name":"aName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FR_ORG_AGEN"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	},
+		{
+		"Name":"aName2",
+		"Description":"aDescription of the contract 2",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FR_ORG_AGEN"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	},
+	{
+		"Name":"aName3",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"OriginatingAgencies":["FRAN_NP_005568", "FR_ORG_AGEN"],
+		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"WritingPermission": true
+	}	
+]

@@ -70,11 +70,13 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
@@ -117,6 +119,10 @@ public class AccessExternalResourceImplTest {
         " \"$projection\" : {\"$fields\" : {\"#id\" : 1, \"title\":2, \"transacdate\":1}}" +
         " }";
 
+    private static final String UPDATE_RETURN =
+        "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, " +
+            "$projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}";
+
     private static final String QUERY_SIMPLE_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
 
     private static final String BAD_QUERY_TEST = "{ \"$query\" ; [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
@@ -129,6 +135,10 @@ public class AccessExternalResourceImplTest {
 
     private static final String DATA_TEST =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"title\": \"test\"," + "\"data\": \"data1\" }";
+    
+    private static final String SELECT_RETURN =
+    "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
+    "[{'#id': '1', 'name': 'abcdef', 'creation_date': '2015-07-14T17:07:14Z', 'fmt': 'ftm/123', 'numerical_information': '55.3'}]}";
 
     private static final String DATA_HTML =
         "{ \"#id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
@@ -375,7 +385,13 @@ public class AccessExternalResourceImplTest {
     }
 
     @Test
-    public void given_queryThatThrowException_when_updateByID() throws InvalidParseOperationException {
+    public void given_queryThatThrowException_when_updateByID()
+        throws InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, NoWritingPermissionException {
+
+        PowerMockito.when(clientAccessInternal.updateUnitbyId(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA), ID))
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(UPDATE_RETURN)));
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -439,8 +455,8 @@ public class AccessExternalResourceImplTest {
     public void given_pathWithId_when_get_SelectByID()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException {
-        PowerMockito.when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString(QUERY_TEST), ID_UNIT))
-            .thenReturn(JsonHandler.getFromString(DATA_TEST));
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(QUERY_TEST), ID_UNIT))
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(SELECT_RETURN)));
 
         given()
             .contentType(ContentType.JSON)
@@ -657,7 +673,7 @@ public class AccessExternalResourceImplTest {
     public void testAccessUnits() throws Exception {
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-            .thenReturn(JsonHandler.getFromString(DATA_TEST));
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -689,7 +705,7 @@ public class AccessExternalResourceImplTest {
     public void testHttpOverrideAccessUnits() throws Exception {
         reset(clientAccessInternal);
         PowerMockito.when(clientAccessInternal.selectUnits(anyObject()))
-            .thenReturn(JsonHandler.getFromString(DATA_TEST));
+            .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -815,7 +831,7 @@ public class AccessExternalResourceImplTest {
     @Test
     public void testErrorsUpdateUnitsById()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        InvalidParseOperationException, NoWritingPermissionException {
 
         try {
             PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
@@ -999,7 +1015,7 @@ public class AccessExternalResourceImplTest {
         final JsonNode result = JsonHandler.getFromString(BODY_TEST);
         when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
-                .thenReturn(result);
+                .thenReturn(new RequestResponseOK().addResult(result));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(BODY_TEST))
@@ -1178,11 +1194,11 @@ public class AccessExternalResourceImplTest {
 
         when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
-                .thenReturn(result);
+                .thenReturn(new RequestResponseOK().addResult(result));
 
         when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
-                .thenReturn(objectGroup);
+                .thenReturn(new RequestResponseOK().addResult(objectGroup));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body(JsonHandler.getFromString(objectnode)).when()
             .get(ACCESS_UNITS_URI + "/goodId/object")

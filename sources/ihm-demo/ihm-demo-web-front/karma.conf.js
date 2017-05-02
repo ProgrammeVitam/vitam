@@ -45,13 +45,9 @@ module.exports = function(config) {
       'app/services/*.js',
       'app/pages/**/*.js',
       'app/core/directives/*.js',
-      'app/core/filters/date.filters.js',
+      'app/core/filters/*.js',
       'test/spec/**/*.js'
     ],
-
-    // list of files to exclude
-    exclude: ['bower_compnents/**/*'],
-
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor

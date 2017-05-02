@@ -1,0 +1,87 @@
+{
+    "ArchiveUnit": {
+        "_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
+        "Management": {
+            "StorageRule": [
+                {
+                    "Rule": "STR001",
+                    "StartDate": "1990-10-01",
+                    "RefNonRuleId": [],
+                    "FinalAction": "Copy"
+                }
+            ],
+            "AppraisalRule": [
+                {
+                    "Rule": "APR001",
+                    "StartDate": "1990-10-01",
+                    "PreventInheritance": "ID42",
+                    "FinalAction": "Keep"
+                }
+            ],
+            "AccessRule": [],
+            "ReuseRule": [
+                {
+                    "Rule": "ID",
+                    "StartDate": "1990-10-01",
+                    "PreventInheritance": "ID42"
+                }
+            ],
+            "ClassificationRule": [
+                {
+                    "Rule": "CLR001",
+                    "StartDate": "1990-10-01",
+                    "RefNonRuleId": [
+                        "ID1",
+                        "ID2"
+                    ],
+                    "ClassificationLevel": "Level",
+                    "ClassificationOwner": "Owner",
+                    "ClassificationReassessingDate": "2016-05-02",
+                    "NeedReassessingAuthorization": false
+                },
+                {
+                    "Rule": "CLR001",
+                    "StartDate": "1990-10-01",
+                    "PreventInheritance": "ID",
+                    "ClassificationLevel": "Level",
+                    "ClassificationOwner": "Owner",
+                    "ClassificationReassessingDate": "2016-05-02",
+                    "NeedReassessingAuthorization": true
+                },
+                {
+                    "Rule": "CLR002",
+                    "StartDate": "1990-10-01",
+                    "ClassificationLevel": "Level",
+                    "ClassificationOwner": "Owner",
+                    "ClassificationReassessingDate": "2016-05-02",
+                    "NeedReassessingAuthorization": false
+                }
+            ],
+            "NeedAuthorization": true,
+            "AnyOtherField": "AnyOtherValue",
+            "UpdateOperation": {
+                "SystemId": "",
+                "ToDelete": {
+                    "ArchiveUnitRefId": [
+                        "DEL001",
+                        "DEL002"
+                    ],
+                    "FullUpdate": false
+                }
+            },
+            "ArchiveUnit": {
+                "ArchiveUnitRefId": "ID_CHILD"
+            }
+        },
+        "Content": {
+            "AnyOtherField": "AnyOtherValue",
+            "DescriptionLevel": "Item",
+            "AuthorizedAgent": [{
+                "FirstName": "Ludovic",
+                "GivenName": "BLANCHET",
+                "BirthName": "1990-10-01",
+                "BirthPlace": "Lagny sur Marne"
+            }]
+        }
+    }
+}

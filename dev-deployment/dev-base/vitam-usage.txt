@@ -10,3 +10,7 @@
 * The command to deploy VITAM extra is : vitam-deploy-extra [local|fulllocal] (to execute in /code)
 * The command to redeploy VITAM (rpm ONLY & restart service) : vitam-redeploy [local|fulllocal] (to execute in /code)
 * The command to redeploy VITAM extra  (rpm ONLY & restart service)  : vitam-redeploy-extra [local|fulllocal] (to execute in /code)
+*
+* The command to start VITAM  : vitam-start
+* The command to stop VITAM  : vitam-stop
+* The command to restart VITAM  : vitam-restart

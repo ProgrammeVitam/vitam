@@ -29,7 +29,7 @@ package fr.gouv.vitam.ingest.external.api.exception;
 import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * IngestInternalException ingest error
+ * IngestExternalException ingest error
  */
 public class IngestExternalException extends VitamException {
 

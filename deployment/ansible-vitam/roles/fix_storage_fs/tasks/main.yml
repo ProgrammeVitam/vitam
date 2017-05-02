@@ -1,0 +1,17 @@
+---
+- name: create temporary fix for FS sub-dir in data when filesystem offer
+  file:
+    path: "{{vitam_folder_root}}/data/offer/{{item[0]}}_{{item[1]}}"
+    state: directory
+    owner: "{{vitam_user}}"
+    group: "{{vitam_group}}"
+    mode: "{{vitam_folder_permission}}"
+  when: vitam_provider_offer=="filesystem" or vitam_provider_offer==""
+  with_nested:
+    - "{{vitam_tenant_ids}}"
+    - [ 'logbook', 'manifest', 'object','objectGroup','report','unit' ]
+  
+
+# Faier 2 loops :
+  # 1- sur le numéro de tenant : loop sur vitam_tenant_ids=[0,1,2]
+  # 2- sur le type

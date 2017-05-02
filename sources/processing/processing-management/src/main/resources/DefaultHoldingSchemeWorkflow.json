@@ -19,20 +19,26 @@
         },
         {
           "action": {
-            "actionKey": "CHECK_NO_OBJECT",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST_OBJECTNUMBER",
-            "behavior": "NOBLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "CHECK_MANIFEST",
+            "actionKey": "CHECK_HEADER",
             "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkContract",
+                "uri": "VALUE:false"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DATAOBJECTPACKAGE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "checkNoObject",
+                "uri": "VALUE:true"
+              }
+            ],
             "out": [
               {
                 "name": "unitsLevel.file",
@@ -83,7 +89,7 @@
         "kind": "LIST",
         "element": "Units"
       },
-      "actions": [
+      "actions": [        
         {
           "action": {
             "actionKey": "UNIT_METADATA_INDEXATION",
@@ -92,7 +98,11 @@
               {
                 "name": "UnitType",
                 "uri": "VALUE:HOLDING_UNIT"
-              }
+              },
+              {
+	            "name": "globalSEDAParameters.file",
+	            "uri": "WORKSPACE:ATR/globalSEDAParameters.json"
+	          }              
             ]
           }
         },

@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -29,11 +29,21 @@ package fr.gouv.vitam.processing.data.core.management;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -46,6 +56,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  * Workspace implemenation for workflows datas management
  */
 public class WorkspaceProcessDataManagement implements ProcessDataManagement {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceProcessDataManagement.class);
 
     private static final ProcessDataManagement INSTANCE = new WorkspaceProcessDataManagement();
 
@@ -120,20 +132,21 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     }
 
     @Override
-    public void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow) throws
-        ProcessingStorageWorkspaceException, InvalidParseOperationException {
+    public void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
+        LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getExecutionStatus());
         try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             // XXX: ugly way to do this (bytearray) ?
-            client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId), new ByteArrayInputStream
-                (JsonHandler.writeAsString(processWorkflow).getBytes()));
+            client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId),
+                new ByteArrayInputStream(JsonHandler.writeAsString(processWorkflow).getBytes()));
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         }
     }
 
     @Override
-    public ProcessWorkflow getProcessWorkflow(String folderName, String asyncId) throws
-        ProcessingStorageWorkspaceException, InvalidParseOperationException {
+    public ProcessWorkflow getProcessWorkflow(String folderName, String asyncId)
+        throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         Response response = null;
         InputStream is = null;
         // Not using try with resources because in this case, response.close() throw an exception :
@@ -170,6 +183,38 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         }
+    }
+
+    @Override
+    public Map<String, ProcessWorkflow> getProcessWorkflowFor(Integer tenantId, String folderName)
+        throws ProcessingStorageWorkspaceException {
+        Map<String, ProcessWorkflow> result = new ConcurrentHashMap<>();
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            List<URI> uris =
+                JsonHandler.getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+            for (URI uri : uris) {
+                try {
+                    // TODO: review this ugly split
+                    ProcessWorkflow processWorkflow = getProcessWorkflow(folderName, uri.getPath().split("\\.")[0]);
+                    if (!ProcessExecutionStatus.PAUSE.equals(processWorkflow.getExecutionStatus())) {
+                        processWorkflow.setExecutionStatus(ProcessExecutionStatus.CANCELLED);
+                        processWorkflow.setGlobalStatusCode(StatusCode.UNKNOWN);
+                    }
+                    if (tenantId == null || processWorkflow.getTenantId().equals(tenantId)) {
+                        result.put(processWorkflow.getOperationId(), processWorkflow);
+                    }
+                } catch (InvalidParseOperationException e) {
+                    // TODO: is blocking ?
+                    LOGGER.error("Error on loading old workflow {} -> cannot be resume", uri.getPath(), e);
+                }
+            }
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingStorageWorkspaceException(e);
+        } catch (InvalidParseOperationException e) {
+            throw new ProcessingStorageWorkspaceException(e);
+        }
+        return result;
     }
 
     /**

@@ -54,8 +54,8 @@
         <Set name="secureScheme">https</Set>
         <Set name="securePort">8443</Set>
         <Set name="outputBufferSize">32768</Set>
-        <Set name="requestHeaderSize">8192</Set>
-        <Set name="responseHeaderSize">8192</Set>
+        <Set name="requestHeaderSize">998192</Set>
+        <Set name="responseHeaderSize">998192</Set>
         <Set name="sendServerVersion">false</Set>
         <Set name="sendDateHeader">false</Set>
         <Set name="headerCacheSize">512</Set>
@@ -77,27 +77,6 @@
         </Call>
     </New>
 
-    <!-- create http connector                                       -->
-    <!-- =========================================================== -->        
-    <New id="connector" class="org.eclipse.jetty.server.ServerConnector">
-        <Arg name="server">
-            <Ref refid="Server" />
-        </Arg>
-        <Arg name="factories">
-            <Array type="org.eclipse.jetty.server.ConnectionFactory">
-                <Item>
-                    <New class="org.eclipse.jetty.server.HttpConnectionFactory">
-                        <Arg name="config">
-                            <Ref refid="httpConfig" />
-                        </Arg>
-                    </New>
-                </Item>
-            </Array>
-        </Arg>
-
-        <Set name="port">8084</Set>
-    </New>
-
     <!-- create https connector                                      -->
     <!-- =========================================================== -->            
     <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
@@ -109,28 +88,28 @@
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
         <Set name="WantClientAuth">true</Set>
-    	<Set name="IncludeCipherSuites">
-		    <Array type="String">
-		      <Item>TLS_ECDHE.*</Item>
-		      <Item>TLS_DHE_RSA.*</Item>
-		    </Array>
-	  	</Set>
-	  	 <Set name="IncludeProtocols">
-		    <Array type="String">
-		      <Item>TLSv1</Item>
-		      <Item>TLSv1.1</Item>
-		      <Item>TLSv1.2</Item>
-		    </Array>
-	  	</Set>
-	    <Set name="ExcludeCipherSuites">
-		    <Array type="String">
-		      <Item>.*NULL.*</Item>
-		      <Item>.*RC4.*</Item>
-		      <Item>.*MD5.*</Item>
-		      <Item>.*DES.*</Item>
-		      <Item>.*DSS.</Item>
-		    </Array>
-	  	</Set>
+        <Set name="IncludeCipherSuites">
+            <Array type="String">
+              <Item>TLS_ECDHE.*</Item>
+              <Item>TLS_DHE_RSA.*</Item>
+            </Array>
+        </Set>
+         <Set name="IncludeProtocols">
+            <Array type="String">
+              <Item>TLSv1</Item>
+              <Item>TLSv1.1</Item>
+              <Item>TLSv1.2</Item>
+            </Array>
+        </Set>
+        <Set name="ExcludeCipherSuites">
+            <Array type="String">
+              <Item>.*NULL.*</Item>
+              <Item>.*RC4.*</Item>
+              <Item>.*MD5.*</Item>
+              <Item>.*DES.*</Item>
+              <Item>.*DSS.</Item>
+            </Array>
+        </Set>
     
         <Set name="UseCipherSuitesOrder">true</Set>
         <Set name="RenegotiationAllowed">true</Set>     
@@ -172,9 +151,6 @@
     <Call name="setConnectors">
         <Arg>
              <Array type="org.eclipse.jetty.server.ServerConnector">
-               <!--    <Item>
-                    <Ref refid="connector" />
-                </Item> -->
                 <Item>
                     <Ref refid="sslConnector" />
                 </Item>

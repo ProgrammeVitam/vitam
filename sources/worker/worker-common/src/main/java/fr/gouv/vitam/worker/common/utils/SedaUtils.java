@@ -157,9 +157,9 @@ public class SedaUtils {
      * @return message id
      * @throws ProcessingException throw when can't read or extract message id from SEDA
      */
-    public String getMessageIdentifier(WorkerParameters params) throws ProcessingException {
+    public Map<String, Object> getMandatoryValues(WorkerParameters params) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
-        String messageId = "";
+        Map<String, Object> madatoryValueMap = new HashMap<>();
         XMLEventReader reader = null;
         InputStream xmlFile = null;
         try {
@@ -174,14 +174,22 @@ public class SedaUtils {
 
             final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
             final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
+            final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+            final QName contractName = new QName(NAMESPACE_URI, SedaConstants.TAG_ARCHIVAL_AGREEMENT);
 
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             while (true) {
                 final XMLEvent event = reader.nextEvent();
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
+                    if (element.getName().equals(contractName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, reader.getElementText());
+                    }
                     if (element.getName().equals(messageObjectName)) {
-                        messageId = reader.getElementText();
+                        madatoryValueMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, reader.getElementText());
+                    }
+                    if (element.getName().equals(originatingAgencyName)) {
+                        madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
                         break;
                     }
                 }
@@ -203,7 +211,7 @@ public class SedaUtils {
             StreamUtils.closeSilently(xmlFile);
         }
 
-        return messageId;
+        return madatoryValueMap;
     }
 
     /**
@@ -748,7 +756,8 @@ public class SedaUtils {
         String pathToObject)
         throws ProcessingException {
         try {
-            return workspaceClient.getObjectInformation(containerId, pathToObject);
+            return workspaceClient.getObjectInformation(containerId, pathToObject)
+                .toJsonNode().get("$results").get(0);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error(IngestWorkflowConstants.SEDA_FILE + " Not Found");
             throw new ProcessingException(e);

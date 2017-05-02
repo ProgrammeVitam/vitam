@@ -37,6 +37,8 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.model.RequestResponse;
+
 public class SiegfriedClientMockTest {
 
     @Test
@@ -48,7 +50,7 @@ public class SiegfriedClientMockTest {
         assertNotNull(client);
 
         Boolean catchException = false;
-        JsonNode response = null;
+        RequestResponse<JsonNode> response = null;
         try {
             response = client.status(Paths.get("version"));
         } catch (final Exception lce) {
@@ -56,7 +58,7 @@ public class SiegfriedClientMockTest {
         }
         assertFalse(catchException);
         assertNotNull(response);
-        assertEquals("mock-1.0", response.get("siegfried").asText());
+        assertEquals("mock-1.0", response.toJsonNode().get("$results").get(0).get("siegfried").asText());
     }
 
     @Test
@@ -68,7 +70,7 @@ public class SiegfriedClientMockTest {
         assertNotNull(client);
 
         Boolean catchException = false;
-        JsonNode response = null;
+        RequestResponse<JsonNode> response = null;
         try {
             response = client.analysePath(Paths.get("identify"));
         } catch (final Exception lce) {
@@ -76,7 +78,7 @@ public class SiegfriedClientMockTest {
         }
         assertFalse(catchException);
         assertNotNull(response);
-        assertEquals(1, response.get("files").size());
+        assertEquals(1, response.toJsonNode().get("$results").get(0).get("files").size());
     }
 
 }

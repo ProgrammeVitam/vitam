@@ -6,4 +6,12 @@ input
         add_field => [ "input", "syslog" ]
         port => 10514
     }
+
+    # Logstash logs
+    file {
+        path => [ "/vitam/log/logstash/logstash.log" ]
+        add_field => [ "input", "logstash" ]
+        # For test purpose only:
+        # start_position => "beginning"
+    }
 }

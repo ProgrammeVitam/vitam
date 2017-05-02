@@ -32,7 +32,7 @@ Déploiement sur environnement CentOS
   + une configuration des serveurs de noms correcte (cette configuration sera surchargée lors de l'installation)
   + un accès à un dépôt (ou son miroir) CentOS 7 (base et extras) et EPEL 7
 
-* Disposer des binaires VITAM : paquets RPM Vitam (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
+* Disposer des binaires VITAM : paquets RPM de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
 
 Déploiement sur environnement Debian
 -------------------------------------
@@ -45,7 +45,7 @@ Déploiement sur environnement Debian
   + un accès à un dépôt (ou son miroir) Debian (base et extras) et jessie-backports
   + un accès internet, car le dépôt docker sera ajouté
 
-* Disposer des binaires VITAM : paquets deb Vitam (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
+* Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
 
 
 Matériel

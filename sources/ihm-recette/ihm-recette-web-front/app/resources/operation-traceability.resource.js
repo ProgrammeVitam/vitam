@@ -47,7 +47,7 @@ angular.module('core').factory(
             return {headers : {'X-Tenant-Id' : tenantService.getTenant()}}
         };
         /**
-         * launch SOAP-UI tests (GET method)
+         * launch traceability search (GET method)
          *
          * @returns {HttpPromise} The promise returned by the http call
          */

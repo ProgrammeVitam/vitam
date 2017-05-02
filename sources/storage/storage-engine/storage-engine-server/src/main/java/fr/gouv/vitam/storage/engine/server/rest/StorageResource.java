@@ -27,7 +27,49 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
+import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import fr.gouv.vitam.storage.logbook.StorageLogException;
+import fr.gouv.vitam.storage.logbook.StorageLogbookAdministration;
+import fr.gouv.vitam.storage.logbook.StorageLogbookService;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.compress.archivers.ArchiveException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -49,36 +91,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.common.model.response.RequestResponseError;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Storage Resource implementation
@@ -89,50 +104,53 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
     private static final String CODE_VITAM = "code_vitam";
+    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
+        "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     private final StorageDistribution distribution;
+    private StorageLogbookService storageLogbookService;
+    private StorageLogbookAdministration storageLogbookAdministration;
 
     /**
      * Constructor
      *
-     * @param configuration
-     *            the storage configuration to be applied
+     * @param configuration the storage configuration to be applied
      */
-    public StorageResource(StorageConfiguration configuration) {
-        distribution = new StorageDistributionImpl(configuration);
+    public StorageResource(StorageConfiguration configuration, StorageLogbookService service) {
+        this.storageLogbookService = service;
+        distribution = new StorageDistributionImpl(configuration, storageLogbookService);
+        final WorkspaceClientFactory clientFactory = WorkspaceClientFactory.getInstance();
+        WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
+        LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+        storageLogbookAdministration =
+            new StorageLogbookAdministration(storageLogbookService, configuration.getZippingDirecorty());
         LOGGER.info("init Storage Resource server");
     }
 
     /**
      * Constructor used for test purpose
      *
-     * @param storageDistribution
-     *            the storage Distribution to be applied
+     * @param storageDistribution the storage Distribution to be applied
      */
     StorageResource(StorageDistribution storageDistribution) {
         distribution = storageDistribution;
     }
 
     /**
-     * @param headers
-     *            http headers
-     * @return null if strategy and tenant headers have values, an error
-     *         response otherwise
+     * @param headers http headers
+     * @return null if strategy and tenant headers have values, an error response otherwise
      */
     private Response checkTenantStrategyHeader(HttpHeaders headers) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID)
-                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
     }
 
     /**
-     * 
-     * @param strategyId
-     *            StrategyId if directly getting from Header parameter
-     * @return null if strategy and tenant headers have values, an error
-     *         response otherwise
+     * @param strategyId StrategyId if directly getting from Header parameter
+     * @return null if strategy and tenant headers have values, an error response otherwise
      */
     private Response checkTenantStrategyHeader(String strategyId) {
         if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
@@ -148,29 +166,25 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * @param headers
-     *            http headers
-     * @return null if strategy, tenant, digest and digest algorithm headers
-     *         have values, an error response otherwise
+     * @param headers http headers
+     * @return null if strategy, tenant, digest and digest algorithm headers have values, an error response otherwise
      */
     private Response checkDigestAlgorithmHeader(HttpHeaders headers) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID)
-                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)
-                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST)
-                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST_ALGORITHM)) {
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST)
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DIGEST_ALGORITHM)) {
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
         return null;
     }
 
     /**
-     * Get storage information for a specific tenant/strategy For example the
-     * usable space
+     * Get storage information for a specific tenant/strategy For example the usable space
      *
-     * @param headers
-     *            http headers
+     * @param headers http headers
      * @return Response containing the storage information as json, or an error
-     *         (404, 500)
+     * (404, 500)
      */
     @HEAD
     @Consumes(MediaType.APPLICATION_JSON)
@@ -199,14 +213,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Search the header value for 'X-Http-Method-Override' and return an error
-     * response id it's value is not 'GET'
+     * Search the header value for 'X-Http-Method-Override' and return an error response id it's value is not 'GET'
      *
-     * @param headers
-     *            the http headers to check
-     * @return OK response if no header is found, NULL if header value is
-     *         correct, BAD_REQUEST if the header contain an other value than
-     *         GET
+     * @param headers the http headers to check
+     * @return OK response if no header is found, NULL if header value is correct, BAD_REQUEST if the header contain an
+     * other value than GET
      */
     public Response checkPostHeader(HttpHeaders headers) {
         if (HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.METHOD_OVERRIDE)) {
@@ -228,8 +239,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * Create a container
      * <p>
      *
-     * @param headers
-     *            http header
+     * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
     // TODO P1 : container creation possibility needs to be re-think then
@@ -249,11 +259,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Delete a container
-     *
+     * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
+     * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
     @DELETE
@@ -271,14 +280,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get list of object type
      *
-     * @param xcursor
-     *            the X-Cursor
-     * @param xcursorId
-     *            the X-Cursor-Id if exists
-     * @param strategyId
-     *            the strategy to get offers
-     * @param type
-     *            the object type to list
+     * @param xcursor    the X-Cursor
+     * @param xcursorId  the X-Cursor-Id if exists
+     * @param strategyId the strategy to get offers
+     * @param type       the object type to list
      * @return a response with listing elements
      */
     @Path("/{type}")
@@ -286,8 +291,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response listObjects(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-            @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
-            @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId, @PathParam("type") DataCategory type) {
+        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
+        @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId, @PathParam("type") DataCategory type) {
         final Response response = checkTenantStrategyHeader(strategyId);
         if (response != null) {
             return response;
@@ -295,7 +300,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         try {
             ParametersChecker.checkParameter("X-Cursor is required", xcursor);
             ParametersChecker.checkParameter("Strategy ID is required", strategyId);
-            return distribution.listContainerObjects(strategyId, type, xcursorId);
+            RequestResponse<JsonNode> jsonNodeRequestResponse =
+                distribution.listContainerObjects(strategyId, type, xcursorId);
+
+            return jsonNodeRequestResponse.toResponse();
         } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
@@ -308,10 +316,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get object metadata as json Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
+     * @param headers  http header
+     * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objects/{id_object}")
@@ -330,20 +336,16 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get an object data Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
-     * @param asyncResponse
-     *            async response
-     * @throws IOException
-     *             throws an IO Exception
+     * @param headers       http header
+     * @param objectId      the id of the object
+     * @param asyncResponse async response
+     * @throws IOException throws an IO Exception
      */
     @Path("/objects/{id_object}")
     @GET
-    @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
-            @Suspended final AsyncResponse asyncResponse) throws IOException {
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
 
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
@@ -355,7 +357,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     }
 
-    private void getByCategoryAsync(String objectId, HttpHeaders headers, DataCategory category, AsyncResponse asyncResponse) {
+    private void getByCategoryAsync(String objectId, HttpHeaders headers, DataCategory category,
+        AsyncResponse asyncResponse) {
         VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
         if (vitamCode == null) {
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
@@ -379,14 +382,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Post a new object
      *
-     * @param httpServletRequest
-     *            http servlet request to get requester
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
-     * @param createObjectDescription
-     *            the object description
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param objectId                the id of the object
+     * @param createObjectDescription the object description
      * @return Response response
      */
     // TODO P1 : remove httpServletRequest when requester information sent by
@@ -395,14 +394,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createObjectOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-            @PathParam("id_object") String objectId, ObjectDescription createObjectDescription) {
+    public Response createObjectOrGetInformation(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("id_object") String objectId, ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1 : actually no X-Requester header, so send the
             // getRemoteAdr from HttpServletRequest
             return createObjectByType(headers, objectId, createObjectDescription, DataCategory.OBJECT,
-                    httpServletRequest.getRemoteAddr());
+                httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, objectId);
         }
@@ -426,10 +426,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Delete an object
      *
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
+     * @param headers  http header
+     * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objects/{id_object}")
@@ -467,10 +465,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Check the existence of an object
      *
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
+     * @param headers  http header
+     * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objects/{id_object}")
@@ -498,8 +494,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
+     * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/logbooks")
@@ -520,10 +515,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param logbookId
-     *            the id of the logbook
+     * @param headers   http header
+     * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/logbooks/{id_logbook}")
@@ -540,21 +533,16 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * 
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
-     * @param asyncResponse
-     *            async response
-     * @throws IOException
-     *             exception
+     * @param headers       http header
+     * @param objectId      the id of the object
+     * @param asyncResponse async response
+     * @throws IOException exception
      */
     @Path("/logbooks/{id_logbook}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getLogBook(@Context HttpHeaders headers, @PathParam("id_logbook") String objectId,
-            @Suspended final AsyncResponse asyncResponse) throws IOException {
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
@@ -568,15 +556,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Post a new object
      *
-     * @param httpServletRequest
-     *            http servlet request to get requester
-     *
-     * @param headers
-     *            http header
-     * @param logbookId
-     *            the id of the logbookId
-     * @param createObjectDescription
-     *            the workspace information about logbook to be created
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param logbookId               the id of the logbookId
+     * @param createObjectDescription the workspace information about logbook to be created
      * @return Response NOT_IMPLEMENTED
      */
     // TODO P1: remove httpServletRequest when requester information sent by
@@ -586,24 +569,22 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLogbook(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-            @PathParam("id_logbook") String logbookId, ObjectDescription createObjectDescription) {
+        @PathParam("id_logbook") String logbookId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getLogbook(headers, logbookId);
         } else {
             // TODO P1: actually no X-Requester header, so send the getRemoteAdr
             // from HttpServletRequest
             return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK,
-                    httpServletRequest.getRemoteAddr());
+                httpServletRequest.getRemoteAddr());
         }
     }
 
     /**
      * Delete a logbook Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param logbookId
-     *            the id of the logbook
+     * @param headers   http header
+     * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/logbooks/{id_logbook}")
@@ -620,13 +601,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Check the existence of a logbook Note : this is NOT to be handled in item
-     * #72.
+     * Check the existence of a logbook Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param logbookId
-     *            the id of the logbook
+     * @param headers   http header
+     * @param logbookId the id of the logbook
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/logbooks/{id_logbook}")
@@ -647,8 +625,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
+     * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units")
@@ -669,10 +646,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the unit metadata
+     * @param headers    http header
+     * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units/{id_md}")
@@ -691,15 +666,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Post a new unit metadata
      *
-     * @param httpServletRequest
-     *            http servlet request to get requester
-     *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the unit metadata
-     * @param createObjectDescription
-     *            the workspace description of the unit to be created
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param metadataId              the id of the unit metadata
+     * @param createObjectDescription the workspace description of the unit to be created
      * @return Response NOT_IMPLEMENTED
      */
     // TODO P1: remove httpServletRequest when requester information sent by
@@ -709,14 +679,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createUnitMetadata(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-            @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
+        @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getUnit(headers, metadataId);
         } else {
             // TODO P1: actually no X-Requester header, so send the getRemoteAdr
             // from HttpServletRequest
             return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.UNIT,
-                    httpServletRequest.getRemoteAddr());
+                httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -725,19 +695,17 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the unit metadata
-     * @param query
-     *            the query as a JsonNode
+     * @param headers    http header
+     * @param metadataId the id of the unit metadata
+     * @param query      the query as a JsonNode
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units/{id_md}")
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId, JsonNode query) {
+    public Response updateUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
+        JsonNode query) {
         Response response = checkTenantStrategyHeader(headers);
         if (response != null) {
             return response;
@@ -749,10 +717,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Delete a unit metadata
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the unit metadata
+     * @param headers    http header
+     * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units/{id_md}")
@@ -771,10 +737,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Check the existence of a unit metadata
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the unit metadata
+     * @param headers    http header
+     * @param metadataId the id of the unit metadata
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/units/{id_md}")
@@ -795,8 +759,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
+     * @param headers http header
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objectgroups")
@@ -817,15 +780,13 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the Object Group metadata
+     * @param headers    http header
+     * @param metadataId the id of the Object Group metadata
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objectgroups/{id_md}")
     @GET
-    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
         Response response = checkTenantStrategyHeader(headers);
@@ -838,18 +799,13 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Post a new Object Group metadata
-     *
+     * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param httpServletRequest
-     *            http servlet request to get requester
-     *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the Object Group metadata
-     * @param createObjectDescription
-     *            the workspace description of the unit to be created
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param metadataId              the id of the Object Group metadata
+     * @param createObjectDescription the workspace description of the unit to be created
      * @return Response Created, not found or internal server error
      */
     // TODO P1: remove httpServletRequest when requester information sent by
@@ -861,14 +817,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createObjectGroup(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-            @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
+        @PathParam("id_md") String metadataId, ObjectDescription createObjectDescription) {
         if (createObjectDescription == null) {
             return getObjectGroup(headers, metadataId);
         } else {
             // TODO P1: actually no X-Requester header, so send the getRemoteAdr
             // from HttpServletRequest
             return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECT_GROUP,
-                    httpServletRequest.getRemoteAddr());
+                httpServletRequest.getRemoteAddr());
         }
     }
 
@@ -877,12 +833,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the unit metadata
-     * @param query
-     *            the query as a JsonNode
+     * @param headers    http header
+     * @param metadataId the id of the unit metadata
+     * @param query      the query as a JsonNode
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objectgroups/{id_md}")
@@ -890,7 +843,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateObjectGroupMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-            JsonNode query) {
+        JsonNode query) {
         Response response = checkTenantStrategyHeader(headers);
         if (response != null) {
             return response;
@@ -901,13 +854,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Delete a Object Group metadata
-     *
+     * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the Object Group metadata
+     * @param headers    http header
+     * @param metadataId the id of the Object Group metadata
      * @return Response NOT_IMPLEMENTED
      */
     @Path("/objectgroups/{id_md}")
@@ -925,15 +876,13 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * Check the existence of a Object Group metadata
-     *
+     * <p>
      * Note : this is NOT to be handled in item #72.
      *
-     * @param headers
-     *            http header
-     * @param metadataId
-     *            the id of the Object Group metadata
+     * @param headers    http header
+     * @param metadataId the id of the Object Group metadata
      * @return Response OK if the object exists, NOT_FOUND otherwise (or
-     *         BAD_REQUEST in cas of bad request format)
+     * BAD_REQUEST in cas of bad request format)
      */
     @Path("/objectgroups/{id_md}")
     @HEAD
@@ -950,10 +899,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private Response buildErrorResponse(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
-                .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                        .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                        .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
-                .build();
+            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+            .build();
     }
 
     private Response badRequestResponse(String message) {
@@ -963,15 +912,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Post a new object
      *
-     * @param httpServletRequest
-     *            http servlet request to get requester
-     *
-     * @param headers
-     *            http header
-     * @param reportId
-     *            the id of the object
-     * @param createObjectDescription
-     *            the object description
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param reportId                the id of the object
+     * @param createObjectDescription the object description
      * @return Response
      */
     // TODO P1: remove httpServletRequest when requester information sent by
@@ -980,14 +924,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createReportOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-            @PathParam("id_report") String reportId, ObjectDescription createObjectDescription) {
+    public Response createReportOrGetInformation(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("id_report") String reportId, ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1: actually no X-Requester header, so send the
             // getRemoteAddr from HttpServletRequest
             return createObjectByType(headers, reportId, createObjectDescription, DataCategory.REPORT,
-                    httpServletRequest.getRemoteAddr());
+                httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, reportId);
         }
@@ -996,19 +941,16 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get a report
      *
-     * @param headers
-     *            http header
-     * @param objectId
-     *            the id of the object
+     * @param headers       http header
+     * @param objectId      the id of the object
      * @param asyncResponse
-     * @throws IOException
-     *             throws an IO Exception
+     * @throws IOException throws an IO Exception
      */
     @Path("/reports/{id_report}")
     @GET
-    @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public void getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId,
-            @Suspended final AsyncResponse asyncResponse) throws IOException {
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
@@ -1024,13 +966,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     // getRemoteAdr from HttpServletRequest passed as parameter (requester)
     // Change it when the good header is sent
     private Response createObjectByType(HttpHeaders headers, String objectId, ObjectDescription createObjectDescription,
-            DataCategory category, String requester) {
+        DataCategory category, String requester) {
         final Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             VitamCode vitamCode;
             final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             try {
-                final StoredInfoResult result = distribution.storeData(strategyId, objectId, createObjectDescription, category,
+                final StoredInfoResult result =
+                    distribution.storeData(strategyId, objectId, createObjectDescription, category,
                         requester);
                 return Response.status(Status.CREATED).entity(result).build();
             } catch (final StorageNotFoundException exc) {
@@ -1055,15 +998,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Post a new object manifest
      *
-     * @param httpServletRequest
-     *            http servlet request to get requester
-     *
-     * @param headers
-     *            http header
-     * @param manifestId
-     *            the id of the object
-     * @param createObjectDescription
-     *            the object description
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param manifestId              the id of the object
+     * @param createObjectDescription the object description
      * @return Response
      */
     // TODO P1: remove httpServletRequest when requester information sent by
@@ -1072,14 +1010,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createManifestOrGetInformation(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-            @PathParam("id_manifest") String manifestId, ObjectDescription createObjectDescription) {
+    public Response createManifestOrGetInformation(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("id_manifest") String manifestId, ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
             // TODO P1: actually no X-Requester header, so send the
             // getRemoteAddr from HttpServletRequest
             return createObjectByType(headers, manifestId, createObjectDescription, DataCategory.MANIFEST,
-                    httpServletRequest.getRemoteAddr());
+                httpServletRequest.getRemoteAddr());
         } else {
             return getObjectInformationWithPost(headers, manifestId);
         }
@@ -1087,7 +1026,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     /**
      * getManifest stored by ingest operation
-     * 
+     *
      * @param headers
      * @param objectId
      * @param asyncResponse
@@ -1097,7 +1036,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getManifest(@Context HttpHeaders headers, @PathParam("id_manifest") String objectId,
-            @Suspended final AsyncResponse asyncResponse) throws IOException {
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
         VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
 
             @Override
@@ -1109,14 +1048,47 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * @param headers
-     *            http headers
+     * Run storage logbook secure operation
+     *
+     * @param xTenantId the tenant id
+     * @return the response with a specific HTTP status
+     */
+    @POST
+    @Path("/storage/secure")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response secureStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        try {
+            Integer tenantId = Integer.parseInt(xTenantId);
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            final GUID guid = storageLogbookAdministration.generateSecureStorageLogbook();
+            final List<String> resultAsJson = new ArrayList<>();
+            resultAsJson.add(guid.toString());
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<String>()
+                    .setHits(1, 0, 1)
+                    .addAllResults(resultAsJson))
+                .build();
+
+        } catch (LogbookClientServerException | ArchiveException | TraceabilityException | IOException | StorageLogException | LogbookClientAlreadyExistsException | LogbookClientBadRequestException e) {
+            LOGGER.error("unable to generate secure  log", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(new RequestResponseOK())
+                .build();
+        }
+    }
+
+    /**
+     * @param headers http headers
      * @return null if strategy and tenant headers have values, a VitamCode
-     *         response otherwise
+     * response otherwise
      */
     private VitamCode checkTenantStrategyHeaderAsync(HttpHeaders headers) {
         if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID)
-                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
+            || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
             return VitamCode.STORAGE_MISSING_HEADER;
         }
         return null;
@@ -1125,10 +1097,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Add error response in async response using with vitamCode
      *
-     * @param vitamCode
-     *            vitam error Code
-     * @param asyncResponse
-     *            asynchronous response
+     * @param vitamCode     vitam error Code
+     * @param asyncResponse asynchronous response
      */
     private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
         AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -1142,8 +1112,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE).setState(CODE_VITAM)
-                .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
     }
 
     @Override

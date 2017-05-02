@@ -293,8 +293,10 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *            the container name
      * @return container listing
      * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
      */
-    PageSet<? extends StorageMetadata> listContainer(String containerName) throws ContentAddressableStorageNotFoundException;
+    PageSet<? extends StorageMetadata> listContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException;
 
     /**
      * List container (next on cursor)
@@ -305,8 +307,9 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *            the last id of the list to get next
      * @return container listing
      * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
      */
     PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
-            throws ContentAddressableStorageNotFoundException;
+        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException;
 
 }

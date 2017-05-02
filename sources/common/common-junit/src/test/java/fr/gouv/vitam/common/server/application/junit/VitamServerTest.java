@@ -184,7 +184,12 @@ public class VitamServerTest {
                 @Override
                 public void changeServerPort(int port) {
 
-            }
+                }
+
+                @Override
+                public void shutdown() {
+                    // Empty
+                }
             }) {
 
                 @Override

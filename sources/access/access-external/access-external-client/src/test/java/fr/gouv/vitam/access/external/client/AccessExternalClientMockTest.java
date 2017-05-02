@@ -10,6 +10,7 @@ import org.junit.Test;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -52,7 +53,7 @@ public class AccessExternalClientMockTest {
     @Test
     public void givenMockConfExistWhenAccessExternalUpdateUnitbyIDThenReturnResult()
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        AccessExternalClientNotFoundException, NoWritingPermissionException {
         assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID));
     }
 
@@ -108,5 +109,12 @@ public class AccessExternalClientMockTest {
         AccessExternalClientNotFoundException,
         LogbookClientException {
         assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID));
+    }
+
+    @Test
+    public void givenMockConfExistWhenAccessExternal_checkTraceabilityOperation_ThenReturnResult()
+        throws InvalidParseOperationException, AccessExternalClientServerException,
+        AccessExternalClientNotFoundException, LogbookClientException {
+        assertNotNull(client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID));
     }
 }

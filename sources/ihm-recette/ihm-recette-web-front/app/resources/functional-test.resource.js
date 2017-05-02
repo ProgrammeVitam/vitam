@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-// Define resources in order to call WebApp http endpoints for soap-ui
+// Define resources in order to call WebApp http endpoints for functional.test
 angular.module('core')
   .factory('functionalTestResource', function($http, IHM_URLS) {
 

@@ -27,16 +27,62 @@
 
 package fr.gouv.vitam.common.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Constants class for Vitam internal features
  */
 public class VitamConstants {
+	
+    public static final String SIP_FOLDER = "SIP";
+
+    public static final String CONTENT_SIP_FOLDER = SIP_FOLDER + "/Content";
+    
+    /**
+     * tag of StorageRule
+     */
+    public static final String TAG_RULE_STORAGE = "StorageRule";
+    /**
+     * tag of AppraisalRule
+     */
+    public static final String TAG_RULE_APPRAISAL = "AppraisalRule";
+    /**
+     * tag of AccessRule
+     */
+    public static final String TAG_RULE_ACCESS = "AccessRule";
+    /**
+     * tag of DisseminationRule
+     */
+    public static final String TAG_RULE_DISSEMINATION = "DisseminationRule";
+    /**
+     * tag of ReuseRule
+     */
+    public static final String TAG_RULE_REUSE = "ReuseRule";
+    /**
+     * tag of ClassificationRule
+     */
+    public static final String TAG_RULE_CLASSIFICATION = "ClassificationRule";
+    private static List<String> ruleTypes = null;
 
     private VitamConstants() {
         // Nothing
     }
-
-    public static final String SIP_FOLDER = "SIP";
-
-    public static final String CONTENT_SIP_FOLDER = SIP_FOLDER + "/Content";
+    
+    /**
+    *
+    * @return supported Rules type
+    */
+   public static List<String> getSupportedRules() {
+       if (ruleTypes == null) {
+           ruleTypes = new ArrayList<>();
+           ruleTypes.add(TAG_RULE_ACCESS);
+           ruleTypes.add(TAG_RULE_REUSE);
+           ruleTypes.add(TAG_RULE_STORAGE);
+           ruleTypes.add(TAG_RULE_APPRAISAL);
+           ruleTypes.add(TAG_RULE_CLASSIFICATION);
+           ruleTypes.add(TAG_RULE_DISSEMINATION);
+       }
+       return ruleTypes;
+   }
 }

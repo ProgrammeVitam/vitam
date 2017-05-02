@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.File;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -35,7 +34,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -50,7 +48,6 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.common.utils.SedaConstants;
 
 /**
  * Handler class used to check the ingest contract of SIP. </br>
@@ -91,12 +88,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(ioParam);
-            final JsonNode sedaParameters = JsonHandler.getFromFile((File) handlerIO.getInput(SEDA_PARAMETERS_RANK));
-            JsonNode infoContract =
-                sedaParameters.get(SedaConstants.TAG_ARCHIVE_TRANSFER).get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+            final String contractName = (String) handlerIO.getInput(SEDA_PARAMETERS_RANK);
 
-            if (infoContract != null) {
-                contractValidity = checkIngestContract(infoContract.asText());
+            if (contractName != null) {
+                contractValidity = checkIngestContract(contractName);
             } else {
                 contractValidity = true;
                 LOGGER.info("There is no contract in the SIP");
@@ -104,11 +99,11 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
             if (!contractValidity) {
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setData("error ingest contract validation", infoContract.asText());
+                itemStatus.setData("error ingest contract validation", contractName);
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
-        } catch (final ProcessingException | InvalidParseOperationException e) {
+        } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
         }

@@ -32,7 +32,7 @@
                     <td>
                       <label for="executionModeList">Mode d'exécution</label>
             				  <select ng-model="ctrl.action" class="form-control" name="executionModeList">
-            					    <option value="NEXT">Pas à pas</option>
+            					    <option value="NEXT" ng-show="hasPermission('operations:read')">Pas à pas</option>
             					    <option value="RESUME">Continu</option>
             				  </select>
                     </td>

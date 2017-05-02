@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-// Define service in order to process the resource promise for soap-ui operation
+// Define service in order to process the resource promise for functional.test operation
 angular.module('core')
   .service('functionalTestService', function(functionalTestResource) {
 

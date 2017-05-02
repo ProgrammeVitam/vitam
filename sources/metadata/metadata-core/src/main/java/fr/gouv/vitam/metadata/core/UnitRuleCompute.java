@@ -34,6 +34,7 @@
  */
 package fr.gouv.vitam.metadata.core;
 
+
 /**
  * Object to build the graph of unit
  */
@@ -54,7 +55,7 @@ public class UnitRuleCompute extends UnitNode {
     /**
      * constructor with UnitNode
      * 
-     * @param u UnitSimplified
+     * @param u UnitNode
      */
     public UnitRuleCompute(UnitNode u) {
         super(u.getUnit());
@@ -68,8 +69,9 @@ public class UnitRuleCompute extends UnitNode {
         if (isComputed) {
           return;  
         }
+        
         if (getUnit().getDirectParent().isEmpty()) {
-            this.heritedRules = new UnitInheritedRule(getUnit().getManagement(), getUnit().getId());
+            this.heritedRules = new UnitInheritedRule().createNewInheritedRule(getUnit().getManagement(), getUnit().getId());
         } else {
             this.heritedRules = new UnitInheritedRule();
         }
@@ -87,7 +89,7 @@ public class UnitRuleCompute extends UnitNode {
      * @return UnitInheritedRule
      */
     public UnitInheritedRule getHeritedRules() {
-        if (getUnit().getDirectParent().isEmpty()) {
+        if (!isComputed && getUnit().getDirectParent().isEmpty()) {
             return new UnitInheritedRule();
         }
         return heritedRules;

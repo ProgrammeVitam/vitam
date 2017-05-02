@@ -114,7 +114,8 @@ public class LogbookExternalResourceImpl {
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
             queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectOperationById(operationId, queryDsl);
+            final JsonNode result =
+                client.selectOperationById(operationId, queryDsl).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -166,7 +167,7 @@ public class LogbookExternalResourceImpl {
 
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            final JsonNode result = client.selectOperation(query);
+            final JsonNode result = client.selectOperation(query).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -227,7 +228,8 @@ public class LogbookExternalResourceImpl {
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(OB_ID, unitLifeCycleId));
             queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
+            final JsonNode result =
+                client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl).toJsonNode().get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
@@ -292,7 +294,8 @@ public class LogbookExternalResourceImpl {
             parser.parse(select.getFinalSelect());
             parser.addCondition(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));
             queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
+            final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl).toJsonNode()
+                .get("$results").get(0);
             return Response.status(Status.OK).entity(result).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);

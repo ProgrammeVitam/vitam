@@ -32,6 +32,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -68,6 +72,7 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
      * identifier of execution
      */
     public static final String ID = "identifier1";
+    private static final String FAKE_EXECUTION_STATUS = "Fake";
     protected StatusCode globalStatus;
 
     @Override
@@ -111,9 +116,9 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Response cancelOperationProcessExecution(String id) throws VitamClientException {
+    public RequestResponse<JsonNode> cancelOperationProcessExecution(String id) throws VitamClientException {
         // return new ItemStatus(ID);
-        return Response.status(Status.OK).build();
+        return new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
@@ -122,14 +127,14 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws VitamClientException {
-        return Response.status(Status.OK).build();
+        return new RequestResponseOK<JsonNode>().addHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, FAKE_EXECUTION_STATUS);
+
     }
 
     @Override
-    public Response initWorkFlow(String contextId) throws VitamClientException, VitamException {
-        return Response.status(Status.OK).build();
+    public void initWorkFlow(String contextId) throws VitamClientException, VitamException {
     }
 
     @Override
@@ -139,14 +144,13 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Response initVitamProcess(String contextId, String container, String workflow)
+    public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, VitamClientException, BadRequestException {
-        return Response.status(Status.OK).build();
     }
 
     @Override
-    public Response listOperationsDetails() throws VitamClientInternalException {
-        return Response.status(Status.OK).build();
+    public RequestResponse<JsonNode> listOperationsDetails() throws VitamClientInternalException {
+        return RequestResponse.parseFromResponse(Response.status(Status.OK).build());
     }
 
 

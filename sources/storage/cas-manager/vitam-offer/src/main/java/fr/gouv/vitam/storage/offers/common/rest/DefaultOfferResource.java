@@ -161,53 +161,61 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     public Response getContainerList(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
             @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId, @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @PathParam("type") DataCategory type) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+        try {
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                final Response.ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+            }
+            Status status;
+            String cursorId = xcursorId;
+            if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
+                DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
+                final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+            }
+    
+            if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
+                try {
+                    cursorId = DefaultOfferServiceImpl.getInstance().createCursor(buildContainerName(type, xTenantId));
+                } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException exc) {
+                    LOGGER.error(exc);
+                    status = Status.INTERNAL_SERVER_ERROR;
+                    final Response.ResponseBuilder builder = Response.status(status)
+                            .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext("default-offer")
+                                    .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(exc.getMessage()));
+                    return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+                }
+            }
+    
+            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+
+            if (DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)) {
+                try {
+                    List<JsonNode> list = DefaultOfferServiceImpl.getInstance().next(buildContainerName(type, xTenantId), cursorId);
+                    responseOK.addAllResults(list).setHits(list.size(), 0, list.size());
+                    LOGGER.debug("Result {}", responseOK);
+                    final Response.ResponseBuilder builder = Response
+                            .status(DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)
+                                    ? Status.PARTIAL_CONTENT : Status.OK)
+                            .entity(responseOK);
+                    return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
+                } catch (ContentAddressableStorageNotFoundException exc) {
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), exc);
+                    status = Status.INTERNAL_SERVER_ERROR;
+                    final Response.ResponseBuilder builder = Response.status(status)
+                            .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
+                                    .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(exc.getMessage()));
+                    return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+                }
+            } else {
+                DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
+                final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
+                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
             final Response.ResponseBuilder builder = Response.status(Status.BAD_REQUEST);
-            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-        }
-        Status status;
-        String cursorId = xcursorId;
-        if (VitamRequestIterator.isEndOfCursor(xcursor, xcursorId)) {
-            DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
-            final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
-            return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-        }
-
-        if (VitamRequestIterator.isNewCursor(xcursor, xcursorId)) {
-            try {
-                cursorId = DefaultOfferServiceImpl.getInstance().createCursor(buildContainerName(type, xTenantId));
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException exc) {
-                LOGGER.error(exc);
-                status = Status.INTERNAL_SERVER_ERROR;
-                final Response.ResponseBuilder builder = Response.status(status)
-                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext("default-offer")
-                                .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(exc.getMessage()));
-                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-            }
-        }
-
-        final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
-        if (DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)) {
-            try {
-                List<JsonNode> list = DefaultOfferServiceImpl.getInstance().next(buildContainerName(type, xTenantId), cursorId);
-                responseOK.addAllResults(list);
-                final Response.ResponseBuilder builder = Response
-                        .status(DefaultOfferServiceImpl.getInstance().hasNext(buildContainerName(type, xTenantId), cursorId)
-                                ? Status.PARTIAL_CONTENT : Status.OK)
-                        .entity(responseOK.setHits(list.size(), 0, list.size()));
-                return VitamRequestIterator.setHeaders(builder, xcursor, cursorId).build();
-            } catch (ContentAddressableStorageNotFoundException exc) {
-                LOGGER.error(exc);
-                status = Status.INTERNAL_SERVER_ERROR;
-                final Response.ResponseBuilder builder = Response.status(status)
-                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
-                                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(exc.getMessage()));
-                return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
-            }
-        } else {
-            DefaultOfferServiceImpl.getInstance().finalizeCursor(buildContainerName(type, xTenantId), xcursorId);
-            final Response.ResponseBuilder builder = Response.status(Status.NO_CONTENT);
             return VitamRequestIterator.setHeaders(builder, xcursor, null).build();
         }
     }

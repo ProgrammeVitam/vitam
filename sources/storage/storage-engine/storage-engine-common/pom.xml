@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>storage-engine</artifactId>
-		<version>0.17.0-SNAPSHOT</version>
+		<version>0.18.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>storage-engine-common</artifactId>
 	<name>Storage Engine Common</name>
@@ -13,6 +13,11 @@
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-private</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-database-private</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

@@ -82,7 +82,7 @@ public class PerformanceService {
     private final Path performanceReportDirectory;
 
     /**
-     * @param sipDirectory               base sip directory
+     * @param sipDirectory base sip directory
      * @param performanceReportDirectory base report directory
      */
     public PerformanceService(Path sipDirectory, Path performanceReportDirectory) {
@@ -166,17 +166,21 @@ public class PerformanceService {
     private String uploadSIP(PerformanceModel model, Integer tenantId) {
         // TODO: client is it thread safe ?
         LOGGER.debug("launch unitary test");
+        RequestResponse<JsonNode>  response = null;
+        IngestExternalClient client = ingestClientFactory.getClient();
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
-            StandardOpenOption.READ);
-            IngestExternalClient client = ingestClientFactory.getClient()) {
+            StandardOpenOption.READ)) {
 
-            final Response response = client.upload(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
+            response =
+                client.uploadAndWaitFinishingProcess(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             LOGGER.debug("finish unitary test");
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         } catch (final Exception e) {
             LOGGER.error("unable to close report", e);
             return null;
+        } finally {
+            client.close();
         }
     }
 

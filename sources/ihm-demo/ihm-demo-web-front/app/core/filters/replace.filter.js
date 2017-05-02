@@ -29,6 +29,9 @@
 angular.module('ihm.demo')
   .filter('StrReplace', function () {
     return function (text) {
-      return  text.replace("ACTIVE", "Actif").replace("INACTIVE","Inactif");
+      if(text){
+        return text.replace("INACTIVE","Inactif").replace("ACTIVE", "Actif");
+      }
+      return text;
     };
   });

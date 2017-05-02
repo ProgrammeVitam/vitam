@@ -6,10 +6,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -22,7 +20,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -41,11 +38,9 @@ import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.ContractStatus;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -55,28 +50,24 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 public class CheckIngestContractActionHandlerTest {
     CheckIngestContractActionHandler handler;
     private static final String HANDLER_ID = "CHECK_CONTRACT_INGEST";
-    private HandlerIOImpl action;
     private AdminManagementClient adminClient;
     private AdminManagementClientFactory adminManagementClientFactory;
-    private List<IOParameter> in;
     private GUID guid;
     private static final Integer TENANT_ID = 0;
     private static final String FAKE_URL = "http://localhost:8083";
-    private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
+    private static final String CONTRACT_NAME = "ArchivalAgreement0";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
-    private File globalSEDAParameter;
 
     @Before
     public void setUp() throws ProcessingException, FileNotFoundException {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminClient = mock(AdminManagementClient.class);
         guid = GUIDFactory.newGUID();
-        globalSEDAParameter = (File) PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
@@ -91,7 +82,7 @@ public class CheckIngestContractActionHandlerTest {
         ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(handlerIO.getInput(0)).thenReturn(globalSEDAParameter);
+        when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
             .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));

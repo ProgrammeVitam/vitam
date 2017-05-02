@@ -76,24 +76,11 @@ public class CheckSedaActionHandler extends ActionHandler {
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
 
         CheckSedaValidationStatus status;
-        String messageId = "";
-        try {
-            status = sedaUtils.checkSedaValidation(params);
-            if (CheckSedaValidationStatus.VALID.equals(status)) {
-                messageId = sedaUtils.getMessageIdentifier(params);
-            }
-        } catch (final ProcessingException e) {
-            LOGGER.error("getMessageIdentifier ProcessingException", e);
-            itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-        }
-
-
+        status = sedaUtils.checkSedaValidation(params);
 
         switch (status) {
             case VALID:
                 itemStatus.increment(StatusCode.OK);
-                itemStatus.setData("messageIdentifier", messageId);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NO_FILE:
                 itemStatus.setItemId(NO_FILE);

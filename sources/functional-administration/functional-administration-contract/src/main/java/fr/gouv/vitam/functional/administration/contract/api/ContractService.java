@@ -42,9 +42,8 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
 
 
     /**
-     * Create a collections of contracts
-     * After passing the validation steps. If all the contracts are valid, they are stored in the collection and indexed. </BR>
-     * The access contract are valid in the following situations : </BR>
+     * Create a collections of contracts After passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR> The access contract are valid in the following situations : </BR>
      * <ul>
      * <li>The collection contains 2 ore many contracts having the same name</li>
      * <li>One or more mandatory field is missing</li>
@@ -58,9 +57,25 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      */
     public RequestResponse<T> createContracts(List<T> contractModelList) throws VitamException;
 
+    /**
+     * Update contracts status after passing validation steps : </BR> 
+     * Field modified : 
+     * <ul> <li>- ActivationDate </li>
+     * <li>- DesactivationDate </li>
+     * <li>- LastUpdate </li>
+     * <li>- Status</li>
+     * 
+     * 
+     * @param queryDsl the given queryDsl for update
+     * @return RequestResponseOK if success or VitamError
+     * @throws VitamException if in error occurs while validating contracts
+     */
+    public RequestResponse<T> updateContract(JsonNode queryDsl) throws VitamException;
+
 
     /**
      * Find contract by id
+     * 
      * @param id
      * @return
      */
@@ -69,9 +84,12 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
 
     /**
      * find contract by QueryDsl
+     * 
      * @param queryDsl
      * @return
      */
     public List<T> findContracts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
+
+
 
 }

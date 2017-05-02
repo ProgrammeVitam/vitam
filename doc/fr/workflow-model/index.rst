@@ -10,7 +10,9 @@ Sommaire
    :maxdepth: 2
 
    workflow.rst
-
+   workflow-tree.rst
+   workflow-plan.rst
+   
 .. only:: latex
 
   Annexes

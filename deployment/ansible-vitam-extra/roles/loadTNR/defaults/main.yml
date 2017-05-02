@@ -1,7 +1,9 @@
 ---
 # defaults file for loadTNR
-TNR_dir: "{{vitam_folder_root}}/data/ihm-recette/test-data/system/"
+data_dir: "{{vitam_folder_root}}/data/ihm-recette"
+TNR_dir: "{{data_dir}}/test-data/system/"
 TNR_conf: "{{vitam_folder_root}}/conf/ihm-recette/"
 TNR_lib: "{{vitam_folder_root}}/lib/ihm-recette/"
+report_dir: "{{data_dir}}/report/system"
 TNR_output_dir: "{{vitam_folder_root}}/tmp/ihm-recette/"
-TNR_output: "{{TNR_output_dir}}/TNR.xml"
+TNR_output: "{{TNR_output_dir}}TNR.xml"

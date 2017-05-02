@@ -309,7 +309,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        assertEquals(Status.OK.getStatusCode(), client.checkFormat(stream).getStatus());
+        assertEquals(Status.OK, client.checkFormat(stream));
     }
 
     @Test(expected = ReferentialException.class)
@@ -358,7 +358,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final InputStream stream =
             PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
-        assertEquals(Status.OK.getStatusCode(), client.checkRulesFile(stream).getStatus());
+        assertEquals(Status.OK, client.checkRulesFile(stream));
     }
 
 
@@ -523,10 +523,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<IngestContractModel>().addAllResults(getIngestContracts())).build());
-        RequestResponse resp = client.importIngestContracts(new ArrayList<>());
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
-        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(IngestContractModel.class);
+        Status resp = client.importIngestContracts(new ArrayList<>());
+        assertEquals(resp, Status.CREATED);
     }
 
 
@@ -584,21 +582,6 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         RequestResponse resp = client.findIngestContractsByID("fakeId");
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     @Test
     @RunWithCustomExecutor
     public void importAccessContractsWithCorrectJsonReturnCreated()
@@ -606,10 +589,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<AccessContractModel>().addAllResults(getAccessContracts())).build());
-        RequestResponse resp = client.importAccessContracts(new ArrayList<>());
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
-        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(AccessContractModel.class);
+        Status resp = client.importAccessContracts(new ArrayList<>());
+        assertEquals(resp, Status.CREATED);
     }
 
 

@@ -133,7 +133,6 @@ public class WorkerIT {
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
     private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String LOGBOOK_PATH = "/logbook/v1";
 
     private static String CONFIG_WORKER_PATH = "";
     private static String CONFIG_WORKER_CLIENT_PATH = "";
@@ -487,7 +486,7 @@ public class WorkerIT {
             final ItemStatus retStepControl =
                 workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
-            assertEquals(5, retStepControl.getItemsStatus().size());
+            assertEquals(3, retStepControl.getItemsStatus().size());
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
             workspaceClient.deleteContainer(CONTAINER_NAME, true);

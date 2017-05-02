@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -71,7 +72,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
@@ -99,7 +99,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param configuration the storage config
      */
     public WorkspaceResource(StorageConfiguration configuration) {
-        workspace = new WorkspaceFileSystem(configuration);
+        try {
+            workspace = new WorkspaceFileSystem(configuration);
+        } catch (IOException ex) {
+            LOGGER.error("cannot load WorkspaceFileSystem : ", ex);
+            throw new IllegalStateException(ex);
+        }
         LOGGER.info("init Workspace Resource server");
     }
 
@@ -121,7 +126,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName + " => " + e.getMessage());
+            LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName + " => " + e.getMessage());
             return Response.status(Status.CONFLICT).entity(containerName).build();
         } catch (Exception e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -268,7 +273,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + containerName + "/" + folderName, e);
+            LOGGER.info(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage() + containerName + "/" + folderName, e);
             return Response.status(Status.CONFLICT).entity(containerName + "/" + folderName).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName, e);
@@ -368,7 +373,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
                 return Response.status(Status.NOT_FOUND).entity(containerName).build();
             } catch (final ContentAddressableStorageAlreadyExistException e) {
-                LOGGER.error(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
+                LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
                 return Response.status(Status.CONFLICT).entity(containerName).build();
             } catch (final ContentAddressableStorageCompressedFileException e) {
                 LOGGER.error(e);

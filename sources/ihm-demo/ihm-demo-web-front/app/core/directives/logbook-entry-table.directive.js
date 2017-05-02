@@ -46,6 +46,15 @@ angular.module('ihm.demo')
     $scope.selectStyleByStatus = function(status){
       return logbookEntryFullService.selectClassByStatus(status);
     };
+    $scope.getClassByevType = function(eventType) {
+      if (eventType.startsWith('STP') ) {
+        return 'logbookStep';
+      }
+      if (eventType.indexOf('.') > -1 && eventType.indexOf('CHECK') > -1 ) {
+        return 'logbookSubTask';
+      }
+      return 'logbookTask' ;
+    }
   })
   .directive('logbookEntryTable', function()  {
     return {

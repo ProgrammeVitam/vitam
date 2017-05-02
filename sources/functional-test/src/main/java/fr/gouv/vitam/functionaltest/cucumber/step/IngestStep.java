@@ -26,11 +26,28 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.Iterables;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
 
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -40,27 +57,17 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.Iterables;
-
-import cucumber.api.java.en.Given;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.ingest.external.core.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.ingest.external.core.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.ingest.external.core.Contexts.HOLDING_SCHEME;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class IngestStep {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestStep.class);
 
     private String fileName;
 
@@ -72,6 +79,7 @@ public class IngestStep {
 
     /**
      * define a sip
+     *
      * @param fileName name of a sip
      */
     @Given("^un fichier SIP nommé (.*)$")
@@ -81,16 +89,56 @@ public class IngestStep {
 
     /**
      * call vitam to upload the SIP
+     *
      * @throws IOException
      * @throws IngestExternalException
      */
     @When("^je télécharge le SIP")
-    public void upload_this_sip() throws IOException, IngestExternalException {
+    public void upload_this_sip() throws IOException, IngestExternalException, IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            Response response =
+            RequestResponse<JsonNode> response =
                 world.getIngestClient()
-                    .uploadAndWaitAtr(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
+                        ProcessAction.RESUME.name());
+
+            String operationId = response.getHeaderString(X_REQUEST_ID);
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
+    }
+
+    /**
+     * call vitam to upload the plan
+     * @throws IOException
+     * @throws IngestExternalException
+     */
+    @When("^je télécharge le plan")
+    public void upload_this_plan() throws IOException, IngestExternalException {
+        Path sip = Paths.get(world.getBaseDirectory(), fileName);
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            RequestResponse<JsonNode> response =
+                world.getIngestClient()
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
+            String operationId = response.getHeaderString(X_REQUEST_ID);
+            world.setOperationId(operationId);
+            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+        }
+    }
+
+    /**
+     * call vitam to upload the tree
+     *
+     * @throws IOException
+     * @throws IngestExternalException
+     */
+    @When("^je télécharge l'arbre")
+    public void upload_this_tree() throws IOException, IngestExternalException {
+        Path sip = Paths.get(world.getBaseDirectory(), fileName);
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            RequestResponse<JsonNode> response =
+                world.getIngestClient()
+                    .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
             String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
@@ -99,6 +147,7 @@ public class IngestStep {
 
     /**
      * check on logbook if the global status is OK (status of the last event)
+     *
      * @param status
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -113,12 +162,19 @@ public class IngestStep {
 
             ArrayNode actual = (ArrayNode) requestResponseOK.getResults().get(0).get("events");
             JsonNode last = Iterables.getLast(actual);
-            assertThat(last.get("outcome").textValue()).isEqualTo(status);
+            assertThat(last.get("outcome").textValue())
+                .as("last event has status %s, but %s was expected. Event name is: %s", last.get("outcome").textValue(),
+                    status, last.get("evType").textValue()).isEqualTo(status);
+        } else {
+            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
+
+            fail(String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
         }
     }
 
     /**
      * check if the status is valid for a list of event type according to logbook operation
+     *
      * @param eventNames list of event
      * @param eventStatus status of event
      * @throws LogbookClientException
@@ -152,8 +208,22 @@ public class IngestStep {
                 }
             }
         } else {
+            VitamError error = (VitamError) requestResponse;
+            LOGGER.error(String.format("logbook operation return a vitam error for operationId: %s, requestId is %s", world.getOperationId(), error.getCode()));
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
     }
 
+    /**
+     * check if the atr is available
+     */
+    @Then("je peux télécharger son ATR")
+    public void download_atr() throws IngestExternalException, IOException {
+        Response response = world.getIngestClient()
+            .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
+        InputStream inputStream = response.readEntity(InputStream.class);
+        assertThat(inputStream).isNotNull();
+        StreamUtils.closeSilently(inputStream);
+        world.getIngestClient().consumeAnyEntityAndClose(response);
+    }
 }

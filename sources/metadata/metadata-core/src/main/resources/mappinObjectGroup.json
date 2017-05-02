@@ -1,6 +1,9 @@
 {
   "typeunique": {
     "properties": {
+      "OriginatingAgency":  {
+      "type": "string"
+    },
       "FileInfo": {
       "type": "nested",
         "properties": {

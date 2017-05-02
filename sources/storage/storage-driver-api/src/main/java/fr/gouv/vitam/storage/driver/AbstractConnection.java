@@ -49,6 +49,9 @@ public abstract  class AbstractConnection extends DefaultClient implements Conne
         this.driverName = driverName;
     }
 
+    /**
+     * @return the driverName associated
+     */
     public String getDriverName() {
         return driverName;
     }

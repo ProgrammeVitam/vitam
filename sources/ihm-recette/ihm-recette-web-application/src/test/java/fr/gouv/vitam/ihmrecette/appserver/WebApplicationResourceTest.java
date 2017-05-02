@@ -28,24 +28,16 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -53,13 +45,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.ResponseBody;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -67,20 +57,15 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ihmrecette.soapui.SoapUiClient;
-import fr.gouv.vitam.ihmrecette.soapui.SoapUiClientFactory;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
-    IngestExternalClientFactory.class, SoapUiClientFactory.class})
+    IngestExternalClientFactory.class})
 // FIXME Think about Unit tests
 public class WebApplicationResourceTest {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceTest.class);
 
     // take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
@@ -90,7 +75,7 @@ public class WebApplicationResourceTest {
     private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
     private static JunitHelper junitHelper;
     private static int port;
-    
+
     final int TENANT_ID = 0;
 
     private static ServerApplicationWithoutMongo application;
@@ -137,7 +122,6 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(UserInterfaceTransactionManager.class);
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
-        PowerMockito.mockStatic(SoapUiClientFactory.class);
     }
 
     @Test
@@ -167,116 +151,6 @@ public class WebApplicationResourceTest {
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @Test
-    public void testLaunchSoapUiTestSuccess() throws IOException, InterruptedException {
-        if (!WebApplicationResource.isSoapUiRunning()) {
-            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
-
-            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-            Mockito.doNothing().when(soapuiClient).launchTests();
-
-            given().expect()
-                .statusCode(Status.OK.getStatusCode())
-                .when()
-                .get("/soapui/launch");
-        } else {
-            LOGGER.warn("Test testLaunchSoapUiTestSuccess did not run because a process is already running");
-        }
-    }
-
-
-    @Test
-    public void testLaunchSoapUiTestWhenThrowInterruptedException() throws IOException, InterruptedException {
-        if (!WebApplicationResource.isSoapUiRunning()) {
-            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
-
-            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-            Mockito.doThrow(InterruptedException.class).when(soapuiClient).launchTests();
-            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
-        } else {
-            LOGGER.warn(
-                "Test testLaunchSoapUiTestWhenThrowInterruptedException did not run because a process is already running");
-        }
-    }
-
-    @Test
-    public void testLaunchSoapUiTestWhenThrowIOException() throws IOException, InterruptedException {
-        if (!WebApplicationResource.isSoapUiRunning()) {
-            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
-
-            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-            Mockito.doThrow(IOException.class).when(soapuiClient).launchTests();
-            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
-        } else {
-            LOGGER
-                .warn("Test testLaunchSoapUiTestWhenThrowIOException did not run because a process is already running");
-        }
-    }
-
-    @Test
-    public void testLaunchSoapUiTestWhenThrowFileNotFoundException() throws IOException, InterruptedException {
-        if (!WebApplicationResource.isSoapUiRunning()) {
-            final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-            final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
-
-            PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-            PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-            Mockito.doThrow(FileNotFoundException.class).when(soapuiClient).launchTests();
-            given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/launch");
-        } else {
-            LOGGER.warn(
-                "Test testLaunchSoapUiTestWhenThrowFileNotFoundException did not run because a process is already running");
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Test
-    public void testRunningSoapUiTest() {
-        if (!WebApplicationResource.isSoapUiRunning()) {
-            final ResponseBody body =
-                given().expect().statusCode(Status.OK.getStatusCode()).when().get("/soapui/running").getBody();
-            assertTrue(body.prettyPrint().contains("false"));
-        } else {
-            LOGGER.warn("Test testRunningSoapUiTest did not run because a process is already running");
-        }
-    }
-
-    @Test
-    public void testGetLastReportWhenThrowIOException() throws InvalidParseOperationException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
-
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doReturn(null).when(soapuiClient).getLastTestReport();
-
-        given().expect()
-            .statusCode(Status.OK.getStatusCode())
-            .when()
-            .get("/soapui/result");
-    }
-
-    @Test
-    public void testGetLastReportWhenThrowInterruptedException() throws InvalidParseOperationException {
-        final SoapUiClient soapuiClient = PowerMockito.mock(SoapUiClient.class);
-        final SoapUiClientFactory soapUiFactory = PowerMockito.mock(SoapUiClientFactory.class);
-
-        PowerMockito.when(soapUiFactory.getClient()).thenReturn(soapuiClient);
-        PowerMockito.when(SoapUiClientFactory.getInstance()).thenReturn(soapUiFactory);
-        Mockito.doThrow(InvalidParseOperationException.class).when(soapuiClient).getLastTestReport();
-
-        given().expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
-            .when()
-            .get("/soapui/result");
     }
 
     @Test

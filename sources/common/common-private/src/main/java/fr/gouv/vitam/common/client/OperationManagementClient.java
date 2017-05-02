@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 
 
 /**
@@ -58,7 +58,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws InternalServerException
      * @throws BadRequestException
      */
-    Response cancelOperationProcessExecution(String id)
+    RequestResponse<JsonNode> cancelOperationProcessExecution(String id)
         throws InternalServerException, BadRequestException, VitamClientException;
 
     /**
@@ -78,23 +78,18 @@ public interface OperationManagementClient extends MockOrRestClient {
 
     /**
      * executeOperationProcess : execute an operation processing
-     * 
-     * 
-     * @param operationId :id of the operation
-     * @param contextId :define the execution context of workflow
-     * @param actionId : identify the action to be executed by the workflow(next , pause,resume)
-     * @param container: name of the container
-     * @param workflow : id of the workflow
-     * @param id : operation identifier
-     * @return ItemStatus response containing message and status
-     * @throws VitamClientException
+     *
+     * @param operationId id of the operation
+     * @param workflow id of the workflow
+     * @param contextId define the execution context of workflow
+     * @param actionId identify the action to be executed by the workflow(next , pause,resume)
+     * @return RequestResponse
      * @throws InternalServerException
      * @throws BadRequestException
-     * @throws ProcessingUnauthorizeException 
+     * @throws VitamClientException
      * @throws WorkflowNotFoundException
-     * 
      */
-    Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, VitamClientException, WorkflowNotFoundException;
 
     /**
@@ -106,7 +101,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @throws VitamClientException
      * @throws VitamException
      */
-    Response initWorkFlow(String contextId) throws VitamException;
+    void initWorkFlow(String contextId) throws VitamException;
 
     /**
      * updateVitamProcess : update vitam process status
@@ -131,12 +126,12 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @param contextId
      * @param container
      * @param workflow
-     * @return
+     * @return status code
      * @throws InternalServerException
      * @throws VitamClientException
      * @throws BadRequestException
      */
-    Response initVitamProcess(String contextId, String container, String workflow)
+    void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, VitamClientException, BadRequestException;
 
     /**
@@ -145,7 +140,7 @@ public interface OperationManagementClient extends MockOrRestClient {
      * @return All details of the operations
      * @throws VitamClientException
      */
-    Response listOperationsDetails() throws VitamClientException;
+    RequestResponse<JsonNode> listOperationsDetails() throws VitamClientException;
 
 
 }

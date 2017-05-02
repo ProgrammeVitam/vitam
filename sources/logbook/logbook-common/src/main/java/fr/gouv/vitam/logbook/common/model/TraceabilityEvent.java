@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.logbook.common.model;
 
+import fr.gouv.vitam.common.digest.DigestType;
+
 /**
  * information on the traceability event
  */
@@ -84,6 +86,11 @@ public class TraceabilityEvent {
     private long size;
     
     /**
+     * Digest Algorithm
+     */
+    private DigestType digestAlgorithm;
+
+    /**
      * Empty constructor for Jackson
      */
     public TraceabilityEvent() {
@@ -106,10 +113,12 @@ public class TraceabilityEvent {
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash, 
     	byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
-    	String minusOneYearLogbookTraceabilityDate, long numberOfElement, String fileName, long size) {
+        String minusOneYearLogbookTraceabilityDate, long numberOfElement, String fileName, long size,
+        DigestType digestAlgorithm) {
     	this.logType = logType;
     	this.startDate = startDate;
         this.endDate = endDate;
+        this.previousLogbookTraceabilityDate = previousLogbookTraceabilityDate;
         this.hash = hash;
         this.minusOneMonthLogbookTraceabilityDate = minusOneMonthLogbookTraceabilityDate;
         this.minusOneYearLogbookTraceabilityDate = minusOneYearLogbookTraceabilityDate;
@@ -117,6 +126,7 @@ public class TraceabilityEvent {
         this.numberOfElement = numberOfElement;
         this.fileName = fileName;
         this.size = size;
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     /**
@@ -195,4 +205,11 @@ public class TraceabilityEvent {
     public long getSize() {
         return size;
 	}
+
+    /**
+     * @return Size of the entry
+     */
+    public DigestType getDigestAlgorithm() {
+        return digestAlgorithm;
+    }
 }

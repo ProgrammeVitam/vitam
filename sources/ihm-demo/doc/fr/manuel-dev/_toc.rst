@@ -12,3 +12,4 @@ IHM demo
    ihm-logbook-rest-raml.rst
    ihm-tenant-id.rst
    ihm-authorization.rst
+   ihm-filter-requestID.rst

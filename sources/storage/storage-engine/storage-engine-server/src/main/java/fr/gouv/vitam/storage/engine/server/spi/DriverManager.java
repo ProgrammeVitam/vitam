@@ -34,6 +34,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverMapperException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.DriverMapper;
 import fr.gouv.vitam.storage.engine.server.spi.mapper.FileDriverMapper;
 
@@ -52,8 +55,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Use to register storage driver and associates it with offers.<br>
  * <br>
  *
- * Actually, it is not possible to add driver without a server restart (you can
- * add the driver, do association with offers but you have to restart the server
+ * Actually, it is not possible to append driver without a server restart (you can
+ * append the driver, do association with offers but you have to restart the server
  * to have the new driver).
  */
 
@@ -69,8 +72,6 @@ public class DriverManager {
      * All drivers allocated (from DriverManager)
      */
     private static final Map<String, Driver> drivers = new ConcurrentHashMap<>();
-
-    //private static final Map<String, OfferDriverInfo> DRIVERS_OFFERS = Collections.synchronizedMap(new HashMap<>());
 
     private static final String DRIVER_MANAGER_CONF_FILE = "driver-location.conf";
 
@@ -105,9 +106,12 @@ public class DriverManager {
             try {
                 final List<String> offersIds = mapper.get().getOffersFor(driver.getClass().getName());
                 for (final String offerId : offersIds) {
-                    driver.addOffer(offerId);
+                    StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId);
+                    final Properties parameters = new Properties();
+                    parameters.putAll(offer.getParameters());
+                    driver.addOffer(offer, parameters);
                 }
-            } catch (final StorageDriverMapperException exc) {
+            } catch (final StorageException exc) {
                 LOGGER.warn("The driver mapper failed to load offers IDs for driver name {}", driver.getClass().getName(), exc);
             }
         }
@@ -117,10 +121,19 @@ public class DriverManager {
         throws StorageDriverMapperException {
         ParametersChecker.checkParameter("Offers id list cannot be null", offersIds);
         for (final String offerId : offersIds) {
-            boolean done = driver.addOffer(offerId);
+            boolean done;
+            try {
+                StorageOffer offer = StorageOfferProviderFactory.getDefaultProvider().getStorageOffer(offerId);
+                final Properties parameters = new Properties();
+                parameters.putAll(offer.getParameters());
+                done = driver.addOffer(offer, parameters);
+            } catch (StorageException e) {
+                LOGGER.error(e);
+                throw new StorageDriverMapperException(e);
+            }
             if (!done) {
                 LOGGER.warn(
-                    "Cannot add to the driver {} with name {} the offer ID {}, offer already define",
+                    "Cannot append to the driver {} with name {} the offer ID {}, offer already define",
                     driver, driver.getClass().getName(), offerId);
             }
         }
@@ -229,7 +242,7 @@ public class DriverManager {
      * @param name
      *            the driver name
      * @param offerId
-     *            the offer ID to add
+     *            the offer ID to append
      * @throws StorageDriverMapperException
      *             thrown if error on driver mapper (persisting part) append
      */
@@ -262,7 +275,7 @@ public class DriverManager {
      * @param name
      *            the driver name
      * @param offerIds
-     *            the offer ID to add
+     *            the offer ID to append
      * @throws StorageDriverMapperException
      *             thrown if error on driver mapper (persisting part) append
      */

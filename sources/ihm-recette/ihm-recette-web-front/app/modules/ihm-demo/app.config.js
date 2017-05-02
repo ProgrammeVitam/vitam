@@ -45,17 +45,9 @@ module('ihm.demo').
         template: '<admin-home></admin-home>',
         title: 'Administration des collections'
       }).
-      when('/soapUi', {
-        template: '<soap-ui></soap-ui>',
-        title: 'Tests SOAP-UI'
-      }).
       when('/operationTraceability', {
           template: '<operation-traceability></operation-traceability>',
           title: 'Génération journal des opérations sécurisé'
-      }).
-      when('/searchOperation', {
-          template: '<search-operation></search-operation>',
-          title: 'Recherche d\'un journal sécurisé'
       }).
       when('/applicativeTest', {
         template: '<functional-test></functional-test>',
@@ -65,11 +57,6 @@ module('ihm.demo').
         templateUrl: 'pages/functional-test/functional-tests-details.template.html',
         controller: 'FunctionalTestDetailsController',
         title: 'Détail des tests fonctionnels'
-      }).
-      when('/searchOperation/detailOperation/:entryId', {
-          templateUrl: 'pages/search-operation/detailOperation.html',
-          controller: 'DetailOperationController',
-          title: 'Détail du journal sécurisé'
       })
       .otherwise('/adminHome');
     }

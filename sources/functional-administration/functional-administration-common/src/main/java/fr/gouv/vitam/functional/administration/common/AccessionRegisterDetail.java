@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.Document;
@@ -118,7 +119,6 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @param orgAgency to set
      * @return String
      */
     public String getOriginatingAgency() {
@@ -250,8 +250,12 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         return this;
     }
     
-    public AccessionRegisterDetail setOperationIds(String operationIds) {
-    	append(OPERATION_IDS, operationIds);
+    public AccessionRegisterDetail setOperationIds(List<String> operationIds) {
+        if (!operationIds.isEmpty()) {
+            final List<String> ids = new ArrayList<>();
+            ids.addAll(operationIds);
+            append(OPERATION_IDS, ids);
+        }
         return this;
 	} 
 }

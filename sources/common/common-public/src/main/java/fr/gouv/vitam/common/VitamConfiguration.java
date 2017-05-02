@@ -87,23 +87,29 @@ public class VitamConfiguration {
     /**
      * Max total concurrent clients
      */
-    private static final int MAX_TOTAL_CLIENT = 500;
+    private static final int MAX_TOTAL_CLIENT = 1000;
     /**
      * Max concurrent clients associated to one host
      */
-    private static final int MAX_CLIENT_PER_HOST = 100;
+    private static final int MAX_CLIENT_PER_HOST = 200;
     /**
      * Max delay to check an unused client in pool before being returned (Apache Only)
      */
     public static final int DELAY_VALIDATION_AFTER_INACTIVITY = 10000;
     /**
      * Max delay to check if no buffer is available while trying to continue to read (MultipleInputStreamHandler Only)
+     * 
+     * Not final to allow Junit to decrease it
      */
     public static int DELAY_MULTIPLE_INPUTSTREAM = 60000;
     /**
+     * Max delay to check if no buffer is available while trying to continue to read (SubStreams Only)
+     */
+    public static final int DELAY_MULTIPLE_SUBINPUTSTREAM = 6000;
+    /**
      * Default minimum thread pool size
      */
-    public static final int MINIMUM_THREAD_POOL_SIZE = 10;
+    public static final int MINIMUM_THREAD_POOL_SIZE = 100;
     /**
      * No check of unused client within pool (Apache Only)
      */
@@ -172,6 +178,9 @@ public class VitamConfiguration {
     private static String secret;
     private static boolean filterActivation;
     private int connectTimeout = CONNECT_TIMEOUT;
+    // 262 MB max
+    // TODO make it configurable
+    public static final int MAX_CONCURRENT_MULTIPLE_INPUTSTREAM_HANDLER = 1000;
 
     static {
         getConfiguration().setDefault();

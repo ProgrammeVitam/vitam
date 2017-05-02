@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -51,6 +52,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -135,7 +138,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Response initVitamProcess(String contextId, String container, String workflow)
+    public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, BadRequestException {
         Response response = null;
         ParametersChecker.checkParameter("Params cannot be null", contextId);
@@ -163,7 +166,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -217,7 +219,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Response executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
+    public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId, String actionId)
         throws InternalServerException, BadRequestException, WorkflowNotFoundException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
@@ -243,7 +245,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response);
+
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -252,6 +255,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final InvalidParseOperationException e) {
             throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -378,7 +383,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Response cancelOperationProcessExecution(String id) throws InternalServerException, BadRequestException {
+    public RequestResponse<JsonNode>  cancelOperationProcessExecution(String id) throws InternalServerException, BadRequestException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
         try {
@@ -397,13 +402,15 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -460,7 +467,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     @Override
     @Deprecated
-    public Response initWorkFlow(String contextId) throws InternalServerException, BadRequestException {
+    public void initWorkFlow(String contextId) throws InternalServerException, BadRequestException {
         Response response = null;
         ParametersChecker.checkParameter("Params cannot be null", contextId);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -482,7 +489,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
@@ -495,14 +501,22 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public Response listOperationsDetails() throws VitamClientInternalException {
-        Response response =
-            performRequest(HttpMethod.GET, "/operations", null, null, null,
+    public RequestResponse<JsonNode>  listOperationsDetails() throws VitamClientException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/operations", null, null, null,
                 MediaType.APPLICATION_JSON_TYPE);
-        if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
+
+            if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                throw new VitamClientException(ILLEGAL_ARGUMENT);
+            }
+            return new RequestResponseOK().addResult(response.readEntity(JsonNode.class)).parseHeadersFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return Response.fromResponse(response).build();
     }
 
 

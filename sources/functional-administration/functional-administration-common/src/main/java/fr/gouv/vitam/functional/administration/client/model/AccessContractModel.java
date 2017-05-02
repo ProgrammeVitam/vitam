@@ -36,10 +36,14 @@ import java.util.Set;
 
 public class AccessContractModel extends AbstractContractModel {
 
+    @JsonProperty("DataObjectVersion")
+    private Set<String> dataObjectVersion;
 
     @JsonProperty("OriginatingAgencies")
     private Set<String> originatingAgencies;
-
+    
+    @JsonProperty("WritingPermission")
+    private boolean writingPermission;
 
     /**
      * Constructor without fields
@@ -64,6 +68,39 @@ public class AccessContractModel extends AbstractContractModel {
      */
     public AccessContractModel setOriginatingAgencies(Set<String> originatingAgencies) {
         this.originatingAgencies = originatingAgencies;
+        return this;
+    }
+    
+    /**
+     * @return dataObjectVersion
+     */
+    public Set<String> getDataObjectVersion() {
+        return dataObjectVersion;
+    }
+
+
+    /**
+     * @param dataObjectVersion
+     * @return AccessContractModel
+     */
+    public AccessContractModel setDataObjectVersion(Set<String> dataObjectVersion) {
+        this.dataObjectVersion = dataObjectVersion;
+        return this;
+    }
+    
+    /**
+     * @return writingPermission
+     */
+    public boolean getWritingPermission() {
+        return writingPermission;
+    }
+
+    /**
+     * @param writingPermission
+     * @return AccessContractModel
+     */
+    public AccessContractModel setWritingPermission(boolean writingPermission) {
+        this.writingPermission = writingPermission;
         return this;
     }
 

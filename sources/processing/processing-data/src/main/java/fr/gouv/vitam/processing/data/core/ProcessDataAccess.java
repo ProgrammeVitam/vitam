@@ -241,4 +241,30 @@ public interface ProcessDataAccess {
      */
     String getMessageIdentifierByOperationId(String operationId, Integer tenantId);
 
+    /**
+     * Add process to Workflow<br />
+     * Only use on application starting to load persisted workflow (state are PAUSED or FAILED only)
+     *
+     * @param processWorkflow the loaded persisted process to add
+     */
+    void addToWorkflowList(ProcessWorkflow processWorkflow);
+
+    /**
+     * updates productor service
+     * 
+     * @param operationId the operation id
+     * @param prodService
+     * @param tenantId the working tenant
+     */
+    void updateProdService(String operationId, String prodService, Integer tenantId);
+
+    /**
+     * Returns prodService by operation id
+     * 
+     * @param operationId he operation id
+     * @param tenantId the working tenant
+     * @return prodService
+     */
+    String getProdServiceByOperationId(String operationId, Integer tenantId);
+
 }

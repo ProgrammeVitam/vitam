@@ -249,9 +249,7 @@ public class LogbookAdministrationTest {
             traceabilityEvent.getMinusOneMonthLogbookTraceabilityDate());
         assertEquals(firstTraceabilityOperation.getStartDate(),
             traceabilityEvent.getMinusOneYearLogbookTraceabilityDate());
-        // FIXME P0 - The previousLogbook cant be found yet. Pb with the findLastTraceabilityOperationOK Query. US/Bug
-        // will be created.
-        // assertNotNull(traceabilityEvent.getPreviousLogbookTraceabilityDate());
+        assertNotNull(traceabilityEvent.getPreviousLogbookTraceabilityDate());
         assertNotNull(traceabilityEvent.getSize());
         assertEquals(TraceabilityType.OPERATION, traceabilityEvent.getLogType());
 

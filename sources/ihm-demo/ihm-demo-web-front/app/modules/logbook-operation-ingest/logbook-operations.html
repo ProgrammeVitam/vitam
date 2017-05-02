@@ -4,8 +4,8 @@
     <li><a href="#!/admin/logbookOperations">Suivi des opérations d'entrées</a></li>
   </ol>
 
-  <div class="boxSearchWrapper panel panel-default col-md-12">
-    <a class="panel-header" data-toggle="collapse">
+  <div class="panel panel-default boxSearchWrapper col-md-12">
+	<a class="panel-header" data-target="#boxEntriesSearchForm" data-toggle="collapse">
       <h2>Rechercher</h2>
     </a>
     <div id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in">
@@ -24,12 +24,10 @@
           <button class="btn btn-primary center-block" type="submit"><i class="material-icons pull-left">search</i><span>Rechercher</span></button>
         </div>
       </form>
-    </div>
-    <div class="col-md-12">
       <button ng-if="search.error.displayMessage" class="btn btn-danger center-block" type="button" style="margin-top: 20px">
         {{search.error.message}}
       </button>
-    </div>
+    </div>     
   </div>
 </div>
 

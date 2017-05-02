@@ -211,7 +211,7 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        final ProcessStep processStep = new ProcessStep(step, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, 0, 0, "id");
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
@@ -230,7 +230,7 @@ public class ProcessDistributorImplTest {
         actions.add(a);
         step.setActions(actions);
 
-        final ProcessStep processStep = new ProcessStep(step, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, 0, 0, "id");
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
     }
@@ -246,7 +246,7 @@ public class ProcessDistributorImplTest {
         // when(worker.run(anyObject(), anyObject())).thenReturn(response);
 
         final Step step = worfklow.getSteps().get(0);
-        final ProcessStep processStep = new ProcessStep(step, 0, 0);
+        final ProcessStep processStep = new ProcessStep(step, 0, 0, "id");
 
         PROCESS_DISTRIBUTOR.distribute(params, processStep, WORKFLOW_ID);
 

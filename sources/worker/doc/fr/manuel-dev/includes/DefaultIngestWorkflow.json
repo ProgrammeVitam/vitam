@@ -129,6 +129,12 @@
         "element": "Units"
       },
       "actions": [
+      	{
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING"
+          }
+        },
         {
           "action": {
             "actionKey": "UNITS_RULES_COMPUTE",

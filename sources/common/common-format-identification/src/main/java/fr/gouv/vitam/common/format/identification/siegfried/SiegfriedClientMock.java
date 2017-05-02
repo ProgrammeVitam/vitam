@@ -34,6 +34,8 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * Mock client implementation for siegfried
@@ -41,15 +43,15 @@ import fr.gouv.vitam.common.json.JsonHandler;
 class SiegfriedClientMock extends AbstractMockClient implements SiegfriedClient {
 
     @Override
-    public JsonNode status(Path filePath)
+    public RequestResponse<JsonNode> status(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        return getVersionJson();
+        return new RequestResponseOK().addResult(getVersionJson());
     }
 
     @Override
-    public JsonNode analysePath(Path filePath)
+    public RequestResponse<JsonNode> analysePath(Path filePath)
         throws FormatIdentifierTechnicalException, FormatIdentifierNotFoundException {
-        return getFormatJson();
+        return new RequestResponseOK().addResult(getFormatJson());
     }
 
     private JsonNode getVersionJson() {

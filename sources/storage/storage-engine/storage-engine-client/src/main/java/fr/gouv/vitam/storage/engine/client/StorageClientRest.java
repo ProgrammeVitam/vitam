@@ -41,9 +41,12 @@ import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -65,6 +68,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String GUID_MUST_HAVE_A_VALID_VALUE = "GUID must have a valid value";
     private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE = "Type of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
+    private static final String SECURE_STORAGE_LOGBOOK_URI = "/storage/secure";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
 
     StorageClientRest(StorageClientFactory factory) {
@@ -372,10 +376,38 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
         ParametersChecker.checkParameter("Strategy cannot be null", strategyId);
         ParametersChecker.checkParameter("Type cannot be null", type);
+        Integer tenantId = ParameterHelper.getTenantParameter();
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
         headers.add(GlobalDataRest.X_CURSOR, true);
-        return new VitamRequestIterator<>(this, HttpMethod.GET, type.name(), JsonNode.class, headers, null);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        return new VitamRequestIterator<>(this, HttpMethod.GET, "/" + type.name(), JsonNode.class, headers, null);
+    }
+
+    @Override
+    public RequestResponseOK secureStorageLogbook() throws StorageServerClientException ,InvalidParseOperationException {
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            response = performRequest(HttpMethod.POST, SECURE_STORAGE_LOGBOOK_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
+                    throw new StorageServerClientException("Internal Server Error");
+            }
+            return RequestResponse.parseRequestResponseOk(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error:", e);
+            throw new StorageServerClientException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 
 }

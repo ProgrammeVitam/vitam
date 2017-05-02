@@ -93,12 +93,17 @@
   <script src="modules/accession-register-search/accession-register-search.controller.js"></script>
   <script src="modules/accession-register-search/accession-register-search.component.js"></script>
 
-  <script src="modules/access-contracts/access-contracts.module.js"></script>
-  <script src="modules/access-contracts/access-contracts-controller.js"></script>
-  <script src="modules/access-contracts/access-contracts-component.js"></script>
-  <script src="modules/entry-contracts/entry-contracts.module.js"></script>
-  <script src="modules/entry-contracts/entry-contracts.controller.js"></script>
-  <script src="modules/entry-contracts/entry-contracts.component.js"></script>
+  <script src="resources/access-contract.resource.js"></script>
+  <script src="pages/access-contract-search/access-contract.module.js"></script>
+  <script src="pages/access-contract-search/access-contract-controller.js"></script>
+  <script src="pages/access-contract-search/access-contract-component.js"></script>
+  <script src="pages/access-contract-details/access-contract-details.controller.js"></script>
+
+  <script src="resources/entry-contract.resource.js"></script>
+  <script src="pages/entry-contract-search/entry-contract.module.js"></script>
+  <script src="pages/entry-contract-search/entry-contract.controller.js"></script>
+  <script src="pages/entry-contract-search/entry-contract.component.js"></script>
+  <script src="pages/entry-contract-details/entry-contract-details.controller.js"></script>
 
   <script src="resources/messages.resource.js"></script>
 
@@ -237,8 +242,8 @@
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des versements</a></li>
               <li><a href="#!/admin/entryContracts" ng-show="hasPermission('operations:read')">Contrats d'entrée</a></li>
               <li><a href="#!/admin/accessContracts" ng-show="hasPermission('operations:read')">Contrats d'accès</a></li>
-              <!-- TODO Add permission control -->
-              <li><a href="#!/admin/traceabilityOperationSearch">Recherche sur les opérations de sécurisation</a></li>
+
+              <li><a href="#!/admin/traceabilityOperationSearch" ng-show="hasPermission('logbook:operations:read')">Opérations de sécurisation</a></li>
               <li class="divider" ng-show="hasPermission('rules:create') || hasPermission('format:create') || hasPermission('contracts:create')"></li>
               <li><a href="#!/uploadHoldingScheme" ng-show="hasPermission('rules:create')">Import de l'arbre de positionnement</a></li>
               <li><a href="#!/admin/importFileRules" ng-show="hasPermission('rules:create')">Import du Référentiel des Règles de gestion</a></li>
@@ -255,6 +260,12 @@
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
+          <li class="dropdown" style="right:100px">
+            <label for="accessContractId" style="display:inline">Contrat d'access</label>
+            <select ng-model="accessContratId" id = "accessContractId"  ng-change="changeContract(accessContratId)">
+              <option ng-repeat='contract in contracts' value="{{contract.Name}}">{{contract.Name}}</option>
+            </select>
+          </li>
           <li class="dropdown" style ="padding-top: 25px" ng-show="user">
             {{user.userName}} (tenant : {{user.tenantId}})
           </li>

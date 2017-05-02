@@ -280,8 +280,8 @@ public class LogbookAdministration {
             long size = zipFile.length();
 
             traceabilityEvent = new TraceabilityEvent(TraceabilityType.OPERATION, getString(startDate), endDate,
-                rootHash, timeStampToken,
-                previousDate, previousMonthDate, previousYearDate, numberOfLine, fileName, size);
+                rootHash, timeStampToken, previousDate, previousMonthDate, previousYearDate, numberOfLine, fileName,
+                size, VitamConfiguration.getDefaultDigestType());
 
         } catch (LogbookDatabaseException | LogbookNotFoundException | IOException | InvalidCreateOperationException |
             ArchiveException | InvalidParseOperationException e) {

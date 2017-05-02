@@ -12,5 +12,90 @@
     "parameters" : {
       "user" : "bob"
     }
-  }
+  },
+  {
+    "id" : "DriverManagerTestoffer1",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerTestoffer2",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerTestoffer3",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerTestoffer4",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "addOffersAndretriveDriverTest",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer1",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer2",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer3",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer4",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer5",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer6",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "DriverManagerPersistanceTestoffer7",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  } 
+  
 ]

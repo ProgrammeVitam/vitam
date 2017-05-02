@@ -27,8 +27,21 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.MediaType;
+
+import org.apache.commons.lang.BooleanUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
@@ -39,16 +52,7 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.commons.lang.BooleanUtils;
-
-import javax.ws.rs.core.MediaType;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import fr.gouv.vitam.common.model.RequestResponse;
 
 /**
  * Siegfried implementation of format identifier
@@ -134,9 +138,9 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             LOGGER.debug("Check Siegfried status");
         }
 
-        final JsonNode response = client.status(versionPath);
+        final RequestResponse<JsonNode> response = client.status(versionPath);
 
-        final String version = response.get("siegfried").asText();
+        final String version = response.toJsonNode().get("$results").get(0).get("siegfried").asText();
         return new FormatIdentifierInfo(version, "Siegfried");
     }
 
@@ -147,9 +151,9 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
-        final JsonNode response = client.analysePath(path);
+        final RequestResponse<JsonNode> response = client.analysePath(path);
 
-        return extractFormat(response, path);
+        return extractFormat(response.toJsonNode().get("$results").get(0), path);
     }
 
     private List<FormatIdentifierResponse> extractFormat(JsonNode siegfriedResponse, Path path)

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.client;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -56,6 +57,16 @@ public interface MockOrRestClient extends VitamAutoCloseable {
      * @throws VitamApplicationServerException if the Server is unavailable
      */
     void checkStatus() throws VitamApplicationServerException;
+
+
+    /**
+     * Check the status from the service
+     * used to passe "X-SSL-CLIENT-CERT" header that contain a pem certificate
+     * @param headers
+     *
+     * @throws VitamApplicationServerException if the Server is unavailable
+     */
+    void checkStatus(MultivaluedHashMap<String, Object> headers) throws VitamApplicationServerException;
 
     /**
      * Helper when an error occurs on client usage side to consume response however

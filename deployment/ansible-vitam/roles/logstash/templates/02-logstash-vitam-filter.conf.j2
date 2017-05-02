@@ -15,7 +15,7 @@ filter
     }
 
     # --------------------------------------------------
-    # Special transforms for syslog inputs
+    # Special transforms for syslog & file inputs
     # --------------------------------------------------
 
     # Todo move this at the end (to find vitam-* for real vitam components)
@@ -29,6 +29,12 @@ filter
             # If program name starts with 'vitam-', keep only the suffix
             match => [ "program", "(?:(vitam[-._])?)(?<vitam_component>[^.]*)" ]
             overwrite => [ "vitam_component" ]
+        }
+    }
+
+    else if [input] == "logstash" {
+        mutate {
+            add_field => { "vitam_component" => "logstash" }
         }
     }
 
@@ -113,6 +119,29 @@ filter
         date {
             match => [ "timestamp" , "yyyy/MM/dd HH:mm:ss", "MMM dd HH:mm:ss", "MMM  d HH:mm:ss" ]
             target => [ "@timestamp" ]
+        }
+    }
+    else if [vitam_component] =~ "logstash" {
+        json {
+            source => "message"
+        }
+
+        if [level]     { mutate { rename => { "level"     => "log_level"          } } }
+        if [message]   { mutate { rename => { "message"   => "log_message"        } } }
+        if [error]     { mutate { rename => { "error"     => "logstash_error"     } } }
+        if [backtrace] { mutate { rename => { "backtrace" => "logstash_backtrace" } } }
+        if [file]      { mutate { rename => { "file"      => "logstash_file"      } } }
+        if [line]      { mutate { rename => { "line"      => "logstash_line"      } } }
+        if [method]    { mutate { rename => { "method"    => "logstash_method"    } } }
+        if [host]      { mutate { rename => { "host"      => "hostname"           } } }
+
+        date {
+            match => [ "timestamp" , "ISO8601" ]
+            target => [ "@timestamp" ]
+        }
+
+        mutate {
+            add_field => { "logger" => "logstash" }
         }
     }
 
