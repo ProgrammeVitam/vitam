@@ -26,9 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.rest;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -52,6 +58,8 @@ import com.codahale.metrics.Gauge;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Optional;
+import com.google.common.collect.Iterators;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -63,6 +71,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessExecutionStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -72,6 +82,7 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessWorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -84,12 +95,12 @@ import fr.gouv.vitam.processing.management.core.ProcessManagementImpl;
  * This class is resource provider of ProcessManagement
  */
 @Path("/processing/v1")
-@javax.ws.rs.ApplicationPath("webresources")
+@ApplicationPath("webresources")
 public class ProcessManagementResource extends ApplicationStatusResource {
 
 
     /**
-     * 
+     *
      */
     private static final String CHECK_TRACEABILITY = "CHECK_TRACEABILITY";
 
@@ -108,6 +119,9 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     private static final String EXECUTION_MODE_FIELD = "executionMode";
     private static final String GLOBAL_EXECUTION_STATUS_FIELD = "globalStatus";
     private static final String PROCESS_DATE_FIELD = "processDate";
+    private static final String PREVIOUS_STEP = "previousStep";
+    private static final String NEXT_STEP = "nextStep";
+
 
     // TODO remove if it won't be used
     private static final String STEP_EXECUTION_STATUS_FIELD = "stepStatus";
@@ -159,7 +173,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     /**
      * Resume the asynchronous response following a given status and entity
-     * 
+     *
      * @param asyncResponse
      * @param status
      * @param entity
@@ -176,7 +190,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     /**
      * Execute the process of an operation related to the id.
-     *
      *
      * @param headers contain X-Action and X-Context-ID
      * @param process as Json of type ProcessingEntry, indicate the container and workflowId
@@ -296,7 +309,6 @@ public class ProcessManagementResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param process as Json of type ProcessingEntry, indicate the container and workflowId
      * @param id operation identifier
      * @param asyncResponse {@link AsyncResponse}
      */
@@ -443,7 +455,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
     /**
      * get the process workflow
-     * 
+     *
      * @return the workflow in response
      */
     @GET
@@ -452,10 +464,15 @@ public class ProcessManagementResource extends ApplicationStatusResource {
     public Response getProcessWorkflows() {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         List<ProcessWorkflow> listWorkflows = processMonitoring.getAllProcessWorkflow(tenantId);
+        final Set<String> doneWorkflows = new HashSet<>(
+            Arrays.asList(ProcessExecutionStatus.COMPLETED.toString(), ProcessExecutionStatus.CANCELLED.toString()));
 
-        if (listWorkflows != null) {
-            ArrayNode result = JsonHandler.createArrayNode();
-            for (ProcessWorkflow processWorkflow : listWorkflows) {
+        listWorkflows.sort((a, b) -> b.getProcessDate().compareTo(a.getProcessDate()));
+
+        ArrayNode result = JsonHandler.createArrayNode();
+        for (ProcessWorkflow processWorkflow : listWorkflows) {
+            if (!doneWorkflows.contains(processWorkflow.getExecutionStatus().toString())) {
+
                 ObjectNode workflow = JsonHandler.createObjectNode();
                 workflow.put(PROCESS_ID_FIELD, processWorkflow.getOperationId());
                 workflow.put(PROCESS_TYPE_FIELD, processWorkflow.getLogbookTypeProcess().toString());
@@ -464,11 +481,74 @@ public class ProcessManagementResource extends ApplicationStatusResource {
                 workflow.put(STEP_EXECUTION_STATUS_FIELD, processWorkflow.getGlobalStatusCode().toString());
                 workflow.put(PROCESS_DATE_FIELD, LocalDateUtil.getFormattedDate(processWorkflow.getProcessDate()));
 
+                workflow = getNextAndPreviousSteps(processWorkflow, workflow);
+
                 result.add(workflow);
             }
-
-            return Response.status(Status.OK).entity(result).build();
         }
-        return Response.status(Status.OK).build();
+
+        return Response.status(Status.OK).entity(result).build();
+    }
+
+    private ObjectNode getNextAndPreviousSteps(ProcessWorkflow processWorkflow, ObjectNode workflow) {
+        String previousStep = "";
+        String nextStep = "";
+        String temporaryPreviousTask = "";
+        Boolean currentStepFound = false;
+        Iterator<Map.Entry<String, ProcessStep>> processWorkflowIterator =
+            processWorkflow.getOrderedProcessStep().entrySet().iterator();
+
+        while (processWorkflowIterator.hasNext() && !currentStepFound) {
+
+            ProcessStep processStep = Iterators.getNext(processWorkflowIterator, null).getValue();
+
+            switch (processWorkflow.getExecutionStatus()) {
+                case PAUSE:
+                case RUNNING:
+                    if (processStep.getStepStatusCode() == StatusCode.STARTED) {
+                        previousStep = processStep.getStepName();
+                        nextStep = processWorkflowIterator.hasNext() ?
+                            processWorkflowIterator.next().getValue().getStepName() : "";
+                        workflow.put(STEP_EXECUTION_STATUS_FIELD, "STARTED");
+                        currentStepFound = true;
+                    } else {
+                        if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
+                            previousStep = temporaryPreviousTask;
+                            nextStep = processStep.getStepName();
+                            currentStepFound = true;
+                        }
+                    }
+                    break;
+                case PENDING:
+                    if (processStep.getStepStatusCode() == StatusCode.STARTED) {
+                        previousStep = processStep.getStepName();
+                        nextStep = processWorkflowIterator.hasNext() ?
+                            processWorkflowIterator.next().getValue().getStepName() : "";
+                        currentStepFound = true;
+                    }
+                    break;
+                case FAILED:
+                    if (processStep.getStepStatusCode() == StatusCode.KO ||
+                        processStep.getStepStatusCode() == StatusCode.STARTED) {
+                        previousStep = processStep.getStepName();
+                        workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
+                        currentStepFound = true;
+                    } else {
+                        if (processStep.getStepStatusCode() == StatusCode.UNKNOWN) {
+                            previousStep = temporaryPreviousTask;
+                            workflow.put(STEP_EXECUTION_STATUS_FIELD, StatusCode.KO.toString());
+                            currentStepFound = true;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            temporaryPreviousTask = processStep.getStepName();
+
+            workflow.put(PREVIOUS_STEP, previousStep);
+            workflow.put(NEXT_STEP, nextStep);
+        }
+        return workflow;
     }
 }

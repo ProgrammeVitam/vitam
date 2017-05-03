@@ -158,7 +158,7 @@ config(['$locationProvider' ,'$routeProvider',
     }).
     when('/admin/workflows', {
         template: '<workflows></workflows>',
-        title: 'Gestion des versements',
+        title: 'Gestion des opérations',
         permission: 'ingest:create'
     }).
      when('/admin/entryContracts', {
