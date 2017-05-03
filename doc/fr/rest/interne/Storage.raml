@@ -194,6 +194,13 @@ documentation:
         displayName: Manifests of Ingest operations
         type: StorageResourceTraits.StoreWormItem
 
+/storage/secure:
+  displayName: Securisations des logs storage par  tenant
+  description: Sert à securiser les logs d'accès au moteur de stokage
+  post:
+    description: Securiser les fichier de logs par tenant. les logs sont archivé puis stockés à travers le moteur de stockage
+    is: [CollectionTraits.collection-get, StandardTraits.OverrideGet, StorageTraits.StrategyStorage]
+
 
 /status:
   get:
