@@ -61,11 +61,6 @@ public class GlobalDatasParser extends GlobalDatas {
      */
     public static final int NB_ACTIONS = 10000;
 
-    /**
-     * Default max depth: should be 20 but let a great margin
-     */
-    public static final int MAXDEPTH = 100;
-
     protected GlobalDatasParser() {
         // empty
     }

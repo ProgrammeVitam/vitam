@@ -145,7 +145,9 @@ public abstract class RequestResponse<T> {
                 }
             }
         }
-        this.setHttpCode(response.getStatus());
+        if (null != response) {
+            this.setHttpCode(response.getStatus());
+        }
         return this;
     }
 

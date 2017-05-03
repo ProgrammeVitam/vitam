@@ -43,6 +43,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -1930,7 +1931,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private File downloadAndSaveATR(String guid, Integer tenantId)
         throws VitamClientException, IngestExternalException {
         File file = null;
-        final Response response;
+        Response response = null;
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             response = ingestExternalClient
                 .downloadObjectAsync(guid, IngestCollection.REPORTS, tenantId);
@@ -1942,11 +1943,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 } catch (IOException e) {
                     throw new VitamClientException("Error during ATR generation");
                 }
-                finally {
-                    ingestExternalClient.consumeAnyEntityAndClose(response);
-                }
             }
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
+
         return file;
     }
 

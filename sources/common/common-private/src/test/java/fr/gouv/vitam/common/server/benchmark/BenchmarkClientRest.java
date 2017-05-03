@@ -178,9 +178,7 @@ public class BenchmarkClientRest extends DefaultClient {
             LOGGER.error(message);
             throw new VitamClientException(message);
         } finally {
-            if (response != null) {
-                response.close();
-            }
+            consumeAnyEntityAndClose(response);
         }
     }
 }
