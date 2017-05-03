@@ -108,6 +108,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
 
     private final StorageDistribution distribution;
+
+
     private StorageLogbookService storageLogbookService;
     private StorageLogbookAdministration storageLogbookAdministration;
 
@@ -1120,6 +1122,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Override
     public void close() {
         distribution.close();
+    }
+
+    /**
+     * Getter of Storage service
+     * @return
+     */
+    public StorageLogbookService getStorageLogbookService() {
+        return storageLogbookService;
     }
 
 }
