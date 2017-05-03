@@ -97,12 +97,11 @@ public class IngestStep {
     public void upload_this_sip() throws IOException, IngestExternalException, IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response =
+            String operationId =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(),
                         ProcessAction.RESUME.name());
 
-            String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -117,10 +116,9 @@ public class IngestStep {
     public void upload_this_plan() throws IOException, IngestExternalException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response =
+            String operationId =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
-            String operationId = response.getHeaderString(X_REQUEST_ID);
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -136,10 +134,10 @@ public class IngestStep {
     public void upload_this_tree() throws IOException, IngestExternalException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response =
+            String operationId =
                 world.getIngestClient()
                     .uploadAndWaitFinishingProcess(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
-            String operationId = response.getHeaderString(X_REQUEST_ID);
+
             world.setOperationId(operationId);
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }

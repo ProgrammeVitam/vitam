@@ -166,16 +166,15 @@ public class PerformanceService {
     private String uploadSIP(PerformanceModel model, Integer tenantId) {
         // TODO: client is it thread safe ?
         LOGGER.debug("launch unitary test");
-        RequestResponse<JsonNode>  response = null;
         IngestExternalClient client = ingestClientFactory.getClient();
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ)) {
 
-            response =
+            String requestId =
                 client.uploadAndWaitFinishingProcess(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             LOGGER.debug("finish unitary test");
-            return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            return requestId;
         } catch (final Exception e) {
             LOGGER.error("unable to close report", e);
             return null;
