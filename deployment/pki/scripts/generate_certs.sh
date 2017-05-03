@@ -197,9 +197,6 @@ if [ ! -f ${ENVIRONNEMENT_FILE} ]; then
     exit 1
 fi
 
-# Purge old certificates & vault
-rm -rf ${REPERTOIRE_CERTIFICAT}/*
-
 # Copy CA
 pki_logger "Recopie des clés publiques des CA"
 copyCAFromPki client-external
