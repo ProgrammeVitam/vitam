@@ -204,8 +204,19 @@ angular.module('core')
 	var COOKIE_TENANT_ID = 'tenantId';
     var lastUrl = '';
 
+    var user = {};
+
+    if (localStorage.getItem('user')) {
+        user = JSON.parse(localStorage.getItem('user'));
+    }
+
     function createCookie(key, value) {
       $cookies.put(key, value);
+    }
+
+    function login(_user) {
+        localStorage.setItem('user' ,JSON.stringify(_user));
+        user = _user;
     }
 
     function deleteCookie(key) {
@@ -227,7 +238,15 @@ angular.module('core')
       deleteCookie('userCredentials');
       deleteCookie('role');
       deleteCookie(COOKIE_TENANT_ID);
+      localStorage.removeItem('user');
       return ihmDemoCLient.getClient('').one('logout').post();
+    }
+
+    function hasPermission(permission) {
+      if(!user.permissions) {
+          return false;
+      }
+      return user.permissions.indexOf(permission) > -1;
     }
 
     return {
@@ -237,6 +256,8 @@ angular.module('core')
       createCookie: createCookie,
       isConnect: isConnect,
       logout: logout,
+      login: login,
+      hasPermission: hasPermission,
       COOKIE_TENANT_ID: COOKIE_TENANT_ID
     };
   })

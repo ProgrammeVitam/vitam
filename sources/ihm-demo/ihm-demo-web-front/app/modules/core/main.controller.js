@@ -26,7 +26,7 @@
  */
 
 angular.module('core')
-    .controller('mainViewController', function ($rootScope, $scope, $window, $location, $translate, IHM_URLS, authVitamService,
+    .controller('mainViewController', function ($rootScope, $scope, $location, $translate, IHM_URLS, authVitamService,
                                                 $window, Restangular, subject, usernamePasswordToken, ihmDemoFactory,
                                                 $timeout) {
         $scope.showMenuBar = true;
@@ -52,7 +52,7 @@ angular.module('core')
                 $rootScope.restartTimeout();
                 localStorage.removeItem('reset-timeout');
             }
-        })
+        });
 
         if (localStorage.getItem('user')) {
             $rootScope.user = JSON.parse(localStorage.getItem('user'));
@@ -85,12 +85,7 @@ angular.module('core')
             $scope.tenantId = '' + $scope.tenants[0];
         });
 
-        $rootScope.hasPermission = function (permission) {
-            if(!$rootScope.user) {
-                return false;
-            }
-            return $rootScope.user.permissions.indexOf(permission) > -1;
-        };
+        $rootScope.hasPermission = authVitamService.hasPermission;
 
         $rootScope.$on('$routeChangeSuccess', function (event, next, current) {
             $scope.session.status = authVitamService.isConnect('userCredentials');
@@ -111,7 +106,13 @@ angular.module('core')
             if ($scope.session.status != 'logged') {
                 $location.path('/login');
             } else if ($location.path() == '/login') {
-                $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                $location.path(authVitamService.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+            } else {
+                var permission = next.$$route.permission;
+                if (!authVitamService.hasPermission(permission)) {
+                    $location.path(authVitamService.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                }
+
             }
 
         });
@@ -135,18 +136,21 @@ angular.module('core')
                         authVitamService.createCookie(authVitamService.COOKIE_TENANT_ID, tenantId || 0);
                         $scope.session.status = 'logged';
                         $scope.logginError = false;
-                        $rootScope.user = {
+
+                        var user = {
                             userName: res.userName,
                             tenantId: tenantId,
                             permissions: res.permissions,
                             sessionTimeout: res.sessionTimeout
                         };
-                        localStorage.setItem('user' ,JSON.stringify($rootScope.user));
+                        authVitamService.login(user);
+
+                        $rootScope.user = user;
                         if (authVitamService.url && authVitamService.url != '') {
                             $location.path(authVitamService.url);
                             delete authVitamService.url;
                         } else {
-                            $location.path($rootScope.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
+                            $location.path(authVitamService.hasPermission('ingest:create') ? IHM_URLS.IHM_DEFAULT_URL : IHM_URLS.IHM_DEFAULT_URL_FOR_GUEST);
                             $translate.refresh();
                         }
 
@@ -171,7 +175,6 @@ angular.module('core')
             $scope.session.status = 'notlogged';
 
             delete $rootScope.user;
-            localStorage.removeItem('user');
 
 
             delete authVitamService.url;

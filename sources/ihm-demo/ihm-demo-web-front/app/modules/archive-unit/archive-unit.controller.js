@@ -61,7 +61,7 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog, transferToIhmResult, RuleUtils){
+                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService){
 
     var self = this;
 
@@ -794,12 +794,6 @@ angular.module('archive.unit')
     };
     // ********************************************************************************* //
 
-    self.hasPermission = function(permission) {
-      if (localStorage.getItem('user')) {
-          var user = JSON.parse(localStorage.getItem('user'));
-          return user && user.permissions.indexOf(permission) > -1;
-      }
-      return false;
-    }
+    self.hasPermission = authVitamService.hasPermission;
 
   });
