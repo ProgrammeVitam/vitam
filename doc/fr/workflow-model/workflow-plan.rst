@@ -45,7 +45,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 :height: 22 cm
 :target: images/Workflow_FilingScheme.jpg
 
-Diagramme d'état / transitions du workflow du plan de classement
+Diagramme d'activité du workflow du plan de classement
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
 
