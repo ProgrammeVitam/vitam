@@ -71,6 +71,7 @@ public class StoreObjectGroupActionPluginTest {
 
     private static final String CONTAINER_NAME = "aeaaaaaaaaaaaaabaa4quakwgip7nuaaaaaq";
     private static final String OBJECT_GROUP_GUID = "aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq";
+    private static final String OBJECT_GROUP_GUID_2 = "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq";
     StoreObjectGroupActionPlugin plugin;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -78,10 +79,13 @@ public class StoreObjectGroupActionPluginTest {
     private StorageClient storageClient;
     private HandlerIOImpl action;
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
+    private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq.json";
     private final InputStream objectGroup;
+    private final InputStream objectGroup2;
 
     public StoreObjectGroupActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
+        objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
     }
 
     @Before
@@ -130,7 +134,6 @@ public class StoreObjectGroupActionPluginTest {
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
-
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
         throws Exception {
@@ -147,6 +150,35 @@ public class StoreObjectGroupActionPluginTest {
         PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
+
+        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(),
+            anyObject(), anyObject(), anyObject());
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
+
+
+        plugin = new StoreObjectGroupActionPlugin();
+
+        final ItemStatus response = plugin.execute(paramsObjectGroups, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    public void givenWorkspaceExistAndPdoWhenExecuteThenReturnResponseOK()
+        throws Exception {
+        final StorageClientFactory storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
+
+        final WorkerParameters paramsObjectGroups =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+                .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                .setUrlWorkspace("http://localhost:8083")
+                .setObjectName(OBJECT_GROUP_GUID_2 + ".json").setCurrentStep("Store ObjectGroup");
+
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
+        when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/" + OBJECT_GROUP_GUID_2 + ".json"))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup2).build());
 
         Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(),
             anyObject(), anyObject(), anyObject());

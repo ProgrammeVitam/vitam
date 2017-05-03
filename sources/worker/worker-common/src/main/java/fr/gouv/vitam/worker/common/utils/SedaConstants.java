@@ -123,6 +123,15 @@ public class SedaConstants {
      * Tag of DataObjectReferenceId
      */
     public static final String TAG_DATA_OBJECT_REFERENCEID = "DataObjectReferenceId";
+    /**
+     * Tag of PhysicalId
+     */
+    public static final String TAG_PHYSICAL_ID = "PhysicalId";
+
+    /**
+     * Tag of value : used for data with an attibute
+     */
+    public static final String TAG_VALUE = "value";
 
     /**
      * Prefix of id element
@@ -366,8 +375,9 @@ public class SedaConstants {
      */
     public static final String TAG_MANAGEMENT = "Management";
 
-    // Tag's attribute used in SEDA
+    // Tag's attributes used in SEDA
     public static final String TAG_ATTRIBUTE_LANG = "lang";
+    public static final String TAG_ATTRIBUTE_UNIT = "unit";
     
     /**
      * Prefix of rules will be applicated to archive unit
@@ -436,10 +446,10 @@ public class SedaConstants {
      */
     public static final String TAG_BINARY_DATA_OBJECT_ID = "BinaryDataObjectID";
     /**
-     * tag of BinaryDataObjectSystemId
+     * tag of DataObjectSystemId
      */
-    public static final String TAG_BINARY_DATA_OBJECT_SYSTEM_ID = "BinaryDataObjectSystemId";
-
+    public static final String TAG_DATA_OBJECT_SYSTEM_ID = "DataObjectSystemId";
+    
     /**
      * the namespace xlink 
      */

@@ -30,63 +30,63 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.DigestType;
 
 /**
- * The class BinaryObjectInfo is stored all information of the BinaryDataObject
+ * The class DataObjectInfo is stored all information of the DataObjectInfo
  */
-public final class BinaryObjectInfo {
+public final class DataObjectInfo {
     private String id;
     private String version;
     private int rank = 1;
     private String uri;
     private String messageDigest;
-    private long size;
+    private Long size;
     private DigestType algo;
 
     /**
-     * @return id of the binary data object
+     * @return id of the data object
      */
     public String getId() {
         return id;
     }
 
     /**
-     * @param id the id of the binary data to set
-     * @return BinaryObjectInfo
+     * @param id the id of the data to set
+     * @return DataObjectInfo
      */
-    public BinaryObjectInfo setId(String id) {
+    public DataObjectInfo setId(String id) {
         ParametersChecker.checkParameter("id is a mandatory parameter", id);
         this.id = id;
         return this;
     }
 
     /**
-     * @return version of the binary data object
+     * @return version of the data object
      */
     public String getVersion() {
         return version;
     }
 
     /**
-     * @param version the version of the binary data to set
+     * @param version the version of the data to set
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setVersion(String version) {
+    public DataObjectInfo setVersion(String version) {
         ParametersChecker.checkParameter("version is a mandatory parameter", version);
         this.version = version;
         return this;
     }
 
     /**
-     * @return uri of the binary data as String
+     * @return uri of the data as String
      */
     public String getUri() {
         return uri;
     }
 
     /**
-     * @param uri uri of the binary data object as String
+     * @param uri uri of the data object as String
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setUri(String uri) {
+    public DataObjectInfo setUri(String uri) {
         ParametersChecker.checkParameter("uri is a mandatory parameter", uri);
         this.uri = uri;
         return this;
@@ -100,11 +100,11 @@ public final class BinaryObjectInfo {
     }
 
     /**
-     * @param messageDigest the message digest of the binary data to set
+     * @param messageDigest the message digest of the data to set
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setMessageDigest(String messageDigest) {
-        //  Digest should not be null, but checkDigest Handler will manage null case  
+    public DataObjectInfo setMessageDigest(String messageDigest) {
+        // Digest should not be null, but checkDigest Handler will manage null case
         this.messageDigest = messageDigest;
         return this;
     }
@@ -112,15 +112,15 @@ public final class BinaryObjectInfo {
     /**
      * @return size
      */
-    public long getSize() {
+    public Long getSize() {
         return size;
     }
 
     /**
-     * @param size the size of the binary data to set
+     * @param size the size of the data to set
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setSize(long size) {
+    public DataObjectInfo setSize(Long size) {
         this.size = size;
         return this;
     }
@@ -137,7 +137,7 @@ public final class BinaryObjectInfo {
      * @param algo digest algorithm
      * @return BinaryObjectInfo
      */
-    public BinaryObjectInfo setAlgo(DigestType algo) {
+    public DataObjectInfo setAlgo(DigestType algo) {
         ParametersChecker.checkParameter("algo is a mandatory parameter", algo);
         this.algo = algo;
         return this;
@@ -156,7 +156,7 @@ public final class BinaryObjectInfo {
      * @param rank the rank in version
      * @return this
      */
-    public BinaryObjectInfo setRank(int rank) {
+    public DataObjectInfo setRank(int rank) {
         this.rank = rank;
         return this;
     }

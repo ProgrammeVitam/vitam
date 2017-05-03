@@ -35,22 +35,14 @@
                 <Encoding>Encoding0</Encoding>
             </FormatIdentification>
         </BinaryDataObject>
-        <BinaryDataObject id="ID006">
+        <PhysicalDataObject id="ID006">
             <DataObjectGroupId>ID007</DataObjectGroupId>
             <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
-            <Uri>files/file1.txt</Uri>
-            <MessageDigest algorithm="SHA-512">ZGVmYXVsdA==</MessageDigest>
-            <Size>50</Size>
-            <FormatIdentification>
-                <FormatLitteral>FormatLitteral0</FormatLitteral>
-                <MimeType>MimeType0</MimeType>
-                <FormatId>FormatId0</FormatId>
-                <Encoding>Encoding0</Encoding>
-            </FormatIdentification>
-        </BinaryDataObject>
+            <PhysicalId>1006</PhysicalId>
+        </PhysicalDataObject>
         <BinaryDataObject id="ID008">
             <DataObjectGroupId>ID009</DataObjectGroupId>
-            <DataObjectVersion>Diffusion_1</DataObjectVersion>
+            <DataObjectVersion>Dissemination_1</DataObjectVersion>
             <Uri>files/file1.txt</Uri>
             <MessageDigest algorithm="SHA-512">ZGVmYXVsdA==</MessageDigest>
             <Size>50</Size>

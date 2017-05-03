@@ -26,31 +26,53 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * The class SedaVersion used to get the list the versions by type of Data Object from the file version.conf
+ * The class DataObjectDetail is stored all information of the DataObject (Physical or Binary)
  */
-public class SedaVersion {
+public class DataObjectDetail {
+    private String version;
+    private boolean physical;
 
-    private List<String> binaryDataObjectVersions;
-    private List<String> physicalDataObjectVersions;
-
-    public List<String> getVersionForType(String type) {
-        if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
-            return binaryDataObjectVersions;
-        } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
-            return physicalDataObjectVersions;
-        }
-        return null;
+    /**
+     * Gets the version
+     * 
+     * @return the version
+     */
+    public String getVersion() {
+        return version;
     }
 
-    public void setBinaryDataObjectVersions(String[] binaryDataObjectVersions) {
-        this.binaryDataObjectVersions = Arrays.asList(binaryDataObjectVersions);
+    /**
+     * Gets the physical
+     * 
+     * @return the physical
+     */
+    public boolean isPhysical() {
+        return physical;
     }
 
-    public void setPhysicalDataObjectVersions(String[] physicalDataObjectVersions) {
-        this.physicalDataObjectVersions = Arrays.asList(physicalDataObjectVersions);
+    /**
+     * Sets the version
+     * 
+     * @param version the version to set
+     *
+     * @return this
+     */
+    public void setVersion(String version) {
+        this.version = version;
     }
+
+    /**
+     * Sets the physical
+     * 
+     * @param physical the physical to set
+     *
+     * @return this
+     */
+    public void setPhysical(boolean physical) {
+        this.physical = physical;
+    }
+
+
+
 }

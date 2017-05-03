@@ -138,7 +138,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
         final File firstMapTmpFile = PropertiesUtils
             .fileFromTmpFolder(
-                IngestWorkflowConstants.BDO_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + OBJ + JSON_EXTENSION);
+                IngestWorkflowConstants.DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_FILE_NAME_PREFIX + OBJ + JSON_EXTENSION);
         final FileWriter firstMapTmpFileWriter = new FileWriter(firstMapTmpFile);
         firstMapTmpFileWriter.write(binaryDataObjectIdToObjectGroupId.toString());
         firstMapTmpFileWriter.flush();

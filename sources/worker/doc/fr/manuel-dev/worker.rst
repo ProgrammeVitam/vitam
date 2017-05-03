@@ -258,11 +258,11 @@ Afin d'avoir un handlerIO correctement initialisé, il faut redéfinir le handle
    HandlerIO handlerIO = new HandlerIO("containerName", "workerid");
    List<IOParameter> out = new ArrayList<>();
    out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
-   out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json")));
-   out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json")));
+   out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
+   out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
    out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
    out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OG_TO_ARCHIVE_ID_MAP.json")));
-   out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_VERSION_BDO_MAP.json")));
+   out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
    out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
    out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
 
@@ -818,8 +818,8 @@ Pour l'opération d'ingest en cours, on va récupérer dans les logbooks plusieu
 Le Handler s'appuie sur des fichiers qui lui sont transmis. Ces fichiers peuvent ne pas être présents si jamais le process est en erreur avec la génération de ces derniers.
  - un fichier globalSedaParameters.file contenant des informations sur le manifest (messageIdentifier).
  - un fichier mapsUnits.file : présentant une map d'archive unit
- - un fichier mapsBDO.file : présentant la liste des binary data objects
- - un fichier mapsBDOtoOG=.file : mappant le binary data object à son object group
+ - un fichier mapsDO.file : présentant la liste des data objects
+ - un fichier mapsDOtoOG.file : mappant le data object à son object group
 
 A noter que ces fichiers ne sont pas obligatoires pour le bon déroulement du handler.
 

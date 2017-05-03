@@ -76,7 +76,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private static final int HANDLER_IO_PARAMETER_NUMBER = 4;
     private static final int ARCHIVE_UNIT_MAP_RANK = 0;
     private static final int OBJECTGOUP_MAP_RANK = 1;
-    private static final int BDO_TO_VERSION_BDO_MAP_RANK = 2;
+    private static final int DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK = 2;
     private static final int SEDA_PARAMETERS_RANK = 3;
 
     /**
@@ -141,7 +141,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             final InputStream objectGoupMapStream =
                 new FileInputStream((File) handlerIO.getInput(OBJECTGOUP_MAP_RANK));
             final InputStream bdoToVersionMapTmpFile =
-                new FileInputStream((File) handlerIO.getInput(BDO_TO_VERSION_BDO_MAP_RANK))) {
+                new FileInputStream((File) handlerIO.getInput(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_RANK))) {
             final Map<String, Object> bdoVersionMap = JsonHandler.getMapFromInputStream(bdoToVersionMapTmpFile);
             final Map<String, Object> archiveUnitMap = JsonHandler.getMapFromInputStream(archiveUnitMapStream);
             final Map<String, Object> objectGroupMap = JsonHandler.getMapFromInputStream(objectGoupMapStream);

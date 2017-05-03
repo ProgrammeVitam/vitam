@@ -39,7 +39,7 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 
 /**
- * CheckVersionActionHandler handler class used to check the versions of BinaryDataObject in manifest
+ * CheckVersionActionHandler handler class used to check the versions of DataObject in manifest
  */
 public class CheckVersionActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckVersionActionHandler.class);
@@ -69,7 +69,7 @@ public class CheckVersionActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            final List<String> versionInvalidList = sedaUtils.checkSupportedBinaryObjectVersion(params);
+            final List<String> versionInvalidList = sedaUtils.checkSupportedDataObjectVersion(params);
             if (!versionInvalidList.isEmpty()) {
                 itemStatus.increment(StatusCode.KO);
                 itemStatus.setData("errorNumber", versionInvalidList.size());
