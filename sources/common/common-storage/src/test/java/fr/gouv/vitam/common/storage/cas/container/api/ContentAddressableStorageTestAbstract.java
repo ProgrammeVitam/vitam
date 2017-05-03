@@ -75,7 +75,7 @@ public abstract class ContentAddressableStorageTestAbstract {
     protected static final String CONTAINER_NAME = "myContainer";
     protected static final String WRONG_CONTAINER_NAME = "myWrongContainer";
     protected static final String OBJECT_NAME = GUIDFactory.newGUID().getId()+".json";
-    protected static final DigestType ALGO = DigestType.MD5;
+    protected static final DigestType ALGO = DigestType.SHA512;
 
     protected static final String TENANT_ID = "0";
     protected static final String TYPE = "object";
@@ -223,7 +223,6 @@ public abstract class ContentAddressableStorageTestAbstract {
     public void givenObjectNotFoundWhenComputeObjectDigestThenRaiseAnException()
         throws ContentAddressableStorageException {
         storage.createContainer(CONTAINER_NAME);
-
         storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
     }
 
@@ -233,11 +232,14 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.createContainer(CONTAINER_NAME);
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
 
-        final String messageDigest = storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
-        final Digest digest = new Digest(ALGO);
+        String messageDigest = storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
+        Digest digest = new Digest(ALGO);
         digest.update(getInputStream("file1.pdf"));
         System.out.print(digest);
         System.out.print(messageDigest);
+        assertTrue(messageDigest.equals(digest.toString()));
+        // Verify that it works from cache (if there is a cache)
+        messageDigest = storage.computeObjectDigest(CONTAINER_NAME, OBJECT_NAME, ALGO);
         assertTrue(messageDigest.equals(digest.toString()));
     }
 
@@ -304,7 +306,7 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         final Digest digest = new Digest(ALGO);
         digest.update(getInputStream("file1.pdf"));
-        assertTrue(storage.checkObject(CONTAINER_NAME, OBJECT_NAME, digest.toString(), DigestType.MD5));
+        assertTrue(storage.checkObject(CONTAINER_NAME, OBJECT_NAME, digest.toString(), ALGO));
     }
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
