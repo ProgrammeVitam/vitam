@@ -156,7 +156,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 }
                 if (Boolean.TRUE.equals(existing)) {
                     // update case
-                    computeExistingData(data, query);
+                    computeExistingData(containerId, query);
                     metadataClient.updateUnitbyId(((UpdateMultiQuery) query).getFinalUpdate(),
                         data.get("#id").asText());
                 } else {
@@ -197,26 +197,10 @@ public class IndexUnitActionPlugin extends ActionHandler {
      * @param query update query
      * @throws InvalidCreateOperationException exception while adding an action to the query
      */
-    private void computeExistingData(final JsonNode data, RequestMultiple query)
+    private void computeExistingData(final String containerId, RequestMultiple query)
         throws InvalidCreateOperationException {
-        Iterator<String> fieldNames = data.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            if (data.get(fieldName).isArray()) {
-                // if field is multiple values
-                for (JsonNode fieldNode : (ArrayNode) data.get(fieldName)) {
-                    ((UpdateMultiQuery) query)
-                        .addActions(UpdateActionHelper.add(fieldName.replace("_", "#"), fieldNode.textValue()));
-                }
-            } else {
-                // if field is single value
-                String fieldValue = data.get(fieldName).textValue();
-                if (!"#id".equals(fieldName) && fieldValue != null && !fieldValue.isEmpty()) {
-                    ((UpdateMultiQuery) query)
-                        .addActions(UpdateActionHelper.set(fieldName.replace("_", "#"), fieldValue));
-                }
-            }
-        }
+        ((UpdateMultiQuery) query)
+            .addActions(UpdateActionHelper.add(VitamFieldsHelper.operations(), containerId));        
     }
 
 
