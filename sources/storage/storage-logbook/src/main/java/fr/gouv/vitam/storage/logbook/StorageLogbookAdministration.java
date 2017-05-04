@@ -87,12 +87,15 @@ public class StorageLogbookAdministration {
     private static final String STP_SECURISATION = "STORAGE_LOG_OP_SECURISATION";
     private static final String OP_SECURISATION_STORAGE_LOGBOOK = "OP_SECURISATION_STORAGE_LOGBOOK";
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
-    private static final String STP_OP_SECURISATION_WORKSPACE = "Copie dans le WorkSapce";
+    private static final String STP_BEGIN_MESSAGE = "Sécurisation des journaux";
+    private static final String STP_BEGIN_MESSAGE_PROCESS = "Début de la sécurisation des journaux";
+    private static final String STP_FAIL_MESSAGE_PROCESS = "Echec de la sécurisation des journaux";
 
 
     private static final String STRATEGY_ID = "default";
     final StorageLogbookService storageLogbookService;
     private final File tmpFolder;
+
 
 
     public StorageLogbookAdministration(StorageLogbookService storageLogbookService,
@@ -142,7 +145,7 @@ public class StorageLogbookAdministration {
                 logZipFile.close();
             } catch (IOException |
                 ArchiveException e) {
-                createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, FATAL, null);
+                createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
                 zipFile.delete();
                 throw new StorageLogException(e);
             }
@@ -151,8 +154,7 @@ public class StorageLogbookAdministration {
 
                 WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
-                createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION_WORKSPACE, StatusCode.STARTED,
-                    null);
+
 
                 workspaceClient.createContainer(fileName);
                 workspaceClient.putObject(fileName, uri, inputStream);
@@ -162,7 +164,6 @@ public class StorageLogbookAdministration {
                 final ObjectDescription description = new ObjectDescription();
                 description.setWorkspaceContainerGUID(fileName);
                 description.setWorkspaceObjectURI(uri);
-                createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION_WORKSPACE, StatusCode.OK, null);
 
                 try (final StorageClient storageClient = storageClientFactory.getClient()) {
                     storageClient.storeFileFromWorkspace(
@@ -171,14 +172,14 @@ public class StorageLogbookAdministration {
 
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException | ContentAddressableStorageNotFoundException e) {
-                    createLogbookOperationEvent(helper, eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, FATAL, null);
+                    createLogbookOperationEvent(helper, eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
                     LOGGER.error("unable to store zip file", e);
                     throw new StorageLogException(e);
                 }
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
                 IOException e) {
                 LOGGER.error("unable to create container", e);
-                createLogbookOperationEvent(helper, eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, FATAL, null);
+                createLogbookOperationEvent(helper, eip, tenantId, OP_SECURISATION_STORAGE_LOGBOOK, FATAL, null,STP_FAIL_MESSAGE_PROCESS);
                 throw new StorageLogException(e);
 
 
@@ -186,7 +187,7 @@ public class StorageLogbookAdministration {
             } finally {
                 zipFile.delete();
             }
-            createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, StatusCode.OK, event);
+            createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, StatusCode.OK, event, STP_BEGIN_MESSAGE);
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
         } finally {
@@ -199,18 +200,18 @@ public class StorageLogbookAdministration {
     private void createLogbookOperationStructure(LogbookOperationsClientHelper helper, GUID eip, Integer tenantId)
         throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {
         final LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(eip, STP_SECURISATION, eip, STORAGE_LOGBOOK, STARTED, null, null, eip);
+            newLogbookOperationParameters(eip, STP_SECURISATION, eip, STORAGE_LOGBOOK, STARTED, STP_BEGIN_MESSAGE, eip);
         LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
         helper.createDelegate(logbookParameters);
-        createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, STARTED, null);
+        createLogbookOperationEvent(helper, eip, tenantId, STP_OP_SECURISATION, STARTED, null,STP_BEGIN_MESSAGE_PROCESS);
     }
 
     private void createLogbookOperationEvent(LogbookOperationsClientHelper helper, GUID parentEventId, Integer tenantId,
         String eventType,
-        StatusCode statusCode, LogInformationEvent data) throws LogbookClientNotFoundException {
+        StatusCode statusCode, LogInformationEvent data,String message) throws LogbookClientNotFoundException {
         final GUID eventId = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters logbookOperationParameters =
-            newLogbookOperationParameters(eventId, eventType, parentEventId, STORAGE_LOGBOOK, statusCode, null, null,
+            newLogbookOperationParameters(eventId, eventType, parentEventId, STORAGE_LOGBOOK, statusCode, message,
                 parentEventId);
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
         if (data != null) {
