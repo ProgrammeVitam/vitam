@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.model.RequestResponse;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -76,6 +77,7 @@ import com.jayway.restassured.response.Cookie;
 import com.jayway.restassured.response.ResponseBody;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
@@ -83,6 +85,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -143,6 +146,10 @@ public class WebApplicationResourceTest {
     private static final String TRACEABILITY_CHECK_DSL_QUERY = "{EventID: \"fake_id\"}";
 
     private final int TENANT_ID = 0;
+    private static final String STATUS_FIELD_QUERY = "Status";
+    private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
+    private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
+    private static final String NAME_FIELD_QUERY = "Name";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -213,25 +220,78 @@ public class WebApplicationResourceTest {
 
     @Test
     public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() throws Exception {
-    	PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
-                .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+            .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect().statusCode(Status.OK.getStatusCode()).when()
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
             .post("/archivesearch/units");
     }
 
     @Test
     public void givenNoSecureServerLoginUnauthorized() {
-        given().contentType(ContentType.JSON).body(CREDENTIALS).expect().statusCode(Status.UNAUTHORIZED.getStatusCode())
+        given().contentType(ContentType.JSON).body(CREDENTIALS).expect()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode())
             .when()
             .post("login");
         given().contentType(ContentType.JSON).body(CREDENTIALS_NO_VALID).expect()
             .statusCode(Status.UNAUTHORIZED.getStatusCode()).when()
             .post("login");
+    }
+
+
+    private Map<String, String> createActiveMapForUpdateAccessContract() {
+        String now = LocalDateUtil.now().toString();
+        Map<String, String> parameters = new HashMap<String, String>();
+        parameters.put(STATUS_FIELD_QUERY, "ACTIVE");
+        parameters.put(LAST_UPDATE_FIELD_QUERY, now);
+        parameters.put(ACTIVATION_DATE_FIELD_QUERY, now);
+        parameters.put(NAME_FIELD_QUERY, "aName");
+        return parameters;
+    }
+
+    private void initializeAdminExternalClientMock()
+        throws InvalidParseOperationException, AccessExternalClientException {
+        final RequestResponse mockResponse = Mockito.mock(RequestResponse.class);
+        final AdminExternalClient adminExternalClient = PowerMockito.mock(AdminExternalClient.class);
+        final AdminExternalClientFactory adminExternalFactory = PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.when(adminExternalFactory.getClient()).thenReturn(adminExternalClient);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalFactory);
+
+        JsonNode jsonNode = JsonHandler.createObjectNode();
+        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn(200).when(mockResponse).getStatus();
+        Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract(jsonNode, TENANT_ID);
+    }
+
+
+    @Test
+    public void givenAccessContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
+
+        initializeAdminExternalClientMock();
+        final Map<String, String> parameters = createActiveMapForUpdateAccessContract();
+        String jsonObject = JsonHandler.unprettyPrint(parameters);
+        final ResponseBody response =
+            given().contentType(ContentType.JSON)
+                .body(jsonObject).expect()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .post("/accesscontracts/azercdsqsdf").getBody();
+    }
+
+    @Test
+    public void givenIngestContractTestUpdate() throws InvalidParseOperationException, AccessExternalClientException {
+        initializeAdminExternalClientMock();
+        final Map<String, String> parameters = createActiveMapForUpdateAccessContract();
+        String jsonObject = JsonHandler.unprettyPrint(parameters);
+        final ResponseBody response =
+            given().contentType(ContentType.JSON)
+                .body(jsonObject).expect()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .post("/contracts/azercdsqsdf").getBody();
     }
 
     @Test
@@ -303,7 +363,8 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultAccessExternalClientServerException() throws AccessExternalClientServerException,
+    public void testArchiveSearchResultAccessExternalClientServerException()
+        throws AccessExternalClientServerException,
         AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
@@ -336,7 +397,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .post("/archivesearch/units");
     }
 
@@ -457,10 +519,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testUpdateArchiveUnitDetailsDsl()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-
         final Map<String, String> updateCriteriaMap = new HashMap<>();
         updateCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-
         updateCriteriaMap.put("title", "archive1");
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
@@ -664,8 +724,8 @@ public class WebApplicationResourceTest {
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
-    			.thenReturn(JsonHandler.createObjectNode());
-        
+            .thenReturn(JsonHandler.createObjectNode());
+
         given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/formats");
@@ -675,8 +735,9 @@ public class WebApplicationResourceTest {
     public void testSearchFormatNotFound() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient).findDocuments(anyObject(),
-            anyObject(), anyObject());
+        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient)
+            .findDocuments(anyObject(),
+                anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -809,8 +870,12 @@ public class WebApplicationResourceTest {
                 anyInt(), anyString(), anyObject()))
             .thenThrow(new AccessExternalClientNotFoundException(""));
 
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .body(OPTIONS_DOWNLOAD).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given()
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(OPTIONS_DOWNLOAD)
+            .expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
             .get(
                 "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp&tenantId=0");
     }
@@ -826,7 +891,11 @@ public class WebApplicationResourceTest {
                 anyInt(), anyString(), anyObject()))
             .thenReturn(true);
 
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .get(
                 "/archiveunit/objects/download/idOG?usage=Dissamination&version=1&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
@@ -849,9 +918,12 @@ public class WebApplicationResourceTest {
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
                 anyInt(), anyString(), anyObject()))
             .thenThrow(new AccessExternalClientServerException(""));
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .body(OPTIONS_DOWNLOAD).expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given()
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .body(OPTIONS_DOWNLOAD)
+            .expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
             .get(
                 "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
@@ -862,8 +934,11 @@ public class WebApplicationResourceTest {
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
                 anyInt(), anyString(), anyObject()))
             .thenThrow(new NullPointerException());
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given()
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
             .get(
                 "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
@@ -873,7 +948,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -918,7 +993,7 @@ public class WebApplicationResourceTest {
         AccessExternalClientNotFoundException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
@@ -936,7 +1011,7 @@ public class WebApplicationResourceTest {
         AccessExternalClientNotFoundException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
@@ -953,7 +1028,7 @@ public class WebApplicationResourceTest {
         throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
-                .getFromString(FAKE_STRING_RETURN));
+            .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1029,9 +1104,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-    	PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
-    			.thenReturn(JsonHandler.createObjectNode());
-        
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+
         given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/rules");
@@ -1062,8 +1137,9 @@ public class WebApplicationResourceTest {
     public void testSearchRuleNotFound() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient).findDocuments(anyObject(),
-            anyObject(), anyObject());
+        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient)
+            .findDocuments(anyObject(),
+                anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -1169,7 +1245,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
             .thenThrow(NullPointerException.class);
 
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
             .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
@@ -1285,8 +1362,10 @@ public class WebApplicationResourceTest {
     public void testCheckTraceabilityOperation()
         throws AccessExternalClientServerException, InvalidParseOperationException, InvalidCreateOperationException {
         // Mock AccessExternal response
-        PowerMockito.when(
-            UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(), (Integer) Mockito.anyInt()))
+        PowerMockito
+            .when(
+                UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(),
+                    (Integer) Mockito.anyInt()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
         given().contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()

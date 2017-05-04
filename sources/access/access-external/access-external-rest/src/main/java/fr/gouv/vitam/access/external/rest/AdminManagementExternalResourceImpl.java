@@ -45,14 +45,11 @@ import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -343,8 +340,9 @@ public class AdminManagementExternalResourceImpl {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
-    
+
     /**
+     * Update ingest contract
      * 
      * @param queryDsl the given query dsl
      * @return
