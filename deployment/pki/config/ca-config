@@ -1,0 +1,65 @@
+# Configuration used to create CA certificates (root & intermediate)
+
+# Signing CA parameters
+
+[ ca ]
+default_ca      = ca_root
+
+[ ca_root ]
+dir             = ./pki
+certs           = $dir/ca/client-external
+new_certs_dir   = $dir/tempcerts
+database        = $dir/config/${ENV::OPENSSL_CA_DIR}/index.txt
+certificate     = $dir/ca/${ENV::OPENSSL_CA_DIR}/ca-root.crt
+serial          = $dir/config/${ENV::OPENSSL_CA_DIR}/serial
+private_key     = $dir/ca/${ENV::OPENSSL_CA_DIR}/ca-root.key
+default_days    = 3650
+default_md      = sha256
+preserve        = no
+policy          = policy_match
+unique_subject  = no
+
+[ policy_match ]
+countryName             = match
+stateOrProvinceName     = match
+localityName            = match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+
+[ req ]
+# Options for the `req` tool (`man req`).
+prompt                  = no
+default_bits            = 4096
+string_mask             = utf8only
+distinguished_name      = req_distinguished_name
+
+[ req_distinguished_name ]
+# prompt = no in req options above ; so following are real values, not prompts
+C = fr
+ST = idf
+L = paris
+O = vitam
+OU = authorities
+CN = ${ENV::OPENSSL_CN}
+
+
+# Certificates creation parameters : extensions
+
+[ extension_ca_root ]
+nsComment                       = "CA Root"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid:always,issuer
+basicConstraints                = critical,CA:true,pathlen:1
+keyUsage                        = keyCertSign, cRLSign
+nsCertType                      = sslCA
+
+[ extension_ca_intermediate ]
+nsComment                       = "CA Intermediate"
+subjectKeyIdentifier            = hash
+authorityKeyIdentifier          = keyid,issuer:always
+basicConstraints                = critical,CA:true,pathlen:0
+issuerAltName                   = issuer:copy
+keyUsage                        = keyCertSign, cRLSign
+nsCertType                      = sslCA
