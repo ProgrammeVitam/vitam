@@ -149,7 +149,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws InvalidParseOperationException,
-        AccessInternalClientServerException, AccessInternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException {
+        AccessInternalClientServerException, AccessInternalClientNotFoundException, NoWritingPermissionException,
+        AccessUnauthorizedException {
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_DSL, updateQuery);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
@@ -165,8 +166,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
                 throw new AccessInternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
-            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()){
-                throw new NoWritingPermissionException(NO_WRITING_PERMISSION); 
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }

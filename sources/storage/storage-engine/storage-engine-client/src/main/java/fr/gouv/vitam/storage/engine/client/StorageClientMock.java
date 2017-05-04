@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 
 import javax.ws.rs.HttpMethod;
@@ -144,7 +145,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     @Override
     public Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
         throws StorageServerClientException, StorageNotFoundException {
-        return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT),
+        return new FakeInboundResponse(Status.OK, IOUtils.toInputStream(MOCK_GET_FILE_CONTENT, Charset.defaultCharset()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 

@@ -2129,8 +2129,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         return tenantId;
     }
 
-
-
     private File downloadAndSaveATR(String guid, Integer tenantId)
         throws VitamClientException, IngestExternalException {
         File file = null;
@@ -2220,6 +2218,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param headers request headers
      * @param operationId the TRACEABILITY operation identifier
+     * @param contractId the contractId
+     * @param asyncResponse the async response
      * @return a response containing the file name stream
      */
     @GET
@@ -2227,6 +2227,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("traceability:content:read")
     public void downloadTraceabilityFile(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
+        @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
 
         // Check parameters
@@ -2235,17 +2236,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // Get tenantId from headers
 
         Integer tenantId = getTenantId(headers);
+        VitamThreadUtils.getVitamSession().setContractId(contractId);
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId));
+            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, tenantId, contractId));
     }
 
     private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
-        Integer tenantId) {
+        Integer tenantId, String contractId) {
 
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
 
-            response = client.downloadTraceabilityOperationFile(operationId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            response = client.downloadTraceabilityOperationFile(operationId, tenantId, contractId);
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
 

@@ -110,6 +110,7 @@ public class TraceabilityEvent {
      * @param numberOfElement number of document to secure
      * @param fileName        path on the archive in workspace
      * @param size            the size
+     * @param digestAlgorithm the digestAlgorithm
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash, 
     	byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,

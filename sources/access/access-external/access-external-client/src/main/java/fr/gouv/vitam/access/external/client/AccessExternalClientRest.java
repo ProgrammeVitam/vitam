@@ -70,9 +70,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new IllegalArgumentException(BLANK_DSL);
         }
 
-    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-    	headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, "/units", headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -141,8 +141,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new IllegalArgumentException(BLANK_DSL);
         }
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
-    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
@@ -155,8 +155,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
                 throw new AccessExternalClientNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            }else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()){
-                throw new NoWritingPermissionException(NO_WRITING_PERMISSION); 
+            } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
+                throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
             }
 
             return RequestResponse.parseFromResponse(response);
@@ -171,7 +171,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId, String contractName)
+    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String objectId, Integer tenantId,
+        String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
         SanityChecker.checkJsonAll(selectObjectQuery);
@@ -181,8 +182,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
 
         Response response = null;
-    	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, "/objects/" + objectId, headers,
@@ -211,7 +212,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version, Integer tenantId, String contractName)
+    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version, Integer tenantId,
+        String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
         SanityChecker.checkJsonAll(selectObjectQuery);
@@ -227,7 +229,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
 
@@ -314,8 +316,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         try {
-        	MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
             headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -344,7 +346,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
@@ -375,7 +377,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response =
@@ -439,11 +441,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
-            	headers,
+                headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
@@ -474,7 +476,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
@@ -505,7 +507,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-    	headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
 
         try {
