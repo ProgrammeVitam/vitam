@@ -217,7 +217,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             datas.populateFromOfferReferences(offerReferences);
 
             StorageLogbookParameters parameters =
-                oldTryAndRetry(objectId, createObjectDescription, category, requester, tenantId,
+                tryAndRetry(objectId, createObjectDescription, category, requester, tenantId,
                     datas, 1, null);
 
             try {
