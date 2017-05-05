@@ -30,6 +30,7 @@ import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
+import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -45,15 +46,19 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class World {
 
     public static final String TNR_BASE_DIRECTORY = "tnrBaseDirectory";
     public static final String WORKSPACE_URI = "workSpaceURI";
+    public static final String DEFAULT_ACCESS_CONTRACT_NAME = "SIA archives nationales";
 
 
     private int tenantId;
 
+    private String contractId;
+    
     /**
      * id of the operation
      */
@@ -161,6 +166,25 @@ public class World {
      */
     public void setOperationId(String operationId) {
         this.operationId = operationId;
+    }
+
+    /**
+     * @return
+     */
+    public String getContractId() {
+        if (contractId == null) {
+            return DEFAULT_ACCESS_CONTRACT_NAME;
+        }
+        return contractId;
+    }
+
+    /**
+     * @param contractId
+     * @return
+     */
+    public World setContractId(String contractId) {
+        this.contractId = contractId;
+        return this;
     }
 
     @After

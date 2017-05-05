@@ -134,7 +134,7 @@ config(['$locationProvider' ,'$routeProvider',
     }).
     when('/lifecycle/:type/:lifecycleId', {
       template: '<lifecycle></lifecycle>',
-      title: 'unitlifecycles:read'
+      permission: 'unitlifecycles:read',
     }).
     when('/uploadperf', {
       template: '<upload-sip-perf></upload-sip-perf>',

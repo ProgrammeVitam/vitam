@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -264,6 +265,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             } catch (final AccessExternalClientNotFoundException e) {
                 LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
                 return Response.status(Status.NOT_FOUND).build();
+            } catch (final AccessUnauthorizedException e) {
+                LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+                return Response.status(Status.UNAUTHORIZED).build();
             } catch (final Exception e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -304,6 +308,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
+        } catch (final AccessUnauthorizedException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.UNAUTHORIZED).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -645,7 +652,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     private static JsonNode getlogBookOperationStatus(String operationId, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         final RequestResponse<JsonNode> result =
             UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId);
         RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
@@ -966,6 +973,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
+        } catch (final AccessUnauthorizedException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.UNAUTHORIZED).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -990,11 +1000,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("archiveunit:objects:read")
     public void getObjectAsInputStreamAsync(@Context HttpHeaders headers, @PathParam("idOG") String objectGroupId,
         @QueryParam("usage") String usage, @QueryParam("version") String version,
-        @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId,
+        @QueryParam("filename") String filename, @QueryParam("tenantId") Integer tenantId, @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, version, filename, tenantId));
+            .execute(() -> asyncGetObjectStream(asyncResponse, objectGroupId, usage, version, filename, tenantId, contractId));
     }
 
     /**
@@ -1040,7 +1050,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     private void asyncGetObjectStream(AsyncResponse asyncResponse, String objectGroupId, String usage, String version,
-        String filename, Integer tenantId) {
+        String filename, Integer tenantId, String contractId) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectGroupId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(version));
@@ -1062,7 +1072,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final HashMap<String, String> emptyMap = new HashMap<>();
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, objectGroupId,
-                usage, Integer.parseInt(version), filename, tenantId);
+                usage, Integer.parseInt(version), filename, tenantId, contractId);
         } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
@@ -1388,6 +1398,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } catch (final AccessExternalClientNotFoundException e) {
             LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
+        } catch (final AccessUnauthorizedException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.UNAUTHORIZED).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -2015,6 +2028,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            final Status status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .setContext(ServiceName.VITAM.getName())
+                .setState(CODE_VITAM)
+                .setMessage(status.getReasonPhrase())
+                .setDescription(e.getMessage())).build();
         }
     }
 
@@ -2049,7 +2070,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
 
-            response = client.downloadTraceabilityOperationFile(operationId, tenantId);
+            response = client.downloadTraceabilityOperationFile(operationId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
 
@@ -2066,6 +2087,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } catch (AccessUnauthorizedException e) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.UNAUTHORIZED).build());
         }
     }
 }

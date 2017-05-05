@@ -549,6 +549,10 @@ table {
 
 }
 
+.grayColor {
+    color:#999;
+}
+
 .table > tbody > tr > td.logbookTask {
     padding-left: 25px;
 }

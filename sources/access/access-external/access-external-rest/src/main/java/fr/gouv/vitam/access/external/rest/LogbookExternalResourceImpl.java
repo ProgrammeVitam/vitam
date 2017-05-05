@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -129,6 +130,10 @@ public class LogbookExternalResourceImpl {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -176,6 +181,10 @@ public class LogbookExternalResourceImpl {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -243,6 +252,10 @@ public class LogbookExternalResourceImpl {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -308,6 +321,10 @@ public class LogbookExternalResourceImpl {
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status)).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            status = Status.UNAUTHORIZED;
             return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
@@ -378,6 +395,10 @@ public class LogbookExternalResourceImpl {
                 .setState("code_vitam")
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Status status = Status.UNAUTHORIZED;
+            return Response.status(status).entity(getErrorEntity(status)).build();
         }
     }
 
@@ -419,6 +440,12 @@ public class LogbookExternalResourceImpl {
             LOGGER.error(exc.getMessage(), exc);
             final Response errorResponse =
                 Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                    .toString()).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Response errorResponse =
+                Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED)
                     .toString()).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }

@@ -90,7 +90,7 @@ angular.module('lifecycle')
 
     // Get lifeCycle details
     var buildLifeCycle = function() {
-      ihmDemoFactory.getLifeCycleDetails(self.lifeCycleType, self.lifeCycleId).then(function(response) {
+      ihmDemoFactory.getLifeCycleDetails(self.lifeCycleType, $scope.lifeCycleId).then(function(response) {
         self.receivedResponse = response;
         if (response.data.$hits === undefined || response.data.$hits === null || response.data.$hits.total !== 1) {
           // Invalid response
@@ -157,15 +157,28 @@ angular.module('lifecycle')
         .then(function (response) {
           if (response.data) {
             $scope.archiveUnitTitle = response.data.$results[0].Title;
+            $scope.lifeCycleId = self.lifeCycleId;
+
+            buildLifeCycle();
           }
         },function (error) {
           console.log(error);
         });
     } else {
-      ihmDemoFactory.getArchiveObjectGroup(self.lifeCycleId)
+      ihmDemoFactory.getArchiveUnitDetails(self.lifeCycleId)
         .then(function (response) {
           if (response.data) {
-            $scope.archiveUnitTitle = response.data.versions[0].FileName;
+            $scope.lifeCycleId = response.data.$results[0]['#object'];
+            ihmDemoFactory.getArchiveObjectGroup(self.lifeCycleId)
+              .then(function (response) {
+                if (response.data) {
+                  $scope.archiveUnitTitle = response.data.versions[0].FileName;
+
+                  buildLifeCycle();
+                }
+              },function (error) {
+                console.log(error);
+              });
           }
         },function (error) {
           console.log(error);
@@ -186,5 +199,4 @@ angular.module('lifecycle')
     };
 
     // Display life cycle
-    buildLifeCycle();
   });

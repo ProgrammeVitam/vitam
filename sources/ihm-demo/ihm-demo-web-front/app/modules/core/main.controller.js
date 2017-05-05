@@ -34,17 +34,18 @@ angular.module('core')
         $scope.session = {};
         $scope.tenants = ['0', '1'];
         if (!!authVitamService.cookieValue('userCredentials')) {
-          ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+          ihmDemoFactory.getAccessContracts({ContractName : "all", Status : "ACTIVE"}).then(function (repsonse) {
             if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
               $scope.contracts = repsonse.data['$results'];
+              authVitamService.setContract($scope.contracts);
             }
           }, function (error) {
             console.log('Error while get contrat. Set default list : ', error);
           });
         }
 
-        if (!!authVitamService.cookieValue("X-Access-Contrat-Id")){
-            $scope.accessContratId = authVitamService.cookieValue("X-Access-Contrat-Id");
+        if (!!authVitamService.cookieValue("X-Access-Contract-Id")){
+            $scope.accessContratId = authVitamService.cookieValue("X-Access-Contract-Id");
         }
 
         $window.addEventListener('storage', function(event) {
@@ -124,7 +125,8 @@ angular.module('core')
         });
 
         $scope.changeContract = function(accessContratId) {
-            //authVitamService.createCookie("X-Access-Contrat-Id", accessContratId);
+          authVitamService.createCookie("X-Access-Contract-Id", accessContratId);
+          $window.location.reload();
         };
 
         $scope.connectUser = function (tenantId) {
@@ -154,11 +156,13 @@ angular.module('core')
                             $translate.refresh();
                         }
 
-                        ihmDemoFactory.getAccessContracts({ContractName : "all", ContractID : "all"}).then(function (repsonse) {
+                        ihmDemoFactory.getAccessContracts({ContractName : "all", Status : "ACTIVE"}).then(function (repsonse) {
 
                             if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
                                 $scope.contracts = repsonse.data['$results'];
+                                authVitamService.setContract($scope.contracts);
                                 $scope.accessContratId = $scope.contracts[0].Name;
+                                authVitamService.createCookie("X-Access-Contract-Id", $scope.accessContratId);
                             }
                         }, function (error) {
                             console.log('Error while get tenant. Set default list : ', error);
