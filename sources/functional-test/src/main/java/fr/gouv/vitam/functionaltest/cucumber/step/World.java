@@ -35,14 +35,18 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.client.IhmRecetteClient;
+import fr.gouv.vitam.client.IhmRecetteClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.functionaltest.services.WorkSpaceClientConfiguration;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.Fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,11 +55,14 @@ import java.io.InputStream;
 public class World {
 
     public static final String TNR_BASE_DIRECTORY = "tnrBaseDirectory";
-    public static final String WORKSPACE_URI = "workSpaceURI";
+
+    private static final String TNR_CONF = "tnr.conf";
     public static final String DEFAULT_ACCESS_CONTRACT_NAME = "SIA archives nationales";
 
 
     private int tenantId;
+    private static boolean beforeTest = true;
+
 
     private String contractId;
     
@@ -79,30 +86,41 @@ public class World {
      */
     private AdminExternalClient adminClient;
     /**
-     *
+     * Storage Client
      */
     StorageClient storageClient;
+    /**
+     * tnr configuration
+     */
+    private TnrClientConfiguration tnrClientConfiguration;
 
-    private String workspaceUri;
+    /**
+     * Ihm recette client for purging data
+     */
+    IhmRecetteClient ihmRecetteClient;
 
     /**
      *
      */
     WorkspaceClient workspaceClient;
+
     /**
      * base path of all the feature
      */
     private String baseDirectory = System.getProperty(TNR_BASE_DIRECTORY);
 
-
-
     @Before
     public void init() throws IOException {
+        configuration();
+        if (beforeTest) {
+            purgeData();
+            beforeTest = false;
+        }
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
         storageClient = StorageClientFactory.getInstance().getClient();
-        configureWorSpaceClient();
+        WorkspaceClientFactory.changeMode(tnrClientConfiguration.getUrlWorkspace());
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
     }
 
@@ -155,6 +173,15 @@ public class World {
     }
 
     /**
+     * Ihm recette client
+     *
+     * @return Ihm recette client
+     */
+    public IhmRecetteClient getIhmRecetteClient() {
+        return ihmRecetteClient;
+    }
+
+    /**
      * @return operation ID
      */
     public String getOperationId() {
@@ -194,6 +221,7 @@ public class World {
         ingestClient.close();
         storageClient.close();
         workspaceClient.close();
+        ihmRecetteClient.close();
     }
 
     /**
@@ -215,9 +243,26 @@ public class World {
 
 
 
-    private void configureWorSpaceClient() throws IOException {
-        File confFile = PropertiesUtils.findFile("workspace-client.conf");
-        WorkSpaceClientConfiguration conf = PropertiesUtils.readYaml(confFile, WorkSpaceClientConfiguration.class);
-        WorkspaceClientFactory.changeMode(conf.getUrlWorkspace());
+    private void configuration() {
+        File confFile = null;
+        try {
+            confFile = PropertiesUtils.findFile(TNR_CONF);
+            tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
+
+        } catch (IOException e) {
+            Fail.fail("Unable to load configuration File: ");
+        }
+
+    }
+
+    private void purgeData() {
+        ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient();
+        tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
+            try {
+                ihmRecetteClient.deleteCollectionsOnTenant(i.toString());
+            } catch (VitamException e) {
+                Fail.fail("unnable purge data on tenant: " + i);
+            }
+        });
     }
 }
