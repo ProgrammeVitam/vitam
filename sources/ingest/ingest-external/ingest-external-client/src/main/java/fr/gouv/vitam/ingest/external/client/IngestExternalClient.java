@@ -72,7 +72,7 @@ public interface IngestExternalClient extends OperationManagementClient {
      */
     // TODO P0 : add file name
     @Deprecated
-    RequestResponse<JsonNode> uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
+    String uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
     /**

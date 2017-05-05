@@ -132,42 +132,41 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId,
+    public String uploadAndWaitFinishingProcess(InputStream stream, Integer tenantId, String contextId,
         String action) throws IngestExternalException {
-        int nb_try = NB_TRY;
-        String x_request_id = null;
+        int nbTry = NB_TRY;
         RequestResponse<JsonNode> response = this.upload(stream, tenantId, contextId, action);
 
 
         int responseStatus = response.getHttpCode();
-        x_request_id = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        final String xRequestId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
         if (!Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED)) {
-            return response;
+            return xRequestId;
         }
-        while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nb_try > 0) {
+        while (Status.fromStatusCode(responseStatus).equals(Status.ACCEPTED) && nbTry > 0) {
             //SLEEP
-            nb_try--;
+            nbTry--;
             try {
                 Thread.sleep(TIME_TO_SLEEP);
             } catch (InterruptedException ex) {
                 LOGGER.error(ex);
                 Thread.currentThread().interrupt();
-                return response;
+                return xRequestId;
             }
 
             try {
-                response = this.getOperationStatus(x_request_id, tenantId);
+                response = this.getOperationStatus(xRequestId, tenantId);
                 responseStatus = response.getHttpCode();
             } catch (Exception e) {
                 LOGGER.error(e);
                 throw new IngestExternalException(e);
             }
         }
-        if (nb_try < 0) {
+        if (nbTry <= 0) {
             throw new IngestExternalException("Timeout");
         }
-        return    response;
+        return xRequestId;
     }
 
     public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
