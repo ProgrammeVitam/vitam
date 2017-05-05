@@ -80,6 +80,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
         public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        public static String ERR_WRONG_FILING_PARENT_ID = "the id of the AU %s is not in filing schema";
 
         private String reason;
         
@@ -107,6 +108,16 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectDuplicatedEntry(String contractName){
             return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT_ENTRY , contractName));
+        }
+        
+        /**
+         * Reject if the id of the AU is not in filing schema
+         *
+         * @param filingParentId
+         * @return
+         */
+        public static GenericRejectionCause rejectWrongFilingParentId(String filingParentId){
+            return new GenericRejectionCause(String.format(ERR_WRONG_FILING_PARENT_ID , filingParentId));
         }
 
         /**

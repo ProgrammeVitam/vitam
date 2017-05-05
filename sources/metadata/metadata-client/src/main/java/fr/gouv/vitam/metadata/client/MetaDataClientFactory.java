@@ -98,6 +98,17 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Actually only one client implementation exists, so ignore client type value");
         }
-        return new MetaDataClientRest(this);
+        MetaDataClient client;
+        switch (getVitamClientType()) {
+            case MOCK:
+                client = new MetaDataClientMock();
+                break;
+            case PRODUCTION:
+                client = new MetaDataClientRest(this);
+                break;
+            default:
+                throw new IllegalArgumentException("metadata type unknown");
+        }
+        return client;
     }
 }

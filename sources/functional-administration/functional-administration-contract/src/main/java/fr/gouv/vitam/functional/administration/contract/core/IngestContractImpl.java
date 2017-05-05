@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -85,6 +86,11 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
@@ -94,6 +100,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private LogbookOperationsClient logBookclient;
+    
+    private static final String FILING_UNIT = "FILING_UNIT";
 
     /**
      * Constructor
@@ -125,7 +133,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem());
 
-        try {
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
 
             for (final IngestContractModel acm : contractModelList) {
 
@@ -147,8 +155,17 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                                 .getReason()));
                     continue;
                 }
-
-
+                
+                String filingParentId = acm.getFilingParentId();
+                if (filingParentId != null) {
+                    if (!checkIfAUInFilingSchema(metadataClient, filingParentId)){
+                        error
+                        .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                            GenericContractValidator.GenericRejectionCause.rejectWrongFilingParentId(filingParentId)
+                                .getReason()));
+                        continue;
+                    }
+                }
 
                 // mark the current contract as treated
                 contractNames.add(acm.getName());
@@ -525,15 +542,41 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
             }
         }
-        try {
+        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            if (queryDsl.get("FilingParentId")!=null){
+                String filingParentId = queryDsl.get("FilingParentId").asText();
+                if (filingParentId != null) {
+                    if (!checkIfAUInFilingSchema(metadataClient, filingParentId)){
+                        error
+                        .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                            GenericContractValidator.GenericRejectionCause.rejectWrongFilingParentId(filingParentId)
+                                .getReason()));
+                        return error;
+                    }
+                } 
+            }
+            
             mongoAccess.updateData(queryDsl, FunctionalAdminCollections.INGEST_CONTRACT);
-        } catch (ReferentialException e) {
+        } catch (ReferentialException | InvalidCreateOperationException e) {
             String err = new StringBuilder("Update access contracts error > ").append(e.getMessage()).toString();
             manager.logFatalError(err);
             return new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err);
         }
         manager.logUpdateSuccess(updateStatus);
         return new RequestResponseOK<IngestContractModel>();
+    }
+    
+    private boolean checkIfAUInFilingSchema(MetaDataClient metadataClient, String id) 
+        throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException{
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT));
+        JsonNode queryDsl = select.getFinalSelect();
+        // if the filing id is in the filing schema
+        if (metadataClient.selectUnitbyId(queryDsl, id).get("$hits").get("size").asInt() == 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 }

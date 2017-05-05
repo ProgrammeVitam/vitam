@@ -26,13 +26,33 @@
  */
 package fr.gouv.vitam.functional.administration.client.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Data Transfer Object Model of contract (DTO).
  */
 
 public class IngestContractModel extends AbstractContractModel {
 
+    @JsonProperty("FilingParentId")
+    private String filingParentId;
+
     public IngestContractModel() {
         super();
+    }
+    
+    
+    /**
+     * @return filingParentId
+     */
+    public String getFilingParentId() {
+        return filingParentId;
+    }
+
+    /**
+     * @param filingParentId
+     */
+    public void setFilingParentId(String filingParentId) {
+        this.filingParentId = filingParentId;
     }
 }

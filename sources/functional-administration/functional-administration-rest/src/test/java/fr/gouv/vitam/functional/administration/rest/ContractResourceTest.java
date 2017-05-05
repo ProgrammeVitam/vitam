@@ -93,6 +93,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 
 /**
@@ -123,10 +124,12 @@ public class ContractResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementApplication application;
+    
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     private static ElasticsearchTestConfiguration configEs = null;
 
     @ClassRule
@@ -225,10 +228,13 @@ public class ContractResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenAWellFormedAccessContractJsonThenReturnCeated() throws Exception {
+    public void givenAWellFormedIngestContractJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok_unique.json");
         JsonNode json = JsonHandler.getFromFile(fileContracts);
+        
+        MetaDataClientFactory.changeMode(null);
+        
         // transform to json
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
