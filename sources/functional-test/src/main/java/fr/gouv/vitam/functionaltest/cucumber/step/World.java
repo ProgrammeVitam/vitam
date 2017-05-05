@@ -221,7 +221,6 @@ public class World {
         ingestClient.close();
         storageClient.close();
         workspaceClient.close();
-        ihmRecetteClient.close();
     }
 
     /**
@@ -259,11 +258,13 @@ public class World {
         ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient();
         tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
             try {
-                ihmRecetteClient.deleteCollectionsOnTenant(i.toString());
+                ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
             } catch (VitamException e) {
             // FAIL WHEN unable purge ?
             //    Fail.fail("unnable purge data on tenant: " + i);
-
+            }
+            finally {
+                ihmRecetteClient.close();
             }
         });
     }

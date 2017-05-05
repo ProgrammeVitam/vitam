@@ -360,6 +360,38 @@ public class WebApplicationResourceDeleteTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testDeleteMasterdataAccessOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID idUnit = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/accessContract");
+            assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idUnit.getId()));
+        } catch (final Exception e) {
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteMasterdataIngestOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID idUnit = addData(FunctionalAdminCollections.INGEST_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/ingestContract");
+            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idUnit.getId()));
+        } catch (final Exception e) {
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testDeleteAllOk() {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);

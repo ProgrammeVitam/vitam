@@ -40,6 +40,8 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Ihm recette http client
@@ -57,39 +59,58 @@ public class IhmRecetteClient extends DefaultClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IhmRecetteClient.class);
 
-
-
-    private static final String DELETE = "delete";
+    private static final String[] COLLECTION_TO_EMPTY = {
+        "delete/logbook/operation",
+        "delete/masterdata/accessContract",
+        "delete/masterdata/ingestContract",
+        "delete/logbook/lifecycle/unit",
+        "delete/logbook/lifecycle/objectgroup",
+        "delete/metadata/objectgroup",
+        "delete/metadata/unit",
+        "delete/accessionregisters"
+    };
 
     IhmRecetteClient(IhmRecetteClientFactory factory) {
         super(factory);
     }
 
     /**
-     * Use only with Testing Tenant
+     * Use only with Testing
      * delete data on tenant tenantId
+     *
      * @param tenantId
      * @throws VitamException
      */
-    public void deleteCollectionsOnTenant(String tenantId)
-        throws VitamException {
+    public void deleteTnrCollectionsTenant(String tenantId) throws VitamException {
+
         ParametersChecker.checkParameter("check tenant Parameter", tenantId);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        List<String> list = Arrays.asList(COLLECTION_TO_EMPTY);
+        list.stream().forEach((l) -> {
+            try {
+                delete(headers, l);
+            } catch (VitamException e) {
+                LOGGER.debug("Error when deleting collections");
+            }
+        });
+
+    }
+
+    private void delete(MultivaluedHashMap<String, Object> headers, String url) throws VitamException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.DELETE, DELETE, headers, MediaType.APPLICATION_JSON_TYPE);
+            response = performRequest(HttpMethod.DELETE, url, headers, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR
                 .getStatusCode()) {
                 LOGGER.error("Deleting Error  : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
                 throw new VitamClientInternalException("Error when delleting collections");
             }
         } catch (Exception e) {
-            LOGGER.debug("Error when delleting collections");
+            LOGGER.debug("Error when deleting collections");
             throw new VitamException(e.getMessage());
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 }

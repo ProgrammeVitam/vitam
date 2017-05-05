@@ -31,9 +31,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 /**
  * Ihm recette client configuration
  */
-public class IhmRecetteClientConfiguration extends ClientConfigurationImpl
-
-{
+public class IhmRecetteClientConfiguration extends ClientConfigurationImpl {
 
     /**
      * Empty constructor used by YAMLFactory to instanciate the object
