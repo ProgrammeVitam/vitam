@@ -50,17 +50,17 @@ Collections Units et Objects uniquement
 - Une Query correspond à la formulation "*WHERE xxx*" dans le langage SQL, c'est à dire les critères de sélection.
 - La succession est exécutée avec la signification suivante :
 
-    - Depuis $roots, chercher les Units/Objects tel que Query[1], conduisant à obtenir une liste d'identifiants[1]
-    - Cette liste d'identifiants[1] devient le nouveau $roots, chercher les Units/Objects tel que Query[2], conduisant à obtenir une liste d'identifiants[2]
-    - Et ainsi de suite, la liste d'identifiants[n] de la dernière Query[n] est la liste de résultat définitive sur laquelle l'opération effective sera réalisée (SELECT, UPDATE, INSERT, DELETE) selon ce que l'API supporte (GET, PUT, POST, DELETE).
-    - Chaque query peut spécifier une profondeur où appliquer la recherche :
+  - Depuis $roots, chercher les Units/Objects tel que Query[1], conduisant à obtenir une liste d'identifiants[1]
+  - Cette liste d'identifiants[1] devient le nouveau $roots, chercher les Units/Objects tel que Query[2], conduisant à obtenir une liste d'identifiants[2]
+  - Et ainsi de suite, la liste d'identifiants[n] de la dernière Query[n] est la liste de résultat définitive sur laquelle l'opération effective sera réalisée (SELECT, UPDATE, INSERT, DELETE) selon ce que l'API supporte (GET, PUT, POST, DELETE).
+  - Chaque query peut spécifier une profondeur où appliquer la recherche :
 
-        - $depth = 0 : sur les items spécifiés (filtre sur les mêmes items, à savoir pour la première requête ceux de $roots, pour les suivantes, le résultat de la requête précédente, c'est à dire le nouveau $roots)
-        - $depth < 0 : sur les items parents (hors les items spécifiés dans le $roots courant)
-        - $depth > 0 : sur les items enfants (hors les items spécifiés dans le $roots courant)
-        - par défaut, $depth vaut 1 (enfants immédiats dans le $roots courant)
+    - $depth = 0 : sur les items spécifiés (filtre sur les mêmes items, à savoir pour la première requête ceux de $roots, pour les suivantes, le résultat de la requête précédente, c'est à dire le nouveau $roots)
+    - $depth < 0 : sur les items parents (hors les items spécifiés dans le $roots courant)
+    - $depth > 0 : sur les items enfants (hors les items spécifiés dans le $roots courant)
+    - par défaut, $depth vaut 1 (enfants immédiats dans le $roots courant)
 
-    - Le principe est résumé dans le graphe d'états suivant :
+  - Le principe est résumé dans le graphe d'états suivant :
 
 .. image:: images/multi-query-schema.png
 
@@ -155,49 +155,54 @@ Query
 
 Les commandes de la Query peuvent être :
 
-+-----------+------------+-----------+-------------+
-| Catégorie |	Opérateur |	Arguments |	Commentaire |
-+===========+============+===========+=============+
-| Accès direct | $path |	identifiants |	Accès direct à un noeud |
-+-----------+------------+-----------+-------------|
-| Booléens |	$and, $or, $not |	opérateurs |	Combinaison logique d'opérateurs |
-+-----------+------------+-----------+-------------+
-| Comparaison |	$eq, $ne, $lt, $lte, $gt, $gte |	Champ et valeur |	Comparaison de la valeur d'un champ et la valeur passée en argument |
-+             +------------+-----------+
-|       | $range |	Champ, $lt, $lte, $gt, $gte et valeurs |	Comparaison de la valeur d'un champ avec l'intervalle passé en argument |
-+-----------+------------+-----------+-------------+
-| Existence |	$exists, $missing, $isNull |	Champ |	Existence d'un champ |
-+-----------+------------+-----------+-------------+
-| Tableau |	$in, $nin |	Champ et valeurs |	Présence de valeurs dans un tableau |
-+         +------------+-----------+
-|      | $size |	Champ et taille |	Taille d'un tableau |
-+         +------------+-----------+
-|      | [n] **UNSUPPORTED** |	Position (n >= 0) |	Élément d'un tableau |
-+-----------+------------+-----------+-------------+
-| Textuel |	$term, $wildcard |	Champ, mot clef |	Comparaison de champs mots-clefs à valeur exacte |
-+         +------------+-----------+
-|       | $match, $matchPhrase, $matchPhrasePrefix |	Champ, phrase, $max_expansions (optionnel) | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
-+         +------------+-----------+
-|       | $regex |	Champ, Expression régulière	| Recherche via une expression régulière |
-+         +------------+-----------+
-|       | $search |	Champ, valeur	| Recherche du type moteur de recherche |
-+         +------------+-----------+
-|       | $flt, $mlt |	Champ, valeur |	Recherche « More Like This », soit par valeurs approchées |
-+-----------+------------+-----------+-------------+
-| Géomatique |	$geometry, $box, $polygon, $center |	Positions |	Définition d'une position géographique |
-+         +------------+-----------+
-| **UNSUPPORTED** | $geoWithin, $geoIntersects, $near |	Une forme |	Recherche par rapport à une forme géométrique |
-+-----------+------------+-----------+------------+
+Une query est exprimée avec des opérateurs (inspirés de MongoDB / Elastic)
+
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Catégorie                  | Opérateurs                               | Arguments                                  | Commentaire                                                                  |
++============================+==========================================+============================================+==============================================================================+
+| Accès direct               | $path                                    | identifiants                               | Accès direct à un noeud                                                      |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Booléens                   | $and, $or, $not                          | opérateurs                                 | Combinaison logique d'opérateurs                                             |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Comparaison                | $eq, $ne, $lt, $lte, $gt, $gte           | Champ et valeur                            | Comparaison de la valeur d'un champ et la valeur passée en argument          |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | $range                                   | Champ, $lt, $lte, $gt, $gte et valeurs     | Comparaison de la valeur d'un champ avec l'intervalle passé en argument      |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Existence                  | $exists, $missing, $isNull               | Champ                                      | Existence d'un champ                                                         |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Tableau                    | $in, $nin                                | Champ et valeurs                           | Présence de valeurs dans un tableau                                          |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | $size                                    | Champ et taille                            | Comparaison (égale) de la taille d'un tableau                                |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | [n] **UNSUPPORTED**                      | Position (n >= 0)                          | Élément d'un tableau                                                         |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Textuel                    | $term, $wildcard                         | Champ, mot clef                            | Comparaison de champs mots-clefs à valeur exacte                             |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | $match, $matchPhrase, $matchPhrasePrefix | Champ, phrase, $max_expansions (optionnel) | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
++                            +------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | $regex                                   | Champ, Expression régulière                | Recherche via une expression régulière                                       |
++                            +------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | $search                                  | Champ, valeur                              | Recherche du type moteur de recherche                                        |
++                            +------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+|                            | $flt, $mlt                               | Champ, valeur                              | Recherche « More Like This », soit par valeurs approchées                    |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| Géomatique                 | $geometry, $box, $polygon, $center       | Positions                                  | Définition d'une position géographique                                       |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
+| **UNSUPPORTED**            | $geoWithin, $geoIntersects, $near        | Une forme                                  | Recherche par rapport à une forme géométrique                                |
++----------------------------+------------------------------------------+--------------------------------------------+------------------------------------------------------------------------------+
 
 Chaque Query dispose éventuellement d'arguments additionnels pour gérer l'arborescence :
 
-+-----------+------------+-----------+-------------+
-| Catégorie |	Opérateur |	Arguments |	Commentaire |
-+===========+============+===========+=============+
-| Profondeur | $depth, $exactdepth |	+ ou - n |	Permet de spécifier si la query effectue une recherche vers les racines (-) ou vers les feuilles (+) et de quelle profondeur (n), avec une profondeur relative ($depth) ou exacte ($exactdepth). $depth = 0 signifie que l'on ne change pas de profondeur (mêmes objets concernés), $depth > 0 indique une recherche vers les fils uniquement, $depth < 0 indique une recherche vers les pères uniquements (cf. schéma sur les multiples queries) |
-+-----------+------------+-----------+-------------+
-| Collection |	$source |	units / objects |	Permet dans une succession de Query de changer de collection. Attention, la dernière Query doit respecter la collection associée à la requête |
-+-----------+------------+-----------+-------------+
++------------+---------------------+-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Catégorie  | Opérateur           | Arguments       | Commentaire                                                                                                                                                                                     |
++============+=====================+=================+=================================================================================================================================================================================================+
+| Profondeur | $depth, $exactdepth | \+ ou - n       | Permet de spécifier si la query effectue une recherche vers les racines (-) ou vers les feuilles (+) et de quelle profondeur (n), avec une profondeur relative ($depth) ou exacte ($exactdepth) |
+|            |                     |                 | - $depth = 0 signifie que l'on ne change pas de profondeur (mêmes objets concernés)                                                                                                             |
+|            |                     |                 | - $depth > 0 indique une recherche vers les fils uniquement                                                                                                                                     |
+|            |                     |                 | - $depth < 0 indique une recherche vers les pères uniquements (cf. schéma sur les multiples queries)                                                                                            |
++------------+---------------------+-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Collection | $source             | units / objects | Permet dans une succession de Query de changer de collection. Attention, la dernière Query doit respecter la collection associée à la requête                                                   |
++------------+---------------------+-----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 Actions
@@ -205,44 +210,51 @@ Actions
 
 Dans la commande PUT (Update) :
 
-+-----------+------------+-----------+
-| Opérateur |	Arguments |	Commentaire |
-+===========+============+===========+
-| $set      | nom de champ, valeur | change la valeur du champ |
-| $unset    | liste de noms de champ | enlève le champ |
-| $min, $max | nom de champ, valeur | change la valeur du champ à la valeur minimale/maximale si elle est supérieure/inférieure à la valeur précisée|
-| $inc      | nom de champ, valeur | incrémente/décremente la valeur du champ selon la valeur indiquée |
-| $rename   | nom de champ, nouveau nom | change le nom du champ |
-| $push, $pull | nom de champ,  liste de valeurs | ajoute en fin ou retire les éléments de la liste du champ (qui est un tableau) |
-| $add | nom de champ,  liste de valeurs | ajoute les éléments de la liste du champ (qui est un "set" avec unicité des valeurs) |
-| $pop | nom de champ,  -1 ou 1 | retire le premier (-1) ou le dernier (1) de la liste du champ |
-+-----------+------------+-----------+
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| Opérateur    | Arguments                       | Commentaire                                                                                                    |
++==============+=================================+================================================================================================================+
+| $set         | nom de champ, valeur            | change la valeur du champ                                                                                      |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $unset       | liste de noms de champ          | enlève le champ                                                                                                |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $min, $max   | nom de champ, valeur            | change la valeur du champ à la valeur minimale/maximale si elle est supérieure/inférieure à la valeur précisée |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $inc         | nom de champ, valeur            | incrémente/décremente la valeur du champ selon la valeur indiquée                                              |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $rename      | nom de champ, nouveau nom       | change le nom du champ                                                                                         |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $push, $pull | nom de champ,  liste de valeurs | ajoute en fin ou retire les éléments de la liste du champ (qui est un tableau)                                 |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $add         | nom de champ,  liste de valeurs | ajoute les éléments de la liste du champ (qui est un "set" avec unicité des valeurs)                           |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
+| $pop         | nom de champ,  -1 ou 1          | retire le premier (-1) ou le dernier (1) de la liste du champ                                                  |
++--------------+---------------------------------+----------------------------------------------------------------------------------------------------------------+
 
 FacetQuery **UNSUPPORTED**
 --------------------------
 
 Lors d'une commande GET (Select), les possibilités envisagées sont :
 
-+-----------+------------+-----------+
-| Opérateur |	Arguments |	Commentaire |
-+===========+============+===========+
-+-----------+------------+-----------+
-| $cardinality | nom de champ | indique le nombre de valeurs différentes pour ce champ |
-+-----------+------------+-----------+
-| $avg, $max, $min, $stats | nom de champ numérique | indique la valeur moyenne, maximale, minimale ou l'ensemble des statistiques du champ |
-+-----------+------------+-----------+
-| $percentile | nom de champ numérique, valeurs optionnelles | indique les percentiles de répartition des valeurs du champ, éventuellement selon la répartition des valeurs indiquées |
-+-----------+------------+-----------+
-| $date_histogram   | nom de champ, intervalle | indique la répartition selon les dates selon un intervalle définie sous la forme "nX" où n est un nombre et X une lettre parmi y (year), M (month), d(day), h(hour), m(minute), s(seconde) ou encore de la forme "year", "quarter", "month", "week", "day", "hour", "minute" ou "second" |
-+-----------+------------+-----------+
-| $date_range | nom de champ,  format, ranges | indique la répartition selon les dates selon un intervalle défini "ranges" : [ { "to": "now-10M/M" }, { "from": "now-10M/M" } ] et "format" : "MM-yyyy" |
-+-----------+------------+-----------+
-| $range | nom de champ,  intervalles | indique la répartition selon des valeurs numériques par la forme "ranges" : [ { "to": 50 }, { "from": 50, "to": 100 }, { "from": 100 } ] |
-+-----------+------------+-----------+
-| $terms | nom de champ | indique la répartition selon des valeurs textuelles du champ |
-+-----------+------------+-----------+
-| $significant_terms | nom de champ principal, nom de champ secondaire | indique la répartition selon des valeurs textuelles du champ principal et affiche pour chaque les termes significatifs pour le second champ |
-+-----------+------------+-----------+
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Opérateur pour les facet | Arguments                                       | Commentaire                                                                                                                                                                                        |
++==========================+=================================================+====================================================================================================================================================================================================+
+| $cardinality             | nom de champ                                    | indique le nombre de valeurs différentes pour ce champ                                                                                                                                             |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $avg, $max, $min, $stats | nom de champ numérique                          | indique la valeur moyenne, maximale, minimale ou l'ensemble des statistiques du champ                                                                                                              |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $percentile              | nom de champ numérique, valeurs optionnelles    | indique les percentiles de répartition des valeurs du champ, éventuellement selon la répartition des valeurs indiquées                                                                             |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $date_histogram          | nom de champ, intervalle                        | indique la répartition selon les dates selon un intervalle définie sous la forme "nX"                                                                                                              |
+|                          |                                                 | où n est un nombre et X une lettre parmi y (year), M (month), d(day), h(hour), m(minute), s(seconde) ou encore de la forme "year", "quarter", "month", "week", "day", "hour", "minute" ou "second" |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $date_range              | nom de champ,  format, ranges                   | indique la répartition selon les dates selon un intervalle défini "ranges" : [ { "to": "now-10M/M" }, { "from": "now-10M/M" } ] et "format" : "MM-yyyy"                                            |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $range                   | nom de champ,  intervalles                      | indique la répartition selon des valeurs numériques par la forme "ranges" : [ { "to": 50 }, { "from": 50, "to": 100 }, { "from": 100 } ]                                                           |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $terms                   | nom de champ                                    | indique la répartition selon des valeurs textuelles du champ                                                                                                                                       |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| $significant_terms       | nom de champ principal, nom de champ secondaire | indique la répartition selon des valeurs textuelles du champ principal et affiche pour chaque les termes significatifs pour le second champ                                                        |
++--------------------------+-------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 Exemples
@@ -251,7 +263,7 @@ Exemples
 GET
 ***
 
-  - La query sélectionne les Units qui vont être retournées.
+- La query sélectionne les Units qui vont être retournées.
   - Le contenu est :
 
     - Pour **Units/Objects** :
@@ -269,22 +281,23 @@ GET
       - **$projection: { fieldname: 0, fieldname: 1 }**
       - **facetQuery**  optionnel
 
-::
-   {
-    "$roots": [ "id0" ],
-    "$query": [
-      { "$match": { "title": "titre" }, "$depth": 4 }
-    ],
-    "$filter": { "$limit": 100 },
-    "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#sector": 1, "#parents": 1, "#object": 1 } },
-    "$facetQuery": { "$terms": "#object.#type" }
-   }
+Exemple::
+
+    {
+      "$roots": [ "id0" ],
+      "$query": [
+        { "$match": { "title": "titre" }, "$depth": 4 }
+      ],
+      "$filter": { "$limit": 100 },
+      "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#sector": 1, "#parents": 1, "#object": 1 } },
+      "$facetQuery": { "$terms": "#object.#type" }
+    }
 
 
 POST
 ****
 
-  - La query sélectionne le ou les Units parents de celle qui va être créée.
+- La query sélectionne le ou les Units parents de celle qui va être créée.
   - Le contenu est :
 
     - Pour **Units/Objects** :
@@ -300,8 +313,8 @@ POST
       - **$filter**
       - **$data**
 
-
 ::
+
    {
     "$roots": [ "id0" ],
     "$query": [
@@ -314,7 +327,7 @@ POST
 PUT
 ***
 
-  - La query sélectionne les Units sur lesquelles l'update va être réalisé.
+- La query sélectionne les Units sur lesquelles l'update va être réalisé.
   - Le contenu est :
     - Pour **Units/Objects** :
       - **$roots**
@@ -327,6 +340,7 @@ PUT
       - **$action**
 
 ::
+
    {
     "$roots": [ "id0" ],
     "$query": [
@@ -407,6 +421,7 @@ Réponse pour Units
 ******************
 
 ::
+
    {
     "$hits": {
       "total": 3,
@@ -454,6 +469,7 @@ Réponse pour Objects
 ********************
 
 ::
+
    {
     "$hits": {
       "total": 3,
@@ -509,6 +525,7 @@ Exemple de retour en erreur
 ***************************
 
 ::
+
    {
     "httpCode": 404,
     "code" : "codeVitam1",

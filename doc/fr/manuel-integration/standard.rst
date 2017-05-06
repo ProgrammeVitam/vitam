@@ -7,6 +7,7 @@ Modèle REST
 ===========
 
 Les URL sont découpées de la façon suivantes :
+
 - protocole: https
 - FQDN : exemple api.vitam.fr avec éventuellement un port spécifique
 - Base : <nom du service>/<version>
@@ -16,6 +17,7 @@ Les URL sont découpées de la façon suivantes :
 Exemple: https://api.vitam.fr/access/v1/units/id
 
 Les méthodes utilisées :
+
 - GET: pour l'équivalent de "Select" (possibilité d'utiliser POST avec X-Http-Method-Override: GET dans le Header)
 - POST: pour l'équivalent de "Insert"
 - PUT: pour l'équivalent de "Update"
@@ -24,6 +26,7 @@ Les méthodes utilisées :
 - OPTIONS: pour l'équivalent de "Lister les commandes disponibles"
 
 Les codes retours HTTP standards utilisés sont :
+
 - 200: Sur des opérations de GET, PUT, DELETE, HEAD, OPTIONS
 - 201: Sur l'opération POST (sans X-Http-Method-Override)
 - 202: Pour les réponses asynchrones
@@ -31,6 +34,7 @@ Les codes retours HTTP standards utilisés sont :
 - 206: Pour des réponses partielles ou des réponses en mode Warning (OK mais avec une alerte)
 
 Les codes d'erreurs HTTP standards utilisés sont :
+
 - 400: Requête mal formulée
 - 401: Requête non autorisée
 - 404: Resource non trouvée
@@ -52,12 +56,16 @@ Mode Pooling
 Dans le mode pooling, le client est responsable de requêter de manière répétée l'URI de vérification du statut, et ce de manière raisonnée (pas trop souvent).
 
 Le principe est le suivant :
+
 - Création de l'opération à effectuer
+
   - Exemple: POST /ingests et retourne 202 + X-Request-Id noté id
 - Pooling sur l'opération demandée
+
   - Exemple: GET /operations/id et retourne 202 + X-Request-Id tant que non terminé
-  - Intervalle recommandé : pas moins que la minute
+    - Intervalle recommandé : pas moins que la minute
 - Fin de pooling sur l'opération demandée
+
   - Exemple : GET /operations/id et retourne 200 + le résultat
 
 Mode Callback **UNSUPPORTED**
@@ -66,11 +74,16 @@ Mode Callback **UNSUPPORTED**
 Dans le mode Callback, le client soumet une création d'opération et simultanément propose une URI de Callback sur laquelle Vitam rappellera le client pour lui indiquer que cette opération est terminée.
 
 Le principe est le suivant :
+
 - Création de l'opération à effectuer avec l'URI de Callback
+
   - Exemple: POST /ingests + dans le Header X-Callback: https://uri?id={id}&status={status} et retourne 202 + #id + Header X-Callback confirmé
+
 - A la fin de l'opération, Vitam rappelle le client avec l'URI de Callback
+
   - Exemple: GET /uri?id=idop&status=OK
 - Le client rappelle alors Vitam pour obtenir l'information
+
   - Exemple: GET /ingests/#id et retourne 200 + le résultat
 
 Perspectives d'évolution
@@ -82,10 +95,15 @@ Authentification
 ================
 
 L'authentification dans Vitam authentifie l'application Front-Office qui se connecte à ses API. Cette authentification s'effectue en trois temps :
+
 - Un premier composant authentifie la nouvelle connexion
+
   - La première implémentation sera basée sur une authentification du certificat client dans la connexion TLS
+
 - Le premier composant passe au service REST la variable Header "X-Identity" contenant l'identifiant de l'application Front-Office.
+
   - Comme cette identification est actuellement interne, ce Header est actuellement non généré.
+
 - Le service REST, sur la base de cette authentification, s'assure que l'application Front-Office ait bien l'habilitation nécessaire pour effectuer la requête exprimée.
 
 
@@ -110,6 +128,7 @@ Méthode standard
 ----------------
 
 De manière standard, il est possible de paginer les résultats en utilisant le DSL avec les arguments suivants dans la requête : (pour GET uniquement)
+
 - **$limit** : le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
 - **$per_page** : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100) (**UNSUPPORTED**)
 - **$offset** : la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
@@ -121,6 +140,7 @@ Méthode optimisée **UNSUPPORTED**
 
 Afin d'optimiser, il est proposé d'ajouter de manière optionnelle dans le Header lors de la première requête le champs suivant : **X-Cursor: true**
 Si la requête nécessite une pagination (plus d'une page de réponses possible), le SAE répondra alors la première page (dans le Body) et dans le Header :
+
 - **X-Cursor-Id**: id (identifiant du curseur)
 - **X-Cursor-Timeout**: datetime (date limite de validité du curseur)
 
