@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -52,10 +53,11 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId)
+    RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
@@ -67,10 +69,11 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId)
+    RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * updateUnitbyId UPDATE /units/{id}
@@ -82,10 +85,11 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId)
+    RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException;
+        AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException;
 
     /**
      * getObjectAsInputStream
@@ -99,10 +103,11 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId)
+    Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectObjectById
@@ -114,10 +119,11 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
+    RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectObjectById
@@ -131,10 +137,12 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version, Integer tenantId)
+    Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, 
+        int version, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectOperation
@@ -144,8 +152,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation 
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectOperation(JsonNode select, Integer tenantId) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectOperation(JsonNode select, Integer tenantId, String contractName) 
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectOperationbyId
@@ -155,8 +165,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectOperationbyId(String processId, Integer tenantId) throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectOperationbyId(String processId, Integer tenantId, String contractName) 
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectUnitLifeCycleById
@@ -166,9 +178,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectUnitLifeCycle
@@ -178,9 +191,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectUnitLifeCycle(JsonNode queryDsl, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * selectObjectGroupLifeCycleById
@@ -190,9 +204,10 @@ public interface AccessExternalClient extends BasicClient {
      * @return Json representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId)
-        throws LogbookClientException, InvalidParseOperationException;
+    RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId, String contractName)
+        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
 
 
@@ -205,10 +220,11 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId)
+    RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * Get the accession register details matching the given query
@@ -220,22 +236,24 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId)
+    RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException;
+        AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * @param query
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
      */
-    RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId)
-        throws AccessExternalClientServerException, InvalidParseOperationException;
+    RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
 
-    Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
-        throws AccessExternalClientServerException;
+    Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException, AccessUnauthorizedException;
 }
 
 

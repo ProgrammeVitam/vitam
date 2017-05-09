@@ -61,7 +61,7 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService){
+                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService, accessContractResource){
 
     var self = this;
 
@@ -93,6 +93,22 @@ angular.module('archive.unit')
         .targetEvent($event)
       );
     };
+
+    if (authVitamService.cookieValue("X-Access-Contract-Id")) {
+      ihmDemoFactory.getAccessContracts({ContractName : decodeURIComponent(authVitamService.cookieValue("X-Access-Contract-Id")) || 'all'}).then(function (repsonse) {
+        if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
+          repsonse.data['$results'].forEach(function(contract) {
+            if (contract.Name == authVitamService.cookieValue("X-Access-Contract-Id")) {
+              $scope.userContract = contract;
+            }
+          });
+          console.log($scope.userContract);
+        }
+      }, function (error) {
+        console.log('Error while get tenant. Set default list : ', error);
+      });
+    }
+
     // **************************************************************************** //
 
     // *************** Set Edit mode ********************** //
@@ -259,21 +275,24 @@ angular.module('archive.unit')
               // Archive unit found
               self.archiveFields = transferToIhmResult.transferUnit(data.$results)[0];
               //get archive object groups informations to be displayed in the table
-              ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-                .then(function (response) {
-                  var dataOG = response.data;
-                  if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                    dataOG.versions == null || dataOG.versions == undefined){
-                    // ObjectGroups Not Found
+              if (!!self.archiveFields._og) {
+                ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+                  .then(function (response) {
+                    var dataOG = response.data;
+                    if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                      dataOG.versions == null || dataOG.versions == undefined){
+                      // ObjectGroups Not Found
+                      console.log("errorMsg");
+                    } else {
+                      $scope.archiveObjectGroups = dataOG;
+                      $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                      self.displayTechnicalMetadata();
+                    }
+                  },function () {
                     console.log("errorMsg");
-                  } else {
-                    $scope.archiveObjectGroups = dataOG;
-                    $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                    self.displayTechnicalMetadata();
-                  }
-                },function () {
-                  console.log("errorMsg");
-                });
+                  });
+              }
+
               self.archiveArray=[];
               self.displayArchiveDetails();
 
@@ -307,24 +326,24 @@ angular.module('archive.unit')
           // Archive unit found
           var results = transferToIhmResult.transferUnit(data.$results);
           self.archiveFields = results[0];
-
-          //get archive object groups informations to be displayed in the table
-          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-            .then(function (response) {
-              var dataOG = response.data;
-              if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                dataOG.versions == null || dataOG.versions == undefined){
-                // ObjectGroups Not Found
+          if (!!self.archiveFields._og) {
+            //get archive object groups informations to be displayed in the table
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+              .then(function (response) {
+                var dataOG = response.data;
+                if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                  dataOG.versions == null || dataOG.versions == undefined) {
+                  // ObjectGroups Not Found
+                  console.log("errorMsg");
+                } else {
+                  $scope.archiveObjectGroups = dataOG;
+                  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                  self.displayTechnicalMetadata();
+                }
+              }, function () {
                 console.log("errorMsg");
-              } else {
-                $scope.archiveObjectGroups = dataOG;
-                $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                self.displayTechnicalMetadata();
-              }
-            },function () {
-              console.log("errorMsg");
-            });
-
+              });
+          }
           // Get Archive Tree
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
             .then(function (response) {
@@ -404,7 +423,10 @@ angular.module('archive.unit')
 
     };
     $scope.getSourcePath = function(rule) {
-      return "#!/archiveunit/" + rule.path[0][0];
+      if (rule.path) {
+        return "#!/archiveunit/" + rule.path[0][0];
+      }
+      return '';
     };
     $scope.checkUpOrDown = function(rule){
         if ($scope.displayRule[rule.ruleId]) {
@@ -553,23 +575,24 @@ angular.module('archive.unit')
             fieldSet.isModificationAllowed = false;
             self.mainFields[fieldSet.fieldName] =  fieldSet;
           }
-          //get archive object groups informations to be displayed in the table
-          ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._og)
-            .then(function (response) {
-              var dataOG = response.data;
-              if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
-                dataOG.versions == null || dataOG.versions == undefined){
-                // ObjectGroups Not Found
+          if (!!self.archiveFields._og) {
+            //get archive object groups informations to be displayed in the table
+            ihmDemoFactory.getArchiveObjectGroup(self.archiveFields._id)
+              .then(function (response) {
+                var dataOG = response.data;
+                if (dataOG.nbObjects == null || dataOG.nbObjects == undefined ||
+                  dataOG.versions == null || dataOG.versions == undefined) {
+                  // ObjectGroups Not Found
+                  console.log("errorMsg");
+                } else {
+                  $scope.archiveObjectGroups = dataOG;
+                  $scope.archiveObjectGroupsOgId = self.archiveFields._og;
+                  self.displayTechnicalMetadata();
+                }
+              }, function () {
                 console.log("errorMsg");
-              } else {
-                $scope.archiveObjectGroups = dataOG;
-                $scope.archiveObjectGroupsOgId = self.archiveFields._og;
-                self.displayTechnicalMetadata();
-              }
-            },function () {
-              console.log("errorMsg");
-            });
-
+              });
+          }
 
           // Get Archive Tree
           ihmDemoFactory.getArchiveTree(self.archiveFields._id, self.archiveFields._us)
@@ -795,5 +818,11 @@ angular.module('archive.unit')
     // ********************************************************************************* //
 
     self.hasPermission = authVitamService.hasPermission;
+    $scope.getClassVersion = function(version) {
+      if ($scope.userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0) {
+        return 'grayColor';
+      }
+      return '';
+    }
 
   });

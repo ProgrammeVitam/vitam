@@ -32,7 +32,6 @@ import java.util.Set;
 import javax.ws.rs.core.MultivaluedMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContratIdException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -87,7 +86,7 @@ public class AccessContratIdHeaderHelper {
             JsonNode queryDsl = getQueryDsl(headerAccessContratId);            
             RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
             
-            if (response == null || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
+            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
                 throw new MissingAccessContratIdException(headerAccessContratId);
             }
             

@@ -85,7 +85,7 @@ public class AccessResourceTest {
 
 
     @Test
-    public final void test() throws AccessInternalClientException, InvalidParseOperationException {
+    public final void test() throws Exception {
 
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();

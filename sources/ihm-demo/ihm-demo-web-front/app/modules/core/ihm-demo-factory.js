@@ -100,7 +100,8 @@ angular.module('core')
       '?usage=' + encodeURIComponent(options.usage) +
       '&version=' + encodeURIComponent(options.version) +
       '&filename=' + encodeURIComponent(options.filename) +
-      '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0);
+      '&tenantId=' + (authVitamService.cookieValue(authVitamService.COOKIE_TENANT_ID) || 0) +
+      '&contractId=' + (authVitamService.cookieValue('X-Access-Contract-Id') || '');
   };
 
   // LifeCycle details
@@ -159,9 +160,9 @@ angular.module('core')
       RestangularConfigurer.setFullResponse(true);
       function addMandatoryHeader(element, operation, route, url, headers, params, httpConfig) {
           headers['X-Tenant-Id'] = $cookies.get('tenantId');
-          //if ($cookies.get('X-Access-Contrat-Id')) {
-          //  headers['X-Access-Contrat-Id'] = $cookies.get('X-Access-Contrat-Id')
-          //}
+          if ($cookies.get('X-Access-Contract-Id')) {
+            headers['X-Access-Contract-Id'] = decodeURIComponent($cookies.get('X-Access-Contract-Id'));
+          }
           return {
             element: element,
             headers: headers,
@@ -205,6 +206,7 @@ angular.module('core')
     var lastUrl = '';
 
     var user = {};
+    var currentContract = {};
 
     if (localStorage.getItem('user')) {
         user = JSON.parse(localStorage.getItem('user'));
@@ -234,10 +236,19 @@ angular.module('core')
       return $cookies.get(key);
     }
 
+    function getContract() {
+      return currentContract;
+    }
+
+    function setContract(contract) {
+      return currentContract = angular.copy(contract);
+    }
+
     function logout() {
       deleteCookie('userCredentials');
       deleteCookie('role');
       deleteCookie(COOKIE_TENANT_ID);
+      deleteCookie('X-Access-Contract-Id');
       localStorage.removeItem('user');
       return ihmDemoCLient.getClient('').one('logout').post();
     }
@@ -254,6 +265,8 @@ angular.module('core')
       cookieValue: cookieValue,
       deleteCookie: deleteCookie,
       createCookie: createCookie,
+      setContract : setContract,
+      getContract : getContract,
       isConnect: isConnect,
       logout: logout,
       login: login,

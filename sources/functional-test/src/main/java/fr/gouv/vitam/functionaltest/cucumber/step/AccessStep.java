@@ -148,7 +148,7 @@ public class AccessStep {
             and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId()))
                 .setDepthLimit(20));
         RequestResponse requestResponse =
-            world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId());
+            world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             if (requestResponseOK.getHits().getTotal() == 0) {
@@ -230,7 +230,8 @@ public class AccessStep {
     @When("^je recherche les unités archivistiques$")
     public void search_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON, world.getTenantId());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON, 
+            world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -252,7 +253,7 @@ public class AccessStep {
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().updateUnitbyId(queryJSON, unitId, world.getTenantId());
+            world.getAccessClient().updateUnitbyId(queryJSON, unitId, world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -271,7 +272,7 @@ public class AccessStep {
     public void search_logbook_operation() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().selectOperation(queryJSON, world.getTenantId());
+            world.getAccessClient().selectOperation(queryJSON, world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -291,7 +292,8 @@ public class AccessStep {
     public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().getAccessionRegisterDetail(originatingAgency, queryJSON, world.getTenantId());
+            world.getAccessClient().getAccessionRegisterDetail(originatingAgency, queryJSON, 
+                world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();

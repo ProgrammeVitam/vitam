@@ -1015,7 +1015,7 @@ public class IngestInternalIT {
             SelectMultiQuery select2 = new SelectMultiQuery();
             response = accessClient.selectObjectbyId(select2.getFinalSelect(), unitId);
             assertTrue(response.isOk());
-            
+
             // Get logbook 
             SelectMultiQuery select3 = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq("evType", "Process_SIP_unitary"));

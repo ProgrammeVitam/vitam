@@ -24,95 +24,98 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 class AccessExternalClientMock extends AbstractMockClient implements AccessExternalClient {
 
     @Override
-    public RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId) throws InvalidParseOperationException {
+    public RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId, String contractName) 
+        throws InvalidParseOperationException {
         return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId) throws InvalidParseOperationException {
+    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId, String contractName) 
+        throws InvalidParseOperationException {
         return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId) throws InvalidParseOperationException {
+    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId, String contractName) 
+        throws InvalidParseOperationException {
         return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
             "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
     }
 
     @Override
-    public Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId)
+    public Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId, String contractName)
         throws InvalidParseOperationException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId)
+    public RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
         throws InvalidParseOperationException {
         return ClientMockResultHelper.getArchiveUnitResult();
     }
 
     @Override public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
-        Integer tenantId) throws InvalidParseOperationException, AccessExternalClientServerException,
+        Integer tenantId, String contractName) throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
     @Override
-    public RequestResponse selectOperation(JsonNode select, Integer tenantId)
+    public RequestResponse selectOperation(JsonNode select, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbooksRequestResponse();
     }
 
     @Override
-    public RequestResponse selectOperationbyId(String processId, Integer tenantId)
+    public RequestResponse selectOperationbyId(String processId, Integer tenantId, String contractName)
         throws InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookRequestResponse();
     }
 
     @Override
-    public RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId)
+    public RequestResponse selectUnitLifeCycleById(String idUnit, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookRequestResponse();
     }
 
     @Override
-    public RequestResponse selectUnitLifeCycle(JsonNode query, Integer tenantId)
+    public RequestResponse selectUnitLifeCycle(JsonNode query, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookRequestResponse();
     }
 
     @Override
-    public RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId)
+    public RequestResponse selectObjectGroupLifeCycleById(String idObject, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookRequestResponse();
     }
 
     @Override
-    public RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId)
+    public RequestResponse getAccessionRegisterSummary(JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         return ClientMockResultHelper.getAccessionRegisterSummary();
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId)
+    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         return ClientMockResultHelper.getAccessionRegisterDetail();
     }
 
     @Override
-    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId)
+    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
         throws AccessExternalClientServerException, InvalidParseOperationException {
         return ClientMockResultHelper.checkOperationTraceability();
     }
 
     @Override
-    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId)
+    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
         throws AccessExternalClientServerException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);

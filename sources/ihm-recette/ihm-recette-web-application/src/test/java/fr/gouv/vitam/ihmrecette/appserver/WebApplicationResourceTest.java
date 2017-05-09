@@ -125,7 +125,7 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testGetLogbookStatisticsWithSuccess() throws LogbookClientException, InvalidParseOperationException {
+    public void testGetLogbookStatisticsWithSuccess() throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -135,7 +135,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
-        throws LogbookClientException, InvalidParseOperationException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -145,7 +145,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
-        throws LogbookClientException, InvalidParseOperationException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID))
             .thenThrow(InvalidParseOperationException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())

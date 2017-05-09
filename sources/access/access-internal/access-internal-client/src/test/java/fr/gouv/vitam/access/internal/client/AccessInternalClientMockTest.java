@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -69,8 +70,7 @@ public class AccessInternalClientMockTest {
 
     @Test
     public void givenMockExists_whenSelectUnit_ThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
@@ -83,8 +83,7 @@ public class AccessInternalClientMockTest {
 
     @Test
     public void givenMockExists_whenSelectUnitById_ThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
@@ -97,8 +96,7 @@ public class AccessInternalClientMockTest {
 
     @Test
     public void givenMockExists_whenUpdateUnitById_ThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException, NoWritingPermissionException {
+        throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =
@@ -111,8 +109,7 @@ public class AccessInternalClientMockTest {
 
     @Test
     public void givenMockExistsWhenSelectObjectByIdThenReturnOK()
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        InvalidParseOperationException {
+        throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
         final AccessInternalClient client =

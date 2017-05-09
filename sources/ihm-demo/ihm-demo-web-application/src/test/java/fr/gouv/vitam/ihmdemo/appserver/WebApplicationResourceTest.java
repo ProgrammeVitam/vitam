@@ -303,7 +303,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testLogbookResultRemainingExceptions()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
 
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
@@ -318,7 +318,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetLogbookResultByIdLogbookClientException()
-        throws InvalidParseOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID))
             .thenThrow(LogbookClientException.class);
 
@@ -329,7 +329,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetLogbookResultByIdLogbookRemainingException()
-        throws InvalidParseOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID))
             .thenThrow(Exception.class);
 
@@ -363,9 +363,7 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultAccessExternalClientServerException()
-        throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveSearchResultAccessExternalClientServerException() throws Exception {
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
@@ -384,8 +382,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveSearchResultAccessExternalClientNotFoundException()
-        throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws Exception {
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
@@ -404,8 +401,7 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveSearchResultRemainingExceptions() throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveSearchResultRemainingExceptions() throws Exception {
         final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
@@ -446,8 +442,7 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsAccessExternalClientServerException() throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveUnitDetailsAccessExternalClientServerException() throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
@@ -468,8 +463,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsAccessExternalClientNotFoundException()
-        throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
@@ -489,8 +483,7 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsRemainingExceptions() throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testArchiveUnitDetailsRemainingExceptions() throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
@@ -808,8 +801,7 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testNotFoundGetArchiveObjectGroup() throws AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void testNotFoundGetArchiveObjectGroup() throws Exception {
 
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject()))
             .thenThrow(new AccessExternalClientNotFoundException(""));
@@ -867,7 +859,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject()))
+                anyInt(), anyString(), anyObject(), anyString()))
             .thenThrow(new AccessExternalClientNotFoundException(""));
 
         given()
@@ -888,7 +880,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject()))
+                anyInt(), anyString(), anyObject(), anyString()))
             .thenReturn(true);
 
         given()
@@ -904,7 +896,7 @@ public class WebApplicationResourceTest {
     public void testBadRequestGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject()))
+                anyInt(), anyString(), anyObject(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
         given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
             .when()
@@ -916,7 +908,7 @@ public class WebApplicationResourceTest {
     public void testAccessServerExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject()))
+                anyInt(), anyString(), anyObject(), anyString()))
             .thenThrow(new AccessExternalClientServerException(""));
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -932,7 +924,7 @@ public class WebApplicationResourceTest {
     public void testAccessUnknownExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject()))
+                anyInt(), anyString(), anyObject(), anyString()))
             .thenThrow(new NullPointerException());
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -989,8 +981,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testUnitTreeWithAccessExternalClientServerException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
             .getFromString(FAKE_STRING_RETURN));
@@ -1007,8 +998,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testUnitTreeWithAccessExternalClientNotFoundException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(JsonHandler
             .getFromString(FAKE_STRING_RETURN));
@@ -1195,7 +1185,7 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testGetUnitLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
+    public void testGetUnitLifeCycleByIdOk() throws Exception {
         final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
 
         PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
@@ -1206,7 +1196,7 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testGetObjectGroupLifeCycleByIdOk() throws InvalidParseOperationException, LogbookClientException {
+    public void testGetObjectGroupLifeCycleByIdOk() throws Exception {
         final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
 
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
@@ -1219,7 +1209,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
             .thenThrow(InvalidParseOperationException.class);
 
@@ -1230,7 +1220,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
             .thenThrow(LogbookClientException.class);
 
@@ -1241,7 +1231,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdWithInternalServerErrorWhenUnknownException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID))
             .thenThrow(NullPointerException.class);
 
@@ -1253,7 +1243,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetObjectGroupLifeCycleByIdWithBadRequestWhenInvalidParseOperationException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
             .thenThrow(InvalidParseOperationException.class);
 
@@ -1264,7 +1254,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetObjectGroupLifeCycleByIdWithNotFoundResponseWhenLogbookClientException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
             .thenThrow(LogbookClientException.class);
 
@@ -1275,7 +1265,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testGetOjectGroupLifeCycleByIdWithInternalServerErrorWhenUnknownException()
-        throws InvalidParseOperationException, InvalidCreateOperationException, LogbookClientException {
+        throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID))
             .thenThrow(NullPointerException.class);
 
@@ -1360,7 +1350,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testCheckTraceabilityOperation()
-        throws AccessExternalClientServerException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws Exception {
         // Mock AccessExternal response
         PowerMockito
             .when(
@@ -1376,11 +1366,11 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testDownloadTraceabilityOperation()
-        throws AccessExternalClientServerException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws Exception {
 
         // Mock AccessExternal response
         AccessExternalClient accessExternalClient = Mockito.mock(AccessExternalClient.class);
-        Mockito.when(accessExternalClient.downloadTraceabilityOperationFile(anyString(), (Integer) Mockito.anyInt()))
+        Mockito.when(accessExternalClient.downloadTraceabilityOperationFile(anyString(), (Integer) Mockito.anyInt(), Mockito.anyString()))
             .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()

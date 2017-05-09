@@ -82,7 +82,7 @@ public abstract class RequestResponse<T> {
 
     @JsonIgnore
     public int getStatus() {
-        return this.httpCode;
+        return httpCode;
     }
 
     /**
