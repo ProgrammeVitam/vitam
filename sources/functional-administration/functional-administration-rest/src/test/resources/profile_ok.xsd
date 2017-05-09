@@ -1,0 +1,1514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+    attributeFormDefault="unqualified" version="1.0">
+
+    <!-- mon profil de matrice V2 -->
+    <xsd:element name="Identifier" type="xsd:string"/>
+
+    <!-- definition de ArchiveTransfer et de ses enfants directs : 
+        Comment, Date, MessageIdentifier, ArchivalAgreement, CodeListVersions, DataObjectPackage, ArchivalAgency, TransferringAgency -->
+    <xsd:element name="ArchiveTransfer">
+        <xsd:complexType>
+            <xsd:sequence>
+                <!-- ArchiveTransfer / Comment -->
+                <xsd:element name="Comment" minOccurs="1" fixed="Matrice cadastrale numérique"><!-- valeur textuelle fixe obligatoire -->
+                    <xsd:complexType>
+                        <xsd:simpleContent>
+                            <xsd:extension base="xsd:string"/>
+                        </xsd:simpleContent>
+                    </xsd:complexType>
+                </xsd:element>
+                <!-- ArchiveTransfer / Date -->
+                <xsd:element name="Date" minOccurs="1" ><!-- valeur date obligatoire -->
+                    <xsd:complexType>
+                        <xsd:simpleContent>
+                            <xsd:extension base="xsd:dateTime"/>
+                        </xsd:simpleContent>
+                    </xsd:complexType>
+                </xsd:element>
+                <!-- ArchiveTransfer / MessageIdentifier -->
+                <xsd:element name="MessageIdentifier" minOccurs="1"><!-- valeur obligatoire -->
+                    <xsd:complexType>
+                        <xsd:simpleContent>
+                            <xsd:extension base="xsd:token">
+                                <xsd:attribute name="schemeDataURI" type="xsd:anyURI" use="optional"/>
+                                <xsd:attribute name="schemeID" type="xsd:token" use="optional"/>
+                                <xsd:attribute name="schemeAgencyName" type="xsd:string"
+                                    use="optional"/>
+                                <xsd:attribute name="schemeAgencyID" type="xsd:token" use="optional"/>
+                                <xsd:attribute name="schemeName" type="xsd:string" use="optional"/>
+                                <xsd:attribute name="schemeVersionID" type="xsd:token"
+                                    use="optional"/>
+                                <xsd:attribute name="schemeURI" type="xsd:anyURI" use="optional"/>
+                            </xsd:extension>
+                        </xsd:simpleContent>
+                    </xsd:complexType>
+                </xsd:element>
+                <!-- ArchiveTransfer / ArchivalAgreement -->
+                <xsd:element name="ArchivalAgreement" fixed="ArchivalAgreement0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                    <xsd:complexType>
+                        <xsd:simpleContent>
+                            <xsd:extension base="xsd:string"/>
+                        </xsd:simpleContent>
+                    </xsd:complexType>
+                </xsd:element>
+                <!-- ArchiveTransfer / CodeListVersions -->
+                <xsd:element name="CodeListVersions" minOccurs="1">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <!-- ArchiveTransfer / CodeListVersions / ReplyCodeListVersion -->
+                            <xsd:element name="ReplyCodeListVersion" fixed="ReplyCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire - A RAJOUTER : RENDRE UNIQUE -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / MessageDigestAlgorithmCodeListVersion -->
+                            <xsd:element name="MessageDigestAlgorithmCodeListVersion" fixed="MessageDigestAlgorithmCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire - A RAJOUTER : RENDRE UNIQUE -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / MimeTypeCodeListVersion -->
+                            <xsd:element name="MimeTypeCodeListVersion"
+                                fixed="MimeTypeCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / EncodingCodeListVersion -->
+                            <xsd:element name="EncodingCodeListVersion"
+                                fixed="EncodingCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / FileFormatCodeListVersion -->
+                            <xsd:element name="FileFormatCodeListVersion"
+                                fixed="FileFormatCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / CompressionAlgorithmCodeListVersion -->
+                            <xsd:element name="CompressionAlgorithmCodeListVersion"
+                                fixed="CompressionAlgorithmCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / DataObjectVersionCodeListVersion -->
+                            <xsd:element name="DataObjectVersionCodeListVersion"
+                                fixed="DataObjectVersionCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / StorageRuleCodeListVersion -->
+                            <xsd:element name="StorageRuleCodeListVersion"
+                                fixed="StorageRuleCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / AppraisalRuleCodeListVersion -->
+                            <xsd:element name="AppraisalRuleCodeListVersion"
+                                fixed="AppraisalRuleCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / AccessRuleCodeListVersion -->
+                            <xsd:element name="AccessRuleCodeListVersion"
+                                fixed="AccessRuleCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / DisseminationRuleCodeListVersion -->
+                            <xsd:element name="DisseminationRuleCodeListVersion"
+                                fixed="DisseminationRuleCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / ReuseRuleCodeListVersion -->
+                            <xsd:element name="ReuseRuleCodeListVersion"
+                                fixed="ReuseRuleCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / ClassificationRuleCodeListVersion -->
+                            <xsd:element name="ClassificationRuleCodeListVersion"
+                                fixed="ClassificationRuleCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / AuthorizationReasonCodeListVersion -->
+                            <xsd:element name="AuthorizationReasonCodeListVersion"
+                                fixed="AuthorizationReasonCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <!-- ArchiveTransfer / CodeListVersions / RelationshipCodeListVersion -->
+                            <xsd:element name="RelationshipCodeListVersion"
+                                fixed="RelationshipCodeListVersion0" minOccurs="1"><!-- valeur textuelle fixe obligatoire -->
+                                <xsd:complexType>
+                                    <xsd:simpleContent>
+                                        <xsd:extension base="xsd:token">
+                                            <xsd:attribute name="listName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listSchemeURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listID" type="xsd:token"
+                                                use="optional"/>
+                                            <xsd:attribute name="listAgencyName" type="xsd:string"
+                                                use="optional"/>
+                                            <xsd:attribute name="listURI" type="xsd:anyURI"
+                                                use="optional"/>
+                                            <xsd:attribute name="listVersionID" type="xsd:token"
+                                                use="optional"/>
+                                        </xsd:extension>
+                                    </xsd:simpleContent>
+                                </xsd:complexType>
+                            </xsd:element>
+                        </xsd:sequence>
+                        <xsd:attribute name="id" type="xsd:ID" use="optional"/>
+                    </xsd:complexType>
+                </xsd:element>
+                
+                <!-- ArchiveTransfer / DataObjectPackage -->
+                <xsd:element name="DataObjectPackage">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <!-- ArchiveTransfer / DataObjectPackage / BinaryDataObject 1 -->
+                            <xsd:element name="BinaryDataObject">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        
+                                        <!-- DataObjectGroupReferenceId -->
+                                        <xsd:element name="DataObjectGroupReferenceId" minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:string"/><!-- erreur possible dans la declaration de cet element -->
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- DataObjectGroupId -->
+                                        <xsd:element name="DataObjectGroupId" minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:string"/>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- DataObjectVersion -->
+                                        <xsd:element name="DataObjectVersion" minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:string"/>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <xsd:choice>
+                                            
+                                            <!-- Uri -->
+                                            <xsd:element name="Uri" minOccurs="0">
+                                                <xsd:complexType>
+                                                    <xsd:simpleContent>
+                                                        <xsd:extension base="xsd:anyURI"/>
+                                                    </xsd:simpleContent>
+                                                </xsd:complexType>
+                                            </xsd:element>
+                                            
+                                            <!-- Attachement -->
+                                            <xsd:element name="Attachement" minOccurs="0">
+                                                <xsd:complexType><xsd:simpleContent>
+                                                    <xsd:extension base="xsd:token">
+                                                        <xsd:attribute name="uri" type="xsd:anyURI"
+                                                            use="optional"/>
+                                                        <xsd:attribute name="filename" type="xsd:string"
+                                                            use="optional"/>
+                                                    </xsd:extension>
+                                                </xsd:simpleContent>
+                                                </xsd:complexType>
+                                                
+                                            </xsd:element>
+                                            
+                                        </xsd:choice>
+                                        
+                                        <!-- message digest -->
+                                        <xsd:element name="MessageDigest" minOccurs="1">
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:base64Binary">
+                                                        <xsd:attribute name="algorithm" type="xsd:token"
+                                                            use="required"/>
+                                                    </xsd:extension>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- size -->
+                                        <xsd:element name="Size" minOccurs="1">
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:positiveInteger"/>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- Compressed -->
+                                        <xsd:element minOccurs="0" name="Compressed" fixed="xsd:boolean"> <!-- a revoir, car je ne suis pas sure qu'il faut le declarer ainsi-->
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:token">
+                                                        <xsd:attribute name="algorithm" type="xsd:token"
+                                                            use="optional"/>
+                                                        <xsd:attribute name="uncompressedSize" type="xsd:positiveInteger"
+                                                            use="optional"/>
+                                                    </xsd:extension>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- format identification -->
+                                        <xsd:element name="FormatIdentification" minOccurs="1">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <!-- format identification / format litteral -->
+                                                    <xsd:element minOccurs="1" name="FormatLitteral"
+                                                        fixed="Open Document Texte">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:string"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    
+                                                    <!-- format identification / mime type -->
+                                                    <xsd:element name="MimeType">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:token"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    
+                                                    <!-- format identification / format id -->
+                                                    <xsd:element minOccurs="1" name="FormatId"
+                                                        fixed="fmt/135">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:token"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- file info -->
+                                        <xsd:element name="FileInfo">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <!-- FileInfo / file name -->
+                                                    <xsd:element name="Filename" minOccurs="1"
+                                                        fixed="BAT_a_jour.odt">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:string"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    <!-- FileInfo / creating application name -->
+                                                    <xsd:element minOccurs="1"
+                                                        name="CreatingApplicationName" fixed="Majic 3">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:string"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    <!-- FileInfo / CreatingApplicationVersion -->
+                                                    <xsd:element minOccurs="0"
+                                                        name="CreatingApplicationVersion">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:string"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    <!-- FileInfo / DateCreatedByApplication -->
+                                                    <xsd:element minOccurs="0"
+                                                        name="DateCreatedByApplication">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:dateTime"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    <!-- FileInfo / creating os -->
+                                                    <xsd:element minOccurs="0"
+                                                        name="CreatingOs">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:string"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    <!-- FileInfo / CreatingOsVersion -->
+                                                    <xsd:element minOccurs="0"
+                                                        name="CreatingOsVersion">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:string"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                    <!-- FileInfo / LastModified -->
+                                                    <xsd:element minOccurs="0" name="LastModified">
+                                                        <xsd:complexType>
+                                                            <xsd:simpleContent>
+                                                                <xsd:extension base="xsd:dateTime"/>
+                                                            </xsd:simpleContent>
+                                                        </xsd:complexType>
+                                                    </xsd:element>
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- Metadata -->
+                                        <xsd:element minOccurs="0" name="Metadata">
+                                           <xsd:complexType>
+                                               <xsd:choice>
+                                                   <xsd:element minOccurs="0" name="Audio">
+                                                       <xsd:complexType>
+                                                           <xsd:simpleContent>
+                                                               <xsd:extension base="xsd:string"/>
+                                                           </xsd:simpleContent>
+                                                       </xsd:complexType>
+                                                   </xsd:element>
+                                                   <xsd:element minOccurs="0" name="Document">
+                                                       <xsd:complexType>
+                                                           <xsd:simpleContent>
+                                                               <xsd:extension base="xsd:string"/>
+                                                           </xsd:simpleContent>
+                                                       </xsd:complexType>
+                                                   </xsd:element>
+                                                   <xsd:element minOccurs="0" name="Image">
+                                                       <xsd:complexType>
+                                                           <xsd:simpleContent>
+                                                               <xsd:extension base="xsd:string"/>
+                                                           </xsd:simpleContent>
+                                                       </xsd:complexType>
+                                                   </xsd:element>
+                                                   <xsd:element minOccurs="0" name="Text">
+                                                       <xsd:complexType>
+                                                           <xsd:simpleContent>
+                                                               <xsd:extension base="xsd:string"/>
+                                                           </xsd:simpleContent>
+                                                       </xsd:complexType>
+                                                   </xsd:element>
+                                                   <xsd:element minOccurs="0" name="Video">
+                                                       <xsd:complexType>
+                                                           <xsd:simpleContent>
+                                                               <xsd:extension base="xsd:string"/>
+                                                           </xsd:simpleContent>
+                                                       </xsd:complexType>
+                                                   </xsd:element>
+                                               </xsd:choice>
+                                           </xsd:complexType>
+                                           
+                                       </xsd:element>
+                                            
+                                        <!-- OtherMetadata -->
+                                        <xsd:element minOccurs="0" name="OtherMetadata"><!-- attributs a ajouter -->
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:string"/>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                        
+                                        <!-- Relationship -->
+                                        <xsd:element minOccurs="0" name="Relationship">
+                                            <xsd:complexType>
+                                                <xsd:simpleContent>
+                                                    <xsd:extension base="xsd:token">
+                                                        <xsd:attribute name="target" type="xsd:string"
+                                                            use="optional"/>
+                                                        <xsd:attribute name="type" type="xsd:string"
+                                                            use="optional"/>
+                                                    </xsd:extension>
+                                                </xsd:simpleContent>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                       
+                                    </xsd:sequence>
+                                    
+                                    <xsd:attribute name="id" type="xsd:ID" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element><!-- fin de binary -->
+                            
+                            <!-- ArchiveTransfer / DataObjectPackage / DescriptiveMetadata -->
+                            
+                            <xsd:element name="DescriptiveMetadata">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <!-- ArchiveTransfer / DataObjectPackage / DescriptiveMetadata / ArchiveUnit -->
+                                        <xsd:element name="ArchiveUnit">
+                                            <xsd:complexType>
+                                                <xsd:sequence>
+                                                    <!-- 4 sous-elements :
+                                                    ArchiveUnitRefId, ArchiveUnitProfile, Content, Management
+                                                    -->
+                                                    
+                                                    <!-- ArchiveUnit / ArchiveUnitRefId -->
+                                                    <!-- ArchiveUnit / ArchiveUnitProfile -->
+                                                    <!-- ArchiveUnit / Management -->
+                                                    
+                                                    <!-- ArchiveUnit / Content -->
+                                                    <xsd:element maxOccurs="unbounded" name="Content">
+                                                        <xsd:complexType>
+                                                            <xsd:sequence>
+                                                                
+                                                                <!-- ArchiveUnit / Content / DescriptionLevel -->
+                                                                <xsd:element name="DescriptionLevel"
+                                                                    fixed="RecordGrp">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:token"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Title -->
+                                                                <xsd:element name="Title"
+                                                                    fixed="Versement de la matrice cadastrale numérique">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / FilePlanPosition -->
+                                                                <xsd:element minOccurs="0" name="FilePlanPosition">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / SystemId -->
+                                                                <xsd:element minOccurs="0" name="SystemId">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:token"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / OriginatingSystemId -->
+                                                                <xsd:element minOccurs="0"
+                                                                    name="OriginatingSystemId">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:token"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / ArchivalAgencyArchiveUnitIdentifier -->
+                                                                <xsd:element minOccurs="0"
+                                                                    name="ArchivalAgencyArchiveUnitIdentifier">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Description -->
+                                                                <xsd:element name="Description"
+                                                                    fixed="Matrice cadastrale des communes du département.">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / CustodialHistory -->
+                                                                <xsd:element minOccurs="0" name="CustodialHistory">
+                                                                    <xsd:complexType>
+                                                                        <xsd:sequence>
+                                                                            <xsd:element name="CustodialHistoryItem"
+                                                                                fixed="Les données ont été récupérées par le SIAF à la DGFIP en 2010, retravaillées et documentées par le SIAF pour versement aux Archives départementales avec les applications de conversion et de visualisation."
+                                                                                > </xsd:element>
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Type -->
+                                                                <xsd:element name="Type" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / DocumentType -->
+                                                                <xsd:element name="DocumentType" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Language -->
+                                                                <xsd:element name="Language" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:language"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / DescriptionLanguage -->
+                                                                <xsd:element name="DescriptionLanguage"
+                                                                    minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Status -->
+                                                                <xsd:element name="Status" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Version -->
+                                                                <xsd:element name="Version" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Tag -->
+                                                                <xsd:element name="Tag" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Keyword -->
+                                                                <xsd:element name="Keyword">
+                                                                    <xsd:complexType>
+                                                                        <xsd:sequence>
+                                                                            <xsd:element name="KeywordContent"
+                                                                                fixed="matrice cadastrale">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                            <xsd:element name="KeywordReference" minOccurs="0">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                            <xsd:element name="KeywordType" fixed="subject">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:token">
+                                                                                            <xsd:attribute fixed="edition 2009"
+                                                                                                name="listVersionID"/>
+                                                                                        </xsd:extension>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                        </xsd:sequence>
+                                                                        <xsd:attribute name="id" type="xsd:ID"
+                                                                            use="optional"/>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / Coverage et enfants -->
+                                                                <xsd:element name="Coverage" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:sequence>
+                                                                            <xsd:element name="Spatial" minOccurs="0">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                            <xsd:element name="Temporal" minOccurs="0">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                            <xsd:element name="Juridictional" minOccurs="0">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                        </xsd:sequence>
+                                                                        <xsd:attribute name="id" type="xsd:ID"
+                                                                            use="optional"/>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / OriginatingAgency -->
+                                                                <xsd:element name="OriginatingAgency">
+                                                                    <xsd:complexType>
+                                                                        <xsd:sequence>
+                                                                            <xsd:element name="Identifier"
+                                                                                fixed="FRAN_NP_009734">
+                                                                                <xsd:simpleType>
+                                                                                    <xsd:restriction base="xsd:string">
+                                                                                    </xsd:restriction>
+                                                                                </xsd:simpleType>
+                                                                            </xsd:element>
+                                                                            <xsd:element
+                                                                                name="OrganizationDescriptiveMetadata"
+                                                                                minOccurs="0">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / SubmissionAgency -->
+                                                                <xsd:element name="SubmissionAgency" minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:sequence>
+                                                                            <xsd:element name="Identifier" minOccurs="0">
+                                                                                <xsd:simpleType>
+                                                                                    <xsd:restriction base="xsd:string">
+                                                                                    </xsd:restriction>
+                                                                                </xsd:simpleType>
+                                                                            </xsd:element>
+                                                                            <xsd:element
+                                                                                name="OrganizationDescriptiveMetadata"
+                                                                                minOccurs="0">
+                                                                                <xsd:complexType>
+                                                                                    <xsd:simpleContent>
+                                                                                        <xsd:extension base="xsd:string"/>
+                                                                                    </xsd:simpleContent>
+                                                                                </xsd:complexType>
+                                                                            </xsd:element>
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / AuthorizedAgent -->
+                                                                <xsd:element minOccurs="0" name="AuthorizedAgent">
+                                                                    <xsd:complexType>
+                                                                        
+                                                                        <xsd:sequence>
+                                                                           <xsd:choice>
+                                                                               <xsd:sequence>
+                                                                                   <xsd:element
+                                                                                       name="Corpname"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                               </xsd:sequence>
+                                                                               <xsd:sequence>
+                                                                                   <xsd:element name="FirstName"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="BirthName"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="GivenName"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="Gender"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="BirthDate"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:date"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="BirthPlace"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="DeathDate"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:date"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="DeathPlace"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                                   <xsd:element name="Nationality"
+                                                                                       minOccurs="0">
+                                                                                       <xsd:complexType>
+                                                                                           <xsd:simpleContent>
+                                                                                               <xsd:extension base="xsd:string"/>
+                                                                                           </xsd:simpleContent>
+                                                                                       </xsd:complexType>
+                                                                                   </xsd:element>
+                                                                               </xsd:sequence>
+                                                                           </xsd:choice>
+                                                                            <xsd:element ref="Identifier" minOccurs="0"></xsd:element>
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element><!-- fin d'authorized agent -->
+                                                                
+                                                                <!-- ArchiveUnit / Content / Writer -->
+                                                                <xsd:element minOccurs="0" name="Writer">
+                                                                    <xsd:complexType>
+                                                                        
+                                                                        <xsd:sequence>
+                                                                            <xsd:choice>
+                                                                                <xsd:sequence>
+                                                                                    <xsd:element
+                                                                                        name="Corpname"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                </xsd:sequence>
+                                                                                <xsd:sequence>
+                                                                                    <xsd:element name="FirstName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="GivenName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="Gender"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthDate"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:date"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthPlace"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="DeathDate"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:date"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="DeathPlace"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="Nationality"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                </xsd:sequence>
+                                                                            </xsd:choice>
+                                                                            <xsd:element ref="Identifier" minOccurs="0"></xsd:element>
+                                                                            <!-- business et ses 4 sous-elements ??????? -->
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element><!-- fin de writer -->
+                                                                
+                                                                <!-- ArchiveUnit / Content / Adressee -->
+                                                                <xsd:element minOccurs="0" name="Adressee">
+                                                                    <xsd:complexType>
+                                                                        
+                                                                        <xsd:sequence>
+                                                                            <xsd:choice>
+                                                                                <xsd:sequence>
+                                                                                    <xsd:element
+                                                                                        name="Corpname"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                </xsd:sequence>
+                                                                                <xsd:sequence>
+                                                                                    <xsd:element name="FirstName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="GivenName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="Gender"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthDate"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:date"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthPlace"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="DeathDate"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:date"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="DeathPlace"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="Nationality"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                </xsd:sequence>
+                                                                            </xsd:choice>
+                                                                            <xsd:element ref="Identifier" minOccurs="0"></xsd:element>
+                                                                            
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element><!-- fin de Adressee -->
+                                                                
+                                                                <!-- ArchiveUnit / Content / Recipient -->
+                                                                <xsd:element minOccurs="0" name="Recipient">
+                                                                    <xsd:complexType>
+                                                                        
+                                                                        <xsd:sequence>
+                                                                            <xsd:choice>
+                                                                                <xsd:sequence>
+                                                                                    <xsd:element
+                                                                                        name="Corpname"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                </xsd:sequence>
+                                                                                <xsd:sequence>
+                                                                                    <xsd:element name="FirstName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="GivenName"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="Gender"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthDate"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:date"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="BirthPlace"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="DeathDate"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:date"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="DeathPlace"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                    <xsd:element name="Nationality"
+                                                                                        minOccurs="0">
+                                                                                        <xsd:complexType>
+                                                                                            <xsd:simpleContent>
+                                                                                                <xsd:extension base="xsd:string"/>
+                                                                                            </xsd:simpleContent>
+                                                                                        </xsd:complexType>
+                                                                                    </xsd:element>
+                                                                                </xsd:sequence>
+                                                                            </xsd:choice>
+                                                                            <xsd:element ref="Identifier" minOccurs="0"></xsd:element>
+                                                                            
+                                                                        </xsd:sequence>
+                                                                    </xsd:complexType>
+                                                                </xsd:element><!-- fin de Recipient -->
+                                                                
+                                                                <!-- ArchiveUnit / Content / Source -->
+                                                                <xsd:element
+                                                                    name="Source"
+                                                                    minOccurs="0">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:string"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                <!-- ArchiveUnit / Content / RelatedObjectReference -->
+                                                                <xsd:element minOccurs="0" name="RelatedObjectReference"/>
+                                                                
+                                                                <!-- ArchiveUnit / Content / CreatedDate -->
+                                                                <xsd:element minOccurs="0" name="CreatedDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / TransactedDate -->
+                                                                <xsd:element minOccurs="0" name="TransactedDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / AcquiredDate -->
+                                                                <xsd:element minOccurs="0" name="AcquiredDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / SentDate -->
+                                                                <xsd:element minOccurs="0" name="SentDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / ReceivedDate -->
+                                                                <xsd:element minOccurs="0" name="ReceivedDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / RegisteredDate -->
+                                                                <xsd:element minOccurs="0" name="RegisteredDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / StartDate -->
+                                                                <xsd:element minOccurs="0" name="StartDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                <!-- ArchiveUnit / Content / EndDate -->
+                                                                <xsd:element minOccurs="0" name="EndDate">
+                                                                    <xsd:complexType>
+                                                                        <xsd:simpleContent>
+                                                                            <xsd:extension base="xsd:dateTime"/>
+                                                                        </xsd:simpleContent>
+                                                                    </xsd:complexType>
+                                                                </xsd:element>
+                                                                
+                                                                
+                                                            </xsd:sequence>
+                                                        </xsd:complexType>
+                                                    </xsd:element><!-- fin de content -->
+                                                    
+                                                    
+                                                    
+                                                    
+                                                </xsd:sequence>
+                                            </xsd:complexType>
+                                        </xsd:element><!-- fin de archive unit -->
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element><!-- fin de descriptive metadata -->
+                            
+                            
+                            
+                            
+                            <!-- ArchiveTransfer / DataObjectPackage / ManagementMetadata -->
+                            
+                            
+                            
+                        </xsd:sequence>
+                        
+                        <xsd:attribute name="id" type="xsd:ID" use="required"/><!-- DataObjetPackage necessite un ID -->
+                    </xsd:complexType>
+                  
+                </xsd:element><!-- fin DataObjectPackage -->
+                
+                <!-- ArchiveTransfer / ArchivalAgency -->
+                <xsd:element name="ArchivalAgency">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="Identifier" fixed="Identifier4">
+                                <xsd:simpleType>
+                                    <xsd:restriction base="xsd:string">
+                                        <!-- enumeration avec valeur ? -->
+                                    </xsd:restriction>
+                                </xsd:simpleType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                
+                <!-- ArchiveTransfer / TransferringAgency -->
+                <xsd:element name="TransferringAgency">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="Identifier" fixed="Identifier5">
+                                <xsd:simpleType>
+                                    <xsd:restriction base="xsd:string">
+                                        <!-- enumeration avec valeur ? -->
+                                    </xsd:restriction>
+                                </xsd:simpleType>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                
+                
+            </xsd:sequence>
+        </xsd:complexType>
+        
+    </xsd:element>
+
+
+
+</xsd:schema>

@@ -4,6 +4,7 @@ import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.mockito.Matchers.anyObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -11,6 +12,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -66,6 +68,7 @@ public class AdminManagementExternalResourceImplTest {
     private static final String TENANT_ID = "0";
 
     private static final String UNEXISTING_TENANT_ID = "25";
+    private static final String PROFILE_URI = "/profiles";
 
 
     private InputStream stream;
@@ -274,7 +277,7 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RULES_URI + DOCUMENT_ID)
+            .when().get(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -294,7 +297,7 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(RULES_URI)
+            .when().get(RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -314,27 +317,27 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -354,40 +357,40 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(WRONG_URI + DOCUMENT_ID)
+            .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(WRONG_URI + DOCUMENT_ID)
+            .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(WRONG_URI + DOCUMENT_ID)
+            .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(WRONG_URI)
+            .when().get(WRONG_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(WRONG_URI)
+            .when().get(WRONG_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
-            .when().post(WRONG_URI)
+            .when().get(WRONG_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
@@ -408,14 +411,14 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
@@ -426,14 +429,14 @@ public class AdminManagementExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI + DOCUMENT_ID)
+            .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(FORMAT_URI)
+            .when().get(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }
@@ -481,7 +484,7 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).findIngestContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .when().post(INGEST_CONTRACTS_URI)
+                .when().get(INGEST_CONTRACTS_URI)
         .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -529,7 +532,63 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findAccessContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(ACCESS_CONTRACTS_URI)
+            .when().get(ACCESS_CONTRACTS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+
+
+    @Test
+    public void testCreateProfileWithInvalidFileBadRequest() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(Status.BAD_REQUEST).when(adminCLient).createProfiles(anyObject());
+
+        File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
+        JsonNode json = JsonHandler.getFromFile(fileProfiles);
+
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
+
+    }
+
+
+    @Test
+    public void testcreateValidProfileReturnCreated() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(Status.CREATED).when(adminCLient).createProfiles(anyObject());
+
+        File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
+        JsonNode json = JsonHandler.getFromFile(fileProfiles);
+
+
+
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.CREATED.getStatusCode()).contentType("application/json");;
+    }
+
+    @Test
+    public void testfindProfiles() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findProfiles(anyObject());
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
 

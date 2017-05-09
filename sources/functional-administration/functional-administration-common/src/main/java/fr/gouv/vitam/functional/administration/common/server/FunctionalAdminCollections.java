@@ -70,7 +70,13 @@ public enum FunctionalAdminCollections {
      * Access contract collection
      *
      */
-    ACCESS_CONTRACT(AccessContract.class);
+    ACCESS_CONTRACT(AccessContract.class),
+
+    /**
+     * Profile collection
+     */
+    PROFILE(Profile.class)
+    ;
 
     private VitamCollection vitamCollection;
 

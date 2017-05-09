@@ -30,7 +30,6 @@ package fr.gouv.vitam.ihmdemo.appserver;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -70,6 +69,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessExecutionStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -92,7 +92,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.subject.Subject;
@@ -104,6 +103,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -118,7 +118,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -1720,7 +1719,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Access contracts
      *
      * @param headers HTTP Headers
-     * @param input the format file CSV
+     * @param unitId the id of unit
      * @return Response
      */
     @POST
@@ -1884,7 +1883,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Access contracts
      *
      * @param headers HTTP Headers
-     * @param input the format file CSV
+     * @param unitId the id of unit
      * @return Response
      */
     @POST
@@ -1938,6 +1937,182 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Create profiles metadata
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/profiles")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("profiles:create")
+    public Response createProfilesMetadata(@Context HttpHeaders headers, InputStream input)
+        throws IOException {
+        // want a creation
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.createProfiles(input, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Upload profile xsd or rng
+     *
+     * @param headers HTTP Headers
+     * @param input the format file CSV
+     * @return Response
+     */
+    @PUT
+    @Path("/profiles/{id}")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("profiles:create")
+    public Response importProfileFile(@Context HttpHeaders headers, InputStream input, @PathParam("id") String id) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.importProfileFile(id, input, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GET
+    @Path("/profiles/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("profiles:read")
+    public void downloadProfileFile(@PathParam("id") String profileMetadataId,
+        @Suspended final AsyncResponse asyncResponse) {
+
+        ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse));
+    }
+
+    private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse) {
+
+        AsyncInputStreamHelper helper;
+
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
+
+            final Response response = client.downloadProfileFile(profileMetadataId);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final Response.ResponseBuilder responseBuilder =
+                Response.status(Status.OK)
+                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                    .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        }  catch (final AccessExternalClientException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                .toString()).build());
+        }
+    }
+
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+    }
+
+    /**
+     * Query to get profiles
+     *
+     * @param headers HTTP Headers
+     * @param select the query to find access contracts
+     * @return Response
+     */
+    @POST
+    @Path("/profiles")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("profiles:read")
+    public Response findProfiles(@Context HttpHeaders headers, String select) {
+        try {
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse response =
+                    adminClient.findDocuments(AdminCollections.PROFILE, query, getTenantId(headers));
+                if (response != null && response instanceof RequestResponseOK) {
+                    // Récupération des hits?
+                    ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Query to Access contracts by id
+     *
+     * @param headers HTTP Headers
+     * @param id of the requested access contract
+     * @return Response
+     */
+    @GET
+    @Path("/profiles/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("profiles:read")
+    public Response findProfileByID(@Context HttpHeaders headers, @PathParam("id") String id) {
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response =
+                adminClient.findDocumentById(AdminCollections.PROFILE, id, getTenantId(headers));
+            if (response != null && response instanceof RequestResponseOK) {
+                // Récupération des hits?
+                ((RequestResponseOK) response).setHits(((RequestResponseOK) response).getResults().size(), 0, 1000);
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
     private Integer getTenantId(HttpHeaders headers) {
         // TODO Error check ? Throw error or put tenant Id 0
         Integer tenantId = 0;
@@ -1981,7 +2156,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Starts a TRACEABILITY check process
-     * 
+     *
      * @param headers default headers received from Front side (TenantId, user ...)
      * @param operationCriteria a DSLQuery to find the TRACEABILITY operation to verify
      * @return TRACEABILITY check process : the logbookOperation created during this process
@@ -2042,7 +2217,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Download the Traceability Operation file
-     * 
+     *
      * @param headers request headers
      * @param operationId the TRACEABILITY operation identifier
      * @return a response containing the file name stream

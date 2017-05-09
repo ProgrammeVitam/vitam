@@ -40,6 +40,19 @@ public class AdminExternalClientMockTest {
             Status.CREATED);
 
         assertEquals(
+            client.createProfiles(new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
+            Status.CREATED.getStatusCode());
+
+        assertEquals(
+            client.importProfileFile("fakeId", new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
+            Status.CREATED.getStatusCode());
+
+        assertEquals(
+            client.downloadProfileFile("fakeId").getStatus(),
+            Status.OK.getStatusCode());
+
+
+        assertEquals(
             client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
             ClientMockResultHelper.getFormatList().toString());
 
