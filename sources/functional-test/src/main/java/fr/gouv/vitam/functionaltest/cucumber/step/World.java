@@ -249,7 +249,7 @@ public class World {
             tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
 
         } catch (IOException e) {
-            Fail.fail("Unable to load configuration File: ");
+            Fail.fail("Unable to load configuration File: \n"+e.getMessage());
         }
 
     }
