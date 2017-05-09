@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -141,27 +142,32 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
-            throws IOException, ContentAddressableStorageException {
+    public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
+        DataCategory type) throws IOException, ContentAddressableStorageException {
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
-            return putObject(containerName, objectId, objectPart);
+            return putObject(containerName, objectId, objectPart, type);
         } catch (ContentAddressableStorageNotFoundException ex) {
             try {
                 defaultStorage.createContainer(containerName);
             } catch (ContentAddressableStorageAlreadyExistException e) {
                 LOGGER.info("Container already exists");
             }
-            return putObject(containerName, objectId, objectPart);
+            return putObject(containerName, objectId, objectPart, type);
         } catch (final ContentAddressableStorageException exc) {
             LOGGER.error("Error with storage service", exc);
             throw exc;
         }
     }
 
-    private String putObject(String containerName, String objectId, InputStream objectPart)
+    private String putObject(String containerName, String objectId, InputStream objectPart, DataCategory type)
         throws ContentAddressableStorageException {
+        // TODO: review this check and the defaultstorage implementation
+        if (isObjectExist(containerName, objectId) && !type.canUpdate()) {
+            throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
+                "and cannot be updated");
+        }
         defaultStorage.putObject(containerName, objectId, objectPart);
         // Check digest AFTER writing in order to ensure correctness
         final String digest =
@@ -229,8 +235,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm,
+        DataCategory type) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        if (!type.canDelete()) {
+            throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
+        }
         // TODO G1 : replace with checkObject when merged
         String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
         if (offerDigest.equals(digest)) {

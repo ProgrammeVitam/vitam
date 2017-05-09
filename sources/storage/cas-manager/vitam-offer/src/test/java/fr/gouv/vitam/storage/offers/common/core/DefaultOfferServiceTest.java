@@ -128,7 +128,7 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObjectTestNoContainer() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
-        offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024, false), true);
+        offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024, false), true, OBJECT_TYPE);
     }
 
     @Test
@@ -155,7 +155,7 @@ public class DefaultOfferServiceTest {
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE);
 
         JsonNode result = offerService.countObjects(CONTAINER_PATH);
         assertEquals(1, result.get("objectNumber").longValue());
@@ -183,7 +183,7 @@ public class DefaultOfferServiceTest {
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
-            computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(), in, true);
+            computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(), in, true, OBJECT_TYPE);
         }
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -234,11 +234,11 @@ public class DefaultOfferServiceTest {
                     bytes = new byte[read];
                     bb.get(bytes, 0, read);
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                            new ByteArrayInputStream(bytes), true);
+                            new ByteArrayInputStream(bytes), true, OBJECT_TYPE);
                 } else {
                     bytes = bb.array();
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                            new ByteArrayInputStream(bytes.clone()), false);
+                            new ByteArrayInputStream(bytes.clone()), false, OBJECT_TYPE);
                     assertEquals(computedDigest,
                             Digest.digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
                                     .toString());
@@ -269,7 +269,7 @@ public class DefaultOfferServiceTest {
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
 
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true);
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE);
 
         final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2, new AsyncResponseJunitTest());
         assertNotNull(response);
@@ -324,14 +324,16 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final ObjectInit objectInit = getObjectInit(true);
+        objectInit.setType(DataCategory.UNIT);
         offerService.initCreateObject(CONTAINER_PATH, objectInit, OBJECT_ID_3);
 
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true);
+        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true, OBJECT_TYPE);
 
         assertTrue(offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest, VitamConfiguration.getDefaultDigestType()));
     }
 
+    @Test
     public void deleteObjectTest() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
@@ -339,7 +341,7 @@ public class DefaultOfferServiceTest {
 
         // creation of an object
         final InputStream streamToStore = IOUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true);
+        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true, DataCategory.UNIT);
 
         // check if the object has been created
         final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE, new AsyncResponseJunitTest());
@@ -348,7 +350,8 @@ public class DefaultOfferServiceTest {
         try {
             // check that if we try to delete an object with a wrong digest, we
             // get a not found exception
-            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, "fakeDigest", VitamConfiguration.getDefaultDigestType());
+            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, "fakeDigest", VitamConfiguration
+                .getDefaultDigestType(), DataCategory.UNIT);
             fail("Should raized an exception");
         } catch (ContentAddressableStorageNotFoundException exc) {
 
@@ -357,7 +360,8 @@ public class DefaultOfferServiceTest {
         try {
             // check that if we try to delete an object with the wrong digest
             // algorithm, we get a not found exception
-            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getSecurityDigestType());
+            offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration
+                .getSecurityDigestType(), DataCategory.UNIT);
             fail("Should raized an exception");
         } catch (ContentAddressableStorageNotFoundException exc) {
 
@@ -365,7 +369,8 @@ public class DefaultOfferServiceTest {
 
         // check that if we try to delete an object with the correct digest +
         // algorithm, it succeeds
-        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getDefaultDigestType());
+        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getDefaultDigestType()
+            , DataCategory.UNIT);
 
         try {
             // check that the object has been deleted
@@ -416,7 +421,7 @@ public class DefaultOfferServiceTest {
         final ObjectInit objectInit = getObjectInit(false);
         for (int i = 0; i < 150; i++) {
             offerService.initCreateObject(CONTAINER_PATH, objectInit, "object_" + i);
-            offerService.createObject(CONTAINER_PATH, "object_" + i, new FakeInputStream(50, false), true);
+            offerService.createObject(CONTAINER_PATH, "object_" + i, new FakeInputStream(50, false), true, OBJECT_TYPE);
         }
         String cursorId = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(cursorId);

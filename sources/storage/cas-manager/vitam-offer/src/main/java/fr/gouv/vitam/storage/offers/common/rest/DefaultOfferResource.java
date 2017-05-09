@@ -391,7 +391,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             try {
                 final SizedInputStream sis = new SizedInputStream(input);
                 final String digest = DefaultOfferServiceImpl.getInstance().createObject(containerName, objectId, sis,
-                        xCommandHeader.equals(StorageConstants.COMMAND_END));
+                        xCommandHeader.equals(StorageConstants.COMMAND_END), type);
                 return Response.status(Response.Status.CREATED)
                         .entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis.getSize() + "\"}").build();
             } catch (IOException | ContentAddressableStorageException exc) {
@@ -444,7 +444,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(Integer.parseInt(xTenantId)));
             final String containerName = buildContainerName(type, xTenantId);
             DefaultOfferServiceImpl.getInstance().deleteObject(containerName, idObject, xDigest,
-                    DigestType.fromValue(xDigestAlgorithm));
+                    DigestType.fromValue(xDigestAlgorithm), type);
             return Response.status(Response.Status.OK)
                     .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}").build();
         } catch (ContentAddressableStorageNotFoundException e) {

@@ -35,27 +35,27 @@ public enum DataCategory {
     /**
      * Archive Unit
      */
-    UNIT("unit"),
+    UNIT("unit", true, true),
     /**
      * Binary Object
      */
-    OBJECT("object"),
+    OBJECT("object", false, true),
     /**
      * Object Group
      */
-    OBJECT_GROUP("objectGroup"),
+    OBJECT_GROUP("objectGroup", true, true),
     /**
      * Logbook (any)
      */
-    LOGBOOK("logbook"),
+    LOGBOOK("logbook", false, false),
     /**
      * Report of operations (like ArchiveTransferReply)
      */
-    REPORT("report"),
+    REPORT("report", false, false),
     /**
      * Manitesf.xml from a SIP
      */
-    MANIFEST("manifest");
+    MANIFEST("manifest", false, false);
 
     /**
      * Folder
@@ -63,13 +63,25 @@ public enum DataCategory {
     private String folder;
 
     /**
+     * Updatable data type information
+     */
+    private boolean updatable;
+
+    /**
+     * Deletable data type information
+     */
+    private boolean deletable;
+
+    /**
      * Constructor.
      *
      * @param folder
      *            folder
      */
-    private DataCategory(String folder) {
+    private DataCategory(String folder, boolean udpatable, boolean deletable) {
         this.folder = folder;
+        this.updatable = udpatable;
+        this.deletable = deletable;
     }
 
     /**
@@ -79,6 +91,24 @@ public enum DataCategory {
      */
     public String getFolder() {
         return folder;
+    }
+
+    /**
+     * To know if data type is updatable
+     *
+     * @return true if data type is updatable, false otherwise
+     */
+    public boolean canUpdate() {
+        return updatable;
+    }
+
+    /**
+     * To know if data type is deletable
+     *
+     * @return true if data type is deletable, false otherwise
+     */
+    public boolean canDelete() {
+        return deletable;
     }
 
     /**
