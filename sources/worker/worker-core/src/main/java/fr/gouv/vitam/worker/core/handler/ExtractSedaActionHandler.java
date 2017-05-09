@@ -111,6 +111,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.BinaryObjectInfo;
 import fr.gouv.vitam.worker.common.utils.IngestWorkflowConstants;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
+import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -196,6 +197,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private File globalSedaParametersFile;
     private final Map<String, Set<String>> unitIdToSetOfRuleId;
     private final Map<String, StringWriter> mngtMdRuleIdToRulesXml;
+    private int nbAUExisting = 0;
 
     private static final String MISSING_REQUIRED_GLOBAL_INFORMATIONS =
         "Global required informations are not found after extracting the manifest.xml";
@@ -385,6 +387,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     writer.add(eventFactory.createCharacters(orgAgId));
                     writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
                         SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                    
+                  writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
+                  writer.add(eventFactory.createCharacters(String.valueOf(nbAUExisting)));
+                  writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI, SedaUtils.NB_AU_EXISTING));
+
                     globalMetadata = false;
                 }
                 
@@ -438,6 +445,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         final String objectGroupGuid =
                             writeBinaryDataObjectInLocal(reader, element, containerId, logbookLifeCycleClient,
                                 typeProcess);
+                        
                         if (guidToLifeCycleParameters.get(objectGroupGuid) != null) {
                             handlerIO.getHelper()
                                 .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
@@ -461,11 +469,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                     }
                 }
+                
                 if (event.isEndDocument()) {
                     break;
                 }
             }
-
+            
             writer.add(eventFactory.createEndDocument());
             writer.close();
 
@@ -1791,6 +1800,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.error("Existing Unit was not found {}", elementGuid);
                 throw new ProcessingUnitNotFoundException("Existing Unit was not found");
             }
+            
+            nbAUExisting++;
 
             JsonNode archiveUnit = JsonHandler.getFromFile(tmpFile);
             ObjectNode archiveUnitNode = (ObjectNode) archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT);

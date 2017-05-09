@@ -86,6 +86,11 @@ public class SedaUtils {
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final int VERSION_POSITION = 0;
+    
+    /**
+     * nbAUExisting: number of the AU already existing 
+     */
+    public static final String NB_AU_EXISTING = "nbAUExisting";
 
     private final Map<String, String> binaryDataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
