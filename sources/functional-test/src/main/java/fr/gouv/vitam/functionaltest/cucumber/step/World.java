@@ -50,7 +50,6 @@ import org.assertj.core.api.Fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
 public class World {
 
@@ -65,7 +64,7 @@ public class World {
 
 
     private String contractId;
-    
+
     /**
      * id of the operation
      */
@@ -94,10 +93,6 @@ public class World {
      */
     private TnrClientConfiguration tnrClientConfiguration;
 
-    /**
-     * Ihm recette client for purging data
-     */
-    IhmRecetteClient ihmRecetteClient;
 
     /**
      *
@@ -172,14 +167,7 @@ public class World {
         return workspaceClient;
     }
 
-    /**
-     * Ihm recette client
-     *
-     * @return Ihm recette client
-     */
-    public IhmRecetteClient getIhmRecetteClient() {
-        return ihmRecetteClient;
-    }
+
 
     /**
      * @return operation ID
@@ -255,17 +243,15 @@ public class World {
     }
 
     private void purgeData() {
-        ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient();
-        tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
-            try {
-                ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
-            } catch (VitamException e) {
-            // FAIL WHEN unable purge ?
-            //    Fail.fail("unnable purge data on tenant: " + i);
-            }
-            finally {
-                ihmRecetteClient.close();
-            }
-        });
+        try(IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient() ) {
+            tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
+                try {
+                    ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
+                } catch (VitamException e) {
+                    // FAIL WHEN unable purge ?
+                    //    Fail.fail("unnable purge data on tenant: " + i+e.getStackTrace());
+                }
+            });
+        }
     }
 }
