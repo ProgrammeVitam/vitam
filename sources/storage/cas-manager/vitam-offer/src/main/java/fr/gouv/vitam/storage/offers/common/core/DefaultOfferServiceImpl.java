@@ -123,10 +123,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-            throws ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
-            ContentAddressableStorageNotFoundException {
-        if (!defaultStorage.isExistingContainer(containerName)) {
+            throws ContentAddressableStorageServerException {
+        try {
             defaultStorage.createContainer(containerName);
+        } catch (ContentAddressableStorageAlreadyExistException ex) {
+            LOGGER.debug("Container already exists");
         }
         objectInit.setId(objectGUID);
         objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
@@ -142,24 +143,32 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending)
             throws IOException, ContentAddressableStorageException {
-        // check container
-        if (!defaultStorage.isExistingContainer(containerName)) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageException("Container does not exist");
-        }
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
-            defaultStorage.putObject(containerName, objectId, objectPart);
-            // Check digest AFTER writing in order to ensure correctness
-            final String digest = defaultStorage.computeObjectDigest(containerName, objectId, getDigestAlgoFor(objectId));
-            // remove digest algo
-            digestTypeFor.remove(objectId);
-            return digest;
+            return putObject(containerName, objectId, objectPart);
+        } catch (ContentAddressableStorageNotFoundException ex) {
+            try {
+                defaultStorage.createContainer(containerName);
+            } catch (ContentAddressableStorageAlreadyExistException e) {
+                LOGGER.info("Container already exists");
+            }
+            return putObject(containerName, objectId, objectPart);
         } catch (final ContentAddressableStorageException exc) {
             LOGGER.error("Error with storage service", exc);
             throw exc;
         }
+    }
+
+    private String putObject(String containerName, String objectId, InputStream objectPart)
+        throws ContentAddressableStorageException {
+        defaultStorage.putObject(containerName, objectId, objectPart);
+        // Check digest AFTER writing in order to ensure correctness
+        final String digest =
+            defaultStorage.computeObjectDigest(containerName, objectId, getDigestAlgoFor(objectId));
+        // remove digest algo
+        digestTypeFor.remove(objectId);
+        return digest;
     }
 
     @Override
@@ -171,7 +180,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     public JsonNode getCapacity(String containerName)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final ObjectNode result = JsonHandler.createObjectNode();
-        final ContainerInformation containerInformation = defaultStorage.getContainerInformation(containerName);
+        ContainerInformation containerInformation;
+        try {
+            containerInformation = defaultStorage.getContainerInformation(containerName);
+        } catch (ContentAddressableStorageNotFoundException exc) {
+            try {
+                defaultStorage.createContainer(containerName);
+            } catch (ContentAddressableStorageAlreadyExistException e) {
+                LOGGER.info("Container already exists");
+            }
+            containerInformation = defaultStorage.getContainerInformation(containerName);
+        }
         result.put("usableSpace", containerInformation.getUsableSpace());
         result.put("usedSpace", containerInformation.getUsedSpace());
         return result;
@@ -228,11 +247,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(containerName, objectId));
     }
 
-    public String createCursor(String containerName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        if (!defaultStorage.isExistingContainer(containerName)) {
-            LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            throw new ContentAddressableStorageNotFoundException("Container " + containerName + " not found");
+    public String createCursor(String containerName) throws ContentAddressableStorageServerException {
+        try {
+            defaultStorage.createContainer(containerName);
+        } catch (ContentAddressableStorageAlreadyExistException ex) {
+            LOGGER.debug("Container already exists");
         }
         String cursorId = GUIDFactory.newGUID().toString();
         mapXCusor.put(getKeyMap(containerName, cursorId), null);

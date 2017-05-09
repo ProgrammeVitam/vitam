@@ -42,6 +42,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -59,17 +60,20 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 
 /**
  * Default offer service test implementation
  */
 public class DefaultOfferServiceTest {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceTest.class);
 
     private static final String CONTAINER_PATH = "container";
     private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
@@ -101,6 +105,18 @@ public class DefaultOfferServiceTest {
             Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, "object_" + i));
         }
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH));
+        // Clean fake container part
+        Path fakeContainerPath = Paths.get(conf.getStoragePath(), "fakeContainer");
+        if (Files.exists(fakeContainerPath)) {
+            Files.list(fakeContainerPath).forEach(path -> {
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException e) {
+                    LOGGER.error(e);
+                }
+            });
+        }
+        Files.deleteIfExists(Paths.get(conf.getStoragePath(), "fakeContainer"));
     }
 
     @Test
@@ -109,10 +125,10 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
     }
 
-    @Test(expected = ContentAddressableStorageException.class)
-    public void createObjectTestKO() throws Exception {
+    @Test
+    public void createObjectTestNoContainer() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
-        offerService.createObject("fakeContainer", OBJECT_ID, null, true);
+        offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024, false), true);
     }
 
     @Test
@@ -293,6 +309,16 @@ public class DefaultOfferServiceTest {
     }
 
     @Test
+    public void getCapacityNoContainerOK() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+        final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
+        assertNotNull(jsonNode);
+        assertNotNull(jsonNode.get("usableSpace"));
+        assertNotNull(jsonNode.get("usedSpace"));
+    }
+
+    @Test
     public void checkObjectTest() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
@@ -351,7 +377,7 @@ public class DefaultOfferServiceTest {
 
     }
 
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    @Test
     public void listCreateCursorNoContainerTest() throws Exception {
         final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
         assertNotNull(offerService);
@@ -372,6 +398,15 @@ public class DefaultOfferServiceTest {
         list = offerService.next(CONTAINER_PATH, cursorId);
         // TODO manage with exception
         assertNull(list);
+    }
+
+    @Test
+    public void finalizeCursorTest() throws Exception {
+        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        assertNotNull(offerService);
+        String id = offerService.createCursor(CONTAINER_PATH);
+        assertNotNull(id);
+        offerService.finalizeCursor(CONTAINER_PATH, id);
     }
 
     @Test
