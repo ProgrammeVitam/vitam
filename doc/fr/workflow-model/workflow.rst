@@ -236,6 +236,21 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 Contrôle et traitements des unités archivistiques (STP_OG_CHECK_AND_TRANSFORME)
 ===============================================================================
 
+Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++ **Règle** :  Contrôle de la cohérence intellectuelle des informations des unités archivistiques du bordereau.
+
++ **Type** : bloquant.
+
++ **Statuts** :
+
+  - OK : tous les champs de l'unité archivistique sont valides (CHECK_UNIT_SCHEMA.OK=Succès de la vérification globale de l''unité archivistique).
+
+  - KO : au moins un champ de l'unité archivistique n'est pas valide (titre vide, date incorrecte...) (CHECK_UNIT_SCHEMA.KO=Échec lors de la vérification globale de l''unité archivistique).
+
+  - FATAL : la vérification de l'unité archivistique n'a pu être effectuée suite à une erreur système (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale de la vérification globale de l''unité archivistique).
+
 Application des règles de gestion et calcul des dates d'échéances (UNITS_RULES_COMPUTE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
