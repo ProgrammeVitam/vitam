@@ -2,8 +2,11 @@
 VITAM
 #####
 
-
 .. section-numbering::
+
+For a quick presentation in english, please follow `this link <README.en.rst>`_.
+
+
 
 .. image:: doc/fr/LogoVitamGrand2.png
         :alt: Logo Vitam (Bêta)
