@@ -114,7 +114,7 @@ public class ContractsStep {
             RequestResponse response =
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
-            Fail.fail("Unnable to import " +fileName);
+            Fail.fail("Unable to import " +fileName+ e.getStackTrace());
         }
 
     }

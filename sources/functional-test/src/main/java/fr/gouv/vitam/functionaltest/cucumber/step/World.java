@@ -249,7 +249,7 @@ public class World {
                     ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
                 } catch (VitamException e) {
                     // FAIL WHEN unable purge ?
-                    //    Fail.fail("unnable purge data on tenant: " + i+e.getStackTrace());
+                    Fail.fail("Unable purge data "+i.toString()+" on tenant: " + i+e.getStackTrace());
                 }
             });
         }
