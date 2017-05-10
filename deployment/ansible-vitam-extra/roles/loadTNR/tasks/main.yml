@@ -4,7 +4,7 @@
   file:
     path: "{{TNR_output}}"
     state: absent
-        
+
 #- name: test
 #  uri:
 #    method: GET
@@ -25,7 +25,9 @@
 #    url: http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login
 #  ignore_errors: true
 
-- name: curl test
+# Authent with curl as we have a problem to get the Set-Cookie header with uri module
+# "-" is forbidden in variables names
+- name: ihm-recette auth with curl
   shell: "curl -s -v -H 'Content-Type: application/json' --data '{\"token\":{\"principal\":\"aadmin\",\"credentials\":\"aadmin1234\"} }' http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login 2>&1 |grep Set-Cookie |awk -F \"Set-Cookie: \" '{print $2}' | tr '\\r\\n' '; '"
   register: login
 
@@ -46,7 +48,7 @@
     - "ihm-recette/v1/api/delete/metadata/unit"
     - "ihm-recette/v1/api/delete/accessionregisters"
   ignore_errors: true
-  
+
 
 - name: launch TNR
 #  shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*-jar-with-dependencies.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
