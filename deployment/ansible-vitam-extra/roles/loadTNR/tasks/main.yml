@@ -12,14 +12,14 @@
       X-Tenant-Id: "0"
     url: "http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/{{item}}"
   with_items:
-    - "/ihm-recette/v1/api/delete/logbook/operation"
-    - "/ihm-recette/v1/api/delete/masterdata/accessContract"
-    - "/ihm-recette/v1/api/delete/masterdata/ingestContract"
-    - "/ihm-recette/v1/api/delete/logbook/lifecycle/unit"
-    - "/ihm-recette/v1/api/delete/logbook/lifecycle/objectgroup"
-    - "/ihm-recette/v1/api/delete/metadata/objectgroup"
-    - "/ihm-recette/v1/api/delete/metadata/unit"
-    - "/ihm-recette/v1/api/delete/accessionregisters"
+    - "ihm-recette/v1/api/delete/logbook/operation"
+    - "ihm-recette/v1/api/delete/masterdata/accessContract"
+    - "ihm-recette/v1/api/delete/masterdata/ingestContract"
+    - "ihm-recette/v1/api/delete/logbook/lifecycle/unit"
+    - "ihm-recette/v1/api/delete/logbook/lifecycle/objectgroup"
+    - "ihm-recette/v1/api/delete/metadata/objectgroup"
+    - "ihm-recette/v1/api/delete/metadata/unit"
+    - "ihm-recette/v1/api/delete/accessionregisters"
 
 - name: launch TNR
 #  shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*-jar-with-dependencies.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
