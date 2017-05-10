@@ -8,7 +8,8 @@
 - name: Purge database collections before launching TNR
   uri:
     method: DELETE
-    HEADER_X-Tenant-Id: 0
+    headers:
+      X-Tenant-Id: "0"
     url: "http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/{{item}}"
   with_items:
     - "/ihm-recette/v1/api/delete/logbook/operation"
