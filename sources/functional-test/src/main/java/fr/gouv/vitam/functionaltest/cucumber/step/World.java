@@ -107,10 +107,6 @@ public class World {
     @Before
     public void init() throws IOException {
         configuration();
-        if (beforeTest) {
-            purgeData();
-            beforeTest = false;
-        }
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
@@ -242,6 +238,9 @@ public class World {
 
     }
 
+    /**
+     * delete data before testion
+     */
     private void purgeData() {
         try(IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient() ) {
             tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
