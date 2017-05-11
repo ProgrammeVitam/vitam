@@ -5,38 +5,34 @@
     path: "{{TNR_output}}"
     state: absent
 
-#- name: test
-#  uri:
-#    method: GET
-#    # body: '{"token":{"principal":"aadmin","credentials":"aadmin1234"}}'
-#    # headers:
-#    #  Content-Type: "application/json"
-#    url: http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/core/filter/replace.filter.js
-#  register: login
-#  ignore_errors: true
-
-#- name: test2
-#  uri:
-#    method: POST
-#    body: '{"token":{"principal":"aadmin","credentials":"aadmin1234"}}'
-#    headers:
-#      Content-Type: "application/json"
-#      Cookie: "{{login.Set-Cookie}}"
-#    url: http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login
-#  ignore_errors: true
-
-# Authent with curl as we have a problem to get the Set-Cookie header with uri module
-# "-" is forbidden in variables names
-- name: ihm-recette auth with curl
-  shell: "curl -s -v -H 'Content-Type: application/json' --data '{\"token\":{\"principal\":\"aadmin\",\"credentials\":\"aadmin1234\"} }' http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login 2>&1 |grep Set-Cookie |awk -F \"Set-Cookie: \" '{print $2}' | tr '\\r\\n' '; '"
+- name: ihm-recette auth
+  uri:
+    method: POST
+    body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}'
+    body_format: json
+    status_code: 200
+    headers:
+      Content-Type: "application/json;charset=utf-8"
+      accept: "application/json, text/plain, */*"
+      Connection: "keep-alive"
+      body_format: json
+      Host: "{{ vitam_ihm_recette_host }}"
+    url: http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login
+  ignore_errors: true
+  run_once: true
   register: login
+  no_log: true
+
+# - name: ihm-recette auth with curl
+#   shell: "curl -s -v -H 'Content-Type: application/json' --data '{\"token\":{\"principal\":\"aadmin\",\"credentials\":\"aadmin1234\"} }' http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login 2>&1 |grep Set-Cookie |awk -F \"Set-Cookie: \" '{print $2}' | tr '\\r\\n' '; '"
+#   register: login
 
 - name: Purge database collections before launching TNR
   uri:
     method: DELETE
     headers:
       X-Tenant-Id: "0"
-      Cookie: "{{login.stdout}}"
+      Cookie: "{{login.set_cookie}}"
     url: "http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/{{item}}"
   with_items:
     - "ihm-recette/v1/api/delete/logbook/operation"
@@ -48,6 +44,8 @@
     - "ihm-recette/v1/api/delete/metadata/unit"
     - "ihm-recette/v1/api/delete/accessionregisters"
   ignore_errors: true
+  run_once: true
+  when: login.set_cookie != ''
 
 
 - name: launch TNR
@@ -57,6 +55,7 @@
   ignore_errors: true
   args:
     chdir: "{{TNR_conf}}"
+  run_once: true
 
 - name: get back TNR output file {{TNR_output}}
   fetch:
@@ -64,3 +63,4 @@
     dest: "{{inventory_dir}}/"
     flat: yes
   ignore_errors: true
+  run_once: true
