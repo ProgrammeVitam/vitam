@@ -24,16 +24,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functionaltest.services;
+package fr.gouv.vitam.functionaltest.configuration;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
+
+import java.util.List;
 
 /**
- * WorkSpaceClientConfiguration
+ * TnrClientConfiguration
  */
-public class WorkSpaceClientConfiguration {
+public class TnrClientConfiguration {
+    private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
+
     /**
      * Empty ClientConfiguration constructor for YAMLFactory
      */
-    public WorkSpaceClientConfiguration(){
+    public TnrClientConfiguration(){
         //Nothing to-do
     }
 
@@ -52,8 +59,26 @@ public class WorkSpaceClientConfiguration {
     }
 
     /**
-     *
+     *url workspace
      */
     protected String urlWorkspace;
+    /**
+     * tenants List on wich Testing
+     */
+    protected List<Integer> tenantsTest;
 
+    /**
+     * TNR tenants List
+     * @return The list
+     */
+    public List<Integer> getTenantsTest() { return tenantsTest; }
+
+    /**
+     * TNR tenants list setter
+     * @param tenants
+     */
+    public void setTenantsTest(List<Integer> tenants) {
+        ParametersChecker.checkParameter("Tenant id" + IS_A_MANDATORY_PARAMETER, tenants);
+        this.tenantsTest = tenants;
+    }
 }

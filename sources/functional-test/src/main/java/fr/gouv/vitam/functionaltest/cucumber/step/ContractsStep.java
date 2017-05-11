@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.api.Fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -112,11 +113,10 @@ public class ContractsStep {
             this.setContractType(collection.getName());
             RequestResponse response =
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
-        } catch (AccessExternalClientException | InvalidParseOperationException e) {
-
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            Fail.fail("Unable to import " +fileName+ e.getStackTrace());
         }
 
-        //TODO NO ASSERT Only Try to import contracts.
     }
 
     @When("^je cherche un contrat de type (.*) et nommé (.*)")
