@@ -26,11 +26,15 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.assertj.core.api.Fail;
+
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
 import cucumber.api.java.Before;
 import cucumber.api.java.en.Given;
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -38,18 +42,17 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.client.IhmRecetteClient;
 import fr.gouv.vitam.client.IhmRecetteClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.Fail;
-
-import java.io.File;
-import java.io.IOException;
 
 public class World {
 
@@ -81,9 +84,14 @@ public class World {
     private AccessExternalClient accessClient;
 
     /**
-     * admin eternal client
+     * admin external client
      */
     private AdminExternalClient adminClient;
+
+    /**
+     * logbook operations client
+     */
+    private LogbookOperationsClient logbookOperationsClient;
     /**
      * Storage Client
      */
@@ -112,6 +120,8 @@ public class World {
         adminClient = AdminExternalClientFactory.getInstance().getClient();
         storageClient = StorageClientFactory.getInstance().getClient();
         WorkspaceClientFactory.changeMode(tnrClientConfiguration.getUrlWorkspace());
+        configureLogbookClient();
+        logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
     }
 
@@ -155,7 +165,7 @@ public class World {
     }
 
     /**
-     * Workspace  client
+     * Workspace client
      *
      * @return
      */
@@ -164,6 +174,15 @@ public class World {
     }
 
 
+
+    /**
+     * Workspace client
+     *
+     * @return
+     */
+    public LogbookOperationsClient getLogbookOperationsClient() {
+        return logbookOperationsClient;
+    }
 
     /**
      * @return operation ID
@@ -205,6 +224,7 @@ public class World {
         ingestClient.close();
         storageClient.close();
         workspaceClient.close();
+        logbookOperationsClient.close();
     }
 
     /**
@@ -221,10 +241,8 @@ public class World {
      * @return base directory on .feature file
      */
     public String getBaseDirectory() {
-        return baseDirectory;
+        return baseDirectory;        
     }
-
-
 
     private void configuration() {
         File confFile = null;
@@ -252,5 +270,11 @@ public class World {
                 }
             });
         }
+    }
+
+    private void configureLogbookClient() throws IOException {
+        File confFile = PropertiesUtils.findFile("logbook-client.conf");
+        ClientConfigurationImpl conf = PropertiesUtils.readYaml(confFile, ClientConfigurationImpl.class);
+        LogbookOperationsClientFactory.changeMode(conf);
     }
 }

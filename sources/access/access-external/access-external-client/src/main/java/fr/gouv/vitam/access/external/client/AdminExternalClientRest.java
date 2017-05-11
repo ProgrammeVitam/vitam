@@ -156,8 +156,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             // FIXME quick fix for response OK, adapt response for all response types
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK();
-            } else {
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+            } else {                
                 return RequestResponse.parseFromResponse(response);
             }
         } catch (final VitamClientInternalException e) {

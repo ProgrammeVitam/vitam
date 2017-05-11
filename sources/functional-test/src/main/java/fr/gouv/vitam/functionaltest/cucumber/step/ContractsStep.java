@@ -27,24 +27,10 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Given;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.assertj.core.api.Fail;
+import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,6 +39,26 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+
+import javax.ws.rs.core.Response;
+
+import org.assertj.core.api.Fail;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class ContractsStep {
 
@@ -90,33 +96,58 @@ public class ContractsStep {
      * type de contrat
      */
     private String contractType;
+
     /**
      * define a sip
+     * 
      * @param fileName name of a sip
      */
     @Given("^un contract nommé (.*)$")
     public void a_sip_named(String fileName) {
         this.fileName = fileName;
     }
+
     /**
      * Use Only when the contract is not in the database
      *
+     * @param type the type of contract
      * @throws IOException
      * @throws IngestExternalException
      */
     @Then("^j'importe ce contrat de type (.*)")
     public void upload_contract(String type)
-        throws IOException{
+        throws IOException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
-        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
-            Fail.fail("Unable to import " +fileName+ e.getStackTrace());
+            assertThat(response instanceof RequestResponseOK);
+        } catch (AccessExternalClientException | InvalidParseOperationException e) {
+            Fail.fail("Unable to import " + fileName + e.getStackTrace());
         }
+    }
 
+    /**
+     * Upload a contract that will lead to an error
+     * 
+     * @param type the type of contract
+     * @throws IOException
+     * @throws IngestExternalException
+     */
+    @Then("^j'importe ce contrat incorrect de type (.*)")
+    public void upload_incorrect_contract(String type) {
+        Path sip = Paths.get(world.getBaseDirectory(), fileName);
+        try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
+            AdminCollections collection = AdminCollections.valueOf(type);
+            this.setContractType(collection.getName());
+            RequestResponse response =
+                world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
+            assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
+        } catch (Exception e) {
+            fail("should not produce an exception");
+        }
     }
 
     @When("^je cherche un contrat de type (.*) et nommé (.*)")
