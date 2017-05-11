@@ -94,4 +94,4 @@ La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne
 
 /objects
 
-.. image:: images/API_RAML_object.png.png
+.. image:: images/API_RAML_object.png
