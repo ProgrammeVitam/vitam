@@ -151,7 +151,6 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
             ParametersChecker.checkParameter(collection, "The collection is mandatory");
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Object respEntity = null;
                 Status status = Status.CREATED;
                 if (AdminCollections.FORMATS.compareTo(collection)) {
                     status = client.importFormat(document);
@@ -175,9 +174,8 @@ public class AdminManagementExternalResourceImpl {
 
                 }
 
-                // Send the http response with the entity and the status got from internalService;
-                ResponseBuilder ResponseBuilder = Response.status(status)
-                    .entity(respEntity != null ? respEntity : "Successfully imported");
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);

@@ -181,7 +181,7 @@ public class IngestStep {
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException 
      */
-    @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")
+    @Then("^le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")    
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         RequestResponse requestResponse =
