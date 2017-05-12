@@ -2880,7 +2880,7 @@ Exemple de JSON stocké en base
     "CreationDate": "2017-04-10T11:30:33.798",
     "LastUpdate": "2017-04-10T11:30:33.798",
     "ActivationDate": "2017-04-10T11:30:33.798",
-    "DesactivationDate": null
+    "DeactivationDate": null
     }
 
 Exemple de contrat d'entrée envoyé au format JSON
@@ -2926,7 +2926,7 @@ Détail des champs
 
 "ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"DeactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 Collection AccessContract
 =========================
@@ -2950,7 +2950,7 @@ Exemple de JSON stocké en base
     "CreationDate": "2017-04-10T11:30:33.798",
     "LastUpdate": "2017-04-10T11:30:33.798",
     "ActivationDate": "2017-04-10T11:30:33.798",
-    "DesactivationDate": null,
+    "DeactivationDate": null,
     "OriginatingAgencies":["FRA-56","FRA-47"]
     }
 
@@ -3003,7 +3003,7 @@ Détail des champs
 
 "ActivationDate": date d'activation. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
-"DesactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+"DeactivationDate": date de désactivation du contrat. La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
 
 "OriginatingAgencies": tableau contenant les services producteurs auxquels le détenteur du contrat a accès. Il s'agit d'un tableau de chaînes de caractères.
 
