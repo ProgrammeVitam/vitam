@@ -52,18 +52,22 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, StorageClientFactory.class})
 public class StoreMetaDataObjectGroupActionPluginTest {
 
-    private static final String METDATA_UNIT_RESPONSE_JSON =
+    private static final String METDATA_OG_RESPONSE_JSON =
         "storeMetadataObjectGroupPlugin/MetadataObjectGroupResponse.json";
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r3cabgjaak2izdlnwiaaaaq";
     private static final String OG_GUID = "aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq";
+    private static final String OG_GUID_2 = "aebaaaaaaaakwtamaaxakak32oqku2qaaaaq";
     private static final String OBJECT_GROUP =
         "storeMetadataObjectGroupPlugin/aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq.json";
+    private static final String OBJECT_GROUP_2 =
+        "storeMetadataObjectGroupPlugin/aebaaaaaaaakwtamaaxakak32oqku2qaaaaq.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private MetaDataClient metadataClient;
     private StorageClient storageClient;
     private HandlerIOImpl action;
     private final InputStream objectGroup;
+    private final InputStream objectGroup2;
     private final JsonNode oGResponse;
 
     private StorageClientFactory storageClientFactory;
@@ -73,11 +77,9 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
     public StoreMetaDataObjectGroupActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        File file =
-            PropertiesUtils.getResourceFile(METDATA_UNIT_RESPONSE_JSON);
+        objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
+        File file = PropertiesUtils.getResourceFile(METDATA_OG_RESPONSE_JSON);
         oGResponse = JsonHandler.getFromFile(file);
-
-
     }
 
 
@@ -126,8 +128,6 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
-
-
     @Test
     public void givenMetadataClientAndWorkspaceResponsesWhenSearchOGThenReturnOK() throws Exception {
         final WorkerParameters params =
@@ -159,7 +159,34 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
+    @Test
+    public void givenMetadataClientAndWorkspaceResponsesAdnPdosWhenSearchOGThenReturnOK() throws Exception {
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
+                .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
+                .setUrlWorkspace("http://localhost:8083").setObjectName(OG_GUID_2 + ".json")
+                .setCurrentStep("Store objectGroup");
 
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
+
+        SelectMultiQuery query = new SelectMultiQuery();
+        ObjectNode constructQuery = query.getFinalSelect();
+
+        when(metadataClient.selectObjectGrouptbyId(constructQuery, OG_GUID_2)).thenReturn(oGResponse);
+
+        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup2).build());
+
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
+
+        plugin = new StoreMetaDataObjectGroupActionPlugin();
+
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
 
     @Test
     public void givenMetadataClientWhensearchOGThenThrowsException() throws Exception {

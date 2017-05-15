@@ -26,31 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import java.util.Arrays;
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-/**
- * The class SedaVersion used to get the list the versions by type of Data Object from the file version.conf
- */
-public class SedaVersion {
+import org.junit.Test;
 
-    private List<String> binaryDataObjectVersions;
-    private List<String> physicalDataObjectVersions;
-
-    public List<String> getVersionForType(String type) {
-        if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
-            return binaryDataObjectVersions;
-        } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
-            return physicalDataObjectVersions;
-        }
-        return null;
-    }
-
-    public void setBinaryDataObjectVersions(String[] binaryDataObjectVersions) {
-        this.binaryDataObjectVersions = Arrays.asList(binaryDataObjectVersions);
-    }
-
-    public void setPhysicalDataObjectVersions(String[] physicalDataObjectVersions) {
-        this.physicalDataObjectVersions = Arrays.asList(physicalDataObjectVersions);
+public class DataObjectDetailTest {
+    @Test
+    public void testDataObjectDetail() {
+        final DataObjectDetail dataObjectDetail = new DataObjectDetail();
+        dataObjectDetail.setVersion("TEST");
+        assertNotNull(dataObjectDetail.isPhysical());
+        assertNotNull(dataObjectDetail.getVersion());
+        dataObjectDetail.setPhysical(true);
+        assertEquals(true, dataObjectDetail.isPhysical());
+        assertEquals("TEST", dataObjectDetail.getVersion());
     }
 }

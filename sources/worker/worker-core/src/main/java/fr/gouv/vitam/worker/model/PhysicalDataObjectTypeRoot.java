@@ -24,33 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.common.utils;
+package fr.gouv.vitam.worker.model;
 
-import java.util.Arrays;
-import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectType;
 
 /**
- * The class SedaVersion used to get the list the versions by type of Data Object from the file version.conf
+ * The override of the generated pojo is needed to describe it as a root element for physical data objects to generate
+ * the XML Stream
  */
-public class SedaVersion {
+@XmlRootElement(name = "PhysicalDataObject")
+public class PhysicalDataObjectTypeRoot extends DataObjectType {
 
-    private List<String> binaryDataObjectVersions;
-    private List<String> physicalDataObjectVersions;
-
-    public List<String> getVersionForType(String type) {
-        if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
-            return binaryDataObjectVersions;
-        } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
-            return physicalDataObjectVersions;
-        }
-        return null;
-    }
-
-    public void setBinaryDataObjectVersions(String[] binaryDataObjectVersions) {
-        this.binaryDataObjectVersions = Arrays.asList(binaryDataObjectVersions);
-    }
-
-    public void setPhysicalDataObjectVersions(String[] physicalDataObjectVersions) {
-        this.physicalDataObjectVersions = Arrays.asList(physicalDataObjectVersions);
-    }
 }

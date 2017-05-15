@@ -102,12 +102,12 @@ Un Workflow est défini en JSON avec la structure suivante :
                    "uri": "WORKSPACE:UnitsLevel/ingestLevelStack.json"
                  },
                  {
-                   "name": "mapsBDOtoOG.file",
-                   "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json"
+                   "name": "mapsDOtoOG.file",
+                   "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json"
                  },
                  {
-                   "name": "mapsBDO.file",
-                   "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json"
+                   "name": "mapsDO.file",
+                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json"
                  },
                  {
                    "name": "mapsObjectGroup.file",
@@ -118,8 +118,8 @@ Un Workflow est défini en JSON avec la structure suivante :
                    "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
                  },
                  {
-                   "name": "mapsBDOtoVersionBDO.file",
-                   "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json"
+                   "name": "mapsDOIdtoDODetail.file",
+                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
                  },
                  {
                    "name": "mapsUnits.file",
@@ -150,11 +150,11 @@ Un Workflow est défini en JSON avec la structure suivante :
                "behavior": "NOBLOCKING",
                "in": [
                  {
-                   "name": "mapsBDOtoOG.file",
+                   "name": "mapsDOtoOG.file",
                    "uri": "WORKSPACE:Maps/OG_TO_ARCHIVE_ID_MAP.json"
                  },
                  {
-                   "name": "mapsBDOtoOG.file",
+                   "name": "mapsDOtoOG.file",
                    "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
                  }
                ]
@@ -290,11 +290,11 @@ Un Workflow est défini en JSON avec la structure suivante :
                    "uri": "WORKSPACE:Maps/ARCHIVE_ID_TO_GUID_MAP.json"
                  },
                  {
-                   "name": "mapsBDO.file",
+                   "name": "mapsDO.file",
                    "uri": "WORKSPACE:Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json"
                  },
                  {
-                   "name": "mapsBDO.file",
+                   "name": "mapsDO.file",
                    "uri": "WORKSPACE:Maps/BDO_TO_BDO_INFO_MAP.json"
                  },
                  {
@@ -326,18 +326,18 @@ Un Workflow est défini en JSON avec la structure suivante :
                    "optional": "true"
                  },
                  {
-                   "name": "mapsBDO.file",
-                   "uri": "WORKSPACE:Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json",
+                   "name": "mapsDO.file",
+                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_GUID_MAP.json",
                    "optional": "true"
                  },
                  {
-                   "name": "mapsBDOtoOG.file",
-                   "uri": "WORKSPACE:Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json",
+                   "name": "mapsDOtoOG.file",
+                   "uri": "WORKSPACE:Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json",
                    "optional": "true"
                  },
                  {
-                   "name": "mapsBDOtoVersionBDO.file",
-                   "uri": "WORKSPACE:Maps/BDO_TO_VERSION_BDO_MAP.json",
+                   "name": "mapsDOIdtoDODetail.file",
+                   "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                    "optional": "true"
                  },
                  {

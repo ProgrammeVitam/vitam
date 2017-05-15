@@ -24,34 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.worker.model;
 
-package fr.gouv.vitam.processing.common.exception;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectType;
 
 /**
- * Define a Processing Exception to be thrown when an error occurred, not a fatal error
+ * The override of the generated pojo is needed to describe it as a root element for binary data objects to generate the
+ * XML Stream
  */
-public class ArchiveUnitContainBinaryDataObjectException extends ProcessingException {
-    private static final long serialVersionUID = -8063612650088096556L;
+@XmlRootElement(name = "BinaryDataObject")
+public class BinaryDataObjectTypeRoot extends DataObjectType {
 
-    /**
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public ArchiveUnitContainBinaryDataObjectException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    /**
-     * @param cause associated cause
-     */
-    public ArchiveUnitContainBinaryDataObjectException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * @param message associated message
-     */
-    public ArchiveUnitContainBinaryDataObjectException(String message) {
-        super(message);
-    }
 }

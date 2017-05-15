@@ -26,9 +26,9 @@ containerId/ObjectGroup/GOT_GUID.json
 containerId/ObjectGroup/...
 containerId/Maps/
 containerId/Maps/ARCHIVE_ID_TO_GUID_MAP.json
-containerId/Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json
-containerId/Maps/BDO_TO_VERSION_BDO_MAP.json
-containerId/Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json
+containerId/Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json
+containerId/Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json
+containerId/Maps/DATA_OBJECT_ID_TO_GUID_MAP.json
 containerId/Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json
 containerId/UnitsLevel/
 containerId/UnitsLevel/ingestLevelStack.json

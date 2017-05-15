@@ -76,7 +76,13 @@ public class CheckConformityActionPluginTest {
     private static final String EV_DETAIL_DATA = "{\"MessageDigest\":\"3273aa2ccb0cf4d5d37cef899d1774b9\"," +
         "\"Algorithm\": \"MD5\", " +
         "\"SystemMessageDigest\": \"d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4\", " +
-        "\"SystemAlgorithm\": \"SHA-512\"} "; 
+        "\"SystemAlgorithm\": \"SHA-512\"} ";
+
+    private static final String EV_DETAIL_DATA_BDO_AND_PDO =
+        "{\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Algorithm\": \"SHA512\", " +
+            "\"SystemMessageDigest\": \"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\", " +
+            "\"SystemAlgorithm\": \"SHA-512\"} ";
+
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaaaaababaumakxynrf3sqaaaaq.json";
     private InputStream objectGroup;
     private static final String bdo1 =
@@ -86,6 +92,9 @@ public class CheckConformityActionPluginTest {
     private static final String bdo3 =
         "fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0.png";
     private static final String bdo4 = "f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954.pdf";
+
+    private static final String OBJECT_GROUP_BDO_AND_PDO =
+        "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaaba.json";
 
     @Before
     public void setUp() {
@@ -128,6 +137,28 @@ public class CheckConformityActionPluginTest {
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA);
+        handlerIO.close();
+    }
+
+    @Test
+    public void checkBinaryAndPhysicalObject() throws Exception {
+        objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_BDO_AND_PDO);
+        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objName")))
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
+        when(workspaceClient.getObject(anyObject(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
+                .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+                .build());
+
+        plugin = new CheckConformityActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+        final List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
+        handlerIO.addInIOParameters(in);
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA_BDO_AND_PDO);
         handlerIO.close();
     }
 

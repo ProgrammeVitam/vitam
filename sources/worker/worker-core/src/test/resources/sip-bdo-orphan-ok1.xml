@@ -26,14 +26,6 @@
     </CodeListVersions>
 
     <DataObjectPackage xml:id="ID007">
-        <PhysicalDataObject id="ID009">
-            <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
-            <DataObjectVersion>PhysicalMaster</DataObjectVersion>
-            <PhysicalId>1500W03</PhysicalId>
-            <PhysicalDimensions>
-                <NumberOfPage>23</NumberOfPage>
-            </PhysicalDimensions>
-        </PhysicalDataObject>
 
         <BinaryDataObject id="ID011">
             <DataObjectVersion>BinaryMaster</DataObjectVersion>
@@ -62,6 +54,13 @@
             </Metadata>
             <OtherMetadata><!--  --></OtherMetadata>
         </BinaryDataObject>
+        <PhysicalDataObject id="ID009">
+            <DataObjectVersion>PhysicalMaster</DataObjectVersion>
+            <PhysicalId>1500W03</PhysicalId>
+            <PhysicalDimensions>
+                <NumberOfPage>23</NumberOfPage>
+            </PhysicalDimensions>
+        </PhysicalDataObject>
 
         <DescriptiveMetadata>
             <ArchiveUnit id="ID015">
@@ -123,6 +122,16 @@
                 </Content>
                 <DataObjectReference>
                     <DataObjectReferenceId>ID011</DataObjectReferenceId> <!-- referencement du BDO -->
+                </DataObjectReference>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID035">
+                <ArchiveUnitProfile>PresentationType</ArchiveUnitProfile>
+            	<Content xml:id="ID036">
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Archive unit pour archive physiquer</Title>
+            	</Content>
+            	<DataObjectReference>
+                    <DataObjectReferenceId>ID009</DataObjectReferenceId> <!-- referencement du BDO -->
                 </DataObjectReference>
             </ArchiveUnit>
         </DescriptiveMetadata>

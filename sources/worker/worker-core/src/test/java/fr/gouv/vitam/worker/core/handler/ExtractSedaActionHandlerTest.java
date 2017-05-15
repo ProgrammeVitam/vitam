@@ -105,6 +105,7 @@ public class ExtractSedaActionHandlerTest {
         "extractSedaActionHandler/refnonruleid_and_preventinheritence.xml";
     private static final String SIP_REFNONRULEID_MULT_PREVENTINHERITENCE =
         "extractSedaActionHandler/refnonruleid_multiple_and_preventinheritence.xml";
+    private static final String SIP_PHYSICAL_DATA_OBJECT = "extractSedaActionHandler/SIP_PHYSICAL_DATA_OBJECT.xml";
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
@@ -148,13 +149,15 @@ public class ExtractSedaActionHandlerTest {
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
         out.add(
-            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_OBJECT_GROUP_ID_MAP.json")));
+            new IOParameter()
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
         out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BINARY_DATA_OBJECT_ID_TO_GUID_MAP.json")));
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
         out.add(
             new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/BDO_TO_VERSION_BDO_MAP.json")));
+        out.add(new IOParameter()
+            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
         out.add(new IOParameter()
@@ -173,7 +176,7 @@ public class ExtractSedaActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(ExtractSedaActionHandler.getId());
         assertEquals(ExtractSedaActionHandler.getId(), HANDLER_ID);
-        
+
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -373,7 +376,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
-
+        
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
     }
@@ -502,6 +505,22 @@ public class ExtractSedaActionHandlerTest {
         action.addOutIOParameters(out);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestPhysicalDataObjectExtractSedaThenReadSuccess() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_PHYSICAL_DATA_OBJECT);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        action.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
 
     @Test

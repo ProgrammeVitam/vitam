@@ -51,6 +51,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
@@ -88,8 +89,11 @@ public class FormatIdentificationActionPluginTest {
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
+    private static final String OBJECT_GROUP_3 =
+        "formatIdentificationActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaaba.json";
     private final InputStream objectGroup;
     private final InputStream objectGroup2;
+    private final InputStream objectGroup3;
     private WorkspaceClientFactory workspaceClientFactory;
     private WorkspaceClient workspaceClient;
     private HandlerIOImpl handlerIO;
@@ -98,6 +102,7 @@ public class FormatIdentificationActionPluginTest {
     public FormatIdentificationActionPluginTest() throws FileNotFoundException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
         objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
+        objectGroup3 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_3);
     }
 
     @Before
@@ -125,8 +130,8 @@ public class FormatIdentificationActionPluginTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         when(identifierFactory.getFormatIdentifierFor(anyObject()))
             .thenThrow(new FormatIdentifierNotFoundException(""));
-        
-        plugin = new FormatIdentificationActionPlugin();        
+
+        plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
@@ -216,6 +221,30 @@ public class FormatIdentificationActionPluginTest {
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null))
             .thenReturn(new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest"), null, null));
+        doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
+
+        final AdminManagementClient adminManagementClient =
+            getMockedAdminManagementClient();
+
+        when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
+
+        plugin = new FormatIdentificationActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
+    }
+
+    @Test
+    public void formatIdentificationWithPhysicalDataObject() throws Exception {
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
+
+        when(workspaceClient.getObject(anyObject(), anyObject()))
+            .thenReturn(new FakeInboundResponse(Status.OK, objectGroup3, null, null))
+            .thenReturn(
+                new FakeInboundResponse(Status.OK, IOUtils.toInputStream("VitamTest", CharsetUtils.UTF8), null, null));
         doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
 
         final AdminManagementClient adminManagementClient =
@@ -380,7 +409,7 @@ public class FormatIdentificationActionPluginTest {
     private RequestResponse<FileFormatModel> getAdminManagementJson2Result() {
         return new RequestResponseOK<>();
     }
-    
+
 
     private void deleteFiles() {
         final String fileName1 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivurqaaaaq";
@@ -405,5 +434,5 @@ public class FormatIdentificationActionPluginTest {
         }
         handlerIO.partialClose();
     }
-    
+
 }
