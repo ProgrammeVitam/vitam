@@ -1,5 +1,5 @@
 /**
- * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * objectRequestResponseOK * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
  * <p>
@@ -26,26 +26,11 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Iterables;
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.common.FileUtil;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.assertj.core.api.Fail;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,6 +42,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang.StringUtils;
+import org.assertj.core.api.Fail;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Iterables;
+
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
 /**
  * step defining access glue
@@ -111,7 +117,13 @@ public class AccessStep {
         String rawCopy = transformToGuid(raw);
         String[] paths = rawCopy.split("\\.");
         for (String path : paths) {
-            lastJsonNode = lastJsonNode.get(path);
+            if (lastJsonNode.isArray()) {
+                if (StringUtils.isNumeric(path)) {
+                    lastJsonNode = lastJsonNode.get(Integer.valueOf(path));
+                }
+            } else {
+                lastJsonNode = lastJsonNode.get(path);
+            }
         }
 
         return JsonHandler.unprettyPrint(lastJsonNode);
@@ -148,7 +160,8 @@ public class AccessStep {
             and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId()))
                 .setDepthLimit(20));
         RequestResponse requestResponse =
-            world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId(),
+                world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             if (requestResponseOK.getHits().getTotal() == 0) {
@@ -168,7 +181,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field     field name
+     * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -230,7 +243,7 @@ public class AccessStep {
     @When("^je recherche les unités archivistiques$")
     public void search_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON, 
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
             world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -240,7 +253,6 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
-
 
     /**
      * update an archive unit according to the query define before
@@ -260,6 +272,57 @@ public class AccessStep {
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
+        }
+    }
+
+
+    /**
+     * Search an archive unit and retrieve object groups according to the query define before. Step 1 : request search
+     * unit with #object in projection. Step 2 : on each unit search object group.
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche les groupes d'objets des unités archivistiques$")
+    public void search_archive_unit_object_group() throws Throwable {
+        ObjectNode queryJSON = (ObjectNode) JsonHandler.getFromString(query);
+        // update projection to unsure object id is in projection
+        if (queryJSON.get("$projection") == null) {
+            queryJSON.set("$projection", JsonHandler.createObjectNode());
+        }
+        if (queryJSON.get("$projection").get("$fields") == null) {
+            ((ObjectNode) queryJSON.get("$projection")).set("$fields", JsonHandler.createObjectNode());
+        }
+        if (queryJSON.get("$projection").get("$fields").get("#object") == null) {
+            ((ObjectNode) queryJSON.get("$projection").get("$fields")).put("#object", 1);
+        }
+
+        // Search units
+        RequestResponse<JsonNode> requestResponseUnit = world.getAccessClient().selectUnits(queryJSON,
+            world.getTenantId(), world.getContractId());
+        if (requestResponseUnit.isOk()) {
+            RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) requestResponseUnit;
+            List<JsonNode> unitResults = responseOK.getResults();
+            RequestResponseOK<JsonNode> objectGroupsResponseOK = new RequestResponseOK<>();
+            for (JsonNode unitResult : unitResults) {
+                // search object group on unit
+                RequestResponse responseObjectGroup =
+                    world.getAccessClient().selectObjectById(new SelectMultiQuery().getFinalSelect(),
+                        unitResult.get("#id").asText(), world.getTenantId(), world.getContractId());
+                if (responseObjectGroup.isOk()) {
+                    List<JsonNode> objectGroupResults =
+                        ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
+                    if (objectGroupResults != null && !objectGroupResults.isEmpty()) {
+                        objectGroupsResponseOK.addAllResults(objectGroupResults);
+                    }
+                } else {
+                    VitamError vitamError = (VitamError) responseObjectGroup;
+                    Fail.fail("request selectObject return an error: " + vitamError.getCode());
+                }
+            }
+            results = objectGroupsResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponseUnit;
+            Fail.fail("request selectUnit for GOT return an error: " + vitamError.getCode());
         }
     }
 
@@ -292,7 +355,7 @@ public class AccessStep {
     public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().getAccessionRegisterDetail(originatingAgency, queryJSON, 
+            world.getAccessClient().getAccessionRegisterDetail(originatingAgency, queryJSON,
                 world.getTenantId(), world.getContractId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -306,8 +369,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename   name of the file to import or check
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
