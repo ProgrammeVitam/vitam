@@ -10,8 +10,6 @@ syslog_facility: local0
 
 # Composants colocalisés
 
-vitam_tenant_ids: [0]
-
 vitam_accessinternal_host: "access-internal.service.{{consul_domain}}"
 vitam_accessinternal_port: 8101
 vitam_accessinternal_port_admin: 28101
