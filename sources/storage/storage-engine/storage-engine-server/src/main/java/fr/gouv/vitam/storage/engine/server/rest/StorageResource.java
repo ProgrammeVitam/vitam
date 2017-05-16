@@ -442,6 +442,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (response != null) {
             return response;
         }
+        if (!DataCategory.OBJECT.canDelete()) {
+            return Response.status(Status.UNAUTHORIZED).entity(getErrorEntity(Status.UNAUTHORIZED)).build();
+        }
         response = checkDigestAlgorithmHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
@@ -587,7 +590,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param headers   http header
      * @param logbookId the id of the logbook
-     * @return Response NOT_IMPLEMENTED
+     * @return Response UNAUTHORIZED
      */
     @Path("/logbooks/{id_logbook}")
     @DELETE
@@ -598,7 +601,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (response != null) {
             return response;
         }
-        final Status status = Status.NOT_IMPLEMENTED;
+        Status status = Status.NOT_IMPLEMENTED;
+        if (!DataCategory.LOGBOOK.canDelete()) {
+            status = Status.UNAUTHORIZED;
+        }
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -712,7 +718,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (response != null) {
             return response;
         }
-        final Status status = Status.NOT_IMPLEMENTED;
+        Status status = Status.NOT_IMPLEMENTED;
+        if (!DataCategory.UNIT.canUpdate()) {
+            status = Status.UNAUTHORIZED;
+        }
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -732,7 +741,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (response != null) {
             return response;
         }
-        final Status status = Status.NOT_IMPLEMENTED;
+        Status status = Status.NOT_IMPLEMENTED;
+        if (!DataCategory.UNIT.canDelete()) {
+            status = Status.UNAUTHORIZED;
+        }
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -850,7 +862,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (response != null) {
             return response;
         }
-        final Status status = Status.NOT_IMPLEMENTED;
+        Status status = Status.NOT_IMPLEMENTED;
+        if (!DataCategory.OBJECT_GROUP.canUpdate()) {
+            status = Status.UNAUTHORIZED;
+        }
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 
@@ -872,7 +887,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (response != null) {
             return response;
         }
-        final Status status = Status.NOT_IMPLEMENTED;
+        Status status = Status.NOT_IMPLEMENTED;
+        if (!DataCategory.OBJECT_GROUP.canDelete()) {
+            status = Status.UNAUTHORIZED;
+        }
         return Response.status(status).entity(getErrorEntity(status)).build();
     }
 

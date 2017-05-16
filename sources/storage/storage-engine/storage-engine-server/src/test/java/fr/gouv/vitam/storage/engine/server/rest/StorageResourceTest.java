@@ -404,17 +404,17 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
                 .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
                 .body("").when().delete(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-                .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+                .statusCode(Status.UNAUTHORIZED.getStatusCode());
         // .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
                 .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
                 .body("").when().delete(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-                .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+                .statusCode(Status.UNAUTHORIZED.getStatusCode());
         // .statusCode(Status.NO_CONTENT.getStatusCode());
         given().contentType(ContentType.JSON)
                 .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E)
                 .body("").when().delete(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-                .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
+                .statusCode(Status.UNAUTHORIZED.getStatusCode());
         // .statusCode(Status.NOT_FOUND.getStatusCode());
 
         given().contentType(ContentType.JSON)
