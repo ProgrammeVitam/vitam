@@ -31,16 +31,11 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import cucumber.api.java.en.When;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class LogbookInternalStep {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalStep.class);
-
 
     private World world;
 
@@ -60,7 +55,6 @@ public class LogbookInternalStep {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 response = world.getLogbookOperationsClient().traceability();
                 String operationId = response.getResults().get(0).toString();
-                System.out.println("GANDALF" + operationId);
                 world.setOperationId(operationId);
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
