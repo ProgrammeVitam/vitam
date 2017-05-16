@@ -108,7 +108,10 @@ public enum VitamCode {
 
     PROFILE_FILE_IMPORT_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "10",
         Status.BAD_REQUEST,
-        "Request profile file import error");
+        "Request profile file import error"),
+    CONTRACT_NOT_FOUND_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "11",
+        Status.BAD_REQUEST,
+        "Contract not found for update");
 
     private final ServiceName service;
     private final DomainName domain;

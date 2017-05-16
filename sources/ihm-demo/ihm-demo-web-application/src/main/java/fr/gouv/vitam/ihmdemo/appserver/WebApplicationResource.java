@@ -162,6 +162,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String FLOW_TOTAL_CHUNKS_HEADER = "FLOW-TOTAL-CHUNKS";
     private static final String FLOW_CHUNK_NUMBER_HEADER = "FLOW-CHUNK-NUMBER";
     private static final String STATUS_FIELD_QUERY = "Status";
+    private static final String ARCHIVEPROFILES_FIELD_QUERY = "ArchiveProfiles";
     private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
     private static final String DEACTIVATION_DATE_FIELD_QUERY = "DeactivationDate";
     private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
@@ -1719,7 +1720,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Access contracts
      *
      * @param headers HTTP Headers
-     * @param unitId the id of unit
+     * @param contractId the id of ingest contract
      * @return Response
      */
     @POST
@@ -1727,11 +1728,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contracts:update")
-    public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String unitId,
+    public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
         Map<String, String> updateData) {
         try {
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
 
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
@@ -1741,22 +1742,38 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new VarNameAdapter());
-            SetAction setActionStatusActive =
-                UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY));
-            SetAction setActionDesactivationDateActive = null;
-            if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
-                setActionDesactivationDateActive =
-                    UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY, updateData.get(ACTIVATION_DATE_FIELD_QUERY));
-            } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
-                setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
-                    updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
+            Update updateStatusActive = new Update();
+
+
+            if (updateData.get(STATUS_FIELD_QUERY) != null) {
+                SetAction setActionStatusActive =
+                    UpdateActionHelper.set(STATUS_FIELD_QUERY, updateData.get(STATUS_FIELD_QUERY));
+
+                SetAction setActionDesactivationDateActive = null;
+                if (updateData.get(ACTIVATION_DATE_FIELD_QUERY) != null) {
+                    setActionDesactivationDateActive =
+                        UpdateActionHelper.set(ACTIVATION_DATE_FIELD_QUERY, updateData.get(ACTIVATION_DATE_FIELD_QUERY));
+                } else if (updateData.get(DEACTIVATION_DATE_FIELD_QUERY) != null) {
+                    setActionDesactivationDateActive = UpdateActionHelper.set(DEACTIVATION_DATE_FIELD_QUERY,
+                        updateData.get(DEACTIVATION_DATE_FIELD_QUERY));
+                }
+
+                updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive);
+
+            }
+
+            if (updateData.get(ARCHIVEPROFILES_FIELD_QUERY) != null) {
+                SetAction updateArchiveProfiles =
+                    UpdateActionHelper.set(ARCHIVEPROFILES_FIELD_QUERY, updateData.get(ARCHIVEPROFILES_FIELD_QUERY));
+                updateStatusActive.addActions(updateArchiveProfiles);
+
             }
             SetAction setActionLastUpdateActive =
                 UpdateActionHelper.set(LAST_UPDATE_FIELD_QUERY, updateData.get(LAST_UPDATE_FIELD_QUERY));
-            Update updateStatusActive = new Update();
             updateStatusActive.setQuery(QueryHelper.eq(NAME_FIELD_QUERY, updateData.get(NAME_FIELD_QUERY)));
-            updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-                setActionLastUpdateActive);
+
+
+            updateStatusActive.addActions(setActionLastUpdateActive);
             updateParserActive.parse(updateStatusActive.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
             final RequestResponse archiveDetails = adminClient.updateIngestContract(queryDsl, getTenantId(headers));
@@ -1883,7 +1900,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Upload Access contracts
      *
      * @param headers HTTP Headers
-     * @param unitId the id of unit
+     * @param contractId the id of access contract
      * @return Response
      */
     @POST
@@ -1891,11 +1908,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:update")
-    public Response updateAccessContracts(@Context HttpHeaders headers, @PathParam("id") String unitId,
+    public Response updateAccessContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
         Map<String, String> updateData) {
         try {
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(contractId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(updateData));
 
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {

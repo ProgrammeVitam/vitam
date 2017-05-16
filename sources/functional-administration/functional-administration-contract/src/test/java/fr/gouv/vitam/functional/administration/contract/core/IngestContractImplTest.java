@@ -53,7 +53,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 
 import org.bson.Document;
@@ -69,6 +72,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IngestContractImplTest {
 
 
+    private static MongoDbAccessAdminImpl dbImpl;
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
@@ -101,8 +105,9 @@ public class IngestContractImplTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         ingestContractService =
-            new IngestContractImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
+            new IngestContractImpl(dbImpl);
 
     }
 
@@ -147,6 +152,40 @@ public class IngestContractImplTest {
 
         assertThat(!response.isOk());
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractsTestProfileNotInDBReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_not_indb.json");
+        List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
+
+        assertThat(!response.isOk());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractsTestProfileInDBReturnOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
+
+        List<ProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
+
+        dbImpl.insertDocuments(JsonHandler.createArrayNode().add(JsonHandler.toJsonNode(profileModelList.iterator().next())), FunctionalAdminCollections.PROFILE);
+
+        File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_profile_indb.json");
+        List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+        RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
+
+        assertThat(response.isOk());
+        RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(1);
     }
 
     @Test

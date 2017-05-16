@@ -146,7 +146,7 @@ public final class GUIDObjectType {
     public static final int ACCESSION_REGISTER_SUMMARY_TYPE = 10;
 
     /**
-     * Accession register
+     * contract
      */
     public static final int INGEST_CONTRACT_TYPE = 11;
 

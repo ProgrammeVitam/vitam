@@ -89,7 +89,6 @@ public class AdminManagementExternalResourceImpl {
     private static final String CONTRACT_JSON_IS_MANDATORY_PATAMETER = "Contracts input file is mandatory";
     private static final String UPDATE_ACCESS_CONTRACT = "/accesscontract";
     private static final String UPDATE_INGEST_CONTRACT = "/contract";
-    private static final String PROFILE_URI = "/profiles";
 
     /**
      * Constructor
@@ -215,12 +214,19 @@ public class AdminManagementExternalResourceImpl {
      * @param profileFile inputStream representing the data to import
      * @return The jaxRs Response
      */
-    @Path(PROFILE_URI + "/{id}")
+    @Path("/{collection}/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("id") String profileMetadataId,
+    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
+
+        if (!AdminCollections.PROFILE.compareTo(collection)) {
+            LOGGER.error("Endpoint accept only profiles");
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, "Endpoint accept only profiles", null)).build();
+        }
+
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
@@ -252,10 +258,16 @@ public class AdminManagementExternalResourceImpl {
 
 
     @GET
-    @Path(PROFILE_URI + "/{id}")
+    @Path("/{collection}/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFile(@PathParam("id") String profileMetadataId,
+    public void downloadProfileFile(@PathParam("collection") String collection, @PathParam("id") String profileMetadataId,
         @Suspended final AsyncResponse asyncResponse) {
+
+        if (!AdminCollections.PROFILE.compareTo(collection)) {
+            LOGGER.error("Endpoint accept only profiles");
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR)
+                .toString()).build());
+        }
 
         ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
 
@@ -426,7 +438,6 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/{collection}/{id_document}")
     @POST
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocumentByID(@PathParam("collection") String collection, @PathParam("id_document") String documentId, @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride) {
 
@@ -521,8 +532,13 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse<AccessContractModel> response = client.updateAccessContract(queryDsl);
-                return Response.status(Status.OK).entity(response).build();
+                RequestResponse response = client.updateAccessContract(queryDsl);
+                if (response.isOk()) {
+                    return Response.status(Status.OK).entity(response).build();
+                } else {
+                    final VitamError error = (VitamError)response;
+                    return Response.status(error.getHttpCode()).entity(response).build();
+                }
             }
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
@@ -549,8 +565,13 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse<IngestContractModel> response = client.updateIngestContract(queryDsl);
-                return Response.status(Status.OK).entity(response).build();
+                RequestResponse response = client.updateIngestContract(queryDsl);
+                if (response.isOk()) {
+                    return Response.status(Status.OK).entity(response).build();
+                } else {
+                    final VitamError error = (VitamError)response;
+                    return Response.status(error.getHttpCode()).entity(response).build();
+                }
             }
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
