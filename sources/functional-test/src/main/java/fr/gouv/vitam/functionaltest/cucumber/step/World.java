@@ -59,7 +59,7 @@ public class World {
     public static final String TNR_BASE_DIRECTORY = "tnrBaseDirectory";
 
     private static final String TNR_CONF = "tnr.conf";
-    public static final String DEFAULT_ACCESS_CONTRACT_NAME = "SIA archives nationales";
+    public static final String DEFAULT_ACCESS_CONTRACT_NAME = "ContratTNR";
 
 
     private int tenantId;

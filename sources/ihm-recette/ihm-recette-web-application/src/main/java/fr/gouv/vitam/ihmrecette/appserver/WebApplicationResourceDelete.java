@@ -245,6 +245,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteAccessionRegister() {
+        return deleteRegister();
+    }
+
+    private Response deleteRegister() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -312,6 +316,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookOperation() {
+        return deleteLogBook();
+    }
+
+    private Response deleteLogBook() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -361,6 +369,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleOG() {
+        return deleteLifecycleOg();
+    }
+
+    private Response deleteLifecycleOg() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -398,6 +410,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteLogbookLifecycleUnit() {
+        return deleteLifecycleUnits();
+    }
+
+    private Response deleteLifecycleUnits() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -435,6 +451,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataObjectGroup() {
+        return deleteMetadataOg();
+    }
+
+    private Response deleteMetadataOg() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -472,6 +492,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMetadataUnit() {
+        return deleteMetadataUnits();
+    }
+
+    private Response deleteMetadataUnits() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -560,6 +584,35 @@ public class WebApplicationResourceDelete {
     }
 
     /**
+     * @deprecated
+     *
+     * Delete for tnr
+     * use only for tnr
+     */
+    @Path("deleteTnr")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response purgeDataForTnr() {
+        Response response = deleteLogBook();
+        response.close();
+        response = deleteContract(FunctionalAdminCollections.INGEST_CONTRACT);
+        response.close();
+        response = deleteContract(FunctionalAdminCollections.ACCESS_CONTRACT);
+        response.close();
+        response = deleteLifecycleUnits();
+        response.close();
+        response = deleteLifecycleOg();
+        response.close();
+        response = deleteMetadataOg();
+        response.close();
+        response = deleteMetadataUnits();
+        response.close();
+        response = deleteAccessionRegister();
+        response.close();
+        return Response.status(Status.OK).build();
+    }
+
+    /**
      * Delete all collection in database
      *
      * @return Response
@@ -633,7 +686,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
         try {
             mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             helper.updateDelegate(parameters);
@@ -667,7 +720,7 @@ public class WebApplicationResourceDelete {
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_LOGBOOK_OPERATION)
             .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK));
+            VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK));
         try {
             mongoDbAccessLogbook.deleteCollection(LogbookCollections.OPERATION);
             helper.updateDelegate(parameters);

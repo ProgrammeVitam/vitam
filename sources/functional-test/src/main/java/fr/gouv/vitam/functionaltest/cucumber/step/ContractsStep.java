@@ -27,25 +27,7 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import org.assertj.core.api.Fail;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -53,12 +35,25 @@ import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 
 public class ContractsStep {
 
@@ -99,7 +94,7 @@ public class ContractsStep {
 
     /**
      * define a sip
-     * 
+     *
      * @param fileName name of a sip
      */
     @Given("^un contract nommé (.*)$")
@@ -115,8 +110,30 @@ public class ContractsStep {
      * @throws IngestExternalException
      */
     @Then("^j'importe ce contrat de type (.*)")
-    public void upload_contract(String type)
-        throws IOException {
+    public void upload_contract(String type) throws IOException {
+        try {
+            uploadContract(type);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            fail("should not produce an exception"+e);
+        }
+    }
+
+    /**
+     * Tentative d'import d'un contrat si jamais il n'existe pas
+     * @param type
+     * @throws IOException
+     */
+    @Then("^j'importe ce contrat sans échec de type (.*)")
+    public void upload_contract_without_fail(String type) throws IOException {
+        try {
+            uploadContract(type);
+        } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
+            //catch nothing
+        }
+    }
+
+    private void uploadContract(String type)
+        throws IOException, InvalidParseOperationException, AccessExternalClientException {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             AdminCollections collection = AdminCollections.valueOf(type);
@@ -124,14 +141,12 @@ public class ContractsStep {
             RequestResponse response =
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
             assertThat(response instanceof RequestResponseOK);
-        } catch (AccessExternalClientException | InvalidParseOperationException e) {
-            Fail.fail("Unable to import " + fileName + e.getStackTrace());
         }
     }
 
     /**
      * Upload a contract that will lead to an error
-     * 
+     *
      * @param type the type of contract
      * @throws IOException
      * @throws IngestExternalException
@@ -146,7 +161,7 @@ public class ContractsStep {
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
             assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
         } catch (Exception e) {
-            fail("should not produce an exception");
+            fail("should not produce an exception"+e);
         }
     }
 
