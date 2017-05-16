@@ -55,7 +55,12 @@ public enum DataCategory {
     /**
      * Manitesf.xml from a SIP
      */
-    MANIFEST("manifest", false, false);
+    MANIFEST("manifest", false, false),
+
+    /**
+     * Profile xsd, rng, ...
+     */
+    PROFILE("profile", false, false);
 
     /**
      * Folder

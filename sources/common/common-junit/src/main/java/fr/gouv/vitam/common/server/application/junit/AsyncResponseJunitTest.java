@@ -41,9 +41,13 @@ import fr.gouv.vitam.common.SingletonUtils;
  */
 public class AsyncResponseJunitTest implements AsyncResponse {
 
+    boolean done = false;
     @Override
     public boolean resume(Object response) {
-        return false;
+        if (null != response) {
+            done =  true;
+        }
+        return done;
     }
 
     @Override
@@ -78,7 +82,7 @@ public class AsyncResponseJunitTest implements AsyncResponse {
 
     @Override
     public boolean isDone() {
-        return false;
+        return done;
     }
 
     @Override

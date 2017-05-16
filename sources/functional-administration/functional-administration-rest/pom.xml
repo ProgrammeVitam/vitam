@@ -97,7 +97,12 @@
 			<groupId>org.assertj</groupId>
 			<artifactId>assertj-core</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>functional-administration-profile</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<pluginManagement>

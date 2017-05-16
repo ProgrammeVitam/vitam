@@ -94,7 +94,9 @@ public class StorageResourceTest {
     private static final String REST_URI = "/storage/v1";
     private static final String OBJECTS_URI = "/objects";
     private static final String REPORTS_URI = "/reports";
+    private static final String PROFILE_URI = "/profiles";
     private static final String OBJECT_ID_URI = "/{id_object}";
+    private static final String PROFILE_ID_URI = "/{profile_file_name}";
     private static final String REPORT_ID_URI = "/{id_report}";
     private static final String LOGBOOKS_URI = "/logbooks";
     private static final String LOGBOOK_ID_URI = "/{id_logbook}";
@@ -318,6 +320,31 @@ public class StorageResourceTest {
                 .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+
+    @Test
+    public final void testProfileCreation() {
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+        createObjectDescription.setWorkspaceObjectURI("mm");
+        createObjectDescription.setWorkspaceContainerGUID("mm");
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .body(createObjectDescription).when().post(PROFILE_URI + PROFILE_ID_URI, ID_O1).then()
+            .statusCode(Status.CREATED.getStatusCode());
+        given().contentType(ContentType.JSON).body(createObjectDescription).when().post(PROFILE_URI + PROFILE_ID_URI, ID_O1)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when().post(PROFILE_URI + PROFILE_ID_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().post(PROFILE_URI + PROFILE_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
     @Test
     public final void testObjectNotFound() {
         final ObjectDescription createObjectDescription = new ObjectDescription();
@@ -478,6 +505,23 @@ public class StorageResourceTest {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
                 .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
                 .when().get(REPORTS_URI + REPORT_ID_URI, "id0").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void getProfileOk() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(PROFILE_URI + PROFILE_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(PROFILE_URI + PROFILE_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(PROFILE_URI + PROFILE_ID_URI, "id0").then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(PROFILE_URI + PROFILE_ID_URI, "id0").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test

@@ -1101,6 +1101,51 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
+
+    /**
+     * Post a new object
+     *
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
+     * @param profileFileName         the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    // header (X-Requester)
+    @Path("/profiles/{profile_file_name}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createProfileOrGetInformation(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("profile_file_name") String profileFileName, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, profileFileName, createObjectDescription, DataCategory.PROFILE,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, profileFileName);
+        }
+    }
+
+    /**
+     * Get a report
+     *
+     * @param headers       http header
+     * @param profileFileName    the id of the object
+     * @param asyncResponse
+     * @throws IOException throws an IO Exception
+     */
+    @Path("/profiles/{profile_file_name}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
+    public void downloadProfile(@Context HttpHeaders headers, @PathParam("profile_file_name") String profileFileName,
+        @Suspended final AsyncResponse asyncResponse) throws IOException {
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(
+            () -> getByCategoryAsync(profileFileName, headers, DataCategory.PROFILE, asyncResponse));
+
+    }
+
     /**
      * @param headers http headers
      * @return null if strategy and tenant headers have values, a VitamCode

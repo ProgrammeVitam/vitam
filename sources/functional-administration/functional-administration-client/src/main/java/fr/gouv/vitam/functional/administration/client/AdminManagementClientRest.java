@@ -31,11 +31,13 @@ import java.util.List;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -43,6 +45,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -55,6 +58,7 @@ import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDet
 import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
@@ -62,6 +66,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 
@@ -87,6 +92,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
     private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontract";
     private static final String UPDATE_INGEST_CONTRACT_URI = "/contract";
+    private static final String PROFILE_URI = "/profiles";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -640,6 +646,152 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
                 if (resp.getResults() == null || resp.getResults().size() == 0)
                     throw new ReferentialNotFoundException("Ingest contract not found with id: " + documentId);
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Status createProfiles(List<ProfileModel> profileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input profile json is mandatory", profileModelList);
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, PROFILE_URI, null,
+                profileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            return status;
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Status importProfileFile(String profileMetadataId, InputStream stream)
+        throws ReferentialException {
+
+        ParametersChecker.checkParameter("The input profile stream is mandatory", stream);
+        ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, PROFILE_URI + "/" + profileMetadataId , null,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            return status;
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response downloadProfileFile(String profileMetadataId)
+        throws AdminManagementClientServerException, ProfileNotFoundException {
+        ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
+
+        Response response = null;
+
+        Status status = Status.BAD_REQUEST;
+        try {
+            response = performRequest(HttpMethod.GET, PROFILE_URI +"/"+ profileMetadataId , null, null,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case INTERNAL_SERVER_ERROR:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR);
+                case NOT_FOUND:
+                    throw new ProfileNotFoundException(status.getReasonPhrase());
+                case OK:
+                    break;
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new AdminManagementClientServerException(
+                        INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+            }
+            return response;
+        } catch (final VitamClientInternalException e) {
+            throw new AdminManagementClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } finally {
+            if (status != Status.OK) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfiles(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, PROFILE_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    ProfileModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfilesByID(String documentId)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input documentId json is mandatory", documentId);
+        Response response = null;
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle(new VarNameAdapter());
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq("#id", documentId));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+
+            response = performRequest(HttpMethod.GET, PROFILE_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<ProfileModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        ProfileModel.class);
+
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Profile not found with id: " + documentId);
 
                 return resp;
             }

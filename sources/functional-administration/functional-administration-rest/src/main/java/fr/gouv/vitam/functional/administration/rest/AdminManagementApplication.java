@@ -32,6 +32,7 @@ import static java.lang.String.format;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.glassfish.jersey.server.ResourceConfig;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -48,7 +49,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 /**
  * Admin management web application
  */
-public final class AdminManagementApplication
+public class AdminManagementApplication
     extends AbstractVitamApplication<AdminManagementApplication, AdminManagementConfiguration> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementApplication.class);
@@ -104,12 +105,17 @@ public final class AdminManagementApplication
         serviceRegistry
             .register(LogbookOperationsClientFactory.getInstance())
             .register(resource.getLogbookDbAccess());
+        // TODO: 5/12/17 dependency to workspace, metadata, storage
+
 
         final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
+        final ProfileResource profileResource = new ProfileResource(getConfiguration(), mongoDbAccess);
+
 
         resourceConfig
             .register(resource)
-            .register(new ContractResource(mongoDbAccess));
+            .register(new ContractResource(mongoDbAccess))
+            .register(profileResource);
     }
 
     @Override

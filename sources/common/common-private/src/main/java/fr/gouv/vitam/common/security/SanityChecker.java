@@ -159,6 +159,25 @@ public class SanityChecker {
     }
 
     /**
+     * Sabitize the json
+     * @param json
+     * @return sanitized json as String
+     * @throws InvalidParseOperationException
+     */
+    public static final String sanitizeJson(JsonNode json) throws InvalidParseOperationException {
+        if (json == null) {
+            return "";
+        }
+        final String jsonish = JsonHandler.writeAsString(json);
+        try {
+            return JsonSanitizer.sanitize(jsonish);
+        } catch (final RuntimeException e) {
+            throw new InvalidParseOperationException(JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK, e);
+        }
+    }
+
+
+    /**
      * checkJsonAll : Check sanity of json : size, invalid tag
      *
      * @param json as JsonNode

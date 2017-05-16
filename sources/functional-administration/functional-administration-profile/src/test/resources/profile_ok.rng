@@ -1,0 +1,760 @@
+<?xml version='1.0' encoding='utf-8' standalone='no'?>
+<rng:grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns:rng="http://relaxng.org/ns/structure/1.0" xmlns:seda="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes" ns="fr:gouv:culture:archivesdefrance:seda:v2.0">
+  <rng:start>
+    <rng:element name="ArchiveTransfer">
+      <rng:zeroOrMore>
+        <rng:attribute>
+          <rng:anyName>
+            <rng:except>
+              <rng:nsName/>
+              <rng:nsName ns=""/>
+            </rng:except>
+          </rng:anyName>
+        </rng:attribute>
+      </rng:zeroOrMore>
+      <rng:optional>
+        <rng:attribute name="id">
+          <rng:data type="ID"/>
+        </rng:attribute>
+      </rng:optional>
+      <rng:element name="Comment">
+        <rng:value type="string">Transfert des enregistrements sonores  des délibérations de l'assemblée départementale</rng:value>
+      </rng:element>
+      <rng:element name="Date">
+        <rng:data type="dateTime"/>
+      </rng:element>
+      <rng:element name="MessageIdentifier">
+        <rng:optional>
+          <rng:attribute name="schemeDataURI">
+            <rng:data type="anyURI"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeID">
+            <rng:data type="token"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeAgencyName">
+            <rng:data type="string"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeAgencyID">
+            <rng:data type="token"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeName">
+            <rng:data type="string"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeVersionID">
+            <rng:data type="token"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeURI">
+            <rng:data type="anyURI"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:data type="token"/>
+      </rng:element>
+      <rng:optional>
+        <rng:element name="ArchivalAgreement">
+          <rng:optional>
+            <rng:attribute name="schemeDataURI">
+              <rng:data type="anyURI"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:optional>
+            <rng:attribute name="schemeID">
+              <rng:data type="token"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:optional>
+            <rng:attribute name="schemeAgencyName">
+              <rng:data type="string"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:optional>
+            <rng:attribute name="schemeAgencyID">
+              <rng:data type="token"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:optional>
+            <rng:attribute name="schemeName">
+              <rng:data type="string"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:optional>
+            <rng:attribute name="schemeVersionID">
+              <rng:data type="token"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:optional>
+            <rng:attribute name="schemeURI">
+              <rng:data type="anyURI"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:value type="token">ACCORD_SONORE</rng:value>
+        </rng:element>
+      </rng:optional>
+      <rng:element name="CodeListVersions">
+        <rng:optional>
+          <rng:attribute name="id">
+            <rng:data type="ID"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="MessageDigestAlgorithmCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/154187</rng:value>
+          </rng:element>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="MimeTypeCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/6336</rng:value>
+          </rng:element>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="EncodingCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/10338</rng:value>
+          </rng:element>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="FileFormatCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/10339</rng:value>
+          </rng:element>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="AppraisalRuleCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/6333</rng:value>
+          </rng:element>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="AccessRuleCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/6334</rng:value>
+          </rng:element>
+        </rng:optional>
+        <rng:optional>
+          <rng:element name="DisseminationRuleCodeListVersion">
+            <rng:optional>
+              <rng:attribute name="listName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listSchemeURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listAgencyName">
+                <rng:data type="string"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listURI">
+                <rng:data type="anyURI"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:optional>
+              <rng:attribute name="listVersionID">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:optional>
+            <rng:value type="token">https://demo.logilab.fr/seda/154186</rng:value>
+          </rng:element>
+        </rng:optional>
+      </rng:element>
+      <rng:element name="DataObjectPackage">
+        <rng:optional>
+          <rng:attribute name="id">
+            <rng:data type="ID"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:group>
+          <rng:element name="BinaryDataObject">
+            <xsd:annotation>
+              <xsd:documentation>Enregistrement du + date 2</xsd:documentation>
+            </xsd:annotation>
+            <rng:attribute name="id" seda:profid="id183325">
+              <rng:data type="ID"/>
+            </rng:attribute>
+            <rng:choice>
+              <rng:element name="Uri">
+                <rng:data type="anyURI"/>
+              </rng:element>
+            </rng:choice>
+            <rng:element name="MessageDigest">
+              <rng:choice>
+                <rng:data type="base64Binary"/>
+                <rng:data type="hexBinary"/>
+              </rng:choice>
+              <rng:attribute name="algorithm">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:element>
+            <rng:element name="Size">
+              <rng:data type="positiveInteger"/>
+            </rng:element>
+            <rng:element name="FormatIdentification">
+              <rng:text/>
+            </rng:element>
+          </rng:element>
+          <rng:element name="BinaryDataObject">
+            <xsd:annotation>
+              <xsd:documentation>Enregistrement du + date</xsd:documentation>
+            </xsd:annotation>
+            <rng:attribute name="id" seda:profid="id172768">
+              <rng:data type="ID"/>
+            </rng:attribute>
+            <rng:choice>
+              <rng:element name="Uri">
+                <rng:data type="anyURI"/>
+              </rng:element>
+            </rng:choice>
+            <rng:element name="MessageDigest">
+              <rng:choice>
+                <rng:data type="base64Binary"/>
+                <rng:data type="hexBinary"/>
+              </rng:choice>
+              <rng:attribute name="algorithm">
+                <rng:data type="token"/>
+              </rng:attribute>
+            </rng:element>
+            <rng:element name="Size">
+              <rng:data type="positiveInteger"/>
+            </rng:element>
+            <rng:element name="FormatIdentification">
+              <rng:element name="FormatLitteral">
+                <rng:value type="string">MP3</rng:value>
+              </rng:element>
+            </rng:element>
+          </rng:element>
+        </rng:group>
+        <rng:element name="DescriptiveMetadata">
+          <rng:element name="ArchiveUnit">
+            <xsd:annotation>
+              <xsd:documentation>session du JJ au JJ MM AAAA</xsd:documentation>
+            </xsd:annotation>
+            <rng:attribute name="id" seda:profid="id172745">
+              <rng:data type="ID"/>
+            </rng:attribute>
+            <rng:choice>
+              <rng:group>
+                <rng:optional>
+                  <rng:element name="Management">
+                    <rng:element name="AppraisalRule">
+                      <rng:group>
+                        <rng:element name="Rule">
+                          <rng:value type="token">P20Y</rng:value>
+                        </rng:element>
+                      </rng:group>
+                      <rng:choice>
+                        <rng:element name="PreventInheritance">
+                          <rng:value type="boolean">true</rng:value>
+                        </rng:element>
+                      </rng:choice>
+                      <rng:element name="FinalAction">
+                        <rng:value type="token">Destroy</rng:value>
+                      </rng:element>
+                    </rng:element>
+                    <rng:element name="AccessRule">
+                      <rng:group>
+                        <rng:element name="Rule">
+                          <rng:value type="token">AR059</rng:value>
+                        </rng:element>
+                        <rng:element name="StartDate">
+                          <rng:data type="date"/>
+                        </rng:element>
+                      </rng:group>
+                      <rng:choice>
+                        <rng:element name="RefNonRuleId">
+                          <rng:value type="token">AR038</rng:value>
+                        </rng:element>
+                      </rng:choice>
+                    </rng:element>
+                  </rng:element>
+                </rng:optional>
+                <rng:element name="Content">
+                  <rng:element name="DescriptionLevel">
+                    <rng:value type="token">RecordGrp</rng:value>
+                  </rng:element>
+                  <rng:element name="Title">
+                    <rng:data type="string"/>
+                  </rng:element>
+                  <rng:element name="Description">
+                    <rng:value type="string">Ces enregistrements sonores sont réalisés  dans le but d'une transcription dans le procès-verbal de la session.</rng:value>
+                  </rng:element>
+                  <rng:optional>
+                    <rng:element name="CustodialHistory">
+                      <rng:element name="CustodialHistoryItem">
+                        <rng:value type="string">Ces enregistrements sont transférés à l'initiative  du service de l'assemblée directement vers le SAE internalisé pour  conservation patrimoniale.</rng:value>
+                      </rng:element>
+                    </rng:element>
+                  </rng:optional>
+                  <rng:element name="Language">
+                    <rng:value type="language">fra</rng:value>
+                  </rng:element>
+                  <rng:element name="Keyword">
+                    <rng:optional>
+                      <rng:attribute name="id">
+                        <rng:data type="ID"/>
+                      </rng:attribute>
+                    </rng:optional>
+                    <rng:element name="KeywordContent">
+                      <rng:value type="string">Organe délibérant</rng:value>
+                    </rng:element>
+                  </rng:element>
+                  <rng:element name="OriginatingAgency">
+                    <rng:element name="Identifier">
+                      <rng:value>https://demo.logilab.fr/seda/157118</rng:value>
+                    </rng:element>
+                  </rng:element>
+                  <rng:element name="StartDate">
+                    <rng:choice>
+                      <rng:data type="date"/>
+                      <rng:data type="dateTime"/>
+                    </rng:choice>
+                  </rng:element>
+                  <rng:element name="EndDate">
+                    <rng:choice>
+                      <rng:data type="date"/>
+                      <rng:data type="dateTime"/>
+                    </rng:choice>
+                  </rng:element>
+                </rng:element>
+                <rng:element name="ArchiveUnit">
+                  <xsd:annotation>
+                    <xsd:documentation>journée du JJ MM AAAA 2</xsd:documentation>
+                  </xsd:annotation>
+                  <rng:attribute name="id" seda:profid="id183322">
+                    <rng:data type="ID"/>
+                  </rng:attribute>
+                  <rng:choice>
+                    <rng:group>
+                      <rng:element name="Content">
+                        <rng:element name="DescriptionLevel">
+                          <rng:value type="token">RecordGrp</rng:value>
+                        </rng:element>
+                        <rng:oneOrMore>
+                          <rng:element name="Title">
+                            <rng:data type="string"/>
+                          </rng:element>
+                        </rng:oneOrMore>
+                      </rng:element>
+                      <rng:element name="DataObjectReference">
+                        <rng:optional>
+                          <rng:attribute name="id">
+                            <rng:data type="ID"/>
+                          </rng:attribute>
+                        </rng:optional>
+                        <rng:element name="DataObjectReferenceId" a:defaultValue="id183325">
+                          <rng:data type="NCName"/>
+                        </rng:element>
+                      </rng:element>
+                    </rng:group>
+                  </rng:choice>
+                </rng:element>
+                <rng:element name="ArchiveUnit">
+                  <xsd:annotation>
+                    <xsd:documentation>journée du JJ MM AAAA</xsd:documentation>
+                  </xsd:annotation>
+                  <rng:attribute name="id" seda:profid="id172757">
+                    <rng:data type="ID"/>
+                  </rng:attribute>
+                  <rng:choice>
+                    <rng:group>
+                      <rng:element name="Content">
+                        <rng:element name="DescriptionLevel">
+                          <rng:value type="token">File</rng:value>
+                        </rng:element>
+                        <rng:element name="Title">
+                          <rng:data type="string"/>
+                        </rng:element>
+                        <rng:element name="StartDate">
+                          <rng:choice>
+                            <rng:data type="date"/>
+                            <rng:data type="dateTime"/>
+                          </rng:choice>
+                        </rng:element>
+                        <rng:element name="EndDate">
+                          <rng:choice>
+                            <rng:data type="date"/>
+                            <rng:data type="dateTime"/>
+                          </rng:choice>
+                        </rng:element>
+                        <rng:element name="Event">
+                          <rng:element name="EventIdentifier">
+                            <rng:data type="token"/>
+                          </rng:element>
+                          <rng:element name="EventType">
+                            <rng:value type="token">Created</rng:value>
+                          </rng:element>
+                          <rng:element name="EventDateTime">
+                            <rng:data type="dateTime"/>
+                          </rng:element>
+                          <rng:element name="EventDetail">
+                            <rng:data type="string"/>
+                          </rng:element>
+                        </rng:element>
+                      </rng:element>
+                      <rng:element name="DataObjectReference">
+                        <rng:optional>
+                          <rng:attribute name="id">
+                            <rng:data type="ID"/>
+                          </rng:attribute>
+                        </rng:optional>
+                        <rng:element name="DataObjectReferenceId" a:defaultValue="id172768">
+                          <rng:data type="NCName"/>
+                        </rng:element>
+                      </rng:element>
+                    </rng:group>
+                  </rng:choice>
+                </rng:element>
+              </rng:group>
+            </rng:choice>
+          </rng:element>
+        </rng:element>
+        <rng:element name="ManagementMetadata">
+          <rng:optional>
+            <rng:attribute name="id">
+              <rng:data type="ID"/>
+            </rng:attribute>
+          </rng:optional>
+          <rng:element name="AppraisalRule">
+            <rng:group>
+              <rng:element name="Rule">
+                <rng:value type="token">P02Y</rng:value>
+              </rng:element>
+            </rng:group>
+            <rng:element name="FinalAction">
+              <rng:value type="token">Keep</rng:value>
+            </rng:element>
+          </rng:element>
+          <rng:element name="AccessRule">
+            <rng:group>
+              <rng:element name="Rule">
+                <rng:value type="token">AR038</rng:value>
+              </rng:element>
+            </rng:group>
+          </rng:element>
+          <rng:element name="DisseminationRule">
+            <rng:group>
+              <rng:element name="Rule">
+                <rng:value type="token">Délai mise en ligne - 75 ans sans mention marginale / 100 ans- Naissance</rng:value>
+              </rng:element>
+            </rng:group>
+          </rng:element>
+          <rng:element name="ReuseRule">
+            <rng:group>
+              <rng:element name="Rule">
+                <rng:optional>
+                  <rng:attribute name="id">
+                    <rng:data type="ID"/>
+                  </rng:attribute>
+                </rng:optional>
+                <rng:data type="token"/>
+              </rng:element>
+            </rng:group>
+          </rng:element>
+          <rng:optional>
+            <rng:element name="ClassificationRule">
+              <rng:element name="ClassificationLevel">
+                <rng:value type="token">Confidentiel-Défense</rng:value>
+              </rng:element>
+              <rng:element name="ClassificationOwner">
+                <rng:data type="token"/>
+              </rng:element>
+            </rng:element>
+          </rng:optional>
+          <rng:element name="NeedAuthorization">
+            <rng:value type="boolean">true</rng:value>
+          </rng:element>
+        </rng:element>
+      </rng:element>
+      <rng:element name="RelatedTransferReference">
+        <rng:optional>
+          <rng:attribute name="schemeDataURI">
+            <rng:data type="anyURI"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeID">
+            <rng:data type="token"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeAgencyName">
+            <rng:data type="string"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeAgencyID">
+            <rng:data type="token"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeName">
+            <rng:data type="string"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeVersionID">
+            <rng:data type="token"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:optional>
+          <rng:attribute name="schemeURI">
+            <rng:data type="anyURI"/>
+          </rng:attribute>
+        </rng:optional>
+        <rng:data type="token"/>
+      </rng:element>
+      <rng:element name="ArchivalAgency">
+        <rng:element name="Identifier">
+          <rng:value>https://demo.logilab.fr/seda/157116</rng:value>
+        </rng:element>
+      </rng:element>
+      <rng:element name="TransferringAgency">
+        <rng:element name="Identifier">
+          <rng:value>https://demo.logilab.fr/seda/157118</rng:value>
+        </rng:element>
+      </rng:element>
+    </rng:element>
+  </rng:start>
+  <rng:define name="OpenType">
+    <rng:zeroOrMore>
+      <rng:element>
+        <rng:anyName/>
+        <rng:zeroOrMore>
+          <rng:attribute>
+            <rng:anyName/>
+          </rng:attribute>
+        </rng:zeroOrMore>
+      </rng:element>
+    </rng:zeroOrMore>
+  </rng:define>
+</rng:grammar>

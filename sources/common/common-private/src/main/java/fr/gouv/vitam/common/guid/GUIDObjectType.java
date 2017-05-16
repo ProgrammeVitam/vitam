@@ -150,6 +150,12 @@ public final class GUIDObjectType {
      */
     public static final int INGEST_CONTRACT_TYPE = 11;
 
+
+    /**
+     * Profile
+     */
+    public static final int PROFILE_TYPE = 12;
+
     private GUIDObjectType() {
         // empty
     }

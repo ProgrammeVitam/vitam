@@ -1,11 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -13,7 +8,14 @@ import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 
 /**
  * Mock client implementation for Admin External
@@ -83,6 +85,24 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
+    }
+
+    @Override
+    public RequestResponse createProfiles(InputStream profiles, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(Status.CREATED.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse importProfileFile(String profileMetadataId, InputStream profile, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+    }
+
+    @Override
+    public Response downloadProfileFile(String profileMetadataId) throws AccessExternalClientException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
 }

@@ -137,6 +137,18 @@ public class ClientMockResultHelper {
             "\"ActivationDate\":\"2016-11-02\", " +
             "\"DeactivationDate\":\"2016-11-02\"}";
 
+    public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+        "\"_tenant\":0, " +
+        "\"Identifier\":\"FAKE_IDENTIFIER\", " +
+        "\"Name\":\"Un Profile\", " +
+        "\"Description\":\"DESCRIPTION D'UN PROFILE\", " +
+        "\"Status\":\"ACTIVE\", " +
+        "\"Format\":\"XSD\", " +
+        "\"CreationDate\":\"2016-11-02\", " +
+        "\"LastUpdate\":\"2016-11-02\", " +
+        "\"ActivationDate\":\"2016-11-02\", " +
+        "\"DeactivationDate\":\"2016-11-02\"}";
+
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
             "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
             "\"VersionPronom\":\"84\", " +
@@ -333,6 +345,21 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * @param s the original object to be included in response
+     * @param statuscode status to be returned
+     * @return a default response
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
+        RequestResponseOK responseOK =  new RequestResponseOK()
+            .setHits(1, 0, 1)
+            .setQuery(null);
+        if (null != s)
+            responseOK.addResult(JsonHandler.getFromString(s));
+        return responseOK.setHttpCode(statuscode);
+    }
+
+    /**
      *
      * @return a default Access Register Summary
      * @throws InvalidParseOperationException
@@ -383,6 +410,13 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getAccessContracts() throws InvalidParseOperationException {
         return createReponse(ACCESS_CONTRACTS);
+    }
+
+
+
+
+    public static RequestResponse getProfiles(int statusCode)throws InvalidParseOperationException {
+        return createReponse(PROFILES, statusCode);
     }
 
     /**
@@ -465,5 +499,4 @@ public class ClientMockResultHelper {
     public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
         return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
     }
-
 }

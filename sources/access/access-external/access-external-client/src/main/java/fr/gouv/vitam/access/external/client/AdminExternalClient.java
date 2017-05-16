@@ -26,12 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -39,6 +34,10 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 
 /**
  * Admin External Client Interface
@@ -147,4 +146,49 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse updateIngestContract(JsonNode queryDsl, Integer tenantId)
         throws InvalidParseOperationException, AccessExternalClientException;
 
+
+    /**
+     * Create a profile metadata after passing the validation steps.
+     * If profile are json and valid, they are stored in the collection and indexed.
+     * </BR> The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json of file is invalid</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>Profile already exist in the database</li>
+     * </ul>
+     *
+     * @param profiles as Json InputStream
+     * @param tenantId
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createProfiles(InputStream profiles, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+
+    /**
+     * Save profile file (xsd, rng, ...) corresponding to the profile metadata.
+     * As the id of profile metadata is required, this method should be called after creation of profile metadata
+     *
+     * The profile file will be saved in storage with the name of id of profile metadata
+     *
+     * @param profileMetadataId
+     * @param profile as InputStream
+     * @param tenantId
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse importProfileFile(String profileMetadataId, InputStream profile, Integer tenantId)
+        throws InvalidParseOperationException, AccessExternalClientException;
+
+
+    /**
+     * Download the profile file according to profileMetadataId
+     * @param profileMetadataId
+     * @return
+     */
+    Response downloadProfileFile(String profileMetadataId) throws AccessExternalClientException;
 }

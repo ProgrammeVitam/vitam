@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -41,7 +42,9 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -50,7 +53,10 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.functional.administration.client.model.AccessContractModel;
+import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import org.assertj.core.api.Assertions;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -299,6 +305,41 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessContracts(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
+
+
+        @POST
+        @Path("/profiles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createProfiles(List<ProfileModel> accessContractModelList) {
+            return expectedResponse.post();
+        }
+
+        @PUT
+        @Path("/profiles/{id}")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importProfileFile(@PathParam("id") String profileMetadataId,
+            InputStream profileFile) {
+            return expectedResponse.put();
+        }
+
+        @GET
+        @Path("/profiles")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findProfiles(JsonNode queryDsl) {
+            return expectedResponse.get();
+        }
+
+        @GET
+        @Path("/profiles/{id}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadTraceabilityOperationFile(@PathParam("id") String id)
+            throws InvalidParseOperationException {
             return expectedResponse.get();
         }
 
@@ -661,4 +702,102 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>(){});
     }
 
+
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void createProfilesWithCorrectJsonReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
+        Status resp = client.createProfiles(new ArrayList<>());
+        assertEquals(resp, Status.CREATED);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void importProfileFileWithFakeFileReturnCreated()
+        throws FileNotFoundException, InvalidParseOperationException, ReferentialException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<>()).build());
+        Status resp = client.importProfileFile("fakeId", new FakeInputStream(0l, false));
+        assertEquals(resp, Status.CREATED);
+    }
+
+    /**
+     *  Test that profiles is reachable and does not return elements
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllProfilesThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ProfileModel>()).build());
+        RequestResponse resp = client.findProfiles(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(0);
+    }
+
+
+    /**
+     *  Test that profiles is reachable and return two elements as expected
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllProfilesThenReturnTwo()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
+        RequestResponse resp = client.findProfiles(JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK)resp).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK)resp).getResults().iterator().next()).isInstanceOf(ProfileModel.class);
+    }
+
+
+    /**
+     * Test that profiles by id is reachable
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void findProfilesByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ProfileModel>()).build());
+        RequestResponse resp = client.findProfilesByID("fakeId");
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfileIdWhenDownloadProfileFileThenOK() throws Exception {
+
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        Response response = client.downloadProfileFile("OP_ID");
+        assertNotNull(response);
+    }
+
+    private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
+        File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
+        return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>(){});
+    }
 }
