@@ -299,10 +299,10 @@ public class UserInterfaceTransactionManager {
      * @throws LogbookClientException if the request with illegal parameter
      * @throws AccessUnauthorizedException 
      */
-    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId)
+    public static RequestResponse<JsonNode> selectOperationbyId(String operationId, Integer tenantId, String contractName)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperationbyId(operationId, tenantId, VitamThreadUtils.getVitamSession().getContractId());
+            return client.selectOperationbyId(operationId, tenantId, contractName);
         }
     }
 

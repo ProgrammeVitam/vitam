@@ -319,7 +319,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookClientException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, ""))
             .thenThrow(LogbookClientException.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -330,7 +330,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookRemainingException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, ""))
             .thenThrow(Exception.class);
 
         given().param("idOperation", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
