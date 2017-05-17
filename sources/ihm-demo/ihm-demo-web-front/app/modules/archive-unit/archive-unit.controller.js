@@ -48,7 +48,8 @@ angular.module('archive.unit')
     'INHERITED_RULE_LABEL': 'inheritedRule',
     'LIST_ITEM_LABEL': 'Valeur',
     'UNIT_PRENT_LIST': '_up',
-    'MGT_WITH_CSHARP_KEY': '#mgt'
+    'MGT_WITH_CSHARP_KEY': '#mgt',
+    'RULES_CATEGORY_KEYS': ['AccessRule','AppraisalRule','ClassificationRule','DisseminationRule','ReuseRule','StorageRule']
   })
   .filter('filterSize', function() {
     return function(bytes, precision) {
@@ -458,17 +459,20 @@ angular.module('archive.unit')
 
         $scope.refNonId = {};
 
-        for (var key in inheritedRule) {
+        for (var key in management) {
+            if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+                continue;
+            }
             var translateKey = RuleUtils.translate(key);
             var currentRef = [];
             var tf = false;
-            for (var n in inheritedRule[key]) {
-                var refArray = inheritedRule[key][n]["RefNonRuleId"];
+            for (var n in management[key]) {
+                var refArray = management[key][n].RefNonRuleId;
                 for (var ref in refArray) {
                     currentRef.push(refArray[ref]);
                 }
                 if (!tf) {
-                    var tf = inheritedRule[key][n]["PreventInheritance"];
+                    var tf = management[key][n].PreventInheritance;
                 }
             }
             if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
@@ -482,6 +486,9 @@ angular.module('archive.unit')
           if (Array.isArray(selfManagement)) {
               selfManagement.forEach(function (element) {
                   for (var key in element) {
+                      if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+                          continue;
+                      }
                       var translateKey = RuleUtils.translate(key);
                       var rule = selfManagement[key];
                       var displayArray = [];
@@ -500,6 +507,9 @@ angular.module('archive.unit')
               })
           } else {
               for (var key in selfManagement) {
+                  if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+                      continue;
+                  }
                   var translateKey = RuleUtils.translate(key);
                   var rule = selfManagement[key];
                   if(angular.isArray(rule)) {

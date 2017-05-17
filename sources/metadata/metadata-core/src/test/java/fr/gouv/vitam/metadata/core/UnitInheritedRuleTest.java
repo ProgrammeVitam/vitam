@@ -92,6 +92,17 @@ public class UnitInheritedRuleTest {
     
     // Normal Inheritance part
     
+    private final static String TWO_IN_ONE = "{"
+        + "\"AccessRule\":[{"
+        + "\"Rule\": \"ACC-00003\","
+        + "\"StartDate\": \"2000-01-01\","
+        + "\"EndDate\": \"2025-01-01\""
+        + "}, {"
+        + "\"Rule\": \"ACC-00002\","
+        + "\"StartDate\": \"2000-01-01\","
+        + "\"EndDate\": \"2025-01-01\""
+        + "}]}";
+
     private final static String LEVEL_0 = "{" +
         "    \"StorageRule\" : {" +
         "      \"Rule\" : \"STR1\"," +
@@ -112,6 +123,12 @@ public class UnitInheritedRuleTest {
         "      \"StartDate\" : \"02/01/2019\"" +
         "    }" +
         "  }";
+
+    private final static String EXPECTED_TWO_RULES = "{"
+        + "\"inheritedRule\":{\"AccessRule\":{"
+        + "\"ACC-00003\":{\"AU0\":{\"StartDate\":\"2000-01-01\",\"EndDate\":\"2025-01-01\",\"path\":[[\"AU0\"]]}},"
+        + "\"ACC-00002\":{\"AU0\":{\"StartDate\":\"2000-01-01\",\"EndDate\":\"2025-01-01\",\"path\":[[\"AU0\"]]}}"
+        + "}}}";
 
     private final static String EXPECTED_MULTI_PATH = "{"
         + "\"inheritedRule\":{\"StorageRule\":"
@@ -157,6 +174,56 @@ public class UnitInheritedRuleTest {
     private final static String EMPTY = "{}";
 
     // RefNonRuleId part
+
+    private final static String CHAPELLE = "{"
+        + "\"AccessRule\": [{"
+        + "\"Rule\": \"ACC-00002\","
+        + "\"StartDate\": \"2002-01-01\","
+        + "\"EndDate\": \"2027-01-01\""
+        + "}],"
+        + "\"OriginatingAgency\": \"FRAAA\"}";
+
+    private final static String MARX_DORMOY = "{"
+        + "\"AccessRule\": [{"
+        + "\"RefNonRuleId\": [\"ACC-00003\"]"
+        + "}],"
+        + "\"DisseminationRule\": [{"
+        + "\"Rule\": \"DIS-00002\","
+        + "\"StartDate\": \"2000-01-01\","
+        + "\"EndDate\": \"2075-01-01\""
+        + "}],"
+        + "\"OriginatingAgency\": \"FRAAA\"}";
+
+    private final static String SAINT_LAZARE = "{"
+        + "\"StorageRule\": [{"
+        + "\"RefNonRuleId\": [\"STO-00001\"],"
+        + "\"FinalAction\": \"Copy\""
+        + "}],"
+        + "\"DisseminationRule\": [{"
+        + "\"PreventInheritance\": true"
+        + "}],"
+        + "\"OriginatingAgency\": \"FRAAA\""
+        + "}";
+
+    private final static String PLEYEL = "{"
+        + "\"StorageRule\": [{"
+        + "\"Rule\": \"STO-00001\","
+        + "\"StartDate\": \"2000-01-01\","
+        + "\"FinalAction\": \"Copy\","
+        + "\"EndDate\": \"2001-01-01\""
+        + "}],"
+        + "\"DisseminationRule\": [{"
+        + "\"Rule\": \"DIS-00001\","
+        + "\"StartDate\": \"2000-01-01\","
+        + "\"EndDate\": \"2025-01-01\""
+        + "}],"
+        + "\"ReuseRule\": [{"
+        + "\"Rule\": \"REU-00001\","
+        + "\"StartDate\": \"2000-01-01\","
+        + "\"EndDate\": \"2010-01-01\""
+        + "}],"
+        + "\"OriginatingAgency\": \"FRAAA\""
+        + "}";
 
     private final static String NEW_RULE_REF_NON_RULE_ID = "{" +
         "    \"StorageRule\" : {" +
@@ -217,9 +284,17 @@ public class UnitInheritedRuleTest {
         "    }]" +
         "  }";
 
+    private final static String EXPECTED_FOR_MARX_DORMOY = "{"
+        + "\"inheritedRule\":{"
+        + "\"DisseminationRule\":{"
+        + "\"DIS-00002\":{\"MarxDormoy\":{\"StartDate\":\"2000-01-01\",\"EndDate\":\"2075-01-01\",\"path\":[[\"MarxDormoy\"]]}}},"
+        + "\"AccessRule\":{"
+        + "\"ACC-00002\":{\"LaChapelle\":{\"StartDate\":\"2002-01-01\",\"EndDate\":\"2027-01-01\",\"path\":[[\"LaChapelle\",\"MarxDormoy\"]]}}}"
+        + "}}";
+
     private final static String EXPECTED_MULTIPLE_REF_NON_RULE_ID = "{"
         + "\"inheritedRule\":{\"StorageRule\":{"
-        + "\"STR2\":{\"AU0\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU0\"]]}}"
+        + "\"STR2\":{\"AU0\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU0\",\"AU2\"]]}}"
         + "}}}";
 
     private final static String EXPECTED_REF_NON_RULE_ID = "{"
@@ -323,6 +398,23 @@ public class UnitInheritedRuleTest {
         + "\"R4\":{\"AU0\":{\"FinalAction\":\"Access\",\"StartDate\":\"01/01/2017\",\"EndDate\":\"01/01/2019\",\"path\":[[\"AU0\",\"AU2\",\"AU3\"]]}}"
         + "}}}";
 
+    private final static String EXPECTED_FOR_SAINT_LAZARE = "{"
+        + "\"inheritedRule\":{"
+        + "\"ReuseRule\":{"
+        + "\"REU-00001\":{\"Carrefour Pleyel\":{\"StartDate\":\"2000-01-01\",\"EndDate\":\"2010-01-01\",\"path\":[[\"Carrefour Pleyel\",\"Saint Lazare\"]]}}},"
+        + "\"AccessRule\":{"
+        + "\"ACC-00002\":{\"Porte de la Chapelle\":{\"StartDate\":\"2002-01-01\",\"EndDate\":\"2027-01-01\",\"path\":[[\"Porte de la Chapelle\",\"Marx Dormoy\",\"Saint Lazare\"]]}}"
+        + "}}}";
+
+    private final static String EXPECTED_FOR_NPE_REPRODUCTION = "{"
+        + "\"inheritedRule\":{"
+        + "\"StorageRule\":{"
+        + "\"R1\":{\"AU2\":{\"StartDate\":\"2017-01-01\",\"FinalAction\":\"RestrictAccess\",\"EndDate\":\"2018-01-01\",\"path\":[[\"AU2\"]]}},"
+        + "\"R4\":{\"AU2\":{\"StartDate\":\"2017-01-01\",\"PreventInheritance\":true,\"FinalAction\":\"RestrictAccess\",\"EndDate\":\"2021-01-01\",\"path\":[[\"AU2\"]]}}},"
+        + "\"AccessRule\":{"
+        + "\"ACC-00001\":{\"AU2\":{\"StartDate\":\"2017-01-01\",\"EndDate\":\"2017-01-01\",\"path\":[[\"AU2\"]]}}"
+        + "}}}";
+
     @Test
     public void testUnitRuleResult() throws Exception {
         UnitInheritedRule au1RulesResult =
@@ -353,6 +445,13 @@ public class UnitInheritedRuleTest {
     }
 
     // Normal Inheritance part
+
+    @Test
+    public void testTwoRulesDefineInSameCategoryAtRoot() throws Exception {
+        UnitInheritedRule root = new UnitInheritedRule().createNewInheritedRule((ObjectNode) JsonHandler.getFromString(TWO_IN_ONE), "AU0");
+
+        assertEquals(EXPECTED_TWO_RULES, JsonHandler.unprettyPrint(root));
+    }
 
     @Test
     public void testNewRuleFromParent() throws Exception {
@@ -392,17 +491,30 @@ public class UnitInheritedRuleTest {
     }
 
     @Test
+    public void testSpecificPathValue() throws Exception {
+        UnitInheritedRule root = new UnitInheritedRule().createNewInheritedRule((ObjectNode) JsonHandler.getFromString(TWO_IN_ONE), "FrontPopulaire");
+
+        UnitInheritedRule au1 = new UnitInheritedRule();
+        au1.concatRule(root.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(CHAPELLE), "LaChapelle"));
+
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(MARX_DORMOY), "MarxDormoy"));
+
+        assertEquals(EXPECTED_FOR_MARX_DORMOY, JsonHandler.unprettyPrint(au2));
+    }
+
+    @Test
     public void testLongPathValue() throws Exception {
-    	UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(LEVEL_1), "AU0");
+        UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(LEVEL_1), "AU0");
 
-    	UnitInheritedRule au2 = new UnitInheritedRule();
-    	au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU2"));
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU2"));
 
-    	UnitInheritedRule au3 = new UnitInheritedRule();
-    	au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
+        UnitInheritedRule au3 = new UnitInheritedRule();
+        au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU3"));
 
-    	UnitInheritedRule au4 = new UnitInheritedRule();
-    	au4.concatRule(au3.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU4"));
+        UnitInheritedRule au4 = new UnitInheritedRule();
+        au4.concatRule(au3.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU4"));
 
         assertEquals(EXPECTED_LONG_PATH, JsonHandler.unprettyPrint(au4));
     }
@@ -560,13 +672,34 @@ public class UnitInheritedRuleTest {
     }
 
     @Test
+    public void testSaintLazare() throws Exception {
+        UnitInheritedRule root = new UnitInheritedRule().createNewInheritedRule((ObjectNode) JsonHandler.getFromString(TWO_IN_ONE), "Front Populaire");
+
+        UnitInheritedRule au1 = new UnitInheritedRule();
+        au1.concatRule(root.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(CHAPELLE), "Porte de la Chapelle"));
+
+        UnitInheritedRule au2 = new UnitInheritedRule();
+        au2.concatRule(au1.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(MARX_DORMOY), "Marx Dormoy"));
+
+        UnitInheritedRule root2 = new UnitInheritedRule().createNewInheritedRule((ObjectNode) JsonHandler.getFromString(PLEYEL), "Carrefour Pleyel");
+
+        UnitInheritedRule au3 = new UnitInheritedRule();
+        au3.concatRule(root2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(SAINT_LAZARE), "Saint Lazare"));
+        au3.concatRule(au2.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(SAINT_LAZARE), "Saint Lazare"));
+
+        assertEquals(EXPECTED_FOR_SAINT_LAZARE, JsonHandler.unprettyPrint(au3));
+    }
+
+    @Test
     // Should not throw NPE (Old error when other field than rule category is in Management)
     public void testNPEReproduction() throws Exception {
         UnitInheritedRule au1 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_NPE_REPRODUCTION), "AU1");
 
-        UnitInheritedRule au0 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(EMPTY), "AU0");
+        UnitInheritedRule au0 = new UnitInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_PREVENTINHERITANCE_NEW), "AU0");
         UnitInheritedRule au2 = new UnitInheritedRule();
         au2.concatRule(au0.createNewInheritedRule((ObjectNode) JsonHandler.getFromString(STORAGE_NPE_REPRODUCTION), "AU2"));
+
+        assertEquals(EXPECTED_FOR_NPE_REPRODUCTION, JsonHandler.unprettyPrint(au2));
     }
 
 }
