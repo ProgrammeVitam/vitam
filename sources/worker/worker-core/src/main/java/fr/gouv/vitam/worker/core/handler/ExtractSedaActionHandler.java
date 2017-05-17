@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -66,7 +68,10 @@ import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
 import de.odysseus.staxon.json.JsonXMLOutputFactory;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
@@ -80,9 +85,16 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
+import fr.gouv.vitam.functional.administration.common.ContractStatus;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -97,7 +109,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
@@ -178,6 +193,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
     private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
+    private static final String CONTRACT_NAME = "Name";
+    private static final String FILING_UNIT = "FILING_UNIT";
 
     private final Map<String, String> dataObjectIdToGuid;
     private final Map<String, String> objectGroupIdToGuid;
@@ -206,7 +223,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         "Global required informations are not found after extracting the manifest.xml";
 
     private static String prodService = null;
-
+    private static String contractName = null;
+    private static String filingParentId = null;
+    
     /**
      * Constructor with parameter SedaUtilsFactory
      */
@@ -376,6 +395,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 // DataObjectPackage endElement event
                 if (event.isEndElement() && event.asEndElement().getName().getLocalPart().equals(DATAOBJECT_PACKAGE)) {
                     globalMetadata = true;
+                }
+                
+                if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
+                    .equals(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
+                    contractName = reader.getElementText();
+                    writer.add(eventFactory.createStartElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                    writer.add(eventFactory.createCharacters(contractName));
+                    writer.add(eventFactory.createEndElement("", SedaConstants.NAMESPACE_URI,
+                        SedaConstants.TAG_ARCHIVAL_AGREEMENT));
+                    continue;
                 }
 
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
@@ -856,6 +886,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
         // Get parents list
         ArrayNode upNode = JsonHandler.createArrayNode();
         isRootArchive = addParentsToTmpFile(upNode, unitId, archiveUnitTree);
+        if (upNode.isEmpty(null)){
+            linkToArchiveUnitDeclaredInTheIngestContract(upNode);
+        }
         workNode.set(IngestWorkflowConstants.UP_FIELD, upNode);
 
         // Determine rules to apply
@@ -2154,6 +2187,78 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 // TODO P0 Create OG / OG lifeCycle
             }
         }
+    }
+    
+    private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode){
+        findArchiveUnitDeclaredInTheIngestContract();
+        if (filingParentId != null) {
+            upNode.add(filingParentId);
+        }        
+    }
+    
+    private void findArchiveUnitDeclaredInTheIngestContract(){
+        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            final MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+            
+            if (contractName != null){
+                Select select = new Select();
+                select.setQuery(QueryHelper.eq(CONTRACT_NAME, contractName));
+                JsonNode queryDsl = select.getFinalSelect();
+                RequestResponse<IngestContractModel> referenceContracts = client.findIngestContracts(queryDsl);
+                if (referenceContracts.isOk()) {
+                    List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
+                    if (!results.isEmpty()) {
+                        for (IngestContractModel result : results) {
+                            filingParentId = result.getFilingParentId();
+                        }
+                    }
+                    
+                    if (filingParentId != null) {
+                        select = new Select();
+                        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT));
+                        queryDsl = select.getFinalSelect();
+                        JsonNode res = metaDataClient.selectUnitbyId(queryDsl, filingParentId).get("$results").get(0);
+                        
+                        ObjectNode archiveUnit = JsonHandler.createObjectNode();
+                        createArchiveUnitDeclaredInTheIngestContract(archiveUnit, res);
+                        saveArchiveUnitDeclaredInTheIngestContract(archiveUnit, filingParentId);
+                    }
+                    
+                }            
+            }
+
+            
+        }  catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+            LOGGER.error("Contract found but inactive: ", e);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("Contract not found :", e);
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+            LOGGER.error("Metadata does not work :", e);
+        } catch (ProcessingException e) {
+            LOGGER.error("Cannot store the archive unit declared in the ingest contract :", e);
+        }
+    }
+    
+    private void createArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit, JsonNode res) {
+        archiveUnit.set(SedaConstants.TAG_ARCHIVE_UNIT, res);
+        
+        //Add _work information
+        ObjectNode workNode = JsonHandler.createObjectNode();
+        workNode.put(IngestWorkflowConstants.EXISTING_TAG, Boolean.TRUE);
+        
+        archiveUnit.set(SedaConstants.PREFIX_WORK, workNode);
+    }
+    
+    private void saveArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit, 
+        String filingParentId) throws InvalidParseOperationException, ProcessingException{
+        
+        final File unitCompleteTmpFile = handlerIO.getNewLocalFile(filingParentId);
+        
+        // Write to new File
+        JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
+
+        // Write to workspace
+        handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + filingParentId + JSON_EXTENSION, unitCompleteTmpFile, true);
     }
 
     @Override
