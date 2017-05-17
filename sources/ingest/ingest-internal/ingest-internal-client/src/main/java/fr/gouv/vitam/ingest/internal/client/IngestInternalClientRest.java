@@ -49,14 +49,12 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 
@@ -94,13 +92,18 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
         throws VitamException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
 
-        final Response response = performRequest(HttpMethod.POST, LOGBOOK_URL, null,
-            logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
-            MediaType.APPLICATION_JSON_TYPE, false);
-        if (response.getStatus() != Status.CREATED.getStatusCode()) {
-            throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, LOGBOOK_URL, null,
+                logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, false);
+            if (response.getStatus() != Status.CREATED.getStatusCode()) {
+                throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+            }
+            return Response.fromResponse(response).build();
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return response;
     }
 
     @Override
@@ -152,11 +155,16 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     public void uploadFinalLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamClientException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
-        final Response response = performRequest(HttpMethod.PUT, LOGBOOK_URL, null,
-            logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
-            MediaType.APPLICATION_JSON_TYPE, false);
-        if (response.getStatus() != Status.OK.getStatusCode()) {
-            throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, LOGBOOK_URL, null,
+                logbookParametersList, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE, false);
+            if (response.getStatus() != Status.OK.getStatusCode()) {
+                throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
+            }
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -251,26 +259,24 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 performRequest(HttpMethod.PUT, OPERATION_URI + "/" + operationId,
                     headers,
                     MediaType.APPLICATION_JSON_TYPE);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new ProcessingException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+            return Response.fromResponse(response).build();
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-            throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
 
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-            throw new ProcessingException(UNAUTHORIZED);
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-            throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-        }
-
-        return response;
     }
 
     @Override
@@ -282,62 +288,58 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 performRequest(HttpMethod.HEAD, OPERATION_URI + "/" + id,
                     null,
                     MediaType.APPLICATION_JSON_TYPE);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        }
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-            throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-        } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION + id);
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION + id);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
 
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-            throw new VitamClientInternalException(UNAUTHORIZED);
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-            throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new VitamClientInternalException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+            return response.readEntity(ItemStatus.class);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        return response.readEntity(ItemStatus.class);
     }
-    // TODO FIXE ME query never user
+
     @Override
     public ItemStatus getOperationProcessExecutionDetails(String id, JsonNode query) throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         Response response = null;
-
         try {
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id,
                     null,
                     MediaType.APPLICATION_JSON_TYPE);
-        } catch (VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
+            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
+                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+            } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION + id);
+            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
+                throw new VitamClientInternalException(UNAUTHORIZED);
+            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
+            }
+            return response.readEntity(ItemStatus.class);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-            throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
-        } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION + id);
-        } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
-            throw new VitamClientInternalException(REQUEST_PRECONDITION_FAILED);
-
-        } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.UNAUTHORIZED.getReasonPhrase());
-            throw new VitamClientInternalException(UNAUTHORIZED);
-        } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-            LOGGER.warn("SIP Warning : " + Response.Status.INTERNAL_SERVER_ERROR.getReasonPhrase());
-            throw new VitamClientInternalException(INTERNAL_SERVER_ERROR);
-        }
-        return response.readEntity(ItemStatus.class);
     }
 
     @Override
@@ -387,12 +389,15 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 performRequest(HttpMethod.PUT, OPERATION_URI,
                     headers,
                     MediaType.APPLICATION_JSON_TYPE);
+            checkResponseStatus(response);
+            return response.readEntity(ItemStatus.class);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
-        checkResponseStatus(response);
-        return response.readEntity(ItemStatus.class);
+
     }
 
     @Override
