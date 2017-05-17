@@ -29,6 +29,17 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
@@ -42,13 +53,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.lang.StringUtils;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 
@@ -413,6 +427,94 @@ public class AccessStep {
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
+        }
+    }
+    
+    /**
+     * Search logbook of unit with unit title
+     *
+     * @param title of unit
+     * @throws Throwable
+     */
+    @When("^je recherche le JCV de l'unité archivistique dont le titre est (.*)$")
+    public void search_LFC_Unit_with_title(String title) throws Throwable {
+        String unitId = replaceTitleByGUID(title);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().selectUnitLifeCycleById(unitId, world.getTenantId(), world.getContractId());        
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            results = requestResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request findDocuments return an error: " + vitamError.getCode());
+        }
+    }
+    
+    /**
+     * Search logbook of object group with unit title
+     *
+     * @param title of unit
+     * @throws Throwable
+     */
+    @When("^je recherche le JCV du groupe d'objet de l'unité archivistique dont le titre est (.*)$")
+    public void search_LFC_OG_with_Unit_title(String title) throws Throwable {
+        String unitId = replaceTitleByGUID(title);
+        RequestResponse<JsonNode> requestResponse =
+            world.getAccessClient().selectUnitbyId(new SelectMultiQuery().getFinalSelect(), 
+                unitId, world.getTenantId(), world.getContractId());        
+        if (requestResponse.isOk()) {
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+            JsonNode unit = requestResponseOK.getResults().get(0);
+            if (unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText().isEmpty()) {
+                VitamError vitamError = (VitamError) requestResponse;
+                Fail.fail("Unit does not have object");  
+            }
+            RequestResponse<JsonNode> requestResponseLFC =
+                world.getAccessClient().selectObjectGroupLifeCycleById(
+                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), world.getTenantId(), world.getContractId()); 
+            if (requestResponseLFC.isOk()) {
+                RequestResponseOK<JsonNode> requestResponseLFCOK = (RequestResponseOK<JsonNode>) requestResponseLFC;
+                results = requestResponseLFCOK.getResults();
+            } else {
+                VitamError vitamError = (VitamError) requestResponse;
+                Fail.fail("request selectObjectGroupLifeCycleById return an error: " + vitamError.getCode());
+            }
+        } else {
+            VitamError vitamError = (VitamError) requestResponse;
+            Fail.fail("request selectUnitbyId return an error: " + vitamError.getCode());
+        }
+    }
+    
+
+    /**
+     * check if the status is valid for a list of event type according to logbook lifecycle
+     *
+     * @param eventNames list of event
+     * @param eventStatus status of event
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     * @throws AccessUnauthorizedException 
+     */
+    @Then("^le[s]? statut[s]? de JCV (?:de l'événement|des événements) (.*) (?:est|sont) (.*)$")    
+    public void the_LFC_status_are(List<String> eventNames, String eventStatus)
+        throws Throwable {
+        ArrayNode actual = (ArrayNode) results.get(0).get("events");
+        List<JsonNode> list = JsonHandler.toArrayList(actual);
+        try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+            for (String eventName : eventNames) {
+                List<JsonNode> events =
+                    list.stream().filter(event -> eventName.equals(event.get("evType").textValue()))
+                    .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
+                    .collect(Collectors.toList());
+
+                softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
+                JsonNode onlyElement = Iterables.getOnlyElement(events);
+
+                String currentStatus = onlyElement.get("outcome").textValue();
+                softly.assertThat(currentStatus)
+                .as("event %s has status %s but excepted status is %s.", eventName, currentStatus, eventStatus)
+                .isEqualTo(eventStatus);
+            }
         }
     }
 
