@@ -38,6 +38,7 @@ import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -152,9 +153,8 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         // Not using try with resources because in this case, response.close() throw an exception :
         // MultiException stack 1 of 1
         // java.lang.IllegalStateException: ServiceLocatorImpl(__HK2_Generated_30,31,1929030508) has been shut down
-        WorkspaceClient client = null;
-        try {
-            client = WorkspaceClientFactory.getInstance().getClient();
+        
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 is = (InputStream) response.getEntity();
@@ -168,10 +168,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
         } finally {
-            if (client != null) {
-                client.consumeAnyEntityAndClose(response);
-                client.close();
-            }
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
 
     }

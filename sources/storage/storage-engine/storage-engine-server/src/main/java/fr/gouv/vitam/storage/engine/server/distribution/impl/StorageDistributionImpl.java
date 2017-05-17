@@ -57,6 +57,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -127,6 +128,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final int NB_RETRY = 3;
     private static final String SIZE_KEY = "size";
     private static final String STREAM_KEY = "stream";
+    private static final String RESPONSE_KEY = "response";
 
     /**
      * Global pool thread
@@ -241,6 +243,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         int rank = 0;
         String offerId2 = null;
         Map<String, Digest> globalDigestMap = new HashMap<>(datas.getKoList().size());
+        List<Response> responses = new ArrayList<>();
         long finalTimeout = 1000;
         try {
             for (final String offerId : datas.getKoList()) {
@@ -250,6 +253,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 InputStream digestInputStream =
                     globalDigest.getDigestInputStream((InputStream) streamAndInfos.get(STREAM_KEY));
                 finalTimeout = getTransferTimeout(Long.valueOf((String) streamAndInfos.get(SIZE_KEY)));
+                responses.add((Response) streamAndInfos.get(RESPONSE_KEY));
                 offerId2 = offerId;
                 OfferReference offerReference = new OfferReference();
                 offerReference.setId(offerId);
@@ -275,6 +279,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         try {
             Thread.sleep(THREAD_SLEEP);
         } catch (InterruptedException exc) {
+            for (Response response : responses) {
+                DefaultClient.staticConsumeAnyEntityAndClose(response);
+            }
             LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
             for (String offerId : futureMap.keySet()) {
                 parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
@@ -302,6 +309,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                     LOGGER.error("Error on offer ID " + offerId);
                     parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
                         Status.INTERNAL_SERVER_ERROR);
+                    for (Response response : responses) {
+                        DefaultClient.staticConsumeAnyEntityAndClose(response);
+                    }
                     throw new StorageTechnicalException("No message returned");
                 }
                 parameters = setLogbookStorageParameters(parameters, offerId, threadResponseData, requester, attempt,
@@ -340,6 +350,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt, null);
             }
         }
+        for (Response response : responses) {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
+        }
         // ACK to prevent retry
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
             attempt++;
@@ -361,6 +374,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
         Digest globalDigest = new Digest(digestType);
         InputStream digestInputStream = globalDigest.getDigestInputStream((InputStream) streamAndInfos.get(STREAM_KEY));
+        Response response = (Response) streamAndInfos.get(RESPONSE_KEY);
         Digest digest = new Digest(digestType);
         try (MultipleInputStreamHandler streams = getMultipleInputStreamFromWorkspace(digestInputStream,
             datas.getKoList().size(),
@@ -398,6 +412,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             try {
                 Thread.sleep(THREAD_SLEEP);
             } catch (InterruptedException exc) {
+                DefaultClient.staticConsumeAnyEntityAndClose(response);
                 LOGGER.warn("Thread sleep to wait all task submission interrupted !", exc);
                 for (String offerId : futureMap.keySet()) {
                     parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
@@ -426,6 +441,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                         LOGGER.error("Error on offer ID " + offerId);
                         parameters = setLogbookStorageParameters(parameters, offerId, null, requester, attempt,
                             Status.INTERNAL_SERVER_ERROR);
+                        DefaultClient.staticConsumeAnyEntityAndClose(response);
                         throw new StorageTechnicalException("No message returned");
                     }
                     parameters =
@@ -469,6 +485,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 }
             }
         }
+        DefaultClient.staticConsumeAnyEntityAndClose(response);
         // ACK to prevent retry
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
             attempt++;
@@ -693,6 +710,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             }
             result.put(SIZE_KEY, length);
             result.put(STREAM_KEY, entity);
+            result.put(RESPONSE_KEY, response);
             return result;
         } catch (final ContentAddressableStorageNotFoundException exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, containerGUID), exc);

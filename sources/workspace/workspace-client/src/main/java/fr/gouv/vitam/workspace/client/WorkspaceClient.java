@@ -281,6 +281,13 @@ public class WorkspaceClient extends DefaultClient {
 
     }
 
+    /**
+     * @param containerName
+     * @param objectName
+     * @return the original Response
+     * @throws ContentAddressableStorageNotFoundException
+     * @throws ContentAddressableStorageServerException
+     */
     public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -309,7 +316,7 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
+    public void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
@@ -322,7 +329,7 @@ public class WorkspaceClient extends DefaultClient {
                 final ResponseBuilder responseBuilder =
                     Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
                 helper.writeResponse(responseBuilder);
-                return response;
+                return;
             }
             if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
