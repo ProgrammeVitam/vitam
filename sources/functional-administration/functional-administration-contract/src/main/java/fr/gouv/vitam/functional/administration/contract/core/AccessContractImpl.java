@@ -362,7 +362,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.STARTED), eip);
-
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACT_UPDATE_EVENT +
+                "." + StatusCode.STARTED);
             helper.createDelegate(logbookParameters);
 
         }
@@ -382,6 +383,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         eip);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 JsonHandler.unprettyPrint(evDetData));
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACT_UPDATE_EVENT +
+                "." + StatusCode.OK);
             helper.updateDelegate(logbookParameters);
             logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
