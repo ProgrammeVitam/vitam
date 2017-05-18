@@ -54,6 +54,7 @@ import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -202,6 +203,8 @@ public class IngestInternalIT {
 
     private static String SIP_OK_WITH_SERVICE_LEVEL =
         "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
+    private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
+            "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
 
@@ -1016,6 +1019,68 @@ public class IngestInternalIT {
                     if ("ServiceLevel0".equals(
                         JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
                             .get("ServiceLevel").asText())) {
+                        checkServiceLevel = true;
+                    }
+                    break;
+                }
+            }
+
+            assertTrue(checkServiceLevel);
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithoutServiceLevelInManifest() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_WITHOUT_SERVICE_LEVEL);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+            final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            JsonNode logbookOperation =
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode().get("$results").get(0);
+            boolean checkServiceLevel = false;
+            final JsonNode elmt = logbookOperation.get("$results").get(0);
+            final List<Document> logbookOperationEvents =
+                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            for (final Document event : logbookOperationEvents) {
+                if (StatusCode.OK.toString()
+                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                    event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
+                    if (JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
+                            .get("ServiceLevel") instanceof NullNode) {
                         checkServiceLevel = true;
                     }
                     break;

@@ -613,7 +613,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     if (serviceLevel != null) {
                         LOGGER.debug("Find a service Level: " + serviceLevel);
                         evDetData.put("ServiceLevel", serviceLevel.asText());
+                    } else {
+                        LOGGER.debug("Put a null ServiceLevel (No service Level)");
+                        evDetData.set("ServiceLevel", (ObjectNode)null);
                     }
+                } else {
+                    LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");
+                    evDetData.set("ServiceLevel", (ObjectNode)null);
                 }
 
             } catch (InvalidParseOperationException e) {
