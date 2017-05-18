@@ -260,20 +260,13 @@ public class UnitInheritedRule {
                     if (unitManagement.get(categoryName).isObject()){
                         ObjectNode unitRuleNode = (ObjectNode) unitManagement.get(categoryName);
 
-                        // The situation that category rule does not contain the rule id
-                        if (!unitRuleNode.has(RULE)) {
-                            break;
-                        }
-
                         compareInheritedRuleWithManagement(unitRuleNode, ruleId, ruleNode, unitId, categoryName,
                             ruleIdTodReplace, inheritedCategoryName);
                     } else if (unitManagement.get(categoryName).isArray()) {
                         ArrayNode unitRuleNode = (ArrayNode) unitManagement.get(categoryName);
                         for (JsonNode node : unitRuleNode) {
-                            if (node.has(RULE)) {
-                                compareInheritedRuleWithManagement((ObjectNode) node, ruleId, ruleNode, unitId,
-                                    categoryName, ruleIdTodReplace, inheritedCategoryName);
-                            }
+                            compareInheritedRuleWithManagement((ObjectNode) node, ruleId, ruleNode, unitId,
+                                categoryName, ruleIdTodReplace, inheritedCategoryName);
                         }
                     }
                 }
@@ -309,7 +302,15 @@ public class UnitInheritedRule {
             }
         }
 
-        newRule.inheritedRule.putAll(ruleCategoryFromUnit);
+        for (Map.Entry<String, ObjectNode> entry: ruleCategoryFromUnit.entrySet()) {
+            String key = entry.getKey();
+            if(!newRule.inheritedRule.containsKey(key)) {
+                newRule.inheritedRule.put(key, entry.getValue());
+            } else {
+                newRule.inheritedRule.get(key).setAll(entry.getValue());
+            }
+        }
+
         for (String rule : parentCategoryList) {
             if (newRule.inheritedRule.containsKey(rule)) {
                 if (newRule.inheritedRule.get(rule).isEmpty(null)) {
@@ -362,7 +363,7 @@ public class UnitInheritedRule {
                     } else {
                         ruleWithoutRefNonRuleId.remove(REFNONRULEID);
                     }
-                    addInheritedRuleFromManagement(newRule, ruleWithoutRefNonRuleId, unitRuleCategory, newRule.unitId);
+                    addInheritedRuleFromManagement(newRule, ruleWithoutRefNonRuleId, unitRuleCategory, newRule.unitId, ruleCategoryFromUnit);
                     continue;
                 }
                 refNonRuleIds.add(refNonRuleId);
@@ -383,11 +384,11 @@ public class UnitInheritedRule {
             ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
             parentCategoryList.add(unitRuleCategory);
         } else {
-            addInheritedRuleFromManagement(newRule, (ObjectNode) rule, unitRuleCategory, newRule.unitId);
+            addInheritedRuleFromManagement(newRule, (ObjectNode) rule, unitRuleCategory, newRule.unitId, ruleCategoryFromUnit);
         }
     }
 
-    private void addInheritedRuleFromManagement(UnitInheritedRule newRule, ObjectNode unitRuleNode, String unitRuleCategory, String unitId){
+    private void addInheritedRuleFromManagement(UnitInheritedRule newRule, ObjectNode unitRuleNode, String unitRuleCategory, String unitId, Map<String, ObjectNode> ruleCategoryFromUnit){
         if (unitRuleNode.has(RULE)) {
             String ruleId = unitRuleNode.get(RULE).asText();
 
@@ -400,14 +401,15 @@ public class UnitInheritedRule {
                 newRule.inheritedRule.get(unitRuleCategory).removeAll();
             }
 
-            if (!newRule.inheritedRule.containsKey(unitRuleCategory)) {
-                newRule.inheritedRule.put(unitRuleCategory, new ObjectNode(null));
+            if (!ruleCategoryFromUnit.containsKey(unitRuleCategory)) {
+                ruleCategoryFromUnit.put(unitRuleCategory, new ObjectNode(null));
             }
 
-            if (!newRule.inheritedRule.get(unitRuleCategory).has(ruleId) ||
-                newRule.inheritedRule.get(unitRuleCategory).get(ruleId) == null) {
+            if (!newRule.inheritedRule.containsKey(unitRuleCategory) ||
+                    !newRule.inheritedRule.get(unitRuleCategory).has(ruleId) ||
+                    ruleCategoryFromUnit.get(unitRuleCategory).get(ruleId) == null) {
                 ObjectNode unitNode = createNewRuleWithOrigin(unitRuleNode, unitId);
-                newRule.inheritedRule.get(unitRuleCategory).set(ruleId, unitNode);
+                ruleCategoryFromUnit.get(unitRuleCategory).set(ruleId, unitNode);
             }
         } else {
             if (checkPreventInheritance(unitRuleNode)) {
@@ -420,9 +422,12 @@ public class UnitInheritedRule {
         String unitId, String categoryName,
         Map<String, String> ruleIdTodReplace, List<String> inheritedCategoryName) {
 
-        String unitRuleId = unitRuleNode.get(RULE).asText();
+        String unitRuleId = null;
+        if (unitRuleNode.get(RULE) != null) {
+            unitRuleId = unitRuleNode.get(RULE).asText();
+        }
 
-        if (!unitRuleId.equals(ruleId)) {
+        if (unitRuleId == null || !unitRuleId.equals(ruleId)) {
             // Unit management contains category rule but not the ruleId
             Iterator<String> originIds = ruleNode.fieldNames();
             while (originIds.hasNext()) {

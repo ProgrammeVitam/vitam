@@ -138,7 +138,7 @@
         </a>
 
         <div class="row archive-desc panel-collapse collapse in" id="boxManage">
-            <div class="form-group col-md-6" ng-repeat="(categoryId, ruleCategory) in $ctrl.ruleDisplay">
+            <div class="form-group col-sm-6" ng-repeat-start="(categoryId, ruleCategory) in $ctrl.ruleDisplay">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                       <b>{{categoryId}}</b>
@@ -208,6 +208,7 @@
                     </div>
                 </div>
             </div>
+            <div class="clearfix" ng-repeat-end ng-if="$index%2===1"></div>
         </div>
       </div>
 
