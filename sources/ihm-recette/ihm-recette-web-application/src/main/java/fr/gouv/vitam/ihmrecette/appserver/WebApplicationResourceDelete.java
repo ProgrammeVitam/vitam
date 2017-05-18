@@ -206,6 +206,10 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteRulesFile() {
+        return deleteRules();
+    }
+    
+    private Response deleteRules(){
         Integer tenantId = ParameterHelper.getTenantParameter();
         final GUID eip = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
@@ -608,6 +612,8 @@ public class WebApplicationResourceDelete {
         response = deleteMetadataUnits();
         response.close();
         response = deleteAccessionRegister();
+        response.close();
+        response = deleteRules();
         response.close();
         return Response.status(Status.OK).build();
     }
