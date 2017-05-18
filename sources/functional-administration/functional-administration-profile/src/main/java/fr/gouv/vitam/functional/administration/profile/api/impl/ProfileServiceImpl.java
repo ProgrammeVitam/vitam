@@ -137,14 +137,14 @@ public class ProfileServiceImpl implements ProfileService {
         final Set<String> profileNames = new HashSet<>();
         ArrayNode profilesToPersist = null;
 
-        final VitamError error = new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem());
+        final VitamError error = new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setHttpCode(
+            Response.Status.BAD_REQUEST.getStatusCode());
 
         try {
 
             for (final ProfileModel pm : profileModelList) {
 
 
-                VitamError acmError = null;
                 // if a profile have and id
                 if (null != pm.getId()) {
                     error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem())
@@ -209,14 +209,15 @@ public class ProfileServiceImpl implements ProfileService {
         } catch (Exception exp) {
             String err = new StringBuilder("Import profiles error > ").append(exp.getMessage()).toString();
             manager.logFatalError(PROFILES_IMPORT_EVENT,           err);
-            return new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err);
+            return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
         manager.logSuccess(PROFILES_IMPORT_EVENT);
 
 
         return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList).setHits(
-            profileModelList.size(), 0, profileModelList.size());
+            profileModelList.size(), 0, profileModelList.size()).setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
 
@@ -229,7 +230,8 @@ public class ProfileServiceImpl implements ProfileService {
 
         final ProfileModel profileMetadata = findOne(profileMetadataId);
 
-        final VitamError vitamError = new VitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem());
+        final VitamError vitamError = new VitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem()).setHttpCode(
+            Response.Status.BAD_REQUEST.getStatusCode());
         if (null == profileMetadata) {
             LOGGER.error("No profile metadata found with id : "+profileMetadataId+", to import the file, the metadata profile must be created first");
 
@@ -316,13 +318,15 @@ public class ProfileServiceImpl implements ProfileService {
                 String err = new StringBuilder("Import profiles storage error > ").append(e.getMessage()).toString();
                 LOGGER.error(err, e);
                 manager.logFatalError(OP_PROFILE_STORAGE,           err);
-                return new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err);
+                return vitamError.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
+                    Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
             }
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
             String err = new StringBuilder("Import profiles storage workspace error > ").append(e.getMessage()).toString();
             LOGGER.error(err, e);
             manager.logFatalError(OP_PROFILE_STORAGE,           err);
-            return new VitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err);
+            return vitamError.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         } finally {
             if (null != profileFile)
@@ -335,7 +339,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         manager.logSuccess(PROFILES_FILE_IMPORT_EVENT);
 
-        return new RequestResponseOK();
+        return new RequestResponseOK().setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
     @Override

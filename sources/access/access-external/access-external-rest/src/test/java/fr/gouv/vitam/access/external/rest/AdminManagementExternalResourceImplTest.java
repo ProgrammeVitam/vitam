@@ -274,21 +274,21 @@ public class AdminManagementExternalResourceImplTest {
         AdminManagementClientFactory.changeMode(null);
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when().post(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .when().post(RULES_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -314,21 +314,21 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .when().get(FORMAT_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -354,21 +354,21 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .when().get(WRONG_URI + DOCUMENT_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -426,7 +426,7 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormatByID(anyObject());
 
         given()
-            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(FORMAT_URI + DOCUMENT_ID)

@@ -78,6 +78,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static String ERR_DUPLICATE_CONTRACT_ENTRY = "One or many contracts in the imported list have the same name : %s";
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
         public static String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
+        public static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT = "One or multiple archive profiles or the contract %s not found in db";
         public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         public static String ERR_WRONG_FILING_PARENT_ID = "the id of the AU %s is not in filing schema";
@@ -128,6 +129,15 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectDuplicatedInDatabase(String contractName){
             return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT , contractName));
+        }
+
+        /**
+         * Verify for each contract that all archive profiles exists in database
+         * @param contractName
+         * @return
+         */
+        public static GenericRejectionCause rejectArchiveProfileNotFoundInDatabase(String contractName){
+            return new GenericRejectionCause(String.format(ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT , contractName));
         }
 
         /**

@@ -136,10 +136,8 @@ public class ProfileResource {
             RequestResponse requestResponse = profileService.createProfiles(profileModelList);
 
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
-                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+                return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
             } else {
-
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
 
@@ -177,8 +175,7 @@ public class ProfileResource {
             RequestResponse requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
 
             if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
-                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+                return Response.status(requestResponse.getHttpCode()).entity(requestResponse).build();
             } else {
 
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();

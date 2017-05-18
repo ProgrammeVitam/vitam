@@ -11,6 +11,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class IngestContractTest {
 
     
@@ -30,6 +33,8 @@ public class IngestContractTest {
         String name = "aName";
         String description = "aDescription of the contract";
         String lastupdate = "10/12/2016";
+        Set<String> archiveProfiles = new HashSet<>();
+        archiveProfiles.add("FR_FAKE");
         contract
             .setId(id)
             .setName(name)
@@ -37,7 +42,8 @@ public class IngestContractTest {
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).
-            setDeactivationdate(lastupdate);
+            setDeactivationdate(lastupdate)
+            .setArchiveProfiles(archiveProfiles);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -45,6 +51,8 @@ public class IngestContractTest {
         assertEquals(lastupdate, contract.getCreationdate());
         assertEquals(lastupdate, contract.getActivationdate());
         assertEquals(lastupdate, contract.getDeactivationdate());
+        assertEquals(archiveProfiles, contract.getArchiveProfiles());
+
     }
 
 }
