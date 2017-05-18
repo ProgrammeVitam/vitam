@@ -145,6 +145,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
 
     // TODO P1 : getObjectAsync should replace getObject in the future. and
     // getObject uses should be reviewed
+    // TODO P1 : asyncResponse not used !
     /**
      * Retrieves an object representing the data at location
      * containerName/objectName

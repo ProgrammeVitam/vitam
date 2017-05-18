@@ -204,6 +204,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     // TODO : To be modified when there will be a real method in ContentAddressableStorageJcloudsAbstract
+    // TODO P1 : asyncResponse not used !
     @Override
     public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {

@@ -412,9 +412,6 @@ public class HandlerIOImpl implements VitamAutoCloseable, HandlerIO {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
         } finally {
-            if (is != null) {
-                StreamUtils.closeSilently(is);
-            }
             DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
