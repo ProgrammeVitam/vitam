@@ -29,6 +29,16 @@
   "operation.logbook.displayField.obIdIn": "Identifiant externe du lot d'objet",
   "operation.logbook.displayField._tenant": "Identifiant du tenant",
 
+  "operation.logbook.displayField.evType": "Evenement Type",
+  "operation.logbook.displayField.evDateTime": "Date Time",
+  "operation.logbook.displayField.evDetData": "Détails des données de l’évènement",
+  "operation.logbook.displayField.outcome": "OutCome",
+  "operation.logbook.displayField.outMessg": "Out Message",
+  "operation.logbook.displayField.agIdApp": "Agent Identifier",
+  "operation.logbook.displayField.agIdSubm": "agent Identifier Submission",
+  "operation.logbook.displayField.agIdOrig": "agent Identifier Originating",
+  "operation.logbook.displayField.agIdAppSession": "Agent Identifier Application Session",
+
   "ingest.logbook.displayField.EvDetailReq": "Intitulé",
   "ingest.logbook.displayField.MessageIdentifier": "Identifiant de la demande",
   "ingest.logbook.displayField.ArchivalProfile": "Profil",
