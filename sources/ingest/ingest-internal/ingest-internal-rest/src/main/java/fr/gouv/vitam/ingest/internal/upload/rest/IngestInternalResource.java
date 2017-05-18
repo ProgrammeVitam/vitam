@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -947,13 +948,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
         final GUID containerGUID) {
         ProcessingManagementClient processingClient = processingManagementClientMock;
         LogbookTypeProcess logbookTypeProcess = null;
+        Response updateResponse = null;
         try {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             }
 
             // Execute the given action
-            Response updateResponse = processingClient.updateOperationActionProcess(actionId, containerGUID.getId());
+            updateResponse = processingClient.updateOperationActionProcess(actionId, containerGUID.getId());
 
             if (Status.UNAUTHORIZED.getStatusCode() == updateResponse.getStatus()) {
                 AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -1023,6 +1025,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
         } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(updateResponse);
             if (processingClient != null) {
                 processingClient.close();
             }
