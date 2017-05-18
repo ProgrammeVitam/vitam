@@ -32,9 +32,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.stream.XMLStreamException;
@@ -60,7 +58,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.IOParameter;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.SedaConstants;
@@ -76,10 +73,9 @@ public class CheckHeaderActionHandlerTest {
     CheckHeaderActionHandler handler = new CheckHeaderActionHandler();
     private HandlerIOImpl action;
     private SedaUtils sedaUtils;
-    private List<IOParameter> in;
     private GUID guid;
     private static final Integer TENANT_ID = 0;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -90,7 +86,6 @@ public class CheckHeaderActionHandlerTest {
         sedaUtils = mock(SedaUtils.class);
         guid = GUIDFactory.newGUID();
         action = new HandlerIOImpl(guid.getId(), "workerId");
-        in = new ArrayList<>();
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
     }
 
@@ -107,6 +102,7 @@ public class CheckHeaderActionHandlerTest {
         Map<String, Object> sedaMap = new HashMap<>();
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
         sedaMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, CONTRACT_NAME);
+        sedaMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, SedaConstants.TAG_MESSAGE_IDENTIFIER);
         AdminManagementClientFactory.changeMode(null);
         Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertNotNull(CheckHeaderActionHandler.getId());
@@ -117,11 +113,16 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
-        
+        assertNotNull(response.getData());
+        assertNotNull(response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        assertEquals(SedaConstants.TAG_MESSAGE_IDENTIFIER,
+            response.getData().get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+
+
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
         Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
-        
+
     }
 
 }
