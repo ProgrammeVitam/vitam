@@ -227,6 +227,40 @@
               "format": "strict_date_optional_time||epoch_millis"
             }
           }
+        },
+        "ClassificationRule": {
+          "properties": {
+            "EndDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "ClassificationLevel": {
+              "type": "string"
+            },
+            "ClassificationOwner": {
+              "type": "string"
+            },
+            "ClassificationReassessingDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            },
+            "NeedReassessingAuthorization": {
+              "type": "boolean"
+            },
+            "PreventInheritance": {
+              "type": "boolean"
+            },
+            "RefNonRuleId": {
+              "type": "string"
+            },
+            "Rule": {
+              "type": "string"
+            },
+            "StartDate": {
+              "type": "date",
+              "format": "strict_date_optional_time||epoch_millis"
+            }
+          }
         }
       }
     },

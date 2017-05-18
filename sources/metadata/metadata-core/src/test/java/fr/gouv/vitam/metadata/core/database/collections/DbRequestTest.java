@@ -190,7 +190,11 @@ public class DbRequestTest {
             "{$match : { 'Description' : 'vitam' , '$max_expansions' : 1  } }" +
             "] } }";
     private static final String REQUEST_INSERT_TEST_ES =
-        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
+        "{ \"#id\": \"aebaaaaaaaaaaaabaahbcakzu2stfryaaaaq\", " +
+        "\"#tenant\": 0, " +
+        "\"Title\": \"title vitam\", " +
+        "\"Description\": \"description est OK\"," +
+        "\"_mgt\" : {\"ClassificationRule\" : {\"Rule\" : \"RuleId\"}} }";
     private static final String REQUEST_INSERT_TEST_ES_2 =
         "{ \"#id\": \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaar\", \"#tenant\": 0, \"Title\": \"title vitam\", \"Description\": \"description est OK\" }";
     private static final String REQUEST_INSERT_TEST_ES_3 =
