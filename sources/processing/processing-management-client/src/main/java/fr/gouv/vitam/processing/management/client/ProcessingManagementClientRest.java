@@ -95,49 +95,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    @Deprecated
-    public Response executeVitamProcess(String container, String workflow, String actionId)
-        throws BadRequestException, WorkflowNotFoundException,
-        ProcessingException {
-        ParametersChecker.checkParameter(ERR_CONTAINER_IS_MANDATORY, container);
-        ParametersChecker.checkParameter(ERR_WORKFLOW_IS_MANDATORY, workflow);
-        ParametersChecker.checkParameter(ERR_ACTION_IS_MANDATORY, actionId);
-
-        Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<String, Object>();
-        headers.add(GlobalDataRest.X_ACTION, actionId);
-        try {
-            response =
-                performRequest(HttpMethod.POST, "/operations", headers,
-                    JsonHandler.toJsonNode(new ProcessingEntry(container, workflow)), MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(WORKFLOW_NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new ProcessingUnauthorizeException("Unauthorized Operation");
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new ProcessingInternalServerException(INTERNAL_SERVER_ERROR2);
-            }
-
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-            return response;
-        } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
-            throw new ProcessingInternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new ProcessingInternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
     public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, BadRequestException {
         Response response = null;
@@ -296,7 +253,7 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
             // XXX: theoretically OK status case
             // Don't we thrown an exception if it is another status ?
-            return response;
+            return Response.fromResponse(response).build();
         } catch (final javax.ws.rs.ProcessingException e) {
             LOGGER.error(e);
             throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);

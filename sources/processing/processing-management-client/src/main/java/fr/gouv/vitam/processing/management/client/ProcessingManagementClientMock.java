@@ -42,13 +42,11 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 
@@ -62,16 +60,6 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
     ProcessingManagementClientMock() {
         // Empty
     }
-
-
-
-    @Override
-    public Response executeVitamProcess(String container, String workflow, String actionId)
-        throws BadRequestException, WorkflowNotFoundException, ProcessingException {
-        return Response.status(Status.OK).build();
-    }
-
-
 
     @Override
     public ItemStatus getOperationProcessStatus(String id)
