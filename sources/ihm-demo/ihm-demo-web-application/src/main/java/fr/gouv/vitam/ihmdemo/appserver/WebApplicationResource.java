@@ -402,7 +402,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("logbook:operations:read")
     public Response getLogbookResultById(@Context HttpHeaders headers, @PathParam("idOperation") String operationId,
         String options) {
-        String contractName = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         RequestResponse result = null;
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);

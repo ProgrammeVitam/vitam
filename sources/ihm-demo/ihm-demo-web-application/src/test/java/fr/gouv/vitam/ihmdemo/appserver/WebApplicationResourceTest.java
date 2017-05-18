@@ -34,6 +34,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -48,10 +49,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.model.RequestResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -74,6 +72,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Cookie;
+import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.ResponseBody;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
@@ -83,7 +82,6 @@ import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -95,6 +93,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
@@ -110,7 +109,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({PaginationHelper.class, UserInterfaceTransactionManager.class, DslQueryHelper.class,
-    IngestExternalClientFactory.class, AdminExternalClientFactory.class,
+    IngestExternalClientFactory.class, AdminExternalClientFactory.class, AccessExternalClientFactory.class,
     JsonTransformer.class, WebApplicationConfig.class})
 public class WebApplicationResourceTest {
 
@@ -155,8 +154,8 @@ public class WebApplicationResourceTest {
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        tenants.add(new Integer(0));
-        tenants.add(new Integer(1));
+        tenants.add(0);
+        tenants.add(1);
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final WebApplicationConfig webApplicationConfig =
@@ -192,6 +191,7 @@ public class WebApplicationResourceTest {
         PowerMockito.mockStatic(DslQueryHelper.class);
         PowerMockito.mockStatic(IngestExternalClientFactory.class);
         PowerMockito.mockStatic(AdminExternalClientFactory.class);
+        PowerMockito.mockStatic(AccessExternalClientFactory.class);
         PowerMockito.mockStatic(PaginationHelper.class);
     }
 
@@ -319,10 +319,12 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookClientException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, ""))
+        String contractName = "test_contract";
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName))
             .thenThrow(LogbookClientException.class);
 
-        given().param("idOperation", "1").expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
+        given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/logbook/operations/1");
     }
 
@@ -330,10 +332,12 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookResultByIdLogbookRemainingException()
         throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, ""))
+        String contractName = "test_contract";
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName))
             .thenThrow(Exception.class);
 
-        given().param("idOperation", "1").expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
+        given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/logbook/operations/1");
     }
 
@@ -1030,7 +1034,9 @@ public class WebApplicationResourceTest {
             .post("/archiveunit/tree/1");
     }
 
-    /** rules Management ********/
+    /**
+     * rules Management
+     ********/
 
     @Test
     public void givenReferentialWrongFormatRulesWhenUploadThenThrowReferentialException() throws Exception {
@@ -1355,7 +1361,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(
                 UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(),
-                    (Integer) Mockito.anyInt()))
+                    (Integer) anyInt()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
         given().contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()
@@ -1363,18 +1369,23 @@ public class WebApplicationResourceTest {
             .post(TRACEABILITY_CHECK_URL);
     }
 
-
     @Test
-    public void testDownloadTraceabilityOperation()
-        throws Exception {
+    public void testDownloadTraceabilityOperation() throws Exception {
 
         // Mock AccessExternal response
         AccessExternalClient accessExternalClient = Mockito.mock(AccessExternalClient.class);
-        Mockito.when(accessExternalClient.downloadTraceabilityOperationFile(anyString(), (Integer) Mockito.anyInt(), Mockito.anyString()))
+
+        final AccessExternalClientFactory accessExternalClientFactory = PowerMockito.mock(AccessExternalClientFactory.class);
+        PowerMockito.when(accessExternalClientFactory.getClient()).thenReturn(accessExternalClient);
+        PowerMockito.when(AccessExternalClientFactory.getInstance()).thenReturn(accessExternalClientFactory);
+
+        String contractName = "test_contract";
+
+        when(accessExternalClient.downloadTraceabilityOperationFile("1", 0, contractName))
             .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()
-            .when().get("traceability" + "/1/" + "content")
+            .when().get("traceability" + "/1/" + "content?contractId=" + contractName)
             .then().statusCode(Status.OK.getStatusCode());
     }
 
