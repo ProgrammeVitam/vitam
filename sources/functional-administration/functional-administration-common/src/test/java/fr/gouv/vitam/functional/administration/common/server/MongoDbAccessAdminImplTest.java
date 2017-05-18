@@ -35,9 +35,16 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
+import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -134,6 +141,8 @@ public class MongoDbAccessAdminImplTest {
     static FileRules fileRules2;
     static AccessionRegisterDetail register;
     static IngestContract contract;
+    static AccessContract accessContract;
+    static Profile profile;
 
     private static ElasticsearchTestConfiguration esConfig = null;
     private final static String HOST_NAME = "127.0.0.1";
@@ -161,11 +170,11 @@ public class MongoDbAccessAdminImplTest {
             .version(Version.Main.PRODUCTION)
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
+
         mongod = mongodExecutable.start();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
-        mongoAccess = MongoDbAccessAdminFactory.create(
-            new DbConfigurationImpl(nodes, DATABASE_NAME));
+        mongoAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
@@ -173,8 +182,10 @@ public class MongoDbAccessAdminImplTest {
         final List<String> testList2 = new ArrayList<>();
         testList.add("test2");
 
+        String now = LocalDateUtil.now().toString();
+
         fileFormat1 = new FileFormat()
-            .setCreatedDate("now")
+            .setCreatedDate(now)
             .setExtension(testList)
             .setMimeType(testList)
             .setName("this is a very long name")
@@ -184,7 +195,7 @@ public class MongoDbAccessAdminImplTest {
             .setVersion("version");
 
         fileFormat2 = new FileFormat()
-            .setCreatedDate("now")
+            .setCreatedDate(now)
             .setExtension(testList)
             .setMimeType(testList)
             .setName("Acrobat PDF 1.0 - Portable Document Format")
@@ -194,7 +205,7 @@ public class MongoDbAccessAdminImplTest {
             .setVersion("version");
 
         fileFormat3 = new FileFormat()
-            .setCreatedDate("now")
+            .setCreatedDate(now)
             .setExtension(testList)
             .setMimeType(testList2)
             .setName("Acrobat PDF/X - Portable Document Format - Exchange 1a:2001")
@@ -204,6 +215,7 @@ public class MongoDbAccessAdminImplTest {
             .setVersion("version");
 
         fileRules1 = new FileRules(TENANT_ID)
+            .setCreationDate(now)
             .setRuleId(RULE_ID_VALUE)
             .setRuleValue(" 3D étudiants avec actes de naissance 10/10/2000 17 e siècle NFZ42020")
             .setRuleType(REUSE_RULE)
@@ -212,6 +224,7 @@ public class MongoDbAccessAdminImplTest {
             .setRuleMeasurement("Annee");
 
         fileRules2 = new FileRules(TENANT_ID)
+            .setCreationDate(now)
             .setRuleId(RULE_ID_VALUE_2)
             .setRuleValue(" 3D étudiants avec actes de naissance 10/10/2000 18 e siècle NFZ42020")
             .setRuleType(REUSE_RULE)
@@ -232,6 +245,10 @@ public class MongoDbAccessAdminImplTest {
 
         contract = createContract();
 
+        accessContract = createAccessContract();
+
+        profile = createProfile();
+
     }
 
     @AfterClass
@@ -248,9 +265,9 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testImplementFunction() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode1 = JsonHandler.getFromString(fileFormat1.toJson());
-        final JsonNode jsonNode2 = JsonHandler.getFromString(fileFormat2.toJson());
-        final JsonNode jsonNode3 = JsonHandler.getFromString(fileFormat3.toJson());
+        final JsonNode jsonNode1 = JsonHandler.toJsonNode(fileFormat1);
+        final JsonNode jsonNode2 = JsonHandler.toJsonNode(fileFormat2);
+        final JsonNode jsonNode3 = JsonHandler.toJsonNode(fileFormat3);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonNode1);
         arrayNode.add(jsonNode2);
@@ -333,8 +350,8 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testRulesFunction() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode1 = JsonHandler.getFromString(fileRules1.toJson());
-        final JsonNode jsonNode2 = JsonHandler.getFromString(fileRules2.toJson());
+        final JsonNode jsonNode1 = JsonHandler.toJsonNode(fileRules1);
+        final JsonNode jsonNode2 = JsonHandler.toJsonNode(fileRules2);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonNode1);
         arrayNode.add(jsonNode2);
@@ -417,7 +434,7 @@ public class MongoDbAccessAdminImplTest {
         FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
         contract.setId(id);
-        JsonNode jsonContract = JsonHandler.getFromString(contract.toJson());
+        JsonNode jsonContract = JsonHandler.toJsonNode(contract);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
@@ -437,6 +454,55 @@ public class MongoDbAccessAdminImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testAccessContract() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
+        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        contract.setId(id);
+        JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        arrayNode.add(jsonContract);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection =
+            client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
+        for (String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
+            System.out.println(c);
+        }
+        mongoAccess.insertDocuments(arrayNode, contractCollection);
+        System.out.println(arrayNode.toString());
+        assertEquals(1, collection.count());
+        mongoAccess.deleteCollection(contractCollection);
+        assertEquals(0, collection.count());
+        client.close();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testProfile() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        FunctionalAdminCollections profileCollection = FunctionalAdminCollections.PROFILE;
+        final String id = GUIDFactory.newProfileGUID(TENANT_ID).getId();
+        profile.setId(id);
+        JsonNode jsonprofile = JsonHandler.toJsonNode(profile);
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        arrayNode.add(jsonprofile);
+        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
+        final MongoCollection<Document> collection =
+            client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.PROFILE.getName());
+        for (String c : client.getDatabase(DATABASE_NAME).listCollectionNames()) {
+            System.out.println(c);
+        }
+        mongoAccess.insertDocuments(arrayNode, profileCollection);
+        System.out.println(arrayNode.toString());
+        assertEquals(1, collection.count());
+        mongoAccess.deleteCollection(profileCollection);
+        assertEquals(0, collection.count());
+        client.close();
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
     public void testFindContract()
         throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
         DatabaseException {
@@ -446,7 +512,7 @@ public class MongoDbAccessAdminImplTest {
         FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
         contract.setId(id);
-        JsonNode jsonContract = JsonHandler.getFromString(contract.toJson());
+        JsonNode jsonContract = JsonHandler.toJsonNode(contract);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         mongoAccess.insertDocuments(arrayNode, contractCollection);
@@ -465,6 +531,65 @@ public class MongoDbAccessAdminImplTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testFindAccessContract()
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
+        DatabaseException {
+
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
+        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        contract.setId(id);
+        JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        arrayNode.add(jsonContract);
+        mongoAccess.insertDocuments(arrayNode, contractCollection);
+
+        final Select select = new Select();
+        select.setQuery(and()
+            .add(eq(AccessContract.NAME, "aName"))
+            .add(or()
+                .add(eq(AccessContract.CREATIONDATE, "10/12/2016"))));
+        final MongoCursor<VitamDocument<?>> contracts =
+            mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
+        final AccessContract foundContract = (AccessContract) contracts.next();
+        contracts.close();
+        assertEquals("aName", foundContract.getString(AccessContract.NAME));
+        mongoAccess.deleteCollection(contractCollection);
+
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testFindProfile()
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
+        DatabaseException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        FunctionalAdminCollections profileCollection = FunctionalAdminCollections.PROFILE;
+        final String id = GUIDFactory.newProfileGUID(TENANT_ID).getId();
+        profile.setId(id);
+        JsonNode jsonProfile = JsonHandler.toJsonNode(profile);
+        final ArrayNode arrayNode = JsonHandler.createArrayNode();
+        arrayNode.add(jsonProfile);
+        mongoAccess.insertDocuments(arrayNode, profileCollection);
+
+        final Select select = new Select();
+        select.setQuery(and()
+            .add(eq(Profile.IDENTIFIER, "FakeId"))
+            .add(or()
+                .add(eq(Profile.CREATIONDATE, "10/12/2016"))));
+        final MongoCursor<VitamDocument<?>> profiles =
+            mongoAccess.findDocuments(select.getFinalSelect(), profileCollection);
+        final Profile foundProfile = (Profile) profiles.next();
+        profiles.close();
+        assertEquals("FakeId", foundProfile.getString(Profile.IDENTIFIER));
+        mongoAccess.deleteCollection(profileCollection);
+
+    }
+
 
     private static IngestContract createContract() {
         IngestContract contract = new IngestContract(TENANT_ID);
@@ -478,5 +603,40 @@ public class MongoDbAccessAdminImplTest {
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
         return contract;
+    }
+
+    private static AccessContract createAccessContract() {
+        AccessContract contract = new AccessContract(TENANT_ID);
+        String name = "aName";
+        String description = "aDescription of the access contract";
+        String lastupdate = "10/12/2016";
+        Set<String> originatingAgencies = new HashSet<>();
+        originatingAgencies.add("Fake");
+
+        contract
+            .setName(name)
+            .setDescription(description).setStatus(ContractStatus.ACTIVE)
+            .setOriginatingAgencies(originatingAgencies)
+            .setLastupdate(lastupdate)
+            .setCreationdate(lastupdate)
+            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
+        return contract;
+    }
+
+    private static Profile createProfile() {
+        Profile profile = new Profile(TENANT_ID);
+        String name = "aName";
+        String description = "aDescription of the profile";
+        String lastupdate = "10/12/2016";
+        profile
+            .setIdentifier("FakeId")
+            .setName(name)
+            .setDescription(description)
+            .setStatus(ProfileStatus.INACTIVE)
+            .setFormat(ProfileFormat.XSD)
+            .setLastupdate(lastupdate)
+            .setCreationdate(lastupdate)
+            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
+        return profile;
     }
 }
