@@ -1,0 +1,87 @@
+<div id="global" class="container-fluid">
+    <ol class="breadcrumb">
+        <li>Administration</li>
+        <li><a href="#!/admin/profiles">Référentiel des profils</a></li>
+        <li><a href="#!/admin/profiles/{{profile._id}}">Détail d'un profil</a></li>
+    </ol>
+
+    <div class="panel panel-default boxSearchWrapper col-md-12">
+                <span class="panel-header no-toggle">
+                    <h2>Détail du profil - {{profile._id}}</h2>
+                </span>
+        <div id="boxProfilesList" class="panel-collapse">
+            <div id="collapse1" class="panel-body">
+                <div class="panel-body">
+
+                    <form>
+                        <input type="hidden" name="hiddenField"/>
+                    </form>
+                    <div class="form-group col-md-6">
+                        <label>ID</label>
+                        <span>{{profile._id}}</span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Date de création</label>
+                        <span>{{profile.CreationDate | vitamFormatDate}}</span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Date de mise à jour</label>
+                        <span>{{profile.LastUpdate | vitamFormatDate}}</span>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label>Nom</label>
+                        <span>{{profile.Name}}</span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Statut</label>
+                        <label class="switch">
+                            <input type="checkbox" ng-model="tmpVars.isActive" ng-change="updateStatus()">
+                            <div class="slider round"></div>
+                        </label>
+                        <span>{{profile.Status | StrReplace}}</span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Tenant(s)</label>
+                        <span>{{profile._tenant}}</span>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label>Description</label>
+                        <span>{{profile.Description}}</span>
+                    </div>
+
+                    <div class="form-group col-md-3">
+                        <label>Date d'activation</label>
+                        <span>{{profile.ActivationDate | vitamFormatDate}}</span>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label>Date de désactivation</label>
+                        <span>{{profile.DeactivationDate | vitamFormatDate}}</span>
+                    </div>
+
+                    <div id="boxEntriesSearchForm" class="panel-body">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="InputFile">Fichier</label>
+                                <input id="InputFile" placeholder="Sélect. fichiers" class="form-control-file" type="file" ng-model="FileInput" nv-file-select="" uploader="uploader">
+                                <small class="text-muted">Fichier .xsd ou .rng uniquement</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-left">
+                            <button class="btn btn-primary" type="button" class="btn btn-success btn-s" ng-click="uploadAction()">
+                                <i class="material-icons pull-left">file_download</i>
+                                <span>Importer</span>
+                            </button>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <!--<button class="btn btn-primary" ng-click="saveModifs()">-->
+                                <!--<i class="material-icons">save</i>-->
+                                <!--<span>Enregistrer</span>-->
+                            <!--</button>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

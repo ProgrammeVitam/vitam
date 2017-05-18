@@ -100,7 +100,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response downloadProfileFile(String profileMetadataId) throws AccessExternalClientException {
+    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }

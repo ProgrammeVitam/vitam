@@ -27,28 +27,10 @@
 
 'use strict';
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'accession.register.search',
-  'accession.register.details',
-  'flow',
-  'workflows',
-  'accessContracts',
-  'entryContracts',
-  'traceability.operation.search',
-  'traceability.operation.details',
-  'profiles.search'
-]);
+// Register `profilesSearchComponent` component, along with its associated controller and template
+angular.
+  module('profiles.search').
+  component('profilesSearchComponent', {
+    templateUrl: 'pages/profiles-search/profiles-search.template.html',
+    controller: 'profilesSearchController as logctrl'
+  });

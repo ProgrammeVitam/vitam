@@ -664,7 +664,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Status createProfiles(List<ProfileModel> profileModelList)
+    public RequestResponse createProfiles(List<ProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input profile json is mandatory", profileModelList);
         Response response = null;
@@ -673,8 +673,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             response = performRequest(HttpMethod.POST, PROFILE_URI, null,
                 profileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
                 false);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            return status;
+            return RequestResponse.parseFromResponse(response);
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
@@ -685,7 +684,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Status importProfileFile(String profileMetadataId, InputStream stream)
+    public RequestResponse importProfileFile(String profileMetadataId, InputStream stream)
         throws ReferentialException {
 
         ParametersChecker.checkParameter("The input profile stream is mandatory", stream);
@@ -695,8 +694,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             response = performRequest(HttpMethod.PUT, PROFILE_URI + "/" + profileMetadataId , null,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
-            final Status status = Status.fromStatusCode(response.getStatus());
-            return status;
+            return RequestResponse.parseFromResponse(response);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);

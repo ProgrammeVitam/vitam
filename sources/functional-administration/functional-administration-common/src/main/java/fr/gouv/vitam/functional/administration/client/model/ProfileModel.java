@@ -65,6 +65,9 @@ public class ProfileModel {
     @JsonProperty("Format")
     private ProfileFormat format;
 
+    @JsonProperty("Path")
+    private String path;
+
 
     @JsonProperty("CreationDate")
     private String creationdate;
@@ -212,6 +215,24 @@ public class ProfileModel {
      */
     public ProfileModel setFormat(ProfileFormat format) {
         this.format = format;
+        return this;
+    }
+
+    /**
+     *
+     * @return
+     */
+    public String getPath() {
+        return path;
+    }
+
+    /**
+     * Profile path in storage
+     * @param path
+     * @return
+     */
+    public ProfileModel setPath(String path) {
+        this.path = path;
         return this;
     }
 

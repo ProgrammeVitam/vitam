@@ -157,7 +157,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||
                 response.getStatus() == Response.Status.CREATED.getStatusCode()) {
                 return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
-            } else {                
+            } else {
                 return RequestResponse.parseFromResponse(response);
             }
         } catch (final VitamClientInternalException e) {
@@ -217,12 +217,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), headers,
                 profiles, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK();
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -243,12 +238,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             response = performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
                 profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK();
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
+            RequestResponse responseBis = RequestResponse.parseFromResponse(response);
+            return responseBis;
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -258,15 +249,17 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response downloadProfileFile(String profileMetadataId) throws AccessExternalClientException {
+    public Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException {
         ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
 
+
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         Response response = null;
 
         Status status = Status.BAD_REQUEST;
         try {
-            response = performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() +"/"+ profileMetadataId, null, null,
-                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = performRequest(HttpMethod.GET, AdminCollections.PROFILE.getName() +"/"+ profileMetadataId, headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case INTERNAL_SERVER_ERROR:

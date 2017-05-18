@@ -113,8 +113,7 @@ public class ProfileManager {
             if (result.isPresent()) {
                 // there is a validation error on this profile
                     /* profile is valid, add it to the list to persist */
-                error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage(result
-                    .get().getReason()));
+                error.addToErrors(getVitamError(result.get().getReason()));
                 // once a validation error is detected on a profile, jump to next profile
                 return false;
             }
@@ -135,7 +134,7 @@ public class ProfileManager {
     public boolean validateProfileFile(ProfileModel profileModel, InputStream inputStream, VitamError error) {
 
         if (null == profileModel) {
-            error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile metadata not found for the corresponding inputstream"));
+            error.addToErrors(getVitamError("Profile metadata not found for the corresponding inputstream"));
             return false;
         }
 
@@ -145,7 +144,7 @@ public class ProfileManager {
             case RNG:
                 return validateRNG(inputStream, error);
             default:
-                error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile format not supported"));
+                error.addToErrors(getVitamError("Profile format not supported"));
                 return false;
         }
 
@@ -166,20 +165,23 @@ public class ProfileManager {
 
             final String tagName = document.getDocumentElement().getTagName();
             if (null == tagName || !String.valueOf(XSD_SCHEMA).equals(tagName)) {
-                error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile file xsd have not the xsd:schema tag name"));
+                error.addToErrors(getVitamError("Profile file xsd have not the xsd:schema tag name"));
                 return false;
             }
 
             return true;
         } catch (SAXException  | IOException e) {
-            error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile file xsd is not xml valide >> "+e.getMessage()));
+            error.addToErrors(getVitamError("Profile file xsd is not xml valide >> "+e.getMessage()));
             return false;
         } catch (ParserConfigurationException e) {
-            error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile file xsd ParserConfigurationException >> "+e.getMessage()));
+            error.addToErrors(getVitamError("Profile file xsd ParserConfigurationException >> "+e.getMessage()));
             return false;
         }
     }
 
+    private VitamError getVitamError(String error) {
+        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile service Error").setState("ko").setContext("FunctionalModule-Profile").setDescription(error);
+    }
     /**
      * TODO
      * 1. Validate if rng is xml valide,
@@ -199,16 +201,16 @@ public class ProfileManager {
 
             final String tagName = document.getDocumentElement().getTagName();
             if (null == tagName || !String.valueOf(RNG_GRAMMAR).equals(tagName)) {
-                error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile file rng have not the rng:grammar tag name"));
+                error.addToErrors(getVitamError("Profile file rng have not the rng:grammar tag name"));
                 return false;
             }
             // TODO: 5/12/17 parse rng and validate RG and OriginatingAgencies
             return true;
         } catch (SAXException  | IOException e) {
-            error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile file rng is not xml valide >> "+e.getMessage()));
+            error.addToErrors(getVitamError("Profile file rng is not xml valide >> "+e.getMessage()));
             return false;
         } catch (ParserConfigurationException e) {
-            error.addToErrors(new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage("Profile file rng ParserConfigurationException >> "+e.getMessage()));
+            error.addToErrors(getVitamError("Profile file rng ParserConfigurationException >> "+e.getMessage()));
             return false;
         }
     }
@@ -235,7 +237,7 @@ public class ProfileManager {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
                 object.put("profileCheck", errorsDetails);
-                
+
                 final String wellFormedJson = SanityChecker.sanitizeJson(object);
                 logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
             } catch (InvalidParseOperationException e) {
@@ -284,11 +286,11 @@ public class ProfileManager {
      *
      * @throws VitamException
      */
-    public void logInProgress(String eventType) throws VitamException {
+    public void logInProgress(String eventType, StatusCode statusCode) throws VitamException {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
+                statusCode,
+                VitamLogbookMessages.getCodeOp(eventType, statusCode), eip);
         helper.updateDelegate(logbookParameters);
     }
 

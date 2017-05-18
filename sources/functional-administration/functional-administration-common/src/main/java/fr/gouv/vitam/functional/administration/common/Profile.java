@@ -62,6 +62,11 @@ public class Profile extends VitamDocument<Profile> {
      */
     public static final String FORMAT = "Format";
 
+
+    /**
+     * the profile file path in storage
+     */
+    public static final String PATH = "path";
     /**
      * the creatation date of the profile
      */
@@ -79,6 +84,11 @@ public class Profile extends VitamDocument<Profile> {
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
+
+    /**
+     * ES Mapping
+     */
+    public static final String TYPEUNIQUE = "typeunique";
 
     /**
      * Empty Constructor
@@ -217,12 +227,33 @@ public class Profile extends VitamDocument<Profile> {
     }
 
     /**
+     * The profile file path in storage
+     * @return the profile path
+     */
+    public String getPath() {
+        return getString(PATH);
+    }
+
+
+
+    /**
+     * Set or change the profile path
+     * @param path
+     * @return this
+     */
+    public Profile setPath(String path) {
+        append(PATH, path);
+        return this;
+    }
+
+    /**
      * The profile file format
      * @return the profile format
      */
     public ProfileFormat getFormat() {
         return (ProfileFormat) get(FORMAT);
     }
+
 
 
     /**

@@ -2020,25 +2020,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/profiles/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("profiles:read")
-    public void downloadProfileFile(@PathParam("id") String profileMetadataId,
+    public void downloadProfileFile(@Context HttpHeaders headers, @PathParam("id") String profileMetadataId,
         @Suspended final AsyncResponse asyncResponse) {
 
         ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
 
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse));
+            .execute(() -> asyncDownloadProfileFile(profileMetadataId, getTenantId(headers), asyncResponse));
     }
 
-    private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse) {
+    private void asyncDownloadProfileFile(String profileMetadataId, int tenant, final AsyncResponse asyncResponse) {
 
         AsyncInputStreamHelper helper;
 
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
 
-            final Response response = client.downloadProfileFile(profileMetadataId);
+            final Response response = client.downloadProfileFile(profileMetadataId, tenant);
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(Status.OK)

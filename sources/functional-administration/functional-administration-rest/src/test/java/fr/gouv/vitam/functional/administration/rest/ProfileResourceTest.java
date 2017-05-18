@@ -260,7 +260,7 @@ public class ProfileResourceTest {
             .when().get(ProfileResource.PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Identifier");
 
-        assertThat(result).hasSize(1).contains("aIdentifier2");
+        assertThat(result).hasSize(2).contains("aIdentifier2");
     }
 
     @Test

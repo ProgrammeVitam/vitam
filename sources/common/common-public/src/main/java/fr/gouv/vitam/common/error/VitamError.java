@@ -49,6 +49,7 @@ import java.util.Map;
  */
 public class VitamError extends RequestResponse {
 
+
     @JsonProperty("code")
     private String code;
     @JsonProperty("context")

@@ -48,7 +48,7 @@ public class AdminExternalClientMockTest {
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.downloadProfileFile("fakeId").getStatus(),
+            client.downloadProfileFile("fakeId", TENANT_ID).getStatus(),
             Status.OK.getStatusCode());
 
 

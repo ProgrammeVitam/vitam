@@ -610,6 +610,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case MANIFEST:
                 description.append("Manifest ");
                 break;
+            case PROFILE:
+                description.append("Profile ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }

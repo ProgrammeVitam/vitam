@@ -98,11 +98,11 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>- Status</li>
      *
      *
-     * @param profileModel the given profile for update
+     * @param jsonDsl the given profile dsl for update
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    public RequestResponse<ProfileModel> updateProfiles(ProfileModel profileModel) throws VitamException;
+    public RequestResponse<ProfileModel> updateProfiles(JsonNode jsonDsl) throws VitamException;
 
 
     /**

@@ -267,15 +267,15 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status createProfiles(List<ProfileModel> profileModelList)
+    public RequestResponse createProfiles(List<ProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException {
-        return Status.CREATED;
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
-    public Status importProfileFile(String profileMetadataId, InputStream stream)
+    public RequestResponse importProfileFile(String profileMetadataId, InputStream stream)
         throws ReferentialException, DatabaseConflictException {
-        return Status.CREATED;
+        return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override

@@ -262,16 +262,16 @@ public class AdminManagementClientMockTest {
     @RunWithCustomExecutor
     public void givenClientMockWhenCreateProfiles() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Status resp = client.createProfiles(new ArrayList<>());
-        assertEquals(resp, Status.CREATED);
+        RequestResponse resp = client.createProfiles(new ArrayList<>());
+        assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenImportProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Status resp = client.importProfileFile("fakeId", new FakeInputStream(0,false));
-        assertEquals(resp, Status.CREATED);
+        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0,false));
+        assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 
 
