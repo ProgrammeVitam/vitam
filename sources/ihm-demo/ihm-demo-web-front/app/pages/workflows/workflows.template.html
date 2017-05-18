@@ -1,12 +1,27 @@
 <div id="global" class="container-fluid" >
   <ol class="breadcrumb">
     <li>Administration</li>
-    <li><a href="#!/admin/workflows">Gestion des versements</a></li>
+    <li><a href="#!/admin/workflows">Gestion des opérations</a></li>
   </ol>
+
+  <!-- Pagination -->
+  <div style="text-align: center">
+    <button class="btn btn-default btn-s"
+            ng-disabled="ctrl.currentPage <= 1"
+            ng-click="ctrl.currentPage=ctrl.currentPage-1">Précédent</button>
+    <input ng-model="ctrl.currentPage" style="max-width: 40px">/{{ctrl.resultPages}}
+    <button class="btn btn-default btn-s"
+            ng-disabled="ctrl.currentPage >= ctrl.resultPages"
+            ng-click="ctrl.currentPage=ctrl.currentPage+1">Suivant</button>
+  </div>
+
 
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
-        <h2>Liste des Opérations</h2>
+        <h2>
+          Liste des Opérations
+          <span ng-if="ctrl.results == 0 || ctrl.results > 0">({{ctrl.results}})</span>
+        </h2>
     </span>
 
     <!-- Get description metadata -->
@@ -16,22 +31,68 @@
           <div class="table-responsive">
             <table class="table">
               <tr>
-                <th>Identifiant de l'opération</th>
-                <th>Catégorie de l'opération</th>
-                <th>Date de l'entrée</th>
-                <th>Mode d'exécution</th>
-                <th>Etat global de l'opération d'entrée</th>
-                <th>Statut</th>
-                <th>Actions</th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField = 'operation_id'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Identifiant de l'opération
+                    <span ng-show="orderByField == 'operation_id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'operation_id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField ='processType'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Catégorie de l'opération
+                    <span ng-show="orderByField == 'processType' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'processType' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField ='processDate'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Date de l'entrée
+                    <span ng-show="orderByField == 'processDate' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'processDate' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField ='executionMode'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Mode d'exécution
+                    <span ng-show="orderByField == 'executionMode' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'executionMode' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField ='previousStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Précédente étape du workflow / étape en cours
+                    <span ng-show="orderByField == 'previousStep' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'previousStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField ='nextStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Prochaine étape du workflow
+                    <span ng-show="orderByField == 'nextStep' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'nextStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  <div ng-click="oldOrderBy = orderByField; orderByField = 'stepStatus'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                    Statut
+                    <span ng-show="orderByField == 'stepStatus' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                    <span ng-show="orderByField == 'stepStatus' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
+                  </div>
+                </th>
+                <th>
+                  Actions
+                </th>
               </tr>
 
-              <tbody ng-repeat="operation in operations">
+              <tbody ng-repeat="operation in operations | orderBy:orderByFunction:reverseSort | startFrom:(ctrl.currentPage-1)*ctrl.itemsPerPage | limitTo:ctrl.itemsPerPage">
                 <tr class="workflow">
                   <td>{{operation.operation_id}}</td>
                   <td>{{operation.processType}}</td>
                   <td>{{operation.processDate | vitamFormatDate}}</td>
                   <td>{{getTranslatedText(operation.executionMode)!== undefined ? getTranslatedText(operation.executionMode) : operation.executionMode}}</td>
-                  <td>{{getTranslatedText(operation.globalStatus)!== undefined ? getTranslatedText(operation.globalStatus) : operation.globalStatus}}</td>
+                  <td>{{operation.previousStep | translate}}</td>
+                  <td>{{operation.nextStep | translate}}</td>
                   <td ng-if="!operation.inProgress">{{getTranslatedText(operation.stepStatus)!== undefined ? getTranslatedText(operation.stepStatus) : operation.stepStatus}}</td>
                   <td ng-if="operation.inProgress"><img src="images/loading_36.gif"/></td>
                   <td>
