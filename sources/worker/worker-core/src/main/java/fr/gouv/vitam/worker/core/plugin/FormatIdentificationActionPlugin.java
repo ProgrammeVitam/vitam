@@ -109,6 +109,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private FormatIdentifier formatIdentifier;
 
     private boolean metadatasUpdated = false;
+    String eventDetailData;
 
     /**
      * Empty constructor
@@ -216,6 +217,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         if (itemStatus.getGlobalStatus().getStatusLevel() == StatusCode.UNKNOWN.getStatusLevel()) {
             itemStatus.increment(StatusCode.OK);
         }
+        
+        if (eventDetailData!=null){
+            itemStatus.setEvDetailData(eventDetailData);
+        }
 
         LOGGER.debug("FormatIdentificationActionHandler response: " + itemStatus.getGlobalStatus());
         return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
@@ -266,6 +271,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                     checkAndUpdateFormatIdentification(objectId, formatIdentification,
                         objectCheckFormatResult, refFormat,
                         version);
+                eventDetailData = "{\"the old format identification\":" + formatIdentification + "," +
+                    "\"the new format identification\": " + newFormatIdentification + "} ";
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
             }
@@ -367,6 +374,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_UPDATED_FORMAT);
         }
+        
         return newFormatIdentification;
     }
 
