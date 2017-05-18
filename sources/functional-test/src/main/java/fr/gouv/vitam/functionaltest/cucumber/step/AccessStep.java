@@ -291,52 +291,22 @@ public class AccessStep {
 
 
     /**
-     * Search an archive unit and retrieve object groups according to the query define before. Step 1 : request search
-     * unit with #object in projection. Step 2 : on each unit search object group.
+     * Search an archive unit and retrieve object groups according to the query define before. 
+     * Search object group with archive unit Id
      *
      * @throws Throwable
      */
-    @When("^je recherche les groupes d'objets des unités archivistiques$")
-    public void search_archive_unit_object_group() throws Throwable {
-        ObjectNode queryJSON = (ObjectNode) JsonHandler.getFromString(query);
-        // update projection to unsure object id is in projection
-        if (queryJSON.get("$projection") == null) {
-            queryJSON.set("$projection", JsonHandler.createObjectNode());
-        }
-        if (queryJSON.get("$projection").get("$fields") == null) {
-            ((ObjectNode) queryJSON.get("$projection")).set("$fields", JsonHandler.createObjectNode());
-        }
-        if (queryJSON.get("$projection").get("$fields").get("#object") == null) {
-            ((ObjectNode) queryJSON.get("$projection").get("$fields")).put("#object", 1);
-        }
-
-        // Search units
-        RequestResponse<JsonNode> requestResponseUnit = world.getAccessClient().selectUnits(queryJSON,
-            world.getTenantId(), world.getContractId());
-        if (requestResponseUnit.isOk()) {
-            RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) requestResponseUnit;
-            List<JsonNode> unitResults = responseOK.getResults();
-            RequestResponseOK<JsonNode> objectGroupsResponseOK = new RequestResponseOK<>();
-            for (JsonNode unitResult : unitResults) {
-                // search object group on unit
-                RequestResponse responseObjectGroup =
-                    world.getAccessClient().selectObjectById(new SelectMultiQuery().getFinalSelect(),
-                        unitResult.get("#id").asText(), world.getTenantId(), world.getContractId());
-                if (responseObjectGroup.isOk()) {
-                    List<JsonNode> objectGroupResults =
-                        ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
-                    if (objectGroupResults != null && !objectGroupResults.isEmpty()) {
-                        objectGroupsResponseOK.addAllResults(objectGroupResults);
-                    }
-                } else {
-                    VitamError vitamError = (VitamError) responseObjectGroup;
-                    Fail.fail("request selectObject return an error: " + vitamError.getCode());
-                }
-            }
-            results = objectGroupsResponseOK.getResults();
+    @When("^je recherche les groupes d'objets de l'unité archivistique dont le titre est (.*)$")
+    public void search_archive_unit_object_group(String title) throws Throwable {
+        String unitId = replaceTitleByGUID(title);
+        RequestResponse responseObjectGroup =
+            world.getAccessClient().selectObjectById(new SelectMultiQuery().getFinalSelect(),
+                unitId, world.getTenantId(), world.getContractId());
+        if (responseObjectGroup.isOk()) {
+            results = ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
         } else {
-            VitamError vitamError = (VitamError) requestResponseUnit;
-            Fail.fail("request selectUnit for GOT return an error: " + vitamError.getCode());
+            VitamError vitamError = (VitamError) responseObjectGroup;
+            Fail.fail("request selectObject return an error: " + vitamError.getCode());
         }
     }
 
@@ -507,8 +477,7 @@ public class AccessStep {
                     .filter(event -> !event.get("outcome").textValue().equals("STARTED"))
                     .collect(Collectors.toList());
 
-                softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
-                JsonNode onlyElement = Iterables.getOnlyElement(events);
+                JsonNode onlyElement = events.get(0);
 
                 String currentStatus = onlyElement.get("outcome").textValue();
                 softly.assertThat(currentStatus)
