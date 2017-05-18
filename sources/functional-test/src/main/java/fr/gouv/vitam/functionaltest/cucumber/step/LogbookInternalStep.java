@@ -29,6 +29,9 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import org.assertj.core.api.Fail;
 
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -53,12 +56,14 @@ public class LogbookInternalStep {
             RequestResponseOK response;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
+                VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
                 response = world.getLogbookOperationsClient().traceability();
                 String operationId = response.getResults().get(0).toString();
-                world.setOperationId(operationId);
+                world.setOperationId(operationId);                
                 assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                fail("should not produce an exception "+e);
+                //throw new RuntimeException(e);
             }
         });
     }
