@@ -713,8 +713,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
-        Status resp = client.createProfiles(new ArrayList<>());
-        assertEquals(resp, Status.CREATED);
+        RequestResponse resp = client.createProfiles(new ArrayList<>());
+        assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 
 
@@ -724,9 +724,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws FileNotFoundException, InvalidParseOperationException, ReferentialException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<>()).build());
-        Status resp = client.importProfileFile("fakeId", new FakeInputStream(0l, false));
-        assertEquals(resp, Status.CREATED);
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).build());
+        RequestResponse resp = client.importProfileFile("fakeId", new FakeInputStream(0l, false));
+        assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
 
     /**

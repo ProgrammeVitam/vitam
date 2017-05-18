@@ -306,7 +306,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      */
 
-    Status createProfiles(List<ProfileModel> profileModelList)
+    RequestResponse createProfiles(List<ProfileModel> profileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
     /**
@@ -316,7 +316,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws ReferentialException when import exception occurs
      * @throws DatabaseConflictException conflict exception occurs
      */
-    Status importProfileFile(String profileMetadataId, InputStream stream) throws ReferentialException, DatabaseConflictException;
+    RequestResponse importProfileFile(String profileMetadataId, InputStream stream) throws ReferentialException, DatabaseConflictException;
 
 
     /**

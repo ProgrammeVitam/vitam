@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -233,9 +234,10 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter("profileFile stream is a mandatory parameter", profileFile);
             ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Status status = client.importProfileFile(profileMetadataId, profileFile);
-                ResponseBuilder ResponseBuilder = Response.status(status)
-                    .entity("Successfully imported");
+                RequestResponse requestResponse = client.importProfileFile(profileMetadataId, profileFile);
+
+                ResponseBuilder ResponseBuilder = Response.status(requestResponse.getStatus())
+                    .entity(requestResponse);
                 return ResponseBuilder.build();
             } catch (final DatabaseConflictException e) {
                 LOGGER.error(e);
@@ -315,6 +317,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findDocuments(@PathParam("collection") String collection, JsonNode select) {
+
 
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -409,8 +412,11 @@ public class AdminManagementExternalResourceImpl {
 
                 if (AdminCollections.PROFILE.compareTo(collection)) {
                     SanityChecker.checkJsonAll(select);
-                    status = client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    RequestResponse requestResponse = client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                         new TypeReference<List<ProfileModel>>() {}));
+
+                    return  Response.status(requestResponse.getStatus())
+                        .entity(requestResponse).build();
 
                 }
 

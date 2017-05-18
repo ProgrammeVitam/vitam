@@ -93,6 +93,18 @@ config(['$locationProvider' ,'$routeProvider',
       title: 'Référentiel des Règles de gestion',
       permission: 'admin:rules:read'
     }).
+    when('/admin/profiles', {
+      templateUrl: 'pages/profiles-search/profiles-search.template.html',
+      controller: 'profilesSearchController',
+      title: 'Référentiel des profils',
+      permission: 'profiles:read'
+    }).
+    when('/admin/profiles/:id', {
+      templateUrl: 'pages/profiles-details/profiles-details.template.html',
+      controller: 'profilesDetailsController',
+      title: 'Détail d\'un profil',
+      permission: 'profiles:read'
+    }).
     when('/admin/logbookLifecycle', {
       templateUrl:  "views/in-progress.html",
       permission: 'ingest:create'
@@ -120,6 +132,11 @@ config(['$locationProvider' ,'$routeProvider',
         templateUrl: "views/import-access-contracts.html",
         title: 'Import des contrats d\'accès',
         permission: 'contracts:create'
+    }).
+    when('/admin/importProfiles', {
+        templateUrl: "views/import-profiles.html",
+        title: 'Import des profils',
+        permission: 'profiles:create'
     }).
     when('/admin/journalOperations', {
       template: '<all-logbook-operation></all-logbook-operation>',

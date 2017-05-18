@@ -537,7 +537,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        Response response = client.downloadProfileFile("OP_ID");
+        Response response = client.downloadProfileFile("OP_ID", TENANT_ID);
         assertNotNull(response);
     }
 

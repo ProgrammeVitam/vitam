@@ -187,8 +187,9 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Download the profile file according to profileMetadataId
+     * @param tenantId
      * @param profileMetadataId
      * @return
      */
-    Response downloadProfileFile(String profileMetadataId) throws AccessExternalClientException;
+    Response downloadProfileFile(String profileMetadataId, Integer tenantId) throws AccessExternalClientException;
 }

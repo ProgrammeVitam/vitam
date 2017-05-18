@@ -25,30 +25,23 @@
  * accept its terms.
  */
 
-'use strict';
+// Define resources in order to call WebApp http endpoints for profile
+angular.module('core')
+    .factory('profileResource', function(ihmDemoCLient) {
 
-// Define the `ihm-demo` module
-angular.module('ihm.demo', [
-  'ngAnimate',
-  'ui.bootstrap',
-  'ui.multiselect',
-  'ngRoute',
-  'core',
-  'archiveSearch',
-  'angularFileUpload',
-  'ngMaterial',
-  'archive.unit',
-  'vAccordion',
-  'ngCookies',
-  'lifecycle',
-  'pascalprecht.translate',
-  'accession.register.search',
-  'accession.register.details',
-  'flow',
-  'workflows',
-  'accessContracts',
-  'entryContracts',
-  'traceability.operation.search',
-  'traceability.operation.details',
-  'profiles.search'
-]);
+        var profileResource = {};
+
+        profileResource.getDetails = function (id, callback) {
+            ihmDemoCLient.getClient('profiles').one(id).get({}, {'accept':'application/json'}).then(function (response) {
+                callback(response);
+            }, function (error) {
+                console.log('Error while reading profile with id: ' + id, error);
+            });
+        }
+
+        profileResource.update = function (id, data) {
+            return ihmDemoCLient.getClient('profile').all(id).post(data);
+        };
+
+        return profileResource;
+    });

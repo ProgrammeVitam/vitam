@@ -79,6 +79,16 @@
   "search.accessionRegister.fields.Status.UNSTORED": "Sortie du stock",
   "search.accessionRegister.fields.Status.DEFAULT": "En stock",
 
+  "profiles.displayField.Id": "Identifiant",
+  "profiles.displayField.Name": "Nom",
+  "profiles.displayField.Description": "Description",
+  "profiles.displayField.Status": "Etat",
+  "profiles.displayField.Profile": "Profil",
+  "profiles.displayField.ActivationDate": "Date d'activation",
+  "profiles.displayField.DeactivationDate": "Date de désactivation",
+  "profiles.displayField.CreationDate": "Date de création",
+  "profiles.displayField.LastUpdate": "Dernière modification",
+
   "operations.operation.executionMode.RESUME": "Continu",
   "operations.operation.executionMode.NEXT": "Pas à pas",
 

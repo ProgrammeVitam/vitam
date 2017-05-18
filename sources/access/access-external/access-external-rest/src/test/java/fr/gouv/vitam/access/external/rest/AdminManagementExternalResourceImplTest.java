@@ -3,6 +3,9 @@ package fr.gouv.vitam.access.external.rest;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.mockito.Matchers.anyObject;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,6 +16,7 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.error.VitamError;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -166,9 +170,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).checkFormat(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doThrow(new ReferentialException("")).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -246,10 +250,10 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject());
-        PowerMockito.doReturn(Status.OK).when(adminCLient).checkFormat(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doThrow(new ReferentialException("")).when(adminCLient).importFormat(anyObject());
+        doReturn(Status.OK).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -257,7 +261,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        PowerMockito.doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject());
+        doThrow(new DatabaseConflictException("")).when(adminCLient).importFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -400,10 +404,10 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).getFormats(anyObject());
-        PowerMockito.doThrow(new ReferentialException("")).when(adminCLient).getFormatByID(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doThrow(new ReferentialException("")).when(adminCLient).getFormats(anyObject());
+        doThrow(new ReferentialException("")).when(adminCLient).getFormatByID(anyObject());
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
 
@@ -422,11 +426,12 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormats(anyObject());
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormatByID(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormats(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(adminCLient).getFormatByID(anyObject());
 
         given()
             .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(FORMAT_URI + DOCUMENT_ID)
@@ -446,9 +451,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Status.BAD_REQUEST).when(adminCLient).importIngestContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(Status.BAD_REQUEST).when(adminCLient).importIngestContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -463,9 +468,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Status.CREATED).when(adminCLient).importIngestContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(Status.CREATED).when(adminCLient).importIngestContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -478,10 +483,10 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
 
-        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).findIngestContracts(anyObject());
+        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient).findIngestContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
                 .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
                 .when().get(INGEST_CONTRACTS_URI)
@@ -494,9 +499,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Status.BAD_REQUEST).when(adminCLient).importAccessContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(Status.BAD_REQUEST).when(adminCLient).importAccessContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -511,9 +516,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Status.CREATED).when(adminCLient).importAccessContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(Status.CREATED).when(adminCLient).importAccessContracts(anyObject());
         stream = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
 
         given().contentType(ContentType.BINARY).body(stream)
@@ -527,9 +532,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findAccessContracts(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findAccessContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(ACCESS_CONTRACTS_URI)
@@ -543,9 +548,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Status.BAD_REQUEST).when(adminCLient).createProfiles(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminCLient).createProfiles(anyObject());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
@@ -563,9 +568,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(Status.CREATED).when(adminCLient).createProfiles(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminCLient).createProfiles(anyObject());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
@@ -583,9 +588,9 @@ public class AdminManagementExternalResourceImplTest {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminCLient = PowerMockito.mock(AdminManagementClient.class);
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        PowerMockito.doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findProfiles(anyObject());
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient).findProfiles(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(PROFILE_URI)
