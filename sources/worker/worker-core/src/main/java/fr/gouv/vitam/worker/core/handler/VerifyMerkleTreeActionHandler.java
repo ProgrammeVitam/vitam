@@ -89,7 +89,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         return HANDLER_ID;
     }
 
-    @Override
+    @Override    
     public ItemStatus execute(WorkerParameters params, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
 
@@ -126,14 +126,11 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
 
             // compare to secured and indexed hashs
-            // TODO Add these items to the final itemStatus
             final ItemStatus subSecuredItem = compareToSecuredHash(params, handler, currentRootHash);
+            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
             final ItemStatus subLoggedItemStatus = compareToLoggedHash(params, currentRootHash);
+            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
-            itemStatus.increment(StatusCode.OK);
-        } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
         } catch (ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);

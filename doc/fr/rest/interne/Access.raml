@@ -164,6 +164,39 @@ documentation:
         Response model for one Logbook operation item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.OperationItemResponse, StandardTraits.OverrideGet]
 
+    /traceability:
+        post:
+          description: |
+            Permet de lancer une opération de sécurisation des journaux d'opération sur un tenant donné.
+          is: [StandardTraits.StandardOptionalHeader]
+          responses:
+           200:
+             description: |
+               L'opération a été réalisée avec succès. L'ID de l'opération est retournée.
+           400:
+             description: |
+               Le tenant n'est pas indiqué, l'opération n'a pu être réalisée.
+           500:
+             description: |
+               Un problème interne a empêché l'opération de se dérouler.
+
+        /check:
+           post:
+             description: Permet de vérifier une opération de sécurisation des journaux
+             is: [LogbookTraits.TraceabilityCheckResponse]
+
+        /{idOperation}/content:
+           get:
+             description: Permet de télécharger le fichier sécurisé des journaux d'opération
+             is: [LogbookTraits.TraceabilityDownloadResponse]
+           post:
+             description: |
+              Permet de télécharger le fichier sécurisé des journaux d'opération (POST avec X-Http-Method-Override: GET)
+             is: [LogbookTraits.TraceabilityDownloadResponse]
+             headers:
+                X-Http-Method-Override:
+                  required: true
+
     /unitlifecycles:
       displayName: Unit Life Cycles Logbooks For Operation
       description: |

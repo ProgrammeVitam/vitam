@@ -62,7 +62,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -506,10 +505,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     @Test
     public void givenCorrectDslQueryWhenCheckTraceabilityOperationThenOK() throws Exception {
-        
+
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
         when(mock.post()).thenReturn(Response.ok().entity(ClientMockResultHelper.checkOperationTraceability()).build());
-        
+
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         @SuppressWarnings("rawtypes")
         final RequestResponse requestResponse = client.checkTraceabilityOperation(queryJson);
