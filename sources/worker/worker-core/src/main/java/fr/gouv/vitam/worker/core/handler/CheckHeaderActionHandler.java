@@ -44,12 +44,12 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
  * Check HEADER Handler
  */
 public class CheckHeaderActionHandler extends ActionHandler {
-    
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckHeaderActionHandler.class);
     private static final String HANDLER_ID = "CHECK_HEADER";
 
     /**
-     * empty Constructor 
+     * empty Constructor
      *
      */
     public CheckHeaderActionHandler() {
@@ -78,12 +78,18 @@ public class CheckHeaderActionHandler extends ActionHandler {
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
+        if (madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
+            itemStatus.setData(SedaConstants.TAG_MESSAGE_IDENTIFIER,
+                madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        }
+
         if (!madatoryValueMap.containsKey(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER)) {
             itemStatus.increment(StatusCode.KO);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
-        
-        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null && Boolean.valueOf((String)handlerIO.getInput(0))) {
+
+        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null &&
+            Boolean.valueOf((String) handlerIO.getInput(0))) {
             handlerIO.getInput().clear();
             handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
             CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
@@ -91,16 +97,15 @@ public class CheckHeaderActionHandler extends ActionHandler {
             itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
             checkIngestContractActionHandler.close();
         } else {
-            itemStatus.increment(StatusCode.OK); 
+            itemStatus.increment(StatusCode.OK);
         }
-       
-        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
+        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        
+
     }
 
 }
