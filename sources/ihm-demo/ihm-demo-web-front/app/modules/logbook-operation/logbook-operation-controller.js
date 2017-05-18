@@ -52,7 +52,11 @@ angular.module('ihm.demo')
         data: [],
         hints: {},
         totalResult: 0
-      }
+      },
+      dynamicTable : {
+      customFields: [],
+      selectedObjects: []
+    }
     };
 
     $scope.dynamicTable = {
@@ -64,21 +68,22 @@ angular.module('ihm.demo')
       $window.open('#!/admin/detailOperation/' + id);
     };
 
-    function initFields(fields) {
+    function initFielsFromObject (dataObj) {
       var result = [];
-      for (var i = 0, len = fields.length; i<len; i++) {
-        var fieldId = fields[i];
+      var excludes =["events","_id"];
+      for(var id in dataObj) {
+        if(excludes.includes(id)) continue;
         result.push({
-          id: fieldId, label: 'operation.logbook.displayField.' + fieldId
+          id: id, label: 'operation.logbook.displayField.' + id
         });
       }
       return result;
     }
 
+
     loadStaticValues.loadFromFile().then(
       function onSuccess(response) {
         var config = response.data;
-        $scope.dynamicTable.customFields = initFields(config.logbookOperationCustomFields);
       }, function onError(error) {
 
       });
@@ -98,8 +103,14 @@ angular.module('ihm.demo')
     };
 
     var successCallback = function() {
+
+      if (this.searchScope.response && this.searchScope.response.data[0] ) {
+        var fields = initFielsFromObject(this.searchScope.response.data[0]);
+        this.searchScope.dynamicTable.customFields = fields;
+      }
       return true;
     };
+
 
     var computeErrorMessage = function() {
       if ($scope.search.form.EventType !== defaultSearchType && $scope.search.form.EventID) {

@@ -17,7 +17,7 @@
 					</div>
 	
 					<div class="boxSimpleSearchInput form-group col-md-4 m-b-50" style="width: 40%; margin-left: 0px">
-						<label for="entryType">Type d'opération</label>
+						<label for="entryType">Catégorie d'opération</label>
 						<select ng-model="search.form.EventType" class="form-control" name="entryType" ng-change="onInputChange()">
 							<option value="--" >--</option>
 							<option value="audit">Audit</option>
@@ -55,8 +55,7 @@
 		</a>
 
 		<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
-
-			<dynamic-table custom-fields="dynamicTable.customFields" selected-objects="dynamicTable.selectedObjects">
+			<dynamic-table custom-fields="search.dynamicTable.customFields" selected-objects="dynamicTable.selectedObjects">
 			</dynamic-table>
 
 			<div class="table-responsive">
