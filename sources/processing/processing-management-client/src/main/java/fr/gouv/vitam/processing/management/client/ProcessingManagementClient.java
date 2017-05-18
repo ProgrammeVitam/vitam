@@ -46,22 +46,6 @@ import fr.gouv.vitam.processing.common.model.WorkerBean;
 public interface ProcessingManagementClient extends OperationManagementClient {
 
     /**
-     * executeVitamProcess : processing operation of a workflow
-     *
-     * @param actionId : name of action
-     * @param container : name of the container
-     * @param workflow : id of the workflow
-     * @return Engine response containing message and status
-     * @throws BadRequestException
-     * @throws IllegalArgumentException thrown in case of illegal argument in request server error
-     * @throws WorkflowNotFoundException thrown if the defined workfow is not found by server
-     * @throws ProcessingException
-     */
-    @Deprecated
-    Response executeVitamProcess(String container, String workflow, String actionId)
-        throws BadRequestException, WorkflowNotFoundException, ProcessingException;
-
-    /**
      * Register a new worker knowing its family and with a WorkerBean. If a problem is encountered, an exception is
      * thrown.
      *
