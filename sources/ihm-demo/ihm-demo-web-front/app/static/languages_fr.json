@@ -70,5 +70,15 @@
   "search.accessionRegister.fields.Status.DEFAULT": "En stock",
 
   "operations.operation.executionMode.RESUME": "Continu",
-  "operations.operation.executionMode.NEXT": "Pas à pas"
+  "operations.operation.executionMode.NEXT": "Pas à pas",
+
+  "archiveunit.physical.fields.Widht": "Largeur",
+  "archiveunit.physical.fields.Height": "Hauteur",
+  "archiveunit.physical.fields.Depth": "Profondeur",
+  "archiveunit.physical.fields.Shape": "Forme",
+  "archiveunit.physical.fields.Diameter": "Diamètre",
+  "archiveunit.physical.fields.Length": "Longueur",
+  "archiveunit.physical.fields.Thickness": "Epaisseur",
+  "archiveunit.physical.fields.Weight": "Poids",
+  "archiveunit.physical.fields.NumberofPage": "Nombre de pages"
 }

@@ -62,7 +62,8 @@ angular.module('archive.unit')
   .controller('ArchiveUnitController', function($scope, $routeParams, $filter, ihmDemoFactory, $window,
                                                 ARCHIVE_UNIT_MODULE_CONST, ARCHIVE_UNIT_MODULE_FIELD_LABEL,
                                                 ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, archiveDetailsService, $mdToast,
-                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService, accessContractResource){
+                                                $mdDialog, transferToIhmResult, RuleUtils, authVitamService, accessContractResource,
+                                                uneceMappingService, $q){
 
     var self = this;
 
@@ -86,12 +87,12 @@ angular.module('archive.unit')
     //******************************* Alert diplayed ******************************* //
     self.showAlert = function($event, dialogTitle, message) {
       $mdDialog.show($mdDialog.alert().parent(angular.element(document.querySelector('#popupContainer')))
-        .clickOutsideToClose(true)
-        .title(dialogTitle)
-        .textContent(message)
-        .ariaLabel('Alert Dialog Demo')
-        .ok('OK')
-        .targetEvent($event)
+          .clickOutsideToClose(true)
+          .title(dialogTitle)
+          .textContent(message)
+          .ariaLabel('Alert Dialog Demo')
+          .ok('OK')
+          .targetEvent($event)
       );
     };
 
@@ -403,11 +404,11 @@ angular.module('archive.unit')
       } return e.slice(0,10);
     };
     $scope.exitRule = function(array){
-        for (var i = 0; i < array.length; i++){
-            if (array[i]["ruleId"])
-                return true;
-        }
-        return false;
+      for (var i = 0; i < array.length; i++){
+        if (array[i]["ruleId"])
+          return true;
+      }
+      return false;
     }
     $scope.title = {};
     $scope.displayRule = {};
@@ -416,10 +417,10 @@ angular.module('archive.unit')
       $scope.displayRule[rule.ruleId] = !$scope.displayRule[rule.ruleId] ;
 
       if (!$scope.title[rule.ruleId]) {
-          ihmDemoFactory.getArchiveUnitDetails(rule.originId)
-              .then(function (response) {
-                  $scope.title[rule.ruleId] = response.data.$results[0].Title;
-              });
+        ihmDemoFactory.getArchiveUnitDetails(rule.originId)
+          .then(function (response) {
+            $scope.title[rule.ruleId] = response.data.$results[0].Title;
+          });
       }
 
     };
@@ -430,16 +431,16 @@ angular.module('archive.unit')
       return '';
     };
     $scope.checkUpOrDown = function(rule){
-        if ($scope.displayRule[rule.ruleId]) {
-            return true;
-        } else {
-            return false;
-        }
+      if ($scope.displayRule[rule.ruleId]) {
+        return true;
+      } else {
+        return false;
+      }
     };
     $scope.hasSortFinal = function(c){
-        if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
-            return true;
-        } else return false;
+      if (c == 'Durée d\'utilité Administrative' || c == 'Durée d\'utilité courante'){
+        return true;
+      } else return false;
     };
     self.displayArchiveDetails = function(){
       self.mainFields={};
@@ -460,92 +461,92 @@ angular.module('archive.unit')
         $scope.refNonId = {};
 
         for (var key in management) {
-            if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
-                continue;
+          if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+            continue;
+          }
+          var translateKey = RuleUtils.translate(key);
+          var currentRef = [];
+          var tf = false;
+          for (var n in management[key]) {
+            var refArray = management[key][n].RefNonRuleId;
+            for (var ref in refArray) {
+              currentRef.push(refArray[ref]);
             }
-            var translateKey = RuleUtils.translate(key);
-            var currentRef = [];
-            var tf = false;
-            for (var n in management[key]) {
-                var refArray = management[key][n].RefNonRuleId;
-                for (var ref in refArray) {
-                    currentRef.push(refArray[ref]);
-                }
-                if (!tf) {
-                    var tf = management[key][n].PreventInheritance;
-                }
+            if (!tf) {
+              var tf = management[key][n].PreventInheritance;
             }
-            if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
-                $scope.refNonId[translateKey] = currentRef;
-            }
-            $scope.preventInheritance[translateKey] = tf;
+          }
+          if (typeof currentRef[0] !== 'undefined' && currentRef[0] !== null){
+            $scope.refNonId[translateKey] = currentRef;
+          }
+          $scope.preventInheritance[translateKey] = tf;
         }
 
         self.ruleDisplay = {};
-          var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
-          if (Array.isArray(selfManagement)) {
-              selfManagement.forEach(function (element) {
-                  for (var key in element) {
-                      if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
-                          continue;
-                      }
-                      var translateKey = RuleUtils.translate(key);
-                      var rule = selfManagement[key];
-                      var displayArray = [];
-                      var displayObject = {};
-                      displayObject.ruleId = rule.Rule;
-                      delete rule.Rule;
-                      for (var detail in rule) {
-                          displayObject[detail] = rule[detail];
-                      }
-                      displayObject.originId = idField;
-                      displayArray.push(displayObject);
-                      displayObject = {};
-                      self.ruleDisplay[translateKey] = {};
-                      self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-                  }
-              })
-          } else {
-              for (var key in selfManagement) {
-                  if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
-                      continue;
-                  }
-                  var translateKey = RuleUtils.translate(key);
-                  var rule = selfManagement[key];
-                  if(angular.isArray(rule)) {
-                      // in case we have an array of rules
-                      var displayArray = [];
-                      var displayObject = {};
-                      for (var ruleKey in rule) {
-                          var oneRule = selfManagement[key][ruleKey];
-                          displayObject.ruleId = oneRule.Rule;
-                          delete oneRule.Rule;
-                          for (var detail in oneRule) {
-                              displayObject[detail] = oneRule[detail];
-                          }
-                          displayObject.originId = idField;
-                          displayArray.push(displayObject);
-                          displayObject = {};
-                          self.ruleDisplay[translateKey] = {};
-                          self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-                      }
-                  } else {
-                      // in case we just have one rule (should not happen)
-                      var displayArray = [];
-                      var displayObject = {};
-                      displayObject.ruleId = rule.Rule;
-                      delete rule.Rule;
-                      for (var detail in rule) {
-                          displayObject[detail] = rule[detail];
-                      }
-                      displayObject.originId = idField;
-                      displayArray.push(displayObject);
-                      displayObject = {};
-                      self.ruleDisplay[translateKey] = {};
-                      self.ruleDisplay[translateKey]['displayArray'] = displayArray;
-                  }
+        var selfManagement = self.archiveFields[ARCHIVE_UNIT_MODULE_CONST.MGT_KEY];
+        if (Array.isArray(selfManagement)) {
+          selfManagement.forEach(function (element) {
+            for (var key in element) {
+              if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+                continue;
               }
+              var translateKey = RuleUtils.translate(key);
+              var rule = selfManagement[key];
+              var displayArray = [];
+              var displayObject = {};
+              displayObject.ruleId = rule.Rule;
+              delete rule.Rule;
+              for (var detail in rule) {
+                displayObject[detail] = rule[detail];
+              }
+              displayObject.originId = idField;
+              displayArray.push(displayObject);
+              displayObject = {};
+              self.ruleDisplay[translateKey] = {};
+              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+            }
+          })
+        } else {
+          for (var key in selfManagement) {
+            if(ARCHIVE_UNIT_MODULE_CONST.RULES_CATEGORY_KEYS.indexOf(key) === -1) {
+              continue;
+            }
+            var translateKey = RuleUtils.translate(key);
+            var rule = selfManagement[key];
+            if(angular.isArray(rule)) {
+              // in case we have an array of rules
+              var displayArray = [];
+              var displayObject = {};
+              for (var ruleKey in rule) {
+                var oneRule = selfManagement[key][ruleKey];
+                displayObject.ruleId = oneRule.Rule;
+                delete oneRule.Rule;
+                for (var detail in oneRule) {
+                  displayObject[detail] = oneRule[detail];
+                }
+                displayObject.originId = idField;
+                displayArray.push(displayObject);
+                displayObject = {};
+                self.ruleDisplay[translateKey] = {};
+                self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+              }
+            } else {
+              // in case we just have one rule (should not happen)
+              var displayArray = [];
+              var displayObject = {};
+              displayObject.ruleId = rule.Rule;
+              delete rule.Rule;
+              for (var detail in rule) {
+                displayObject[detail] = rule[detail];
+              }
+              displayObject.originId = idField;
+              displayArray.push(displayObject);
+              displayObject = {};
+              self.ruleDisplay[translateKey] = {};
+              self.ruleDisplay[translateKey]['displayArray'] = displayArray;
+            }
           }
+        }
         for (var key in inheritedRule) {
           var translateKey = RuleUtils.translate(key);
           var rule = inheritedRule[key];
@@ -766,9 +767,42 @@ angular.module('archive.unit')
       angular.forEach($scope.archiveObjectGroups.versions, function(version) {
         var fieldSet = [];
         angular.forEach(version.metadatas, function(value, key) {
-          var fieldSetSecond = buildSingleField(value, key, key, [], ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
-          fieldSetSecond.isChild = false;
-          fieldSet.push(fieldSetSecond);
+
+          if (key === 'PhysicalDimensions') {
+            var allPromises = [];
+            angular.forEach(value, function(value, kind) {
+
+              allPromises.push(uneceMappingService.getDimensionWithDisplayableUnit(value, kind))
+            });
+            $q.all(allPromises).then(
+              function onSuccess(allResolvePromise) {
+                var physicalDimensions = {};
+                angular.forEach(allResolvePromise, function(item) {
+                  physicalDimensions[item.key] = item.value;
+                });
+                var canPush = true;
+                angular.forEach(self.technicalItems[version['DataObjectVersion']], function(value) {
+                  if (value.fieldName === "PhysicalDimensions") {
+                    canPush = false;
+                  }
+                });
+                if (canPush) {
+                  var physicalMetadata = self.technicalItems[version['DataObjectVersion']];
+                  var fieldSetSecond = buildSingleField(physicalDimensions, key, key, [],
+                    ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
+                  fieldSetSecond.isChild = false;
+                  physicalMetadata.push(fieldSetSecond);
+                }
+              }, function onError(error) {
+
+              }
+            );
+
+          } else {
+            var fieldSetSecond = buildSingleField(value, key, key, [], ARCHIVE_UNIT_MODULE_OG_FIELD_LABEL, false);
+            fieldSetSecond.isChild = false;
+            fieldSet.push(fieldSetSecond);
+          }
         });
         self.technicalItems[version['DataObjectVersion']] = fieldSet;
       });
