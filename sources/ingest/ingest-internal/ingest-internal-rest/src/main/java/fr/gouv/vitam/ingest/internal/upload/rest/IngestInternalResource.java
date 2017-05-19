@@ -846,14 +846,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> response = processingClient.executeOperationProcess(containerName, workflowId,
                 logbookTypeProcess.toString(), actionId);
 
-
             // Check global execution status
             String globalExecutionStatus = response.getHeaderString(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS);
 
             if (globalExecutionStatus == null) {
                 throw new IngestInternalException("Global Execution Status not found.");
             }
-
 
             if (isCompletedProcess(ProcessExecutionStatus.valueOf(globalExecutionStatus))) {
                 callLogbookUpdate(client, parameters, fromStatusToStatusCode(response.getStatus()),
