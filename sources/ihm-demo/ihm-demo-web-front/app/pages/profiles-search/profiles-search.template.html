@@ -6,7 +6,7 @@
 
 	<div class="boxSearchWrapper panel panel-default col-md-12">
 		<a class="panel-header" data-target="#boxSearch" data-toggle="collapse">
-			<h2>Contrats d'entrée</h2>
+			<h2>Profils</h2>
 		</a>
 		<div id="boxSearch" class="panel-body panel-collapse collapse in">
 			<form id="boxEntriesSearchForm" class="panel-body panel-collapse collapse in" ng-submit="getList()">
@@ -47,7 +47,7 @@
 		<div id="boxEntriesList" class="panel-body panel-collapse collapse in">
 
 			<dynamic-table custom-fields="ctrl.customFields"
-						   selected-objects="ctrl.selectedObjects"> </dynamic-table>
+						   selected-objects="dynamicTable.selectedObjects"> </dynamic-table>
 
 			<div class="table-responsive">
 				<table class="table highlighted">
@@ -55,7 +55,7 @@
 						<th ng-repeat = "column in ctrl.columnsToDisplay" style="min-width:300px">
 							{{column.label | translate}}
 						</th>
-						<th ng-repeat = "column in ctrl.selectedObjects">
+						<th ng-repeat = "column in dynamicTable.selectedObjects">
 							{{column.label | translate}}
 						</th>
 					</tr>
@@ -71,8 +71,8 @@
 								<i class="material-icons">file_download</i>
 							</a>
 						</td>
-						<td ng-repeat = "column in $ctrl.selectedObjects">
-							<!--{{column}}-->
+						<td ng-repeat = "column in dynamicTable.selectedObjects">
+							<span >{{log[column.id]}}</span>
 						</td>
 					</tr>
 					</tbody>
