@@ -645,7 +645,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private boolean checkIfAUInFilingSchema(MetaDataClient metadataClient, String id) 
         throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException{
         Select select = new Select();
-        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT));
+        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT).setDepthLimit(0));
         JsonNode queryDsl = select.getFinalSelect();
         // if the filing id is in the filing schema
         if (metadataClient.selectUnitbyId(queryDsl, id).get("$hits").get("size").asInt() == 0) {

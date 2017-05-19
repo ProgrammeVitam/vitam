@@ -2221,7 +2221,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     
                     if (filingParentId != null) {
                         select = new Select();
-                        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT));
+                        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT).setDepthLimit(0));
                         queryDsl = select.getFinalSelect();
                         JsonNode res = metaDataClient.selectUnitbyId(queryDsl, filingParentId).get("$results").get(0);
                         
