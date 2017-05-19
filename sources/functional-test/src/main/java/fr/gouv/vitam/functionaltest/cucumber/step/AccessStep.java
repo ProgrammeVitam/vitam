@@ -36,6 +36,8 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -82,6 +84,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
  * step defining access glue
  */
 public class AccessStep {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
 
     private static final String OPERATION_ID = "Operation-Id";
 
@@ -376,6 +380,8 @@ public class AccessStep {
             if (status != null) {
                 results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status.getStatusCode())));
             }
+        } catch (Exception e) {
+            LOGGER.warn("Referetiels collection already imported");
         }
     }
 
