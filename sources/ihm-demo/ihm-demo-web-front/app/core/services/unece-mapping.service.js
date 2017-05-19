@@ -67,7 +67,8 @@ angular.module('core')
       if (!!dimensionKind) {
         translatedKind = $filter('translate')(translateKey + dimensionKind);
       }
-      if (!!dimension.unit) {
+      if (typeof dimension === 'object') {
+
         return initFile()
           .then(
           function onSuccess(response) {
@@ -79,14 +80,14 @@ angular.module('core')
               if (canDoGrammaticalAgreementForUnit(dimension.value)) {
                 return {key: translatedKind, value: dimension.value + ' ' + config[dimension.unit] + 's'};
               } else {
-                return {key: translatedKind, value: dimension.value + ' ' + config[dimension.unit] };
+                return {key: translatedKind, value: dimension.value + ' ' + config[dimension.unit]};
               }
             }
           }, function onError(error) {
             return null;
           });
       } else {
-        return {key: translatedKind, value: dimension.value};
+        return {key: translatedKind, value: dimension};
       }
     };
 
