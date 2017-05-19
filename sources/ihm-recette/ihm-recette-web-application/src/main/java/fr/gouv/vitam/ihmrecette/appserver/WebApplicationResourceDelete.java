@@ -613,8 +613,6 @@ public class WebApplicationResourceDelete {
         response.close();
         response = deleteAccessionRegister();
         response.close();
-        response = deleteRules();
-        response.close();
         return Response.status(Status.OK).build();
     }
 
