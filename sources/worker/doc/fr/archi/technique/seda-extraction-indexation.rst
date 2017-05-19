@@ -47,7 +47,7 @@ Algorithme
 
       1. Extraction des DataObject (Physical et Binary) dans workspace depuis manifest.xml (GUID/DataObject/GUID) (SedaUtils->extractSEDA)
 
-        * En lisant le fichier XML, extraire les DataObject depuis xml (SedaUtils->writeBinaryDataObjectInLocal et extractArchiveUnitToLocalFile)
+        * En lisant le fichier XML, extraire les DataObject depuis xml (SedaUtils->writeDataObjectInLocal et extractArchiveUnitToLocalFile)
         * Mettre en place des MAP utiles
            * Liaisons DataObject -> object (MAP<idDo, path>)
            * Liaisons DataObject <-> ObjectGroup (MAP<idDo, idOg> et MAP<idOg, List<idDo>>)

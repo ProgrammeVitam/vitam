@@ -10,14 +10,14 @@ d'un document SIP.
  de notification est src/main/resources/seda-2.0-main.xsd.
    
  - La génération du fichier XML de la réponse de notification est faite par  l'XML Stream pour les éléments 
- en dehors de ReplyOutcome et par des POJO JAXB pour les éléments à itérer (ArchiveUnit, BinaryDataObject). 
+ en dehors de ReplyOutcome et par des POJO JAXB pour les éléments à itérer (ArchiveUnit, BinaryDataObject, PhysicalDataObject). 
  Les modèles Object Element POJO de ces deux éléments se trouvent dans fr.gouv.vitam.worker.model 
  (DataObjectTypeRoot.java et ArchiveUnitReplyTypeRoot)   
  
  - Handlers: 
   le handler ExtractSedaActionHandler est modifé pour extraire des information nécessaire depuis le SIP pour 
   générer la réponse de notification, à savoir : le map des BDOs et sa version, le json contenant des informations 
-  hors Archive Unit et Binary Data Object de SEDA. 
+  hors Archive Unit et Binary/Physical Data Object de SEDA. 
   
   le handler TransferNotifcationActionHandler est ajouté pour l'opération de création de la réponse de notification : 
   création de fichier XML à partir des données générées dans le workflow, validation du fichier, effectuer la 
