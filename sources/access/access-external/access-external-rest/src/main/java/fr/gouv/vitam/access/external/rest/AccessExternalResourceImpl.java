@@ -100,9 +100,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
-
-    // FIXME P0 : Add a filter to protect the tenantId (check if it exists + return Unauthorized response or so). @see :
-    // AuthorizationFilter
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";

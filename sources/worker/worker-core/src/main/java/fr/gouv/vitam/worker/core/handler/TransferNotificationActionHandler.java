@@ -598,10 +598,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, containerName));
             final JsonNode node = client.selectOperationById(containerName, select.getFinalSelect());
-
-            // FIXME P1 hack since Jackson cannot parse it correctly
-            // RequestResponseOK response = JsonHandler.getFromJsonNode(node, RequestResponseOK.class);
-            // logbookOperation = JsonHandler.getFromJsonNode(response.getResult(), LogbookOperation.class);
             final JsonNode elmt = node.get("$results").get(0);
             if (elmt == null) {
                 LOGGER.error("Error while loading logbook operation: no result");

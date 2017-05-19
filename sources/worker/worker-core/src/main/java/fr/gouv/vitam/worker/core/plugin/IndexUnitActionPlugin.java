@@ -174,7 +174,7 @@ public class IndexUnitActionPlugin extends ActionHandler {
             }
 
         } catch (final MetaDataNotFoundException e) {
-            LOGGER.error("Unit references a non existing unit " + (query != null ? query.toString() : ""));
+            LOGGER.error("Unit references a non existing unit " + query.toString());
             throw new IllegalArgumentException(e);
         } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("Internal Server Error", e);

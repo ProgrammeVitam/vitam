@@ -363,9 +363,7 @@ public class LogbookInternalResourceImpl {
 
             // Get the created logbookOperation and return the response
             final JsonNode result = logbookOperationsClient.selectOperationById(checkOperationGUID.getId(), null);
-            if (checkOperationGUID != null){
-                cleanWorkspace(checkOperationGUID.getId());
-            }
+            cleanWorkspace(checkOperationGUID.getId());
             return Response.ok().entity(RequestResponseOK.getFromJsonNode(result)).build();            
             
         } catch (BadRequestException | LogbookClientBadRequestException e) {            
