@@ -14,9 +14,7 @@
 
     <modules>
       	<module>ingest-internal-common</module>
-      	<module>ingest-internal-model</module>
         <module>ingest-internal-api</module>
-        <module>ingest-internal-core</module>
         <module>ingest-internal-rest</module>
         <module>ingest-internal-client</module>
     </modules>
