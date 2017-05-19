@@ -4,23 +4,13 @@
     <li><a href="#!/admin/workflows">Gestion des opérations</a></li>
   </ol>
 
-  <!-- Pagination -->
-  <div style="text-align: center">
-    <button class="btn btn-default btn-s"
-            ng-disabled="ctrl.currentPage <= 1"
-            ng-click="ctrl.currentPage=ctrl.currentPage-1">Précédent</button>
-    <input ng-model="ctrl.currentPage" style="max-width: 40px">/{{ctrl.resultPages}}
-    <button class="btn btn-default btn-s"
-            ng-disabled="ctrl.currentPage >= ctrl.resultPages"
-            ng-click="ctrl.currentPage=ctrl.currentPage+1">Suivant</button>
-  </div>
-
+  <search-pagination pagination-scope="search.pagination" search-function="getList"></search-pagination>
 
   <div class="panel panel-default col-md-12">
     <span class="panel-header no-toggle">
         <h2>
           Liste des Opérations
-          <span ng-if="ctrl.results == 0 || ctrl.results > 0">({{ctrl.results}})</span>
+          <span ng-if="search.response.totalResult == 0 || search.response.totalResult > 0">({{search.response.totalResult}})</span>
         </h2>
     </span>
 
@@ -32,60 +22,60 @@
             <table class="table">
               <tr>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField = 'operation_id'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField = 'operation_id'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Identifiant de l'opération
-                    <span ng-show="orderByField == 'operation_id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'operation_id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'operation_id' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'operation_id' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField ='processType'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField ='processType'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Catégorie de l'opération
-                    <span ng-show="orderByField == 'processType' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'processType' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'processType' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'processType' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField ='processDate'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField ='processDate'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Date de l'entrée
-                    <span ng-show="orderByField == 'processDate' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'processDate' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'processDate' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'processDate' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField ='executionMode'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField ='executionMode'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Mode d'exécution
-                    <span ng-show="orderByField == 'executionMode' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'executionMode' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'executionMode' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'executionMode' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField ='previousStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField ='previousStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Précédente étape du workflow / étape en cours
-                    <span ng-show="orderByField == 'previousStep' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'previousStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'previousStep' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'previousStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField ='nextStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField ='nextStep'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Prochaine étape du workflow
-                    <span ng-show="orderByField == 'nextStep' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'nextStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'nextStep' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'nextStep' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
-                  <div ng-click="oldOrderBy = orderByField; orderByField = 'stepStatus'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
+                  <a href="" ng-click="oldOrderBy = orderByField; orderByField = 'stepStatus'; oldOrderBy !== orderByField ? reverseSort = false : reverseSort === false ? reverseSort = true : reverseSort = false">
                     Statut
-                    <span ng-show="orderByField == 'stepStatus' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
-                    <span ng-show="orderByField == 'stepStatus' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
-                  </div>
+                  </a>
+                  <span ng-show="orderByField == 'stepStatus' && !reverseSort" class="glyphicon glyphicon-triangle-bottom"></span>
+                  <span ng-show="orderByField == 'stepStatus' && reverseSort" class="glyphicon glyphicon-triangle-top"></span>
                 </th>
                 <th>
                   Actions
                 </th>
               </tr>
 
-              <tbody ng-repeat="operation in operations | orderBy:orderByFunction:reverseSort | startFrom:(ctrl.currentPage-1)*ctrl.itemsPerPage | limitTo:ctrl.itemsPerPage">
+              <tbody ng-repeat="operation in search.response.data | startFrom: startFormat(search.pagination.currentPage, search.pagination.resultPages, search.pagination.itemsPerPage, search.pagination.startOffset) | orderBy:orderByFunction:reverseSort | limitTo:search.pagination.itemsPerPage">
                 <tr class="workflow">
                   <td>{{operation.operation_id}}</td>
                   <td>{{operation.processType}}</td>
